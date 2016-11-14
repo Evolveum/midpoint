@@ -23,6 +23,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -48,19 +50,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * TODO: unify with AssignmentItemDto
@@ -93,6 +82,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private AssignmentEditorDtoType type;
 	private UserDtoStatus status;
 	private AssignmentType oldAssignment;
+	private List<AssignmentsPreviewDto> privilegeLimitationList;
 	private ObjectViewDto<OrgType> tenantRef;
 	private ObjectViewDto<OrgType> orgRef;
 
@@ -145,6 +135,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 		this.attributes = prepareAssignmentAttributes(assignment, pageBase);
 		this.isOrgUnitManager = determineUserOrgRelation(assignment);
+//		this.privilegeLimitationList = getAssignmentPrivileges(assignment);
 	}
 
 	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object, PageBase pageBase) {
@@ -181,6 +172,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 	}
 
+	private List<ObjectReferenceType> getAssignmentPrivilegesList(AssignmentType assignment){
+		List<ObjectReferenceType> list = new ArrayList<>();
+		List<AssignmentSelectorType> assignmentSelectorType = assignment.getLimitTargerContent();
+		return list;
+	}
 	private Boolean determineUserOrgRelation(AssignmentType assignment) {
 		if (!AssignmentEditorDtoType.ORG_UNIT.equals(getType())) {
 			return Boolean.FALSE;
@@ -541,7 +537,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public String getDescription() {
 		return newAssignment.getDescription();
 	}
-	
+
 	public QName getFocusType() {
 		return newAssignment.getFocusType();
 	}
@@ -633,7 +629,19 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         this.simpleView = simpleView;
     }
 
-    @Override
+	public List<AssignmentsPreviewDto> getPrivilegeLimitationList() {
+		return privilegeLimitationList;
+	}
+
+	public void setPrivilegeLimitationList(List<AssignmentsPreviewDto> privilegeLimitationList) {
+		this.privilegeLimitationList = privilegeLimitationList;
+	}
+
+//	private List<AssignmentSelectorType> getAssignmentPrivileges(AssignmentType assignment){
+//
+//
+//	}
+	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;

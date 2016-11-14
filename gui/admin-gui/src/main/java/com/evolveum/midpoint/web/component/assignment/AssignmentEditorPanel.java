@@ -54,6 +54,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -133,16 +134,13 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private IModel<List<ACAttributeDto>> attributesModel;
 	protected WebMarkupContainer headerRow;
 	protected PageBase pageBase;
+	protected List<AssignmentsPreviewDto> privilegesList;
 
-	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
+	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model,
+								 List<AssignmentsPreviewDto> privilegesList, PageBase pageBase) {
 		super(id, model);
 		this.pageBase = pageBase;
-		attributesModel = new LoadableModel<List<ACAttributeDto>>(false) {
-			@Override
-			protected List<ACAttributeDto> load() {
-				return loadAttributes();
-			}
-		};
+		this.privilegesList = privilegesList;
 
 		initLayout();
 	}
@@ -390,7 +388,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 	}
 
-	private void initBodyLayout(WebMarkupContainer body) {
+	protected void initBodyLayout(WebMarkupContainer body) {
 		TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
 				new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
 		description.setEnabled(getModel().getObject().isEditable());
@@ -868,7 +866,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 	}
 
-	private void nameClickPerformed(AjaxRequestTarget target) {
+	protected void nameClickPerformed(AjaxRequestTarget target) {
 		AssignmentEditorDto dto = getModel().getObject();
 		boolean minimized = dto.isMinimized();
 		dto.setMinimized(!minimized);

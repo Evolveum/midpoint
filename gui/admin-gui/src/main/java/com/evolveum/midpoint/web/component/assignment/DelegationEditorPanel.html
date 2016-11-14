@@ -19,31 +19,85 @@
 <wicket:panel>
     <div class="box-header with-border" wicket:id="headerRow">
         <div class="row check-table-header" style="margin-left: 2px;">
-                <input type="checkbox" wicket:id="selected"/>
-                <div class="check-table-label">
-                    <i class="check-table-header-icon" wicket:id="typeImage"></i>
-                    <a class="check-table-header-name" wicket:id="name">
-                        <span class="name" wicket:id="nameLabel"/>
-                    </a>
-                    <i class="check-table-header-additional-icon fa fa-arrow-right text-info" wicket:id="arrowIcon"
-                       style="font-size: 24px; margin-left: 5px; margin-right: 5px;"></i>
-                    <i class="check-table-header-icon" wicket:id="delegatedToImage"></i>
-                    <a class="check-table-header-name" wicket:id="delegatedTo">
-                        <span class="name" wicket:id="delegatedToLabel"/>
-                    </a>
-                </div>
-                </div>
-                <!--<div class="row">-->
-                    <!--<label class="col-sm-1">-->
-                        <!--<wicket:message key="DelegationEditorPanel.from" />-->
-                    <!--</label>-->
-                    <!--<div class="col-sm-5" wicket:id="delegationValidFrom"/>-->
-                    <!--<label class="col-sm-1">-->
-                        <!--<wicket:message key="DelegationEditorPanel.to" />-->
-                    <!--</label>-->
-                    <!--<div class="col-sm-5" wicket:id="delegationValidTo"/>-->
+            <input type="checkbox" wicket:id="selected"/>
+            <div class="check-table-label">
+                <i class="check-table-header-icon" wicket:id="typeImage"></i>
+                <a class="check-table-header-name" wicket:id="name">
+                    <span class="name" wicket:id="nameLabel"/>
+                </a>
+                <i class="check-table-header-additional-icon fa fa-arrow-right text-info" wicket:id="arrowIcon"
+                   style="font-size: 24px; margin-left: 5px; margin-right: 5px;"></i>
+                <i class="check-table-header-icon" wicket:id="delegatedToImage"></i>
+                <a class="check-table-header-name" wicket:id="delegatedTo">
+                    <span class="name" wicket:id="delegatedToLabel"/>
+                </a>
+            </div>
+        </div>
 
-                <!--</div>-->
+    </div>
+    <div class="box-body" wicket:id="body">
+        <div class="container-fluid prism-object">
+
+            <div class="row">
+                <div class="container-fluid prism-container">
+                    <div class="prism-properties">
+
+                        <div>
+                            <div class="row prism-property">
+                                <div class="col-xs-4">
+                                    <span><wicket:message key="AssignmentEditorPanel.description"/></span>
+                                </div>
+                                <div class="col-xs-8">
+                                    <div class="row">
+                                        <div class="col-xs-9">
+                                                <textarea class="form-control input-sm" rows="2"
+                                                          wicket:id="delegationDescription"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stripe">
+                            <div class="row prism-property">
+                                <div class="col-xs-4">
+                                    <span><wicket:message key="ActivationType.validFrom"/></span>
+                                </div>
+                                <div class="col-xs-8">
+                                    <div class="row">
+                                        <div class="col-xs-9">
+                                            <div wicket:id="delegationValidFrom"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="row prism-property">
+                                <div class="col-xs-4">
+                                    <span><wicket:message key="ActivationType.validTo"/></span>
+                                </div>
+                                <div class="col-xs-8">
+                                    <div class="row">
+                                        <div class="col-xs-9">
+                                            <div wicket:id="delegationValidTo"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="row prism-property">
+                                <div wicket:id="privilegesList">
+                                    <div wicket:id="privilege"/>
+                                </div>
+                                <a wicket:id="limitPrivilegesButton" class="btn btn-info"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </wicket:panel>
 </html>

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -81,7 +82,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
     private static final String OPERATION_LOAD_DELEGATED_TO_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedToMeAssignments";
-    private static final String OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST = DOT_CLASS + "loadAssignmentPreviewDtoList";
+    private static final String OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST = DOT_CLASS + "createAssignmentPreviewDtoList";
 
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_TASKS = "tasks";
@@ -162,6 +163,13 @@ public class PageUser extends PageAdminFocus<UserType> {
 
 	@Override
 	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
+        List<AssignmentType> assignments = getObjectWrapper().getObject().asObjectable().getAssignment();
+        List<AssignmentsPreviewDto> privilegesList = new ArrayList<>();
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
+        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
+        for (AssignmentType assignment : assignments){
+            privilegesList.add(createAssignmentsPreviewDto(assignment, task, result));
+        }
         return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this) {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
@@ -190,8 +198,9 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
+
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
-                                        false, PageUser.this);
+                                        false, privilegesList, PageUser.this);
                                 item.add(editor);
                             }
 

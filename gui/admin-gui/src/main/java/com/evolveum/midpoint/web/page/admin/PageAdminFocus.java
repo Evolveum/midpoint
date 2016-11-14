@@ -892,6 +892,15 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				evaluatedAbstractRole.getAssignment(), task, result);
 	}
 
+	protected AssignmentsPreviewDto createAssignmentsPreviewDto(ObjectReferenceType reference,
+																Task task, OperationResult result) {
+		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceRaw(reference,
+				PageAdminFocus.this, task, result);
+
+		return createAssignmentsPreviewDto(targetObject, true,
+				null, task, result);
+	}
+
 	protected AssignmentsPreviewDto createAssignmentsPreviewDto(AssignmentType assignment,
 			Task task, OperationResult result) {
 		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceRaw(assignment.getTargetRef(),
@@ -956,7 +965,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			return PolyString.getOrig(object.getName());
 		}
 	}
-	
+
 	private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedConstruction evaluatedConstruction) {
 		AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
 		PrismObject<ResourceType> resource = evaluatedConstruction.getResource();
