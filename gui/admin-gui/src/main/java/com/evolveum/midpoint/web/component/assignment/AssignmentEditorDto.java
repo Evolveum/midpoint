@@ -135,7 +135,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 		this.attributes = prepareAssignmentAttributes(assignment, pageBase);
 		this.isOrgUnitManager = determineUserOrgRelation(assignment);
-//		this.privilegeLimitationList = getAssignmentPrivileges(assignment);
+//		this.privilegeLimitationList = getAssignmentPrivilegesList(assignment);
 	}
 
 	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object, PageBase pageBase) {
@@ -174,8 +174,8 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 	private List<ObjectReferenceType> getAssignmentPrivilegesList(AssignmentType assignment){
 		List<ObjectReferenceType> list = new ArrayList<>();
-		List<AssignmentSelectorType> assignmentSelectorType = assignment.getLimitTargerContent();
-		return list;
+		AssignmentSelectorType assignmentSelectorType = assignment.getLimitTargetContent();
+		return assignmentSelectorType != null ? assignmentSelectorType.getTargetRef() : new ArrayList<>();
 	}
 	private Boolean determineUserOrgRelation(AssignmentType assignment) {
 		if (!AssignmentEditorDtoType.ORG_UNIT.equals(getType())) {

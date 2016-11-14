@@ -185,7 +185,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         };
         body.add(privilegesList);
 
-        AjaxButton limitPrivilegesButton = new AjaxButton(ID_LIMIT_PRIVILEGES_BUTTON, pageBase.createStringResource("")) {
+        AjaxButton limitPrivilegesButton = new AjaxButton(ID_LIMIT_PRIVILEGES_BUTTON,
+                pageBase.createStringResource("DelegationEditorPanel.limitPrivilegesButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
 //                super.onSubmit(target, form);
