@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -33,26 +34,32 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 
     Class<O> getObjectTypeClass();
 
-    public PrismObject<O> getObjectOld();
+    PrismObject<O> getObjectOld();
 
-	public void setObjectOld(PrismObject<O> objectOld);
+	void setObjectOld(PrismObject<O> objectOld);
 	
-	public PrismObject<O> getObjectNew();
+	PrismObject<O> getObjectNew();
 	
-	public void setObjectNew(PrismObject<O> objectNew);
+	void setObjectNew(PrismObject<O> objectNew);
 	
-	public ObjectDelta<O> getPrimaryDelta();
+	ObjectDelta<O> getPrimaryDelta();
 	
-	public void setPrimaryDelta(ObjectDelta<O> primaryDelta);
+	void setPrimaryDelta(ObjectDelta<O> primaryDelta);
 
 	void addPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
 	
-	public ObjectDelta<O> getSecondaryDelta();
+	ObjectDelta<O> getSecondaryDelta();
 	
-	public void setSecondaryDelta(ObjectDelta<O> secondaryDelta);
+	void setSecondaryDelta(ObjectDelta<O> secondaryDelta);
 
-    public List<? extends ObjectDeltaOperation> getExecutedDeltas();
+    List<? extends ObjectDeltaOperation> getExecutedDeltas();
 
-    public String getOid();
+    String getOid();
+    
+    /**
+	 * Returns all policy rules that apply to this object - even those that were not triggered.
+	 * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
+	 */
+	Collection<EvaluatedPolicyRule> getPolicyRules();
 
 }

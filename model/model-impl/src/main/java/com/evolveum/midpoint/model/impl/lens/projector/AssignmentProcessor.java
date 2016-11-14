@@ -43,7 +43,6 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.PolicyConstraintKind;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
@@ -123,6 +122,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyCo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -1526,7 +1526,7 @@ public class AssignmentProcessor {
 		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
 			ObjectReferenceType targetRef = exclusionA.getTargetRef();
 			if (roleB.getOid().equals(targetRef.getOid())) {
-				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKind.EXCLUSION, exclusionA,
+				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.EXCLUSION, exclusionA,
 						"Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
 						", they cannot be assigned at the same time");
 				assignmentA.triggerConstraint(null, trigger); 
@@ -1574,7 +1574,7 @@ public class AssignmentProcessor {
 							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
 							// Complain only if the situation is getting worse
 							if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKind.MIN_ASSIGNEES,
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MIN_ASSIGNEES,
 										constraint, ""+target+" requires at least "+multiplicity+
 										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
 								assignment.triggerConstraint(policyRule, trigger);
@@ -1585,7 +1585,7 @@ public class AssignmentProcessor {
 							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
 							// Complain only if the situation is getting worse
 							if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKind.MAX_ASSIGNEES,
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MAX_ASSIGNEES,
 										constraint, ""+target+" requires at most "+multiplicity+
 										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
 								assignment.triggerConstraint(policyRule, trigger);

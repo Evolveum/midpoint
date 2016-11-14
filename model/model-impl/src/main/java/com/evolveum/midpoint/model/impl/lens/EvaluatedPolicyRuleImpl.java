@@ -20,7 +20,6 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.PolicyConstraintKind;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -50,6 +49,13 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyRuleType.getName();
 	}
 	
+	
+	
+	@Override
+	public PolicyRuleType getPolicyRule() {
+		return policyRuleType;
+	}
+
 	@Override
 	public PolicyConstraintsType getPolicyConstraints() {
 		return policyRuleType.getPolicyConstraints();

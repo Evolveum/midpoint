@@ -20,8 +20,10 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * @author semancik
@@ -32,6 +34,8 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	Collection<EvaluatedPolicyRuleTrigger> getTriggers();
 
 	String getName();
+	
+	PolicyRuleType getPolicyRule();
 	
 	PolicyConstraintsType getPolicyConstraints();
 	
