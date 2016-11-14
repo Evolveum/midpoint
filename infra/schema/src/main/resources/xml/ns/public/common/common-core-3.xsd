@@ -2981,7 +2981,7 @@
 		        </xsd:annotation>			
 			</xsd:element>
 			
-			<xsd:element name="limitTargerContent" type="tns:AssignmentSelectorType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="limitTargetContent" type="tns:AssignmentSelectorType" minOccurs="0" maxOccurs="1">
 		        <xsd:annotation>
 		            <xsd:documentation>
 		                Limitations that selects only some assignments/inducements from the target. It may be used to

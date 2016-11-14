@@ -749,16 +749,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 	
 	private boolean isAllowedByLimitations(AssignmentPathSegment assignmentPathSegment, AssignmentType roleInducement) {
-		List<AssignmentSelectorType> limitations = assignmentPathSegment.getAssignment().getLimitTargerContent();
-		if (limitations == null || limitations.isEmpty()) {
+		AssignmentSelectorType limitation = assignmentPathSegment.getAssignment().getLimitTargetContent();
+		if (limitation == null) {
 			return true;
 		}
-		for (AssignmentSelectorType limitation: limitations) {
-			if (FocusTypeUtil.selectorMatches(limitation, roleInducement)) {
-				return true;
-			}
-		}
-		return false;
+		return FocusTypeUtil.selectorMatches(limitation, roleInducement);
 	}
 
 	private QName getTargetType(AssignmentPathSegment assignmentPathSegment){
