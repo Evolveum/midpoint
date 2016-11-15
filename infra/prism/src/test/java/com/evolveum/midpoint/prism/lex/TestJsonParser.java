@@ -19,4 +19,8 @@ public class TestJsonParser  extends AbstractLexicalProcessorTest {
 		return new JsonLexicalProcessor();
 	}
 
+	@Override
+	protected String getWhenItemSerialized() {
+		return "\"when\" : \"2012-02-24T10:48:52.000Z\"";
+	}
 }

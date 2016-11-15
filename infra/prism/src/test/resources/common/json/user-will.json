@@ -12,7 +12,7 @@
       "intType" : [ 42 ],
       "integerType" : [ 19134702400093278081449423917 ],
       "longType" : [ 299792458 ],
-      "dateType" : [ 170721000000 ],
+      "dateType" : [ "1975-05-30T22:30:00Z" ],
       "durationType" : [ "P17Y3M2D" ],
       "locations" : [ {
         "location" : [ {

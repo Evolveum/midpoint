@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
@@ -105,6 +106,7 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
 		module.addSerializer(ItemPath.class, new ItemPathSerializer());
 		module.addSerializer(ItemPathType.class, new ItemPathTypeSerializer());
+		module.addSerializer(XMLGregorianCalendar.class, new XmlGregorianCalendarSerializer());
 //		module.addSerializer(Element.class, new DomElementJsonSerializer());
 //		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
 		return module;
