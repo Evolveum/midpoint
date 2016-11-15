@@ -34,7 +34,7 @@ user:
     description: "Assignment II"
     accountConstruction:
       howto: "Whatever"
-      when: 1330080532000
+      when: "2012-02-24T10:48:52.000Z"
       value:
       - ABC
       - fullName : Nobody

@@ -20,8 +20,10 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.PredefinedPolicySituaion;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
@@ -78,7 +80,34 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	@Override
 	public String getPolicySituation() {
 		// TODO default situations depending on getTriggeredConstraintKinds
-		return policyRuleType.getPolicySituation();
+		if (policyRuleType.getPolicySituation() != null) {
+			return policyRuleType.getPolicySituation();
+		}
+		
+		if (!triggers.isEmpty()) {
+			EvaluatedPolicyRuleTrigger firstTrigger = triggers.iterator().next();
+			PolicyConstraintKindType constraintKind = firstTrigger.getConstraintKind();
+			PredefinedPolicySituaion predefSituation = PredefinedPolicySituaion.get(constraintKind);
+			return predefSituation.getUrl();
+		}
+		
+		PolicyConstraintsType policyConstraints = getPolicyConstraints();
+		if (policyConstraints.getExclusion() != null) {
+			return PredefinedPolicySituaion.EXCLUSION_VIOLATION.getUrl();
+		}
+		if (policyConstraints.getMinAssignees() != null) {
+			return PredefinedPolicySituaion.UNDERASSIGNED.getUrl();
+		}
+		if (policyConstraints.getMaxAssignees() != null) {
+			return PredefinedPolicySituaion.OVERASSIGNED.getUrl();
+		}
+		if (policyConstraints.getModification() != null) {
+			return PredefinedPolicySituaion.MODIFIED.getUrl();
+		}
+		if (policyConstraints.getAssignment() != null) {
+			return PredefinedPolicySituaion.ASSIGNED.getUrl();
+		}
+		return null;
 	}
 
 	@Override
