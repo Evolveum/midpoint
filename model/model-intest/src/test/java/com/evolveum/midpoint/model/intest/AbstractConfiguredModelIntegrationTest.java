@@ -230,6 +230,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final File ROLE_CYAN_SAILOR_FILE = new File(COMMON_DIR, "role-cyan-sailor.xml");
 	protected static final String ROLE_CYAN_SAILOR_OID = "d3abd794-9c30-11e6-bb5a-af14bf2cc29b";
+	
+	protected static final File ROLE_DRINKER_FILE = new File(COMMON_DIR, "role-drinker.xml");
+	protected static final String ROLE_DRINKER_OID = "0abbde4c-ab3f-11e6-910d-d7dabf5f09f0";
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
