@@ -107,7 +107,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_ACTIVATION = "activation";
 	private static final String ID_ACTIVATION_BLOCK = "activationBlock";
 	private static final String ID_EXPAND = "expand";
-	private static final String ID_BODY = "body";
+	protected static final String ID_BODY = "body";
 	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_RELATION_CONTAINER = "relationContainer";
 	private static final String ID_FOCUS_TYPE = "focusType";
@@ -950,4 +950,5 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 		return UserDtoStatus.ADD.equals(getModelObject().getStatus());
 	}
+
 }

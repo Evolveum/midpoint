@@ -910,6 +910,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		dto.setTargetName(getNameToDisplay(targetObject));
 		dto.setTargetDescription(targetObject.asObjectable().getDescription());
 		dto.setTargetClass(targetObject.getCompileTimeClass());
+        dto.setTargetType(WebComponentUtil.classToQName(getPrismContext(), targetObject.getCompileTimeClass()));
 		dto.setDirect(isDirectlyAssigned);
 		if (assignment != null) {
 			if (assignment.getTenantRef() != null) {
