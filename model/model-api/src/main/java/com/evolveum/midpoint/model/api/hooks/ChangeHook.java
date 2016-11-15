@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.api.hooks;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,7 +49,7 @@ public interface ChangeHook {
      *   - ERROR, if the hook encountered an error which prevents model operation from continuing
      *     (this case is currently not defined very well)
      */
-    <O extends ObjectType> HookOperationMode invoke(ModelContext<O> context, Task task, OperationResult result);
+    <O extends ObjectType> HookOperationMode invoke(ModelContext<O> context, Task task, OperationResult result) throws PolicyViolationException;
 
     /**
      * This method is invoked by the clockwork when an exception occurs.

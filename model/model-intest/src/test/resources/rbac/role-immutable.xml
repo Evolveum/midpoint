@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2016 Evolveum
+  ~ Copyright (c) 2015-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,37 +13,22 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="12345678-d34d-b33f-f00d-555555557706"
+<role oid="e53baf94-aa99-11e6-962a-5362ec2dd7df"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Cannibal</name>
+    <name>Immetable</name>
+    <description>Role that cannot be modified because there is a modification rule with enforcement action.</description>
     <assignment>
     	<policyRule>
-    		<name>cannibals must live</name>
+    		<name>immutable</name>
     		<policyConstraints>
-    			<minAssignees>
-		    		<multiplicity>2</multiplicity>
-		    	</minAssignees>
-		    	<maxAssignees>
-		    		<multiplicity>3</multiplicity>
-		    	</maxAssignees>
-    		</policyConstraints>
+		    	<modification/>
+		    </policyConstraints>
+		    <policyActions>
+		    	<enforcement/>
+		    </policyActions>
     	</policyRule>
     </assignment>
-    <inducement id="1111">
-    	<construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
-                <ref>ri:title</ref>
-                <outbound>
-                	<expression>
-                		<value>Voracious Cannibal</value>
-					</expression>
-				</outbound>
-            </attribute>
-    	</construction>
-    </inducement>
 </role>

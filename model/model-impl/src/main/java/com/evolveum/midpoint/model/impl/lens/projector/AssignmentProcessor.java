@@ -42,7 +42,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.PolicyConstraintKind;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
@@ -122,6 +122,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyCo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -1522,17 +1523,16 @@ public class AssignmentProcessor {
 	}
 
 	private <F extends FocusType> void checkExclusionOneWay(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		PolicyConstraintsType policyConstraints = roleA.getPolicyConstraints();
-		if (policyConstraints != null) {
-			for (ExclusionPolicyConstraintType exclusionA : policyConstraints.getExclusion()) {
-				ObjectReferenceType targetRef = exclusionA.getTargetRef();
-				if (roleB.getOid().equals(targetRef.getOid())) {
-					assignmentA.triggerConstraint(null, exclusionA, PolicyConstraintKind.EXCLUSION, 
-							"Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
-							", they cannot be assigned at the same time");
-				}
+		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
+			ObjectReferenceType targetRef = exclusionA.getTargetRef();
+			if (roleB.getOid().equals(targetRef.getOid())) {
+				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.EXCLUSION, exclusionA,
+						"Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
+						", they cannot be assigned at the same time");
+				assignmentA.triggerConstraint(null, trigger); 
+						
 			}
-		}		
+		}
 	}
 	
 	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context,
@@ -1574,18 +1574,22 @@ public class AssignmentProcessor {
 							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
 							// Complain only if the situation is getting worse
 							if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
-								assignment.triggerConstraint(policyRule, constraint, PolicyConstraintKind.MIN_ASSIGNEES, 
-										""+target+" requires at least "+multiplicity+
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MIN_ASSIGNEES,
+										constraint, ""+target+" requires at least "+multiplicity+
 										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
+								assignment.triggerConstraint(policyRule, trigger);
+										
 							}
 						}
 						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
 							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
 							// Complain only if the situation is getting worse
 							if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
-								assignment.triggerConstraint(policyRule, constraint, PolicyConstraintKind.MAX_ASSIGNEES,
-										""+target+" requires at most "+multiplicity+
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MAX_ASSIGNEES,
+										constraint, ""+target+" requires at most "+multiplicity+
 										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
+								assignment.triggerConstraint(policyRule, trigger);
+										
 							}
 						}
 					}

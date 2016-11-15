@@ -15,10 +15,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.PolicyConstraintKind;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -32,10 +33,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final long serialVersionUID = 1L;
 
 	private PolicyRuleType policyRuleType;
+	private Collection<EvaluatedPolicyRuleTrigger> triggers;
 
 	public EvaluatedPolicyRuleImpl(PolicyRuleType policyRuleType) {
 		super();
 		this.policyRuleType = policyRuleType;
+		this.triggers = new ArrayList<>();
 	}
 
 	@Override
@@ -46,15 +49,25 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyRuleType.getName();
 	}
 	
+	
+	
+	@Override
+	public PolicyRuleType getPolicyRule() {
+		return policyRuleType;
+	}
+
 	@Override
 	public PolicyConstraintsType getPolicyConstraints() {
 		return policyRuleType.getPolicyConstraints();
 	}
 
 	@Override
-	public Collection<PolicyConstraintKind> getTriggeredConstraintKinds() {
-		// TODO Auto-generated method stub
-		return null;
+	public Collection<EvaluatedPolicyRuleTrigger> getTriggers() {
+		return triggers;
+	}
+	
+	public void addTrigger(EvaluatedPolicyRuleTrigger trigger) {
+		triggers.add(trigger);
 	}
 
 	@Override
@@ -73,8 +86,54 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRule", indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "policyRuleType", policyRuleType.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "policyRuleType", policyRuleType.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "triggers", triggers, indent + 1);
 		return sb.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((policyRuleType == null) ? 0 : policyRuleType.hashCode());
+		result = prime * result + ((triggers == null) ? 0 : triggers.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		EvaluatedPolicyRuleImpl other = (EvaluatedPolicyRuleImpl) obj;
+		if (policyRuleType == null) {
+			if (other.policyRuleType != null) {
+				return false;
+			}
+		} else if (!policyRuleType.equals(other.policyRuleType)) {
+			return false;
+		}
+		if (triggers == null) {
+			if (other.triggers != null) {
+				return false;
+			}
+		} else if (!triggers.equals(other.triggers)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "EvaluatedPolicyRuleImpl(" + getName() + ")";
+	}
+	
+	
 
 }

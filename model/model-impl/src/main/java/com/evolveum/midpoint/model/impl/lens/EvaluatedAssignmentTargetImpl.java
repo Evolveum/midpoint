@@ -15,6 +15,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -22,7 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * @author semancik
@@ -34,6 +40,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	private boolean directlyAssigned;
 	private boolean evaluateConstructions;
 	private AssignmentType assignment;
+	private Collection<ExclusionPolicyConstraintType> exclusions = null;
 
 	@Override
 	public PrismObject<? extends FocusType> getTarget() {
@@ -75,26 +82,39 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		return target.getOid();
 	}
 
-	public PolicyConstraintsType getPolicyConstraints() {
-		FocusType focusType = target.asObjectable();
-		if (focusType instanceof AbstractRoleType) {
-			AbstractRoleType roleType = (AbstractRoleType)focusType;
-			PolicyConstraintsType constraints = roleType.getPolicyConstraints();
-			if (roleType.getExclusion().isEmpty()) {
-				return constraints;
+	public Collection<ExclusionPolicyConstraintType> getExclusions() {
+		if (exclusions == null) {
+			exclusions = new ArrayList<>();
+
+			FocusType focusType = target.asObjectable();
+			if (focusType instanceof AbstractRoleType) {
+				AbstractRoleType roleType = (AbstractRoleType)focusType;
+				
+				// legacy (very old)
+				for (ExclusionPolicyConstraintType exclusionType: roleType.getExclusion()) {
+					exclusions.add(exclusionType);
+				}
+				
+				// legacy
+				PolicyConstraintsType constraints = roleType.getPolicyConstraints();
+				if (constraints != null) {
+					for (ExclusionPolicyConstraintType exclusionType: constraints.getExclusion()) {
+						exclusions.add(exclusionType);
+					}
+				}
+				
+				for (AssignmentType assignmentInTarget: target.asObjectable().getAssignment()) {
+					PolicyRuleType policyRule = assignmentInTarget.getPolicyRule();
+					if (policyRule != null && policyRule.getPolicyConstraints() != null) {
+						for (ExclusionPolicyConstraintType exclusionType: policyRule.getPolicyConstraints().getExclusion()) {
+							exclusions.add(exclusionType);
+						}
+					}
+				}
 			}
-			if (constraints == null) {
-				constraints = new PolicyConstraintsType();
-				roleType.setPolicyConstraints(constraints);
-			}
-			for (ExclusionPolicyConstraintType exclusion: roleType.getExclusion()) {
-				constraints.getExclusion().add(exclusion.clone());
-			}
-			roleType.getExclusion().clear();
-			return constraints;
-		} else {
-			return null;
+		
 		}
+		return exclusions; 
 	}
 
 	@Override

@@ -190,6 +190,20 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		}
 		return false;
 	}
+	
+	public boolean hasAnyDelta() {
+		if (getPrimaryDelta() != null && !getPrimaryDelta().isEmpty()) {
+			return true;
+		}
+		if (secondaryDeltas != null) {
+			for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
+				if (waveSecondaryDelta != null && !waveSecondaryDelta.isEmpty()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
      * Returns user delta, both primary and secondary (merged together) for a current wave.

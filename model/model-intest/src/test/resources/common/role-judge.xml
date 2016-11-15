@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,25 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    <name>Judge</name>    
+    <name>Judge</name>
+    <description>Role with role exclusions</description>
+    <assignment>
+    	<policyRule>
+    		<name>criminal exclusion</name>
+    		<policyConstraints>
+		    	<exclusion>
+			    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
+			    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+		    	</exclusion>
+		    	<exclusion>
+			    	<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
+		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<enforcement/>
+		    </policyActions>
+    	</policyRule>
+    </assignment>    
     <inducement id="1111">
     	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
@@ -43,15 +61,5 @@
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#punish</action>
     </authorization>
-    <policyConstraints>
-    	<exclusion>
-	    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
-	    	<enforcement>enforce</enforcement>
-	    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
-    	</exclusion>
-    	<exclusion>
-	    	<enforcement>enforce</enforcement>
-	    	<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
-    	</exclusion>
-    </policyConstraints>
+    
 </role>
