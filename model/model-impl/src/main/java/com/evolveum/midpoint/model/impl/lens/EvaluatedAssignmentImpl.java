@@ -81,6 +81,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
 	private boolean presentInCurrentObject;
 	private boolean presentInOldObject;
+	private Collection<String> policySituations = new ArrayList<>();
 
 	public EvaluatedAssignmentImpl() {
 		constructions = new DeltaSetTriple<>();
@@ -310,6 +311,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@Override
+	public Collection<String> getPolicySituations() {
+		return policySituations;
+	}
+
+	@Override
 	public void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
 
 		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
@@ -323,7 +329,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		} else {
 
 			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
-			
+			String policySituation = rule.getPolicySituation();
+			if (policySituation != null) {
+				policySituations.add(policySituation);
+			}
 		}
 		
 	}
