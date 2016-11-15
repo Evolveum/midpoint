@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.configuration.Configuration;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -98,7 +99,7 @@ public class SystemConfigurationHandler implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(ModelContext<O> context, Task task, OperationResult parentResult) {
+    public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult parentResult) {
 
         ModelState state = context.getState();
         if (state != ModelState.FINAL) {
@@ -169,7 +170,7 @@ public class SystemConfigurationHandler implements ChangeHook {
     }
 
     @Override
-    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
+    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // do nothing
     }
 }

@@ -68,6 +68,12 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
         }
     }
 
+    public ApprovalRequestImpl(I itemToApprove, ApprovalSchemaType approvalSchema, PrismContext prismContext) {
+        this(itemToApprove, prismContext);
+        setApprovalSchema(new ApprovalSchemaImpl(approvalSchema, prismContext));
+    }
+
+
     public ApprovalRequestImpl(SerializationSafeContainer itemToApproveWrapped, PcpAspectConfigurationType config, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
         this(itemToApproveWrapped, prismContext);
         setSchemaFromConfigAndParameters(config, approvalSchema, approverRef, approverExpression, automaticallyApproved, prismContext);

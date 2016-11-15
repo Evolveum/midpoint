@@ -548,4 +548,16 @@ public class DebugUtil {
 		});
 		return sb.toString();
 	}
+
+	public static Object debugDumpLazily(DebugDumpable dumpable) {
+		if (dumpable == null) {
+			return null;
+		}
+		return new Object() {
+			@Override
+			public String toString() {
+				return dumpable.debugDump();
+			}
+		};
+	}
 }

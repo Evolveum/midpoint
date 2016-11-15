@@ -332,28 +332,28 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		newValue.recompute();
 	}
 	
-	public boolean removeValueToAdd(V valueToRemove) {
+	public boolean removeValueToAdd(PrismValue valueToRemove) {
 		return removeValue(valueToRemove, valuesToAdd);
 	}
 	
-	public boolean removeValueToDelete(V valueToRemove) {
+	public boolean removeValueToDelete(PrismValue valueToRemove) {
 		return removeValue(valueToRemove, valuesToDelete);
 	}
 	
-	public boolean removeValueToReplace(V valueToRemove) {
+	public boolean removeValueToReplace(PrismValue valueToRemove) {
 		return removeValue(valueToRemove, valuesToReplace);
 	}
 	
-	private boolean removeValue(V valueToRemove, Collection<V> set) {
+	private boolean removeValue(PrismValue valueToRemove, Collection<V> set) {
 		boolean removed = false;
 		if (set == null) {
 			return removed;
 		}
-		Iterator<V> valuesToReplaceIterator = set.iterator();
-		while (valuesToReplaceIterator.hasNext()) {
-			V valueToReplace = valuesToReplaceIterator.next();
+		Iterator<V> valuesIterator = set.iterator();
+		while (valuesIterator.hasNext()) {
+			V valueToReplace = valuesIterator.next();
 			if (valueToReplace.equalsRealValue(valueToRemove)) {
-				valuesToReplaceIterator.remove();
+				valuesIterator.remove();
 				removed = true;
 			}
 		}

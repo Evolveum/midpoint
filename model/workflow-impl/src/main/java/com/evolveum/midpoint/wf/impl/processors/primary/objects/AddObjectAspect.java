@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,11 +57,12 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
     protected abstract Class<T> getObjectClass();
     protected abstract String getObjectLabel(T object);
 
-    @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext,
+    @NotNull
+	@Override
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
                                                                                PrimaryChangeProcessorConfigurationType wfConfigurationType,
-                                                                               ObjectTreeDeltas objectTreeDeltas,
-                                                                               Task taskFromModel, OperationResult result) throws SchemaException {
+                                                                               @NotNull ObjectTreeDeltas objectTreeDeltas,
+                                                                               @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         if (config == null) {
             return null;            // this should not occur (because this aspect is not enabled by default), but check it just to be sure

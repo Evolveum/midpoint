@@ -25,6 +25,7 @@ import com.evolveum.midpoint.wf.impl.processors.general.scenarios.DefaultGcpScen
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.GcpScenarioBean;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -99,7 +100,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     //region Processing model invocation
     @Override
-    public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException {
+    public HookOperationMode processModelInvocation(@NotNull ModelContext context, WfConfigurationType wfConfigurationType, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
 
         if (wfConfigurationType != null && wfConfigurationType.getGeneralChangeProcessor() != null && Boolean.FALSE.equals(wfConfigurationType.getGeneralChangeProcessor().isEnabled())) {
             LOGGER.trace("{} is disabled", getBeanName());

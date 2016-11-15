@@ -32,6 +32,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;
@@ -1556,5 +1557,45 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public static boolean isNullOrEmpty(ObjectDelta delta) {
         return delta == null || delta.isEmpty();
     }
+
+	/**
+	 * Checks if the delta tries to add (or set) a 'value' for the item identified by 'itemPath'. If yes, it removes it.
+	 *
+	 * @param itemPath
+	 * @param value
+	 * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
+	 */
+    public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value) {
+		if (isAdd()) {
+			return subtractFromObject(objectToAdd, itemPath, value);
+		} else {
+			return subtractFromModifications(modifications, itemPath, value);
+		}
+	}
+
+	public static boolean subtractFromModifications(Collection<? extends ItemDelta<?, ?>> modifications, @NotNull ItemPath itemPath,
+			@NotNull PrismValue value) {
+		if (modifications == null) {
+			return false;
+		}
+		boolean removed = false;
+		for (ItemDelta<?, ?> itemDelta : modifications) {
+			if (itemPath.equivalent(itemDelta.getPath())) {
+				boolean removed1 = itemDelta.removeValueToAdd(value);
+				boolean removed2 = itemDelta.removeValueToReplace(value);
+				removed = removed || removed1 || removed2;
+			}
+		}
+		return removed;
+	}
+
+	public static boolean subtractFromObject(@NotNull PrismObject<?> object, @NotNull ItemPath itemPath, @NotNull PrismValue value) {
+		Item<PrismValue, ItemDefinition> item = object.findItem(itemPath);
+		if (item == null) {
+			return false;
+		}
+		return item.remove(value);
+	}
+
 
 }

@@ -49,6 +49,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -115,7 +116,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Processing model invocation
 
     @Override
-    public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result)
+    public HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
+			@NotNull Task taskFromModel, @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 
         if (context.getState() != PRIMARY || context.getFocusContext() == null) {
@@ -150,9 +152,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, wfConfigurationType, result);
     }
 
-	private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(ModelContext<? extends ObjectType> context,
-			PrimaryChangeProcessorConfigurationType processorConfigurationType, ObjectTreeDeltas changesBeingDecomposed, Task taskFromModel,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(@NotNull ModelContext<? extends ObjectType> context,
+			PrimaryChangeProcessorConfigurationType processorConfigurationType, @NotNull ObjectTreeDeltas changesBeingDecomposed,
+			@NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         List<PcpChildWfTaskCreationInstruction> startProcessInstructions = new ArrayList<>();
         for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
