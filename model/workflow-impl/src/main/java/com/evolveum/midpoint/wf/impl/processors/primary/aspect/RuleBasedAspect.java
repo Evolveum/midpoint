@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -45,9 +46,11 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectName;
@@ -79,7 +82,7 @@ public abstract class RuleBasedAspect extends BasePrimaryChangeAspect {
             PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
             @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
 
-		List<ApprovalRequest<AssignmentType>> requests = new ArrayList<>();
+		List<ApprovalRequest<?>> requests = new ArrayList<>();
 
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) modelContext).getEvaluatedAssignmentTriple();
 		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
@@ -107,55 +110,115 @@ public abstract class RuleBasedAspect extends BasePrimaryChangeAspect {
 				throw new IllegalStateException("Assignment with a value of " + assignmentValue.debugDump()
 						+ " was not found in deltas: " + objectTreeDeltas.debugDump());
 			}
-			requests.add(createAssignmentApprovalRequest(newAssignment, approvalActions));
+			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions);
+
         }
         return prepareTaskInstructions(modelContext, taskFromModel, result, requests);
     }
 
 	private ApprovalRequest<AssignmentType> createAssignmentApprovalRequest(EvaluatedAssignment<?> newAssignment,
 			List<ApprovalPolicyActionType> approvalActions) {
-		ApprovalSchemaType approvalSchema = new ApprovalSchemaType(prismContext);
+		ApprovalSchemaType approvalSchema = null;
 		for (ApprovalPolicyActionType action : approvalActions) {
-
+            if (action.getApprovalSchema() != null) {
+                approvalSchema = mergeIntoSchema(approvalSchema, action.getApprovalSchema());
+            } else {
+                approvalSchema = mergeIntoSchema(approvalSchema, action.getApproverExpression(), action.getAutomaticallyApproved());
+            }
 		}
+		assert approvalSchema != null;
 		return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext);
 	}
 
+	@NotNull
+	private ApprovalSchemaType mergeIntoSchema(ApprovalSchemaType existing, @NotNull ApprovalSchemaType newSchema) {
+        if (existing == null) {
+            ApprovalSchemaType cloned = newSchema.clone();
+            fixOrders(cloned);
+            return cloned;
+        }
+
+        int maxOrderExisting = getMaxOrder(existing).orElse(0);
+        for (ApprovalLevelType level : newSchema.getLevel()) {
+            ApprovalLevelType levelClone = level.clone();
+            if (levelClone.getOrder() != null) {
+                levelClone.setOrder(maxOrderExisting + levelClone.getOrder() + 1);
+            }
+            existing.getLevel().add(levelClone);
+        }
+        fixOrders(existing);
+        return existing;
+    }
+
+    private void fixOrders(ApprovalSchemaType cloned) {
+        int maxOrder = getMaxOrder(cloned).orElse(0);
+        for (ApprovalLevelType level : cloned.getLevel()) {
+            if (level.getOrder() == null) {
+                level.setOrder(++maxOrder);
+            }
+        }
+    }
+
+    private Optional<Integer> getMaxOrder(ApprovalSchemaType schema) {
+        if (schema == null) {
+            return Optional.empty();
+        } else {
+            return schema.getLevel().stream()
+                    .map(ApprovalLevelType::getOrder)
+                    .filter(o -> o != null)
+                    .max(Integer::compare);
+        }
+    }
+
+    private ApprovalSchemaType mergeIntoSchema(ApprovalSchemaType existing, @NotNull List<ExpressionType> approverExpressionList,
+                                       ExpressionType automaticallyApproved) {
+        if (existing == null) {
+            existing = new ApprovalSchemaType(prismContext);
+        }
+        int maxOrderExisting = getMaxOrder(existing).orElse(0);
+
+        ApprovalLevelType level = new ApprovalLevelType(prismContext);
+        level.setOrder(maxOrderExisting + 1);
+        level.getApproverExpression().addAll(approverExpressionList);
+        level.setAutomaticallyApproved(automaticallyApproved);
+        existing.getLevel().add(level);
+        return existing;
+    }
 
     private List<PcpChildWfTaskCreationInstruction> prepareTaskInstructions(ModelContext<?> modelContext, Task taskFromModel,
-            OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
+            OperationResult result, List<ApprovalRequest<?>> approvalRequestList) throws SchemaException {
 
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
-		String assigneeOid = getFocusObjectOid(modelContext);
-        String assigneeName = getFocusObjectName(modelContext);
+		String objectOid = getFocusObjectOid(modelContext);
+        String objectName = getFocusObjectName(modelContext);
         PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
-        for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
+        for (ApprovalRequest<?> approvalRequest : approvalRequestList) {
 
             assert approvalRequest.getPrismContext() != null;
 
             LOGGER.trace("Approval request = {}", approvalRequest);
-            AssignmentType assignmentType = approvalRequest.getItemToApprove();
-            T target = getAssignmentApprovalTarget(assignmentType, result);
+            Serializable itemToApprove = approvalRequest.getItemToApprove();
+            T target = getAssignmentApprovalTarget(itemToApprove, result);
             Validate.notNull(target, "No target in assignment to be approved");
 
             String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
-            String approvalTaskName = "Approve adding " + targetName + " to " + assigneeName;
+            String approvalTaskName = "Approve adding " + targetName + " to " + objectName;
 
             PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
             instruction.prepareCommonAttributes(this, modelContext, requester);
 
-            ObjectDelta<? extends FocusType> delta = assignmentToDelta(modelContext, assignmentType, assigneeOid);
+            ObjectDelta<? extends FocusType> delta = assignmentToDelta(modelContext, itemToApprove, objectOid);
             instruction.setDeltasToProcess(delta);
 
             instruction.setObjectRef(modelContext, result);
             instruction.setTargetRef(createObjectRef(target), result);
 
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-            instruction.setTaskName("Approval " + andExecuting + "of assigning " + targetName + " to " + assigneeName);
-            instruction.setProcessInstanceName("Assigning " + targetName + " to " + assigneeName);
+            instruction.setTaskName("Approval " + andExecuting + "of assigning " + targetName + " to " + objectName);
+            instruction.setProcessInstanceName("Assigning " + targetName + " to " + objectName);
 
             itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
