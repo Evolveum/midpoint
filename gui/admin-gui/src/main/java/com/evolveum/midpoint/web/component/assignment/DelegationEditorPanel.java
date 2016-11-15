@@ -17,23 +17,17 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -65,18 +59,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_LIMIT_PRIVILEGES_BUTTON = "limitPrivilegesButton";
 
     private boolean delegatedToMe;
+    private List<UserType> usersToUpdate;
 
     public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel,
                                  boolean delegatedToMe, List<AssignmentsPreviewDto> privilegesList, PageBase pageBase) {
         super(id, delegationTargetObjectModel, privilegesList, pageBase);
     }
 
-
-//    @Override
-//    protected void initLayout(){
-//        getModelObject().setPrivilegeLimitationList();
-//        super.initLayout();
-//    }
     @Override
     protected void initHeaderRow(){
         AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
@@ -173,13 +162,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(description);
 
         List<String> privilegesNames = new ArrayList<>();
-        privilegesNames = getPrivilagesList();
+        privilegesNames = getPrivilagesNamesList();
         ListView<String> privilegesList = new ListView<String>(ID_PRIVILEGES_LIST, privilegesNames){
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<String> item) {
-                Label privilageNameLabel = new Label(ID_PRIVILEGE, item);
+                Label privilageNameLabel = new Label(ID_PRIVILEGE, item.getModel());
                 item.add(privilageNameLabel);
             }
         };
@@ -195,8 +184,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(limitPrivilegesButton);
     };
 
-    private List<String> getPrivilagesList(){
-        List<AssignmentsPreviewDto> privilegesList = getModel().getObject().getPrivilegeLimitationList();
+    private List<String> getPrivilagesNamesList(){
         List<String> privilegesNamesList = new ArrayList<>();
         if (privilegesList != null){
             for (AssignmentsPreviewDto assignmentsPreviewDto : privilegesList){

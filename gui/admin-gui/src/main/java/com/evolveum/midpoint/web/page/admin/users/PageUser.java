@@ -17,21 +17,23 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -63,9 +66,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -81,7 +82,7 @@ import java.util.List;
 public class PageUser extends PageAdminFocus<UserType> {
 
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
-    private static final String OPERATION_LOAD_DELEGATED_TO_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedToMeAssignments";
+    private static final String OPERATION_LOAD_DELEGATED_TO_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedByMeAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST = DOT_CLASS + "createAssignmentPreviewDtoList";
 
     private static final String ID_TASK_TABLE = "taskTable";
@@ -89,6 +90,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
+    private HashMap<UserType, AssignmentEditorDto> usersToUpdateMap = new HashMap<>();
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
     public PageUser() {
@@ -110,13 +112,13 @@ public class PageUser extends PageAdminFocus<UserType> {
         delegationsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
             @Override
             protected List<AssignmentEditorDto> load() {
-                return loadMyDelegations();
+                return loadDelegatedByMeAssignments();
             }
         };
         delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
             @Override
             protected List<AssignmentEditorDto> load() {
-                return loadDelegatedToMeAssignments();
+                return loadToMeDelegations();
             }
         };
     }
@@ -164,12 +166,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 	@Override
 	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
         List<AssignmentType> assignments = getObjectWrapper().getObject().asObjectable().getAssignment();
-        List<AssignmentsPreviewDto> privilegesList = new ArrayList<>();
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
-        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
-        for (AssignmentType assignment : assignments){
-            privilegesList.add(createAssignmentsPreviewDto(assignment, task, result));
-        }
+        List<AssignmentsPreviewDto> privilegesList = getUserPrivilegesList();
         return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this) {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
@@ -198,7 +195,10 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
+                                List<AssignmentEditorDto> a = delegatedToMeModel.getObject();
+                                if (a != null){
 
+                                }
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
                                         false, privilegesList, PageUser.this);
                                 item.add(editor);
@@ -261,6 +261,40 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                                 return items;
                             }
+
+                            @Override
+                            protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
+                                                                          String popupId) {
+                                ModalWindow window = (ModalWindow) get(popupId);
+                                if (window != null) {
+                                    window.close(target);
+                                }
+                                getPageBase().hideMainPopup(target);
+                                if (newAssignments.isEmpty()) {
+                                    warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
+                                    target.add(getPageBase().getFeedbackPanel());
+                                    return;
+                                }
+
+                                for (ObjectType object : newAssignments) {
+                                    try {
+                                        AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
+                                                    PageUser.this.getObjectWrapper().getObject().asObjectable(),
+                                                    SchemaConstants.ORG_DEPUTY, getPageBase());
+//                                        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
+//                                        assignments.add(dto);
+                                        delegationsModel.getObject().add(dto);
+                                        usersToUpdateMap.put((UserType) object, dto);
+                                    } catch (Exception e) {
+                                        error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
+                                                e.getMessage()));
+                                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
+                                    }
+                                }
+
+                                reloadAssignmentsPanel(target);
+                            }
+
                         };
                     }
 
@@ -276,7 +310,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         };
     }
 
-    private List<AssignmentEditorDto> loadMyDelegations() {
+    private List<AssignmentEditorDto> loadToMeDelegations() {
         List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 
         ObjectWrapper<UserType> focusWrapper = getObjectModel().getObject();
@@ -294,7 +328,7 @@ public class PageUser extends PageAdminFocus<UserType> {
         return list;
     }
 
-    private List<AssignmentEditorDto> loadDelegatedToMeAssignments() {
+    private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {
         OperationResult result = new OperationResult(OPERATION_LOAD_DELEGATED_TO_ME_ASSIGNMENTS);
         List<AssignmentEditorDto> list = new ArrayList<>();
         try{
@@ -329,10 +363,64 @@ public class PageUser extends PageAdminFocus<UserType> {
             result.recomputeStatus();
             showResult(result);
         }
-
-
         Collections.sort(list);
-
         return list;
     }
+
+    private List<AssignmentsPreviewDto> getUserPrivilegesList(){
+        List<AssignmentsPreviewDto> list = new ArrayList<>();
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
+        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
+        for (AssignmentType assignment : getObjectWrapper().getObject().asObjectable().getAssignment()){
+            AssignmentsPreviewDto dto = createDelegableAssignmentsPreviewDto(assignment, task, result);
+            if (dto != null){
+                list.add(dto);
+            }
+        }
+        return list;
+    }
+
+    @Override
+    protected void processDeputyAssignments(){
+//        for (AssignmentEditorDto dto : getAssignmentsModel().getObject()){
+//            if (dto.getTargetRef() != null && SchemaConstants.ORG_DEPUTY.equals(dto.getTargetRef().getRelation()) &&
+//                    dto.getTargetRef().getOid().equals(getObjectWrapper().getOid())){
+//                getAssignmentsModel().getObject().remove(dto);
+//            }
+//        }
+        for (UserType user : usersToUpdateMap.keySet()){
+            List<AssignmentType> userAssignments = user.getAssignment();
+            List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();
+            for (AssignmentType assignment : userAssignments) {
+                    userAssignmentsDtos.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+            }
+            userAssignmentsDtos.add(usersToUpdateMap.get(user));
+            saveDelegationToUser(user, userAssignmentsDtos);
+        }
+    }
+
+    private void saveDelegationToUser(UserType user, List<AssignmentEditorDto> assignmentEditorDtos) {
+        OperationResult result = new OperationResult(OPERATION_SAVE);
+        ObjectDelta<UserType> delta;
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        try {
+            delta = user.asPrismObject().createModifyDelta();
+            deltas.add(delta);
+            PrismContainerDefinition def = user.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+            handleAssignmentDeltas(delta, assignmentEditorDtos, def);
+            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE), result);
+
+            result.recordSuccess();
+
+
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
+            error("Could not save assignments. Reason: " + e);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        showResult(result);
+    }
+
 }

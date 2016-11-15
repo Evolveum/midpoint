@@ -24,6 +24,11 @@ import java.util.TreeSet;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import net.sf.saxon.functions.Abs;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,17 +42,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -82,17 +76,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
 		implements ProgressReportingAwarePage {
@@ -430,6 +413,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			removeResourceFromAccConstruction(assignment);
 		}
 	}
+
 
 	@Override
 	protected void prepareObjectDeltaForModify(ObjectDelta<F> focusDelta) throws SchemaException {
@@ -901,14 +885,22 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				null, task, result);
 	}
 
-	protected AssignmentsPreviewDto createAssignmentsPreviewDto(AssignmentType assignment,
-			Task task, OperationResult result) {
-		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceRaw(assignment.getTargetRef(),
-				PageAdminFocus.this, task, result);
-
-		return createAssignmentsPreviewDto(targetObject, true,
-				assignment, task, result);
-	}
+    protected AssignmentsPreviewDto createDelegableAssignmentsPreviewDto(AssignmentType assignment,
+                                                                         Task task, OperationResult result) {
+        if (assignment.getTargetRef() != null){
+            if (RoleType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())
+                    || OrgType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())
+                    || ServiceType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())){
+                PrismObject<AbstractRoleType> targetObject = WebModelServiceUtils.resolveReferenceRaw(assignment.getTargetRef(),
+                        PageAdminFocus.this, task, result);
+                Boolean isDelegable = targetObject.asObjectable().isDelegable();
+                if (Boolean.TRUE.equals(isDelegable)){
+                    return createAssignmentsPreviewDto(targetObject, true, assignment, task, result);
+                }
+            }
+        }
+        return null;
+    }
 
 	private AssignmentsPreviewDto createAssignmentsPreviewDto(PrismObject<? extends FocusType> targetObject,
 															  boolean isDirectlyAssigned, AssignmentType assignment,

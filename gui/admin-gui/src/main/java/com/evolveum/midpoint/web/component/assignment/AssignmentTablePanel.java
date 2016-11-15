@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
 import org.apache.wicket.AttributeModifier;
@@ -105,7 +106,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return null;
 	}
 
-	private IModel<List<AssignmentEditorDto>> getAssignmentModel() {
+	protected IModel<List<AssignmentEditorDto>> getAssignmentModel() {
 		return getModel();
 	}
 
@@ -351,21 +352,29 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					addSelectedResourceAssignPerformed((ResourceType) object);
 					continue;
 				}
-
-				AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
-						getPageBase());
-				assignments.add(dto);
+				if (object instanceof UserType) {
+					AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
+							SchemaConstants.ORG_DEPUTY, getPageBase());
+					assignments.add(dto);
+				} else {
+					AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
+							getPageBase());
+					assignments.add(dto);
+				}
 			} catch (Exception e) {
 				error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
 						e.getMessage()));
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
 			}
 		}
+		reloadAssignmentsPanel(target);
+	}
 
+	protected void reloadAssignmentsPanel(AjaxRequestTarget target){
 		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
 	}
 
-	private void addSelectedResourceAssignPerformed(ResourceType resource) {
+	protected void addSelectedResourceAssignPerformed(ResourceType resource) {
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType construction = new ConstructionType();
 		assignment.setConstruction(construction);

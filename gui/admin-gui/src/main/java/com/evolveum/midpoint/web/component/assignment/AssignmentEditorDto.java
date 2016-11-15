@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -64,6 +65,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private static final String DOT_CLASS = AssignmentEditorDto.class.getName() + ".";
 	private static final String OPERATION_LOAD_ORG_TENANT = DOT_CLASS + "loadTenantOrg";
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+	private static final String OPERATION_LOAD_REFERENCE_OBJECT = DOT_CLASS + "loadReferenceObject";
 	private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
 
 	public static final String F_TYPE = "type";
@@ -135,11 +137,16 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 		this.attributes = prepareAssignmentAttributes(assignment, pageBase);
 		this.isOrgUnitManager = determineUserOrgRelation(assignment);
-//		this.privilegeLimitationList = getAssignmentPrivilegesList(assignment);
+		this.privilegeLimitationList = getAssignmentPrivilegesList(assignment);
 	}
 
 	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object, PageBase pageBase) {
-		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, pageBase);
+		return createDtoAddFromSelectedObject(object, null, pageBase);
+	}
+
+	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object,
+																	 QName relation, PageBase pageBase) {
+		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, relation, pageBase);
 		dto.setMinimized(true);
 		dto.setShowEmpty(true);
 
@@ -147,13 +154,22 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public static AssignmentEditorDto createDtoFromObject(ObjectType object, UserDtoStatus status,
-			PageBase pageBase) {
+														  PageBase pageBase) {
+
+		return createDtoFromObject(object, status, null, pageBase);
+	}
+
+	public static AssignmentEditorDto createDtoFromObject(ObjectType object, UserDtoStatus status,
+			QName relation, PageBase pageBase) {
 		AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
 
 		ObjectReferenceType targetRef = new ObjectReferenceType();
 		targetRef.setOid(object.getOid());
 		targetRef.setType(aType.getQname());
 		targetRef.setTargetName(object.getName());
+		if (relation != null){
+			targetRef.setRelation(relation);
+		}
 
 		AssignmentType assignment = new AssignmentType();
 		assignment.setTargetRef(targetRef);
@@ -172,10 +188,21 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 	}
 
-	private List<ObjectReferenceType> getAssignmentPrivilegesList(AssignmentType assignment){
-		List<ObjectReferenceType> list = new ArrayList<>();
+	private List<AssignmentsPreviewDto> getAssignmentPrivilegesList(AssignmentType assignment){
+		List<AssignmentsPreviewDto> list = new ArrayList<>();
 		AssignmentSelectorType assignmentSelectorType = assignment.getLimitTargetContent();
-		return assignmentSelectorType != null ? assignmentSelectorType.getTargetRef() : new ArrayList<>();
+		if (assignmentSelectorType != null && assignmentSelectorType.getTargetRef() != null){
+			for (ObjectReferenceType objectRef : assignmentSelectorType.getTargetRef()){
+				AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+				Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType()).getClassDefinition();
+				dto.setTargetClass(targetClass);
+				dto.setTargetName(WebModelServiceUtils.resolveReferenceName(objectRef, pageBase,
+						pageBase.createSimpleTask(OPERATION_LOAD_REFERENCE_OBJECT),
+						new OperationResult(OPERATION_LOAD_REFERENCE_OBJECT)));
+				dto.setTargetOid(objectRef.getOid());
+			}
+		}
+		return list;
 	}
 	private Boolean determineUserOrgRelation(AssignmentType assignment) {
 		if (!AssignmentEditorDtoType.ORG_UNIT.equals(getType())) {
