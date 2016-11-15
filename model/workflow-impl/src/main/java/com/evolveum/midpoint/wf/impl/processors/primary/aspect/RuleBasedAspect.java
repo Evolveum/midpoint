@@ -20,13 +20,12 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -34,23 +33,16 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.impl.processors.primary.assignments.AssignmentHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectName;
@@ -71,8 +63,8 @@ public abstract class RuleBasedAspect extends BasePrimaryChangeAspect {
     @Autowired
     protected ItemApprovalProcessInterface itemApprovalProcessInterface;
 
-    @Autowired
-    protected AssignmentHelper assignmentHelper;
+	@Autowired
+	protected ApprovalSchemaHelper approvalSchemaHelper;
 
     //region ------------------------------------------------------------ Things that execute on request arrival
 
@@ -82,7 +74,8 @@ public abstract class RuleBasedAspect extends BasePrimaryChangeAspect {
             PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
             @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
 
-		List<ApprovalRequest<?>> requests = new ArrayList<>();
+		List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
+		PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) modelContext).getEvaluatedAssignmentTriple();
 		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
@@ -111,9 +104,10 @@ public abstract class RuleBasedAspect extends BasePrimaryChangeAspect {
 						+ " was not found in deltas: " + objectTreeDeltas.debugDump());
 			}
 			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions);
-
+			instructions.add(
+					prepareAssignmentRelatedTaskInstruction(request, newAssignment, modelContext, taskFromModel, requester, result));
         }
-        return prepareTaskInstructions(modelContext, taskFromModel, result, requests);
+        return instructions;
     }
 
 	private ApprovalRequest<AssignmentType> createAssignmentApprovalRequest(EvaluatedAssignment<?> newAssignment,
@@ -121,155 +115,61 @@ public abstract class RuleBasedAspect extends BasePrimaryChangeAspect {
 		ApprovalSchemaType approvalSchema = null;
 		for (ApprovalPolicyActionType action : approvalActions) {
             if (action.getApprovalSchema() != null) {
-                approvalSchema = mergeIntoSchema(approvalSchema, action.getApprovalSchema());
+                approvalSchema = approvalSchemaHelper.mergeIntoSchema(approvalSchema, action.getApprovalSchema());
             } else {
-                approvalSchema = mergeIntoSchema(approvalSchema, action.getApproverExpression(), action.getAutomaticallyApproved());
+                approvalSchema = approvalSchemaHelper
+						.mergeIntoSchema(approvalSchema, action.getApproverExpression(), action.getAutomaticallyApproved());
             }
 		}
 		assert approvalSchema != null;
 		return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext);
 	}
 
-	@NotNull
-	private ApprovalSchemaType mergeIntoSchema(ApprovalSchemaType existing, @NotNull ApprovalSchemaType newSchema) {
-        if (existing == null) {
-            ApprovalSchemaType cloned = newSchema.clone();
-            fixOrders(cloned);
-            return cloned;
-        }
+	private PcpChildWfTaskCreationInstruction prepareAssignmentRelatedTaskInstruction(ApprovalRequest<?> approvalRequest,
+			EvaluatedAssignment<?> evaluatedAssignment, ModelContext<?> modelContext, Task taskFromModel,
+			PrismObject<UserType> requester, OperationResult result) throws SchemaException {
 
-        int maxOrderExisting = getMaxOrder(existing).orElse(0);
-        for (ApprovalLevelType level : newSchema.getLevel()) {
-            ApprovalLevelType levelClone = level.clone();
-            if (levelClone.getOrder() != null) {
-                levelClone.setOrder(maxOrderExisting + levelClone.getOrder() + 1);
-            }
-            existing.getLevel().add(levelClone);
-        }
-        fixOrders(existing);
-        return existing;
-    }
-
-    private void fixOrders(ApprovalSchemaType cloned) {
-        int maxOrder = getMaxOrder(cloned).orElse(0);
-        for (ApprovalLevelType level : cloned.getLevel()) {
-            if (level.getOrder() == null) {
-                level.setOrder(++maxOrder);
-            }
-        }
-    }
-
-    private Optional<Integer> getMaxOrder(ApprovalSchemaType schema) {
-        if (schema == null) {
-            return Optional.empty();
-        } else {
-            return schema.getLevel().stream()
-                    .map(ApprovalLevelType::getOrder)
-                    .filter(o -> o != null)
-                    .max(Integer::compare);
-        }
-    }
-
-    private ApprovalSchemaType mergeIntoSchema(ApprovalSchemaType existing, @NotNull List<ExpressionType> approverExpressionList,
-                                       ExpressionType automaticallyApproved) {
-        if (existing == null) {
-            existing = new ApprovalSchemaType(prismContext);
-        }
-        int maxOrderExisting = getMaxOrder(existing).orElse(0);
-
-        ApprovalLevelType level = new ApprovalLevelType(prismContext);
-        level.setOrder(maxOrderExisting + 1);
-        level.getApproverExpression().addAll(approverExpressionList);
-        level.setAutomaticallyApproved(automaticallyApproved);
-        existing.getLevel().add(level);
-        return existing;
-    }
-
-    private List<PcpChildWfTaskCreationInstruction> prepareTaskInstructions(ModelContext<?> modelContext, Task taskFromModel,
-            OperationResult result, List<ApprovalRequest<?>> approvalRequestList) throws SchemaException {
-
-        List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
 		String objectOid = getFocusObjectOid(modelContext);
-        String objectName = getFocusObjectName(modelContext);
-        PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
+		String objectName = getFocusObjectName(modelContext);
 
-        for (ApprovalRequest<?> approvalRequest : approvalRequestList) {
+		assert approvalRequest.getPrismContext() != null;
 
-            assert approvalRequest.getPrismContext() != null;
+		LOGGER.trace("Approval request = {}", approvalRequest);
 
-            LOGGER.trace("Approval request = {}", approvalRequest);
-            Serializable itemToApprove = approvalRequest.getItemToApprove();
-            T target = getAssignmentApprovalTarget(itemToApprove, result);
-            Validate.notNull(target, "No target in assignment to be approved");
+		PrismObject<? extends ObjectType> target = (PrismObject<? extends ObjectType>) evaluatedAssignment.getTarget();
+		Validate.notNull(target, "assignment target is null");
 
-            String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
-            String approvalTaskName = "Approve adding " + targetName + " to " + objectName;
+		String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
+		String approvalTaskName = "Approve adding " + targetName + " to " + objectName;				// TODO adding?
 
-            PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
-                    PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
+		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
+				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
 
-            instruction.prepareCommonAttributes(this, modelContext, requester);
+		instruction.prepareCommonAttributes(this, modelContext, requester);
 
-            ObjectDelta<? extends FocusType> delta = assignmentToDelta(modelContext, itemToApprove, objectOid);
-            instruction.setDeltasToProcess(delta);
+		ObjectDelta<? extends FocusType> delta = assignmentToDelta(evaluatedAssignment.getAssignmentType(), objectOid);
+		instruction.setDeltasToProcess(delta);
 
-            instruction.setObjectRef(modelContext, result);
-            instruction.setTargetRef(createObjectRef(target), result);
+		instruction.setObjectRef(modelContext, result);
+		instruction.setTargetRef(createObjectRef(target), result);
 
-            String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-            instruction.setTaskName("Approval " + andExecuting + "of assigning " + targetName + " to " + objectName);
-            instruction.setProcessInstanceName("Assigning " + targetName + " to " + objectName);
+		String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
+		instruction.setTaskName("Approval " + andExecuting + "of assigning " + targetName + " to " + objectName);
+		instruction.setProcessInstanceName("Assigning " + targetName + " to " + objectName);
 
-            itemApprovalProcessInterface.prepareStartInstruction(instruction);
+		itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
-            instructions.add(instruction);
-        }
-        return instructions;
+		return instruction;
     }
 
     // creates an ObjectDelta that will be executed after successful approval of the given assignment
 	@SuppressWarnings("unchecked")
-    private ObjectDelta<? extends FocusType> assignmentToDelta(ModelContext<?> modelContext, AssignmentType assignmentType, String objectOid) {
-        PrismObject<FocusType> focus = (PrismObject<FocusType>) modelContext.getFocusContext().getObjectNew();
-        PrismContainerDefinition<AssignmentType> prismContainerDefinition = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
-
-        ItemDelta<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> addRoleDelta = new ContainerDelta<>(new ItemPath(), FocusType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
-        PrismContainerValue<AssignmentType> assignmentValue = assignmentType.asPrismContainerValue().clone();
-        addRoleDelta.addValueToAdd(assignmentValue);
-
-        Class focusClass = primaryChangeAspectHelper.getFocusClass(modelContext);
-        return ObjectDelta.createModifyDelta(objectOid, addRoleDelta, focusClass, ((LensContext) modelContext).getPrismContext());
+    private ObjectDelta<? extends FocusType> assignmentToDelta(AssignmentType assignmentType, String objectOid) throws SchemaException {
+		return (ObjectDelta<? extends FocusType>) DeltaBuilder.deltaFor(FocusType.class, prismContext)
+				.item(FocusType.F_ASSIGNMENT).add(assignmentType.clone().asPrismContainerValue())
+				.asObjectDelta(objectOid);
     }
 
     //endregion
 
-    //region ------------------------------------------------------------ Things to override in concrete aspect classes
-
-    // a quick check whether expected focus type (User, Role) matches the actual focus type in current model operation context
-    protected abstract boolean isFocusRelevant(ModelContext modelContext);
-
-    // is the assignment relevant for a given aspect? (e.g. is this an assignment of a role?)
-    protected abstract boolean isAssignmentRelevant(AssignmentType assignmentType);
-
-    // should the given assignment be approved? (typically, does the target object have an approver specified?)
-    protected abstract boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, T target);
-
-    // before creating a delta for the assignment, it has to be cloned and canonicalized by removing full target object
-    protected abstract AssignmentType cloneAndCanonicalizeAssignment(AssignmentType a);
-
-    // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    protected abstract ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, T target);
-
-    // retrieves the relevant target for a given assignment - a role, an org, or a resource
-    protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);
-
-    // creates name to be displayed in the question form (may be overriden by child objects)
-    protected String getTargetDisplayName(T target) {
-        if (target.getName() != null) {
-            return target.getName().getOrig();
-        } else {
-            return target.getOid();
-        }
-    }
-    //endregion
 }
