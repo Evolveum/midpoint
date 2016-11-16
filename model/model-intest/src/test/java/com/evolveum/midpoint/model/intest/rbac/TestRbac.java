@@ -121,6 +121,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	protected static final String ROLE_IMMUTABLE_OID = "e53baf94-aa99-11e6-962a-5362ec2dd7df";
 	private static final String ROLE_IMMUTABLE_DESCRIPTION = "Role that cannot be modified because there is a modification rule with enforcement action.";
 
+	protected static final File ROLE_NON_ASSIGNABLE_FILE = new File(TEST_DIR, "role-non-assignable.xml");
+	protected static final String ROLE_NON_ASSIGNABLE_OID = "db67d2f0-abd8-11e6-9c30-b35abe3e4e3a";
 	
 	protected static final File ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE = new File(TEST_DIR, "org-project-reclaim-black-pearl.xml");
 	protected static final String ORG_PROJECT_RECLAIM_BLACK_PEARL_OID = "00000000-8888-6666-0000-200000005000";
@@ -171,6 +173,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, RoleType.class, initResult);
 	}
 	
 	@Test
@@ -2913,5 +2916,35 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, "whatever");
 	}
 
+	@Test
+    public void test820AssignRoleNonAssignable() throws Exception {
+		final String TEST_NAME = "test820AssignRoleNonAssignable";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+        display("user jack", userJackBefore);
+        assertNoAssignments(userJackBefore);
+        
+        try {
+	        // WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			assignRole(USER_JACK_OID, ROLE_NON_ASSIGNABLE_OID, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// THEN
+            TestUtil.displayThen(TEST_NAME);
+            result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("user after", userJackAfter);
+        assertNoAssignments(userJackAfter);
+	}
 
 }
