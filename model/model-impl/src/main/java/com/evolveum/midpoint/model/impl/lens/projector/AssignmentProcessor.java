@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
@@ -97,6 +98,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -113,6 +115,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -548,7 +551,7 @@ public class AssignmentProcessor {
         
         // PROCESSING POLICIES
         
-        // Checking for assignment exclusions. This means mostly role exclusions (SoD)
+        checkAssignmentRules(context, evaluatedAssignmentTriple, result);
         checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
         checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
         checkAssigneeConstraints(context, evaluatedAssignmentTriple, result);
@@ -1606,6 +1609,44 @@ public class AssignmentProcessor {
 		}
 		ObjectQuery query = q.build();
 		return repositoryService.countObjects(FocusType.class, query, result);
+	}
+	
+	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
+			OperationResult result) throws PolicyViolationException, SchemaException {
+		checkAssignmentRules(context, evaluatedAssignmentTriple.getPlusSet(), result);
+		checkAssignmentRules(context, evaluatedAssignmentTriple.getMinusSet(), result);
+	}
+	
+	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
+			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
+			OperationResult result) throws PolicyViolationException, SchemaException {
+		for( EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
+			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
+			for (EvaluatedPolicyRule policyRule: policyRules) {
+				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
+				if (policyConstraints == null) {
+					continue;
+				}
+				for (AssignmentPolicyConstraintType assignmentConstraint: policyConstraints.getAssignment()) {
+					if (assignmentConstraint.getRelation().isEmpty()) {
+						if (MiscSchemaUtil.compareRelation(null, evaluatedAssignment.getRelation())) {
+							EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.ASSIGNMENT, 
+									assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
+							evaluatedAssignment.triggerConstraint(policyRule, trigger);
+						}
+					} else {
+						for (QName constraintRelation: assignmentConstraint.getRelation()) {
+							if (MiscSchemaUtil.compareRelation(constraintRelation, evaluatedAssignment.getRelation())) {
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.ASSIGNMENT, 
+										assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
+								evaluatedAssignment.triggerConstraint(policyRule, trigger);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	public <F extends ObjectType> void removeIgnoredContexts(LensContext<F> context) {

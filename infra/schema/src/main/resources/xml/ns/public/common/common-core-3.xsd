@@ -8520,21 +8520,25 @@
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
     	</xsd:annotation>
-	    	<xsd:sequence>
-	    		<!-- TODO: define operation -->
-				<xsd:element name="relation" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">
-	        		<xsd:annotation>
-	        			<xsd:documentation>
-	        				This policy only applies to relations of the specified type. The value
-	        				of this element is compared to the relation of the targetRef relation
-	        				in the assignment/inducement. If not specified then this policy only
-	        				applies to the null (default) relation. If all relations need to be
-	        				affected by this policy then the special value of "any" should be specified
-	        				in this element.
-	        			</xsd:documentation>
-	        		</xsd:annotation>
-	        	</xsd:element>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:AbstractPolicyConstraintType">
+		    	<xsd:sequence>
+		    		<!-- TODO: define operation -->
+					<xsd:element name="relation" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				This policy only applies to relations of the specified type. The value
+		        				of this element is compared to the relation of the targetRef relation
+		        				in the assignment/inducement. If not specified then this policy only
+		        				applies to the null (default) relation. If all relations need to be
+		        				affected by this policy then the special value of "any" should be specified
+		        				in this element.
+		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
 	          	</xsd:sequence>
+          	</xsd:extension>
+       </xsd:complexContent>
     </xsd:complexType>
     
     <xsd:simpleType name="PolicyConstraintEnforcementType">
