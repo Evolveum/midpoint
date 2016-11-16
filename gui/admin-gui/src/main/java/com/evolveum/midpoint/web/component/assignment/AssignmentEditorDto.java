@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -147,7 +148,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object,
 																	 QName relation, PageBase pageBase) {
 		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, relation, pageBase);
-		dto.setMinimized(true);
+		if (SchemaConstants.ORG_DEPUTY.equals(relation)){
+			dto.setMinimized(false);
+		} else {
+			dto.setMinimized(true);
+		}
 		dto.setShowEmpty(true);
 
 		return dto;
@@ -380,7 +385,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			appendTenantAndOrgName(sb);
 		} else if (assignment.getTargetRef() != null) {
 			Task task = pageBase.createSimpleTask("Load assignment name");
-			PrismObject<AbstractRoleType> target = WebModelServiceUtils.loadObject(AbstractRoleType.class,
+			PrismObject<FocusType> target = WebModelServiceUtils.loadObject(FocusType.class,
 					assignment.getTargetRef().getOid(), pageBase, task, task.getResult());
 			if (target != null) {
 				sb.append(WebComponentUtil.getEffectiveName(target, OrgType.F_DISPLAY_NAME));
@@ -661,6 +666,21 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public void setPrivilegeLimitationList(List<AssignmentsPreviewDto> privilegeLimitationList) {
+		if (newAssignment.getLimitTargetContent() == null){
+			newAssignment.setLimitTargetContent(new AssignmentSelectorType());
+		}
+		List<ObjectReferenceType> referencesList = newAssignment.getLimitTargetContent().getTargetRef();
+		if (referencesList == null){
+			referencesList = new ArrayList<>();
+		}
+		referencesList.clear();
+		for (AssignmentsPreviewDto previewDto : privilegeLimitationList){
+			ObjectReferenceType ref = new ObjectReferenceType();
+			ref.setOid(previewDto.getTargetOid());
+			ref.setTargetName(new PolyStringType(previewDto.getTargetName()));
+			ref.setType(previewDto.getTargetType());
+			referencesList.add(ref);
+		}
 		this.privilegeLimitationList = privilegeLimitationList;
 	}
 

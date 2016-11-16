@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.PopupObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -63,7 +64,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class AssignmentPreviewDialog extends Panel implements Popupable {
+public class AssignmentPreviewDialog extends BasePanel implements Popupable {
 
     private static final String ID_CONTENT = "panel";
     private static final String ID_TABLE = "table";
@@ -118,7 +119,18 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
             private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
-                AssignmentPreviewDialog.this.addButtonClicked(target);
+                List<AssignmentsPreviewDto> previewDtos = data.getObject();
+                List<AssignmentsPreviewDto> selectedDtos = new ArrayList<>();
+                for (AssignmentsPreviewDto dto : previewDtos){
+                    if (dto.isSelected()){
+                        selectedDtos.add(dto);
+                    }
+                }
+                if (selectedDtos.isEmpty()){
+//                    target.add(AssignmentPreviewDialog.this.fee);
+                } else {
+                    AssignmentPreviewDialog.this.addButtonClicked(target, selectedDtos);
+                }
             }
         };
 
@@ -153,13 +165,11 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
                 @Override
                 protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<AssignmentsPreviewDto> rowModel) {
                     super.onUpdateRow(target, table, rowModel);
-//                    onUpdateCheckbox(target);
                 };
 
                 @Override
                 protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
                     super.onUpdateHeader(target, selected, table);
-//                    onUpdateCheckbox(target);
                 }
             });
 
@@ -273,6 +283,6 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
         return this;
     }
 
-    protected void addButtonClicked(AjaxRequestTarget target){
+    protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentsPreviewDto> dtoList){
     }
 }

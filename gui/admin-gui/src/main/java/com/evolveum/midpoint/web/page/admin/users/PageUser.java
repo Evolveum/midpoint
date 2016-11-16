@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -82,7 +85,7 @@ import java.util.*;
 public class PageUser extends PageAdminFocus<UserType> {
 
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
-    private static final String OPERATION_LOAD_DELEGATED_TO_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedByMeAssignments";
+    private static final String OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedByMeAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST = DOT_CLASS + "createAssignmentPreviewDtoList";
 
     private static final String ID_TASK_TABLE = "taskTable";
@@ -195,10 +198,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
-                                List<AssignmentEditorDto> a = delegatedToMeModel.getObject();
-                                if (a != null){
-
-                                }
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
                                         false, privilegesList, PageUser.this);
                                 item.add(editor);
@@ -211,6 +210,10 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             protected List<InlineMenuItem> createAssignmentMenu() {
+                                List<AssignmentEditorDto> dd = delegatedToMeModel.getObject();
+                                if (dd != null){
+
+                                }
                                 List<InlineMenuItem> items = new ArrayList<>();
 
                                 InlineMenuItem item;
@@ -281,8 +284,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                                         AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
                                                     PageUser.this.getObjectWrapper().getObject().asObjectable(),
                                                     SchemaConstants.ORG_DEPUTY, getPageBase());
-//                                        List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-//                                        assignments.add(dto);
+                                        dto.setPrivilegeLimitationList(privilegesList);
                                         delegationsModel.getObject().add(dto);
                                         usersToUpdateMap.put((UserType) object, dto);
                                     } catch (Exception e) {
@@ -329,14 +331,15 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_DELEGATED_TO_ME_ASSIGNMENTS);
+        OperationResult result = new OperationResult(OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS);
         List<AssignmentEditorDto> list = new ArrayList<>();
         try{
 
-            Task task = createSimpleTask(OPERATION_LOAD_DELEGATED_TO_ME_ASSIGNMENTS);
+            Task task = createSimpleTask(OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS);
 
             PrismReferenceValue referenceValue = new PrismReferenceValue(getObjectWrapper().getOid(),
                     UserType.COMPLEX_TYPE);
+            referenceValue.setRelation(SchemaConstants.ORG_DEPUTY);
 
             ObjectFilter refFilter = QueryBuilder.queryFor(UserType.class, getPrismContext())
                     .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)

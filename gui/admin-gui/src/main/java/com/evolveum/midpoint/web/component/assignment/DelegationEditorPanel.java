@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
@@ -57,6 +58,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_PRIVILEGES_LIST = "privilegesList";
     private static final String ID_PRIVILEGE = "privilege";
     private static final String ID_LIMIT_PRIVILEGES_BUTTON = "limitPrivilegesButton";
+    private List<String> privilegesNames = new ArrayList<>();
 
     private boolean delegatedToMe;
     private List<UserType> usersToUpdate;
@@ -161,9 +163,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         description.setEnabled(getModel().getObject().isEditable());
         body.add(description);
 
-        List<String> privilegesNames = new ArrayList<>();
-        privilegesNames = getPrivilagesNamesList();
-        ListView<String> privilegesList = new ListView<String>(ID_PRIVILEGES_LIST, privilegesNames){
+        privilegesNames = getPrivilegesNamesList();
+        ListView<String> privilegesListComponent = new ListView<String>(ID_PRIVILEGES_LIST, privilegesNames){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -172,19 +173,33 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                 item.add(privilageNameLabel);
             }
         };
-        body.add(privilegesList);
+        privilegesListComponent.setOutputMarkupId(true);
+        body.add(privilegesListComponent);
 
         AjaxButton limitPrivilegesButton = new AjaxButton(ID_LIMIT_PRIVILEGES_BUTTON,
                 pageBase.createStringResource("DelegationEditorPanel.limitPrivilegesButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-//                super.onSubmit(target, form);
+                AssignmentPreviewDialog assignmentPreviewDialog =
+                        new AssignmentPreviewDialog(pageBase.getMainPopupBodyId(),
+                                DelegationEditorPanel.this.getModelObject().getPrivilegeLimitationList(),
+                                null, pageBase, true){
+                            @Override
+                            protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentsPreviewDto> dtoList){
+                                DelegationEditorPanel.this.getModelObject().setPrivilegeLimitationList(dtoList);
+                                DelegationEditorPanel.this.privilegesList = dtoList;
+                                privilegesNames = getPrivilegesNamesList();
+                                pageBase.hideMainPopup(target);
+                                reloadBodyComponent(target);
+                            }
+                        };
+                pageBase.showMainPopup(assignmentPreviewDialog, target);
             }
         };
         body.add(limitPrivilegesButton);
     };
 
-    private List<String> getPrivilagesNamesList(){
+    private List<String> getPrivilegesNamesList(){
         List<String> privilegesNamesList = new ArrayList<>();
         if (privilegesList != null){
             for (AssignmentsPreviewDto assignmentsPreviewDto : privilegesList){
@@ -194,4 +209,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         return privilegesNamesList;
     }
 
+    private void reloadBodyComponent(AjaxRequestTarget target){
+        target.add(get(ID_BODY));
+    }
 }

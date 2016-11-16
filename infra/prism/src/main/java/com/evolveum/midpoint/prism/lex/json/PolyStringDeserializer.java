@@ -13,12 +13,10 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 public class PolyStringDeserializer extends JsonDeserializer<PolyString>{
 
 	@Override
-	public PolyString deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
-			JsonProcessingException {
-		if (jp.getCurrentToken() != JsonToken.VALUE_STRING){
+	public PolyString deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+		if (jp.getCurrentToken() != JsonToken.VALUE_STRING) {
 			throw new IllegalStateException("Cannot deserialize value. Expected string value, but is was " + jp.getCurrentToken() + ". ");
 		}
-		
 		String str = jp.getText();
 		return new PolyString(str);
 	}

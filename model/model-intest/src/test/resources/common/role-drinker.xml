@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015-2016 Evolveum
+  ~ Copyright (c) 2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,22 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="e53baf94-aa99-11e6-962a-5362ec2dd7df"
+<role oid="0abbde4c-ab3f-11e6-910d-d7dabf5f09f0"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Immutable</name>
-    <description>Role that cannot be modified because there is a modification rule with enforcement action.</description>
+    <name>Drinker</name>
+    <description>Rum drinker. Almost empty role that is assigned to the org in a way similar to role catalog.</description>
     <assignment>
-    	<policyRule>
-    		<name>immutable</name>
-    		<policyConstraints>
-		    	<modification/>
-		    </policyConstraints>
-		    <policyActions>
-		    	<enforcement/>
-		    </policyActions>
-    	</policyRule>
+    	<!-- Ministry of Rum -->
+    	<targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
     </assignment>
 </role>

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
@@ -44,6 +45,7 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
     private String targetDescription;
     private Class targetClass;
     private boolean direct;                     // directly assigned?
+    private QName targetType;
     // for resource assignments
     private ShadowKindType kind;
     private String intent;
@@ -149,6 +151,14 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
 
     public void setOrgRef(ObjectReferenceType orgRef) {
         this.orgRef = orgRef;
+    }
+
+    public QName getTargetType() {
+        return targetType;
+    }
+
+    public void setTargetType(QName targetType) {
+        this.targetType = targetType;
     }
 
     @Override

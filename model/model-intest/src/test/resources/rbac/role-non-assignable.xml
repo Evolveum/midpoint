@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015-2016 Evolveum
+  ~ Copyright (c) 2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="e53baf94-aa99-11e6-962a-5362ec2dd7df"
+<role oid="db67d2f0-abd8-11e6-9c30-b35abe3e4e3a"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Immutable</name>
-    <description>Role that cannot be modified because there is a modification rule with enforcement action.</description>
+    <name>Non-assignable</name>
+    <description>Role that cannot be assigned because there is a rule with enforcement action.</description>
     <assignment>
     	<policyRule>
-    		<name>immutable</name>
+    		<name>non-assignable</name>
     		<policyConstraints>
-		    	<modification/>
+		    	<assignment/>
 		    </policyConstraints>
 		    <policyActions>
 		    	<enforcement/>
