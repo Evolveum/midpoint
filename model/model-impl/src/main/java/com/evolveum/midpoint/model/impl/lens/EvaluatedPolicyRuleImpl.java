@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -63,6 +64,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyRuleType.getPolicyConstraints();
 	}
 
+	@NotNull
 	@Override
 	public Collection<EvaluatedPolicyRuleTrigger> getTriggers() {
 		return triggers;

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Description of a situation that caused a trigger of the policy rule.
@@ -25,12 +26,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
  */
 public class EvaluatedPolicyRuleTrigger {
 	
-	PolicyConstraintKindType constraintKind;
-	AbstractPolicyConstraintType constraint;
-	String message;
+	@NotNull private final PolicyConstraintKindType constraintKind;
+	@NotNull private final AbstractPolicyConstraintType constraint;
+	private final String message;
 	
-	public EvaluatedPolicyRuleTrigger(PolicyConstraintKindType constraintKind, AbstractPolicyConstraintType constraint, String message) {
-		super();
+	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull AbstractPolicyConstraintType constraint, String message) {
 		this.constraintKind = constraintKind;
 		this.constraint = constraint;
 		this.message = message;
@@ -40,10 +40,12 @@ public class EvaluatedPolicyRuleTrigger {
 	 * The kind of constraint that caused the trigger.
 	 * @return
 	 */
+	@NotNull
 	public PolicyConstraintKindType getConstraintKind() {
 		return constraintKind;
 	}
 
+	@NotNull
 	public AbstractPolicyConstraintType getConstraint() {
 		return constraint;
 	}

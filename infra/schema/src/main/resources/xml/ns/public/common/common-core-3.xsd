@@ -8767,6 +8767,14 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:PolicyActionType">
 					<xsd:sequence>
+						<xsd:element name="compositionStrategy" type="c:ApprovalCompositionStrategyType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									How should be this approval policy action composed with other ones that
+									might be related to the same item (object or assignment)?
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
 						<xsd:element name="approverExpression" type="c:ExpressionType"
 							minOccurs="0" maxOccurs="unbounded">
 							<xsd:annotation>
@@ -8827,6 +8835,24 @@
 					</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="ApprovalCompositionStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Prescribes how individual approval requirements should be composed into overall approval schema.
+				This is quite tricky; for the time being we support simple ordering of individual fragments into
+				levels.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container />
+				<a:since>3.5</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="order" type="xsd:int" minOccurs="0"/>
+		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:complexType name="RemediationPolicyActionType">
@@ -10977,8 +11003,8 @@
     			<xsd:annotation>
     				<xsd:documentation>
     					Policy situation that is the result when this policy rule is
-    					trigerred. If the situation is not explicitly stated then
-    					defalt situation will be selected instead. The situation
+    					triggered. If the situation is not explicitly stated then
+    					default situation will be selected instead. The situation
     					is determined by the constraint that triggered the rule.
     				</xsd:documentation>
     			</xsd:annotation>
@@ -10987,7 +11013,7 @@
     			<xsd:annotation>
     				<xsd:documentation>
     					Action(s) that has to be takes as a reaction to this rule being
-    					triggerred.
+    					triggered.
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
