@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -91,6 +92,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
+    private Map<AssignmentEditorDto, UserType> assignmentUserMap = new HashMap();
     private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
     private HashMap<UserType, AssignmentEditorDto> usersToUpdateMap = new HashMap<>();
@@ -199,7 +201,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
-                                        false, privilegesList, PageUser.this);
+                                        privilegesList, assignmentUserMap.get(item.getModelObject()), PageUser.this);
                                 item.add(editor);
                             }
 
@@ -210,10 +212,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             protected List<InlineMenuItem> createAssignmentMenu() {
-                                List<AssignmentEditorDto> dd = delegatedToMeModel.getObject();
-                                if (dd != null){
-
-                                }
                                 List<InlineMenuItem> items = new ArrayList<>();
 
                                 InlineMenuItem item;
@@ -306,7 +304,44 @@ public class PageUser extends PageAdminFocus<UserType> {
                     }
                 });
 
+                authorization = new FocusTabVisibleBehavior(unwrapModel(),
+                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL);
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"), authorization)
+                {
+                    private static final long serialVersionUID = 1L;
 
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegatedToMe"),
+                                delegatedToMeModel) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void populateItem(ListItem<AssignmentEditorDto> item) {
+                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
+                                        privilegesList, null, PageUser.this);
+                                item.add(editor);
+                            }
+
+                            @Override
+                            public String getExcludeOid() {
+                                return getObject().getOid();
+                            }
+
+                            @Override
+                            protected List<InlineMenuItem> createAssignmentMenu() {
+                                return new ArrayList<>();
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    public String getCount() {
+                        return Integer.toString(delegatedToMeModel.getObject() == null ?
+                                0 : delegatedToMeModel.getObject().size());
+                    }
+                });
             }
 
         };
@@ -356,7 +391,9 @@ public class PageUser extends PageAdminFocus<UserType> {
                         if (assignment.getTargetRef() != null &&
                                 StringUtils.isNotEmpty(assignment.getTargetRef().getOid()) &&
                                 assignment.getTargetRef().getOid().equals(getObjectWrapper().getOid())) {
-                            list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+                            AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this);
+                            list.add(dto);
+                            assignmentUserMap.put(dto, user.asObjectable());
                         }
                     }
                 }
@@ -385,12 +422,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected void processDeputyAssignments(){
-//        for (AssignmentEditorDto dto : getAssignmentsModel().getObject()){
-//            if (dto.getTargetRef() != null && SchemaConstants.ORG_DEPUTY.equals(dto.getTargetRef().getRelation()) &&
-//                    dto.getTargetRef().getOid().equals(getObjectWrapper().getOid())){
-//                getAssignmentsModel().getObject().remove(dto);
-//            }
-//        }
         for (UserType user : usersToUpdateMap.keySet()){
             List<AssignmentType> userAssignments = user.getAssignment();
             List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();

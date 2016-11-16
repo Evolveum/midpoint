@@ -135,11 +135,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	protected WebMarkupContainer headerRow;
 	protected PageBase pageBase;
 	protected List<AssignmentsPreviewDto> privilegesList;
+	protected UserType delegationUser;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model,
-								 List<AssignmentsPreviewDto> privilegesList, PageBase pageBase) {
+								 List<AssignmentsPreviewDto> privilegesList,
+								 UserType delegationUser, PageBase pageBase) {
 		super(id, model);
 		this.pageBase = pageBase;
+		this.delegationUser = delegationUser;
 		this.privilegesList = privilegesList;
 
 		initLayout();
