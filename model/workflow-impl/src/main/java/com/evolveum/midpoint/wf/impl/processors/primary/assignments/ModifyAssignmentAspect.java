@@ -79,11 +79,11 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
     @Override
     public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
         if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<ApprovalRequest<AssignmentModification>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }

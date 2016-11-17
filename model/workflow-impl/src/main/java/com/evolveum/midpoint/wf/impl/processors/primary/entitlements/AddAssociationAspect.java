@@ -84,12 +84,12 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 	@Override
     public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (!isFocusRelevant(modelContext)) {
-            return null;
+            return Collections.emptyList();
         }
         List<ApprovalRequest<AssociationAdditionType>> approvalRequestList =
                 getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas, taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }

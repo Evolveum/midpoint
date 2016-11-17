@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -78,7 +79,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         ObjectDelta changeRequested = objectTreeDeltas.getFocusChange();
 
         if (changeRequested == null || changeRequested.getChangeType() != ChangeType.MODIFY) {
-            return null;
+            return Collections.emptyList();
         }
 
         Iterator<? extends ItemDelta> deltaIterator = changeRequested.getModifications().iterator();

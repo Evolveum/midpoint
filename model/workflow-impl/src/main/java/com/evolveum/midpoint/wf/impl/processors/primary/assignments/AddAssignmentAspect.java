@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -80,11 +81,11 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     @Override
     public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
         if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         return prepareTaskInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }

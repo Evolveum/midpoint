@@ -41,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -65,14 +66,14 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
                                                                                @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         if (config == null) {
-            return null;            // this should not occur (because this aspect is not enabled by default), but check it just to be sure
+            return Collections.emptyList();            // this should not occur (because this aspect is not enabled by default), but check it just to be sure
         }
         if (!primaryChangeAspectHelper.isRelatedToType(modelContext, getObjectClass()) || objectTreeDeltas.getFocusChange() == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config, objectTreeDeltas.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
