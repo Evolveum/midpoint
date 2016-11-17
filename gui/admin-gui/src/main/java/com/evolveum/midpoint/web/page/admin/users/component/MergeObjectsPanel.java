@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -68,7 +69,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
     private IModel<F> mergeObjectModel;
     private IModel<F> mergeWithObjectModel;
     private PrismObject<F> mergeResultObject;
-    private ObjectDelta<F> mergeDelta;
+    private MergeDeltas<F> mergeDeltas;
     private Class<F> type;
     private PageBase pageBase;
     private IModel<String> mergeTypeModel;
@@ -292,14 +293,15 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         }
         return mergeTypeNamesList;
     }
-    private PrismObject<F> getMergeObjectsResult(){
+    
+    private PrismObject<F> getMergeObjectsResult() {
         OperationResult result = new OperationResult(OPERATION_GET_MERGE_OBJECT_PREVIEW);
         PrismObject<F> mergeResultObject = null;
         try {
             Task task = pageBase.createSimpleTask(OPERATION_GET_MERGE_OBJECT_PREVIEW);
             mergeResultObject = pageBase.getModelInteractionService().mergeObjectsPreviewObject(type,
                     mergeObjectModel.getObject().getOid(), mergeWithObjectModel.getObject().getOid(), currentMergeType, task, result);
-            mergeDelta = pageBase.getModelInteractionService().mergeObjectsPreviewDelta(type,
+            mergeDeltas = pageBase.getModelInteractionService().mergeObjectsPreviewDeltas(type,
                     mergeObjectModel.getObject().getOid(), mergeWithObjectModel.getObject().getOid(), currentMergeType, task, result);
         } catch (Exception ex) {
             result.recomputeStatus();
@@ -314,8 +316,12 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         return mergeResultObject;
     }
 
-    public ObjectDelta<F> getMergeDelta(){
-        return mergeDelta;
+    public MergeDeltas<F> getMergeDeltas() {
+        return mergeDeltas;
 
+    }
+
+    public String getMergeConfigurationName(){
+        return currentMergeType;
     }
 }

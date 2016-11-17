@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -77,6 +78,7 @@ import java.util.List;
 public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
     private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
+    private static final String OPERATION_MERGE_OBJECTS = DOT_CLASS + "mergeObjects";
     private static final Trace LOGGER = TraceManager.getTrace(PageMergeObjects.class);
     private F mergeObject;
     private IModel<F> mergeObjectModel;
@@ -166,6 +168,12 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
                         });
                 return tabs;
             }
+
+            @Override
+            protected boolean isPreviewButtonVisible(){
+                return false;
+            }
+
         };
     }
     @Override
@@ -189,8 +197,8 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     }
 
     @Override
-    protected Class getCompileTimeClass() {
-        return UserType.class;
+    public Class getCompileTimeClass() {
+        return type;
     }
 
     @Override
@@ -205,34 +213,19 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-        ObjectDelta<F> mergeDelta = mergeObjectsPanel.getMergeDelta();
+        try {
+            Task task = createSimpleTask(OPERATION_MERGE_OBJECTS);
+            getModelService().mergeObjects(type, mergeObject.getOid(), mergeWithObject.getOid(),
+                    mergeObjectsPanel.getMergeConfigurationName(), task, result);
+            result.computeStatusIfUnknown();
+            showResult(result);
+            redirectBack();
 
-        ((ObjectWrapper)getObjectModel().getObject()).setOldDelta(mergeDelta);
-        super.saveOrPreviewPerformed(target, result, previewOnly);
-
-        deleteUser(mergeWithObject.getOid(), target);
+        } catch (Exception ex){
+            result.recomputeStatus();
+            result.recordFatalError("Couldn't merge objects.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't merge objects", ex);
+            showResult(result);
+        }
     }
-
-    private void deleteUser(String userOid, AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_DELETE_USER);
-            try {
-                Task task = createSimpleTask(OPERATION_DELETE_USER);
-
-                ObjectDelta delta = new ObjectDelta(type, ChangeType.DELETE, getPrismContext());
-                delta.setOid(userOid);
-                ModelExecuteOptions options = getExecuteChangesOptions();
-                LOGGER.debug("Delete user using options {}.", new Object[] { options });
-                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task,
-                        result);
-                result.computeStatus();
-            } catch (Exception ex) {
-                result.recomputeStatus();
-                result.recordFatalError("Couldn't delete user.", ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete user", ex);
-            }
-        result.computeStatusComposite();
-        showResult(result);
-        target.add(getFeedbackPanel());
-    }
-
 }

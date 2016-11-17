@@ -24,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -36,6 +38,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
@@ -45,10 +49,15 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -62,11 +71,17 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemMergeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefMergeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeStategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionMergeConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionMergeSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
@@ -108,31 +123,55 @@ public class ObjectMerger {
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, 
 					ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, 
 					PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
+		MergeDeltas<O> deltas = computeMergeDeltas(type, leftOid, rightOid, mergeConfigurationName, task, result);
 		
-		if (objectDelta != null && !objectDelta.isEmpty()) {
-			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = 
-					modelController.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-			
-			result.computeStatus();
-			if (result.isSuccess()) {
-				// Do not delete the other object if the execution was not success. 
-				// We might need to re-try the merge if it has failed and for that we need the right object.		
-				ObjectDelta<O> deleteDelta = ObjectDelta.createDeleteDelta(type, rightOid, prismContext);
-				Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeleteDeltas = modelController.executeChanges(MiscSchemaUtil.createCollection(deleteDelta), null, task, result);
-				executedDeltas.addAll(executedDeleteDeltas);
-			}
-			
-			return executedDeltas;
-			
-		} else {
-			return null;
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Merge {} + {} = (computed deltas)\n{}", leftOid, rightOid, deltas.debugDump(1));
 		}
+		
+		Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
+		
+		LOGGER.trace("Executing right link delta (raw): {}", deltas.getRightLinkDelta());
+		executeDelta(deltas.getRightLinkDelta(), ModelExecuteOptions.createRaw(), executedDeltas, task, result);
+		
+		LOGGER.trace("Executing left link delta (raw): {}", deltas.getLeftLinkDelta());
+		executeDelta(deltas.getLeftLinkDelta(), ModelExecuteOptions.createRaw(), executedDeltas, task, result);
+		
+		LOGGER.trace("Executing left object delta: {}", deltas.getLeftObjectDelta());
+		executeDelta(deltas.getLeftObjectDelta(), null, executedDeltas, task, result);
+
+		result.computeStatus();
+		if (result.isSuccess()) {
+			// Do not delete the other object if the execution was not success. 
+			// We might need to re-try the merge if it has failed and for that we need the right object.		
+			ObjectDelta<O> deleteDelta = ObjectDelta.createDeleteDelta(type, rightOid, prismContext);
+			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeleteDeltas = modelController.executeChanges(MiscSchemaUtil.createCollection(deleteDelta), null, task, result);
+			executedDeltas.addAll(executedDeleteDeltas);
+		}
+
+		return executedDeltas;
 	}
 	
-	public <O extends ObjectType> ObjectDelta<O> computeMergeDelta(Class<O> type, String leftOid, String rightOid, 
+	private <O extends ObjectType> void executeDelta(ObjectDelta<O> objectDelta, ModelExecuteOptions options,
+			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, 
+			Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		
+		result.computeStatus();
+		if (!result.isSuccess()) {
+			return;
+		}
+		
+		if (objectDelta != null && !objectDelta.isEmpty()) {
+			Collection<ObjectDeltaOperation<? extends ObjectType>> deltaExecutedDeltas = 
+					modelController.executeChanges(MiscSchemaUtil.createCollection(objectDelta), options, task, result);
+			
+			executedDeltas.addAll(deltaExecutedDeltas);			
+		}
+	}
+
+	public <O extends ObjectType> MergeDeltas<O> computeMergeDeltas(Class<O> type, String leftOid, String rightOid, 
 			final String mergeConfigurationName, final Task task, final OperationResult result) 
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		
 		final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
 		final PrismObject<O> objectRight = objectResolver.getObjectSimple(type, rightOid, null, task, result).asPrismObject();
@@ -146,8 +185,22 @@ public class ObjectMerger {
 		
 		// The "left" object is always the one that will be the result. We will use its OID.
 		final ObjectDelta<O> leftObjectDelta = objectLeft.createModifyDelta();
-		
+		final ObjectDelta<O> leftLinkDelta = objectLeft.createModifyDelta();
+		final ObjectDelta<O> rightLinkDelta = objectRight.createModifyDelta();
 		final List<ItemPath> processedPaths = new ArrayList<>();
+		
+		computeItemDeltas(leftObjectDelta, objectLeft, objectRight, processedPaths, mergeConfiguration, mergeConfigurationName, task, result);
+		computeDefaultDeltas(leftObjectDelta, objectLeft, objectRight, processedPaths, mergeConfiguration, mergeConfigurationName, task, result);
+		
+		computeProjectionDeltas(leftLinkDelta, rightLinkDelta, objectLeft, objectRight, mergeConfiguration, mergeConfigurationName, task, result);
+		
+		return new MergeDeltas<>(leftObjectDelta, leftLinkDelta, rightLinkDelta);
+	}
+	
+	private <O extends ObjectType> void computeItemDeltas(final ObjectDelta<O> leftObjectDelta, 
+			final PrismObject<O> objectLeft, final PrismObject<O> objectRight, final List<ItemPath> processedPaths,
+			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
+		
 		for (ItemRefMergeConfigurationType itemMergeConfig: mergeConfiguration.getItem()) {
 			ItemPath itemPath = itemMergeConfig.getRef().getItemPath();
 			processedPaths.add(itemPath);
@@ -157,6 +210,12 @@ public class ObjectMerger {
 				leftObjectDelta.addModification(itemDelta);
 			}
 		}
+		
+	}
+	
+	private <O extends ObjectType> void computeDefaultDeltas(final ObjectDelta<O> leftObjectDelta, 
+			final PrismObject<O> objectLeft, final PrismObject<O> objectRight, final List<ItemPath> processedPaths,
+			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		final ItemMergeConfigurationType defaultItemMergeConfig = mergeConfiguration.getDefault();
 		if (defaultItemMergeConfig != null) {
@@ -172,6 +231,11 @@ public class ObjectMerger {
 						
 						ItemPath itemPath = item.getPath();
 						if (itemPath == null || itemPath.isEmpty()) {
+							return;
+						}
+						
+						if (SchemaConstants.PATH_LINK_REF.equivalent(itemPath)) {
+							// Skip. There is a special processing for this.
 							return;
 						}
 												
@@ -236,10 +300,232 @@ public class ObjectMerger {
 			}
 		}
 		
-		return leftObjectDelta;
+	}
+	
+	private <O extends ObjectType> void computeProjectionDeltas(final ObjectDelta<O> leftLinkDelta, ObjectDelta<O> rightLinkDelta,
+			final PrismObject<O> objectLeft, final PrismObject<O> objectRight,
+			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+		
+		List<ShadowType> projectionsLeft = getProjections(objectLeft, task, result);
+		List<ShadowType> projectionsRight = getProjections(objectRight, task, result);
+		List<ShadowType> mergedProjections = new ArrayList<>();
+		List<ShadowType> matchedProjections = new ArrayList<>();
+		
+		ProjectionMergeConfigurationType defaultProjectionMergeConfig = null;
+		for (ProjectionMergeConfigurationType projectionMergeConfig: mergeConfiguration.getProjection()) {
+			if (projectionMergeConfig.getProjectionDiscriminator() == null && projectionMergeConfig.getSituation() == null) {
+				defaultProjectionMergeConfig = projectionMergeConfig;
+			} else {
+				takeProjections(projectionMergeConfig.getLeft(), mergedProjections, matchedProjections, 
+						projectionsLeft, projectionsLeft, projectionsRight, projectionMergeConfig);
+				takeProjections(projectionMergeConfig.getRight(), mergedProjections, matchedProjections, 
+						projectionsRight, projectionsLeft, projectionsRight, projectionMergeConfig);
+			}
+		}
+		
+		LOGGER.trace("Merged projections (before default): {}", mergedProjections);
+		LOGGER.trace("Matched projections (before default): {}", matchedProjections);
+		
+		if (defaultProjectionMergeConfig != null) {
+			takeUnmatchedProjections(defaultProjectionMergeConfig.getLeft(), mergedProjections, matchedProjections, projectionsLeft);
+			takeUnmatchedProjections(defaultProjectionMergeConfig.getRight(), mergedProjections, matchedProjections, projectionsRight);
+		}
+		
+		LOGGER.trace("Merged projections: {}", mergedProjections);
+		
+		checkConflict(mergedProjections);
+		
+		for (ShadowType mergedProjection: mergedProjections) {
+			PrismReferenceValue leftLinkRef = findLinkRef(objectLeft, mergedProjection);
+			if (leftLinkRef == null) {
+				PrismReferenceValue linkRefRight = findLinkRef(objectRight, mergedProjection);
+				LOGGER.trace("Moving projection right->left: {}", mergedProjection);
+				addUnlinkDelta(rightLinkDelta, linkRefRight);
+				addLinkDelta(leftLinkDelta, linkRefRight);
+			} else {
+				LOGGER.trace("Projection already at the left: {}", mergedProjection);
+			}
+		}
+		
+		for (PrismReferenceValue leftLinkRef: getLinkRefs(objectLeft)) {
+			if (!hasProjection(mergedProjections, leftLinkRef)) {
+				LOGGER.trace("Removing left projection: {}", leftLinkRef);
+				addUnlinkDelta(leftLinkDelta, leftLinkRef);
+			} else {
+				LOGGER.trace("Left projection stays: {}", leftLinkRef);
+			}
+		}
+		
+	}
+
+	private <O extends ObjectType> void addLinkDelta(ObjectDelta<O> objectDelta, PrismReferenceValue linkRef) {
+		objectDelta.addModificationAddReference(FocusType.F_LINK_REF, linkRef.clone());
+	}
+	
+	private <O extends ObjectType> void addUnlinkDelta(ObjectDelta<O> objectDelta, PrismReferenceValue linkRef) {
+		objectDelta.addModificationDeleteReference(FocusType.F_LINK_REF, linkRef.clone());
+	}
+
+	private <O extends ObjectType> PrismReferenceValue findLinkRef(PrismObject<O> object, ShadowType projection) {
+		for (PrismReferenceValue linkRef: getLinkRefs(object)) {
+			if (linkRef.getOid().equals(projection.getOid())) {
+				return linkRef;
+			}
+		}
+		return null;
+	}
+	
+	private <O extends ObjectType> List<PrismReferenceValue> getLinkRefs(PrismObject<O> object) {
+		PrismReference ref = object.findReference(FocusType.F_LINK_REF);
+		if (ref == null) {
+			return new ArrayList<>(0);
+		} else {
+			return ref.getValues();
+		}
+	}
+	
+	private boolean hasProjection(List<ShadowType> mergedProjections, PrismReferenceValue leftLinkRef) {
+		for (ShadowType projection: mergedProjections) {
+			if (projection.getOid().equals(leftLinkRef.getOid())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean hasProjection(List<ShadowType> mergedProjections, ShadowType candidateProjection) {
+		for (ShadowType projection: mergedProjections) {
+			if (projection.getOid().equals(candidateProjection.getOid())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private <O extends ObjectType> List<ShadowType> getProjections(PrismObject<O> objectRight, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		if (!objectRight.canRepresent(FocusType.class)) {
+			return new ArrayList<>(0);
+		}
+		List<ObjectReferenceType> linkRefs = ((FocusType)objectRight.asObjectable()).getLinkRef();
+		List<ShadowType> projections = new ArrayList<>(linkRefs.size());
+		for (ObjectReferenceType linkRef: linkRefs) {
+			projections.add(getProjection(linkRef, task, result));
+		}
+		return projections;
+	}
+
+	private void takeProjections(MergeStategyType strategy, List<ShadowType> mergedProjections, 
+			List<ShadowType> matchedProjections, List<ShadowType> candidateProjections,
+			List<ShadowType> projectionsLeft, List<ShadowType> projectionsRight,  
+			ProjectionMergeConfigurationType projectionMergeConfig) {
+		
+		if (LOGGER.isTraceEnabled()) {
+			
+			LOGGER.trace("TAKE: Evaluating situation {}, discriminator: {}", 
+					projectionMergeConfig.getSituation(), projectionMergeConfig.getProjectionDiscriminator());
+		}
+
+		for (ShadowType candidateProjection: candidateProjections) {
+			
+			if (projectionMatches(candidateProjection, projectionsLeft, projectionsRight, projectionMergeConfig)) { 
+				LOGGER.trace("Projection matches {}", candidateProjection);
+				matchedProjections.add(candidateProjection);
+				
+				if (strategy == MergeStategyType.TAKE) {
+					mergedProjections.add(candidateProjection);
+					
+				} else if (strategy == null || strategy == MergeStategyType.IGNORE) {
+					// Nothing to do here
+					
+				} else {
+					throw new UnsupportedOperationException("Merge strategy "+strategy+" is not supported");
+				}
+				
+			} else {
+				LOGGER.trace("Discriminator does NOT match {}", candidateProjection);
+			}
+		}
+		
 		
 	}
 	
+	private boolean projectionMatches(ShadowType candidateProjection,
+			List<ShadowType> projectionsLeft, List<ShadowType> projectionsRight,
+			ProjectionMergeConfigurationType projectionMergeConfig) {
+		ShadowDiscriminatorType discriminatorType = projectionMergeConfig.getProjectionDiscriminator();
+		if (discriminatorType != null && !ShadowUtil.matchesPattern(candidateProjection, discriminatorType)) {
+			return false;
+		}
+		ProjectionMergeSituationType situationPattern = projectionMergeConfig.getSituation();
+		if (situationPattern != null) {
+			ProjectionMergeSituationType projectionSituation = determineSituation(candidateProjection, projectionsLeft, projectionsRight);
+			if (situationPattern != projectionSituation) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void takeUnmatchedProjections(MergeStategyType strategy, List<ShadowType> mergedProjections, 
+			List<ShadowType> matchedProjections, List<ShadowType> candidateProjections) {
+		if (strategy == MergeStategyType.TAKE) {
+			
+			for (ShadowType candidateProjection: candidateProjections) {
+				if (!hasProjection(matchedProjections, candidateProjection)) {
+					mergedProjections.add(candidateProjection);
+				}
+			}
+			
+		} else if (strategy == null || strategy == MergeStategyType.IGNORE) {
+			return;
+		} else {
+			throw new UnsupportedOperationException("Merge strategy "+strategy+" is not supported");
+		}
+	}
+	
+	private ProjectionMergeSituationType determineSituation(ShadowType candidateProjection, List<ShadowType> projectionsLeft,
+			List<ShadowType> projectionsRight) {
+		boolean matchLeft = hasMatchingProjection(candidateProjection, projectionsLeft);
+		boolean matchRight = hasMatchingProjection(candidateProjection, projectionsRight);
+		if (matchLeft && matchRight) {
+			return ProjectionMergeSituationType.CONFLICT;
+		} else if (matchLeft) {
+			return ProjectionMergeSituationType.EXISTING;
+		} else if (matchRight) {
+			return ProjectionMergeSituationType.MERGEABLE;
+		} else {
+			throw new IllegalStateException("Booom! The universe has imploded.");
+		}
+	}
+		
+	private boolean hasMatchingProjection(ShadowType cprojection, List<ShadowType> projections) {
+		for (ShadowType projection: projections) {
+			if (ShadowUtil.isConflicting(projection, cprojection)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	private void checkConflict(List<ShadowType> projections) throws SchemaException {
+		for (ShadowType projection: projections) {
+			for (ShadowType cprojection: projections) {
+				if (cprojection == projection) {
+					continue;
+				}
+				if (ShadowUtil.isConflicting(projection, cprojection)) {
+					throw new SchemaException("Merge would result in projection conflict between "+projection+" and "+cprojection);
+				}
+			}
+		}
+	}
+	
+	private ShadowType getProjection(ObjectReferenceType linkRef, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+		return objectResolver.getObject(ShadowType.class, linkRef.getOid(), options, task, result);
+	}
+
 	private <O extends ObjectType, I extends Item> ItemDelta mergeItem(PrismObject<O> objectLeft, PrismObject<O> objectRight,
 			String mergeConfigurationName, ItemMergeConfigurationType itemMergeConfig, ItemPath itemPath, 
 			Task task, OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
