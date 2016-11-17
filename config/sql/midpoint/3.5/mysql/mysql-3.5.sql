@@ -152,6 +152,7 @@ CREATE TABLE m_assignment (
   creatorRef_relation     VARCHAR(157),
   creatorRef_targetOid    VARCHAR(36),
   creatorRef_type         INTEGER,
+  lifecycleState          VARCHAR(255),
   modifierRef_relation    VARCHAR(157),
   modifierRef_targetOid   VARCHAR(36),
   modifierRef_type        INTEGER,
@@ -281,6 +282,15 @@ CREATE TABLE m_assignment_extension (
   referencesCount SMALLINT,
   stringsCount    SMALLINT,
   PRIMARY KEY (owner_id, owner_owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_assignment_policy_situation (
+  assignment_id   INTEGER     NOT NULL,
+  assignment_oid  VARCHAR(36) NOT NULL,
+  policySituation VARCHAR(255)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -419,6 +429,14 @@ CREATE TABLE m_focus_photo (
   owner_oid VARCHAR(36) NOT NULL,
   photo     LONGBLOB,
   PRIMARY KEY (owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_focus_policy_situation (
+  focus_oid       VARCHAR(36) NOT NULL,
+  policySituation VARCHAR(255)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -1151,6 +1169,11 @@ ADD CONSTRAINT fk_assignment_ext_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension (owner_id, owner_owner_oid);
 
+ALTER TABLE m_assignment_policy_situation
+  ADD CONSTRAINT fk_assignment_policy_situation
+FOREIGN KEY (assignment_id, assignment_oid)
+REFERENCES m_assignment (id, owner_oid);
+
 ALTER TABLE m_assignment_reference
 ADD CONSTRAINT fk_assignment_reference
 FOREIGN KEY (owner_id, owner_owner_oid)
@@ -1189,6 +1212,11 @@ REFERENCES m_object (oid);
 ALTER TABLE m_focus_photo
 ADD CONSTRAINT fk_focus_photo
 FOREIGN KEY (owner_oid)
+REFERENCES m_focus (oid);
+
+ALTER TABLE m_focus_policy_situation
+  ADD CONSTRAINT fk_focus_policy_situation
+FOREIGN KEY (focus_oid)
 REFERENCES m_focus (oid);
 
 ALTER TABLE m_generic_object

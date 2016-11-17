@@ -42,12 +42,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
@@ -111,6 +112,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     private REmbeddedReference tenantRef;
     private REmbeddedReference orgRef;
     private REmbeddedReference resourceRef;
+    private String lifecycleState;
+    private Set<String> policySituation;
     //metadata
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
@@ -269,6 +272,30 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return trans;
     }
 
+    public String getLifecycleState() {
+        return lifecycleState;
+    }
+
+    @ElementCollection
+    @org.hibernate.annotations.ForeignKey(name = "fk_assignment_policy_situation")
+    @CollectionTable(name = "m_assignment_policy_situation", joinColumns = {
+            @JoinColumn(name = "assignment_oid", referencedColumnName = "owner_oid"),
+            @JoinColumn(name = "assignment_id", referencedColumnName = "id")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getPolicySituation() {
+        return policySituation;
+    }
+
+    public void setPolicySituation(Set<String> policySituation) {
+        this.policySituation = policySituation;
+    }
+
+
+    public void setLifecycleState(String lifecycleState) {
+        this.lifecycleState = lifecycleState;
+    }
+
     @Override
     public void setTransient(Boolean trans) {
         this.trans = trans;
@@ -367,6 +394,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
         if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) return false;
         if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
+        if (lifecycleState != null ? !lifecycleState.equals(that.lifecycleState) : that.lifecycleState != null) return false;
+        if (policySituation != null ? !policySituation.equals(that.policySituation) : that.policySituation != null) return false;
 
         if (!MetadataFactory.equals(this, that)) return false;
 
@@ -385,6 +414,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         result = 31 * result + (modifyTimestamp != null ? modifyTimestamp.hashCode() : 0);
         result = 31 * result + (modifierRef != null ? modifierRef.hashCode() : 0);
         result = 31 * result + (modifyChannel != null ? modifyChannel.hashCode() : 0);
+        result = 31 * result + (lifecycleState != null ? lifecycleState.hashCode() : 0);
 
         return result;
     }
@@ -399,6 +429,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toInteger(jaxb.getId()));
         repo.setOrder(jaxb.getOrder());
+        repo.setLifecycleState(jaxb.getLifecycleState());
+        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 
         if (jaxb.getExtension() != null) {
             RAssignmentExtension extension = new RAssignmentExtension();

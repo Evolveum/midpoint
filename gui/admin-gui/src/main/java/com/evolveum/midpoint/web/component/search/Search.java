@@ -84,14 +84,24 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     public SearchItem addItem(ItemDefinition def) {
-        if (!availableDefinitions.contains(def)) {
+        boolean isPresent = false;
+        for (ItemDefinition itemDefinition : availableDefinitions){
+            if (itemDefinition.getName() != null &&
+                    itemDefinition.getName().equals(def.getName())){
+                isPresent = true;
+                break;
+            }
+        }
+        if (!isPresent){
             return null;
         }
 
         ItemPath path = null;
+        ItemDefinition itemToRemove = null;
         for (Map.Entry<ItemPath, ItemDefinition> entry : allDefinitions.entrySet()) {
-            if (entry.getValue().equals(def)) {
+            if (entry.getValue().getName().equals(def.getName())) {
                 path = entry.getKey();
+                itemToRemove = entry.getValue();
                 break;
             }
         }
@@ -104,7 +114,9 @@ public class Search implements Serializable, DebugDumpable {
         item.getValues().add(new SearchValue<>());
 
         items.add(item);
-        availableDefinitions.remove(item.getDefinition());
+        if (itemToRemove != null) {
+            availableDefinitions.remove(itemToRemove);
+        }
 
         return item;
     }
