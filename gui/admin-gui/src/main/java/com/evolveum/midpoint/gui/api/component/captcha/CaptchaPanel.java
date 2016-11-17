@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.gui.api.component.captcha;
 
+import java.util.Random;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.captcha.CaptchaImageResource;
@@ -66,12 +68,12 @@ public class CaptchaPanel extends BasePanel<Void> {
 	}
 
 	protected CaptchaImageResource createCaptchImageResource() {
-		return new CaptchaImageResource() {
+		return new CaptchaImageResource(randomString(), 48, 30) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected byte[] render() {
-				String randomText = randomString(6, 8);
+				String randomText = randomString();
 				getChallengeIdModel().setObject(randomText);
 				return super.render();
 			}
@@ -85,16 +87,21 @@ public class CaptchaPanel extends BasePanel<Void> {
 	
 	static int randomInt(int min, int max)
     {
-        return (int)(Math.random() * (max - min) + min);
+		return (int)(Math.random() * (max - min) + min);
     }
 
-    static String randomString(int min, int max)
+    static String randomString()
     {
-        int num = randomInt(min, max);
-        byte b[] = new byte[num];
-        for (int i = 0; i < num; i++)
-            b[i] = (byte)randomInt('a', 'z');
-        return new String(b);
+    	return new Integer(randomInt(1000, 9999)).toString(); 
+//    	for (int i = 0; i< length; i++){
+//    		
+//    	}
+//    	
+//        int num = randomInt(min, max);
+//        byte b[] = new byte[num];
+//        for (int i = 0; i < num; i++)
+//            b[i] = (byte)randomInt('a', 'z');
+//        return new String(b);
     }
     
     public String getCaptchaText() {

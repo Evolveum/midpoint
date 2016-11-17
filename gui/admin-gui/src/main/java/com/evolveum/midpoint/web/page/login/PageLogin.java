@@ -25,11 +25,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgetPassword;
+import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -63,7 +64,7 @@ public class PageLogin extends PageBase {
             setResponsePage(app.getHomePage());
         }
 
-        BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgetPassword.class);
+        BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
         link.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
 
@@ -71,17 +72,18 @@ public class PageLogin extends PageBase {
             public boolean isVisible() {
                 OperationResult parentResult = new OperationResult(OPERATION_LOAD_RESET_PASSWORD_POLICY);
 
-                CredentialsPolicyType creds = null;
+                SecurityPolicyType securityPolicy = null;
                 try {
-                    creds = getModelInteractionService().getCredentialsPolicy(null, null, parentResult);
+                    securityPolicy = getModelInteractionService().getSecurityPolicy(null, null, parentResult);
                 } catch (ObjectNotFoundException | SchemaException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
 
+                CredentialsPolicyType creds = securityPolicy.getCredentials();
                 boolean linkIsVisible = false;
                 if (creds != null
-                        && creds.getSecurityQuestions() != null
-                        && creds.getSecurityQuestions().getQuestionNumber() != null) {
+                        && ((creds.getSecurityQuestions() != null
+                        && creds.getSecurityQuestions().getQuestionNumber() != null) || (securityPolicy.getCredentialsReset() != null))) {
                     linkIsVisible = true;
                 }
 

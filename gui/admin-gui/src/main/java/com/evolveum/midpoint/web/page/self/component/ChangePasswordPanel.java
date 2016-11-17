@@ -45,10 +45,10 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -73,21 +73,30 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private LoadableModel<MyPasswordsDto> model;
     private boolean midpointAccountSelected = true;
 
-    public ChangePasswordPanel(String id) {
+    public ChangePasswordPanel(String id, boolean oldPasswordVisible) {
         super(id);
-        initLayout();
+        initLayout(oldPasswordVisible);
     }
 
-    public ChangePasswordPanel(String id, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto) {
+    public ChangePasswordPanel(String id, boolean oldPasswordVisible, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto) {
         super(id, model);
-        initLayout();
+        initLayout(oldPasswordVisible);
     }
 
-    private void initLayout() {
+    private void initLayout(final boolean oldPasswordVisible) {
         model = (LoadableModel<MyPasswordsDto>) getModel();
 
         Label oldPasswordLabel = new Label(ID_OLD_PASSWORD_LABEL, createStringResource("PageSelfCredentials.oldPasswordLabel"));
         add(oldPasswordLabel);
+        oldPasswordLabel.add(new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public boolean isVisible() {
+        		return oldPasswordVisible;
+        	}
+        });
 
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
@@ -97,12 +106,14 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         oldPasswordField.setRequired(false);
         oldPasswordField.setResetPassword(false);
         add(oldPasswordField);
-
-        if (model.getObject().getPasswordChangeSecurity() != null &&
-                model.getObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.NONE)){
-            oldPasswordField.setVisible(false);
-            oldPasswordLabel.setVisible(false);
-        }
+        oldPasswordField.add(new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
+        	
+        	public boolean isVisible() {
+        		return oldPasswordVisible;
+        	};
+        });
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<ProtectedStringType>(model, MyPasswordsDto.F_PASSWORD));
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
