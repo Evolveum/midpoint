@@ -838,7 +838,7 @@ public class ChangeExecutor {
 			Iterator<? extends ItemDelta> objectDeltaIterator = objectDelta.getModifications().iterator();
 			while (objectDeltaIterator.hasNext()) {
 				ItemDelta d = objectDeltaIterator.next();
-				if (executed.containsModification(d) || d.isEmpty()) {
+				if (executed.containsModification(d, true, true) || d.isEmpty()) {
 					objectDeltaIterator.remove();
 				}
 			}

@@ -1395,12 +1395,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAssignedRole(user, roleOid);
 	}
 
-	protected <F extends FocusType> void assertAssignedRole(PrismObject<F> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		assertAssignedRole(focus, roleOid);
+	protected <F extends FocusType> AssignmentType assertAssignedRole(PrismObject<F> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		return assertAssignedRole(focus, roleOid);
 	}
 
-	protected <F extends FocusType> void assertAssignedRole(PrismObject<F> user, String roleOid) {
-		MidPointAsserts.assertAssignedRole(user, roleOid);
+	protected <F extends FocusType> AssignmentType assertAssignedRole(PrismObject<F> user, String roleOid) {
+		return MidPointAsserts.assertAssignedRole(user, roleOid);
 	}
 	
 	protected static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, String... roleOids) {
@@ -3425,22 +3425,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
 		assertNotNull("No password metadata in "+user, metadataContainer);
 		MetadataType metadataType = metadataContainer.getValue().asContainerable();
+		assertMetadata("password metadata in "+user, metadataType, create, start, end, actorOid, channel);
+	}
+		
+	protected void assertMetadata(String message, MetadataType metadataType, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+		assertNotNull("No metadata in " + message, metadataType);
 		if (create) {
 			if (actorOid != null) {
 				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
-				assertNotNull("No creatorRef in password metadata in "+user, creatorRef);
-				assertEquals("Wrong creatorRef OID in password metadata in "+user, actorOid, creatorRef.getOid());
+				assertNotNull("No creatorRef in " + message, creatorRef);
+				assertEquals("Wrong creatorRef OID in " + message, actorOid, creatorRef.getOid());
 			}
-			TestUtil.assertBetween("Wrong password create timestamp in password metadata in "+user, start, end, metadataType.getCreateTimestamp());
-			assertEquals("Wrong create channel", channel, metadataType.getCreateChannel());
+			TestUtil.assertBetween("Wrong password create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
+			assertEquals("Wrong create channel in " + message, channel, metadataType.getCreateChannel());
 		} else {
 			if (actorOid != null) {
 				ObjectReferenceType modifierRef = metadataType.getModifierRef();
-				assertNotNull("No modifierRef in password metadata in "+user, modifierRef);
-				assertEquals("Wrong modifierRef OID in password metadata in "+user, actorOid, modifierRef.getOid());
+				assertNotNull("No modifierRef in " + message, modifierRef);
+				assertEquals("Wrong modifierRef OID in " + message, actorOid, modifierRef.getOid());
 			}
-			TestUtil.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
-			assertEquals("Wrong modification channel", channel, metadataType.getModifyChannel());
+			TestUtil.assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
+			assertEquals("Wrong modification channel in " + message, channel, metadataType.getModifyChannel());
 		}
 	}
 	
