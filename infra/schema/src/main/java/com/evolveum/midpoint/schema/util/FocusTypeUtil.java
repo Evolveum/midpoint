@@ -15,8 +15,11 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
@@ -87,5 +90,17 @@ public class FocusTypeUtil {
 		}
 		sb.setLength(sb.length() - 1);
 		return sb.toString();
+	}
+	
+	public static boolean selectorMatches(AssignmentSelectorType assignmentSelector, AssignmentType assignmentType) {
+		if (assignmentType.getTargetRef() == null) {
+			return false;
+		}
+		for (ObjectReferenceType selectorTargetRef: assignmentSelector.getTargetRef()) {
+			if (MiscSchemaUtil.referenceMatches(selectorTargetRef, assignmentType.getTargetRef())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

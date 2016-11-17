@@ -256,13 +256,27 @@ public abstract class SchemaConstants {
 			NS_MODEL_EXTENSION, "lastScanTimestamp");
 
 	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
-	public static final String MODEL_DISABLE_REASON_EXPLICIT = QNameUtil
-			.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
-	public static final String MODEL_DISABLE_REASON_DEPROVISION = QNameUtil
-			.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "deprovision"));
-	public static final String MODEL_DISABLE_REASON_MAPPED = QNameUtil
-			.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
+	public static final String MODEL_DISABLE_REASON_EXPLICIT = 
+			QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
+	public static final String MODEL_DISABLE_REASON_DEPROVISION = 
+			QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "deprovision"));
+	public static final String MODEL_DISABLE_REASON_MAPPED = 
+			QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
 
+	public static final String NS_MODEL_POLICY = NS_MODEL + "/policy";
+	public static final String NS_MODEL_POLICY_SITUATION = NS_MODEL_POLICY + "/situation";
+	public static final String MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION = 
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "exclusionViolation"));
+	public static final String MODEL_POLICY_SITUATION_UNDERASSIGNED = 
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "underassigned"));
+	public static final String MODEL_POLICY_SITUATION_OVERASSIGNED = 
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "overassigned"));
+	public static final String MODEL_POLICY_SITUATION_MODIFIED = 
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "modified"));
+	public static final String MODEL_POLICY_SITUATION_ASSIGNED = 
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assigned"));
+
+	
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
 	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
 	public static final QName MODEL_EXTENSION_OBJECT_DELTA = new QName(NS_MODEL_EXTENSION, "objectDelta");

@@ -434,15 +434,15 @@ public class PageUsers extends PageAdminUsers {
         supportedTypes.add(UserType.COMPLEX_TYPE);
         ObjectFilter filter = InOidFilter.createInOid(selectedUser.getOid());
         ObjectFilter notFilter = NotFilter.createNot(filter);
-        ObjectBrowserPanel panel = new ObjectBrowserPanel(
+        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
                 getMainPopupBodyId(), UserType.class,
                 supportedTypes, false, PageUsers.this, notFilter) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onSelectPerformed(AjaxRequestTarget target, ObjectType user) {
+            protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
                 hideMainPopup(target);
-                mergeConfirmedPerformed(selectedUser, (UserType) user, target);
+                mergeConfirmedPerformed(selectedUser, user, target);
             }
 
         };

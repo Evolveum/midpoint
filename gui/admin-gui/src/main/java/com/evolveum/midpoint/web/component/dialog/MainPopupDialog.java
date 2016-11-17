@@ -91,8 +91,8 @@ public class MainPopupDialog extends ModalWindow {
     	popupable.getComponent().setOutputMarkupId(true);
     	content.addOrReplace(popupable.getComponent());
     }
-    
-    
-    
-   
+
+
+
+
 }

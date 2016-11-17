@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
@@ -41,6 +42,8 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
@@ -95,6 +98,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -111,6 +115,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -120,6 +125,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyCo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -545,7 +551,7 @@ public class AssignmentProcessor {
         
         // PROCESSING POLICIES
         
-        // Checking for assignment exclusions. This means mostly role exclusions (SoD)
+        checkAssignmentRules(context, evaluatedAssignmentTriple, result);
         checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
         checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
         checkAssigneeConstraints(context, evaluatedAssignmentTriple, result);
@@ -1509,31 +1515,27 @@ public class AssignmentProcessor {
 		}
 		for (EvaluatedAssignmentTargetImpl eRoleA: assignmentA.getRoles().getAllValues()) {
 			for (EvaluatedAssignmentTargetImpl eRoleB: assignmentB.getRoles().getAllValues()) {
-				checkExclusion(eRoleA, eRoleB);
+				checkExclusion(assignmentA, eRoleA, eRoleB);
 			}
 		}
 	}
 
-	private void checkExclusion(EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		checkExclusionOneWay(roleA, roleB);
-		checkExclusionOneWay(roleB, roleA);
+	private <F extends FocusType> void checkExclusion(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+		checkExclusionOneWay(assignmentA, roleA, roleB);
+		checkExclusionOneWay(assignmentA, roleB, roleA);
 	}
 
-	private void checkExclusionOneWay(EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		PolicyConstraintsType policyConstraints = roleA.getPolicyConstraints();
-		if (policyConstraints != null) {
-			for (ExclusionPolicyConstraintType exclusionA : policyConstraints.getExclusion()) {
-				ObjectReferenceType targetRef = exclusionA.getTargetRef();
-				if (roleB.getOid().equals(targetRef.getOid())) {
-					if (exclusionA.getEnforcement() == null || exclusionA.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-						throw new PolicyViolationException("Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
-								", they cannot be assigned at the same time");
-					} else {
-						// TODO: other enforcement modes
-					}
-				}
+	private <F extends FocusType> void checkExclusionOneWay(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
+			ObjectReferenceType targetRef = exclusionA.getTargetRef();
+			if (roleB.getOid().equals(targetRef.getOid())) {
+				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.EXCLUSION, exclusionA,
+						"Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
+						", they cannot be assigned at the same time");
+				assignmentA.triggerConstraint(null, trigger); 
+						
 			}
-		}		
+		}
 	}
 	
 	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context,
@@ -1559,33 +1561,38 @@ public class AssignmentProcessor {
 		if (target != null) {
 			Objectable targetType = target.asObjectable();
 			if (targetType instanceof AbstractRoleType) {
-				PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
-				if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
-					String focusOid = null;
-					if (context.getFocusContext() != null) {
-						focusOid = context.getFocusContext().getOid();
-					}
-					int numberOfAssigneesExceptMyself = countAssignees((PrismObject<? extends AbstractRoleType>)target, focusOid, result);
-					if (plusMinus == PlusMinusZero.PLUS) {
-						numberOfAssigneesExceptMyself++;
-					}
-					for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMinAssignees()) {
-						Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
-						// Complain only if the situation is getting worse
-						if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
-							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-								throw new PolicyViolationException("Policy violation: "+target+" requires at least "+multiplicity+
+				Collection<EvaluatedPolicyRule> policyRules = assignment.getPolicyRules();
+				for (EvaluatedPolicyRule policyRule: policyRules) {
+					PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
+					if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
+						String focusOid = null;
+						if (context.getFocusContext() != null) {
+							focusOid = context.getFocusContext().getOid();
+						}
+						int numberOfAssigneesExceptMyself = countAssignees((PrismObject<? extends AbstractRoleType>)target, focusOid, result);
+						if (plusMinus == PlusMinusZero.PLUS) {
+							numberOfAssigneesExceptMyself++;
+						}
+						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMinAssignees()) {
+							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
+							// Complain only if the situation is getting worse
+							if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MIN_ASSIGNEES,
+										constraint, ""+target+" requires at least "+multiplicity+
 										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
+								assignment.triggerConstraint(policyRule, trigger);
+										
 							}
 						}
-					}
-					for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
-						Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
-						// Complain only if the situation is getting worse
-						if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
-							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-								throw new PolicyViolationException("Policy violation: "+target+" requires at most "+multiplicity+
+						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
+							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
+							// Complain only if the situation is getting worse
+							if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MAX_ASSIGNEES,
+										constraint, ""+target+" requires at most "+multiplicity+
 										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
+								assignment.triggerConstraint(policyRule, trigger);
+										
 							}
 						}
 					}
@@ -1602,6 +1609,44 @@ public class AssignmentProcessor {
 		}
 		ObjectQuery query = q.build();
 		return repositoryService.countObjects(FocusType.class, query, result);
+	}
+	
+	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
+			OperationResult result) throws PolicyViolationException, SchemaException {
+		checkAssignmentRules(context, evaluatedAssignmentTriple.getPlusSet(), result);
+		checkAssignmentRules(context, evaluatedAssignmentTriple.getMinusSet(), result);
+	}
+	
+	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
+			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
+			OperationResult result) throws PolicyViolationException, SchemaException {
+		for( EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
+			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
+			for (EvaluatedPolicyRule policyRule: policyRules) {
+				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
+				if (policyConstraints == null) {
+					continue;
+				}
+				for (AssignmentPolicyConstraintType assignmentConstraint: policyConstraints.getAssignment()) {
+					if (assignmentConstraint.getRelation().isEmpty()) {
+						if (MiscSchemaUtil.compareRelation(null, evaluatedAssignment.getRelation())) {
+							EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.ASSIGNMENT, 
+									assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
+							evaluatedAssignment.triggerConstraint(policyRule, trigger);
+						}
+					} else {
+						for (QName constraintRelation: assignmentConstraint.getRelation()) {
+							if (MiscSchemaUtil.compareRelation(constraintRelation, evaluatedAssignment.getRelation())) {
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.ASSIGNMENT, 
+										assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
+								evaluatedAssignment.triggerConstraint(policyRule, trigger);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	public <F extends ObjectType> void removeIgnoredContexts(LensContext<F> context) {

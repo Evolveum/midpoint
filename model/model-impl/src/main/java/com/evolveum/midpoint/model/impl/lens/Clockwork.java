@@ -81,6 +81,7 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -388,7 +389,7 @@ public class Clockwork {
      *  - BACKGROUND, if any hook reported switching to background; otherwise
      *  - FOREGROUND (if all hooks reported finishing on foreground) 
      */
-    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	// TODO: following two parts should be merged together in later versions
     	
     	// Execute configured scripting hooks
@@ -1091,14 +1092,25 @@ public class Clockwork {
 				ModelAuthorizationAction.CHANGE_CREDENTIALS.getUrl(), AuthorizationPhaseType.REQUEST);
 	}
 
-	private <F extends FocusType> void authorizeAssignmentRequest(String actionUrl, PrismObject object,
+	private <F extends FocusType> void authorizeAssignmentRequest(String assignActionUrl, PrismObject object,
 			OwnerResolver ownerResolver, Collection<EvaluatedAssignmentImpl> evaluatedAssignments, OperationResult result) throws SecurityViolationException, SchemaException {
 		if (evaluatedAssignments == null) {
 			return;
 		}
 		for (EvaluatedAssignment<F> evaluatedAssignment: evaluatedAssignments) {
 			PrismObject target = evaluatedAssignment.getTarget();
-			securityEnforcer.authorize(actionUrl, AuthorizationPhaseType.REQUEST, object, null, target, ownerResolver, result);
+			if (securityEnforcer.isAuthorized(assignActionUrl, AuthorizationPhaseType.REQUEST, object, null, target, ownerResolver)) {
+				LOGGER.trace("Operation authorized with {} authorization", assignActionUrl);
+				continue;
+			}
+			QName relation = evaluatedAssignment.getRelation();
+			if (LensUtil.isDelegationRelation(relation)) {
+				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), AuthorizationPhaseType.REQUEST, object, null, target, ownerResolver)) {
+					LOGGER.trace("Operation authorized with {} authorization", ModelAuthorizationAction.DELEGATE.getUrl());
+					continue;
+				}
+			}
+			securityEnforcer.failAuthorization("with assignment", AuthorizationPhaseType.REQUEST, object, null, target, result);
 		}
 	}
 

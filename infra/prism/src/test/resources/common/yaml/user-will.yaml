@@ -19,7 +19,7 @@ user:
     longType:
     - 299792458
     dateType:
-    - 170721000000
+    - "1975-05-30T22:30:00Z"
     durationType:
     - "P17Y3M2D"
     locations:

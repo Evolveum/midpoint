@@ -16,12 +16,44 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -36,9 +68,9 @@ import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import java.util.List;
+import javax.xml.namespace.QName;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -54,10 +86,16 @@ import java.util.List;
 public class PageUser extends PageAdminFocus<UserType> {
 
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
+    private static final String OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedByMeAssignments";
+    private static final String OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST = DOT_CLASS + "createAssignmentPreviewDtoList";
 
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_TASKS = "tasks";
+    private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
+    private Map<AssignmentEditorDto, UserType> assignmentUserMap = new HashMap();
+    private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
+    private HashMap<UserType, AssignmentEditorDto> usersToUpdateMap = new HashMap<>();
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
     public PageUser() {
@@ -71,6 +109,23 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     public PageUser(final PrismObject<UserType> userToEdit) {
         initialize(userToEdit);
+    }
+
+    @Override
+    protected void initializeModel(final PrismObject<UserType> objectToEdit) {
+        super.initializeModel(objectToEdit);
+        delegationsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+            @Override
+            protected List<AssignmentEditorDto> load() {
+                return loadDelegatedByMeAssignments();
+            }
+        };
+        delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
+            @Override
+            protected List<AssignmentEditorDto> load() {
+                return loadToMeDelegations();
+            }
+        };
     }
 
     @Override
@@ -115,6 +170,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
 	@Override
 	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
+        List<AssignmentType> assignments = getObjectWrapper().getObject().asObjectable().getAssignment();
+        List<AssignmentsPreviewDto> privilegesList = getUserPrivilegesList();
         return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this) {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
@@ -129,8 +186,275 @@ public class PageUser extends PageAdminFocus<UserType> {
                                 return createObjectHistoryTabPanel(panelId, parentPage);
                             }
                         });
+                authorization = new FocusTabVisibleBehavior(unwrapModel(),
+                        ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL);
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"), authorization)
+                {
+                    private static final long serialVersionUID = 1L;
 
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegations"),
+                                delegationsModel) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void populateItem(ListItem<AssignmentEditorDto> item) {
+                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
+                                        privilegesList, assignmentUserMap.get(item.getModelObject()), PageUser.this);
+                                item.add(editor);
+                            }
+
+                            @Override
+                            public String getExcludeOid() {
+                                return getObject().getOid();
+                            }
+
+                            @Override
+                            protected List<InlineMenuItem> createAssignmentMenu() {
+                                List<InlineMenuItem> items = new ArrayList<>();
+
+                                InlineMenuItem item;
+                                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL)) {
+                                    item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.addDelegation"),
+                                            new InlineMenuItemAction() {
+                                                private static final long serialVersionUID = 1L;
+
+                                                @Override
+                                                public void onClick(AjaxRequestTarget target) {
+                                                    List<QName> supportedTypes = new ArrayList<>();
+                                                    supportedTypes.add(UserType.COMPLEX_TYPE);
+                                                    ObjectFilter filter = InOidFilter.createInOid(getObjectWrapper().getOid());
+                                                    ObjectFilter notFilter = NotFilter.createNot(filter);
+                                                    ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
+                                                            getMainPopupBodyId(), UserType.class,
+                                                            supportedTypes, false, PageUser.this, notFilter) {
+                                                        private static final long serialVersionUID = 1L;
+
+                                                        @Override
+                                                        protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
+                                                            hideMainPopup(target);
+                                                            List<ObjectType> newAssignmentsList = new ArrayList<ObjectType>();
+                                                            newAssignmentsList.add(user);
+                                                            addSelectedAssignablePerformed(target, newAssignmentsList, getPageBase().getMainPopup().getId());
+                                                        }
+
+                                                    };
+                                                    panel.setOutputMarkupId(true);
+                                                    showMainPopup(panel, target);
+
+                                                }
+                                            });
+                                    items.add(item);
+                                }
+                                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
+                                    item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.deleteDelegation"),
+                                            new InlineMenuItemAction() {
+                                                private static final long serialVersionUID = 1L;
+
+                                                @Override
+                                                public void onClick(AjaxRequestTarget target) {
+//                                            deleteAssignmentPerformed(target);
+                                                }
+                                            });
+                                    items.add(item);
+                                }
+
+                                return items;
+                            }
+
+                            @Override
+                            protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
+                                                                          String popupId) {
+                                ModalWindow window = (ModalWindow) get(popupId);
+                                if (window != null) {
+                                    window.close(target);
+                                }
+                                getPageBase().hideMainPopup(target);
+                                if (newAssignments.isEmpty()) {
+                                    warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
+                                    target.add(getPageBase().getFeedbackPanel());
+                                    return;
+                                }
+
+                                for (ObjectType object : newAssignments) {
+                                    try {
+                                        AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
+                                                    PageUser.this.getObjectWrapper().getObject().asObjectable(),
+                                                    SchemaConstants.ORG_DEPUTY, getPageBase());
+                                        dto.setPrivilegeLimitationList(privilegesList);
+                                        delegationsModel.getObject().add(dto);
+                                        usersToUpdateMap.put((UserType) object, dto);
+                                    } catch (Exception e) {
+                                        error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
+                                                e.getMessage()));
+                                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
+                                    }
+                                }
+
+                                reloadAssignmentsPanel(target);
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    public String getCount() {
+                        return Integer.toString(delegationsModel.getObject() == null ? 0 : delegationsModel.getObject().size());
+                    }
+                });
+
+                authorization = new FocusTabVisibleBehavior(unwrapModel(),
+                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL);
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"), authorization)
+                {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegatedToMe"),
+                                delegatedToMeModel) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void populateItem(ListItem<AssignmentEditorDto> item) {
+                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
+                                        privilegesList, null, PageUser.this);
+                                item.add(editor);
+                            }
+
+                            @Override
+                            public String getExcludeOid() {
+                                return getObject().getOid();
+                            }
+
+                            @Override
+                            protected List<InlineMenuItem> createAssignmentMenu() {
+                                return new ArrayList<>();
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    public String getCount() {
+                        return Integer.toString(delegatedToMeModel.getObject() == null ?
+                                0 : delegatedToMeModel.getObject().size());
+                    }
+                });
             }
+
         };
     }
+
+    private List<AssignmentEditorDto> loadToMeDelegations() {
+        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+
+        ObjectWrapper<UserType> focusWrapper = getObjectModel().getObject();
+        PrismObject<UserType> focus = focusWrapper.getObject();
+        List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+        for (AssignmentType assignment : assignments) {
+            if (assignment.getTargetRef() != null &&
+                    UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+            }
+        }
+
+        Collections.sort(list);
+
+        return list;
+    }
+
+    private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS);
+        List<AssignmentEditorDto> list = new ArrayList<>();
+        try{
+
+            Task task = createSimpleTask(OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS);
+
+            PrismReferenceValue referenceValue = new PrismReferenceValue(getObjectWrapper().getOid(),
+                    UserType.COMPLEX_TYPE);
+            referenceValue.setRelation(SchemaConstants.ORG_DEPUTY);
+
+            ObjectFilter refFilter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+                    .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)
+                    .buildFilter();
+
+            ObjectQuery query = new ObjectQuery();
+            query.setFilter(refFilter);
+
+            List<PrismObject<UserType>> usersList = getModelService().searchObjects(UserType.class, query, null, task, result);
+            if (usersList != null && usersList.size() > 0){
+                for (PrismObject<UserType> user : usersList) {
+                    List<AssignmentType> assignments = user.asObjectable().getAssignment();
+                    for (AssignmentType assignment : assignments) {
+                        if (assignment.getTargetRef() != null &&
+                                StringUtils.isNotEmpty(assignment.getTargetRef().getOid()) &&
+                                assignment.getTargetRef().getOid().equals(getObjectWrapper().getOid())) {
+                            AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this);
+                            list.add(dto);
+                            assignmentUserMap.put(dto, user.asObjectable());
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception ex){
+            result.recomputeStatus();
+            showResult(result);
+        }
+        Collections.sort(list);
+        return list;
+    }
+
+    private List<AssignmentsPreviewDto> getUserPrivilegesList(){
+        List<AssignmentsPreviewDto> list = new ArrayList<>();
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
+        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
+        for (AssignmentType assignment : getObjectWrapper().getObject().asObjectable().getAssignment()){
+            AssignmentsPreviewDto dto = createDelegableAssignmentsPreviewDto(assignment, task, result);
+            if (dto != null){
+                list.add(dto);
+            }
+        }
+        return list;
+    }
+
+    @Override
+    protected void processDeputyAssignments(){
+        for (UserType user : usersToUpdateMap.keySet()){
+            List<AssignmentType> userAssignments = user.getAssignment();
+            List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();
+            for (AssignmentType assignment : userAssignments) {
+                    userAssignmentsDtos.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+            }
+            userAssignmentsDtos.add(usersToUpdateMap.get(user));
+            saveDelegationToUser(user, userAssignmentsDtos);
+        }
+    }
+
+    private void saveDelegationToUser(UserType user, List<AssignmentEditorDto> assignmentEditorDtos) {
+        OperationResult result = new OperationResult(OPERATION_SAVE);
+        ObjectDelta<UserType> delta;
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        try {
+            delta = user.asPrismObject().createModifyDelta();
+            deltas.add(delta);
+            PrismContainerDefinition def = user.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+            handleAssignmentDeltas(delta, assignmentEditorDtos, def);
+            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE), result);
+
+            result.recordSuccess();
+
+
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
+            error("Could not save assignments. Reason: " + e);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        showResult(result);
+    }
+
 }

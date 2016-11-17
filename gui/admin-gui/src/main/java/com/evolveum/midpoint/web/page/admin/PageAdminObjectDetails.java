@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -428,6 +429,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
+		processDeputyAssignments();
+
 		ObjectWrapper<O> objectWrapper = getObjectWrapper();
 		LOGGER.debug("Saving object {}", objectWrapper);
 		
@@ -566,6 +569,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 //		}
 		
 		LOGGER.trace("returning from saveOrPreviewPerformed");
+	}
+
+	protected void processDeputyAssignments(){
 	}
 
 	protected boolean checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {

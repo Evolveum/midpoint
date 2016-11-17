@@ -73,6 +73,9 @@ public class ScenePanel extends BasePanel<SceneDto> {
         super(id, model);
         setOutputMarkupId(true);
 
+		if (model == null || model.getObject() == null) {
+			throw new IllegalArgumentException("Null or empty SceneDto model");
+		}
         LOGGER.trace("Creating object panel for {}", model.getObject());
 
         initLayout();

@@ -37,7 +37,6 @@
 			<class name="com.evolveum.midpoint.prism.TestExtraSchema"/>
 			<class name="com.evolveum.midpoint.prism.TestPolyString"/>
 			<class name="com.evolveum.midpoint.prism.TestDiff"/>
-<!-- 			<class name="com.evolveum.midpoint.prism.TestJsonParser"/> -->
 			<class name="com.evolveum.midpoint.prism.TestDelta"/>
 			<class name="com.evolveum.midpoint.prism.TestPath"/>
 			<class name="com.evolveum.midpoint.prism.TestFind"/>
@@ -46,6 +45,7 @@
 			<class name="com.evolveum.midpoint.prism.match.TestMatchingRule"/>
 			<class name="com.evolveum.midpoint.prism.lex.TestDomParser"/>
 			<class name="com.evolveum.midpoint.prism.lex.TestJsonParser"/>
+			<class name="com.evolveum.midpoint.prism.lex.TestYamlParser"/>
             <class name="com.evolveum.midpoint.prism.lex.TestProtectedString"/>
 			<class name="com.evolveum.midpoint.prism.query.TestObjectQuery"/>
 			<class name="com.evolveum.midpoint.prism.query.TestQueryConvertors"/>

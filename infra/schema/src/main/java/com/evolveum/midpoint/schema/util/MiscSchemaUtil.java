@@ -399,4 +399,16 @@ public class MiscSchemaUtil {
         }
 	}
 
+	public static boolean referenceMatches(ObjectReferenceType refPattern, ObjectReferenceType ref) {
+		if (refPattern.getOid() != null && !refPattern.getOid().equals(ref.getOid())) {
+			return false;
+		}
+		if (refPattern.getType() != null && !QNameUtil.match(refPattern.getType(), ref.getType())) {
+			return false;
+		}
+		if (!QNameUtil.match(refPattern.getRelation(), ref.getRelation())) {
+			return false;
+		}
+		return true;
+	}
 }

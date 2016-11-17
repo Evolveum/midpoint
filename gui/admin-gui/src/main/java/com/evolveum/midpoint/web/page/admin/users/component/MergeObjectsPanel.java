@@ -260,4 +260,8 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         return mergeDeltas;
 
     }
+
+    public String getMergeConfigurationName(){
+        return currentMergeType;
+    }
 }

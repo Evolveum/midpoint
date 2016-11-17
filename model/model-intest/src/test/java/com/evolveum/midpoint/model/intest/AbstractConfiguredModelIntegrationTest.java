@@ -210,6 +210,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
 	protected static final String ROLE_JUDGE_TITLE = "Honorable Justice";
 	protected static final String ROLE_JUDGE_DRINK = "tea";
+	protected static final String ROLE_JUDGE_DESCRIPTION = "Role with role exclusions";
 
 	protected static final File ROLE_JUDGE_DEPRECATED_FILE = new File(COMMON_DIR, "role-judge-deprecated.xml");
 	protected static final String ROLE_JUDGE_DEPRECATED_OID = "12345111-1111-2222-1111-d21212111111";
@@ -229,6 +230,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final File ROLE_CYAN_SAILOR_FILE = new File(COMMON_DIR, "role-cyan-sailor.xml");
 	protected static final String ROLE_CYAN_SAILOR_OID = "d3abd794-9c30-11e6-bb5a-af14bf2cc29b";
+	
+	protected static final File ROLE_DRINKER_FILE = new File(COMMON_DIR, "role-drinker.xml");
+	protected static final String ROLE_DRINKER_OID = "0abbde4c-ab3f-11e6-910d-d7dabf5f09f0";
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -437,6 +441,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_SUPERSPECIAL_URL = QNameUtil.qNameToUri(AUTZ_SUPERSPECIAL_QNAME);
 	protected static final QName AUTZ_NONSENSE_QNAME = new QName(NS_TEST_AUTZ, "nonsense");
 	protected static final String AUTZ_NONSENSE_URL = QNameUtil.qNameToUri(AUTZ_NONSENSE_QNAME);
+	protected static final QName AUTZ_SAIL_QNAME = new QName(NS_TEST_AUTZ, "sail");
+	protected static final String AUTZ_SAIL_URL = QNameUtil.qNameToUri(AUTZ_SAIL_QNAME);
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	

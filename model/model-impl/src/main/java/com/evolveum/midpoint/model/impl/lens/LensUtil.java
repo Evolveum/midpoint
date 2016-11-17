@@ -72,6 +72,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -1336,5 +1337,9 @@ public class LensUtil {
 			objectDeltaOp.setResourceOid(((LensProjectionContext) objectContext).getResourceOid());
 		}
 		return objectDeltaOp;
+	}
+	
+	public static boolean isDelegationRelation(QName relation) {
+		return QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY);
 	}
 }

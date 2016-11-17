@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.rbac;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -107,7 +108,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_GOVERNOR_FILE = new File(TEST_DIR, "role-governor.xml");
 	protected static final String ROLE_GOVERNOR_OID = "12345678-d34d-b33f-f00d-555555557705";
 	
-	protected static final File ROLE_CANIBAL_FILE = new File(TEST_DIR, "role-cannibal.xml");
+	protected static final File ROLE_CANNIBAL_FILE = new File(TEST_DIR, "role-cannibal.xml");
 	protected static final String ROLE_CANNIBAL_OID = "12345678-d34d-b33f-f00d-555555557706";
 	
 	protected static final File ROLE_PROJECT_OMNINAMAGER_FILE = new File(TEST_DIR, "role-project-omnimanager.xml");
@@ -115,6 +116,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_WEAK_GOSSIPER_FILE = new File(TEST_DIR, "role-weak-gossiper.xml");
 	protected static final String ROLE_WEAK_GOSSIPER_OID = "e8fb2226-7f48-11e6-8cf1-630ce5c3f80b";
+	
+	protected static final File ROLE_IMMUTABLE_FILE = new File(TEST_DIR, "role-immutable.xml");
+	protected static final String ROLE_IMMUTABLE_OID = "e53baf94-aa99-11e6-962a-5362ec2dd7df";
+	private static final String ROLE_IMMUTABLE_DESCRIPTION = "Role that cannot be modified because there is a modification rule with enforcement action.";
+
+	protected static final File ROLE_NON_ASSIGNABLE_FILE = new File(TEST_DIR, "role-non-assignable.xml");
+	protected static final String ROLE_NON_ASSIGNABLE_OID = "db67d2f0-abd8-11e6-9c30-b35abe3e4e3a";
 	
 	protected static final File ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE = new File(TEST_DIR, "org-project-reclaim-black-pearl.xml");
 	protected static final String ORG_PROJECT_RECLAIM_BLACK_PEARL_OID = "00000000-8888-6666-0000-200000005000";
@@ -131,12 +139,21 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_BIGNOSE_NAME = "bignose";
 	private static final String USER_BIGNOSE_FULLNAME = "Bignose the Noncannibal";
 
+	
 	private String userLemonheadOid;
 	private String userSharptoothOid;
 	private String userRedskullOid;
 	private String userBignoseOid;
 	
 	private final String EXISTING_GOSSIP = "Black spot!"; 
+	
+	protected File getRoleGovernorFile() {
+		return ROLE_GOVERNOR_FILE;
+	}
+	
+	protected File getRoleCannibalFile() {
+		return ROLE_CANNIBAL_FILE;
+	}
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
@@ -151,10 +168,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_CLERIC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_WANNABE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_GOVERNOR_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_CANIBAL_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(getRoleGovernorFile(), RoleType.class, initResult);
+		repoAddObjectFromFile(getRoleCannibalFile(), RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, RoleType.class, initResult);
 	}
 	
 	@Test
@@ -2846,6 +2865,86 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
 	}
+	
+	@Test
+    public void test800ModifyRoleImmutable() throws Exception {
+		final String TEST_NAME = "test800ModifyRoleImmutable";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_OID, RoleType.F_DESCRIPTION, 
+					task, result, "whatever");
+			
+			AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// THEN
+            TestUtil.displayThen(TEST_NAME);
+            result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_OID);
+        PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_DESCRIPTION);
+	}
+	
+	@Test
+    public void test810ModifyRoleJudge() throws Exception {
+		final String TEST_NAME = "test810ModifyRoleJudge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyObjectReplaceProperty(RoleType.class, ROLE_JUDGE_OID, RoleType.F_DESCRIPTION, 
+				task, result, "whatever");
+			
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_JUDGE_OID);
+        PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, "whatever");
+	}
+
+	@Test
+    public void test820AssignRoleNonAssignable() throws Exception {
+		final String TEST_NAME = "test820AssignRoleNonAssignable";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+        display("user jack", userJackBefore);
+        assertNoAssignments(userJackBefore);
+        
+        try {
+	        // WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			assignRole(USER_JACK_OID, ROLE_NON_ASSIGNABLE_OID, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// THEN
+            TestUtil.displayThen(TEST_NAME);
+            result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("user after", userJackAfter);
+        assertNoAssignments(userJackAfter);
+	}
 
 }

@@ -177,12 +177,8 @@ public class CertCaseOrDecisionDto extends Selectable {
             //todo i18n
             if (delta > 0) {
             	return PageBase.createStringResourceStatic(page, "PageCert.in", DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
-//                return new StringResourceModel("PageCert.in", page, null, null,
-//                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
             } else if (delta < 0) {
             	return PageBase.createStringResourceStatic(page, "PageCert.ago", DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
-//                return StringResourceModelMigration.of("PageCert.ago", page, null, null,
-//                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
             } else {
                 return page.getString("PageCert.now");
             }

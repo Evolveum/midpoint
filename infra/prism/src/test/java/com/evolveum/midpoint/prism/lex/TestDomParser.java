@@ -108,4 +108,9 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
 	protected void validateResourceSchema(String xmlString, PrismContext prismContext) throws SAXException, IOException {
 		validateSchemaCompliance(xmlString, prismContext);
 	}
+
+	@Override
+	protected String getWhenItemSerialized() {
+		return "<when>2012-02-24T10:48:52.000Z</when>";
+	}
 }

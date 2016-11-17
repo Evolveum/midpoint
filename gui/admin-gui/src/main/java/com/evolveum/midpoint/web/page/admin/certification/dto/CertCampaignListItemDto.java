@@ -121,13 +121,9 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
             if (delta > 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.inForStage" : "PageCertCampaigns.inForCampaign";
                 return PageBase.createStringResourceStatic(page, key, DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
-//                return new StringResourceModel(key, page, null, null,
-//                        DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
             } else if (delta < 0) {
                 String key = stageLevelInfo ? "PageCertCampaigns.agoForStage" : "PageCertCampaigns.agoForCampaign";
                 return PageBase.createStringResourceStatic(page, key, DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
-//                return new StringResourceModel(key, page, null, null,
-//                        DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
             } else {
                 String key = stageLevelInfo ? "PageCertCampaigns.nowForStage" : "PageCertCampaigns.nowForCampaign";
                 return page.getString(key);

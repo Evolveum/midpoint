@@ -429,8 +429,8 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
                 
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         dumpFocus("User barbossa after", userBarbossaAfter);
-        assertHasOrgs(userBarbossaAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, ORG_GOVERNOR_OFFICE_OID);
-        assertRoleMembershipRef(userBarbossaAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertHasOrgs(userBarbossaAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
+        assertRoleMembershipRef(userBarbossaAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
         assertLinks(userBarbossaAfter, 1);
         
@@ -468,8 +468,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         PrismObject<UserType> userGibbsAfter = getUser(USER_GIBBS_OID);
         dumpFocus("User Gibbs after", userGibbsAfter);
         assertHasOrgs(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
-        // WORK IN PROGRESS MID-3472
-//        assertRoleMembershipRef(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
+        assertRoleMembershipRef(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
         assertAccount(userGibbsAfter, RESOURCE_DUMMY_OID); // From Scumm Bar
         assertAccount(userGibbsAfter, RESOURCE_DUMMY_YELLOW_OID);
         assertLinks(userGibbsAfter, 2);
@@ -507,9 +506,8 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
                 
         PrismObject<UserType> userPintelAfter = getUser(USER_PINTEL_OID);
         dumpFocus("User pintel after", userPintelAfter);
-        assertHasOrgs(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, ORG_GOVERNOR_OFFICE_OID);
-        // WORK IN PROGRESS MID-3472
-//        assertRoleMembershipRef(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertHasOrgs(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
+        assertRoleMembershipRef(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
         assertAccount(userPintelAfter, RESOURCE_DUMMY_RED_OID);
         assertLinks(userPintelAfter, 1);
         

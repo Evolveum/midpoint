@@ -16,18 +16,37 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.util.Collection;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask;
+import com.evolveum.midpoint.model.intest.util.MockTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -259,6 +278,848 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
     }
     
-    // TODO: assign deputy to empty jack, assign role to jack, recompute barbossa
-	
+    /**
+	 * Guybrush and Barbossa does not have any accounts or roles. Yet.
+	 * Assign Barbossa as Guybrush's deputy. Not much should happen.
+	 */
+    @Test
+    public void test120AssignbarbossaDeputyOfGuybrush() throws Exception {
+		final String TEST_NAME = "test120AssignbarbossaDeputyOfGuybrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush before", userGuybrushBefore);
+        assertLinks(userGuybrushBefore, 1);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputy(USER_BARBOSSA_OID, USER_GUYBRUSH_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignments(userBarbossaAfter, 1);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertNoAssignments(userGuybrushAfter);
+        assertLinks(userGuybrushAfter, 1);
+        assertNoAuthorizations(userGuybrushAfter);
+        
+    }
+    
+    /**
+	 * Assign Guybrush pirate role. Barbossa is Guybrushe's deputy,
+	 * but Barbossa should be only partially affected yet. 
+	 * Barbossa should not have the accounts, but he should have the
+	 * authorization. Barbossa will be completely affected after recompute.
+	 */
+    @Test
+    public void test122AssignGuybrushPirate() throws Exception {
+		final String TEST_NAME = "test122AssignGuybrushPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertAssignedRole(userGuybrushAfter, ROLE_PIRATE_OID);
+        assertAssignments(userGuybrushAfter, 1);
+        assertAccount(userGuybrushAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userGuybrushAfter, 1);
+        assertAuthorizations(userGuybrushAfter, AUTZ_LOOT_URL);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignments(userBarbossaAfter, 1);
+        assertLinks(userBarbossaAfter, 0);
+        assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
+        
+    }
+    
+    /**
+	 * Recompute Barbossa. Barbossa should get the deputy rights
+	 * from Guybrush after recompute.
+	 */
+    @Test
+    public void test124RecomputeBarbossa() throws Exception {
+		final String TEST_NAME = "test124RecomputeBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        recomputeUser(USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertAssignedRole(userGuybrushAfter, ROLE_PIRATE_OID);
+        assertAssignments(userGuybrushAfter, 1);
+        assertAccount(userGuybrushAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userGuybrushAfter, 1);
+        assertAuthorizations(userGuybrushAfter, AUTZ_LOOT_URL);
+        
+    }
+    
+    /**
+	 * Unassign Guybrush pirate role. Barbossa is Guybrushe's deputy,
+	 * but Barbossa should be only partially affected yet. 
+	 */
+    @Test
+    public void test126UnassignGuybrushPirate() throws Exception {
+		final String TEST_NAME = "test126UnassignGuybrushPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertNoAssignments(userGuybrushAfter);
+        assertLinks(userGuybrushAfter, 0);
+        assertNoAuthorizations(userGuybrushAfter);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+    }
+    
+    /**
+	 * Recompute Barbossa. Barbossa should get the deputy rights
+	 * from Guybrush after recompute.
+	 */
+    @Test
+    public void test128RecomputeBarbossa() throws Exception {
+		final String TEST_NAME = "test128RecomputeBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        recomputeUser(USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignments(userBarbossaAfter, 1);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertNoAssignments(userGuybrushAfter);
+        assertLinks(userGuybrushAfter, 0);
+        assertNoAuthorizations(userGuybrushAfter);
+        
+    }
+    
+    @Test
+    public void test129UnassignBarbossaDeputyOfGuybrush() throws Exception {
+		final String TEST_NAME = "test129UnassignBarbossaDeputyOfGuybrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignDeputy(USER_BARBOSSA_OID, USER_GUYBRUSH_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertNoAssignments(userGuybrushAfter);
+        assertLinks(userGuybrushAfter, 0);
+        assertNoAuthorizations(userGuybrushAfter);
+        
+    }
+    
+    /**
+	 * Assign more roles and orgs to Jack. We will use these for
+	 * selective delegation in subsequent tests.
+	 */
+    @Test
+    public void test150AssignJackMoreRoles() throws Exception {
+		final String TEST_NAME = "test150AssignJackMoreRoles";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true);
+        userDelta.addModification((createAssignmentModification(ROLE_RED_SAILOR_OID, RoleType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true)));
+        userDelta.addModification((createAssignmentModification(ROLE_CYAN_SAILOR_OID, RoleType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true)));
+        userDelta.addModification((createAssignmentModification(ORG_SWASHBUCKLER_SECTION_OID, OrgType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true)));
+        userDelta.addModification((createAssignmentModification(ORG_MINISTRY_OF_RUM_OID, OrgType.COMPLEX_TYPE, 
+        		SchemaConstants.ORG_MANAGER, null, (ActivationType) null, true)));
+        userDelta.addModification((createAssignmentModification(ROLE_EMPTY_OID, RoleType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true)));
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+		modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
+        assertAssignedRole(userJackAfter, ROLE_EMPTY_OID);
+        assertAssignments(userJackAfter, 6);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_RED_OID);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_CYAN_OID);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);        
+        
+    }
+    
+    @Test
+    public void test152AssignbarbossaDeputyLimitedDeputy() throws Exception {
+		final String TEST_NAME = "test152AssignbarbossaDeputyLimitedDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_PIRATE_OID),
+        		createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 6);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+    
+    @Test
+    public void test154UnassignbarbossaDeputyLimitedDeputy() throws Exception {
+		final String TEST_NAME = "test154UnassignbarbossaDeputyLimitedDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_PIRATE_OID),
+        		createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter); 
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 6);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+    
+    @Test
+    public void test156AssignbarbossaDeputyLimitedDeputyRed() throws Exception {
+		final String TEST_NAME = "test156AssignbarbossaDeputyLimitedDeputyRed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_RED_SAILOR_OID),
+        		createOrgReference(ORG_MINISTRY_OF_RUM_OID) // There is no assignment like this in Jack
+        );
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertAuthorizations(userBarbossaAfter, AUTZ_SAIL_URL);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 6);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+    
+    @Test
+    public void test159UnassignbarbossaDeputyLimitedDeputyRed() throws Exception {
+		final String TEST_NAME = "test159UnassignbarbossaDeputyLimitedDeputyRed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_RED_SAILOR_OID),
+        		createOrgReference(ORG_MINISTRY_OF_RUM_OID) // There is no assignment like this in Jack
+        );
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        TestUtil.assertModifyTimestamp(userBarbossaAfter, startTs, endTs);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 6);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+    
+    @Test
+    public void test160AssignbarbossaDeputyLimitedDeputyEmpty() throws Exception {
+		final String TEST_NAME = "test160AssignbarbossaDeputyLimitedDeputyEmpty";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_EMPTY_OID)
+        );
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 6);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+    
+    @Test
+    public void test162UnassignbarbossaDeputyLimitedDeputyEmpty() throws Exception {
+		final String TEST_NAME = "test162UnassignbarbossaDeputyLimitedDeputyEmpty";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_EMPTY_OID)
+        );
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        TestUtil.assertModifyTimestamp(userBarbossaAfter, startTs, endTs);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 6);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+
+    @Test
+    public void test170AddRoleDrinker() throws Exception {
+		final String TEST_NAME = "test170AssignJackRoleDrinker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_DRINKER_FILE);
+        display("Adding role", role);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(role, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_DRINKER_OID);
+        display("Role after", roleAfter);
+        assertAssignedOrg(roleAfter, ORG_MINISTRY_OF_RUM_OID);
+        assertHasOrg(roleAfter, ORG_MINISTRY_OF_RUM_OID);
+    }
+
+    @Test
+    public void test172AssignJackRoleDrinker() throws Exception {
+		final String TEST_NAME = "test170AssignJackRoleDrinker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_DRINKER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
+        assertAssignedRole(userJackAfter, ROLE_EMPTY_OID);
+        assertAssignedRole(userJackAfter, ROLE_DRINKER_OID);
+        assertAssignments(userJackAfter, 7);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_RED_OID);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_CYAN_OID);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);        
+    }
+    
+    @Test
+    public void test172AssignbarbossaDeputyLimitedDeputyDrinker() throws Exception {
+		final String TEST_NAME = "test172AssignbarbossaDeputyLimitedDeputyDrinker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_DRINKER_OID)
+        );
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignedRole(userJackAfter, ROLE_DRINKER_OID);
+        assertAssignments(userJackAfter, 7);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+    
+    @Test
+    public void test178UnassignbarbossaDeputyLimitedDeputyDrinker() throws Exception {
+		final String TEST_NAME = "test178UnassignbarbossaDeputyLimitedDeputyDrinker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_DRINKER_OID)
+        );
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        TestUtil.assertModifyTimestamp(userBarbossaAfter, startTs, endTs);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 7);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+
+    @Test
+    public void test180AssignbarbossaDeputyLimitedDeputyEmptyDrinker() throws Exception {
+		final String TEST_NAME = "test180AssignbarbossaDeputyLimitedDeputyEmptyDrinker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_EMPTY_OID),
+        		createRoleReference(ROLE_DRINKER_OID)
+        );
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 7);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+    
+    @Test
+    public void test182UnassignbarbossaDeputyLimitedDeputyEmptyDrinker() throws Exception {
+		final String TEST_NAME = "test182UnassignbarbossaDeputyLimitedDeputyEmptyDrinker";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_EMPTY_OID),
+        		createRoleReference(ROLE_DRINKER_OID)
+        );
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        TestUtil.assertModifyTimestamp(userBarbossaAfter, startTs, endTs);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 7);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+
+    
+    @Test
+    public void test800ImportValidityScannerTask() throws Exception {
+		final String TEST_NAME = "test800ImportValidityScannerTask";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+        
+		/// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_VALIDITY_SCANNER_FILENAME);
+
+        waitForTaskStart(TASK_VALIDITY_SCANNER_OID, false);
+        waitForTaskFinish(TASK_VALIDITY_SCANNER_OID, true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+        assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);        
+	}
+    
+    /**
+	 * Assign Barbossa as Jack's deputy. Barbossa should have all the privileges now.
+	 * But they will expire soon ...
+	 */
+    @Test
+    public void test802AssignBarbossaDeputyOfJack() throws Exception {
+		final String TEST_NAME = "test802AssignBarbossaDeputyOfJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+        display("User Jack before", userJackBefore);
+        assertAssignments(userJackBefore, 7);
+        assertLinks(userJackBefore, 3);
+        assertAuthorizations(userJackBefore, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+        
+        ActivationType activationType = new ActivationType();
+        activationType.setValidTo(XmlTypeConverter.addDuration(startTs, "PT2H"));
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, assignment -> assignment.setActivation(activationType),
+        		task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_CYAN_OID);
+        assertLinks(userBarbossaAfter, 3);
+        assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 7);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+    
+    /**
+	 * Assign Barbossa as Jack's deputy. Barbossa should have all the privileges now.
+	 * But they will expire soon ...
+	 */
+    @Test
+    public void test804BarbosaThreeHoursLater() throws Exception {
+		final String TEST_NAME = "test804BarbosaThreeHoursLater";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        clock.overrideDuration("PT3H");
+        
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID); // Resource red has delayed delete
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 7);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+    }
+   
 }

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
@@ -32,6 +33,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -55,11 +58,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private transient PrismObject<O> objectCurrent;
 	private PrismObject<O> objectNew;
 	private ObjectDelta<O> primaryDelta;
-	private List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<LensObjectDeltaOperation<O>>();
+	private List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
 	private Class<O> objectTypeClass;
 	private String oid = null;
 	private int iteration;
     private String iterationToken;
+    private Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
     
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
@@ -380,6 +384,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.isFresh = isFresh;
 	}
 
+	public Collection<EvaluatedPolicyRule> getPolicyRules() {
+		return policyRules;
+	}
+
+	public void addPolicyRule(EvaluatedPolicyRule policyRule) {
+		this.policyRules.add(policyRule);
+	}
+
 	public void recompute() throws SchemaException {
 		PrismObject<O> base = objectCurrent;
 		if (base == null) {
@@ -394,16 +406,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         objectNew = delta.computeChangedObject(base);
     }
 	
-//	/**
-//	 * Make the context as clean as new. Except for the executed deltas and other "traces" of
-//	 * what was already done and cannot be undone. Also the configuration items that were loaded may remain.
-//	 * This is used to restart the context computation but keep the trace of what was already done.
-//	 */
-//	public void reset() {
-//		secondaryDelta = null;
-//		isFresh = false;
-//	}
-
     public void checkConsistence() {
     	checkConsistence(null);
     }
@@ -539,7 +541,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         lensElementContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
     }
 
-    public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+	public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
         ObjectType objectTypeOld = lensElementContextType.getObjectOld();
         this.objectOld = objectTypeOld != null ? objectTypeOld.asPrismObject() : null;
@@ -568,11 +570,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         this.iteration = lensElementContextType.getIteration() != null ? lensElementContextType.getIteration() : 0;
         this.iterationToken = lensElementContextType.getIterationToken();
         this.synchronizationIntent = SynchronizationIntent.fromSynchronizationIntentType(lensElementContextType.getSynchronizationIntent());
-
+        
         // note: objectTypeClass is already converted (used in the constructor)
     }
 
-    protected void fixProvisioningTypeInDelta(ObjectDelta<O> delta, Objectable object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	protected void fixProvisioningTypeInDelta(ObjectDelta<O> delta, Objectable object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
         if (delta != null && delta.getObjectTypeClass() != null && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass()) || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
             lensContext.getProvisioningService().applyDefinition(delta, object, result);
         }

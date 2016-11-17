@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
 import org.apache.wicket.AttributeModifier;
@@ -86,7 +87,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private static final String ID_HEADER = "assignmentsHeader";
 	private static final String ID_MENU = "assignmentsMenu";
 	private static final String ID_LIST = "assignmentList";
-	private static final String ID_ROW = "assignmentEditor";
+	protected static final String ID_ROW = "assignmentEditor";
 	// private static final String ID_MODAL_ASSIGN = "assignablePopup";
 	// private static final String ID_MODAL_ASSIGN_ORG = "assignableOrgPopup";
 
@@ -105,7 +106,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return null;
 	}
 
-	private IModel<List<AssignmentEditorDto>> getAssignmentModel() {
+	protected IModel<List<AssignmentEditorDto>> getAssignmentModel() {
 		return getModel();
 	}
 
@@ -125,24 +126,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(final ListItem<AssignmentEditorDto> item) {
-				AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel());
-				item.add(editor);
-
-				editor.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						AssignmentEditorDto dto = item.getModel().getObject();
-						ObjectReferenceType targetRef = dto.getTargetRef();
-						if (targetRef != null && targetRef.getType() != null) {
-							return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
-						} else {
-							return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
-						}
-					}
-				}));
+			protected void populateItem(ListItem<AssignmentEditorDto> item) {
+				AssignmentTablePanel.this.populateItem(item);
 			}
 		};
 		list.setOutputMarkupId(true);
@@ -165,7 +150,27 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 	}
 
-	private List<InlineMenuItem> createAssignmentMenu() {
+	protected void populateItem(ListItem<AssignmentEditorDto> item){
+		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel());
+		item.add(editor);
+
+		editor.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				AssignmentEditorDto dto = item.getModel().getObject();
+				ObjectReferenceType targetRef = dto.getTargetRef();
+				if (targetRef != null && targetRef.getType() != null) {
+					return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
+				} else {
+					return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
+				}
+			}
+		}));
+	}
+
+	protected List<InlineMenuItem> createAssignmentMenu() {
 		List<InlineMenuItem> items = new ArrayList<>();
 
 		InlineMenuItem item;
@@ -320,10 +325,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			}
 		}
 
+
+
 		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
 	}
 
-	private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
+	protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
 			String popupId) {
 		ModalWindow window = (ModalWindow) get(popupId);
 		if (window != null) {
@@ -345,21 +352,29 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					addSelectedResourceAssignPerformed((ResourceType) object);
 					continue;
 				}
-
-				AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
-						getPageBase());
-				assignments.add(dto);
+				if (object instanceof UserType) {
+					AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
+							SchemaConstants.ORG_DEPUTY, getPageBase());
+					assignments.add(dto);
+				} else {
+					AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
+							getPageBase());
+					assignments.add(dto);
+				}
 			} catch (Exception e) {
 				error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
 						e.getMessage()));
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
 			}
 		}
+		reloadAssignmentsPanel(target);
+	}
 
+	protected void reloadAssignmentsPanel(AjaxRequestTarget target){
 		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
 	}
 
-	private void addSelectedResourceAssignPerformed(ResourceType resource) {
+	protected void addSelectedResourceAssignPerformed(ResourceType resource) {
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType construction = new ConstructionType();
 		assignment.setConstruction(construction);

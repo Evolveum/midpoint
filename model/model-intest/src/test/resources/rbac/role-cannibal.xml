@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 Evolveum
+  ~ Copyright (c) 2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,19 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Cannibal</name>
+    <assignment>
+    	<policyRule>
+    		<name>cannibals must live</name>
+    		<policyConstraints>
+    			<minAssignees>
+		    		<multiplicity>2</multiplicity>
+		    	</minAssignees>
+		    	<maxAssignees>
+		    		<multiplicity>3</multiplicity>
+		    	</maxAssignees>
+    		</policyConstraints>
+    	</policyRule>
+    </assignment>
     <inducement id="1111">
     	<construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
@@ -33,12 +46,4 @@
             </attribute>
     	</construction>
     </inducement>
-    <policyConstraints>
-    	<minAssignees>
-    		<multiplicity>2</multiplicity>
-    	</minAssignees>
-    	<maxAssignees>
-    		<multiplicity>3</multiplicity>
-    	</maxAssignees>
-    </policyConstraints>
 </role>

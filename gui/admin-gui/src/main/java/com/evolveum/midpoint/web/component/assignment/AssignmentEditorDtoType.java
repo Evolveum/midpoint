@@ -17,10 +17,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 
@@ -34,6 +31,8 @@ public enum AssignmentEditorDtoType {
     ROLE(RoleType.class, RoleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
     
     SERVICE(ServiceType.class, ServiceType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON),
+
+    USER(UserType.class, UserType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON),
 
     CONSTRUCTION(null, null, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON);
 

@@ -350,21 +350,27 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			OperationResult result) throws SecurityViolationException, SchemaException {
 		boolean allow = isAuthorized(operationUrl, phase, object, delta, target, ownerResolver);
 		if (!allow) {
-			MidPointPrincipal principal = getPrincipal();
-			String username = getQuotedUsername(principal);
-			String message;
-			if (target == null && object == null) {
-				message = "User '"+username+"' not authorized for operation "+ operationUrl;
-			} else if (target == null) {
-				message = "User '"+username+"' not authorized for operation "+ operationUrl + " on " + object;
-			} else {
-				message = "User '"+username+"' not authorized for operation "+ operationUrl + " on " + object + " with target " + target;
-			}
-			LOGGER.error("{}", message);
-			AuthorizationException e = new AuthorizationException(message);
-			result.recordFatalError(e.getMessage(), e);
-			throw e;
+			failAuthorization(operationUrl, phase, object, delta, target, result);
 		}
+	}
+	
+	@Override
+	public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OperationResult result) throws SecurityViolationException {
+		MidPointPrincipal principal = getPrincipal();
+		String username = getQuotedUsername(principal);
+		String message;
+		if (target == null && object == null) {
+			message = "User '"+username+"' not authorized for operation "+ operationUrl;
+		} else if (target == null) {
+			message = "User '"+username+"' not authorized for operation "+ operationUrl + " on " + object;
+		} else {
+			message = "User '"+username+"' not authorized for operation "+ operationUrl + " on " + object + " with target " + target;
+		}
+		LOGGER.error("{}", message);
+		AuthorizationException e = new AuthorizationException(message);
+		result.recordFatalError(e.getMessage(), e);
+		throw e;
 	}
 	
 	private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSelectorType> objectSpecTypes, PrismObject<O> object, 

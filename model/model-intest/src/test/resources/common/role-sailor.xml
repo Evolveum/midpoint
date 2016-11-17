@@ -45,4 +45,7 @@
     		</mapping>
     	</focusMappings>
     </inducement>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#sail</action>
+    </authorization>
 </role>

@@ -54,6 +54,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -106,7 +107,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_ACTIVATION = "activation";
 	private static final String ID_ACTIVATION_BLOCK = "activationBlock";
 	private static final String ID_EXPAND = "expand";
-	private static final String ID_BODY = "body";
+	protected static final String ID_BODY = "body";
 	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_RELATION_CONTAINER = "relationContainer";
 	private static final String ID_FOCUS_TYPE = "focusType";
@@ -131,6 +132,21 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_ERROR_ICON = "errorIcon";
 
 	private IModel<List<ACAttributeDto>> attributesModel;
+	protected WebMarkupContainer headerRow;
+	protected PageBase pageBase;
+	protected List<AssignmentsPreviewDto> privilegesList;
+	protected UserType delegationUser;
+
+	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model,
+								 List<AssignmentsPreviewDto> privilegesList,
+								 UserType delegationUser, PageBase pageBase) {
+		super(id, model);
+		this.pageBase = pageBase;
+		this.delegationUser = delegationUser;
+		this.privilegesList = privilegesList;
+
+		initLayout();
+	}
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
 		super(id, model);
@@ -153,13 +169,31 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				new PackageResourceReference(AssignmentEditorPanel.class, "AssignmentEditorPanel.css")));
 	}
 
-	private void initLayout() {
+	protected void initLayout() {
 		setOutputMarkupId(true);
-		WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
+		headerRow = new WebMarkupContainer(ID_HEADER_ROW);
 		headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
 		headerRow.setOutputMarkupId(true);
 		add(headerRow);
 
+		initHeaderRow();
+
+		WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
+		body.setOutputMarkupId(true);
+		body.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				AssignmentEditorDto editorDto = AssignmentEditorPanel.this.getModel().getObject();
+				return !editorDto.isMinimized();
+			}
+		});
+		add(body);
+
+		initBodyLayout(body);
+	}
+
+	protected void initHeaderRow(){
 		AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
 				new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
 			private static final long serialVersionUID = 1L;
@@ -169,12 +203,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				// do we want to update something?
 			}
 		};
-        selected.add(new VisibleEnableBehaviour(){
-            @Override
-        public boolean isVisible(){
-                return !getModel().getObject().isSimpleView();
-            }
-        });
+		selected.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible(){
+				return !getModel().getObject().isSimpleView();
+			}
+		});
 		headerRow.add(selected);
 
 		WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
@@ -241,30 +275,16 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return !AssignmentEditorPanel.this.getModelObject().isMinimized();
 			}
 		};
-        expandButton.add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isVisible(){
-                return !getModel().getObject().isSimpleView();
-            }
-        });
-		headerRow.add(expandButton);
-
-		WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
-		body.setOutputMarkupId(true);
-		body.add(new VisibleEnableBehaviour() {
-
+		expandButton.add(new VisibleEnableBehaviour(){
 			@Override
-			public boolean isVisible() {
-				AssignmentEditorDto editorDto = AssignmentEditorPanel.this.getModel().getObject();
-				return !editorDto.isMinimized();
+			public boolean isVisible(){
+				return !getModel().getObject().isSimpleView();
 			}
 		});
-		add(body);
-
-		initBodyLayout(body);
+		headerRow.add(expandButton);
 	}
 
-	private IModel<String> createAssignmentNameLabelModel(final boolean isManager) {
+	protected IModel<String> createAssignmentNameLabelModel(final boolean isManager) {
 		return new AbstractReadOnlyModel<String>() {
 
 			@Override
@@ -303,7 +323,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return true;
 	}
 
-	private IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
+	protected IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
 		return new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
@@ -348,7 +368,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 	}
 
-	private IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
+	protected IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
 		return new Model<Date>() {
 
 			@Override
@@ -371,7 +391,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 	}
 
-	private void initBodyLayout(WebMarkupContainer body) {
+	protected void initBodyLayout(WebMarkupContainer body) {
 		TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
 				new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
 		description.setEnabled(getModel().getObject().isEditable());
@@ -822,7 +842,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return construction;
 	}
 
-	private IModel<String> createImageTypeModel(final IModel<AssignmentEditorDto> model) {
+	protected IModel<String> createImageTypeModel(final IModel<AssignmentEditorDto> model) {
 		return new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
@@ -849,7 +869,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 	}
 
-	private void nameClickPerformed(AjaxRequestTarget target) {
+	protected void nameClickPerformed(AjaxRequestTarget target) {
 		AssignmentEditorDto dto = getModel().getObject();
 		boolean minimized = dto.isMinimized();
 		dto.setMinimized(!minimized);
@@ -857,7 +877,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		target.add(this);
 	}
 
-	private IModel<String> createTargetModel() {
+	protected IModel<String> createTargetModel() {
 		return new LoadableModel<String>(false) {
 			private static final long serialVersionUID = 1L;
 
@@ -933,4 +953,5 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 		return UserDtoStatus.ADD.equals(getModelObject().getStatus());
 	}
+
 }

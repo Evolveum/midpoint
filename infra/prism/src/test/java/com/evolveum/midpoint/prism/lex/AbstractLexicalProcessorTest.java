@@ -148,6 +148,9 @@ public abstract class AbstractLexicalProcessorTest {
 		System.out.println(serializedXNode.debugDump());
 		System.out.println("\nRe-serialized string:");
 		System.out.println(serializedString);
+
+		String whenSerialized = getWhenItemSerialized();
+		assertTrue("Serialized form does not contain " + whenSerialized, serializedString.contains(whenSerialized));
 		
 		assertUserJackXNodeOrdering("serialized xnode", serializedXNode);
 		
@@ -162,7 +165,7 @@ public abstract class AbstractLexicalProcessorTest {
 		System.out.println(reparsedXnode.debugDump());
 		System.out.println("\nRe-parsed user:");
 		System.out.println(reparsedUser.debugDump());
-		
+
 		assertUserJackXNodeOrdering("serialized xnode", reparsedXnode);
 				
 		ObjectDelta<UserType> diff = DiffUtil.diff(user, reparsedUser);
@@ -179,8 +182,11 @@ public abstract class AbstractLexicalProcessorTest {
 		assertTrue("Re-parsed object in accountRef does not match: "+accountRefObjDiff, accountRefObjDiff.isEmpty());
 		
 		assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
-	}	
-	
+	}
+
+	// to check if timestamps are serialized correctly
+	protected abstract String getWhenItemSerialized();
+
 	@Test
     public void testParseResourceRumToPrism() throws Exception {
 		final String TEST_NAME = "testParseResourceRumToPrism";

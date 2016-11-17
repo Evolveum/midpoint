@@ -1312,6 +1312,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+        display("User jack before", userJackBefore);
+        assertAssignedOrgs(userJackBefore, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJackBefore, ORG_MINISTRY_OF_OFFENSE_OID);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(ROLE_OFFENDER_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
