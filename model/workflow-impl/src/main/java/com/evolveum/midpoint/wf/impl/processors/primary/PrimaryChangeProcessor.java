@@ -141,7 +141,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
         ObjectTreeDeltas changesBeingDecomposed = objectTreeDeltas.clone();
         List<PcpChildWfTaskCreationInstruction> childTaskInstructions = gatherStartInstructions(
-				context, processorConfigurationType, changesBeingDecomposed, taskFromModel, result);
+				context, wfConfigurationType, changesBeingDecomposed, taskFromModel, result);
 
         // start the process(es)
 
@@ -153,15 +153,18 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
 	private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(@NotNull ModelContext<? extends ObjectType> context,
-			PrimaryChangeProcessorConfigurationType processorConfigurationType, @NotNull ObjectTreeDeltas changesBeingDecomposed,
+			WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas changesBeingDecomposed,
 			@NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        PrimaryChangeProcessorConfigurationType processorConfigurationType =
+                wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
 
         List<PcpChildWfTaskCreationInstruction> startProcessInstructions = new ArrayList<>();
         for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
             if (changesBeingDecomposed.isEmpty()) {      // nothing left
                 break;
             }
-            List<PcpChildWfTaskCreationInstruction> instructions = aspect.prepareTasks(context, processorConfigurationType, changesBeingDecomposed, taskFromModel, result);
+            List<PcpChildWfTaskCreationInstruction> instructions = aspect.prepareTasks(context, wfConfigurationType, changesBeingDecomposed, taskFromModel, result);
             logAspectResult(aspect, instructions, changesBeingDecomposed);
             if (instructions != null) {
                 startProcessInstructions.addAll(instructions);

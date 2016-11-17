@@ -29,7 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntry
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
@@ -61,8 +60,8 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		repoAddObjectFromFile(PASSWORD_HISTORY_POLICY_FILE, ValuePolicyType.class, initResult);
-		repoAddObjectFromFile(PASSWORD_NO_HISTORY_POLICY_FILE, ValuePolicyType.class, initResult);
+		repoAddObjectFromFile(PASSWORD_HISTORY_POLICY_FILE, initResult);
+		repoAddObjectFromFile(PASSWORD_NO_HISTORY_POLICY_FILE, initResult);
 
 		deleteObject(UserType.class, USER_JACK_OID);
 

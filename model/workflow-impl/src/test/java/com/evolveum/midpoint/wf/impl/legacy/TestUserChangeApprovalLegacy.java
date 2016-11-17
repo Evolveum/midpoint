@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.wf.impl;
+package com.evolveum.midpoint.wf.impl.legacy;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -80,22 +80,32 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestUserChangeApproval extends AbstractWfTest {
+public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
-    protected static final Trace LOGGER = TraceManager.getTrace(TestUserChangeApproval.class);
+    protected static final Trace LOGGER = TraceManager.getTrace(TestUserChangeApprovalLegacy.class);
 
-    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role1.xml");
-    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role2-change-gn.xml");
-    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role3-change-gn2.xml");
-    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-roles2-3-4.xml");
-    private static final File REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = new File(TEST_RESOURCE_DIR, "user-jack-modify-activation-disable.xml");
-    private static final File REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = new File(TEST_RESOURCE_DIR, "user-jack-modify-activation-enable.xml");
-    private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = new File(TEST_RESOURCE_DIR, "user-jack-modify-change-password.xml");
-    private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = new File(TEST_RESOURCE_DIR, "user-jack-modify-change-password-2.xml");
-    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE10 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role10.xml");
-    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_DUMMY = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-dummy.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-add-assignment-role1.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-add-assignment-role2-change-gn.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-add-assignment-role3-change-gn2.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-add-assignment-roles2-3-4.xml");
+    private static final File REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-activation-disable.xml");
+    private static final File REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-activation-enable.xml");
+    private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-change-password.xml");
+    private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-change-password-2.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE10 = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-add-assignment-role10.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_DUMMY = new File(TEST_RESOURCE_DIR,
+            "user-jack-modify-add-assignment-dummy.xml");
 
-    public TestUserChangeApproval() throws JAXBException {
+    public TestUserChangeApprovalLegacy() throws JAXBException {
 		super();
 	}
 
@@ -483,7 +493,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
-                PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BILL_FILENAME));
+                PrismObject<UserType> bill = prismContext.parseObject(USER_BILL_FILE);
                 fillContextWithAddUserDelta(context, bill);
                 return context;
             }
@@ -541,7 +551,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
-                PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BILL_FILENAME));
+                PrismObject<UserType> bill = prismContext.parseObject(USER_BILL_FILE);
                 fillContextWithAddUserDelta(context, bill);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
                 return context;
@@ -560,7 +570,7 @@ public class TestUserChangeApproval extends AbstractWfTest {
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
                 //assertEquals("Wrong number of assignments for bill", 3, bill.asObjectable().getAssignment().size());
-                checkUserApproversForCreate(USER_JACK_OID, new ArrayList<String>(), result);
+                checkUserApproversForCreate(USER_JACK_OID, new ArrayList<>(), result);
             }
 
             @Override

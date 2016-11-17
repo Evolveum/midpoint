@@ -20,7 +20,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -77,7 +79,7 @@ public class ApprovalSchemaHelper {
     }
 
 	public ApprovalSchemaType mergeIntoSchema(ApprovalSchemaType existing, @NotNull List<ExpressionType> approverExpressionList,
-			ExpressionType automaticallyApproved) {
+			ExpressionType automaticallyApproved, @Nullable List<ObjectReferenceType> additionalReviewers) {
         if (existing == null) {
             existing = new ApprovalSchemaType(prismContext);
         }
@@ -85,6 +87,9 @@ public class ApprovalSchemaHelper {
 
         ApprovalLevelType level = new ApprovalLevelType(prismContext);
         level.setOrder(maxOrderExisting + 1);
+        if (additionalReviewers != null) {
+            level.getApproverRef().addAll(additionalReviewers);
+        }
         level.getApproverExpression().addAll(approverExpressionList);
         level.setAutomaticallyApproved(automaticallyApproved);
         existing.getLevel().add(level);

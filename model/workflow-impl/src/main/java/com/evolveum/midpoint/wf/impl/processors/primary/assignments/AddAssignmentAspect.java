@@ -79,11 +79,12 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
 
     @NotNull
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
         if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
             return Collections.emptyList();
         }
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas.getFocusChange(), result);
+        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext,
+                baseConfigurationHelper.getPcpConfiguration(wfConfigurationType), objectTreeDeltas.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }

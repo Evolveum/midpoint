@@ -65,7 +65,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -534,7 +533,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        repoAddObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, ObjectTemplateType.class, result);
+        repoAddObjectFromFile(USER_TEMPLATE_SYNC_FILENAME, result);
         assumeUserTemplate(USER_TEMPLATE_SYNC_OID, resourceDummyGreen.asObjectable(), "default account type", result);
         
         rememberTimeBeforeSync();

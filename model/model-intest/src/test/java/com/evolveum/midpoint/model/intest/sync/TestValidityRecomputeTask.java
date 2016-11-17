@@ -89,8 +89,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		repoAddObjectFromFile(ROLE_RED_JUDGE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_BIG_JUDGE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_RED_JUDGE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BIG_JUDGE_FILE, initResult);
 
 		DebugUtil.setDetailedDebugDump(true);
 	}

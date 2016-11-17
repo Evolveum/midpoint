@@ -8775,6 +8775,18 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
+						<xsd:element name="useDefaultApprovers" type="xsd:boolean" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<p>
+										Whether to use default approvers for the given assignment target (if applicable).
+										Default approvers are determined by the objects bound to the target via "approver"
+										relation.
+										TODO what about objects and their owners?
+									</p>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
 						<xsd:element name="approverExpression" type="c:ExpressionType"
 							minOccurs="0" maxOccurs="unbounded">
 							<xsd:annotation>

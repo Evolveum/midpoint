@@ -28,6 +28,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationIn
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -69,7 +70,7 @@ public interface PrimaryChangeAspect {
      */
     @NotNull
     List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
-            PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
+            WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
 			@NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**

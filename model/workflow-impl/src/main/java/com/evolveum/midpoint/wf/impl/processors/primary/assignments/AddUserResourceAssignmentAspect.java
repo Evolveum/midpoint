@@ -33,11 +33,6 @@ public class AddUserResourceAssignmentAspect extends AddResourceAssignmentAspect
     private static final Trace LOGGER = TraceManager.getTrace(AddUserResourceAssignmentAspect.class);
 
     @Override
-    public boolean isEnabledByDefault() {
-        return true;
-    }
-
-    @Override
     protected boolean isFocusRelevant(ModelContext modelContext) {
         return primaryChangeAspectHelper.isRelatedToType(modelContext, UserType.class);
     }

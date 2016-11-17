@@ -71,7 +71,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
 
     @NotNull
 	@Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<>();
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();

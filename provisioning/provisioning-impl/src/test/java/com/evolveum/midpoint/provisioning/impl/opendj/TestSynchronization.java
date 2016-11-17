@@ -51,8 +51,6 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -107,9 +105,9 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		resourceType = addResourceFromFile(RESOURCE_OPENDJ_FILE, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, initResult).asObjectable();
 		
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
-		repoAddObjectFromFile(USER_ADMIN_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_ADMIN_FILE, initResult);
 		
-		repoAddObjectFromFile(SYNC_TASK_FILE, TaskType.class, initResult);
+		repoAddObjectFromFile(SYNC_TASK_FILE, initResult);
 	}
 	
 	@Test

@@ -30,8 +30,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
@@ -88,19 +86,19 @@ public class TestReport extends AbstractModelIntegrationTest{
 		super.initSystem(initTask, initResult);
 		
 		
-		repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult).asObjectable();
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(USER_JACK_FILE, true, initResult).asObjectable();
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		// System Configuration
 		modelService.postInit(initResult);
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
 		
 		// User administrator
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		
 		importObjectFromFile(RESOURCE_DUMMY_FILE, initResult);
 		login(userAdministrator);

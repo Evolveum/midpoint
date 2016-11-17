@@ -560,4 +560,28 @@ public class DebugUtil {
 			}
 		};
 	}
+
+	public static Object toStringLazily(Object object) {
+		if (object == null) {
+			return null;
+		}
+		return new Object() {
+			@Override
+			public String toString() {
+				return object.toString();
+			}
+		};
+	}
+
+	public static Object debugDumpLazily(Collection<? extends DebugDumpable> dumpables) {
+		if (dumpables == null || dumpables.isEmpty()) {
+			return dumpables;
+		}
+		return new Object() {
+			@Override
+			public String toString() {
+				return debugDump(dumpables);
+			}
+		};
+	}
 }

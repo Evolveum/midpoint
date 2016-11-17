@@ -24,13 +24,19 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,12 +45,16 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationIn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.velocity.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectName;
@@ -70,24 +80,31 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 
     //region ------------------------------------------------------------ Things that execute on request arrival
 
-    @NotNull
+	@Override
+	public boolean isEnabledByDefault() {
+		return true;
+	}
+
+	@NotNull
 	@Override
     public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
-            PrimaryChangeProcessorConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
+            WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
             @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
 
 		List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
 		PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
-		extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, taskFromModel, result);
+		extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, wfConfigurationType, taskFromModel, result);
 		extractObjectBasedInstructions((LensContext<?>) modelContext, objectTreeDeltas, requester, instructions, taskFromModel, result);
         return instructions;
     }
 
 	private void extractAssignmentBasedInstructions(@NotNull ModelContext<?> modelContext,
 			@NotNull ObjectTreeDeltas objectTreeDeltas, PrismObject<UserType> requester,
-			List<PcpChildWfTaskCreationInstruction> instructions, @NotNull Task taskFromModel, @NotNull OperationResult result)
+			List<PcpChildWfTaskCreationInstruction> instructions, WfConfigurationType wfConfigurationType,
+			@NotNull Task taskFromModel, @NotNull OperationResult result)
 			throws SchemaException {
+		DefaultApprovalPolicyApplicationStrategyType applyDefaultPolicy = baseConfigurationHelper.getDefaultPolicyApplicationStrategy(wfConfigurationType);
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) modelContext).getEvaluatedAssignmentTriple();
 		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
 		for (EvaluatedAssignment<?> newAssignment : evaluatedAssignmentTriple.getPlusSet()) {
@@ -104,6 +121,13 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 				}
 				approvalActions.add(rule.getActions().getApproval());
 			}
+			if (applyDefaultPolicy == DefaultApprovalPolicyApplicationStrategyType.ALWAYS
+					|| (applyDefaultPolicy == DefaultApprovalPolicyApplicationStrategyType.IF_NO_OTHER && approvalActions.isEmpty())
+					|| (applyDefaultPolicy == DefaultApprovalPolicyApplicationStrategyType.IF_NOT_PRESENT && !containsDefault(approvalActions))) {
+				ApprovalPolicyActionType defaultPolicyAction = new ApprovalPolicyActionType(prismContext);
+				defaultPolicyAction.setUseDefaultApprovers(true);
+				approvalActions.add(0, defaultPolicyAction);		// it is logical to place default processing at the beginning
+			}
 			if (approvalActions.isEmpty()) {
 				LOGGER.trace("This assignment hasn't triggered approval actions, continuing with a next one.");
 				continue;
@@ -111,13 +135,23 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 			PrismContainerValue<AssignmentType> assignmentValue = newAssignment.getAssignmentType().asPrismContainerValue();
 			boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue);
 			if (!removed) {
-				throw new IllegalStateException("Assignment with a value of " + assignmentValue.debugDump()
-						+ " was not found in deltas: " + objectTreeDeltas.debugDump());
+				String message = "Assignment with a value of " + assignmentValue.debugDump() + " was not found in deltas: "
+						+ objectTreeDeltas.debugDump();
+				assert false : message;				// fail in test mode; just log an error otherwise
+				LOGGER.error("{}", message);
+				return;
 			}
-			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions);
-			instructions.add(
-					prepareAssignmentRelatedTaskInstruction(request, newAssignment, modelContext, taskFromModel, requester, result));
+			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions, result);
+			if (!request.getApprovalSchema().isEmpty()) {
+				instructions.add(
+						prepareAssignmentRelatedTaskInstruction(request, newAssignment, modelContext, taskFromModel, requester,
+								result));
+			}
 		}
+	}
+
+	private boolean containsDefault(List<ApprovalPolicyActionType> approvalActions) {
+		return approvalActions.stream().anyMatch(a -> Boolean.TRUE.equals(a.isUseDefaultApprovers()));
 	}
 
 	private void extractObjectBasedInstructions(@NotNull LensContext<?> modelContext,
@@ -158,7 +192,7 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 				key = affectedItems;
 			}
 			approvalSchemas.put(key,
-					addApprovalActionIntoApprovalSchema(approvalSchemas.get(key), rule.getActions().getApproval()));
+					addApprovalActionIntoApprovalSchema(approvalSchemas.get(key), rule.getActions().getApproval(), null));
 		}
 
 		// create approval requests; also test for overlaps
@@ -197,21 +231,68 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 	}
 
 	private ApprovalRequest<AssignmentType> createAssignmentApprovalRequest(EvaluatedAssignment<?> newAssignment,
-			List<ApprovalPolicyActionType> approvalActions) {
+			List<ApprovalPolicyActionType> approvalActions, OperationResult result) throws SchemaException {
 		ApprovalSchemaType approvalSchema = null;
 		for (ApprovalPolicyActionType action : approvalActions) {
-			approvalSchema = addApprovalActionIntoApprovalSchema(approvalSchema, action);
+			List<ObjectReferenceType> additionalReviewers = new ArrayList<>();
+			if (BooleanUtils.isTrue(action.isUseDefaultApprovers())) {
+				PrismObject<?> target = newAssignment.getTarget();
+				if (target != null && target.asObjectable() instanceof AbstractRoleType) {
+					AbstractRoleType abstractRole = (AbstractRoleType) target.asObjectable();
+					additionalReviewers.addAll(abstractRole.getApproverRef());
+					additionalReviewers.addAll(findApproversByReference(target, result));
+					action = action.clone();
+					action.getApproverExpression().addAll(abstractRole.getApproverExpression());
+					if (abstractRole.getApprovalSchema() != null) {
+						if (action.getApprovalSchema() == null) {
+							action.setApprovalSchema(abstractRole.getApprovalSchema());
+						} else if (!action.getApprovalSchema().equals(abstractRole.getApprovalSchema())) {
+							throw new IllegalStateException(
+									"Conflicting approval schemas coming from approval policy rule and abstract role "
+											+ abstractRole);
+						}
+					}
+					if (abstractRole.getAutomaticallyApproved() != null) {
+						if (action.getAutomaticallyApproved() == null) {
+							action.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
+						} else if (!action.getAutomaticallyApproved().equals(abstractRole.getAutomaticallyApproved())) {
+							throw new IllegalStateException("Conflicting 'automatically approved' expressions coming from approval policy rule and abstract role "
+									+ abstractRole);
+						}
+					}
+				}
+			}
+			approvalSchema = addApprovalActionIntoApprovalSchema(approvalSchema, action, additionalReviewers);
 		}
 		assert approvalSchema != null;
 		return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext);
 	}
 
-	private ApprovalSchemaType addApprovalActionIntoApprovalSchema(ApprovalSchemaType approvalSchema, ApprovalPolicyActionType action) {
+	private Collection<? extends ObjectReferenceType> findApproversByReference(PrismObject<?> target, OperationResult result)
+			throws SchemaException {
+		PrismReferenceValue approverReferenceQualified = new PrismReferenceValue(target.getOid());
+		approverReferenceQualified.setRelation(SchemaConstants.ORG_APPROVER);
+		PrismReferenceValue approverReferenceUnqualified = new PrismReferenceValue(target.getOid());
+		approverReferenceUnqualified.setRelation(QNameUtil.unqualify(SchemaConstants.ORG_APPROVER));
+		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReferenceQualified)
+				.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReferenceUnqualified)
+				.build();
+		LOGGER.trace("Looking for approvers for {} using query:\n{}", target, DebugUtil.debugDumpLazily(query));
+		List<PrismObject<FocusType>> objects = repositoryService.searchObjects(FocusType.class, query, null, result);
+		LOGGER.trace("Found {} approver(s): {}", objects.size(), DebugUtil.toStringLazily(objects));
+		return objects.stream()
+				.map(ObjectTypeUtil::createObjectRef)
+				.collect(Collectors.toList());
+	}
+
+	private ApprovalSchemaType addApprovalActionIntoApprovalSchema(ApprovalSchemaType approvalSchema, ApprovalPolicyActionType action,
+			@Nullable List<ObjectReferenceType> additionalReviewers) {
 		if (action.getApprovalSchema() != null) {
 			approvalSchema = approvalSchemaHelper.mergeIntoSchema(approvalSchema, action.getApprovalSchema());
 		} else {
 			approvalSchema = approvalSchemaHelper
-					.mergeIntoSchema(approvalSchema, action.getApproverExpression(), action.getAutomaticallyApproved());
+					.mergeIntoSchema(approvalSchema, action.getApproverExpression(), action.getAutomaticallyApproved(), additionalReviewers);
 		}
 		return approvalSchema;
 	}

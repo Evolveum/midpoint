@@ -51,8 +51,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -161,19 +159,19 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		
-		repoAddObjectFromFile(ROLE_ADRIATIC_PIRATE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_BLACK_SEA_PIRATE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_INDIAN_OCEAN_PIRATE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_HONORABILITY_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_CLERIC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_WANNABE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(getRoleGovernorFile(), RoleType.class, initResult);
-		repoAddObjectFromFile(getRoleCannibalFile(), RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_ADRIATIC_PIRATE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BLACK_SEA_PIRATE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_INDIAN_OCEAN_PIRATE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_HONORABILITY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CLERIC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_WANNABE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, initResult);
+		repoAddObjectFromFile(getRoleGovernorFile(), initResult);
+		repoAddObjectFromFile(getRoleCannibalFile(), initResult);
+		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, initResult);
 	}
 	
 	@Test
