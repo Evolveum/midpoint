@@ -121,6 +121,7 @@ CREATE TABLE m_assignment (
   creatorRef_relation     NVARCHAR(157) COLLATE database_default,
   creatorRef_targetOid    NVARCHAR(36) COLLATE database_default,
   creatorRef_type         INT,
+  lifecycleState          NVARCHAR(255) COLLATE database_default,
   modifierRef_relation    NVARCHAR(157) COLLATE database_default,
   modifierRef_targetOid   NVARCHAR(36) COLLATE database_default,
   modifierRef_type        INT,
@@ -229,6 +230,12 @@ CREATE TABLE m_assignment_extension (
   referencesCount SMALLINT,
   stringsCount    SMALLINT,
   PRIMARY KEY (owner_id, owner_owner_oid)
+);
+
+CREATE TABLE m_assignment_policy_situation (
+  assignment_id   INT                                   NOT NULL,
+  assignment_oid  NVARCHAR(36) COLLATE database_default NOT NULL,
+  policySituation NVARCHAR(255) COLLATE database_default
 );
 
 CREATE TABLE m_assignment_reference (
@@ -340,6 +347,11 @@ CREATE TABLE m_focus_photo (
   owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   photo     VARBINARY(MAX),
   PRIMARY KEY (owner_oid)
+);
+
+CREATE TABLE m_focus_policy_situation (
+  focus_oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  policySituation NVARCHAR(255) COLLATE database_default
 );
 
 CREATE TABLE m_generic_object (
@@ -965,6 +977,11 @@ ADD CONSTRAINT fk_assignment_ext_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension;
 
+ALTER TABLE m_assignment_policy_situation
+  ADD CONSTRAINT fk_assignment_policy_situation
+FOREIGN KEY (assignment_id, assignment_oid)
+REFERENCES m_assignment;
+
 ALTER TABLE m_assignment_reference
 ADD CONSTRAINT fk_assignment_reference
 FOREIGN KEY (owner_id, owner_owner_oid)
@@ -1003,6 +1020,11 @@ REFERENCES m_object;
 ALTER TABLE m_focus_photo
 ADD CONSTRAINT fk_focus_photo
 FOREIGN KEY (owner_oid)
+REFERENCES m_focus;
+
+ALTER TABLE m_focus_policy_situation
+  ADD CONSTRAINT fk_focus_policy_situation
+FOREIGN KEY (focus_oid)
 REFERENCES m_focus;
 
 ALTER TABLE m_generic_object

@@ -33,11 +33,13 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.hibernate.annotations.*;
+import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Table;
 
-import javax.persistence.Embedded;
+import javax.persistence.*;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -62,6 +64,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     private Set<RObjectReference<RAbstractRole>> roleMembershipRef;
     private Set<RAssignment> assignments;
     private RActivation activation;
+    private Set<String> policySituation;
     //photo
     private boolean hasPhoto;
     private Set<RFocusPhoto> jpegPhoto;
@@ -128,6 +131,20 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         return activation;
     }
 
+    @ElementCollection
+    @ForeignKey(name = "fk_focus_policy_situation")
+    @CollectionTable(name = "m_focus_policy_situation", joinColumns = {
+            @JoinColumn(name = "focus_oid", referencedColumnName = "oid")
+    })
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<String> getPolicySituation() {
+        return policySituation;
+    }
+
+    public void setPolicySituation(Set<String> policySituation) {
+        this.policySituation = policySituation;
+    }
+
     public void setAssignments(Set<RAssignment> assignments) {
         this.assignments = assignments;
     }
@@ -156,6 +173,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) return false;
         if (roleMembershipRef != null ? !roleMembershipRef.equals(other.roleMembershipRef) : other.roleMembershipRef != null) return false;
         if (activation != null ? !activation.equals(other.activation) : other.activation != null) return false;
+        if (policySituation != null ? !policySituation.equals(other.policySituation) : other.policySituation != null) return false;
 
         return true;
     }
@@ -178,6 +196,8 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
 
         repo.getRoleMembershipRef().addAll(
                 RUtil.safeListReferenceToSet(jaxb.getRoleMembershipRef(), prismContext, repo, RReferenceOwner.ROLE_MEMBER));
+
+        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);

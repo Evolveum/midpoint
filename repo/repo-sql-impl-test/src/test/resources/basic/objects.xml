@@ -32,6 +32,8 @@
         <c:name>atestuserX00002</c:name>
 
         <lifecycleState>testLifecycleStatus</lifecycleState>
+        <policySituation>somepolicysituation1</policySituation>
+        <policySituation>somepolicysituation2</policySituation>
 
         <trigger id="2">
             <handlerUri>http://triggerUri</handlerUri>
@@ -67,6 +69,9 @@
                 <modifyApproverRef oid="eeeccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
                 <modifyChannel>http://modifyChannelUri</modifyChannel>
             </metadata>
+            <lifecycleState>lifecycleState1232</lifecycleState>
+            <policySituation>situation1</policySituation>
+            <policySituation>situation2</policySituation>
             <construction>
                 <description>Account construction.</description>
                 <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
