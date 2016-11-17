@@ -1607,11 +1607,16 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			return false;
 		}
 		boolean removed = false;
-		for (ItemDelta<?, ?> itemDelta : modifications) {
+		Iterator<? extends ItemDelta<?, ?>> itemDeltaIterator = modifications.iterator();
+		while (itemDeltaIterator.hasNext()) {
+			ItemDelta<?, ?> itemDelta = itemDeltaIterator.next();
 			if (itemPath.equivalent(itemDelta.getPath())) {
 				boolean removed1 = itemDelta.removeValueToAdd(value);
 				boolean removed2 = itemDelta.removeValueToReplace(value);
 				removed = removed || removed1 || removed2;
+				if (itemDelta.isInFactEmpty()) {
+					itemDeltaIterator.remove();
+				}
 			}
 		}
 		return removed;

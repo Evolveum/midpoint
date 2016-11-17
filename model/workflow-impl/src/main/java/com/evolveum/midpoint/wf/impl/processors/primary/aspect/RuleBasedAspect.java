@@ -280,8 +280,9 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 				.build();
 		LOGGER.trace("Looking for approvers for {} using query:\n{}", target, DebugUtil.debugDumpLazily(query));
 		List<PrismObject<FocusType>> objects = repositoryService.searchObjects(FocusType.class, query, null, result);
-		LOGGER.trace("Found {} approver(s): {}", objects.size(), DebugUtil.toStringLazily(objects));
-		return objects.stream()
+		Set<PrismObject<FocusType>> distinctObjects = new HashSet<>(objects);
+		LOGGER.trace("Found {} approver(s): {}", distinctObjects.size(), DebugUtil.toStringLazily(distinctObjects));
+		return distinctObjects.stream()
 				.map(ObjectTypeUtil::createObjectRef)
 				.collect(Collectors.toList());
 	}

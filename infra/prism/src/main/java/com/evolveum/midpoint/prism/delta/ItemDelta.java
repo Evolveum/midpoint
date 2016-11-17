@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @author Radovan Semancik
@@ -660,6 +661,11 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			return true;
 		}
 		return false;
+	}
+
+	// TODO merge with isEmpty
+	public boolean isInFactEmpty() {
+		return CollectionUtils.isEmpty(valuesToAdd) && CollectionUtils.isEmpty(valuesToDelete) && valuesToReplace == null;
 	}
 
 	public static boolean isEmpty(ItemDeltaType itemDeltaType) {

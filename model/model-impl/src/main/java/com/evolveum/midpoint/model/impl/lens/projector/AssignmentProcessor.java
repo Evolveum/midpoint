@@ -1750,14 +1750,14 @@ public class AssignmentProcessor {
 			for (PrismReferenceValue membershipRefVal: evalAssignment.getMembershipRefVals()) {
 				boolean found = false;
 				for (PrismReferenceValue exVal: newValues) {
-					if (exVal.getOid().equals(membershipRefVal.getOid())) {
+					if (exVal.getOid().equals(membershipRefVal.getOid())
+							&& QNameUtil.match(exVal.getRelation(), membershipRefVal.getRelation())) {
 						found = true;
 						break;
 					}
 				}
 				if (!found) {
 					PrismReferenceValue ref = membershipRefVal.clone();
-					ref.setRelation(null);
 					newValues.add(ref);
 				}
 			}
@@ -1775,12 +1775,9 @@ public class AssignmentProcessor {
 					return;
 				}	
 			} else {				
-				Comparator<PrismReferenceValue> comparator = new Comparator<PrismReferenceValue>() {
-					@Override
-					public int compare(PrismReferenceValue a, PrismReferenceValue b) {
-						return a.getOid().compareTo(b.getOid());
-					}
-				};
+				Comparator<PrismReferenceValue> comparator =
+						(a, b) -> 2*a.getOid().compareTo(b.getOid())
+								+ (QNameUtil.match(a.getRelation(), b.getRelation()) ? 0 : 1);
 				if (MiscUtil.unorderedCollectionEquals(newValues, roleMemPrismRef.getValues(), comparator)) {
 					return;
 				}

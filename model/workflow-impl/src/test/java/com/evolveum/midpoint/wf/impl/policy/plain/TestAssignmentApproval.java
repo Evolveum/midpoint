@@ -34,6 +34,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
@@ -89,14 +90,14 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
             @Override
 			protected void afterRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result) throws Exception {
                 assertAssignedRole(USER_JACK_OID, ROLE_ROLE1_OID, rootTask, result);
-                checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_ROLE1_OID, WorkflowResult.APPROVED));
-                checkUserApprovers(USER_JACK_OID, Arrays.asList(USER_LEAD1_OID), result);
+                checkUserApprovers(USER_JACK_OID, Collections.singletonList(USER_LEAD1_OID), result);
                 assertWfContextAfterRootTaskFinishes(rootTask, subtasks, result, "Assigning Role1 to jack");
             }
 
             @Override
             protected boolean decideOnApproval(String executionId) throws Exception {
+				login(getUser(USER_LEAD1_OID));
                 return true;
             }
         }, 1);
