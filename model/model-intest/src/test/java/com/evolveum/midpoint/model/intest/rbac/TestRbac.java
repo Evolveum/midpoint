@@ -261,13 +261,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
+        assertModifyMetadata(userAfter, startTs, endTs);
         
         AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
-        assertMetadata("assignment metadata", assignmentType.getMetadata(), true, startTs, endTs, 
-        		USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+        assertCreateMetadata(assignmentType, startTs, endTs);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");

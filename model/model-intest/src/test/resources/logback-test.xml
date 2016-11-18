@@ -66,6 +66,7 @@
  	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="TRACE" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="TRACE" />
  	<logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
@@ -82,8 +83,8 @@
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.security" level="TRACE" />
+    <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />

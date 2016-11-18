@@ -53,6 +53,7 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1228,34 +1229,6 @@ public class LensUtil {
 		}
 	}
 	
-	public static <F extends ObjectType> MetadataType createCreateMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {
-		MetadataType metaData = new MetadataType();
-		String channel = getChannel(context, task);
-		metaData.setCreateChannel(channel);
-		metaData.setCreateTimestamp(now);
-		if (task.getOwner() != null) {
-			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
-		}
-		return metaData;
-	}
-	
-	public static <F extends ObjectType, T extends ObjectType> Collection<? extends ItemDelta<?,?>> createModifyMetadataDeltas(LensContext<F> context, 
-			ItemPath metadataPath, PrismObjectDefinition<T> def, XMLGregorianCalendar now, Task task) {
-		Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<>();
-		String channel = getChannel(context, task);
-		if (channel != null) {
-            PropertyDelta<String> delta = PropertyDelta.createModificationReplaceProperty(metadataPath.subPath(MetadataType.F_MODIFY_CHANNEL), def, channel);
-            ((Collection)deltas).add(delta);
-        }
-		PropertyDelta<XMLGregorianCalendar> delta = PropertyDelta.createModificationReplaceProperty(metadataPath.subPath(MetadataType.F_MODIFY_TIMESTAMP), def, now);
-		((Collection)deltas).add(delta);
-		if (task.getOwner() != null) {
-            ReferenceDelta refDelta = ReferenceDelta.createModificationReplace(
-            		metadataPath.subPath(MetadataType.F_MODIFIER_REF), def, task.getOwner().getOid());
-            ((Collection)deltas).add(refDelta);
-		}
-		return deltas;
-	}
 	
 	public static <F extends ObjectType> String getChannel(LensContext<F> context, Task task) {
     	if (context != null && context.getChannel() != null){

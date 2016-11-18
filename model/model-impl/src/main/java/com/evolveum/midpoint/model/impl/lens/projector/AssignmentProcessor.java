@@ -61,6 +61,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.MetadataManager;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -120,6 +121,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -180,6 +182,9 @@ public class AssignmentProcessor {
     
     @Autowired(required = true)
     private ObjectTemplateProcessor objectTemplateProcessor;
+    
+    @Autowired(required = true)
+    private MetadataManager metadataManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -847,7 +852,7 @@ public class AssignmentProcessor {
         removeIgnoredContexts(context);
         finishLegalDecisions(context);
         
-        applyAssignmentMetadata(context, evaluatedAssignmentTriple, now, task, result);
+        metadataManager.applyAssignmentMetadata(context, AuthorizationPhaseType.REQUEST, now, task, result);
         
     }
 
@@ -1802,67 +1807,6 @@ public class AssignmentProcessor {
 		focusContext.swallowToSecondaryDelta(membershipRefDelta);
     }
     
-	private <F extends FocusType> void applyAssignmentMetadata(LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
-		
-		// This is not entirely correct. But we cannot really create secondary deltas for
-		// assignment metadata here. The assignment containers do not have IDs yet.
-		// So we cannot create a stand-alone deltas for them. So just add metadata
-		// to the primary delta. Strictly speaking we should not modify the primary
-		// delta. But this is the least evil here.
-		
-		LensFocusContext<F> focusContext = context.getFocusContext();
-
-		applyAssignmentMetadataDelta(context, focusContext.getPrimaryDelta(), evaluatedAssignmentTriple, now, task, result);
-		applyAssignmentMetadataDelta(context, focusContext.getSecondaryDelta(), evaluatedAssignmentTriple, now, task, result);
-		
-	}
 	
-	private <F extends FocusType> void applyAssignmentMetadataDelta(LensContext<F> context, ObjectDelta<F> objectDelta,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
-
-		if (objectDelta == null || objectDelta.isDelete()) {
-			return;
-		}
-		
-		if (objectDelta.isAdd()) {
-			
-			PrismObject<F> objectToAdd = objectDelta.getObjectToAdd();
-			PrismContainer<AssignmentType> assignmentContainer = objectToAdd.findContainer(FocusType.F_ASSIGNMENT);
-			if (assignmentContainer != null) {
-				for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentContainer.getValues()) {
-					MetadataType metadataType = LensUtil.createCreateMetadata(context, now, task);
-					LOGGER.trace("Adding METADATA {} to assignment cval (ADD):\n{}", metadataType, assignmentContainerValue.debugDump(1));
-					assignmentContainerValue.asContainerable().setMetadata(metadataType);
-				}
-			}
-			
-		} else {
-			
-			for (ItemDelta<?,?> itemDelta: objectDelta.getModifications()) {
-				if (itemDelta.getPath().equivalent(SchemaConstants.PATH_ASSIGNMENT)) {
-					ContainerDelta<AssignmentType> assignmentDelta = (ContainerDelta<AssignmentType>)itemDelta;
-					if (assignmentDelta.getValuesToAdd() != null) {
-						for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentDelta.getValuesToAdd()) {
-							MetadataType metadataType = LensUtil.createCreateMetadata(context, now, task);
-							LOGGER.trace("Adding METADATA {} to assignment cval (MOD/add):\n{}", metadataType, assignmentContainerValue.debugDump(1));
-							assignmentContainerValue.asContainerable().setMetadata(metadataType);
-						}
-					}
-					if (assignmentDelta.getValuesToReplace() != null) {
-						for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentDelta.getValuesToReplace()) {
-							MetadataType metadataType = LensUtil.createCreateMetadata(context, now, task);
-							LOGGER.trace("Adding METADATA {} to assignment cval (MOD/replace):\n{}", metadataType, assignmentContainerValue.debugDump(1));
-							assignmentContainerValue.asContainerable().setMetadata(metadataType);
-						}
-					}
-				}
-				// TODO: assignment modification
-			}
-			
-		}
-		
-	}
+	
 }

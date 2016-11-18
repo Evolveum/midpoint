@@ -641,25 +641,31 @@
        	<xsd:annotation>
     		<xsd:documentation>
                 <p>
-    			Meta-data about data creation, modification, etc.
-    			It may apply to objects but also parts of the object (e.g. assignments).
+	    			Meta-data about data creation, modification, etc.
+	    			It may apply to objects but also parts of the object (e.g. assignments).
                 </p>
 
                 <p>
-    			Mata-data only apply to successful operations. That is obvious for create, but it also applies
-    			to modify. For obvious reasons there are no metadata about delete.
-    			We keep no metadata about reading. That would be a huge performance hit.
+	    			Meta-data only apply to successful operations. That is obvious for create, but it also applies
+	    			to modify. For obvious reasons there are no metadata about delete.
+	    			We keep no metadata about reading. That would be a huge performance hit.
                 </p>
 
                 <p>
-    			These data are informational only. They should not be used for security purposes (use auditing
-    			subsystem for that). But presence of metadata simplifies system administration and may provide
-    			some basic information "at the glance" which may be later confirmed by the audit logs.
+	    			Meta-data only describe the last operation of its kind. E.g. there is a record of last
+	    			modification, last approval, etc. There is no history. The last operation overwrites data
+	    			about the previous operation.
                 </p>
 
                 <p>
-    			Meta-data are also supposed to be searchable. Therefore they may be used to quickly find
-    			"candidate" objects for a closer examination.
+	    			These data are informational only. They should not be used for security purposes (use auditing
+	    			subsystem for that). But presence of metadata simplifies system administration and may provide
+	    			some basic information "at the glance" which may be later confirmed by the audit logs.
+                </p>
+
+                <p>
+	    			Meta-data are also supposed to be searchable. Therefore they may be used to quickly find
+	    			"candidate" objects for a closer examination.
                 </p>
     		</xsd:documentation>
     		<xsd:appinfo>
@@ -669,14 +675,51 @@
     		</xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
+    		<xsd:element name="requestTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp of operation request. It is set once and should never be changed.
+    					</p>
+    					<p>
+    						In case of "background" processes to create object (e.g. create with approval)
+    						this should be the timestamp when the process started. I.e. the timestamp when
+    						the operation was requested.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:since>3.5</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="requestorRef" type="tns:ObjectReferenceType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Reference to the user that requested the operation.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
     		<xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
-    					The timestamp of data creation. It is set once and should never be changed.
+    					<p>
+    						The timestamp of data creation. It is set once and should never be changed.
+    					</p>
+    					<p>
+    						In case of "background" processes to create object (e.g. create with approval)
+    						this should be the timestamp when the process ended. I.e. the timestamp when
+    						the operation was executed.
+    					</p>
     				</xsd:documentation>
     				<xsd:appinfo>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
+    					<a:since>3.5</a:since>
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
@@ -703,6 +746,17 @@
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="createApprovalTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					The timestamp of last modification approval.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:since>3.5</a:since>
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
@@ -746,14 +800,33 @@
     		<xsd:element name="modifyApproverRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
     			<xsd:annotation>
     				<xsd:documentation>
-    					Reference to the user that approved the last modification of the data (if there was such a user).
-    					This is multi-value reference therefore multiple approvers may be recorded. Howerver the order and
-    					hierarchy of the approvers is lost.
+    					<p>
+	    					Reference to the user that approved the last modification of the data (if there was such a user).
+	    					This is multi-value reference therefore multiple approvers may be recorded. Howerver the order and
+	    					hierarchy of the approvers is lost.
+    					</p>
+    					<p>
+    						Even though this is multi-value reference it will get overwritten after each approval.
+    						The multiple values are used only if all the approvers are known at the same time,
+    						e.g. if multi-level approval is evaluated at the same time. But generaly this refers
+    						only to the last approval event.
+    					</p>
     				</xsd:documentation>
     				<xsd:appinfo>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="modifyApprovalTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					The timestamp of last modification approval.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:since>3.5</a:since>
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
