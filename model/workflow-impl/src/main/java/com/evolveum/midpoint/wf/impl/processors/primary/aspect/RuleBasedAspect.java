@@ -270,13 +270,10 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private Collection<? extends ObjectReferenceType> findApproversByReference(PrismObject<?> target, OperationResult result)
 			throws SchemaException {
-		PrismReferenceValue approverReferenceQualified = new PrismReferenceValue(target.getOid());
-		approverReferenceQualified.setRelation(SchemaConstants.ORG_APPROVER);
-		PrismReferenceValue approverReferenceUnqualified = new PrismReferenceValue(target.getOid());
-		approverReferenceUnqualified.setRelation(QNameUtil.unqualify(SchemaConstants.ORG_APPROVER));
+		PrismReferenceValue approverReference = new PrismReferenceValue(target.getOid());
+		approverReference.setRelation(SchemaConstants.ORG_APPROVER);
 		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReferenceQualified)
-				.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReferenceUnqualified)
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference)
 				.build();
 		LOGGER.trace("Looking for approvers for {} using query:\n{}", target, DebugUtil.debugDumpLazily(query));
 		List<PrismObject<FocusType>> objects = repositoryService.searchObjects(FocusType.class, query, null, result);

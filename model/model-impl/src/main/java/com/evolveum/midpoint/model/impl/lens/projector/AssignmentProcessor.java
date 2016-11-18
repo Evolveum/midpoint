@@ -16,16 +16,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -1740,7 +1732,7 @@ public class AssignmentProcessor {
 		if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			return;
 		}
-		Collection<PrismReferenceValue> newValues = new ArrayList<>();
+		Collection<PrismReferenceValue> newValues = new ArrayList<>();		// i.e. "should be" state
 		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
 			return;
@@ -1758,6 +1750,9 @@ public class AssignmentProcessor {
 				}
 				if (!found) {
 					PrismReferenceValue ref = membershipRefVal.clone();
+					if (ref.getRelation() != null && QNameUtil.isUnqualified(ref.getRelation())) {
+						ref.setRelation(new QName(SchemaConstants.NS_ORG, ref.getRelation().getLocalPart(), SchemaConstants.PREFIX_NS_ORG));
+					}
 					newValues.add(ref);
 				}
 			}
@@ -1774,10 +1769,12 @@ public class AssignmentProcessor {
 				if (newValues.isEmpty()) {
 					return;
 				}	
-			} else {				
+			} else {
+				// we don't use QNameUtil.match here, because we want to ensure we store qualified values there
+				// (and newValues are all qualified)
 				Comparator<PrismReferenceValue> comparator =
 						(a, b) -> 2*a.getOid().compareTo(b.getOid())
-								+ (QNameUtil.match(a.getRelation(), b.getRelation()) ? 0 : 1);
+								+ (Objects.equals(a.getRelation(), b.getRelation()) ? 0 : 1);
 				if (MiscUtil.unorderedCollectionEquals(newValues, roleMemPrismRef.getValues(), comparator)) {
 					return;
 				}
