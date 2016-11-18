@@ -156,7 +156,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());        
             secondaryDelta.setOid(getOid());
             setProjectionWaveSecondaryDelta(secondaryDelta);
-        } else if (secondaryDelta.containsModification(propDelta)){
+        } else if (secondaryDelta.containsModification(propDelta, true, true)) {
 			return;
 		}
 		
@@ -169,7 +169,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());        
             secondaryDelta.setOid(getOid());
             setSecondaryDelta(secondaryDelta, 0);
-        } else if (secondaryDelta.containsModification(propDelta)){
+        } else if (secondaryDelta.containsModification(propDelta, true, true)) {
       		return;
       	}
 		
@@ -178,12 +178,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         
 	public boolean alreadyHasDelta(ItemDelta<?,?> itemDelta) {
 		ObjectDelta<O> primaryDelta = getPrimaryDelta();
-		if (primaryDelta != null && primaryDelta.containsModification(itemDelta)) {
+		if (primaryDelta != null && primaryDelta.containsModification(itemDelta, true, true)) {
 			return true;
 		}
 		if (secondaryDeltas != null) {
 			for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
-				if (waveSecondaryDelta != null && waveSecondaryDelta.containsModification(itemDelta)) {
+				if (waveSecondaryDelta != null && waveSecondaryDelta.containsModification(itemDelta, true, true)) {
 					return true;
 				}
 			}

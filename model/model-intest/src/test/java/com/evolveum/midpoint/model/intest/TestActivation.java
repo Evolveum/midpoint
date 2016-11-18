@@ -1177,7 +1177,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.assertExecutionDeltas(4);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -1187,9 +1187,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         for (ObjectDeltaOperation<? extends ObjectType> executionDelta: executionDeltas) {
         	ObjectDelta<? extends ObjectType> objectDelta = executionDelta.getObjectDelta();
         	if (objectDelta.getObjectTypeClass() == ShadowType.class) {
+        		if (objectDelta.findContainerDelta(ShadowType.F_TRIGGER) != null) {
+        			continue;
+        		}
         		PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP));
         		display("Audit enableTimestamp delta", enableTimestampDelta);
-        		assertNotNull("EnableTimestamp delta vanished from audit record", enableTimestampDelta);
+        		assertNotNull("EnableTimestamp delta vanished from audit record, delta: "+objectDelta, enableTimestampDelta);
         		found = true;
         	}
         }

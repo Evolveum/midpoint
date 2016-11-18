@@ -114,4 +114,7 @@ public class PrismConstants {
 
     // a bit of hack: by this local name we know if a object is a reference (c:ObjectReferenceType)
     public static final String REFERENCE_TYPE_NAME = "ObjectReferenceType";
+    
+    public static final boolean EQUALS_DEFAULT_IGNORE_METADATA = true;
+    public static final boolean EQUALS_DEFAULT_IS_LITERAL = false;
 }
