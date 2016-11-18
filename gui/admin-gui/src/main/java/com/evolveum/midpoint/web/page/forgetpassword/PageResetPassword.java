@@ -1,13 +1,8 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
-import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -15,14 +10,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
-import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(url = "/resetPassword", action = {
@@ -86,6 +79,11 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
 //		get(ID_MAIN_FORM).setVisible(false);
 		
 		
+	}
+	
+	@Override
+	protected void createBreadcrumb() {
+		// we don't want breadcrumbs here
 	}
 	
 

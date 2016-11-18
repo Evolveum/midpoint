@@ -127,7 +127,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 			 return null;
 		} catch (Exception ex) {
 			getSession()
-			.error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
+			.error(createStringResource("PageResetPasswordConfirmation.authnetication.failed").getString());
 			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
 			return null;
 		}
@@ -155,7 +155,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 			}
 		});
 		Label errorMessage = new Label(ID_LABEL_ERROR,
-				createStringResource("PageRegistrationConfirmation.confirmation.error"));
+				createStringResource("PageResetPasswordConfirmation.confirmation.error"));
 		errorPanel.add(errorMessage);
 
 	}
