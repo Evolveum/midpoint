@@ -275,7 +275,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return selected;
 	}
 
-	private void deleteAssignmentPerformed(AjaxRequestTarget target) {
+	protected void deleteAssignmentPerformed(AjaxRequestTarget target) {
 		List<AssignmentEditorDto> selected = getSelectedAssignments();
 
 		if (selected.isEmpty()) {
@@ -324,9 +324,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 				assignment.setSelected(false);
 			}
 		}
-
-
-
 		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
 	}
 

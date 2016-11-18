@@ -442,6 +442,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	
 	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
 			List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
+		return handleAssignmentDeltas(focusDelta, assignments, def, false);
+	}
+
+	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
+			List<AssignmentEditorDto> assignments, PrismContainerDefinition def,
+													boolean isDelegation) throws SchemaException {
 		ContainerDelta assDelta = new ContainerDelta(new ItemPath(), def.getName(), def, getPrismContext());
 
 		for (AssignmentEditorDto assDto : assignments) {
@@ -454,7 +460,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					break;
 				case DELETE:
 					PrismContainerValue oldValue = assDto.getOldValue();
-					oldValue.applyDefinition(def);
+					if (isDelegation){
+						oldValue.applyDefinition(def, false);
+					} else {
+						oldValue.applyDefinition(def);
+					}
 					assDelta.addValueToDelete(oldValue.clone());
 					break;
 				case MODIFY:
