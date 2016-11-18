@@ -205,6 +205,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 						pageBase.createSimpleTask(OPERATION_LOAD_REFERENCE_OBJECT),
 						new OperationResult(OPERATION_LOAD_REFERENCE_OBJECT)));
 				dto.setTargetOid(objectRef.getOid());
+				list.add(dto);
 			}
 		}
 		return list;

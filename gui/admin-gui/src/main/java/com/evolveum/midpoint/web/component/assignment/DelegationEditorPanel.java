@@ -79,6 +79,9 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     @Override
     protected void initHeaderRow(){
         delegatedToMe = delegationUser == null;
+        if (delegatedToMe){
+            privilegesList = getModelObject().getPrivilegeLimitationList();
+        }
         AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
             private static final long serialVersionUID = 1L;
@@ -175,19 +178,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         description.setEnabled(getModel().getObject().isEditable());
         body.add(description);
 
-        privilegesNames = getPrivilegesNamesList();
-        ListView<String> privilegesListComponent = new ListView<String>(ID_PRIVILEGES_LIST, privilegesNames){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(ListItem<String> item) {
-                Label privilageNameLabel = new Label(ID_PRIVILEGE, item.getModel());
-                item.add(privilageNameLabel);
-            }
-        };
-        privilegesListComponent.setOutputMarkupId(true);
-        body.add(privilegesListComponent);
-
+        addOrReplacePrivilegesPanel(body);
         AjaxButton limitPrivilegesButton = new AjaxButton(ID_LIMIT_PRIVILEGES_BUTTON,
                 pageBase.createStringResource("DelegationEditorPanel.limitPrivilegesButton")) {
             @Override
@@ -217,6 +208,21 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(limitPrivilegesButton);
     };
 
+    private void addOrReplacePrivilegesPanel(WebMarkupContainer body){
+        privilegesNames = getPrivilegesNamesList();
+        ListView<String> privilegesListComponent = new ListView<String>(ID_PRIVILEGES_LIST, privilegesNames){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<String> item) {
+                Label privilageNameLabel = new Label(ID_PRIVILEGE, item.getModel());
+                item.add(privilageNameLabel);
+            }
+        };
+        privilegesListComponent.setOutputMarkupId(true);
+        body.addOrReplace(privilegesListComponent);
+    }
+
     private List<String> getPrivilegesNamesList(){
         List<String> privilegesNamesList = new ArrayList<>();
         if (privilegesList != null){
@@ -228,6 +234,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     }
 
     private void reloadBodyComponent(AjaxRequestTarget target){
+        addOrReplacePrivilegesPanel((WebMarkupContainer) DelegationEditorPanel.this.get(ID_BODY));
         target.add(get(ID_BODY));
     }
 
