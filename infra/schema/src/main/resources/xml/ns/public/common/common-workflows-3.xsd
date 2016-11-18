@@ -235,6 +235,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:WfChangeProcessorConfigurationType">
                 <xsd:sequence>
+                    <xsd:element name="policyRuleBasedAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />

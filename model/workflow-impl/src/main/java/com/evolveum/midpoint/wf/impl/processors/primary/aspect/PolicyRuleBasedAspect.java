@@ -61,9 +61,9 @@ import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectOid;
  * @author mederly
  */
 @Component
-public class RuleBasedAspect extends BasePrimaryChangeAspect {
+public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RuleBasedAspect.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleBasedAspect.class);
 
     @Autowired
     protected PrismContext prismContext;

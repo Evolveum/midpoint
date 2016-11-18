@@ -213,6 +213,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		initializedClasses.add(this.getClass());
 	}
 
+	protected void unsetSystemInitialized() {
+		initializedClasses.remove(this.getClass());
+	}
+
 	abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
 
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath,

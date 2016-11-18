@@ -1273,4 +1273,9 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         }
     }
 
+    @Test
+    public void zzzMarkAsNotInitialized() {
+        display("Setting class as not initialized");
+        unsetSystemInitialized();
+    }
 }

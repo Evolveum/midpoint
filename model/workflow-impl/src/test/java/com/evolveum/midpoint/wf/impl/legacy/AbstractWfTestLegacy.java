@@ -33,7 +33,9 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -60,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.*;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
@@ -147,6 +150,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 		super();
 	}
 
+	protected boolean enablePolicyRuleBasedAspect;
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -182,7 +187,24 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
         dummyResourceCtl.addGroup(GROUP_TESTERS_NAME);
         dummyResourceCtl.addGroup(GROUP_GUESTS_NAME);
-	}
+
+        display("setting policyRuleBasedAspect.enabled to", enablePolicyRuleBasedAspect);
+        List<ItemDelta<?, ?>> deltas =
+                DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+                        .item(SystemConfigurationType.F_WORKFLOW_CONFIGURATION, WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
+                                PrimaryChangeProcessorConfigurationType.F_POLICY_RULE_BASED_ASPECT, PcpAspectConfigurationType.F_ENABLED)
+                        .replace(enablePolicyRuleBasedAspect)
+                        .asItemDeltas();
+        repositoryService.modifyObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, deltas, initResult);
+        display("policyRuleBasedAspect.enabled was set to", enablePolicyRuleBasedAspect);
+    }
+
+    @BeforeClass
+    @Parameters({ "enablePolicyRuleBasedAspect" })
+    public void temp(@org.testng.annotations.Optional Boolean enablePolicyRuleBasedAspect) {
+        this.enablePolicyRuleBasedAspect = enablePolicyRuleBasedAspect;
+        System.out.println("Testing with policy rule based aspect = " + enablePolicyRuleBasedAspect);
+    }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {
         Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
@@ -296,8 +318,6 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     }
 
     protected void executeTest(String testName, String oid, TestDetails testDetails) throws Exception {
-
-        int workflowSubtaskCount = testDetails.immediate() ? testDetails.subtaskCount()-1 : testDetails.subtaskCount();
 
 		// GIVEN
         prepareNotifications();
@@ -517,5 +537,4 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         Utils.encrypt((Collection) Arrays.asList(focusDelta), protector, null, new OperationResult("dummy"));
         return addFocusDeltaToContext(context, focusDelta);
     }
-
 }

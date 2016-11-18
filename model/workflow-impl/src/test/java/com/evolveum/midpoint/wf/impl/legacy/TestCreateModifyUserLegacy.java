@@ -36,6 +36,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -138,4 +139,9 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
         });
     }
 
+    @Test
+    public void zzzMarkAsNotInitialized() {
+        display("Setting class as not initialized");
+        unsetSystemInitialized();
+    }
 }

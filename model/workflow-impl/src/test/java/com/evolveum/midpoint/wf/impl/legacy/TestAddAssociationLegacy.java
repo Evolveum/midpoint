@@ -48,6 +48,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.List;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -286,5 +287,9 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
         AssertJUnit.fail("No association of type " + associationName + " of " + entitlementOid + " in " + ObjectTypeUtil.toShortString(shadow));
     }
 
-
+    @Test
+    public void zzzMarkAsNotInitialized() {
+        display("Setting class as not initialized");
+        unsetSystemInitialized();
+    }
 }
