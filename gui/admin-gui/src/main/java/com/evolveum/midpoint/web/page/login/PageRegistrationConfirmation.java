@@ -29,6 +29,9 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
@@ -42,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @PageDescriptor(url = "/confirm", encoder = MidPointPageParametersEncoder.class)
 public class PageRegistrationConfirmation extends PageRegistrationBase {
 
+	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
+	
 	private static final String DOT_CLASS = PageRegistrationConfirmation.class.getName() + ".";
 
 	private static final String ID_LABEL_SUCCESS = "successLabel";
@@ -71,14 +76,22 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		if (params == null) {
 			params = getPageParameters();
 		}
+		
+		OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
+		if (params == null) {
+			LOGGER.error("Confirmation link is not valid. No credentials provided in it");
+			String msg = createStringResource("PageSelfRegistration.invalid.registration.link").getString();
+			getSession().error(createStringResource(msg));
+			result.recordFatalError(msg);
+			initLayout(result);
+			return;
+		}
 
 		StringValue userNameValue = params.get(SchemaConstants.REGISTRATION_ID);
 		Validate.notEmpty(userNameValue.toString());
 		StringValue tokenValue = params.get(SchemaConstants.REGISTRATION_TOKEN);
 		Validate.notEmpty(tokenValue.toString());
-		
-
-		OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
+			
 		UsernamePasswordAuthenticationToken token = authenticateUser(userNameValue.toString(), tokenValue.toString(), result);
 		if (token == null) {
 			initLayout(result);
@@ -88,6 +101,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		final MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 		result = assignDefaultRoles(principal.getOid());
 		if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
+			LOGGER.error("Failed to assign default roles, {}", result.getMessage());
 			initLayout(result);
 			return;
 		}
@@ -108,9 +122,15 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 					nonce, getSelfRegistrationConfiguration().getNoncePolicy());
 		} catch (AuthenticationException ex) {
 			getSession()
-					.error(createStringResource("PageRegistrationConfirmation.bad.credentials").getString());
+					.error(getString(ex.getMessage()));
 			result.recordFatalError("Failed to validate user");
+			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
 			 return null;
+		} catch (Exception ex) {
+			getSession()
+			.error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
+			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
+			return null;
 		}
 	}
 	
@@ -159,6 +179,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 					userAssignmentsDelta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 				} catch (SchemaException e) {
 					result.recordFatalError("Could not create delta");
+					LOGGER.error("Could not prepare delta for removing nonce and lyfecycle state {}", e.getMessage());
 					return result;
 				}
 				WebModelServiceUtils.save(userAssignmentsDelta, result, task, PageRegistrationConfirmation.this);

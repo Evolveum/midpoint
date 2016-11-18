@@ -369,10 +369,11 @@ public class FocusProcessor {
 					continue;
 				}
 				for (ModificationPolicyConstraintType modificationConstraintType: policyConstraints.getModification()) {
+					focusContext.addPolicyRule(policyRule);
 					if (modificationConstraintMatches(focusContext, modificationConstraintType)) {
 						EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MODIFICATION,
 								modificationConstraintType, "Focus "+focusContext.getHumanReadableName()+" was modified");
-						evaluatedAssignment.triggerConstraint(policyRule, trigger);
+						focusContext.triggerConstraint(policyRule, trigger);
 					}
 				}
 			}

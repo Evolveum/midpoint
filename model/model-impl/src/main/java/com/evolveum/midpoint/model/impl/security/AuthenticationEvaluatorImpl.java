@@ -141,6 +141,11 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		NonceType nonceType = credentials.getNonce();
 		
 		// Password age
+		
+		if (nonceType == null) {
+			throw new BadCredentialsException("web.security.provider.invalid.link");
+		}
+		
 		checkPasswordValidityAndAge(connEnv, principal, nonceType.getValue(), nonceType.getMetadata(), noncePolicy);
 		
 		if (nonceMatches(connEnv, principal, nonceType, enteredNonce)) {
@@ -151,7 +156,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			return token;
 			
 		} else {
-//			recordPasswordAuthenticationFailure(principal, connEnv, nonceType, passwordCredentialsPolicy, "password mismatch");
+//			recordPasswordAuthenticationFailure(principal, connEnv, nonceType, noncePolicy, "password mismatch");
 			//TODO what to do after expiration?
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}

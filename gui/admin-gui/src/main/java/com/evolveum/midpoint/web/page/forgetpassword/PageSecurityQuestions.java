@@ -179,7 +179,7 @@ public class PageSecurityQuestions extends PageBase {
 			getSession().error(getString("pageForgetPassword.message.ContactAdminQuestionsNotSet"));
 			SecurityContext securityContext = SecurityContextHolder.getContext();
 			securityContext.setAuthentication(null);
-			throw new RestartResponseException(PageForgetPassword.class);
+			throw new RestartResponseException(PageForgotPassword.class);
 		}
 		
 		if (questionNumber <= userQuestionList.size()) {
