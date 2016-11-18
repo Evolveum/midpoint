@@ -502,6 +502,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             modelService.executeChanges(deltas, new ModelExecuteOptions(), t, result);
 
             LOGGER.info("User " + name + " was deleted");
+        } else {
+            LOGGER.info("User {} was not found", name);
         }
     }
 

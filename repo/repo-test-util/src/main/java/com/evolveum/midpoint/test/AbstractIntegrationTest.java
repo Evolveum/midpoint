@@ -188,6 +188,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			Task initTask = taskManager.createTaskInstance(this.getClass().getName() + ".initSystem");
+			initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
 			OperationResult result = initTask.getResult();
 			
 			InternalMonitor.reset();

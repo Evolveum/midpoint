@@ -223,8 +223,13 @@ public abstract class PrismValue implements IPrismValue {
 	 * E.g. if they have the same IDs, OIDs or it is otherwise know
 	 * that they "belong together" without a deep examination of the
 	 * values.
+	 *
+	 * @param lax If we can reasonably assume that the two values belong together even if they don't have the same ID,
+	 *            e.g. if they both belong to single-valued parent items. This is useful e.g. when comparing
+	 *            multi-valued containers. But can cause problems when we want to be sure we are removing the correct
+	 *            value.
 	 */
-	public boolean representsSameValue(PrismValue other) {
+	public boolean representsSameValue(PrismValue other, boolean lax) {
 		return false;
 	}
 	

@@ -441,8 +441,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 		
 	@Override
-	public boolean representsSameValue(PrismValue other) {
-		if (other instanceof PrismPropertyValue) {
+	public boolean representsSameValue(PrismValue other, boolean lax) {
+		if (other instanceof PrismReferenceValue) {
 			return representsSameValue((PrismReferenceValue)other);
 		} else {
 			return false;

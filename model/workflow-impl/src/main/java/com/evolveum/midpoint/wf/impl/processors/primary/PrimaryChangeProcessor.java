@@ -55,6 +55,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
 import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
@@ -98,7 +99,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     public static final String UNKNOWN_OID = "?";
 
-    Set<PrimaryChangeAspect> allChangeAspects = new HashSet<>();
+    private List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
 
     public enum ExecutionMode {
         ALL_AFTERWARDS, ALL_IMMEDIATELY, MIXED;
@@ -174,13 +175,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
 	private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
-        Collection<PrimaryChangeAspect> rv = new HashSet<>();
-        for (PrimaryChangeAspect aspect : getAllChangeAspects()) {
-            if (aspect.isEnabled(processorConfigurationType)) {
-                rv.add(aspect);
-            }
-        }
-        return rv;
+        Collection<PrimaryChangeAspect> rv = getAllChangeAspects().stream()
+				.filter(aspect -> aspect.isEnabled(processorConfigurationType)).collect(Collectors.toList());
+		return rv;
     }
 
     private void logAspectResult(PrimaryChangeAspect aspect, List<? extends WfTaskCreationInstruction> instructions, ObjectTreeDeltas changesBeingDecomposed) {
@@ -418,9 +415,13 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         throw new IllegalStateException("Aspect " + name + " is not registered.");
     }
 
-    public void registerChangeAspect(PrimaryChangeAspect changeAspect) {
-        LOGGER.trace("Registering aspect implemented by {}", changeAspect.getClass());
-        allChangeAspects.add(changeAspect);
+    public void registerChangeAspect(PrimaryChangeAspect changeAspect, boolean first) {
+        LOGGER.trace("Registering aspect implemented by {}; first={}", changeAspect.getClass(), first);
+		if (first) {
+			allChangeAspects.add(0, changeAspect);
+		} else {
+			allChangeAspects.add(changeAspect);
+		}
     }
 
     WfTaskUtil getWfTaskUtil() {     // ugly hack - used in PcpJob

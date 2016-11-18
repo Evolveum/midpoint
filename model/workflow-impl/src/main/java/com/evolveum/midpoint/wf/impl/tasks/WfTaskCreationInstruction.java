@@ -293,19 +293,19 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
         DebugUtil.indentDebugDump(sb, indent);
 		sb.append("Workflow context:\n");
-		sb.append(wfContext.asPrismContainerValue().debugDump(indent+2));
+		sb.append(wfContext.asPrismContainerValue().debugDump(indent+2)).append("\n");
 
-		DebugUtil.debugDumpWithLabel(sb, "Change processor", changeProcessor.getClass().getName(), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Process creation timestamp", String.valueOf(processCreationTimestamp), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Task object", String.valueOf(taskObject), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Task owner", String.valueOf(taskOwner), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Task initial state", String.valueOf(taskInitialState), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Send start confirmation", String.valueOf(sendStartConfirmation), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Handlers after model operation", String.valueOf(handlersAfterModelOperation), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Handlers before model operation", String.valueOf(handlersBeforeModelOperation), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Handlers after wf process", String.valueOf(handlersAfterWfProcess), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Processor instruction", String.valueOf(processorContent), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Process instruction", String.valueOf(processContent), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Change processor", changeProcessor.getClass().getName(), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Process creation timestamp", String.valueOf(processCreationTimestamp), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Task object", String.valueOf(taskObject), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Task owner", String.valueOf(taskOwner), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Task initial state", String.valueOf(taskInitialState), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Send start confirmation", String.valueOf(sendStartConfirmation), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Handlers after model operation", String.valueOf(handlersAfterModelOperation), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Handlers before model operation", String.valueOf(handlersBeforeModelOperation), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Handlers after wf process", String.valueOf(handlersAfterWfProcess), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Processor instruction", String.valueOf(processorContent), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Process instruction", String.valueOf(processContent), indent+1);
 
         return sb.toString();
 

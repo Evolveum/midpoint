@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -88,7 +89,7 @@ public class ApprovalSchemaHelper {
         ApprovalLevelType level = new ApprovalLevelType(prismContext);
         level.setOrder(maxOrderExisting + 1);
         if (additionalReviewers != null) {
-            level.getApproverRef().addAll(additionalReviewers);
+            level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(additionalReviewers));
         }
         level.getApproverExpression().addAll(approverExpressionList);
         level.setAutomaticallyApproved(automaticallyApproved);

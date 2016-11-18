@@ -16,14 +16,18 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-    <test name="Default" preserve-order="true" parallel="false" verbose="10" enabled="true">
+    <test name="Legacy" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.wf.impl.legacy.TestUserChangeApprovalLegacy"/>
             <class name="com.evolveum.midpoint.wf.impl.legacy.TestCreateModifyUserLegacy"/>
             <class name="com.evolveum.midpoint.wf.impl.legacy.TestCreateOrgLegacy"/>
             <class name="com.evolveum.midpoint.wf.impl.legacy.TestAddAssociationLegacy"/>
-
             <!--<class name="com.evolveum.midpoint.wf.impl.general.TestGeneralChangeProcessor"/>-->
+        </classes>
+    </test>
+    <test name="Policy" preserve-order="true" parallel="false" verbose="10" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.wf.impl.policy.plain.TestAssignmentApproval"/>
         </classes>
     </test>
 </suite>

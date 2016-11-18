@@ -21,11 +21,9 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -36,7 +34,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -52,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -85,6 +81,11 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 		return true;
 	}
 
+	@Override
+	protected boolean isFirst() {
+		return true;
+	}
+
 	@NotNull
 	@Override
     public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
@@ -94,8 +95,10 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 		List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
 		PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
-		extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, wfConfigurationType, taskFromModel, result);
-		extractObjectBasedInstructions((LensContext<?>) modelContext, objectTreeDeltas, requester, instructions, taskFromModel, result);
+		if (objectTreeDeltas.getFocusChange() != null) {
+			extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, wfConfigurationType, taskFromModel, result);
+			extractObjectBasedInstructions((LensContext<?>) modelContext, objectTreeDeltas, requester, instructions, taskFromModel, result);
+		}
         return instructions;
     }
 
@@ -104,9 +107,17 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 			List<PcpChildWfTaskCreationInstruction> instructions, WfConfigurationType wfConfigurationType,
 			@NotNull Task taskFromModel, @NotNull OperationResult result)
 			throws SchemaException {
+
+		ObjectDelta<? extends ObjectType> focusDelta = objectTreeDeltas.getFocusChange();
+
 		DefaultApprovalPolicyApplicationStrategyType applyDefaultPolicy = baseConfigurationHelper.getDefaultPolicyApplicationStrategy(wfConfigurationType);
+
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) modelContext).getEvaluatedAssignmentTriple();
 		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
+		if (evaluatedAssignmentTriple == null || evaluatedAssignmentTriple.getPlusSet() == null) {
+			return;
+		}
+
 		for (EvaluatedAssignment<?> newAssignment : evaluatedAssignmentTriple.getPlusSet()) {
 			LOGGER.trace("Assignment to be added: -> {} ({} policy rules)", newAssignment.getTarget(), newAssignment.getPolicyRules().size());
 			List<ApprovalPolicyActionType> approvalActions = new ArrayList<>();
@@ -132,17 +143,20 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 				LOGGER.trace("This assignment hasn't triggered approval actions, continuing with a next one.");
 				continue;
 			}
-			PrismContainerValue<AssignmentType> assignmentValue = newAssignment.getAssignmentType().asPrismContainerValue();
-			boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue);
-			if (!removed) {
-				String message = "Assignment with a value of " + assignmentValue.debugDump() + " was not found in deltas: "
-						+ objectTreeDeltas.debugDump();
-				assert false : message;				// fail in test mode; just log an error otherwise
-				LOGGER.error("{}", message);
-				return;
-			}
 			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions, result);
 			if (!request.getApprovalSchema().isEmpty()) {
+				PrismContainerValue<AssignmentType> assignmentValue = newAssignment.getAssignmentType().asPrismContainerValue();
+				boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue);
+				if (!removed) {
+					String message = "Assignment with a value of " + assignmentValue.debugDump() + " was not found in deltas: "
+							+ objectTreeDeltas.debugDump();
+					assert false : message;				// fail in test mode; just log an error otherwise
+					LOGGER.error("{}", message);
+					return;
+				}
+				if (focusDelta.isAdd()) {
+					miscDataUtil.generateFocusOidIfNeeded(modelContext, focusDelta);
+				}
 				instructions.add(
 						prepareAssignmentRelatedTaskInstruction(request, newAssignment, modelContext, taskFromModel, requester,
 								result));
@@ -160,10 +174,6 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 			throws SchemaException {
 
 		ObjectDelta<?> focusDelta = objectTreeDeltas.getFocusChange();
-		if (focusDelta == null) {
-			return;
-		}
-
 		Map<Set<ItemPath>, ApprovalSchemaType> approvalSchemas = new HashMap<>();
 
 		Collection<EvaluatedPolicyRule> policyRules = modelContext.getFocusContext().getPolicyRules();
@@ -317,7 +327,7 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 
-		ObjectDelta<? extends FocusType> delta = assignmentToDelta(evaluatedAssignment.getAssignmentType(), objectOid);
+		ObjectDelta<? extends FocusType> delta = assignmentToDelta(modelContext.getFocusClass(), evaluatedAssignment.getAssignmentType(), objectOid);
 		instruction.setDeltasToProcess(delta);
 
 		instruction.setObjectRef(modelContext, result);
@@ -385,8 +395,9 @@ public class RuleBasedAspect extends BasePrimaryChangeAspect {
 
 	// creates an ObjectDelta that will be executed after successful approval of the given assignment
 	@SuppressWarnings("unchecked")
-    private ObjectDelta<? extends FocusType> assignmentToDelta(AssignmentType assignmentType, String objectOid) throws SchemaException {
-		return (ObjectDelta<? extends FocusType>) DeltaBuilder.deltaFor(FocusType.class, prismContext)
+    private ObjectDelta<? extends FocusType> assignmentToDelta(Class<? extends Objectable> focusClass, AssignmentType assignmentType,
+			String objectOid) throws SchemaException {
+		return (ObjectDelta<? extends FocusType>) DeltaBuilder.deltaFor(focusClass, prismContext)
 				.item(FocusType.F_ASSIGNMENT).add(assignmentType.clone().asPrismContainerValue())
 				.asObjectDelta(objectOid);
     }

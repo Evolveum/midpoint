@@ -950,17 +950,17 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
 
 	@Override
-	public boolean representsSameValue(PrismValue other) {
+	public boolean representsSameValue(PrismValue other, boolean lax) {
 		if (other instanceof PrismContainerValue) {
-			return representsSameValue((PrismContainerValue<C>)other);
+			return representsSameValue((PrismContainerValue<C>)other, lax);
 		} else {
 			return false;
 		}
 	}
 	
 	@SuppressWarnings("Duplicates")
-	private boolean representsSameValue(PrismContainerValue<C> other) {
-		if (getParent() != null) {
+	private boolean representsSameValue(PrismContainerValue<C> other, boolean lax) {
+		if (lax && getParent() != null) {
 			PrismContainerDefinition definition = getDefinition();
 			if (definition != null) {
 				if (definition.isSingleValue()) {
@@ -969,7 +969,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				}
 			}
 		}
-		if (other.getParent() != null) {
+		if (lax && other.getParent() != null) {
 			PrismContainerDefinition definition = other.getDefinition();
 			if (definition != null) {
 				if (definition.isSingleValue()) {
