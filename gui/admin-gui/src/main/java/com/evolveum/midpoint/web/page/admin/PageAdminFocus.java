@@ -442,6 +442,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	
 	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
 			List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
+		return handleAssignmentDeltas(focusDelta, assignments, def, false);
+	}
+
+	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
+			List<AssignmentEditorDto> assignments, PrismContainerDefinition def,
+													boolean isDelegation) throws SchemaException {
 		ContainerDelta assDelta = new ContainerDelta(new ItemPath(), def.getName(), def, getPrismContext());
 
 		for (AssignmentEditorDto assDto : assignments) {
@@ -454,7 +460,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					break;
 				case DELETE:
 					PrismContainerValue oldValue = assDto.getOldValue();
-					oldValue.applyDefinition(def);
+					if (isDelegation){
+						oldValue.applyDefinition(def, false);
+					} else {
+						oldValue.applyDefinition(def);
+					}
 					assDelta.addValueToDelete(oldValue.clone());
 					break;
 				case MODIFY:
@@ -893,7 +903,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                     || ServiceType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())){
                 PrismObject<AbstractRoleType> targetObject = WebModelServiceUtils.resolveReferenceRaw(assignment.getTargetRef(),
                         PageAdminFocus.this, task, result);
-                Boolean isDelegable = targetObject.asObjectable().isDelegable();
+                Boolean isDelegable = false;
+				if (targetObject != null) {
+					isDelegable = targetObject.getRealValue().isDelegable();
+				}
                 if (Boolean.TRUE.equals(isDelegable)){
                     return createAssignmentsPreviewDto(targetObject, true, assignment, task, result);
                 }
