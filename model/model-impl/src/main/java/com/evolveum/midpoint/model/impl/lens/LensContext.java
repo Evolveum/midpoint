@@ -76,6 +76,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private boolean requestAudited = false;			// was the request audited?
 	private boolean executionAudited = false;		// was the execution audited?
 	private LensContextStatsType stats = new LensContextStatsType();
+	
+	/**
+	 * Metadata of the request. Metadata recorded when the operation has started.
+	 * Currently only the requestTimestamp and requestorRef are meaningful. But
+	 * later other metadata may be used.
+	 */
+	private MetadataType requestMetadata;
 
 	/*
 	 *  Executed deltas from rotten contexts.
@@ -435,6 +442,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	
 	public void setOptions(ModelExecuteOptions options) {
 		this.options = options;
+	}
+
+	public MetadataType getRequestMetadata() {
+		return requestMetadata;
+	}
+
+	public void setRequestMetadata(MetadataType requestMetadata) {
+		this.requestMetadata = requestMetadata;
 	}
 
 	public LensDebugListener getDebugListener() {
@@ -892,6 +907,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         lensContextType.setRequestAudited(requestAudited);
         lensContextType.setExecutionAudited(executionAudited);
         lensContextType.setStats(stats);
+        lensContextType.setRequestMetadata(requestMetadata);
         
         for (LensObjectDeltaOperation executedDelta : rottenExecutedDeltas) {
         	lensContextType.getRottenExecutedDeltas().add(executedDelta.toLensObjectDeltaOperationType());
@@ -941,6 +957,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         	lensContext.setExecutionAudited(lensContextType.isExecutionAudited());
         }
         lensContext.setStats(lensContextType.getStats());
+        lensContext.setRequestMetadata(lensContextType.getRequestMetadata());
 
         for (LensObjectDeltaOperationType eDeltaOperationType : lensContextType.getRottenExecutedDeltas()) {
             LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());

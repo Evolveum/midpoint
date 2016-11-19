@@ -182,9 +182,6 @@ public class AssignmentProcessor {
     
     @Autowired(required = true)
     private ObjectTemplateProcessor objectTemplateProcessor;
-    
-    @Autowired(required = true)
-    private MetadataManager metadataManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -851,8 +848,6 @@ public class AssignmentProcessor {
         
         removeIgnoredContexts(context);
         finishLegalDecisions(context);
-        
-        metadataManager.applyAssignmentMetadata(context, AuthorizationPhaseType.REQUEST, now, task, result);
         
     }
 

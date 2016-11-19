@@ -995,7 +995,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model focus context", focusContext);
 		ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
 		assertNotNull("No focus primary delta: "+userPrimaryDelta, userPrimaryDelta);
-		PrismAsserts.assertModifications(userPrimaryDelta, 2); // Metadata are added MID-3530
+		PrismAsserts.assertModifications(userPrimaryDelta, 1);
 		PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 		
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
@@ -1104,7 +1104,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model focus context", focusContext);
 		ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
 		assertNotNull("No focus primary delta: "+userPrimaryDelta, userPrimaryDelta);
-		PrismAsserts.assertModifications(userPrimaryDelta, 2); // Metadata are added MID-3530
+		PrismAsserts.assertModifications(userPrimaryDelta, 1);
 		PrismAsserts.assertPropertyReplace(userPrimaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 		
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();

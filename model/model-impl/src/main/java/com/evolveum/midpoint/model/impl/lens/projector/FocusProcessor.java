@@ -161,9 +161,6 @@ public class FocusProcessor {
 			XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ObjectNotFoundException,
 		            SchemaException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	
-		metadataManager.applyRequestFocusMetadata(context, now, task, result);
-		
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		ObjectTemplateType objectTemplate = context.getFocusTemplate();
 

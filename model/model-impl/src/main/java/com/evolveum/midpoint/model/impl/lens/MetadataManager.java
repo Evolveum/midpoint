@@ -24,7 +24,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,13 +40,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -69,78 +66,42 @@ public class MetadataManager {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	
-	public <F extends FocusType> void applyRequestFocusMetadata(LensContext<F> context,
+	public <F extends ObjectType> void applyRequestMetadata(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 		
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return;
-		}
-		
-		if (focusContext.isDelete()) {
-			return;
-		}
-		
-		// Not entirely correct. We should not modify the primary delta.
-		// But this is an efficient way how to implement this quickly.
-		// TODO: fix later, maybe with special metadata delta in the context 
-		// MID-3530
-		
-		ObjectDelta<F> primaryDelta = focusContext.getPrimaryDelta();
-		if (primaryDelta == null || primaryDelta.isEmpty()) {
-			return;
-		}
-		
-		if (focusContext.isAdd()) {
-			PrismObject<F> objectToAdd = primaryDelta.getObjectToAdd();
-			
-			applyMetadataAdd(context, objectToAdd, AuthorizationPhaseType.REQUEST, now, task, result);
-			
-		} else {
-			
-			applyMetadataModify(primaryDelta, focusContext, focusContext.getObjectTypeClass(), 
-					AuthorizationPhaseType.REQUEST, now, task, context, result);
-			
-		}
-		
+		MetadataType requestMetadata = new MetadataType();
+		applyRequestMetadata(context, requestMetadata, now, task);
+		context.setRequestMetadata(requestMetadata);
 		
 	}
 	
 	public <T extends ObjectType, F extends ObjectType> void applyMetadataAdd(LensContext<F> context,
-			PrismObject<T> object, AuthorizationPhaseType phase,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
+			PrismObject<T> objectToAdd, XMLGregorianCalendar now, Task task, OperationResult result) 
+					throws SchemaException {
 		
-		T objectType = object.asObjectable();
+		T objectType = objectToAdd.asObjectable();
 		MetadataType metadataType = objectType.getMetadata();
 		if (metadataType == null) {
 			metadataType = new MetadataType();
 			objectType.setMetadata(metadataType);
 		}
 		
-		if (phase == AuthorizationPhaseType.REQUEST) {
+		transplantRequestMetadata(context, metadataType);
 			
-			if (metadataType.getRequestTimestamp() == null) {
-				applyRequestMetadata(context, metadataType, now, task);
-			}
-			
-		} else {
-
-			applyCreateMetadata(context, metadataType, now, task);
+		applyCreateMetadata(context, metadataType, now, task);
 		
-			if (workflowManager != null) {
-				metadataType.getCreateApproverRef().addAll(workflowManager.getApprovedBy(task, result));
-			}
-			
+		if (workflowManager != null) {
+			metadataType.getCreateApproverRef().addAll(workflowManager.getApprovedBy(task, result));
 		}
 		
-		if (object.canRepresent(FocusType.class)) {
-			applyAssignmentMetadata((LensContext<? extends FocusType>) context, phase, now, task, result);
+		if (objectToAdd.canRepresent(FocusType.class)) {
+			applyAssignmentMetadataObject((LensContext<? extends FocusType>) context, objectToAdd, now, task, result);
 		}
 		
 	}
 	
 	public <T extends ObjectType, F extends ObjectType> void applyMetadataModify(ObjectDelta<T> objectDelta,
-			LensElementContext<T> objectContext, Class objectTypeClass, AuthorizationPhaseType phase, 
+			LensElementContext<T> objectContext, Class objectTypeClass, 
 			XMLGregorianCalendar now, Task task, LensContext<F> context,
 			OperationResult result) throws SchemaException {
 		String channel = LensUtil.getChannel(context, task);
@@ -202,30 +163,24 @@ public class MetadataManager {
 
 		if (FocusType.class.isAssignableFrom(objectTypeClass)) {
 			applyAssignmentMetadataDelta((LensContext) context, 
-					(ObjectDelta)objectDelta, phase, now, task, result);
+					(ObjectDelta)objectDelta, now, task, result);
 		}
 	}
 	
-	public <F extends FocusType> void applyAssignmentMetadata(LensContext<F> context,
-			AuthorizationPhaseType phase,
+	private <F extends FocusType, T extends ObjectType> void applyAssignmentMetadataObject(LensContext<F> context,
+			PrismObject<T> objectToAdd,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 		
-		// This is not entirely correct. But we cannot really create secondary deltas for
-		// assignment metadata here. The assignment containers do not have IDs yet.
-		// So we cannot create a stand-alone deltas for them. So just add metadata
-		// to the primary delta. Strictly speaking we should not modify the primary
-		// delta. But this is the least evil here.
-		// MID-3530
-		
-		LensFocusContext<F> focusContext = context.getFocusContext();
-
-		applyAssignmentMetadataDelta(context, focusContext.getPrimaryDelta(), phase, now, task, result);
-		applyAssignmentMetadataDelta(context, focusContext.getSecondaryDelta(), phase, now, task, result);
+		PrismContainer<AssignmentType> assignmentContainer = objectToAdd.findContainer(FocusType.F_ASSIGNMENT);
+		if (assignmentContainer != null) {
+			for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentContainer.getValues()) {
+				applyAssignmentValueMetadataAdd(context, assignmentContainerValue, "ADD", now, task, result);
+			}
+		}
 		
 	}
 	
 	private <F extends FocusType> void applyAssignmentMetadataDelta(LensContext<F> context, ObjectDelta<F> objectDelta,
-			AuthorizationPhaseType phase,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 
 		if (objectDelta == null || objectDelta.isDelete()) {
@@ -233,14 +188,7 @@ public class MetadataManager {
 		}
 		
 		if (objectDelta.isAdd()) {
-			
-			PrismObject<F> objectToAdd = objectDelta.getObjectToAdd();
-			PrismContainer<AssignmentType> assignmentContainer = objectToAdd.findContainer(FocusType.F_ASSIGNMENT);
-			if (assignmentContainer != null) {
-				for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentContainer.getValues()) {
-					applyAssignmentValueMetadataAdd(context, assignmentContainerValue, phase, "ADD", now, task, result);
-				}
-			}
+			applyAssignmentMetadataObject(context, objectDelta.getObjectToAdd(), now, task, result);
 			
 		} else {
 			
@@ -249,12 +197,12 @@ public class MetadataManager {
 					ContainerDelta<AssignmentType> assignmentDelta = (ContainerDelta<AssignmentType>)itemDelta;
 					if (assignmentDelta.getValuesToAdd() != null) {
 						for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentDelta.getValuesToAdd()) {
-							applyAssignmentValueMetadataAdd(context, assignmentContainerValue, phase, "MOD/add", now, task, result);
+							applyAssignmentValueMetadataAdd(context, assignmentContainerValue, "MOD/add", now, task, result);
 						}
 					}
 					if (assignmentDelta.getValuesToReplace() != null) {
 						for (PrismContainerValue<AssignmentType> assignmentContainerValue: assignmentDelta.getValuesToReplace()) {
-							applyAssignmentValueMetadataAdd(context, assignmentContainerValue, phase, "MOD/replace", now, task, result);
+							applyAssignmentValueMetadataAdd(context, assignmentContainerValue, "MOD/replace", now, task, result);
 						}
 					}
 				}
@@ -266,7 +214,7 @@ public class MetadataManager {
 	}
 	
 	private <F extends FocusType> void applyAssignmentValueMetadataAdd(LensContext<F> context,
-			PrismContainerValue<AssignmentType> assignmentContainerValue, AuthorizationPhaseType phase, String desc,
+			PrismContainerValue<AssignmentType> assignmentContainerValue, String desc,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
 		
 		AssignmentType assignmentType = assignmentContainerValue.asContainerable();
@@ -276,23 +224,15 @@ public class MetadataManager {
 			assignmentType.setMetadata(metadataType);
 		}
 		
-		if (phase == AuthorizationPhaseType.REQUEST) {
-		
-			if (metadataType.getRequestTimestamp() == null) {
-				applyRequestMetadata(context, metadataType, now, task);
-			}
-			
-		} else {
+		transplantRequestMetadata(context, metadataType);
 
-			applyCreateMetadata(context, metadataType, now, task);
-						
-		}
+		applyCreateMetadata(context, metadataType, now, task);
 		
-		LOGGER.trace("Adding {} METADATA {} to assignment cval ({}):\n{}", 
-				phase, metadataType, desc, assignmentContainerValue.debugDump(1));
+		LOGGER.trace("Adding METADATA {} to assignment cval ({}):\n{}", 
+				 metadataType, desc, assignmentContainerValue.debugDump(1));
 	}
 
-	public <F extends ObjectType> void applyRequestMetadata(LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {
+	private <F extends ObjectType> void applyRequestMetadata(LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {
 		String channel = LensUtil.getChannel(context, task);
 		metaData.setCreateChannel(channel);
 		metaData.setRequestTimestamp(now);
@@ -301,13 +241,22 @@ public class MetadataManager {
 		}
 	}
 	
+	private <F extends ObjectType> void transplantRequestMetadata(LensContext<F> context, MetadataType metaData) {
+		MetadataType requestMetadata = context.getRequestMetadata();
+		if (requestMetadata == null) {
+			return;
+		}
+		metaData.setRequestTimestamp(requestMetadata.getRequestTimestamp());
+		metaData.setRequestorRef(requestMetadata.getRequestorRef());
+	}
+	
 	public <F extends ObjectType> MetadataType createCreateMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {
 		MetadataType metaData = new MetadataType();
 		applyCreateMetadata(context, metaData, now, task);
 		return metaData;
 	}
 	
-	public <F extends ObjectType> void applyCreateMetadata(LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {
+	private <F extends ObjectType> void applyCreateMetadata(LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {
 		String channel = LensUtil.getChannel(context, task);
 		metaData.setCreateChannel(channel);
 		metaData.setCreateTimestamp(now);

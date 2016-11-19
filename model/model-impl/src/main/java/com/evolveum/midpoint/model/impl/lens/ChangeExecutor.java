@@ -1125,7 +1125,7 @@ public class ChangeExecutor {
 
 			T objectTypeToAdd = objectToAdd.asObjectable();
 
-			metadataManager.applyMetadataAdd(context, objectToAdd, AuthorizationPhaseType.EXECUTION, clock.currentTimeXMLGregorianCalendar(), task, result);
+			metadataManager.applyMetadataAdd(context, objectToAdd, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 			if (options == null && context != null) {
 				options = context.getOptions();
@@ -1246,8 +1246,7 @@ public class ChangeExecutor {
 					AuthorizationPhaseType.EXECUTION, objectNew, change, null, ownerResolver, result);
 
 			metadataManager.applyMetadataModify(change, objectContext, objectTypeClass,
-					AuthorizationPhaseType.EXECUTION, clock.currentTimeXMLGregorianCalendar(),
-					task, context, result);
+					clock.currentTimeXMLGregorianCalendar(), task, context, result);
 
 			if (TaskType.class.isAssignableFrom(objectTypeClass)) {
 				taskManager.modifyTask(change.getOid(), change.getModifications(), result);

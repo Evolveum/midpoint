@@ -133,6 +133,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="requestMetadata" type="tns:MetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata of the request. Metadata recorded when the operation has started.
+						Currently only the requestTimestamp and requestorRef are meaningful. But
+						later other metadata may be used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
