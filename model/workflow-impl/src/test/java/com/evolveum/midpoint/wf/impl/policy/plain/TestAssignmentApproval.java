@@ -61,7 +61,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
         TestUtil.displayTestTile(this, TEST_NAME);
         login(userAdministrator);
 
-		executeAssignRole1ToJack(TEST_NAME, false);
+		executeAssignRole1ToJack(TEST_NAME, false, false, null);
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		Task task = createTask(TEST_NAME);
 		importLead10(task, task.getResult());
 
-		executeAssignRole1ToJack(TEST_NAME, false);
+		executeAssignRole1ToJack(TEST_NAME, false, false, null);
 	}
 
 	@Test
@@ -113,7 +113,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		login(userAdministrator);
 
 		unassignAllRoles(USER_JACK_OID);
-		executeAssignRole1ToJack(TEST_NAME, true);
+		executeAssignRole1ToJack(TEST_NAME, true, false, null);
 	}
 
 	@Test
@@ -176,12 +176,40 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		executeAssignRoles123ToJack(TEST_NAME, true, true, true, true);
 	}
 
-	private void executeAssignRole1ToJack(String TEST_NAME, boolean immediate) throws Exception {
+	/**
+	 * Repeating test010; this time with Lead10 present. So we are approving an assignment of single security-sensitive role (Role1),
+	 * that induces another security-sensitive role (Role10). Because of current implementation constraints, only the first assignment
+	 * should be brought to approval.
+	 */
+	@Test
+	public void test130AddRole1AssignmentWithDeputy() throws Exception {
+		final String TEST_NAME = "test130AddRole1AssignmentWithDeputy";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		importLead1Deputies(task, task.getResult());
+
+		executeAssignRole1ToJack(TEST_NAME, false, true, null);
+	}
+
+	@Test
+	public void test132AddRole1AssignmentWithDeputyApprovedByDeputy1() throws Exception {
+		final String TEST_NAME = "test132AddRole1AssignmentWithDeputyApprovedByDeputy1";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		executeAssignRole1ToJack(TEST_NAME, false, true, USER_LEAD1_DEPUTY_1_OID);
+	}
+
+
+	private void executeAssignRole1ToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid) throws Exception {
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
 		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE1_OID, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(USER_JACK_OID);
+		String realApproverOid = approverOid != null ? approverOid : USER_LEAD1_OID;
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
 			@Override
 			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
@@ -225,7 +253,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 
 			@Override
 			protected List<String> getExpectedAssigneeOids() {
-				return Collections.singletonList(USER_LEAD1_OID);
+				return Arrays.asList(USER_LEAD1_OID, USER_LEAD1_DEPUTY_1_OID, USER_LEAD1_DEPUTY_2_OID);
 			}
 
 			@Override
@@ -239,7 +267,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 					if (yes) {
 						assertAssignedRole(USER_JACK_OID, ROLE_ROLE1_OID, rootTask, result);
 						checkWorkItemAuditRecords(createResultMap(ROLE_ROLE1_OID, WorkflowResult.APPROVED));
-						checkUserApprovers(USER_JACK_OID, Collections.singletonList(USER_LEAD1_OID), result);
+						checkUserApprovers(USER_JACK_OID, Collections.singletonList(realApproverOid), result);
 					} else {
 						assertNotAssignedRole(USER_JACK_OID, ROLE_ROLE1_OID, rootTask, result);
 					}
@@ -249,7 +277,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 			@Override
 			protected boolean decideOnApproval(String executionId) throws Exception {
 				checkTargetOid(executionId, ROLE_ROLE1_OID);
-				login(getUser(USER_LEAD1_OID));
+				login(getUser(realApproverOid));
 				return true;
 			}
 		}, 1, immediate);

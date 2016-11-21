@@ -91,6 +91,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	protected static final File USER_JACK_FILE = new File(TEST_RESOURCE_DIR, "user-jack.xml");
 	protected static final File USER_LEAD1_FILE = new File(TEST_RESOURCE_DIR, "user-lead1.xml");
+	protected static final File USER_LEAD1_DEPUTY_1_FILE = new File(TEST_RESOURCE_DIR, "user-lead1-deputy1.xml");
+	protected static final File USER_LEAD1_DEPUTY_2_FILE = new File(TEST_RESOURCE_DIR, "user-lead1-deputy2.xml");
 	protected static final File USER_LEAD2_FILE = new File(TEST_RESOURCE_DIR, "user-lead2.xml");
 	protected static final File USER_LEAD3_FILE = new File(TEST_RESOURCE_DIR, "user-lead3.xml");
 	protected static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
@@ -103,6 +105,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	// practically final
 	protected static String USER_JACK_OID;
 	protected static String USER_LEAD1_OID;
+	protected static String USER_LEAD1_DEPUTY_1_OID;
+	protected static String USER_LEAD1_DEPUTY_2_OID;
 	protected static String USER_LEAD2_OID;
 	protected static String USER_LEAD3_OID;
 	protected static String USER_LEAD10_OID;
@@ -165,10 +169,13 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		return oid;
 	}
 
-	protected void importLead10(Task task, OperationResult result) throws CommonException, IOException, EncryptionException {
-		USER_LEAD10_OID = repoAddObjectFromFile(USER_LEAD10_FILE, result).getOid();
-		recomputeUser(USER_LEAD10_OID, task, result);            // to compute membership data
-		display("Lead10", getUser(USER_LEAD10_OID));
+	protected void importLead10(Task task, OperationResult result) throws Exception {
+		USER_LEAD10_OID = addAndRecomputeUser(USER_LEAD10_FILE, task, result);
+	}
+
+	protected void importLead1Deputies(Task task, OperationResult result) throws Exception {
+		USER_LEAD1_DEPUTY_1_OID = addAndRecomputeUser(USER_LEAD1_DEPUTY_1_FILE, task, result);
+		USER_LEAD1_DEPUTY_2_OID = addAndRecomputeUser(USER_LEAD1_DEPUTY_2_FILE, task, result);
 	}
 
 	protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {
@@ -486,19 +493,23 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
 		}
 
-		assertEquals("Wrong # of work items", processNames.length, workItems.size());
+		assertEquals("Wrong # of work items", assigneeOids.length, workItems.size());
 		i = 0;
 		for (WorkItemType workItem : workItems) {
 			display("Work item #" + (i + 1) + ": ", workItem);
 			display("Task ref",
 					workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
 			assertRef("object reference", workItem.getObjectRef(), objectOid, true, true);
-			assertRef("target reference", workItem.getTargetRef(), targetOids[i], true, true);
+			assertRef("target reference", workItem.getTargetRef(),
+					// we allow single targetOid/processName to cover multiple work items (in case of multiple assignees)
+					targetOids.length > 1 ? targetOids[i] : targetOids[0], true, true);
 			assertRef("assignee reference", workItem.getAssigneeRef(), assigneeOids[i], false,
 					true);     // name is not known, as it is not stored in activiti (only OID is)
 			assertRef("task reference", workItem.getTaskRef(), null, false, true);
 			final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
-			checkTask(subtaskType, "task in workItem", processNames[i++]);
+			checkTask(subtaskType, "task in workItem",
+					processNames.length > 1 ? processNames[i] : processNames[0]);
+			i++;
 			assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
 		}
 	}
@@ -628,7 +639,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 
 		private String getCompareKey(WorkItemType workItem) {
-			return ((TaskType) (workItem.getTaskRef().asReferenceValue().getObject().asObjectable())).getWorkflowContext().getTargetRef().getOid();
+			return workItem.getAssigneeRef().getOid();
 		}
 	}
 
