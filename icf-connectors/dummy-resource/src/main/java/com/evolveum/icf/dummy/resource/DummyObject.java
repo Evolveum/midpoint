@@ -442,8 +442,10 @@ public abstract class DummyObject implements DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("DummyAccount: ").append(name).append("\n");
+		sb.append(getClass().getSimpleName());
+		sb.append(": ").append(name);
 		if (!auxiliaryObjectClassNames.isEmpty()) {
+			sb.append("\n");
 			DebugUtil.debugDumpWithLabelToString(sb, "Auxiliary object classes", auxiliaryObjectClassNames, indent + 1);
 		}
 		sb.append("\n");

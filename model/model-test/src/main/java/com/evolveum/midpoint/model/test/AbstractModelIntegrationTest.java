@@ -111,6 +111,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -1673,6 +1674,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertAssignments(user, expectedNumber);
 	}
 	
+	protected <R extends AbstractRoleType> void assertInducements(PrismObject<R> role, int expectedNumber) {
+		MidPointAsserts.assertInducements(role, expectedNumber);
+	}
+	
 	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedType, expectedNumber);
 	}
@@ -2859,6 +2864,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
     	DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		assertNotNull("No dummy group "+dummyGroupName, group);
 		IntegrationTestTools.assertGroupMember(group, accountId);
 	}
 	

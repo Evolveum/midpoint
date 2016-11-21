@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -98,7 +99,13 @@ public class MidPointAsserts {
 		F userType = user.asObjectable();
 		assertEquals("Unexepected number of assignments in "+user+": "+userType.getAssignment(), expectedNumber, userType.getAssignment().size());
 	}
-	
+
+	public static <R extends AbstractRoleType> void assertInducements(PrismObject<R> role, int expectedNumber) {
+		R roleType = role.asObjectable();
+		assertEquals("Unexepected number of inducements in "+role+": "+roleType.getInducement(), 
+				expectedNumber, roleType.getInducement().size());
+	}
+
 	public static <F extends FocusType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
 		F userType = user.asObjectable();
 		int actualAssignments = 0;
