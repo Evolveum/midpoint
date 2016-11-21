@@ -53,6 +53,9 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.MetadataManager;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -110,9 +113,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -1613,7 +1618,7 @@ public class AssignmentProcessor {
 	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
 			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
 			OperationResult result) throws PolicyViolationException, SchemaException {
-		for( EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
+		for(EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
 			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
 			for (EvaluatedPolicyRule policyRule: policyRules) {
 				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
@@ -1640,6 +1645,8 @@ public class AssignmentProcessor {
 			}
 		}
 	}
+	
+
 
 	public <F extends ObjectType> void removeIgnoredContexts(LensContext<F> context) {
 		Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
@@ -1788,4 +1795,7 @@ public class AssignmentProcessor {
 		membershipRefDelta.setValuesToReplace(newValues);
 		focusContext.swallowToSecondaryDelta(membershipRefDelta);
     }
+    
+	
+	
 }

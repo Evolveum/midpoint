@@ -114,7 +114,7 @@ public class AssignmentPreviewDialog extends BasePanel implements Popupable {
         content.add(table);
 
         AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
-                createStringResource("userBrowserDialog.button.addButton")) {
+                createStringResource("userBrowserDialog.button.selectButton")) {
 
             private static final long serialVersionUID = 1L;
             @Override

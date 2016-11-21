@@ -77,18 +77,18 @@ public class SchemaTestUtil {
 		PrismAsserts.assertItemDefinitionDisplayName(complexTypeDefinition, UserType.F_EXTENSION, "ObjectType.extension");
 		PrismAsserts.assertItemDefinitionDisplayOrder(complexTypeDefinition, UserType.F_EXTENSION, 1000);
 
-		PrismContainerDefinition activationContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ACTIVATION);
+		PrismContainerDefinition<ActivationType> activationContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ACTIVATION);
 		PrismAsserts.assertDefinition(activationContainer, UserType.F_ACTIVATION, ActivationType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());
 		assertEquals("Activation size", 12, activationContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(activationContainer, ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		
-		PrismContainerDefinition assignmentContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
+		PrismContainerDefinition<AssignmentType> assignmentContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 		PrismAsserts.assertDefinition(assignmentContainer, UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
 		assertEquals("Assignment size", 18, assignmentContainer.getDefinitions().size());
 		
-		PrismContainerDefinition constructionContainer = assignmentContainer.findContainerDefinition(AssignmentType.F_CONSTRUCTION);
+		PrismContainerDefinition<ConstructionType> constructionContainer = assignmentContainer.findContainerDefinition(AssignmentType.F_CONSTRUCTION);
 		PrismAsserts.assertDefinition(constructionContainer, AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Construction is runtime", constructionContainer.isRuntimeSchema());
 		
@@ -101,7 +101,7 @@ public class SchemaTestUtil {
 		assertFalse("Metadata is runtime", metadataContainer.isRuntimeSchema());
 		assertFalse("Metadata is dynamic", metadataContainer.isDynamic());
 		assertTrue("Metadata is NOT operational", metadataContainer.isOperational());
-		assertEquals("Metadata size", 8, metadataContainer.getDefinitions().size());
+		assertEquals("Metadata size", 12, metadataContainer.getDefinitions().size());
 
         PrismReferenceDefinition tenantRefDef = complexTypeDefinition.findItemDefinition(UserType.F_TENANT_REF, PrismReferenceDefinition.class);
         PrismAsserts.assertDefinition(tenantRefDef, UserType.F_TENANT_REF, ObjectReferenceType.COMPLEX_TYPE, 0, 1);

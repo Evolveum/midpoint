@@ -33,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -45,6 +46,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author semancik
@@ -53,6 +56,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public abstract class LensElementContext<O extends ObjectType> implements ModelElementContext<O> {
 
     private static final long serialVersionUID = 1649567559396392861L;
+    
+    private static final Trace LOGGER = TraceManager.getTrace(LensElementContext.class);
 
     private PrismObject<O> objectOld;
     private transient PrismObject<O> objectCurrent;
@@ -63,7 +68,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private String oid = null;
 	private int iteration;
     private String iterationToken;
-    private Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
     
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
@@ -78,6 +82,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private LensContext<? extends ObjectType> lensContext;
 	
 	private transient PrismObjectDefinition<O> objectDefinition = null;
+	
+	transient private Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
+    transient private Collection<String> policySituations = new ArrayList<>();
 	
 	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
 		super();
@@ -390,6 +397,31 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	public void addPolicyRule(EvaluatedPolicyRule policyRule) {
 		this.policyRules.add(policyRule);
+	}
+	
+	public void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
+
+		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
+		
+		if (rule == null) {
+			// legacy functionality
+			if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+				throw new PolicyViolationException(trigger.getMessage());
+			}
+			
+		} else {
+
+			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
+			String policySituation = rule.getPolicySituation();
+			if (policySituation != null) {
+				policySituations.add(policySituation);
+			}
+		}
+		
+	}
+
+	public Collection<String> getPolicySituations() {
+		return policySituations;
 	}
 
 	public void recompute() throws SchemaException {

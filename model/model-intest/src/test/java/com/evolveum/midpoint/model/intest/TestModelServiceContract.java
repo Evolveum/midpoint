@@ -243,7 +243,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100ModifyUserAddAccount");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -262,6 +262,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User jack after", userJack);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
@@ -1111,7 +1112,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
@@ -1134,8 +1135,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-		assertAssignedAccount(userJack, RESOURCE_DUMMY_OID);
+		AssignmentType assignmentType = assertAssignedAccount(userJack, RESOURCE_DUMMY_OID);
         assertAssignments(userJack, 1);
+        assertModifyMetadata(userJack, startTime, endTime);
+        assertCreateMetadata(assignmentType, startTime, endTime);
         
         accountJackOid = getSingleLinkOid(userJack);
         
@@ -2840,20 +2843,26 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertShadowFetchOperationCountIncrement(0);
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
+		display("User morgan after", userMorgan);
         UserType userMorganType = userMorgan.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
+        AssignmentType assignmentType = assertAssignedAccount(userMorgan, RESOURCE_DUMMY_OID);
+        assertLinks(userMorgan, 1);
         ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        assertCreateMetadata(userMorgan, startTime, endTime);
+        assertCreateMetadata(assignmentType, startTime, endTime);
         
         assertEncryptedUserPassword(userMorgan, "rum");
         assertPasswordMetadata(userMorgan, true, startTime, endTime);

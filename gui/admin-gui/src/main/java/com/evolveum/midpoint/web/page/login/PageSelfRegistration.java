@@ -1,73 +1,50 @@
 package com.evolveum.midpoint.web.page.login;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.extensions.markup.html.captcha.CaptchaImageResource;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
-import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.html.form.RequiredTextField;
-import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
-import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.common.policy.StringPolicyUtils;
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -86,20 +63,22 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	private static final String ID_FIRST_NAME = "firstName";
 	private static final String ID_LAST_NAME = "lastName";
 	private static final String ID_EMAIL = "email";
-	private static final String ID_ORGANIZATION = "organization";
 	private static final String ID_PASSWORD = "password";
 	private static final String ID_SUBMIT_REGISTRATION = "submitRegistration";
 	private static final String ID_REGISTRATION_SUBMITED = "registrationInfo";
 	private static final String ID_FEEDBACK = "feedback";
+	private static final String ID_BACK = "back";
+	private static final String ID_WELCOME = "welcome";
+	private static final String ID_ADDITIONAL_TEXT = "additionalText";
+	private static final String ID_TOOLTIP = "tooltip";
 
 	private static final String ID_CAPTCHA = "captcha";
-	
+
 	private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
-	private static final String OPERATION_LOAD_ORGANIZATIONS = DOT_CLASS + "loadOrganization";
 	private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
 	private static final String PARAM_USER_OID = "user";
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private IModel<UserType> userModel;
@@ -115,9 +94,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	public PageSelfRegistration(PageParameters pageParameters) {
 		super();
 
-		
 		final String userOid = getOidFromParams(pageParameters);
-		
+
 		userModel = new LoadableModel<UserType>(false) {
 			private static final long serialVersionUID = 1L;
 
@@ -126,12 +104,12 @@ public class PageSelfRegistration extends PageRegistrationBase {
 				return createUserModel(userOid);
 			}
 		};
-		
+
 		initLayout();
 
 	}
 
-	private String getOidFromParams(PageParameters pageParameters){
+	private String getOidFromParams(PageParameters pageParameters) {
 		if (pageParameters == null) {
 			return null;
 		}
@@ -141,37 +119,40 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		}
 		return null;
 	}
-	
+
 	private UserType createUserModel(final String userOid) {
-		
+
 		if (userOid != null) {
 			PrismObject<UserType> result = runPrivileged(new Producer<PrismObject<UserType>>() {
-			
-					@Override
-					public PrismObject<UserType> run() {
-						Task task = createAnonymousTask(OPERATION_LOAD_USER);
-						OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-						PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid, PageSelfRegistration.this, task, result);
-						result.computeStatus();
-						return user;
-					}
-				
+
+				@Override
+				public PrismObject<UserType> run() {
+					LOGGER.trace("Loading preregistered user with oid {}.", userOid);
+					Task task = createAnonymousTask(OPERATION_LOAD_USER);
+					OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+					PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid,
+							PageSelfRegistration.this, task, result);
+					result.computeStatus();
+					return user;
+				}
+
 			});
-			
+
 			if (result == null) {
-				return instantiateUser();
+				LOGGER.error("Failed to load preregistered user");
+				getSession().error(
+						createStringResource("PageSelfRegistration.invalid.registration.link").getString());
+				throw new RestartResponseException(PageLogin.class);
 			}
-			
 			return result.asObjectable();
 		}
-		
+		LOGGER.trace("Registration process for new user started");
 		return instantiateUser();
 
 	}
-	
-	private UserType instantiateUser(){
-		PrismObjectDefinition<UserType> userDef = getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(UserType.class);
+
+	private UserType instantiateUser() {
+		PrismObjectDefinition<UserType> userDef = getUserDefinition();
 		PrismObject<UserType> user;
 		try {
 			user = userDef.instantiate();
@@ -183,16 +164,24 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return user.asObjectable();
 	}
 
+	private PrismObjectDefinition<UserType> getUserDefinition() {
+		return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+	}
+
 	private void initLayout() {
-		
+
 		Form<?> mainForm = new Form<>(ID_MAIN_FORM);
 		initAccessBehaviour(mainForm);
 		add(mainForm);
 		
-		//feedback
-	    FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
-        feedback.setOutputMarkupId(true);
-        mainForm.add(feedback);
+		addMultilineLable(ID_WELCOME, "PageSelfRegistration.welcome.message", mainForm);
+		addMultilineLable(ID_ADDITIONAL_TEXT, "PageSelfRegistration.additional.message", mainForm);
+
+		// feedback
+		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK,
+				new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
+		feedback.setOutputMarkupId(true);
+		mainForm.add(feedback);
 
 		TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
 				new PropertyModel<String>(userModel, UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
@@ -226,23 +215,24 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		initInputProperties(feedback, email);
 		mainForm.add(email);
 
-		AutoCompleteTextPanel<String> organization = new AutoCompleteTextPanel<String>(ID_ORGANIZATION,
-				Model.of(""), String.class) {
-			private static final long serialVersionUID = 1L;
+		
+		Label help = new Label(ID_TOOLTIP);
+		final StringResourceModel tooltipText = createStringResource("PageSelfRegistration.password.policy");
+        help.add(AttributeModifier.replace("title", tooltipText));
+        help.add(new InfoTooltipBehavior());
+        help.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
-			@Override
-			public Iterator<String> getIterator(String input) {
-				return prepareAutocompleteValues(input).iterator();
-			}
-
-		};
-		mainForm.add(organization);
-
-		PasswordPanel password = new PasswordPanel(ID_PASSWORD,
-				new PropertyModel<ProtectedStringType>(userModel,
-						UserType.F_CREDENTIALS.getLocalPart() + "."
-								+ CredentialsType.F_PASSWORD.getLocalPart() + "."
-								+ PasswordType.F_VALUE.getLocalPart()));
+            @Override
+            public boolean isVisible() {
+            	
+                return StringUtils.isNotEmpty(tooltipText.getObject());
+            }
+        });
+        mainForm.add(help);
+		
+		ProtectedStringType initialPassword = null;
+		PasswordPanel password = new PasswordPanel(ID_PASSWORD, Model.of(initialPassword));
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		password.getBaseFormComponent().setRequired(true);
 		mainForm.add(password);
@@ -260,7 +250,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 					org.apache.wicket.markup.html.form.Form<?> form) {
 				showErrors(target);
 			}
-			
+
 			protected void onSubmit(AjaxRequestTarget target,
 					org.apache.wicket.markup.html.form.Form<?> form) {
 
@@ -291,8 +281,32 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 		});
 
+		AjaxButton back = new AjaxButton(ID_BACK) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				setResponsePage(PageLogin.class);
+			}
+		};
+		mainForm.add(back);
+
 	}
 	
+	private void addMultilineLable(String id, String messageKey, Form mainForm) {
+		MultiLineLabel welcome = new MultiLineLabel(id, createStringResource(messageKey));
+		welcome.setOutputMarkupId(true);
+		welcome.add(new VisibleEnableBehaviour() {
+			
+			@Override
+			public boolean isVisible() {
+				return !submited;
+			}
+		});
+		mainForm.add(welcome);
+		
+	}
+
 	private void initAccessBehaviour(Form mainForm) {
 		mainForm.add(new VisibleEnableBehaviour() {
 
@@ -309,29 +323,28 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			}
 		});
 	}
-	
+
 	private void showErrors(AjaxRequestTarget target) {
 		target.add(get(createComponentPath(ID_MAIN_FORM, ID_FEEDBACK)));
 		target.add(getFeedbackPanel());
 	}
-	
+
 	private void initInputProperties(FeedbackPanel feedback, TextPanel<String> input) {
 		input.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		input.getBaseFormComponent().setRequired(true);
 		feedback.setFilter(new ContainerFeedbackMessageFilter(input.getBaseFormComponent()));
-		
+
 		input.add(new VisibleEnableBehaviour() {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isEnabled() {
 				return getOidFromParams(getPageParameters()) == null;
 			}
-			
+
 		});
-		
-		
+
 	}
 
 	private CaptchaPanel getCaptcha() {
@@ -343,7 +356,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		if (!validateCaptcha(target)) {
 			return;
 		}
-		
+
 		OperationResult result = runPrivileged(new Producer<OperationResult>() {
 
 			@Override
@@ -363,7 +376,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			submited = true;
 			getSession()
 					.success(createStringResource("PageSelfRegistration.registration.success").getString());
-			
+
 			switch (getSelfRegistrationConfiguration().getAuthenticationMethod()) {
 				case MAIL:
 					target.add(PageSelfRegistration.this);
@@ -373,155 +386,174 @@ public class PageSelfRegistration extends PageRegistrationBase {
 				case NONE:
 					setResponsePage(PageLogin.class);
 			}
+			LOGGER.trace("Registration for user {} was successfull.", userModel.getObject());
 
 		} else {
 			getSession().error(
 					createStringResource("PageSelfRegistration.registration.error", result.getMessage())
 							.getString());
-			userModel.getObject().setCredentials(null);
+			removePassword(target);
+			updateCaptcha(target);
+			target.add(getFeedbackPanel());
+			LOGGER.error("Failed to register user {}. Reason {}", userModel.getObject(), result.getMessage());
+			return;
 
 		}
 
-		updateCaptcha(target);
+		
 		target.add(getFeedbackPanel());
 		target.add(this);
 
 	}
-	
+
 	private boolean validateCaptcha(AjaxRequestTarget target) {
 		CaptchaPanel captcha = getCaptcha();
+
+		if (captcha.getRandomText() == null) {
+			String message = createStringResource("PageSelfRegistration.captcha.validation.failed")
+					.getString();
+			LOGGER.error(message);
+			getSession().error(message);
+			target.add(getFeedbackPanel());
+			updateCaptcha(target);
+			return false;
+		}
+
 		if (captcha.getCaptchaText() != null && captcha.getRandomText() != null) {
 			if (!captcha.getCaptchaText().equals(captcha.getRandomText())) {
-				getSession().error(createStringResource("PageSelfRegistration.captcha.validation.failed").getString());
-				captcha.invalidateCaptcha();
-				userModel.getObject().setCredentials(null);
+				String message = createStringResource("PageSelfRegistration.captcha.validation.failed")
+						.getString();
+				LOGGER.error(message);
+				getSession().error(message);
 				updateCaptcha(target);
 				target.add(getFeedbackPanel());
-				target.add(this);
 				return false;
 			}
 		}
+		LOGGER.trace("CAPTCHA Validation OK");
 		return true;
-	}
-
-	private List<String> prepareAutocompleteValues(final String input) {
-
-		return runPrivileged(new Producer<List<String>>() {
-			@Override
-			public List<String> run() {
-				Collection<PrismObject<OrgType>> objects;
-				int maxValues = 15;
-				List<String> availableNames = new ArrayList<>();
-				try {
-					ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext())
-							.item(OrgType.F_DISPLAY_NAME).startsWith(new PolyString(input)).build();
-					query.setPaging(ObjectPaging.createPaging(0, maxValues));
-					Task task = createAnonymousTask(OPERATION_LOAD_ORGANIZATIONS);
-					OperationResult result = new OperationResult(OPERATION_LOAD_ORGANIZATIONS);
-					objects = getModelService().searchObjects(OrgType.class, query, null, task, result);
-
-					for (PrismObject<OrgType> o : objects) {
-						String objectName = WebComponentUtil.getDisplayNameOrName(o);
-						availableNames.add(objectName);
-					}
-
-				} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-						| CommunicationException | ConfigurationException e) {
-					error("Failed to prepare autocomplete field");
-				}
-				return availableNames;
-			}
-
-		});
-
 	}
 
 	private void updateCaptcha(AjaxRequestTarget target) {
 
-		CaptchaPanel captcha = (CaptchaPanel) get(createComponentPath(ID_MAIN_FORM, ID_CAPTCHA));
-		captcha.invalidateCaptcha();
-		target.add(captcha);
+		CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA);
+		captcha.setOutputMarkupId(true);
+		
+		Form form = (Form) get(ID_MAIN_FORM);
+		form.addOrReplace(captcha);
+		target.add(form);
 	}
 
 	private void saveUser(Task task, OperationResult result) {
-		UserType userType = prepareUserToSave(task,
-				result);
-		ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userType.asPrismObject());
+
+		ObjectDelta<UserType> userDelta = prepareUserDelta(task, result);
 		userDelta.setPrismContext(getPrismContext());
 
-		WebModelServiceUtils.save(userDelta, ModelExecuteOptions.createOverwrite(), result, task, PageSelfRegistration.this);
+		WebModelServiceUtils.save(userDelta, ModelExecuteOptions.createOverwrite(), result, task,
+				PageSelfRegistration.this);
 		result.computeStatus();
 
 	}
 
-	private UserType prepareUserToSave(Task task,
-			OperationResult result) {
-		
+	private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) {
+		if (getOidFromParams(getPageParameters()) == null) {
+			LOGGER.trace("Preparing user ADD delta (new user registration)");
+			UserType userType = prepareUserToSave(task, result);
+			ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userType.asPrismObject());
+			LOGGER.trace("Going to register user {}", userDelta);
+			return userDelta;
+		} else {
+			LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
+			ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class,
+					getOidFromParams(getPageParameters()), getPrismContext());
+			if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
+				delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE,
+						getSelfRegistrationConfiguration().getInitialLifecycleState());
+			}
+			delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE,
+					createPassword().getValue());
+			delta.addModificationReplaceContainer(SchemaConstants.PATH_NONCE,
+					createNonce(getSelfRegistrationConfiguration().getNoncePolicy(), task, result)
+							.asPrismContainerValue());
+			LOGGER.trace("Going to register user with modifications {}", delta);
+			return delta;
+
+		}
+	}
+
+	private UserType prepareUserToSave(Task task, OperationResult result) {
+
 		SelfRegistrationDto selfRegistrationConfiguration = getSelfRegistrationConfiguration();
 		UserType userType = userModel.getObject();
+		UserType userToSave = userType.clone();
 		if (selfRegistrationConfiguration.getRequiredLifecycleState() != null) {
-			ObjectQuery query = QueryBuilder.queryFor(UserType.class, getPrismContext())
-									.item(UserType.F_EMAIL_ADDRESS).eq(userType.getEmailAddress())
-								.build();
-			SearchResultList<PrismObject<UserType>> users = null;
-			try {
-				users = getModelService().searchObjects(UserType.class, query, null, task, result);
-			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-					| CommunicationException | ConfigurationException e) {
-				// TODO Auto-generated catch block
-			}
-			
-			if (users == null || users.size() == 0 || users.size() > 1) {
-				getSession().error(createStringResource("PageSelfRegistration.registration.failed.unsatisfied.registration.configuration").getString());
+			String userLifecycle = userToSave.getLifecycleState();
+			if (!selfRegistrationConfiguration.getRequiredLifecycleState().equals(userLifecycle)) {
+				LOGGER.error(
+						"Registration not allowed for a user {} -> Unsatisfied Configuration for required lifecycle, expected {} but was {}",
+						new Object[] {
+								userToSave.getEmailAddress() != null ? userToSave.getEmailAddress()
+										: userToSave,
+								selfRegistrationConfiguration.getRequiredLifecycleState(),
+								userLifecycle });
+				getSession().error(createStringResource(
+						"PageSelfRegistration.registration.failed.unsatisfied.registration.configuration")
+								.getString());
 				throw new RestartResponseException(this);
-				
 			}
-			
-			PrismObject<UserType> preregisteredUser = users.iterator().next();
-			
-			userType.setOid(preregisteredUser.getOid());
-			
-		}
-		
-		String organization = getOrganization();
-		
-		if (organization != null) {
-			userType.getOrganization().add(new PolyStringType(organization));
+
 		}
 
-		ProtectedStringType nonceCredentials = new ProtectedStringType();
-		nonceCredentials.setClearValue(generateNonce(selfRegistrationConfiguration.getNoncePolicy(), task, result));
+		CredentialsType credentials = createCredentials(selfRegistrationConfiguration.getNoncePolicy(), task,
+				result);
+		userToSave.setCredentials(credentials);
+		if (selfRegistrationConfiguration.getInitialLifecycleState() != null) {
+			LOGGER.trace("Setting initial lifecycle state of registered user to {}", selfRegistrationConfiguration.getInitialLifecycleState());
+			userToSave.setLifecycleState(selfRegistrationConfiguration.getInitialLifecycleState());
+		}
 
-		NonceType nonceType = new NonceType();
-		nonceType.setValue(nonceCredentials);
-		
-//		PageParameters pageParameters = getPageParameters();
-//		if (pageParameters != null){
-//			List<NamedPair> namedParameters = pageParameters.getAllNamed();
-//			if (namedParameters != null && !namedParameters.isEmpty()) {
-//				NamedPair firstParam = namedParameters.iterator().next();
-//				if (firstParam != null) {
-//					nonceType.setName(firstParam.getValue());
-//				}
-//			}
-//		}
-
-		userType.getCredentials().setNonce(nonceType);
-		userType.setLifecycleState(getSelfRegistrationConfiguration().getInitialLifecycleState());
-		
 		try {
-			getPrismContext().adopt(userType);
+			getPrismContext().adopt(userToSave);
 		} catch (SchemaException e) {
 			// nothing to do, try without it
 		}
 
-		return userType;
+		return userToSave;
 
+	}
+
+	private CredentialsType createCredentials(NonceCredentialsPolicyType noncePolicy, Task task,
+			OperationResult result) {
+		NonceType nonceType = createNonce(noncePolicy, task, result);
+
+		PasswordType password = createPassword();
+		CredentialsType credentials = new CredentialsType();
+		credentials.setNonce(nonceType);
+		credentials.setPassword(password);
+		return credentials;
+
+	}
+
+	private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
+		ProtectedStringType nonceCredentials = new ProtectedStringType();
+		nonceCredentials.setClearValue(generateNonce(noncePolicy, task, result));
+
+		NonceType nonceType = new NonceType();
+		nonceType.setValue(nonceCredentials);
+		return nonceType;
+	}
+
+	private PasswordType createPassword() {
+		PasswordType password = new PasswordType();
+		ProtectedStringType protectedString = new ProtectedStringType();
+		protectedString.setClearValue(getPassword());
+		password.setValue(protectedString);
+		return password;
 	}
 
 	private String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
 		ValuePolicyType policy = null;
-		
+
 		if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
 			PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.loadObject(ValuePolicyType.class,
 					noncePolicy.getValuePolicyRef().getOid(), PageSelfRegistration.this, task, result);
@@ -531,16 +563,22 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return ValuePolicyGenerator.generate(policy != null ? policy.getStringPolicy() : null, 24, result);
 	}
 
-	private String getOrganization() {
-		AutoCompleteTextPanel<String> org = (AutoCompleteTextPanel<String>) get(
-				createComponentPath(ID_MAIN_FORM, ID_ORGANIZATION));
-		return org.getBaseFormComponent().getModel().getObject();
+	private String getPassword() {
+		PasswordPanel password = (PasswordPanel) get(createComponentPath(ID_MAIN_FORM, ID_PASSWORD));
+		return (String) password.getBaseFormComponent().getModel().getObject();
 	}
-	
-	@Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for registration page
-    }
 
+	private void removePassword(AjaxRequestTarget target) {
+		PasswordPanel password = (PasswordPanel) get(createComponentPath(ID_MAIN_FORM, ID_PASSWORD));
+		for (FormComponent comp : password.getFormComponents()) {
+			comp.getModel().setObject(null);
+		}
+		target.add(password);
+	}
+
+	@Override
+	protected void createBreadcrumb() {
+		// don't create breadcrumb for registration page
+	}
 
 }

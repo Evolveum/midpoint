@@ -124,15 +124,14 @@ public class ChangeExecutor {
 	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
 
-	// for inserting workflow-related metadata to changed object
-	@Autowired(required = false)
-	private WorkflowManager workflowManager;
-
 	@Autowired(required = true)
 	private Clock clock;
 
 	@Autowired(required = true)
 	private ModelObjectResolver objectResolver;
+	
+	@Autowired(required = true)
+	private MetadataManager metadataManager;
 
 	private PrismObjectDefinition<UserType> userDefinition = null;
 	private PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -838,7 +837,7 @@ public class ChangeExecutor {
 			Iterator<? extends ItemDelta> objectDeltaIterator = objectDelta.getModifications().iterator();
 			while (objectDeltaIterator.hasNext()) {
 				ItemDelta d = objectDeltaIterator.next();
-				if (executed.containsModification(d) || d.isEmpty()) {
+				if (executed.containsModification(d, true, true) || d.isEmpty()) {
 					objectDeltaIterator.remove();
 				}
 			}
@@ -1126,7 +1125,7 @@ public class ChangeExecutor {
 
 			T objectTypeToAdd = objectToAdd.asObjectable();
 
-			applyMetadata(context, task, objectTypeToAdd, result);
+			metadataManager.applyMetadataAdd(context, objectToAdd, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 			if (options == null && context != null) {
 				options = context.getOptions();
@@ -1246,7 +1245,8 @@ public class ChangeExecutor {
 			securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(),
 					AuthorizationPhaseType.EXECUTION, objectNew, change, null, ownerResolver, result);
 
-			applyMetadata(change, objectContext, objectTypeClass, task, context, result);
+			metadataManager.applyMetadataModify(change, objectContext, objectTypeClass,
+					clock.currentTimeXMLGregorianCalendar(), task, context, result);
 
 			if (TaskType.class.isAssignableFrom(objectTypeClass)) {
 				taskManager.modifyTask(change.getOid(), change.getModifications(), result);
@@ -1274,78 +1274,7 @@ public class ChangeExecutor {
 		}
 	}
 
-	private <T extends ObjectType, F extends ObjectType> void applyMetadata(LensContext<F> context, Task task,
-			T objectTypeToAdd, OperationResult result) throws SchemaException {
-		MetadataType metaData = LensUtil.createCreateMetadata(context,
-				clock.currentTimeXMLGregorianCalendar(), task);
-		if (workflowManager != null) {
-			metaData.getCreateApproverRef().addAll(workflowManager.getApprovedBy(task, result));
-		}
-
-		objectTypeToAdd.setMetadata(metaData);
-	}
-
-	private <T extends ObjectType, F extends ObjectType> void applyMetadata(ObjectDelta<T> change,
-			LensElementContext<T> objectContext, Class objectTypeClass, Task task, LensContext<F> context,
-			OperationResult result) throws SchemaException {
-		String channel = LensUtil.getChannel(context, task);
-
-		PrismObjectDefinition<T> def = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(objectTypeClass);
-
-		ItemDelta.mergeAll(change.getModifications(), LensUtil.createModifyMetadataDeltas(context,
-				new ItemPath(ObjectType.F_METADATA), def, clock.currentTimeXMLGregorianCalendar(), task));
-
-		List<PrismReferenceValue> approverReferenceValues = new ArrayList<PrismReferenceValue>();
-
-		if (workflowManager != null) {
-			for (ObjectReferenceType approverRef : workflowManager.getApprovedBy(task, result)) {
-				approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid()));
-			}
-		}
-		if (!approverReferenceValues.isEmpty()) {
-			ReferenceDelta refDelta = ReferenceDelta.createModificationReplace(
-					(new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)), def,
-					approverReferenceValues);
-			((Collection) change.getModifications()).add(refDelta);
-		} else {
-
-			// a bit of hack - we want to replace all existing values with empty
-			// set of values;
-			// however, it is not possible to do this using REPLACE, so we have
-			// to explicitly remove all existing values
-
-			if (objectContext != null && objectContext.getObjectOld() != null) {
-				// a null value of objectOld means that we execute MODIFY delta
-				// that is a part of primary ADD operation (in a wave greater
-				// than 0)
-				// i.e. there are NO modifyApprovers set (theoretically they
-				// could be set in previous waves, but because in these waves
-				// the data
-				// are taken from the same source as in this step - so there are
-				// none modify approvers).
-
-				if (objectContext.getObjectOld().asObjectable().getMetadata() != null) {
-					List<ObjectReferenceType> existingModifyApproverRefs = objectContext.getObjectOld()
-							.asObjectable().getMetadata().getModifyApproverRef();
-					LOGGER.trace("Original values of MODIFY_APPROVER_REF: {}", existingModifyApproverRefs);
-
-					if (!existingModifyApproverRefs.isEmpty()) {
-						List<PrismReferenceValue> valuesToDelete = new ArrayList<PrismReferenceValue>();
-						for (ObjectReferenceType approverRef : objectContext.getObjectOld().asObjectable()
-								.getMetadata().getModifyApproverRef()) {
-							valuesToDelete.add(approverRef.asReferenceValue().clone());
-						}
-						ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(
-								(new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)),
-								def, valuesToDelete);
-						((Collection) change.getModifications()).add(refDelta);
-					}
-				}
-			}
-		}
-
-	}
+	
 
 	private String addTask(TaskType task, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {

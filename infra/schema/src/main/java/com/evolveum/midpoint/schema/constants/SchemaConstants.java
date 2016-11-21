@@ -207,6 +207,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS = new ItemPath(
 			ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
+	public static final ItemPath PATH_ASSIGNMENT = new ItemPath(FocusType.F_ASSIGNMENT);
 	public static final ItemPath PATH_ASSOCIATION = new ItemPath(C_ASSOCIATION);
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
 	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(
@@ -313,6 +314,8 @@ public abstract class SchemaConstants {
 	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
 	public static final QName CHANNEL_GUI_SELF_REGISTRATION_QNAME = new QName(NS_GUI_CHANNEL, "seflRegistration");
 	public static final String CHANNEL_GUI_SELF_REGISTRATION_URI = QNameUtil.qNameToUri(CHANNEL_GUI_SELF_REGISTRATION_QNAME);
+	public static final QName CHANNEL_GUI_RESET_PASSWORD_QNAME = new QName(NS_GUI_CHANNEL, "resetPassword");
+	public static final String CHANNEL_GUI_RESET_PASSWORD_URI = QNameUtil.qNameToUri(CHANNEL_GUI_RESET_PASSWORD_QNAME);
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
 	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
 
@@ -389,4 +392,8 @@ public abstract class SchemaConstants {
 	// registration
 	public static final String REGISTRATION_ID = "registrationId";
 	public static final String REGISTRATION_TOKEN = "token";
+	
+	// resetPassword
+	public static final String RESET_PASSWORD_ID = "user";
+	public static final String RESET_PASSWORD_TOKEN = "token";
 }

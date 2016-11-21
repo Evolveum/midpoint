@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
@@ -50,15 +51,15 @@ public class SelfRegistrationDto implements Serializable {
 		this.initialLifecycleState = selfRegistration.getInitialLifecycleState();
 		this.requiredLifecycleState = selfRegistration.getRequiredLifecycleState();
 		
-		AbstractAuthenticationPolicyType authPolicy = getAuthenticationPolicy(
+		AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil.getAuthenticationPolicy(
 				selfRegistration.getAdditionalAuthenticationName(), securityPolicy);
 
 		if (authPolicy instanceof MailAuthenticationPolicyType) {
 			this.mailAuthenticationPolicy = (MailAuthenticationPolicyType) authPolicy;
-			noncePolicy = getCredentialPolicy(((MailAuthenticationPolicyType) authPolicy).getMailNonce(), securityPolicy);
+			noncePolicy = SecurityPolicyUtil.getCredentialPolicy(((MailAuthenticationPolicyType) authPolicy).getMailNonce(), securityPolicy);
 		} else if (authPolicy instanceof SmsAuthenticationPolicyType) {
 			this.smsAuthenticationPolicy = (SmsAuthenticationPolicyType) authPolicy;
-			noncePolicy = getCredentialPolicy(((SmsAuthenticationPolicyType) authPolicy).getSmsNonce(), securityPolicy);
+			noncePolicy = SecurityPolicyUtil.getCredentialPolicy(((SmsAuthenticationPolicyType) authPolicy).getSmsNonce(), securityPolicy);
 		}
 
 		
@@ -92,126 +93,126 @@ public class SelfRegistrationDto implements Serializable {
 		return registrationPolicy.getSelfRegistration();
 	}
 
-	private AbstractAuthenticationPolicyType getAuthenticationPolicy(String selfRegistrationAuthPoliocyName,
-			SecurityPolicyType securityPolicy) throws SchemaException {
-		MailAuthenticationPolicyType mailAuthPolicy = getMailAuthenticationPolicy(
-				selfRegistrationAuthPoliocyName, securityPolicy);
-		SmsAuthenticationPolicyType smsAuthPolicy = getSmsAuthenticationPolicy(
-				selfRegistrationAuthPoliocyName, securityPolicy);
-		return checkAndGetAuthPolicyConsistence(mailAuthPolicy, smsAuthPolicy);
+//	private AbstractAuthenticationPolicyType getAuthenticationPolicy(String selfRegistrationAuthPoliocyName,
+//			SecurityPolicyType securityPolicy) throws SchemaException {
+//		MailAuthenticationPolicyType mailAuthPolicy = getMailAuthenticationPolicy(
+//				selfRegistrationAuthPoliocyName, securityPolicy);
+//		SmsAuthenticationPolicyType smsAuthPolicy = getSmsAuthenticationPolicy(
+//				selfRegistrationAuthPoliocyName, securityPolicy);
+//		return checkAndGetAuthPolicyConsistence(mailAuthPolicy, smsAuthPolicy);
+//
+//	}
 
-	}
+//	private MailAuthenticationPolicyType getMailAuthenticationPolicy(String authName,
+//			SecurityPolicyType securityPolicy) throws SchemaException {
+//		AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
+//		if (authPolicies == null) {
+//			return null;
+//		}
+//		return getAuthenticationPolicy(authName, authPolicies.getMailAuthentication());
+//	}
+//
+//	private SmsAuthenticationPolicyType getSmsAuthenticationPolicy(String authName,
+//			SecurityPolicyType securityPolicy) throws SchemaException {
+//		AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
+//		if (authPolicies == null) {
+//			return null;
+//		}
+//		return getAuthenticationPolicy(authName, authPolicies.getSmsAuthentication());
+//	}
+//
+//	private AbstractAuthenticationPolicyType checkAndGetAuthPolicyConsistence(
+//			MailAuthenticationPolicyType mailPolicy, SmsAuthenticationPolicyType smsPolicy)
+//					throws SchemaException {
+//		if (mailPolicy != null && smsPolicy != null) {
+//			throw new SchemaException(
+//					"Found both, mail and sms authentication method for registration. Only one of them can be present at the moment");
+//		}
+//
+//		if (mailPolicy != null) {
+//			return mailPolicy;
+//		}
+//
+//		return smsPolicy;
+//
+//	}
 
-	private MailAuthenticationPolicyType getMailAuthenticationPolicy(String authName,
-			SecurityPolicyType securityPolicy) throws SchemaException {
-		AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
-		if (authPolicies == null) {
-			return null;
-		}
-		return getAuthenticationPolicy(authName, authPolicies.getMailAuthentication());
-	}
+//	private <T extends AbstractAuthenticationPolicyType> T getAuthenticationPolicy(String authName,
+//			List<T> authPolicies) throws SchemaException {
+//
+//		List<T> smsPolicies = new ArrayList<>();
+//
+//		for (T smsAuthPolicy : authPolicies) {
+//			if (smsAuthPolicy.getName() == null && authName != null) {
+//				continue;
+//			}
+//
+//			if (smsAuthPolicy.getName() != null && authName == null) {
+//				continue;
+//			}
+//
+//			if (smsAuthPolicy.getName() == null && authName == null) {
+//				smsPolicies.add(smsAuthPolicy);
+//			}
+//
+//			if (smsAuthPolicy.getName().equals(authName)) {
+//				smsPolicies.add(smsAuthPolicy);
+//			}
+//
+//		}
+//
+//		if (smsPolicies.size() > 1) {
+//			throw new SchemaException(
+//					"Found more than one mail authentication policy. Please review your configuration");
+//		}
+//
+//		if (smsPolicies.size() == 0) {
+//			return null;
+//		}
+//
+//		return smsPolicies.iterator().next();
+//
+//	}
 
-	private SmsAuthenticationPolicyType getSmsAuthenticationPolicy(String authName,
-			SecurityPolicyType securityPolicy) throws SchemaException {
-		AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
-		if (authPolicies == null) {
-			return null;
-		}
-		return getAuthenticationPolicy(authName, authPolicies.getSmsAuthentication());
-	}
-
-	private AbstractAuthenticationPolicyType checkAndGetAuthPolicyConsistence(
-			MailAuthenticationPolicyType mailPolicy, SmsAuthenticationPolicyType smsPolicy)
-					throws SchemaException {
-		if (mailPolicy != null && smsPolicy != null) {
-			throw new SchemaException(
-					"Found both, mail and sms authentication methid for registration. Only one of them can be present at the moment");
-		}
-
-		if (mailPolicy != null) {
-			return mailPolicy;
-		}
-
-		return smsPolicy;
-
-	}
-
-	private <T extends AbstractAuthenticationPolicyType> T getAuthenticationPolicy(String authName,
-			List<T> authPolicies) throws SchemaException {
-
-		List<T> smsPolicies = new ArrayList<>();
-
-		for (T smsAuthPolicy : authPolicies) {
-			if (smsAuthPolicy.getName() == null && authName != null) {
-				continue;
-			}
-
-			if (smsAuthPolicy.getName() != null && authName == null) {
-				continue;
-			}
-
-			if (smsAuthPolicy.getName() == null && authName == null) {
-				smsPolicies.add(smsAuthPolicy);
-			}
-
-			if (smsAuthPolicy.getName().equals(authName)) {
-				smsPolicies.add(smsAuthPolicy);
-			}
-
-		}
-
-		if (smsPolicies.size() > 1) {
-			throw new SchemaException(
-					"Found more than one mail authentication policy. Please review your configuration");
-		}
-
-		if (smsPolicies.size() == 0) {
-			return null;
-		}
-
-		return smsPolicies.iterator().next();
-
-	}
-
-	private NonceCredentialsPolicyType getCredentialPolicy(String policyName,
-			SecurityPolicyType securityPolicy) throws SchemaException {
-		CredentialsPolicyType credentialsPolicy = securityPolicy.getCredentials();
-		if (credentialsPolicy == null) {
-			return null;
-		}
-
-		List<NonceCredentialsPolicyType> noncePolicies = credentialsPolicy.getNonce();
-
-		List<NonceCredentialsPolicyType> availableNoncePolicies = new ArrayList<>();
-		for (NonceCredentialsPolicyType noncePolicy : noncePolicies) {
-			if (noncePolicy.getName() == null && policyName == null) {
-				availableNoncePolicies.add(noncePolicy);
-			}
-
-			if (noncePolicy.getName() == null && policyName != null) {
-				continue;
-			}
-
-			if (noncePolicy.getName() != null && policyName == null) {
-				continue;
-			}
-
-			if (noncePolicy.getName().equals(policyName)) {
-				availableNoncePolicies.add(noncePolicy);
-			}
-		}
-
-		if (availableNoncePolicies.size() > 1) {
-			throw new SchemaException(
-					"Found more than one nonce credentials policy. Please review your configuration");
-		}
-
-		if (availableNoncePolicies.size() == 0) {
-			return null;
-		}
-
-		return availableNoncePolicies.iterator().next();
-	}
+//	private NonceCredentialsPolicyType getCredentialPolicy(String policyName,
+//			SecurityPolicyType securityPolicy) throws SchemaException {
+//		CredentialsPolicyType credentialsPolicy = securityPolicy.getCredentials();
+//		if (credentialsPolicy == null) {
+//			return null;
+//		}
+//
+//		List<NonceCredentialsPolicyType> noncePolicies = credentialsPolicy.getNonce();
+//
+//		List<NonceCredentialsPolicyType> availableNoncePolicies = new ArrayList<>();
+//		for (NonceCredentialsPolicyType noncePolicy : noncePolicies) {
+//			if (noncePolicy.getName() == null && policyName == null) {
+//				availableNoncePolicies.add(noncePolicy);
+//			}
+//
+//			if (noncePolicy.getName() == null && policyName != null) {
+//				continue;
+//			}
+//
+//			if (noncePolicy.getName() != null && policyName == null) {
+//				continue;
+//			}
+//
+//			if (noncePolicy.getName().equals(policyName)) {
+//				availableNoncePolicies.add(noncePolicy);
+//			}
+//		}
+//
+//		if (availableNoncePolicies.size() > 1) {
+//			throw new SchemaException(
+//					"Found more than one nonce credentials policy. Please review your configuration");
+//		}
+//
+//		if (availableNoncePolicies.size() == 0) {
+//			return null;
+//		}
+//
+//		return availableNoncePolicies.iterator().next();
+//	}
 
 	public boolean isMailMailAuthentication() {
 		return mailAuthenticationPolicy != null;

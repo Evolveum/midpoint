@@ -1305,32 +1305,28 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	 * deltas are equal. 
 	 */
 	public boolean contains(ItemDelta<V,D> other) {
+		return contains(other, PrismConstants.EQUALS_DEFAULT_IGNORE_METADATA, PrismConstants.EQUALS_DEFAULT_IS_LITERAL);
+	}		
+	/**
+	 * Returns true if the other delta is a complete subset of this delta.
+	 * I.e. if all the statements of the other delta are already contained
+	 * in this delta. As a consequence it also returns true if the two
+	 * deltas are equal. 
+	 */
+	public boolean contains(ItemDelta<V,D> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (!this.getPath().equivalent(other.getPath())) {
 			return false;
 		}
-		if (!containsSet(this.valuesToAdd, other.valuesToAdd)) {
+		if (!PrismValue.containsAll(this.valuesToAdd, other.valuesToAdd, ignoreMetadata, isLiteral)) {
 			return false;
 		}
-		if (!containsSet(this.valuesToDelete, other.valuesToDelete)) {
+		if (!PrismValue.containsAll(this.valuesToDelete, other.valuesToDelete, ignoreMetadata, isLiteral)) {
 			return false;
 		}
-		if (!containsSet(this.valuesToReplace, other.valuesToReplace)) {
+		if (!PrismValue.containsAll(this.valuesToReplace, other.valuesToReplace, ignoreMetadata, isLiteral)) {
 			return false;
 		}
 		return true;
-	}
-
-	private boolean containsSet(Collection<V> thisSet, Collection<V> otherSet) {
-		if (thisSet == null && otherSet == null) {
-			return true;
-		}
-		if (otherSet == null) {
-			return true;
-		}
-		if (thisSet == null) {
-			return false;
-		}
-		return thisSet.containsAll(otherSet);
 	}
 
 	public abstract ItemDelta<V,D> clone();

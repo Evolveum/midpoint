@@ -103,22 +103,77 @@ public abstract class TestCompare {
 	 * delta is OK.
 	 */
 	@Test
-	public void testDiffJack() throws SchemaException, SAXException, IOException {
+	public void testDiffJack() throws Exception {
 		System.out.println("===[ testDiffJack ]===");
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-//		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
-//		Element userElement = DOMUtil.getFirstChildElement(document);		
 		PrismObject<UserType> jackOriginal = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 		
-//		document = DOMUtil.parseFile(USER_JACK_MODIFIED_FILE);
-//		userElement = DOMUtil.getFirstChildElement(document);		
 		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 		
 		// WHEN
 		ObjectDelta<UserType> jackDelta = jackOriginal.diff (jackModified);
+		
+		// THEN
+		System.out.println("Jack delta:");
+		System.out.println(jackDelta.debugDump());
+		
+		jackDelta.assertDefinitions();
+		jackDelta.checkConsistence(true, true, true);
+		
+		assertEquals("Wrong delta type", ChangeType.MODIFY, jackDelta.getChangeType());
+		assertEquals("Wrong delta OID", USER_JACK_OID, jackDelta.getOid());
+		assertEquals("Wrong number of modificaitions", 8, jackDelta.getModifications().size());
+		
+		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
+		
+		PrismAsserts.assertPropertyDelete(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
+		PrismAsserts.assertPropertyAdd(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
+		// TODO: assert BAR
+		
+		PrismAsserts.assertPropertyDelete(jackDelta, USER_ADDITIONALNAMES_QNAME, "Captain");
+		
+		PrismAsserts.assertPropertyAdd(jackDelta, USER_LOCALITY_QNAME, "World's End");
+		
+		// There won't be any activation deltas. Activation is operational.
+		PrismAsserts.assertNoItemDelta(jackDelta, USER_ENABLED_PATH);
+		PrismAsserts.assertNoItemDelta(jackDelta, USER_VALID_FROM_PATH);
+		
+		PrismAsserts.assertPropertyReplace(jackDelta, 
+				new ItemPath(
+						new NameItemPathSegment(USER_ASSIGNMENT_QNAME),
+						new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
+						new NameItemPathSegment(USER_DESCRIPTION_QNAME)), 
+				"Assignment II");
+		
+		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));
+		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
+		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
+		
+		// TODO assert assignment[i1112]/accountConstruction
+	}
+	
+	
+	/**
+	 * Parse original jack and modified Jack. Diff and assert if the resulting
+	 * delta is OK.
+	 * This is literal diff. All the changes should be part of the resulting delta.
+	 */
+	@Test
+	public void testDiffJackLiteral() throws Exception {
+		System.out.println("===[ testDiffJackLiteral ]===");
+		
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		PrismObject<UserType> jackOriginal = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
+		
+		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
+		
+		// WHEN
+		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, true, true);
 		
 		// THEN
 		System.out.println("Jack delta:");
@@ -165,12 +220,8 @@ public abstract class TestCompare {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-//		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
-//		Element userElement = DOMUtil.getFirstChildElement(document);		
 		PrismObject<UserType> jackOriginal = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 		
-//		document = DOMUtil.parseFile(USER_JACK_MODIFIED_FILE);
-//		userElement = DOMUtil.getFirstChildElement(document);		
 		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 		
 		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);

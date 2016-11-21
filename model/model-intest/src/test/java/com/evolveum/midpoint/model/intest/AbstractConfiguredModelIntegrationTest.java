@@ -476,14 +476,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		return SYSTEM_CONFIGURATION_FILE;
 	}
 
-	@Override
-	protected Task createTask(String operationName) {
-		Task task = super.createTask(operationName);
-		task.setOwner(userAdministrator);
-		return task;
+	protected PrismObject<UserType> getDefaultActor() {
+		return userAdministrator;
 	}
 	
-
     @Override
     public void run(IHookCallBack callBack, ITestResult testResult) {
         long time = System.currentTimeMillis();

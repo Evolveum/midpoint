@@ -35,13 +35,15 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
  *
  */
-public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> {
+public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
 
 	Item<V,D> itemOld;
 	ItemDelta<V,D> delta;
@@ -415,6 +417,18 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> {
 	@Override
 	public String toString() {
 		return "IDI(old=" + itemOld + ", delta=" + delta + ", new=" + itemNew + ")";
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpLabelLn(sb, "ItemDeltaItem", indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "itemOld", itemOld, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "delta", delta, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "itemNew", itemNew, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "resolvePath", resolvePath, indent + 1);
+		DebugUtil.debugDumpWithLabelToString(sb, "residualPath", residualPath, indent + 1);
+		return sb.toString();
 	}
 	
 	

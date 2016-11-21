@@ -223,9 +223,13 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	}
     }
     
-	public boolean containsModification(ItemDelta itemDelta) {
+    public boolean containsModification(ItemDelta itemDelta) {
+    	return containsModification(itemDelta, PrismConstants.EQUALS_DEFAULT_IGNORE_METADATA, PrismConstants.EQUALS_DEFAULT_IS_LITERAL);
+    }
+    
+	public boolean containsModification(ItemDelta itemDelta, boolean ignoreMetadata, boolean isLiteral) {
 		for (ItemDelta modification: modifications) {
-			if (modification.contains(itemDelta)) {
+			if (modification.contains(itemDelta, ignoreMetadata, isLiteral)) {
 				return true;
 			}
 		}

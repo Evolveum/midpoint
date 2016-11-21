@@ -1050,6 +1050,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		
 		if (thisValue.getItems() !=  null) {
 			for (Item<?,?> thisItem: thisValue.getItems()) {
+				if (!isLiteral) {
+					ItemDefinition itemDef = thisItem.getDefinition();
+					if (itemDef == null && other.getDefinition() != null) {
+						itemDef = other.getDefinition().findItemDefinition(thisItem.getElementName());
+					}
+					if (itemDef != null && itemDef.isOperational()) {
+						continue;
+					}
+				}
 				Item otherItem = other.findItem(thisItem.getElementName());
 				// The "delete" delta will also result from the following diff
 				thisItem.diffInternal(otherItem, deltas, ignoreMetadata, isLiteral);
@@ -1059,6 +1068,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		if (other.getItems() != null) {
 			for (Item otherItem: other.getItems()) {
 				Item thisItem = thisValue.findItem(otherItem.getElementName());
+				if (!isLiteral) {
+					ItemDefinition itemDef = otherItem.getDefinition();
+					if (itemDef == null && thisValue.getDefinition() != null) {
+						itemDef = thisValue.getDefinition().findItemDefinition(otherItem.getElementName());
+					}
+					if (itemDef != null && itemDef.isOperational()) {
+						continue;
+					}
+				}
 				if (thisItem == null) {
 					// Other has an item that we don't have, this must be an add
 					ItemDelta itemDelta = otherItem.createDelta();

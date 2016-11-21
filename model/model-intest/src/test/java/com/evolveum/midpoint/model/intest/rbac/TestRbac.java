@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -159,19 +160,20 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		
-		repoAddObjectFromFile(ROLE_ADRIATIC_PIRATE_FILE, initResult);
-		repoAddObjectFromFile(ROLE_BLACK_SEA_PIRATE_FILE, initResult);
-		repoAddObjectFromFile(ROLE_INDIAN_OCEAN_PIRATE_FILE, initResult);
-		repoAddObjectFromFile(ROLE_HONORABILITY_FILE, initResult);
-		repoAddObjectFromFile(ROLE_CLERIC_FILE, initResult);
-		repoAddObjectFromFile(ROLE_WANNABE_FILE, initResult);
-		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, initResult);
-		repoAddObjectFromFile(getRoleGovernorFile(), initResult);
-		repoAddObjectFromFile(getRoleCannibalFile(), initResult);
-		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, initResult);
-		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ADRIATIC_PIRATE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_BLACK_SEA_PIRATE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_INDIAN_OCEAN_PIRATE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_HONORABILITY_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_CLERIC_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_WANNABE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(getRoleGovernorFile(), RoleType.class, initResult);
+		repoAddObjectFromFile(getRoleCannibalFile(), RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, RoleType.class, initResult);
+
 	}
 	
 	@Test
@@ -240,12 +242,14 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test101JackAssignRolePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
         // WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
@@ -254,10 +258,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
-        assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
+        assertModifyMetadata(userAfter, startTs, endTs);
+
+        AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
+        assertCreateMetadata(assignmentType, startTs, endTs);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
@@ -284,7 +291,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
  		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
  		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
  				EXISTING_GOSSIP);
-        
+
+ 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
         
@@ -293,9 +302,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
+        AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
@@ -323,8 +334,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        assertRoleMembershipRef(userAfter);
         assertAssignedNoRole(userAfter, task, result);
+        assertRoleMembershipRef(userAfter);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 

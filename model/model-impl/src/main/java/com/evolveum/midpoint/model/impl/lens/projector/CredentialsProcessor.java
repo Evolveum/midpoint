@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.MetadataManager;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -80,6 +81,9 @@ public class CredentialsProcessor {
 
 	@Autowired
 	private PasswordPolicyProcessor passwordPolicyProcessor;
+	
+	@Autowired
+	private MetadataManager metadataManager;
 
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
@@ -299,7 +303,7 @@ public class CredentialsProcessor {
 				}
 			} else {
 				if (hasValueDelta(focusDelta, credentialsPath)) {
-					Collection<? extends ItemDelta<?, ?>> metaDeltas = LensUtil.createModifyMetadataDeltas(
+					Collection<? extends ItemDelta<?, ?>> metaDeltas = metadataManager.createModifyMetadataDeltas(
 							context, credentialsPath.subPath(AbstractCredentialType.F_METADATA),
 							focusContext.getObjectDefinition(), now, task);
 					for (ItemDelta<?, ?> metaDelta : metaDeltas) {
@@ -368,7 +372,7 @@ public class CredentialsProcessor {
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		if (hasValueChange(cVal) && !hasMetadata(cVal)) {
-			MetadataType metadataType = LensUtil.createCreateMetadata(context, now, task);
+			MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);
 			ContainerDelta<MetadataType> metadataDelta = ContainerDelta.createModificationAdd(
 					credentialsPath.subPath(AbstractCredentialType.F_METADATA), UserType.class, prismContext,
 					metadataType);

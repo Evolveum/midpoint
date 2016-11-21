@@ -181,6 +181,9 @@ public class Clockwork {
 
     @Autowired
     private TaskManager taskManager;
+    
+    @Autowired(required = true)
+    private MetadataManager metadataManager;
 
     private LensDebugListener debugListener;
 	
@@ -276,6 +279,8 @@ public class Clockwork {
 		
 		try {
 			
+			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+			
 			// We need to determine focus before auditing. Otherwise we will not know user
 			// for the accounts (unless there is a specific delta for it).
 			// This is ugly, but it is the easiest way now (TODO: cleanup).
@@ -286,8 +291,8 @@ public class Clockwork {
 				if (debugListener != null) {
 					debugListener.beforeSync(context);
 				}
-				XMLGregorianCalendar requestTimestamp = clock.currentTimeXMLGregorianCalendar();
-				context.getStats().setRequestTimestamp(requestTimestamp);
+				metadataManager.applyRequestMetadata(context, now, task, result);
+				context.getStats().setRequestTimestamp(now);
 				// We need to do this BEFORE projection. If we would do that after projection
 				// there will be secondary changes that are not part of the request.
 				audit(context, AuditEventStage.REQUEST, task, result);

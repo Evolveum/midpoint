@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.testng.annotations.BeforeSuite;
@@ -90,7 +92,51 @@ public class TestDiffEquals {
     }
 
     @Test
-    public void testContextlessEquals() throws Exception {
+    public void testAssignmentEquals() throws Exception {
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    	
+        AssignmentType a1a = new AssignmentType();
+        prismContext.adopt(a1a);
+        a1a.setDescription("descr1");
+
+        AssignmentType a2 = new AssignmentType();
+        prismContext.adopt(a2);
+        a2.setDescription("descr2");
+
+        AssignmentType a1b = new AssignmentType();
+        prismContext.adopt(a1b);
+        a1b.setDescription("descr1");
+        
+        AssignmentType a1m = new AssignmentType();
+        prismContext.adopt(a1m);
+        a1m.setDescription("descr1");
+        MetadataType metadata1m = new MetadataType();
+        metadata1m.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+		a1m.setMetadata(metadata1m);
+        
+        // WHEN
+        assertFalse(a1a.equals(a2));
+        assertFalse(a1b.equals(a2));
+        assertFalse(a1m.equals(a2));
+        assertFalse(a2.equals(a1a));
+        assertFalse(a2.equals(a1b));
+        assertFalse(a2.equals(a1m));
+        
+        assertTrue(a1a.equals(a1a));
+        assertTrue(a1b.equals(a1b));
+        assertTrue(a1m.equals(a1m));
+        assertTrue(a2.equals(a2));
+        
+        assertTrue(a1a.equals(a1b));
+        assertTrue(a1b.equals(a1a));
+        assertTrue(a1a.equals(a1m));
+        assertTrue(a1b.equals(a1m));
+        assertTrue(a1m.equals(a1a));
+        assertTrue(a1m.equals(a1b));
+    }
+    
+    @Test
+    public void testContextlessAssignmentEquals() throws Exception {
         AssignmentType a1 = new AssignmentType();            // no prismContext here
         a1.setDescription("descr1");
 
@@ -112,7 +158,7 @@ public class TestDiffEquals {
     }
 
     @Test
-    public void testContextlessEquals2() throws Exception {
+    public void testContextlessAssignmentEquals2() throws Exception {
 
         // (1) user without prismContext - the functionality is reduced
 

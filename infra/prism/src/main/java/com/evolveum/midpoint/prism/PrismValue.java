@@ -257,6 +257,33 @@ public abstract class PrismValue implements IPrismValue {
 		};
 		return MiscUtil.unorderedCollectionEquals(collection1, collection2, comparator);
 	}
+	
+	public static <V extends PrismValue> boolean containsAll(Collection<V> thisSet, Collection<V> otherSet, boolean ignoreMetadata, boolean isLiteral) {
+		if (thisSet == null && otherSet == null) {
+			return true;
+		}
+		if (otherSet == null) {
+			return true;
+		}
+		if (thisSet == null) {
+			return false;
+		}
+		for (V otherValue: otherSet) {
+			if (!contains(thisSet, otherValue, ignoreMetadata, isLiteral)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static <V extends PrismValue> boolean contains(Collection<V> thisSet, V otherValue, boolean ignoreMetadata, boolean isLiteral) {
+		for (V thisValue: thisSet) {
+			if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	@Override
 	public void normalize() {
