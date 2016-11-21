@@ -18,23 +18,33 @@ package com.evolveum.midpoint.wf.impl.policy.plain;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -182,24 +192,26 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 	 * should be brought to approval.
 	 */
 	@Test
-	public void test130AddRole1AssignmentWithDeputy() throws Exception {
-		final String TEST_NAME = "test130AddRole1AssignmentWithDeputy";
+	public void test130AddRole1aAssignmentWithDeputy() throws Exception {
+		final String TEST_NAME = "test130AddRole1aAssignmentWithDeputy";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
 		importLead1Deputies(task, task.getResult());
 
-		executeAssignRole1ToJack(TEST_NAME, false, true, null);
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRole1aToJack(TEST_NAME, false, true, null);
 	}
 
 	@Test
-	public void test132AddRole1AssignmentWithDeputyApprovedByDeputy1() throws Exception {
-		final String TEST_NAME = "test132AddRole1AssignmentWithDeputyApprovedByDeputy1";
+	public void test132AddRole1aAssignmentWithDeputyApprovedByDeputy1() throws Exception {
+		final String TEST_NAME = "test132AddRole1aAssignmentWithDeputyApprovedByDeputy1";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		executeAssignRole1ToJack(TEST_NAME, false, true, USER_LEAD1_DEPUTY_1_OID);
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRole1aToJack(TEST_NAME, false, true, USER_LEAD1_DEPUTY_1_OID);
 	}
 
 
@@ -247,18 +259,22 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected List<String> getExpectedTargetOids() {
-				return Collections.singletonList(ROLE_ROLE1_OID);
+			protected List<ExpectedTask> getExpectedTasks() {
+				return Collections.singletonList(new ExpectedTask(ROLE_ROLE1_OID, "Assigning Role1 to jack"));
 			}
 
 			@Override
-			protected List<String> getExpectedAssigneeOids() {
-				return Arrays.asList(USER_LEAD1_OID, USER_LEAD1_DEPUTY_1_OID, USER_LEAD1_DEPUTY_2_OID);
-			}
-
-			@Override
-			protected List<String> getExpectedProcessNames() {
-				return Collections.singletonList("Assigning Role1 to jack");
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				ExpectedTask etask = getExpectedTasks().get(0);
+				if (!deputy) {
+					return Collections.singletonList(new ExpectedWorkItem(USER_LEAD1_OID, ROLE_ROLE1_OID, etask));
+				} else {
+					return Arrays.asList(
+							new ExpectedWorkItem(USER_LEAD1_OID, ROLE_ROLE1_OID, etask),
+							new ExpectedWorkItem(USER_LEAD1_DEPUTY_1_OID, ROLE_ROLE1_OID, etask),
+							new ExpectedWorkItem(USER_LEAD1_DEPUTY_2_OID, ROLE_ROLE1_OID, etask)
+					);
+				}
 			}
 
 			@Override
@@ -275,8 +291,112 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected boolean decideOnApproval(String executionId) throws Exception {
+			protected Boolean decideOnApproval(String executionId) throws Exception {
+				assertActiveWorkItems(USER_LEAD1_OID, 1);
 				checkTargetOid(executionId, ROLE_ROLE1_OID);
+				login(getUser(realApproverOid));
+				return true;
+			}
+		}, 1, immediate);
+	}
+
+	protected List<PrismReferenceValue> getPotentialAssignees(PrismObject<UserType> user) {
+		List<PrismReferenceValue> rv = new ArrayList<>();
+		rv.add(ObjectTypeUtil.createObjectRef(user).asReferenceValue());
+		for (AssignmentType assignment : user.asObjectable().getAssignment()) {
+			if (assignment.getTargetRef() != null
+					&& QNameUtil.match(SchemaConstants.ORG_DEPUTY, assignment.getTargetRef().getRelation())
+					&& (assignment.getActivation() == null
+						|| assignment.getActivation().getEffectiveStatus() == null
+						|| assignment.getActivation().getEffectiveStatus() == ActivationStatusType.ENABLED)) {
+				rv.add(assignment.getTargetRef().asReferenceValue().clone());
+			}
+		}
+		return rv;
+	}
+
+	protected void assertActiveWorkItems(String approverOid, int expectedCount) throws Exception {
+		Task task = createTask("query");
+		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+				.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssignees(getUser(approverOid)))
+				.build();
+		List<WorkItemType> items = modelService.searchContainers(WorkItemType.class, query, null, task, task.getResult());
+		assertEquals("Wrong active work items for " + approverOid, expectedCount, items.size());
+	}
+
+	private void executeAssignRole1aToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid) throws Exception {
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		ObjectDelta<UserType> addRole1aDelta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE1A_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(USER_JACK_OID);
+		String realApproverOid = approverOid != null ? approverOid : USER_LEAD1_OID;
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jack.clone();
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
+				return addRole1aDelta.clone();
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 1;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return Collections.singletonList(true);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return Collections.singletonList(addRole1aDelta.clone());
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return jack.getOid();
+			}
+
+			@Override
+			protected List<ExpectedTask> getExpectedTasks() {
+				return Collections.singletonList(new ExpectedTask(ROLE_ROLE1A_OID, "Assigning Role1a to jack"));
+			}
+
+			@Override
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				ExpectedTask etask = getExpectedTasks().get(0);
+				return Collections.singletonList(new ExpectedWorkItem(USER_LEAD1_OID, ROLE_ROLE1A_OID, etask));
+			}
+
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				if (number == 1) {
+					if (yes) {
+						assertAssignedRole(USER_JACK_OID, ROLE_ROLE1A_OID, rootTask, result);
+						checkWorkItemAuditRecords(createResultMap(ROLE_ROLE1A_OID, WorkflowResult.APPROVED));
+						checkUserApprovers(USER_JACK_OID, Collections.singletonList(realApproverOid), result);
+					} else {
+						assertNotAssignedRole(USER_JACK_OID, ROLE_ROLE1A_OID, rootTask, result);
+					}
+				}
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId) throws Exception {
+				assertActiveWorkItems(USER_LEAD1_OID, 1);
+				assertActiveWorkItems(USER_LEAD1_DEPUTY_1_OID, deputy ? 1 : 0);
+				assertActiveWorkItems(USER_LEAD1_DEPUTY_2_OID, deputy ? 1 : 0);
+				checkTargetOid(executionId, ROLE_ROLE1A_OID);
 				login(getUser(realApproverOid));
 				return true;
 			}
@@ -340,18 +460,21 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected List<String> getExpectedTargetOids() {
-				return Arrays.asList(ROLE_ROLE1_OID, ROLE_ROLE2_OID, ROLE_ROLE3_OID);
+			protected List<ExpectedTask> getExpectedTasks() {
+				return Arrays.asList(
+						new ExpectedTask(ROLE_ROLE1_OID, "Assigning Role1 to jack"),
+						new ExpectedTask(ROLE_ROLE2_OID, "Assigning Role2 to jack"),
+						new ExpectedTask(ROLE_ROLE3_OID, "Assigning Role3 to jack"));
 			}
 
 			@Override
-			protected List<String> getExpectedAssigneeOids() {
-				return Arrays.asList(USER_LEAD1_OID, USER_LEAD2_OID, USER_LEAD3_OID);
-			}
-
-			@Override
-			protected List<String> getExpectedProcessNames() {
-				return Arrays.asList("Assigning Role1 to jack", "Assigning Role2 to jack", "Assigning Role3 to jack");
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				List<ExpectedTask> etasks = getExpectedTasks();
+				return Arrays.asList(
+						new ExpectedWorkItem(USER_LEAD1_OID, ROLE_ROLE1_OID, etasks.get(0)),
+						new ExpectedWorkItem(USER_LEAD2_OID, ROLE_ROLE2_OID, etasks.get(1)),
+						new ExpectedWorkItem(USER_LEAD3_OID, ROLE_ROLE3_OID, etasks.get(2))
+				);
 			}
 
 			@Override
@@ -383,7 +506,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected boolean decideOnApproval(String executionId) throws Exception {
+			protected Boolean decideOnApproval(String executionId) throws Exception {
 				String targetOid = getTargetOid(executionId);
 				if (ROLE_ROLE1_OID.equals(targetOid)) {
 					login(getUser(USER_LEAD1_OID));

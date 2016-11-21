@@ -97,6 +97,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_LEAD3_FILE = new File(TEST_RESOURCE_DIR, "user-lead3.xml");
 	protected static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
 	protected static final File ROLE_ROLE1_FILE = new File(TEST_RESOURCE_DIR, "role-role1.xml");
+	protected static final File ROLE_ROLE1A_FILE = new File(TEST_RESOURCE_DIR, "role-role1a.xml");
 	protected static final File ROLE_ROLE2_FILE = new File(TEST_RESOURCE_DIR, "role-role2.xml");
 	protected static final File ROLE_ROLE3_FILE = new File(TEST_RESOURCE_DIR, "role-role3.xml");
 	protected static final File ROLE_ROLE10_FILE = new File(TEST_RESOURCE_DIR, "role-role10.xml");
@@ -111,6 +112,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static String USER_LEAD3_OID;
 	protected static String USER_LEAD10_OID;
 	protected static String ROLE_ROLE1_OID;
+	protected static String ROLE_ROLE1A_OID;
 	protected static String ROLE_ROLE2_OID;
 	protected static String ROLE_ROLE3_OID;
 	protected static String ROLE_ROLE10_OID;
@@ -153,6 +155,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 		USER_JACK_OID = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
 		ROLE_ROLE1_OID = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();
+		ROLE_ROLE1A_OID = repoAddObjectFromFile(ROLE_ROLE1A_FILE, initResult).getOid();
 		ROLE_ROLE2_OID = repoAddObjectFromFile(ROLE_ROLE2_FILE, initResult).getOid();
 		ROLE_ROLE3_OID = repoAddObjectFromFile(ROLE_ROLE3_FILE, initResult).getOid();
 		ROLE_ROLE10_OID = repoAddObjectFromFile(ROLE_ROLE10_FILE, initResult).getOid();
@@ -282,7 +285,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			return false;
 		}
 
-		protected boolean decideOnApproval(String executionId) throws Exception {
+		protected Boolean decideOnApproval(String executionId) throws Exception {
 			return true;
 		}
 	}
@@ -378,17 +381,21 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			//String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
 			//WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
 
-			org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().processInstanceId(pid)
-					.singleResult();
-			assertNotNull("activiti task not found", t);
+			List<org.activiti.engine.task.Task> tasks = activitiEngine.getTaskService().createTaskQuery().processInstanceId(pid).list();
 
-			String executionId = t.getExecutionId();
-			display("Execution id = " + executionId);
+			assertFalse("activiti task not found", tasks.isEmpty());
 
-			boolean approve = testDetails.decideOnApproval(executionId);
+			for (org.activiti.engine.task.Task task : tasks) {
+				String executionId = task.getExecutionId();
+				display("Execution id = " + executionId);
+				Boolean approve = testDetails.decideOnApproval(executionId);
+				if (approve != null) {
+					workflowManager.approveOrRejectWorkItem(task.getId(), approve, null, result);
+					login(userAdministrator);
+					break;
+				}
+			}
 
-			workflowManager.approveOrRejectWorkItem(t.getId(), approve, null, result);
-			login(userAdministrator);
 		}
 
 		waitForTaskClose(rootTask, 60000);
@@ -469,9 +476,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected void assertWfContextAfterClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
 			OperationResult result,
 			String objectOid,
-			String[] targetOids,
-			String[] assigneeOids,
-			String[] processNames) throws Exception {
+			List<ExpectedTask> expectedTasks,
+			List<ExpectedWorkItem> expectedWorkItems) throws Exception {
 
 		final Collection<SelectorOptions<GetOperationOptions>> options =
 				SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
@@ -482,35 +488,32 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertTrue("unexpected process instance id in root task",
 				rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getProcessInstanceId() == null);
 
-		assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length,
-				subtasks.size());
+		assertEquals("Wrong # of wf subtasks (" + expectedTasks + ")", expectedTasks.size(), subtasks.size());
 		int i = 0;
 		for (Task subtask : subtasks) {
-			TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result)
-					.asObjectable();
+			TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result).asObjectable();
 			display("Subtask #" + (i + 1) + ": ", subtaskType);
-			checkTask(subtaskType, subtask.toString(), processNames[i++]);
+			checkTask(subtaskType, subtask.toString(), expectedTasks.get(i));
 			assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
+			i++;
 		}
 
-		assertEquals("Wrong # of work items", assigneeOids.length, workItems.size());
+		assertEquals("Wrong # of work items", expectedWorkItems.size(), workItems.size());
 		i = 0;
 		for (WorkItemType workItem : workItems) {
 			display("Work item #" + (i + 1) + ": ", workItem);
 			display("Task ref",
 					workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
 			assertRef("object reference", workItem.getObjectRef(), objectOid, true, true);
-			assertRef("target reference", workItem.getTargetRef(),
-					// we allow single targetOid/processName to cover multiple work items (in case of multiple assignees)
-					targetOids.length > 1 ? targetOids[i] : targetOids[0], true, true);
-			assertRef("assignee reference", workItem.getAssigneeRef(), assigneeOids[i], false,
-					true);     // name is not known, as it is not stored in activiti (only OID is)
+			assertRef("target reference", workItem.getTargetRef(), expectedWorkItems.get(i).targetOid, true, true);
+			assertRef("assignee reference", workItem.getAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
+			// name is not known, as it is not stored in activiti (only OID is)
 			assertRef("task reference", workItem.getTaskRef(), null, false, true);
 			final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
-			checkTask(subtaskType, "task in workItem",
-					processNames.length > 1 ? processNames[i] : processNames[0]);
-			i++;
+			checkTask(subtaskType, "task in workItem", expectedWorkItems.get(i).task);
 			assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
+
+			i++;
 		}
 	}
 
@@ -528,12 +531,17 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 	}
 
-	private void checkTask(TaskType subtaskType, String subtaskName, String processName) {
+	private void checkTask(TaskType subtaskType, String subtaskName, ExpectedTask expectedTask) {
 		assertNull("Unexpected fetch result in wf subtask: " + subtaskName, subtaskType.getFetchResult());
 		WfContextType wfc = subtaskType.getWorkflowContext();
 		assertNotNull("Missing workflow context in wf subtask: " + subtaskName, wfc);
 		assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getProcessInstanceId());
-		assertEquals("Wrong process ID name in subtask: " + subtaskName, processName, wfc.getProcessInstanceName());
+		assertEquals("Wrong process ID name in subtask: " + subtaskName, expectedTask.processName, wfc.getProcessInstanceName());
+		if (expectedTask.targetOid != null) {
+			assertEquals("Wrong target OID in subtask: " + subtaskName, expectedTask.targetOid, wfc.getTargetRef().getOid());
+		} else {
+			assertNull("TargetRef in subtask: " + subtaskName + " present even if it shouldn't", wfc.getTargetRef());
+		}
 		assertNotNull("Missing process start time in subtask: " + subtaskName, wfc.getStartTimestamp());
 		assertNull("Unexpected process end time in subtask: " + subtaskName, wfc.getEndTimestamp());
 		assertEquals("Wrong 'approved' state", null, wfc.isApproved());
@@ -590,6 +598,29 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertEquals("Unexpected target OID", expectedOid, realOid);
 	}
 
+	public class ExpectedTask {
+		final String targetOid;
+		final String processName;
+		final List<ExpectedWorkItem> workItems;
+		public ExpectedTask(String targetOid, String processName) {
+			this.targetOid = targetOid;
+			this.processName = processName;
+			this.workItems = new ArrayList<>();
+		}
+	}
+
+	public class ExpectedWorkItem {
+		final String assigneeOid;
+		final String targetOid;
+		final ExpectedTask task;
+		public ExpectedWorkItem(String assigneeOid, String targetOid,
+				ExpectedTask task) {
+			this.assigneeOid = assigneeOid;
+			this.targetOid = targetOid;
+			this.task = task;
+		}
+	}
+
 	protected abstract class TestDetails2<F extends FocusType> {
 		protected PrismObject<F> getFocus(OperationResult result) throws Exception { return null; }
 		protected ObjectDelta<F> getFocusDelta() throws Exception { return null; }
@@ -598,47 +629,31 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		protected List<ObjectDelta<F>> getExpectedDeltasToApprove() {
 			return null;
 		}
-
 		protected ObjectDelta<F> getExpectedDelta0() {
 			return null;
 		}
-
 		protected String getObjectOid() {
 			return null;
 		}
+		protected List<ExpectedTask> getExpectedTasks() { return null; }
+		protected List<ExpectedWorkItem> getExpectedWorkItems() { return null; }
 
-		protected List<String> getExpectedTargetOids() {
-			return null;
-		}
+		protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception { }
+		protected Boolean decideOnApproval(String executionId) throws Exception { return true; }
 
-		protected List<String> getExpectedAssigneeOids() {
-			return null;
-		}
-
-		protected List<String> getExpectedProcessNames() {
-			return null;
-		}
-
-		protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
-		}
-
-		protected boolean decideOnApproval(String executionId) throws Exception {
-			return true;
-		}
-
-		public void sortSubtasks(List<Task> subtasks) {
+		protected void sortSubtasks(List<Task> subtasks) {
 			Collections.sort(subtasks, (t1, t2) -> getCompareKey(t1).compareTo(getCompareKey(t2)));
 		}
 
-		public void sortWorkItems(List<WorkItemType> workItems) {
+		protected void sortWorkItems(List<WorkItemType> workItems) {
 			Collections.sort(workItems, (w1, w2) -> getCompareKey(w1).compareTo(getCompareKey(w2)));
 		}
 
-		private String getCompareKey(Task task) {
+		protected String getCompareKey(Task task) {
 			return task.getTaskPrismObject().asObjectable().getWorkflowContext().getTargetRef().getOid();
 		}
 
-		private String getCompareKey(WorkItemType workItem) {
+		protected String getCompareKey(WorkItemType workItem) {
 			return workItem.getAssigneeRef().getOid();
 		}
 	}
@@ -679,9 +694,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					testDetails2.sortWorkItems(workItems);
 					assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
 							testDetails2.getObjectOid(),
-							testDetails2.getExpectedTargetOids().toArray(new String[0]),
-							testDetails2.getExpectedAssigneeOids().toArray(new String[0]),
-							testDetails2.getExpectedProcessNames().toArray(new String[0]));
+							testDetails2.getExpectedTasks(), testDetails2.getExpectedWorkItems());
 				}
 			}
 
@@ -709,7 +722,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected boolean decideOnApproval(String executionId) throws Exception {
+			protected Boolean decideOnApproval(String executionId) throws Exception {
 				return testDetails2.decideOnApproval(executionId);
 			}
 		}, expectedSubTaskCount);

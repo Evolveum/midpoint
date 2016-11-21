@@ -247,28 +247,30 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			List<ObjectReferenceType> additionalReviewers = new ArrayList<>();
 			if (BooleanUtils.isTrue(action.isUseDefaultApprovers())) {
 				PrismObject<?> target = newAssignment.getTarget();
-				if (target != null && target.asObjectable() instanceof AbstractRoleType) {
-					AbstractRoleType abstractRole = (AbstractRoleType) target.asObjectable();
-					additionalReviewers.addAll(abstractRole.getApproverRef());
-					additionalReviewers.addAll(findApproversByReference(target, result));
-					action = action.clone();
-					action.getApproverExpression().addAll(abstractRole.getApproverExpression());
-					if (abstractRole.getApprovalSchema() != null) {
-						if (action.getApprovalSchema() == null) {
-							action.setApprovalSchema(abstractRole.getApprovalSchema());
-						} else if (!action.getApprovalSchema().equals(abstractRole.getApprovalSchema())) {
-							throw new IllegalStateException(
-									"Conflicting approval schemas coming from approval policy rule and abstract role "
-											+ abstractRole);
-						}
+				if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
+					continue;
+				}
+				Collection<? extends ObjectReferenceType> approversByReference = findApproversByReference(target, result);
+				AbstractRoleType abstractRole = (AbstractRoleType) target.asObjectable();
+				additionalReviewers.addAll(abstractRole.getApproverRef());
+				additionalReviewers.addAll(approversByReference);
+				action = action.clone();
+				action.getApproverExpression().addAll(abstractRole.getApproverExpression());
+				if (abstractRole.getApprovalSchema() != null) {
+					if (action.getApprovalSchema() == null) {
+						action.setApprovalSchema(abstractRole.getApprovalSchema());
+					} else if (!action.getApprovalSchema().equals(abstractRole.getApprovalSchema())) {
+						throw new IllegalStateException(
+								"Conflicting approval schemas coming from approval policy rule and abstract role "
+										+ abstractRole);
 					}
-					if (abstractRole.getAutomaticallyApproved() != null) {
-						if (action.getAutomaticallyApproved() == null) {
-							action.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
-						} else if (!action.getAutomaticallyApproved().equals(abstractRole.getAutomaticallyApproved())) {
-							throw new IllegalStateException("Conflicting 'automatically approved' expressions coming from approval policy rule and abstract role "
-									+ abstractRole);
-						}
+				}
+				if (abstractRole.getAutomaticallyApproved() != null) {
+					if (action.getAutomaticallyApproved() == null) {
+						action.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
+					} else if (!action.getAutomaticallyApproved().equals(abstractRole.getAutomaticallyApproved())) {
+						throw new IllegalStateException("Conflicting 'automatically approved' expressions coming from approval policy rule and abstract role "
+								+ abstractRole);
 					}
 				}
 			}
