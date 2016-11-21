@@ -14,6 +14,10 @@
   ~ limitations under the License.
   -->
 
-<role oid="00000001-d34d-b33f-f00d-000000000001">
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="00000001-d34d-b33f-f00d-000000000001">
 	<name>Role1</name>
+	<inducement>
+		<targetRef oid="00000001-d34d-b33f-f00d-000000000010" type="RoleType" />
+	</inducement>
 </role>

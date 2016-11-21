@@ -15,14 +15,16 @@
  */
 package com.evolveum.midpoint.wf.impl.policy.plain;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
@@ -50,7 +52,8 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
     protected static final Trace LOGGER = TraceManager.getTrace(TestAssignmentApproval.class);
 
     /**
-     * The simplest case: user modification with one security-sensitive role.
+     * The simplest case: addition of an assignment of single security-sensitive role (Role1).
+	 * Although it induces Role10 membership, it is not a problem, as Role10 approver (Lead10) is not imported yet.
      */
 	@Test
     public void test010AddRole1Assignment() throws Exception {
@@ -58,52 +61,319 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
         TestUtil.displayTestTile(this, TEST_NAME);
         login(userAdministrator);
 
-       	executeTest(TEST_NAME, new TestDetails() {
-            @Override
-            protected boolean executeImmediately() {
-                return false;
-            }
-
-            @Override
-			protected LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
-                fillContextWithUser(context, USER_JACK_OID, result);
-                addFocusDeltaToContext(context,
-						(ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
-							.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE1_OID, ObjectTypes.ROLE, prismContext))
-							.asObjectDelta(USER_JACK_OID));
-                return context;
-            }
-
-            @Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
-                assertNotAssignedRole(USER_JACK_OID, ROLE_ROLE1_OID, rootTask, result);
-                assertWfContextAfterClockworkRun(rootTask, subtasks, result,
-						USER_JACK_OID,
-						new String[] { ROLE_ROLE1_OID },
-						new String[] { USER_LEAD1_OID },
-						"Assigning Role1 to jack");
-            }
-
-            @Override
-			protected void afterRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedRole(USER_JACK_OID, ROLE_ROLE1_OID, rootTask, result);
-                checkWorkItemAuditRecords(createResultMap(ROLE_ROLE1_OID, WorkflowResult.APPROVED));
-                checkUserApprovers(USER_JACK_OID, Collections.singletonList(USER_LEAD1_OID), result);
-                assertWfContextAfterRootTaskFinishes(rootTask, subtasks, result, "Assigning Role1 to jack");
-            }
-
-            @Override
-            protected boolean decideOnApproval(String executionId) throws Exception {
-				login(getUser(USER_LEAD1_OID));
-                return true;
-            }
-        }, 1);
+		executeAssignRole1ToJack(TEST_NAME, false);
 	}
 
-//
+	/**
+	 * Removing recently added assignment of single security-sensitive role. Should execute without approval (for now).
+	 */
+	@Test
+	public void test020DeleteRole1Assignment() throws Exception {
+		final String TEST_NAME = "test020DeleteRole1Assignment";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createUserAccountContext();
+		fillContextWithUser(context, USER_JACK_OID, result);
+		addFocusDeltaToContext(context,
+				(ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+						.item(UserType.F_ASSIGNMENT).delete(createAssignmentTo(ROLE_ROLE1_OID, ObjectTypes.ROLE, prismContext))
+						.asObjectDelta(USER_JACK_OID));
+		clockwork.run(context, task, result);
+
+		assertEquals("Wrong context state", ModelState.FINAL, context.getState());
+		TestUtil.assertSuccess(result);
+		assertNotAssignedRole(getUser(USER_JACK_OID), ROLE_ROLE1_OID, task, result);
+	}
+
+	/**
+	 * Repeating test010; this time with Lead10 present. So we are approving an assignment of single security-sensitive role (Role1),
+	 * that induces another security-sensitive role (Role10). Because of current implementation constraints, only the first assignment
+	 * should be brought to approval.
+	 */
+	@Test
+	public void test030AddRole1AssignmentAgain() throws Exception {
+		final String TEST_NAME = "test030AddRole1AssignmentAgain";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		importLead10(task, task.getResult());
+
+		executeAssignRole1ToJack(TEST_NAME, false);
+	}
+
+	@Test
+	public void test040AddRole1AssignmentImmediate() throws Exception {
+		final String TEST_NAME = "test040AddRole1AssignmentImmediate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRole1ToJack(TEST_NAME, true);
+	}
+
+	@Test
+	public void test050AddRoles123AssignmentNNN() throws Exception {
+		final String TEST_NAME = "test050AddRoles123AssignmentNNN";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRoles123ToJack(TEST_NAME, false, false, false, false);
+	}
+
+	@Test
+ 	public void test052AddRoles123AssignmentNNNImmediate() throws Exception {
+		final String TEST_NAME = "test052AddRoles123AssignmentNNNImmediate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRoles123ToJack(TEST_NAME, true, false, false, false);
+	}
+
+	@Test
+	public void test060AddRoles123AssignmentYNN() throws Exception {
+		final String TEST_NAME = "test060AddRoles123AssignmentYNN";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRoles123ToJack(TEST_NAME, false, true, false, false);
+	}
+
+	@Test
+	public void test062AddRoles123AssignmentYNNImmediate() throws Exception {
+		final String TEST_NAME = "test062AddRoles123AssignmentYNNImmediate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRoles123ToJack(TEST_NAME, true, true, false, false);
+	}
+
+	@Test
+	public void test070AddRoles123AssignmentYYY() throws Exception {
+		final String TEST_NAME = "test070AddRoles123AssignmentYYY";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRoles123ToJack(TEST_NAME, false, true, true, true);
+	}
+
+	@Test
+	public void test072AddRoles123AssignmentYYYImmediate() throws Exception {
+		final String TEST_NAME = "test072AddRoles123AssignmentYYYImmediate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(USER_JACK_OID);
+		executeAssignRoles123ToJack(TEST_NAME, true, true, true, true);
+	}
+
+	private void executeAssignRole1ToJack(String TEST_NAME, boolean immediate) throws Exception {
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE1_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(USER_JACK_OID);
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jack.clone();
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
+				return addRole1Delta.clone();
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 1;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return Collections.singletonList(true);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return Collections.singletonList(addRole1Delta.clone());
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return jack.getOid();
+			}
+
+			@Override
+			protected List<String> getExpectedTargetOids() {
+				return Collections.singletonList(ROLE_ROLE1_OID);
+			}
+
+			@Override
+			protected List<String> getExpectedAssigneeOids() {
+				return Collections.singletonList(USER_LEAD1_OID);
+			}
+
+			@Override
+			protected List<String> getExpectedProcessNames() {
+				return Collections.singletonList("Assigning Role1 to jack");
+			}
+
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				if (number == 1) {
+					if (yes) {
+						assertAssignedRole(USER_JACK_OID, ROLE_ROLE1_OID, rootTask, result);
+						checkWorkItemAuditRecords(createResultMap(ROLE_ROLE1_OID, WorkflowResult.APPROVED));
+						checkUserApprovers(USER_JACK_OID, Collections.singletonList(USER_LEAD1_OID), result);
+					} else {
+						assertNotAssignedRole(USER_JACK_OID, ROLE_ROLE1_OID, rootTask, result);
+					}
+				}
+			}
+
+			@Override
+			protected boolean decideOnApproval(String executionId) throws Exception {
+				checkTargetOid(executionId, ROLE_ROLE1_OID);
+				login(getUser(USER_LEAD1_OID));
+				return true;
+			}
+		}, 1, immediate);
+	}
+
+	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve1, boolean approve2, boolean approve3) throws Exception {
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE1_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(USER_JACK_OID);
+		ObjectDelta<UserType> addRole2Delta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE2_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(USER_JACK_OID);
+		ObjectDelta<UserType> addRole3Delta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE3_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(USER_JACK_OID);
+		ObjectDelta<UserType> changeDescriptionDelta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
+				.asObjectDelta(USER_JACK_OID);
+		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addRole1Delta, addRole2Delta, addRole3Delta, changeDescriptionDelta);
+		String originalDescription = getUser(USER_JACK_OID).asObjectable().getDescription();
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jack.clone();
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
+				return primaryDelta.clone();
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 3;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return Arrays.asList(approve1, approve2, approve3);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return Arrays.asList(addRole1Delta.clone(), addRole2Delta.clone(), addRole3Delta.clone());
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return changeDescriptionDelta.clone();
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return jack.getOid();
+			}
+
+			@Override
+			protected List<String> getExpectedTargetOids() {
+				return Arrays.asList(ROLE_ROLE1_OID, ROLE_ROLE2_OID, ROLE_ROLE3_OID);
+			}
+
+			@Override
+			protected List<String> getExpectedAssigneeOids() {
+				return Arrays.asList(USER_LEAD1_OID, USER_LEAD2_OID, USER_LEAD3_OID);
+			}
+
+			@Override
+			protected List<String> getExpectedProcessNames() {
+				return Arrays.asList("Assigning Role1 to jack", "Assigning Role2 to jack", "Assigning Role3 to jack");
+			}
+
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				String rolesOids[] = { ROLE_ROLE1_OID, ROLE_ROLE2_OID, ROLE_ROLE3_OID };
+				switch(number) {
+					case 0:
+						if (yes) {
+							assertUserProperty(USER_JACK_OID, UserType.F_DESCRIPTION, TEST_NAME);
+						} else {
+							if (originalDescription != null) {
+								assertUserProperty(USER_JACK_OID, UserType.F_DESCRIPTION, originalDescription);
+							} else {
+								assertUserNoProperty(USER_JACK_OID, UserType.F_DESCRIPTION);
+							}
+						}
+						break;
+					case 1:
+					case 2:
+					case 3:
+					if (yes) {
+						assertAssignedRole(USER_JACK_OID, rolesOids[number-1], rootTask, result);
+					} else {
+						assertNotAssignedRole(USER_JACK_OID, rolesOids[number-1], rootTask, result);
+					}
+					break;
+
+				}
+			}
+
+			@Override
+			protected boolean decideOnApproval(String executionId) throws Exception {
+				String targetOid = getTargetOid(executionId);
+				if (ROLE_ROLE1_OID.equals(targetOid)) {
+					login(getUser(USER_LEAD1_OID));
+					return approve1;
+				} else if (ROLE_ROLE2_OID.equals(targetOid)) {
+					login(getUser(USER_LEAD2_OID));
+					return approve2;
+				} else if (ROLE_ROLE3_OID.equals(targetOid)) {
+					login(getUser(USER_LEAD3_OID));
+					return approve3;
+				} else {
+					throw new IllegalStateException("Unexpected approval request for " + targetOid);
+				}
+			}
+		}, 3, immediate);
+	}
+
+	//
 //    /**
 //     * User modification with one security-sensitive role and other (unrelated) change - e.g. change of the given name.
 //     * Aggregated execution.

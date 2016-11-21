@@ -361,13 +361,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertUserProperty(user, propertyName, expectedPropValues);
 	}
-	
+
+	protected void assertUserNoProperty(String userOid, QName propertyName) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("getObject");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		assertUserNoProperty(user, propertyName);
+	}
+
 	protected void assertUserProperty(PrismObject<UserType> user, QName propertyName, Object... expectedPropValues) {
 		PrismProperty<Object> property = user.findProperty(propertyName);
 		assert property != null : "No property "+propertyName+" in "+user;  
 		PrismAsserts.assertPropertyValue(property, expectedPropValues);
 	}
 	
+	protected void assertUserNoProperty(PrismObject<UserType> user, QName propertyName) {
+		PrismProperty<Object> property = user.findProperty(propertyName);
+		assert property == null : "Property "+propertyName+" present in "+user+": "+property;
+	}
+
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
 		assertLinked(UserType.class, userOid, accountOid);
 	}

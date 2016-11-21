@@ -14,14 +14,14 @@
   ~ limitations under the License.
   -->
 
-<user oid="00000001-d34d-b33f-f00d-L00000000001">
-	<name>lead1</name>
+<user oid="00000001-d34d-b33f-f00d-L00000000003">
+	<name>lead3</name>
 	<assignment> <!-- superuser -->
 		<targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/>
 	</assignment>
-	<assignment> <!-- role1 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000001" type="RoleType" relation="approver"/>
+	<assignment> <!-- role3 -->
+		<targetRef oid="00000001-d34d-b33f-f00d-000000000003" type="RoleType" relation="approver"/>
 	</assignment>
-	<fullName>Lead1</fullName>
-	<familyName>Lead1</familyName>
+	<fullName>Lead3</fullName>
+	<familyName>Lead3</familyName>
 </user>
