@@ -7174,6 +7174,10 @@
 							<xsd:documentation>
 								Description of operation during the processing of account failed. 
 							</xsd:documentation>
+							 <xsd:appinfo>
+		                    	<a:displayName>ShadowType.failedOperationType</a:displayName>
+		                    	<a:emphasized>true</a:emphasized>
+		                    </xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="dead" type="xsd:boolean" minOccurs="0">
@@ -7181,6 +7185,10 @@
 							<xsd:documentation>
 								Description of operation during the processing of account failed. 
 							</xsd:documentation>
+							<xsd:appinfo>
+		                    	<a:displayName>ShadowType.dead</a:displayName>
+		                    	<a:emphasized>true</a:emphasized>
+		                    </xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="synchronizationSituation" type="tns:SynchronizationSituationType" minOccurs="0">
@@ -7191,6 +7199,10 @@
 								It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
 								property.
 							</xsd:documentation>
+							 <xsd:appinfo>
+		                    	<a:displayName>ShadowType.synchronizationSituation</a:displayName>
+		                    	<a:emphasized>true</a:emphasized>
+		                    </xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="synchronizationTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -7230,6 +7242,10 @@
                                 comply with the type definition specified in this element (with addition of
                                 auxiliary object class definitions).
                             </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>ShadowType.objectClass</a:displayName>
+		                    	<a:emphasized>true</a:emphasized>
+		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -7260,6 +7276,10 @@
                                 The intended usage type or purpose of the object. E.g. for accounts it may be
                                 "user", "admin", "test".
                             </xsd:documentation>
+                            <xsd:appinfo>
+		                    	<a:displayName>ShadowType.intent</a:displayName>
+		                    	<a:emphasized>true</a:emphasized>
+		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="protectedObject" type="xsd:boolean" minOccurs="0" default="false">
