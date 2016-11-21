@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="0a0ac150-af3d-11e6-9901-67fbcbd5bb25"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Bloody Fool</name>
+    <assignment>
+    	<!-- Fool metarole -->
+        <targetRef oid="2edc5fe4-af3c-11e6-a81e-eb332578ec4f" type="RoleType"/>
+    </assignment>
+</role>
