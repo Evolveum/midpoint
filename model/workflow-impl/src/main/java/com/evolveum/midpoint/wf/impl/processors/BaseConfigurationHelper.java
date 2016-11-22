@@ -76,11 +76,11 @@ public class BaseConfigurationHelper {
         return systemConfigurationTypePrismObject.asObjectable().getWorkflowConfiguration();
     }
 
-    public DefaultApprovalPolicyApplicationStrategyType getDefaultPolicyApplicationStrategy(WfConfigurationType wfConfiguration) {
-        if (wfConfiguration == null || wfConfiguration.getApplyDefaultPolicy() == null) {
-            return DefaultApprovalPolicyApplicationStrategyType.IF_NOT_PRESENT;
+    public LegacyApproversSpecificationUsageType getUseLegacyApproversSpecification(WfConfigurationType wfConfiguration) {
+        if (wfConfiguration == null || wfConfiguration.getUseLegacyApproversSpecification() == null) {
+            return LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION;
         } else {
-            return wfConfiguration.getApplyDefaultPolicy();
+            return wfConfiguration.getUseLegacyApproversSpecification();
         }
     }
 

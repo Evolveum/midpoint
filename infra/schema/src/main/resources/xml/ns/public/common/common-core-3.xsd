@@ -7782,6 +7782,10 @@
 	                                May be used with approverRef element(s).
                                 </p>
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.5</a:deprecatedSince>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
@@ -7792,6 +7796,10 @@
 	                                approverRef and approverExpression elements.
                                 </p>
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.5</a:deprecatedSince>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approvalProcess" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -7809,6 +7817,10 @@
                                     THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
                                 </p>
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.5</a:deprecatedSince>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
@@ -7819,6 +7831,10 @@
 	                                from Board of Directors"). This is an expression that should yield a boolean value.
                                 </p>
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.5</a:deprecatedSince>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
@@ -8391,11 +8407,28 @@
                     <xsd:documentation>
                         Instruction to approve something, by a user (if this points to a User object) or
                         by someone from a group of users (if this points to a Org object; representing
-                        all users that belong to that OU).
+                        all users that belong to that organization).
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.5</a:deprecatedSince>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							What relation(s) to use when determining approvers? E.g. "approver", "owner",
+							"securityApprover", and so on.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Dynamically specifies approver(s). If specified, the expression(s) are evaluated and the result
@@ -8894,70 +8927,59 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
-						<xsd:element name="useDefaultApprovers" type="xsd:boolean" minOccurs="0">
+						<xsd:choice>
+							<xsd:sequence>
+								<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+									<xsd:annotation>
+										<xsd:documentation>
+											<p>
+												What relation(s) to use when determining approvers? E.g. "approver", "owner",
+												"securityApprover", and so on.
+											</p>
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+									<xsd:annotation>
+										<xsd:documentation>
+											<p>
+												Expression(s) that yield approvers to be used. If specified, the expression(s) are evaluated and
+												the result is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
+												May be used with approverRelation element(s).
+											</p>
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:element>
+							</xsd:sequence>
+							<xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
+								<xsd:annotation>
+									<xsd:documentation>
+										<p>
+											More complex (multi-level) approval schema.
+										</p>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<xsd:element name="approvalProcess" type="xsd:string"
+										 minOccurs="0" maxOccurs="1">
+								<xsd:annotation>
+									<xsd:documentation>
+										<p>
+											Name of custom approval process.
+										</p>
+										<p>
+											THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
+										</p>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:choice>
+						<xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
 							<xsd:annotation>
 								<xsd:documentation>
 									<p>
-										Whether to use default approvers for the given assignment target (if applicable).
-										Default approvers are determined by the objects bound to the target via "approver"
-										relation.
-										TODO what about objects and their owners?
-									</p>
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-						<xsd:element name="approverExpression" type="c:ExpressionType"
-							minOccurs="0" maxOccurs="unbounded">
-							<xsd:annotation>
-								<xsd:documentation>
-									<p>
-										Approvers for this role. If specified, the expression(s) are evaluated and
-										the result
-										is used as a set of approvers (UserType, OrgType, RoleType, or any
-										combination of them).
-										May be used with approverRef element(s).
-									</p>
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-						<xsd:element name="approvalSchema" type="c:ApprovalSchemaType"
-							minOccurs="0" maxOccurs="1">
-							<xsd:annotation>
-								<xsd:documentation>
-									<p>
-										More complex (multi-level) approval schema. If used, it overrides
-										both
-										approverRef and approverExpression elements.
-									</p>
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-						<xsd:element name="approvalProcess" type="xsd:string"
-							minOccurs="0" maxOccurs="1">
-							<xsd:annotation>
-								<xsd:documentation>
-									<p>
-										Name of custom approval process. If used, it overrides
-										approverRef, approverExpression, and approvalSchema elements.
-									</p>
-									<p>
-										For explicitness, only one of approverRef(s)/approverExpression(s),
-										approvalSchema and approvalProcess should be specified.
-									</p>
-									<p>
-										THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
-									</p>
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-						<xsd:element name="automaticallyApproved" type="c:ExpressionType"
-							minOccurs="0" maxOccurs="1">
-							<xsd:annotation>
-								<xsd:documentation>
-									<p>
-										Condition specifying when the assignment is automatically approved (e.g.
-										"user is
-										from Board of Directors"). This is an expression that should yield a
+										Condition specifying when the approval is automatically granted (e.g.
+										"user is from Board of Directors"). This is an expression that should yield a
 										boolean value.
 									</p>
 								</xsd:documentation>

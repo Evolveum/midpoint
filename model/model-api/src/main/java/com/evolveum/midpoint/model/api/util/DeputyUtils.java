@@ -41,20 +41,12 @@ public class DeputyUtils {
 		return QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY);
 	}
 
-	// temporary implementation
 	@NotNull
 	public static Collection<PrismReferenceValue> getDelegatorReferences(@NotNull UserType user) {
-		List<PrismReferenceValue> rv = new ArrayList<>();
-		for (AssignmentType assignment : user.getAssignment()) {
-			if (assignment.getTargetRef() != null
-					&& isDelegationRelation(assignment.getTargetRef().getRelation())
-					&& (assignment.getActivation() == null
-					|| assignment.getActivation().getEffectiveStatus() == null
-					|| assignment.getActivation().getEffectiveStatus() == ActivationStatusType.ENABLED)) {
-				rv.add(assignment.getTargetRef().asReferenceValue().clone());
-			}
-		}
-		return rv;
+		return user.getDelegatedRef().stream()
+				.filter(ref -> isDelegationRelation(ref.getRelation()))
+				.map(ref -> ref.asReferenceValue().clone())
+				.collect(Collectors.toList());
 	}
 
 	@NotNull

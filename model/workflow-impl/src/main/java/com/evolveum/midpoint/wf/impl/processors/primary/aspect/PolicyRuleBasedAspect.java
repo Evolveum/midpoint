@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationIn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.velocity.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,7 +110,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		ObjectDelta<? extends ObjectType> focusDelta = objectTreeDeltas.getFocusChange();
 
-		DefaultApprovalPolicyApplicationStrategyType applyDefaultPolicy = baseConfigurationHelper.getDefaultPolicyApplicationStrategy(wfConfigurationType);
+		LegacyApproversSpecificationUsageType configuredUseLegacyApprovers = baseConfigurationHelper.getUseLegacyApproversSpecification(wfConfigurationType);
 
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) modelContext).getEvaluatedAssignmentTriple();
 		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
@@ -132,18 +132,24 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				}
 				approvalActions.add(rule.getActions().getApproval());
 			}
-			if (applyDefaultPolicy == DefaultApprovalPolicyApplicationStrategyType.ALWAYS
-					|| (applyDefaultPolicy == DefaultApprovalPolicyApplicationStrategyType.IF_NO_OTHER && approvalActions.isEmpty())
-					|| (applyDefaultPolicy == DefaultApprovalPolicyApplicationStrategyType.IF_NOT_PRESENT && !containsDefault(approvalActions))) {
+			if (newAssignment.getTarget() == null) {
+				if (!approvalActions.isEmpty()) {
+					throw new IllegalStateException("No target in " + newAssignment + ", but with "
+							+ approvalActions.size() + " approval action(s)");
+				} else {
+					continue;
+				}
+			}
+			boolean noExplicitApprovalAction = approvalActions.isEmpty();
+			if (noExplicitApprovalAction) {
 				ApprovalPolicyActionType defaultPolicyAction = new ApprovalPolicyActionType(prismContext);
-				defaultPolicyAction.setUseDefaultApprovers(true);
-				approvalActions.add(0, defaultPolicyAction);		// it is logical to place default processing at the beginning
+				defaultPolicyAction.getApproverRelation().add(SchemaConstants.ORG_APPROVER);
+				approvalActions.add(defaultPolicyAction);
 			}
-			if (approvalActions.isEmpty()) {
-				LOGGER.trace("This assignment hasn't triggered approval actions, continuing with a next one.");
-				continue;
-			}
-			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions, result);
+			boolean useLegacy = configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.ALWAYS
+					|| configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION
+							&& noExplicitApprovalAction;
+			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions, useLegacy, result);
 			if (!request.getApprovalSchema().isEmpty()) {
 				PrismContainerValue<AssignmentType> assignmentValue = newAssignment.getAssignmentType().asPrismContainerValue();
 				boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue);
@@ -162,10 +168,6 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 								result));
 			}
 		}
-	}
-
-	private boolean containsDefault(List<ApprovalPolicyActionType> approvalActions) {
-		return approvalActions.stream().anyMatch(a -> Boolean.TRUE.equals(a.isUseDefaultApprovers()));
 	}
 
 	private void extractObjectBasedInstructions(@NotNull LensContext<?> modelContext,
@@ -241,46 +243,35 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	}
 
 	private ApprovalRequest<AssignmentType> createAssignmentApprovalRequest(EvaluatedAssignment<?> newAssignment,
-			List<ApprovalPolicyActionType> approvalActions, OperationResult result) throws SchemaException {
+			List<ApprovalPolicyActionType> approvalActions, boolean useLegacyApprovers,
+			OperationResult result) throws SchemaException {
+		PrismObject<?> target = newAssignment.getTarget();
+		if (target == null) {
+			throw new IllegalStateException("No target in " + newAssignment);
+		}
 		ApprovalSchemaType approvalSchema = null;
-		for (ApprovalPolicyActionType action : approvalActions) {
-			List<ObjectReferenceType> additionalReviewers = new ArrayList<>();
-			if (BooleanUtils.isTrue(action.isUseDefaultApprovers())) {
-				PrismObject<?> target = newAssignment.getTarget();
-				if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
-					continue;
-				}
-				Collection<? extends ObjectReferenceType> approversByReference = findApproversByReference(target, result);
-				AbstractRoleType abstractRole = (AbstractRoleType) target.asObjectable();
-				additionalReviewers.addAll(abstractRole.getApproverRef());
-				additionalReviewers.addAll(approversByReference);
-				action = action.clone();
-				action.getApproverExpression().addAll(abstractRole.getApproverExpression());
-				if (abstractRole.getApprovalSchema() != null) {
-					if (action.getApprovalSchema() == null) {
-						action.setApprovalSchema(abstractRole.getApprovalSchema());
-					} else if (!action.getApprovalSchema().equals(abstractRole.getApprovalSchema())) {
-						throw new IllegalStateException(
-								"Conflicting approval schemas coming from approval policy rule and abstract role "
-										+ abstractRole);
-					}
-				}
-				if (abstractRole.getAutomaticallyApproved() != null) {
-					if (action.getAutomaticallyApproved() == null) {
-						action.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
-					} else if (!action.getAutomaticallyApproved().equals(abstractRole.getAutomaticallyApproved())) {
-						throw new IllegalStateException("Conflicting 'automatically approved' expressions coming from approval policy rule and abstract role "
-								+ abstractRole);
-					}
-				}
+		if (useLegacyApprovers && target.asObjectable() instanceof AbstractRoleType) {
+			AbstractRoleType abstractRole = (AbstractRoleType) target.asObjectable();
+			if (abstractRole.getApprovalSchema() != null) {
+				approvalSchema = abstractRole.getApprovalSchema().clone();
+			} else if (!abstractRole.getApproverRef().isEmpty() || !abstractRole.getApproverExpression().isEmpty()) {
+				approvalSchema = new ApprovalSchemaType(prismContext);
+				ApprovalLevelType level = new ApprovalLevelType(prismContext);
+				level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverRef()));
+				level.getApproverExpression().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverExpression()));
+				level.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
+				level.setOrder(1);
+				approvalSchema.getLevel().add(level);
 			}
-			approvalSchema = addApprovalActionIntoApprovalSchema(approvalSchema, action, additionalReviewers);
+		}
+		for (ApprovalPolicyActionType action : approvalActions) {
+			approvalSchema = addApprovalActionIntoApprovalSchema(approvalSchema, action, findApproversByReference(target, result));
 		}
 		assert approvalSchema != null;
 		return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext);
 	}
 
-	private Collection<? extends ObjectReferenceType> findApproversByReference(PrismObject<?> target, OperationResult result)
+	private List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, OperationResult result)
 			throws SchemaException {
 		PrismReferenceValue approverReference = new PrismReferenceValue(target.getOid());
 		approverReference.setRelation(SchemaConstants.ORG_APPROVER);

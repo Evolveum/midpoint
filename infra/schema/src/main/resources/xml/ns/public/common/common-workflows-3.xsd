@@ -76,10 +76,12 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="applyDefaultPolicy" minOccurs="0" type="tns:DefaultApprovalPolicyApplicationStrategyType">
+            <xsd:element name="useLegacyApproversSpecification" minOccurs="0" type="tns:LegacyApproversSpecificationUsageType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to apply default approval policy (if at all). Default value is "ifNotPresent".
+                        How to deal with legacy approvers specifications, i.e. approvalRef, approvalExpression, approvalSchema,
+                        automaticallyApproved items in AbstractRoleType? The default is "ifNoExplicitApprovalPolicyAction", that
+                        means these items are applied only if no explicit approval policy action is encountered.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -88,10 +90,11 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="DefaultApprovalPolicyApplicationStrategyType">
+    <xsd:simpleType name="LegacyApproversSpecificationUsageType">
         <xsd:annotation>
             <xsd:documentation>
-                How to apply default approval policy.
+                How to deal with legacy approvers specifications, i.e. approvalRef, approvalExpression, approvalSchema,
+                automaticallyApproved items in AbstractRoleType?
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -101,7 +104,7 @@
             <xsd:enumeration value="never">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The default approval policy is never applied.
+                        The legacy approvers specification is never used.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NEVER"/>
@@ -111,30 +114,21 @@
             <xsd:enumeration value="always">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The default approval policy is always applied.
+                        The legacy approvers specification is always used. It is used before any other (policy-based) approval actions.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ALWAYS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="ifNoOther">
+            <xsd:enumeration value="ifNoExplicitApprovalPolicyAction">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The default approval policy is applied only if no other approval policy is applicable.
+                        The legacy approvers specification is used if there's no explicit approval policy applicable to a given
+                        target.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="IF_NO_OTHER"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="ifNotPresent">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The default approval policy is applied only if there's no approval policy with 'use default approvers' flag set.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="IF_NOT_PRESENT"/>
+                        <jaxb:typesafeEnumMember name="IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
