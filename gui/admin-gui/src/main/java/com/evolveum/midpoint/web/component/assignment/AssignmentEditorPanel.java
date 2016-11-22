@@ -130,6 +130,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_ORG_CHOOSER = "orgRefChooser";
 	private static final String ID_BUTTON_SHOW_MORE = "errorLink";
 	private static final String ID_ERROR_ICON = "errorIcon";
+	private static final String ID_METADATA_CONTAINER = "metadataContainer";
 
 	private IModel<List<ACAttributeDto>> attributesModel;
 	protected WebMarkupContainer headerRow;
@@ -538,6 +539,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		showEmpty.add(showEmptyLabel);
 
 		initAttributesLayout(constructionContainer);
+
+		MetadataPanel metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new AbstractReadOnlyModel<MetadataType>() {
+			@Override
+			public MetadataType getObject() {
+				return getModel().getObject().getOldValue().getValue().getMetadata();
+			}
+		});
+		metadataPanel.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible(){
+				return !UserDtoStatus.ADD.equals(getModel().getObject().getStatus());
+			}
+		});
+		body.add(metadataPanel);
 
 		addAjaxOnUpdateBehavior(body);
 	}
