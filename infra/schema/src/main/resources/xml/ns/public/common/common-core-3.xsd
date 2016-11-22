@@ -2031,16 +2031,20 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                  References to abstract roles (roles and orgs) that this focus currently belongs to - directly
+                                  References to abstract roles (roles, orgs, services) that this focus currently belongs to - directly
                                   or indirectly. This reference points to all the roles in the role hierarchy. It only points to
-                                  the roles that were evaluted as active during last recompute (conditions were true, validity
-                                  constaints not violated).
+                                  the roles that were evaluated as active during last recompute (conditions were true, validity
+                                  constraints not violated).
                                 </p>
                                 <p>
                                   Note: the value of this reference is only updated when a focal object is recomputed.
                                   Therefore if a role definition changes then all the affected focal objects must be recomputed
                                   for this reference to be consistent.
                                 </p>
+								<p>
+								  Roles mentioned here are those that are NOT obtained via delegation, i.e. "deputy" relations.
+								  Relations acquired by delegation are listed in delegatedRef item.
+								</p>
                                 <p>
                                   This is an operational property. It is set and managed by the system. It is used
                                   for efficient search of all current role members, e.g. for the purpose of displaying this
@@ -2050,6 +2054,28 @@
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
                     			<a:operational>true</a:operational>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="delegatedRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+									References to objects (abstract roles as well as users) obtained via delegation.
+									If A1 is a deputy of A, its delegatedRef contains a union of A.roleMembershipRef and
+									A.delegatedRef.
+								</p>
+                                <p>
+									This is an operational property. It is set and managed by the system. It is used
+									for efficient search of all current role members, e.g. for the purpose of displaying this
+									information in the GUI.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    			<a:operational>true</a:operational>
+								<a:since>3.5</a:since>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
