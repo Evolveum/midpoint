@@ -70,7 +70,7 @@ public class SearchFactory {
         SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
                 new ItemPath(ServiceType.F_NAME),
                 new ItemPath(ServiceType.F_SERVICE_TYPE),
-                new ItemPath(ServiceType.F_LOCALITY)));
+                new ItemPath(ServiceType.F_URL)));
         SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
                 new ItemPath(ConnectorHostType.F_HOSTNAME)
         ));
@@ -80,12 +80,12 @@ public class SearchFactory {
                 new ItemPath(ConnectorType.F_CONNECTOR_TYPE)
         ));
         SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
-                new ItemPath(RoleType.F_REQUESTABLE)
+        		new ItemPath(AbstractRoleType.F_IDENTIFIER),
+                new ItemPath(AbstractRoleType.F_REQUESTABLE)
         ));
         SEARCHABLE_OBJECTS.put(OrgType.class, Arrays.asList(
                 new ItemPath(OrgType.F_DISPLAY_NAME),
                 new ItemPath(OrgType.F_COST_CENTER),
-                new ItemPath(OrgType.F_IDENTIFIER),
                 new ItemPath(OrgType.F_ORG_TYPE),
                 new ItemPath(OrgType.F_TENANT),
                 new ItemPath(OrgType.F_LOCALITY)
@@ -104,6 +104,7 @@ public class SearchFactory {
                 new ItemPath(ShadowType.F_DEAD),
                 new ItemPath(ShadowType.F_INTENT),
                 new ItemPath(ShadowType.F_EXISTS),
+                new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION),
                 new ItemPath(ShadowType.F_FAILED_OPERATION_TYPE)
         ));
         SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
