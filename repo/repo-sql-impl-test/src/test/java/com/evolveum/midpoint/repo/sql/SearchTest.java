@@ -220,6 +220,30 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void delegatedSearchTest() throws Exception {
+        PrismReferenceValue r789 = new PrismReferenceValue("r789", RoleType.COMPLEX_TYPE);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_DELEGATED_REF).ref(r789)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one user", 1, users.size());
+        assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
+
+        PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_DELEGATED_REF).ref(r123)
+                .build();
+        users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find no users", 0, users.size());
+    }
+
+
+    @Test
     public void assignmentOrgRefSearchTest() throws Exception {
         PrismReferenceValue o123456 = new PrismReferenceValue("o123456", OrgType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)

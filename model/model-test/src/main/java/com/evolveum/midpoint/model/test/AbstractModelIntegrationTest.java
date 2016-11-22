@@ -1463,6 +1463,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismAsserts.assertSets("Wrong values in roleMembershipRef in "+focus, refOids, roleOids);
 	}
 
+	protected <F extends FocusType> void assertDelegatedRef(PrismObject<F> focus, String... oids) {
+		List<String> refOids = new ArrayList<>();
+		for (ObjectReferenceType ref: focus.asObjectable().getDelegatedRef()) {
+			refOids.add(ref.getOid());
+			assertNotNull("Missing type in delegatedRef "+ref.getOid()+" in "+focus, ref.getType());
+		}
+		PrismAsserts.assertSets("Wrong values in delegatedRef in "+focus, refOids, oids);
+	}
+
     protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
         MidPointAsserts.assertNotAssignedRole(focus, roleOid);
     }
@@ -2462,6 +2471,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)) != null) {
 			expectedModifications++;
 		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_DELEGATED_REF)) != null) {
+			expectedModifications++;
+		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
 			expectedModifications++;
 		}
@@ -2498,6 +2510,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_DELEGATED_REF)) != null) {
 			expectedModifications++;
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {

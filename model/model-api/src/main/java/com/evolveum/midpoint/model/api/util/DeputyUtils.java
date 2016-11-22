@@ -67,4 +67,10 @@ public class DeputyUtils {
 	public static boolean isDelegationPresent(@NotNull UserType deputy, @NotNull String delegatorOid) {
 		return getDelegatorOids(deputy).contains(delegatorOid);
 	}
+
+	public static boolean isDelegationAssignment(AssignmentType assignment) {
+		return assignment != null
+				&& assignment.getTargetRef() != null
+				&& isDelegationRelation(assignment.getTargetRef().getRelation());
+	}
 }

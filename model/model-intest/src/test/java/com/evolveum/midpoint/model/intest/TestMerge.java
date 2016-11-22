@@ -152,7 +152,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(leftObjectdelta, 
         		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ROLE_MEMBERSHIP_REF);
-        
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_DELEGATED_REF);
+
         PrismAsserts.assertContainerAdd(leftObjectdelta, UserType.F_ASSIGNMENT, 
         		FocusTypeUtil.createRoleAssignment(ROLE_THIEF_OID));
         
@@ -267,7 +268,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(delta, 
         		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ROLE_MEMBERSHIP_REF);
-        
+        PrismAsserts.assertNoItemDelta(delta, UserType.F_DELEGATED_REF);
+
         PrismAsserts.assertContainerAdd(delta, UserType.F_ASSIGNMENT, 
         		FocusTypeUtil.createRoleAssignment(ROLE_PIRATE_OID),
         		FocusTypeUtil.createRoleAssignment(ROLE_NICE_PIRATE_OID));
@@ -377,7 +379,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(delta, 
         		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ROLE_MEMBERSHIP_REF);
-        
+        PrismAsserts.assertNoItemDelta(delta, UserType.F_DELEGATED_REF);
+
         PrismAsserts.assertContainerAdd(delta, UserType.F_ASSIGNMENT, 
         		FocusTypeUtil.createRoleAssignment(ROLE_THIEF_OID));        
 	}
@@ -482,7 +485,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(leftObjectdelta, 
         		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ROLE_MEMBERSHIP_REF);
-        
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_DELEGATED_REF);
+
         PrismAsserts.assertContainerAdd(leftObjectdelta, UserType.F_ASSIGNMENT, 
         		FocusTypeUtil.createRoleAssignment(ROLE_THIEF_OID));
         

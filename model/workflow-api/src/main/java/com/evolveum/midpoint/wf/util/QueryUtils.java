@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * @author mederly
@@ -70,9 +71,8 @@ public class QueryUtils {
 		} catch (ObjectNotFoundException e) {
 			return rv;
 		}
-		for (ObjectReferenceType ref : userType.getRoleMembershipRef()) {
-			rv.add(ref.clone().asReferenceValue());
-		}
+		userType.getRoleMembershipRef().forEach(ref -> rv.add(ref.clone().asReferenceValue()));
+		userType.getDelegatedRef().forEach(ref -> rv.add(ref.clone().asReferenceValue()));
 		return rv;
 	}
 

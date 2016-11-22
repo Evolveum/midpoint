@@ -280,6 +280,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertCreateMetadata(assignmentType, startTs, endTs);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Caribbean");
@@ -322,6 +323,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -350,6 +352,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedNoRole(userAfter, task, result);
         assertRoleMembershipRef(userAfter);
+		assertDelegatedRef(userAfter);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
@@ -406,6 +409,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
+		assertDelegatedRef(userJack);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -443,6 +447,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
+		assertDelegatedRef(userJack);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -476,6 +481,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
+		assertDelegatedRef(userJack);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -505,6 +511,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
+		assertDelegatedRef(userJack);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -533,6 +540,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 1);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertRoleMembershipRef(userJack, ROLE_PIRATE_OID);
+		assertDelegatedRef(userJack);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -559,6 +567,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignments(userJack, 0);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -588,6 +597,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -625,6 +635,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignments(userJack, 0);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -650,6 +661,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ADRIATIC_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_ADRIATIC_PIRATE_OID, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -726,6 +738,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignments(userJack, 0);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -759,6 +772,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ADRIATIC_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_ADRIATIC_PIRATE_OID, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Tortuga");
@@ -796,6 +810,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignments(userJack, 0);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -818,6 +833,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_BLACK_SEA_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_BLACK_SEA_PIRATE_OID, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
@@ -849,6 +865,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignments(userJack, 0);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -878,6 +895,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_BLACK_SEA_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_BLACK_SEA_PIRATE_OID, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
@@ -916,6 +934,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignments(userJack, 0);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -941,6 +960,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_INDIAN_OCEAN_PIRATE_OID, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
@@ -972,6 +992,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignments(userJack, 0);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -1001,6 +1022,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
@@ -1039,8 +1061,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
-        
-        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		assertDelegatedRef(userAfter);
+
+		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
@@ -1067,8 +1090,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignedNoRole(userJack);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
 
-        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, EXISTING_GOSSIP);
 	}
@@ -1100,6 +1124,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignedNoRole(userJack);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoLinkedAccount(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -1126,6 +1151,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
@@ -1165,6 +1191,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignedNoRole(userJack);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoLinkedAccount(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -1218,6 +1245,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_CLERIC_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_CLERIC_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Holy soul");
@@ -1252,6 +1280,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userJack);
         assertAssignedNoRole(userJack);
         assertRoleMembershipRef(userJack);
+		assertDelegatedRef(userJack);
         assertNoLinkedAccount(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -1281,6 +1310,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
         assertRoleMembershipRef(userAfter);
+		assertDelegatedRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -1311,8 +1341,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
         assertRoleMembershipRef(userAfter);
-        
-        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+		assertDelegatedRef(userAfter);
+
+		assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
 	/**
@@ -1340,8 +1371,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_WANNABE_OID);
+		assertDelegatedRef(userAfter);
 
-        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Wannabe Cpt. Where's the rum?");
 	}
 	
@@ -1370,6 +1402,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_WANNABE_OID);
+		assertDelegatedRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -1400,8 +1433,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_WANNABE_OID, ROLE_HONORABLE_WANNABE_OID);
+		assertDelegatedRef(userAfter);
 
-        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!", "Whatever. -- jack");
 	}
@@ -1432,6 +1466,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_WANNABE_OID, ROLE_HONORABLE_WANNABE_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Wannabe captain Where's the rum?");
@@ -1462,6 +1497,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertNotAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
         assertRoleMembershipRef(userAfter);
+		assertDelegatedRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -1490,6 +1526,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_JUDGE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_JUDGE_OID);
+		assertDelegatedRef(userAfter);
 
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -1530,6 +1567,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_JUDGE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_JUDGE_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable Justice");
@@ -1561,6 +1599,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Pirate");
@@ -1620,8 +1659,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
         assertAssignedRole(userAfter, ROLE_GOVERNOR_OID, task, result);
         assertRoleMembershipRef(userAfter, ROLE_GOVERNOR_OID);
-        
-        assertAssignedRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
+		assertDelegatedRef(userAfter);
+
+		assertAssignedRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
         assertDefaultDummyAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, ACCOUNT_ELAINE_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_ELAINE_DUMMY_USERNAME, "title", "Her Excellency Governor");
         

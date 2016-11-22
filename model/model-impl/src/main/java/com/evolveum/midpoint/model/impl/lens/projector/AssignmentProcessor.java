@@ -1733,69 +1733,79 @@ public class AssignmentProcessor {
 		return nextRecomputeTime;
 	}
     
-    public <F extends ObjectType> void processMembershipRef(LensContext<F> context, 
+    public <F extends ObjectType> void processMembershipAndDelegatedRefs(LensContext<F> context,
 			OperationResult result) throws SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			return;
 		}
-		Collection<PrismReferenceValue> newValues = new ArrayList<>();		// i.e. "should be" state
+		Collection<PrismReferenceValue> shouldBeRoleRefs = new ArrayList<>();
+		Collection<PrismReferenceValue> shouldBeDelegatedRefs = new ArrayList<>();
+
 		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
 			return;
 		}
 
 		for (EvaluatedAssignmentImpl<?> evalAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
-			for (PrismReferenceValue membershipRefVal: evalAssignment.getMembershipRefVals()) {
-				boolean found = false;
-				for (PrismReferenceValue exVal: newValues) {
-					if (exVal.getOid().equals(membershipRefVal.getOid())
-							&& QNameUtil.match(exVal.getRelation(), membershipRefVal.getRelation())) {
-						found = true;
-						break;
-					}
-				}
-				if (!found) {
-					PrismReferenceValue ref = membershipRefVal.clone();
-					if (ref.getRelation() != null && QNameUtil.isUnqualified(ref.getRelation())) {
-						ref.setRelation(new QName(SchemaConstants.NS_ORG, ref.getRelation().getLocalPart(), SchemaConstants.PREFIX_NS_ORG));
-					}
-					newValues.add(ref);
-				}
-			}
+			addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
+			addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
 		}
-		
+
+		setReferences(focusContext, FocusType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
+		setReferences(focusContext, FocusType.F_DELEGATED_REF, shouldBeDelegatedRefs);
+    }
+
+	private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName itemName,
+			Collection<PrismReferenceValue> targetState) throws SchemaException {
+
 		PrismObject<F> focusOld = focusContext.getObjectOld();
 		if (focusOld == null) {
-			if (newValues.isEmpty()) {
+			if (targetState.isEmpty()) {
 				return;
 			}
 		} else {
-			PrismReference roleMemPrismRef = focusOld.findReference(FocusType.F_ROLE_MEMBERSHIP_REF);
-			if (roleMemPrismRef == null || roleMemPrismRef.isEmpty()) {
-				if (newValues.isEmpty()) {
+			PrismReference existingState = focusOld.findReference(itemName);
+			if (existingState == null || existingState.isEmpty()) {
+				if (targetState.isEmpty()) {
 					return;
-				}	
+				}
 			} else {
 				// we don't use QNameUtil.match here, because we want to ensure we store qualified values there
 				// (and newValues are all qualified)
 				Comparator<PrismReferenceValue> comparator =
 						(a, b) -> 2*a.getOid().compareTo(b.getOid())
 								+ (Objects.equals(a.getRelation(), b.getRelation()) ? 0 : 1);
-				if (MiscUtil.unorderedCollectionEquals(newValues, roleMemPrismRef.getValues(), comparator)) {
+				if (MiscUtil.unorderedCollectionEquals(targetState, existingState.getValues(), comparator)) {
 					return;
 				}
 			}
 		}
-		
-		PrismReferenceDefinition membershipRefDef = focusContext.getObjectDefinition().findItemDefinition(FocusType.F_ROLE_MEMBERSHIP_REF, 
-				PrismReferenceDefinition.class);
-    	ReferenceDelta membershipRefDelta = new ReferenceDelta(FocusType.F_ROLE_MEMBERSHIP_REF, membershipRefDef, 
-    			focusContext.getObjectDefinition().getPrismContext());
-		membershipRefDelta.setValuesToReplace(newValues);
-		focusContext.swallowToSecondaryDelta(membershipRefDelta);
-    }
-    
-	
-	
+
+		PrismReferenceDefinition itemDef = focusContext.getObjectDefinition().findItemDefinition(itemName, PrismReferenceDefinition.class);
+		ReferenceDelta itemDelta = new ReferenceDelta(itemName, itemDef, focusContext.getObjectDefinition().getPrismContext());
+		itemDelta.setValuesToReplace(targetState);
+		focusContext.swallowToSecondaryDelta(itemDelta);
+	}
+
+	private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references) {
+		for (PrismReferenceValue reference: references) {
+			boolean found = false;
+			for (PrismReferenceValue exVal: extractedReferences) {
+				if (exVal.getOid().equals(reference.getOid())
+						&& QNameUtil.match(exVal.getRelation(), reference.getRelation())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				PrismReferenceValue ref = reference.clone();
+				if (ref.getRelation() != null && QNameUtil.isUnqualified(ref.getRelation())) {
+					ref.setRelation(new QName(SchemaConstants.NS_ORG, ref.getRelation().getLocalPart(), SchemaConstants.PREFIX_NS_ORG));
+				}
+				extractedReferences.add(ref);
+			}
+		}
+	}
+
 }

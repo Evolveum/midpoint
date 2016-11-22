@@ -584,10 +584,15 @@ public class AssignmentEvaluator<F extends FocusType> {
 			refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
 			refVal.setRelation(relation);
 			refVal.setTargetName(targetType.getName().toPolyString());
-			
-			if (targetType instanceof AbstractRoleType) {
-				LOGGER.trace("Adding target {} to membershipRef", targetType);
-				assignment.addMembershipRefVal(refVal);
+
+			if (assignmentPath.getSegments().stream().anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment()))) {
+				LOGGER.trace("Adding target {} to delegationRef", targetType);
+				assignment.addDelegationRefVal(refVal);
+			} else {
+				if (targetType instanceof AbstractRoleType) {
+					LOGGER.trace("Adding target {} to membershipRef", targetType);
+					assignment.addMembershipRefVal(refVal);
+				}
 			}
 			
 			if (targetType instanceof OrgType) {

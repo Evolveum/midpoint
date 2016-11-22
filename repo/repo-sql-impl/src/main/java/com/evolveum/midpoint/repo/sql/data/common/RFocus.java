@@ -169,6 +169,10 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         this.roleMembershipRef = roleMembershipRef;
     }
 
+    public void setDelegatedRef(Set<RObjectReference<RFocus>> delegatedRef) {
+        this.delegatedRef = delegatedRef;
+    }
+
     public void setActivation(RActivation activation) {
         this.activation = activation;
     }
