@@ -33,11 +33,13 @@ import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
+import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -63,7 +65,7 @@ public class CleanupTest extends BaseSQLRepoTest {
 
         return calendar;
     }
-
+    
     private Duration createDuration(Calendar when, long now) throws Exception {
         long seconds = (now - when.getTimeInMillis()) / 1000;
         return DatatypeFactory.newInstance().newDuration("PT" + seconds + "S").negate();
@@ -77,37 +79,43 @@ public class CleanupTest extends BaseSQLRepoTest {
 
         return policy;
     }
+    
+    private CleanupPolicyType createPolicy(int maxRecords) throws Exception {
+        CleanupPolicyType policy = new CleanupPolicyType();
+
+        policy.setMaxRecords(Integer.valueOf(maxRecords));
+
+        return policy;
+    }
+    
+    @AfterMethod
+    public void cleaup() {
+    	 Session session = getFactory().openSession();
+         try {
+             session.beginTransaction();
+             Query query = session.createQuery("delete from RObjectDeltaOperation");
+             query.executeUpdate();
+
+             query = session.createQuery("delete from RAuditEventRecord");
+             query.executeUpdate();
+             
+             query = session.createQuery("select count(*) from " + RAuditEventRecord.class.getSimpleName());
+             Long count = (Long) query.uniqueResult();
+
+             AssertJUnit.assertEquals(0L, (long) count);
+             session.getTransaction().commit();
+         } finally {
+             session.close();
+         }
+    }
 
     @Test
-    public void testAuditCleanup() throws Exception {
+    public void testAuditCleanupMaxAge() throws Exception {
         //GIVEN
-        Calendar calendar = create_2013_07_12_12_00_Calendar();
-        for (int i = 0; i < 3; i++) {
-            long timestamp = calendar.getTimeInMillis();
-            AuditEventRecord record = new AuditEventRecord();
-            record.addDelta(createObjectDeltaOperation(i));
-            record.setTimestamp(timestamp);
-            LOGGER.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
-
-            auditService.audit(record, new SimpleTaskAdapter());
-            calendar.add(Calendar.HOUR_OF_DAY, 1);
-        }
-
-        Session session = getFactory().openSession();
-        try {
-            session.beginTransaction();
-
-            Query query = session.createQuery("select count(*) from " + RAuditEventRecord.class.getSimpleName());
-            Long count = (Long) query.uniqueResult();
-
-            AssertJUnit.assertEquals(3L, (long) count);
-            session.getTransaction().commit();
-        } finally {
-            session.close();
-        }
+    	prepareAuditEventRecords();
 
         //WHEN
-        calendar = create_2013_07_12_12_00_Calendar();
+        Calendar calendar = create_2013_07_12_12_00_Calendar();
         calendar.add(Calendar.HOUR_OF_DAY, 1);
         calendar.add(Calendar.MINUTE, 1);
 
@@ -119,33 +127,87 @@ public class CleanupTest extends BaseSQLRepoTest {
         result.recomputeStatus();
 
         //THEN
-        AssertJUnit.assertTrue(result.isSuccess());
+       RAuditEventRecord record = assertAndReturnAuditEventRecord(result); 
 
-        session = getFactory().openSession();
-        try {
-            session.beginTransaction();
+       Date finished = new Date(record.getTimestamp().getTime());
 
-            Query query = session.createQuery("from " + RAuditEventRecord.class.getSimpleName());
-            List<RAuditEventRecord> records = query.list();
+       Date mark = new Date(NOW);
+       Duration duration = policy.getMaxAge();
+       duration.addTo(mark);
 
-            AssertJUnit.assertEquals(1, records.size());
-            RAuditEventRecord record = records.get(0);
+       AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
+    }
+    
+    @Test
+    public void testAuditCleanupMaxRecords() throws Exception {
+        //GIVEN
+    	prepareAuditEventRecords();
 
-            Date finished = new Date(record.getTimestamp().getTime());
+        //WHEN
+        Calendar calendar = create_2013_07_12_12_00_Calendar();
+        calendar.add(Calendar.HOUR_OF_DAY, 1);
+        calendar.add(Calendar.MINUTE, 1);
 
-            Date mark = new Date(NOW);
-            Duration duration = policy.getMaxAge();
-            duration.addTo(mark);
+        final long NOW = System.currentTimeMillis();
+        CleanupPolicyType policy = createPolicy(1);
 
-            AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
+        OperationResult result = new OperationResult("Cleanup audit");
+        auditService.cleanupAudit(policy, result);
+        result.recomputeStatus();
 
-            session.getTransaction().commit();
-        } finally {
-            session.close();
-        }
+        //THEN
+       RAuditEventRecord record = assertAndReturnAuditEventRecord(result); 
+
     }
 
-    private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {
+    private RAuditEventRecord assertAndReturnAuditEventRecord(OperationResult result) {
+    	 AssertJUnit.assertTrue(result.isSuccess());
+
+         Session session = getFactory().openSession();
+         try {
+             session.beginTransaction();
+
+             Query query = session.createQuery("from " + RAuditEventRecord.class.getSimpleName());
+             List<RAuditEventRecord> records = query.list();
+
+             AssertJUnit.assertEquals(1, records.size());
+                          session.getTransaction().commit();
+             return records.get(0);
+         } finally {
+             session.close();
+         }
+         
+	}
+
+	private void prepareAuditEventRecords() throws Exception {
+    	 Calendar calendar = create_2013_07_12_12_00_Calendar();
+         for (int i = 0; i < 3; i++) {
+             long timestamp = calendar.getTimeInMillis();
+             AuditEventRecord record = new AuditEventRecord();
+             record.addDelta(createObjectDeltaOperation(i));
+             record.setTimestamp(timestamp);
+             LOGGER.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
+
+             auditService.audit(record, new SimpleTaskAdapter());
+             calendar.add(Calendar.HOUR_OF_DAY, 1);
+         }
+
+         Session session = getFactory().openSession();
+         try {
+             session.beginTransaction();
+
+             Query query = session.createQuery("select count(*) from " + RAuditEventRecord.class.getSimpleName());
+             Long count = (Long) query.uniqueResult();
+
+             AssertJUnit.assertEquals(3L, (long) count);
+             session.getTransaction().commit();
+         } finally {
+             session.close();
+         }
+		
+	}
+
+	private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {
         ObjectDeltaOperation delta = new ObjectDeltaOperation();
         delta.setExecutionResult(new OperationResult("asdf"));
         UserType user = new UserType();

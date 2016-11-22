@@ -12132,6 +12132,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="maxAge" type="xsd:duration" minOccurs="0"/>
+            <xsd:element name="maxRecords" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
