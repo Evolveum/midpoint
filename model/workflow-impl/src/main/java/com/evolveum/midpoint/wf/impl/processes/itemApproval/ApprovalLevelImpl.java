@@ -203,4 +203,8 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
                 ", approverExpressions=" + approverExpressions +
                 '}';
     }
+
+	public boolean isEmpty() {
+        return approverRefs.isEmpty() && approverExpressions.isEmpty();
+	}
 }

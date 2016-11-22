@@ -116,9 +116,9 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         modelService.postInit(initResult);
 
         // System Configuration and administrator
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
-        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
         
         importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);

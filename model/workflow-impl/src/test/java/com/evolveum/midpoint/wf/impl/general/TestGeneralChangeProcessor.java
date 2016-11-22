@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.AbstractWfTest;
+import com.evolveum.midpoint.wf.impl.legacy.AbstractWfTestLegacy;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
@@ -71,14 +71,15 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
     protected static final Trace LOGGER = TraceManager.getTrace(TestGeneralChangeProcessor.class);
 
     private static final String TEST_RESOURCE_DIR_NAME = "src/test/resources";
-    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR_NAME, "user-jack-modify-add-assignment-role1.xml");
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role2-change-gn.xml";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role3-change-gn2.xml";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-roles2-3-4.xml";
-    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-disable.xml";
-    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-enable.xml";
-    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password.xml";
-    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password-2.xml";
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR_NAME,
+            "legacy/user-jack-modify-add-assignment-role1.xml");
+    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = TEST_RESOURCE_DIR_NAME + "/legacy/user-jack-modify-add-assignment-role2-change-gn.xml";
+    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = TEST_RESOURCE_DIR_NAME + "/legacy/user-jack-modify-add-assignment-role3-change-gn2.xml";
+    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = TEST_RESOURCE_DIR_NAME + "/legacy/user-jack-modify-add-assignment-roles2-3-4.xml";
+    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = TEST_RESOURCE_DIR_NAME + "/legacy/user-jack-modify-activation-disable.xml";
+    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = TEST_RESOURCE_DIR_NAME + "/legacy/user-jack-modify-activation-enable.xml";
+    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = TEST_RESOURCE_DIR_NAME + "/legacy/user-jack-modify-change-password.xml";
+    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = TEST_RESOURCE_DIR_NAME + "/legacy/user-jack-modify-change-password-2.xml";
 
     private static final String DONT_CHECK = "dont-check";
 
@@ -116,7 +117,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-        importObjectFromFile(AbstractWfTest.USERS_AND_ROLES_FILENAME, initResult);
+        importObjectFromFile(AbstractWfTestLegacy.USERS_AND_ROLES_FILE, initResult);
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
                         WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
@@ -178,10 +179,10 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
-                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
+                assertAssignedRole(USER_JACK_OID, AbstractWfTestLegacy.ROLE_R2_OID, task, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTestLegacy.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTestLegacy.R1BOSS_OID), result);
             }
         });
 	}
@@ -232,11 +233,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
-//                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
+//                assertAssignedRole(USER_JACK_OID, AbstractWfTestLegacy.ROLE_R2_OID, task, result);
                 assertNoLinkedAccount(jack);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTestLegacy.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTestLegacy.R1BOSS_OID), result);
             }
 
 
@@ -332,11 +333,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
-//                assertAssignedRole(USER_JACK_OID, AbstractWfTest.ROLE_R2_OID, task, result);
+//                assertAssignedRole(USER_JACK_OID, AbstractWfTestLegacy.ROLE_R2_OID, task, result);
                 assertAccount(jack, RESOURCE_DUMMY_OID);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(AbstractWfTest.ROLE_R1_OID, WorkflowResult.APPROVED));
-                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTest.R1BOSS_OID), result);
+                //checkWorkItemAuditRecords(createResultMap(AbstractWfTestLegacy.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(AbstractWfTestLegacy.R1BOSS_OID), result);
             }
 
 

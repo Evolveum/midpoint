@@ -33,29 +33,16 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -162,6 +149,7 @@ import org.springframework.security.web.FilterInvocation;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -234,7 +222,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected RepositoryService repositoryService;
 	
 	@Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
+	protected SystemObjectCache systemObjectCache;
 	
 	@Autowired(required = true)
 	protected ProvisioningService provisioningService;
@@ -374,13 +362,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertUserProperty(user, propertyName, expectedPropValues);
 	}
-	
+
+	protected void assertUserNoProperty(String userOid, QName propertyName) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("getObject");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		assertUserNoProperty(user, propertyName);
+	}
+
 	protected void assertUserProperty(PrismObject<UserType> user, QName propertyName, Object... expectedPropValues) {
 		PrismProperty<Object> property = user.findProperty(propertyName);
 		assert property != null : "No property "+propertyName+" in "+user;  
 		PrismAsserts.assertPropertyValue(property, expectedPropValues);
 	}
 	
+	protected void assertUserNoProperty(PrismObject<UserType> user, QName propertyName) {
+		PrismProperty<Object> property = user.findProperty(propertyName);
+		assert property == null : "Property "+propertyName+" present in "+user+": "+property;
+	}
+
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
 		assertLinked(UserType.class, userOid, accountOid);
 	}
@@ -3526,6 +3525,93 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertTaskClosed(PrismObject<TaskType> task) {
 		assertEquals("Wrong executionStatus in "+task, TaskExecutionStatusType.CLOSED, task.asObjectable().getExecutionStatus());
+	}
+
+	protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
+		checkApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef(), result);
+	}
+
+	protected void checkUserApproversForCreate(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
+		checkApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getCreateApproverRef(), result);
+	}
+
+	protected void checkApproversForCreate(Class<? extends ObjectType> clazz, String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		PrismObject<? extends ObjectType> object = repositoryService.getObject(clazz, oid, null, result);
+		checkApprovers(object, expectedApprovers, object.asObjectable().getMetadata().getCreateApproverRef(), result);
+	}
+
+	protected void checkApprovers(PrismObject<? extends ObjectType> object, List<String> expectedApprovers, List<ObjectReferenceType> realApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		HashSet<String> realApproversSet = new HashSet<String>();
+		for (ObjectReferenceType approver : realApprovers) {
+			realApproversSet.add(approver.getOid());
+			assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());
+		}
+		assertEquals("Mismatch in approvers in metadata", new HashSet(expectedApprovers), realApproversSet);
+	}
+
+	protected PrismObject<UserType> findUserInRepo(String name, OperationResult result) throws SchemaException {
+		List<PrismObject<UserType>> users = findUserInRepoUnchecked(name, result);
+		assertEquals("Didn't find exactly 1 user object with name " + name, 1, users.size());
+		return users.get(0);
+	}
+
+	protected List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
+		ObjectQuery q = QueryBuilder.queryFor(UserType.class, prismContext).item(UserType.F_NAME).eqPoly(name).matchingOrig().build();
+		return repositoryService.searchObjects(UserType.class, q, null, result);
+	}
+
+	protected List<PrismObject<RoleType>> findRoleInRepoUnchecked(String name, OperationResult result) throws SchemaException {
+		ObjectQuery q = QueryBuilder.queryFor(RoleType.class, prismContext).item(RoleType.F_NAME).eqPoly(name).matchingOrig().build();
+		return repositoryService.searchObjects(RoleType.class, q, null, result);
+	}
+
+	protected <F extends FocusType> void assertFocusModificationSanity(ModelContext<F> context) throws JAXBException {
+		ModelElementContext<F> focusContext = context.getFocusContext();
+	    PrismObject<F> focusOld = focusContext.getObjectOld();
+	    if (focusOld == null) {
+	    	return;
+	    }
+	    ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
+	    if (focusPrimaryDelta != null) {
+		    assertEquals("No OID in old focus object", focusOld.getOid(), focusPrimaryDelta.getOid());
+		    assertEquals(ChangeType.MODIFY, focusPrimaryDelta.getChangeType());
+		    assertNull(focusPrimaryDelta.getObjectToAdd());
+		    for (ItemDelta itemMod : focusPrimaryDelta.getModifications()) {
+		        if (itemMod.getValuesToDelete() != null) {
+		            Item property = focusOld.findItem(itemMod.getPath());
+		            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getElementName() + " not found in focus", property);
+		            for (Object valueToDelete : itemMod.getValuesToDelete()) {
+		                if (!property.containsRealValue((PrismValue) valueToDelete)) {
+		                    display("Deleted value " + valueToDelete + " is not in focus item " + itemMod.getParentPath() + "/" + itemMod.getElementName());
+		                    display("Deleted value", valueToDelete);
+		                    display("HASHCODE: " + valueToDelete.hashCode());
+		                    for (Object value : property.getValues()) {
+		                        display("Existing value", value);
+		                        display("EQUALS: " + valueToDelete.equals(value));
+		                        display("HASHCODE: " + value.hashCode());
+		                    }
+		                    fail("Deleted value " + valueToDelete + " is not in focus item " + itemMod.getParentPath() + "/" + itemMod.getElementName());
+		                }
+		            }
+		        }
+
+		    }
+	    }
+	}
+
+	protected PrismObject<UserType> getUserFromRepo(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		return repositoryService.getObject(UserType.class, oid, null, result);
+	}
+
+	protected boolean assignmentExists(List<AssignmentType> assignmentList, String targetOid) {
+		for (AssignmentType assignmentType : assignmentList) {
+			if (assignmentType.getTargetRef() != null && targetOid.equals(assignmentType.getTargetRef().getOid())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

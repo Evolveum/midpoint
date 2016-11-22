@@ -76,10 +76,70 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="applyDefaultPolicy" minOccurs="0" type="tns:DefaultApprovalPolicyApplicationStrategyType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to apply default approval policy (if at all). Default value is "ifNotPresent".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType" />
             <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="DefaultApprovalPolicyApplicationStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to apply default approval policy.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The default approval policy is never applied.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The default approval policy is always applied.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ifNoOther">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The default approval policy is applied only if no other approval policy is applicable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IF_NO_OTHER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ifNotPresent">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The default approval policy is applied only if there's no approval policy with 'use default approvers' flag set.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IF_NOT_PRESENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="WfChangeProcessorConfigurationType">
         <xsd:annotation>
@@ -175,6 +235,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:WfChangeProcessorConfigurationType">
                 <xsd:sequence>
+                    <xsd:element name="policyRuleBasedAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />

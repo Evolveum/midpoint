@@ -41,11 +41,6 @@ public abstract class AddResourceAssignmentAspect<F extends FocusType> extends A
     protected ResourceAssignmentHelper specificAssignmentHelper;
 
     @Override
-    public boolean isEnabledByDefault() {
-        return true;
-    }
-
-    @Override
     protected boolean isAssignmentRelevant(AssignmentType assignmentType) {
         return specificAssignmentHelper.isResourceAssignment(assignmentType);
     }

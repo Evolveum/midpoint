@@ -49,11 +49,13 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
 import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
@@ -97,7 +99,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     public static final String UNKNOWN_OID = "?";
 
-    Set<PrimaryChangeAspect> allChangeAspects = new HashSet<>();
+    private List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
 
     public enum ExecutionMode {
         ALL_AFTERWARDS, ALL_IMMEDIATELY, MIXED;
@@ -115,7 +117,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Processing model invocation
 
     @Override
-    public HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result)
+    public HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
+			@NotNull Task taskFromModel, @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 
         if (context.getState() != PRIMARY || context.getFocusContext() == null) {
@@ -139,7 +142,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
         ObjectTreeDeltas changesBeingDecomposed = objectTreeDeltas.clone();
         List<PcpChildWfTaskCreationInstruction> childTaskInstructions = gatherStartInstructions(
-				context, processorConfigurationType, changesBeingDecomposed, taskFromModel, result);
+				context, wfConfigurationType, changesBeingDecomposed, taskFromModel, result);
 
         // start the process(es)
 
@@ -150,16 +153,19 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, wfConfigurationType, result);
     }
 
-	private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(ModelContext<? extends ObjectType> context,
-			PrimaryChangeProcessorConfigurationType processorConfigurationType, ObjectTreeDeltas changesBeingDecomposed, Task taskFromModel,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(@NotNull ModelContext<? extends ObjectType> context,
+			WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas changesBeingDecomposed,
+			@NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        PrimaryChangeProcessorConfigurationType processorConfigurationType =
+                wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
 
         List<PcpChildWfTaskCreationInstruction> startProcessInstructions = new ArrayList<>();
         for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
             if (changesBeingDecomposed.isEmpty()) {      // nothing left
                 break;
             }
-            List<PcpChildWfTaskCreationInstruction> instructions = aspect.prepareTasks(context, processorConfigurationType, changesBeingDecomposed, taskFromModel, result);
+            List<PcpChildWfTaskCreationInstruction> instructions = aspect.prepareTasks(context, wfConfigurationType, changesBeingDecomposed, taskFromModel, result);
             logAspectResult(aspect, instructions, changesBeingDecomposed);
             if (instructions != null) {
                 startProcessInstructions.addAll(instructions);
@@ -169,13 +175,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
 	private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
-        Collection<PrimaryChangeAspect> rv = new HashSet<>();
-        for (PrimaryChangeAspect aspect : getAllChangeAspects()) {
-            if (aspect.isEnabled(processorConfigurationType)) {
-                rv.add(aspect);
-            }
-        }
-        return rv;
+        Collection<PrimaryChangeAspect> rv = getAllChangeAspects().stream()
+				.filter(aspect -> aspect.isEnabled(processorConfigurationType)).collect(Collectors.toList());
+		return rv;
     }
 
     private void logAspectResult(PrimaryChangeAspect aspect, List<? extends WfTaskCreationInstruction> instructions, ObjectTreeDeltas changesBeingDecomposed) {
@@ -413,9 +415,13 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         throw new IllegalStateException("Aspect " + name + " is not registered.");
     }
 
-    public void registerChangeAspect(PrimaryChangeAspect changeAspect) {
-        LOGGER.trace("Registering aspect implemented by {}", changeAspect.getClass());
-        allChangeAspects.add(changeAspect);
+    public void registerChangeAspect(PrimaryChangeAspect changeAspect, boolean first) {
+        LOGGER.trace("Registering aspect implemented by {}; first={}", changeAspect.getClass(), first);
+		if (first) {
+			allChangeAspects.add(0, changeAspect);
+		} else {
+			allChangeAspects.add(changeAspect);
+		}
     }
 
     WfTaskUtil getWfTaskUtil() {     // ugly hack - used in PcpJob

@@ -37,11 +37,6 @@ public class AddUserAbstractRoleAssignmentAspect extends AddAbstractRoleAssignme
     private RoleAssignmentHelper roleAssignmentHelper;
 
     @Override
-    public boolean isEnabledByDefault() {
-        return true;
-    }
-
-    @Override
     protected boolean isFocusRelevant(ModelContext modelContext) {
         return primaryChangeAspectHelper.isRelatedToType(modelContext, UserType.class);
     }

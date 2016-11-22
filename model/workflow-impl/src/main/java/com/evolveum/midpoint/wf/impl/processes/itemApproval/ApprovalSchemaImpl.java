@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
 
     private String name;
     private String description;
-    private final List<ApprovalLevelImpl> levels = new ArrayList<>();
+    @NotNull private final List<ApprovalLevelImpl> levels = new ArrayList<>();
 
     private transient PrismContext prismContext;
 
@@ -137,5 +138,10 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
                 ", description='" + description + '\'' +
                 ", levels=" + levels +
                 '}';
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return levels.stream().allMatch(l -> l.isEmpty());
     }
 }

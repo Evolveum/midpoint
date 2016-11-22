@@ -97,10 +97,10 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 		caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
-        repoAddObjectFromFile(ROLE_X_FILE, RoleType.class, initResult);
-        repoAddObjectFromFile(ROLE_JOKER_FILE, RoleType.class, initResult);
-        repoAddObjectFromFile(ROLE_UPCASE_BASIC_FILE, RoleType.class, initResult);
-        repoAddObjectFromFile(ROLE_FOOL_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_X_FILE, initResult);
+        repoAddObjectFromFile(ROLE_JOKER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_UPCASE_BASIC_FILE, initResult);
+        repoAddObjectFromFile(ROLE_FOOL_FILE, initResult);
         
 		InternalMonitor.reset();
 		InternalMonitor.setTraceShadowFetchOperation(false);

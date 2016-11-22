@@ -125,10 +125,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_META_FOOL_FILE = new File(TEST_DIR, "role-meta-fool.xml");
 	protected static final String ROLE_META_FOOL_OID = "2edc5fe4-af3c-11e6-a81e-eb332578ec4f";
-	
+
 	protected static final File ROLE_BLOODY_FOOL_FILE = new File(TEST_DIR, "role-bloody-fool.xml");
 	protected static final String ROLE_BLOODY_FOOL_OID = "0a0ac150-af3d-11e6-9901-67fbcbd5bb25";
-	
+
 	protected static final File ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE = new File(TEST_DIR, "org-project-reclaim-black-pearl.xml");
 	protected static final String ORG_PROJECT_RECLAIM_BLACK_PEARL_OID = "00000000-8888-6666-0000-200000005000";
 
@@ -147,7 +147,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	private static final String GROUP_FOOLS_NAME = "fools";
 	private static final String GROUP_SIMPLETONS_NAME = "simpletons";
 
-	
+
 	private String userLemonheadOid;
 	private String userSharptoothOid;
 	private String userRedskullOid;
@@ -184,10 +184,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_FOOL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BLOODY_FOOL_FILE, RoleType.class, initResult);
-		
+
 		dummyResourceCtl.addGroup(GROUP_FOOLS_NAME);
 		dummyResourceCtl.addGroup(GROUP_SIMPLETONS_NAME);
-		
+
 	}
 	
 	@Test
@@ -263,7 +263,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
         
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-        
+
         // WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
@@ -276,7 +276,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertModifyMetadata(userAfter, startTs, endTs);
-        
+
         AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertCreateMetadata(assignmentType, startTs, endTs);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
@@ -305,9 +305,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
  		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
  		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
  				EXISTING_GOSSIP);
- 		
+
  		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-        
+
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
         
@@ -317,7 +317,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
@@ -2969,7 +2969,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("user after", userJackAfter);
         assertNoAssignments(userJackAfter);
 	}
-	
+
 	@Test
     public void test850JackAssignRoleBloodyFool() throws Exception {
 		final String TEST_NAME = "test850JackAssignRoleBloodyFool";
@@ -2979,35 +2979,35 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_BLOODY_FOOL_OID, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_BLOODY_FOOL_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Fool", "Simpleton");
-        
+
         display("Simpleton groups", dummyResource.getGroupByName(GROUP_SIMPLETONS_NAME));
-        
+
         assertDummyGroupMember(null, GROUP_FOOLS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertDummyGroupMember(null, GROUP_SIMPLETONS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 
 	}
-	
+
 	@Test
     public void test855JackModifyFoolMetaroleDeleteInducement() throws Exception {
 		final String TEST_NAME = "test855JackModifyFoolMetaroleDeleteInducement";
@@ -3017,11 +3017,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<RoleType> roleBefore = getObject(RoleType.class, ROLE_META_FOOL_OID);
         display("Role meta fool before", roleBefore);
         assertInducements(roleBefore, 2);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyRoleDeleteInducement(ROLE_META_FOOL_OID, 10002L, false, task);
@@ -3030,12 +3030,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_META_FOOL_OID);
         display("Role meta fool after", roleAfter);
         assertInducements(roleAfter, 1);
 	}
-	
+
 	@Test
     public void test857JackReconcile() throws Exception {
 		final String TEST_NAME = "test857JackReconcile";
@@ -3045,37 +3045,37 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_BLOODY_FOOL_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        
+
         // Title attribute is tolerant. As there is no delta then there is no reason to remove
         // the Simpleton value.
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Fool", "Simpleton");
-        
+
         display("Simpleton groups", dummyResource.getGroupByName(GROUP_SIMPLETONS_NAME));
-        
+
         assertDummyGroupMember(null, GROUP_FOOLS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         // Group association is non-tolerant. It should be removed.
         assertNoDummyGroupMember(null, GROUP_SIMPLETONS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
 
 	}
 

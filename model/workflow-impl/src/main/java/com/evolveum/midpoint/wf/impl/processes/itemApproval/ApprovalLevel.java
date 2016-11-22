@@ -45,4 +45,6 @@ public interface ApprovalLevel {
     void setPrismContext(PrismContext prismContext);
 
     ApprovalLevelType toApprovalLevelType(PrismContext prismContext);
+
+    boolean isEmpty();
 }

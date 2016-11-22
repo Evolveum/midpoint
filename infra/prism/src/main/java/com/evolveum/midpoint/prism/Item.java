@@ -428,7 +428,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	Iterator<V> iterator = values.iterator();
     	while (iterator.hasNext()) {
     		V val = iterator.next();
-    		if (val.representsSameValue(newValue) || val.equalsRealValue(newValue)) {
+    		if (val.representsSameValue(newValue, false) || val.equalsRealValue(newValue)) {
     			iterator.remove();
     			changed = true;
     		}
@@ -522,7 +522,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     			boolean found = false;
     			while (iterator.hasNext()) {
     				PrismValue otherValue = iterator.next();
-    				if (thisValue.representsSameValue(otherValue) || delta == null) {
+    				if (thisValue.representsSameValue(otherValue, true) || delta == null) {
     					found = true;
     					// Matching IDs, look inside to figure out internal deltas
     					thisValue.diffMatchingRepresentation(otherValue, deltas, 

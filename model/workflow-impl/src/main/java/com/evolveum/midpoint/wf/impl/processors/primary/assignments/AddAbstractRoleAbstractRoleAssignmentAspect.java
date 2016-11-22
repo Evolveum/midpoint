@@ -35,11 +35,6 @@ public class AddAbstractRoleAbstractRoleAssignmentAspect extends AddAbstractRole
     private static final Trace LOGGER = TraceManager.getTrace(AddAbstractRoleAbstractRoleAssignmentAspect.class);
 
     @Override
-    public boolean isEnabledByDefault() {
-        return false;
-    }
-
-    @Override
     protected boolean isFocusRelevant(ModelContext modelContext) {
         return primaryChangeAspectHelper.isRelatedToType(modelContext, AbstractRoleType.class);
     }

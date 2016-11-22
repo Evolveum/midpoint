@@ -28,7 +28,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -92,7 +91,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        repoAddObjectFromFile(USER_TEMPLATE_FILE, ObjectTemplateType.class, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_FILE, initResult);
 
         dummyResourceCtlHr = DummyResourceContoller.create(RESOURCE_DUMMY_HR_NAME, null);
         dummyResourceHr = dummyResourceCtlHr.getDummyResource();

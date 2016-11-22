@@ -68,6 +68,13 @@
         <allowCompleteOthersItems>true</allowCompleteOthersItems>
         <primaryChangeProcessor>
             <enabled>true</enabled>
+            <policyRuleBasedAspect>
+                <enabled>true</enabled>			<!-- changed depending on test configuration -->
+            </policyRuleBasedAspect>
+            <addUserAbstractRoleAssignmentAspect/>
+            <modifyUserAbstractRoleAssignmentAspect/>
+            <addUserResourceAssignmentAspect/>
+            <modifyUserResourceAssignmentAspect/>
             <addAbstractRoleAspect>
                 <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
             </addAbstractRoleAspect>

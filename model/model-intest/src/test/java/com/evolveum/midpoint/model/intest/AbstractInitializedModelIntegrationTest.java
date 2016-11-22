@@ -54,12 +54,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -260,43 +256,43 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtlRed.addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
 		dummyResourceCtlBlue.addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
 		
-		repoAddObjectFromFile(LOOKUP_LANGUAGES_FILE, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(LOOKUP_LANGUAGES_FILE, initResult);
 		
-		repoAddObjectFromFile(SECURITY_POLICY_FILE, SecurityPolicyType.class, initResult);
+		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 		
 		// User Templates
-		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
-		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILE, ObjectTemplateType.class, initResult);
-		repoAddObjectFromFile(USER_TEMPLATE_INBOUNDS_FILENAME, ObjectTemplateType.class, initResult);
-		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, ObjectTemplateType.class, initResult);
-        repoAddObjectFromFile(USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILE, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_INBOUNDS_FILENAME, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME, initResult);
 
 		// Shadows
-		repoAddObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILE, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILE, ShadowType.class, initResult);
-		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILE, ShadowType.class, initResult);
-		repoAddObjectFromFile(GROUP_SHADOW_JOKER_DUMMY_UPCASE_FILE, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILE, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILE, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILE, initResult);
+		repoAddObjectFromFile(GROUP_SHADOW_JOKER_DUMMY_UPCASE_FILE, initResult);
 		
 		// Users
 		userTypeJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult).asObjectable();
 		userTypeBarbossa = repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult).asObjectable();
 		userTypeGuybrush = repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
-		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeElaine = repoAddObjectFromFile(new File(USER_ELAINE_FILENAME), UserType.class, initResult).asObjectable();
 		
 		// Roles
-		repoAddObjectFromFile(ROLE_PIRATE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PIRATE_GREEN_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_BUCCANEER_GREEN_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_JUDGE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_JUDGE_DEPRECATED_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_THIEF_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_EMPTY_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SAILOR_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PIRATE_GREEN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BUCCANEER_GREEN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, initResult);
+		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
+		repoAddObjectFromFile(ROLE_JUDGE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_JUDGE_DEPRECATED_FILE, initResult);
+		repoAddObjectFromFile(ROLE_THIEF_FILE, initResult);
+		repoAddObjectFromFile(ROLE_EMPTY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SAILOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {
@@ -304,7 +300,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		}
 		
 		// Services
-		repoAddObjectFromFile(SERVICE_SHIP_SEA_MONKEY_FILE, ServiceType.class, initResult);
+		repoAddObjectFromFile(SERVICE_SHIP_SEA_MONKEY_FILE, initResult);
 
 	}
 	
