@@ -172,6 +172,10 @@
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj</artifactId>
         </dependency>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
 		
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
