@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.wf.impl.policy.plain;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -24,19 +25,15 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -116,6 +113,9 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		executeAssignRole1ToJack(TEST_NAME, false, false, null);
 	}
 
+	/**
+	 * The same as above, but with immediate execution.
+	 */
 	@Test
 	public void test040AddRole1AssignmentImmediate() throws Exception {
 		final String TEST_NAME = "test040AddRole1AssignmentImmediate";
@@ -126,6 +126,12 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		executeAssignRole1ToJack(TEST_NAME, true, false, null);
 	}
 
+	/**
+	 * Attempt to assign roles 1, 2, 3, 4 along with changing description. Assignment of role 4 and description change
+	 * are not to be approved.
+	 *
+	 * Decisions for roles 1-3 are rejected.
+	 */
 	@Test
 	public void test050AddRoles123AssignmentNNN() throws Exception {
 		final String TEST_NAME = "test050AddRoles123AssignmentNNN";
@@ -136,6 +142,9 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		executeAssignRoles123ToJack(TEST_NAME, false, false, false, false);
 	}
 
+	/**
+	 * The same as above, but with immediate execution.
+	 */
 	@Test
  	public void test052AddRoles123AssignmentNNNImmediate() throws Exception {
 		final String TEST_NAME = "test052AddRoles123AssignmentNNNImmediate";
@@ -146,6 +155,12 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		executeAssignRoles123ToJack(TEST_NAME, true, false, false, false);
 	}
 
+	/**
+	 * Attempt to assign roles 1, 2, 3, 4 along with changing description. Assignment of role 4 and description change
+	 * are not to be approved.
+	 *
+	 * Decision for role 1 is accepted.
+	 */
 	@Test
 	public void test060AddRoles123AssignmentYNN() throws Exception {
 		final String TEST_NAME = "test060AddRoles123AssignmentYNN";
@@ -166,6 +181,12 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		executeAssignRoles123ToJack(TEST_NAME, true, true, false, false);
 	}
 
+	/**
+	 * Attempt to assign roles 1, 2, 3, 4 along with changing description. Assignment of role 4 and description change
+	 * are not to be approved.
+	 *
+	 * Decisions for roles 1-3 are accepted.
+	 */
 	@Test
 	public void test070AddRoles123AssignmentYYY() throws Exception {
 		final String TEST_NAME = "test070AddRoles123AssignmentYYY";
@@ -187,9 +208,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 	}
 
 	/**
-	 * Repeating test010; this time with Lead10 present. So we are approving an assignment of single security-sensitive role (Role1),
-	 * that induces another security-sensitive role (Role10). Because of current implementation constraints, only the first assignment
-	 * should be brought to approval.
+	 * Assigning Role1A with two deputies present. (But approved by the delegator.)
 	 */
 	@Test
 	public void test130AddRole1aAssignmentWithDeputy() throws Exception {
@@ -204,6 +223,9 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 		executeAssignRole1aToJack(TEST_NAME, false, true, null);
 	}
 
+	/**
+	 * Assigning Role1A with two deputies present. (Approved by one of the deputies.)
+	 */
 	@Test
 	public void test132AddRole1aAssignmentWithDeputyApprovedByDeputy1() throws Exception {
 		final String TEST_NAME = "test132AddRole1aAssignmentWithDeputyApprovedByDeputy1";
@@ -303,15 +325,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 	protected List<PrismReferenceValue> getPotentialAssignees(PrismObject<UserType> user) {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		rv.add(ObjectTypeUtil.createObjectRef(user).asReferenceValue());
-		for (AssignmentType assignment : user.asObjectable().getAssignment()) {
-			if (assignment.getTargetRef() != null
-					&& QNameUtil.match(SchemaConstants.ORG_DEPUTY, assignment.getTargetRef().getRelation())
-					&& (assignment.getActivation() == null
-						|| assignment.getActivation().getEffectiveStatus() == null
-						|| assignment.getActivation().getEffectiveStatus() == ActivationStatusType.ENABLED)) {
-				rv.add(assignment.getTargetRef().asReferenceValue().clone());
-			}
-		}
+		rv.addAll(DeputyUtils.getDelegatorReferences(user.asObjectable()));
 		return rv;
 	}
 
@@ -417,11 +431,16 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE3_OID, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(USER_JACK_OID);
+		ObjectDelta<UserType> addRole4Delta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE4_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(USER_JACK_OID);
 		ObjectDelta<UserType> changeDescriptionDelta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(USER_JACK_OID);
-		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addRole1Delta, addRole2Delta, addRole3Delta, changeDescriptionDelta);
+		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addRole1Delta, addRole2Delta, addRole3Delta, addRole4Delta, changeDescriptionDelta);
+		ObjectDelta<UserType> delta0 = ObjectDelta.summarize(addRole4Delta, changeDescriptionDelta);
 		String originalDescription = getUser(USER_JACK_OID).asObjectable().getDescription();
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
 			@Override
@@ -451,7 +470,7 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 
 			@Override
 			protected ObjectDelta<UserType> getExpectedDelta0() {
-				return changeDescriptionDelta.clone();
+				return delta0.clone();
 			}
 
 			@Override
@@ -484,12 +503,14 @@ public class TestAssignmentApproval extends AbstractWfTestPolicy {
 					case 0:
 						if (yes) {
 							assertUserProperty(USER_JACK_OID, UserType.F_DESCRIPTION, TEST_NAME);
+							assertAssignedRole(USER_JACK_OID, ROLE_ROLE4_OID, rootTask, result);
 						} else {
 							if (originalDescription != null) {
 								assertUserProperty(USER_JACK_OID, UserType.F_DESCRIPTION, originalDescription);
 							} else {
 								assertUserNoProperty(USER_JACK_OID, UserType.F_DESCRIPTION);
 							}
+							assertNotAssignedRole(USER_JACK_OID, ROLE_ROLE4_OID, rootTask, result);
 						}
 						break;
 					case 1:

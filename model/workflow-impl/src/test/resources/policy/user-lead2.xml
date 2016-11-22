@@ -16,8 +16,8 @@
 
 <user oid="00000001-d34d-b33f-f00d-L00000000002">
 	<name>lead2</name>
-	<assignment> <!-- superuser -->
-		<targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/>
+	<assignment> <!-- approver -->
+		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
 	</assignment>
 	<assignment> <!-- role2 -->
 		<targetRef oid="00000001-d34d-b33f-f00d-000000000002" type="RoleType" relation="approver"/>

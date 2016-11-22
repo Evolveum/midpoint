@@ -96,10 +96,12 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_LEAD2_FILE = new File(TEST_RESOURCE_DIR, "user-lead2.xml");
 	protected static final File USER_LEAD3_FILE = new File(TEST_RESOURCE_DIR, "user-lead3.xml");
 	protected static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
+	protected static final File ROLE_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "041-role-approver.xml");
 	protected static final File ROLE_ROLE1_FILE = new File(TEST_RESOURCE_DIR, "role-role1.xml");
 	protected static final File ROLE_ROLE1A_FILE = new File(TEST_RESOURCE_DIR, "role-role1a.xml");
 	protected static final File ROLE_ROLE2_FILE = new File(TEST_RESOURCE_DIR, "role-role2.xml");
 	protected static final File ROLE_ROLE3_FILE = new File(TEST_RESOURCE_DIR, "role-role3.xml");
+	protected static final File ROLE_ROLE4_FILE = new File(TEST_RESOURCE_DIR, "role-role4.xml");
 	protected static final File ROLE_ROLE10_FILE = new File(TEST_RESOURCE_DIR, "role-role10.xml");
 	protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
@@ -111,10 +113,12 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static String USER_LEAD2_OID;
 	protected static String USER_LEAD3_OID;
 	protected static String USER_LEAD10_OID;
+	protected static String ROLE_APPROVER_OID;
 	protected static String ROLE_ROLE1_OID;
 	protected static String ROLE_ROLE1A_OID;
 	protected static String ROLE_ROLE2_OID;
 	protected static String ROLE_ROLE3_OID;
+	protected static String ROLE_ROLE4_OID;
 	protected static String ROLE_ROLE10_OID;
 
 	@Autowired
@@ -153,11 +157,14 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		login(userAdministrator);
 
+		ROLE_APPROVER_OID = repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult).getOid();
+
 		USER_JACK_OID = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
 		ROLE_ROLE1_OID = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();
 		ROLE_ROLE1A_OID = repoAddObjectFromFile(ROLE_ROLE1A_FILE, initResult).getOid();
 		ROLE_ROLE2_OID = repoAddObjectFromFile(ROLE_ROLE2_FILE, initResult).getOid();
 		ROLE_ROLE3_OID = repoAddObjectFromFile(ROLE_ROLE3_FILE, initResult).getOid();
+		ROLE_ROLE4_OID = repoAddObjectFromFile(ROLE_ROLE4_FILE, initResult).getOid();
 		ROLE_ROLE10_OID = repoAddObjectFromFile(ROLE_ROLE10_FILE, initResult).getOid();
 		USER_LEAD1_OID = addAndRecomputeUser(USER_LEAD1_FILE, initTask, initResult);
 		USER_LEAD2_OID = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);

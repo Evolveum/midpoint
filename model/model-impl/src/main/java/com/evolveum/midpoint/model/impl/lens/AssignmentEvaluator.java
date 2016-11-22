@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -49,7 +49,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -69,7 +68,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
@@ -541,7 +539,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			
 		} else if (targetType instanceof UserType) {
 			if (!QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY)) {
-				throw new SchemaException("Unsuppoted relation " + relation + " for assignment of target type " + targetType + " in " + sourceDescription);
+				throw new SchemaException("Unsupported relation " + relation + " for assignment of target type " + targetType + " in " + sourceDescription);
 			}
 		} else {
 			throw new SchemaException("Unknown assignment target type " + targetType + " in " + sourceDescription);
@@ -659,7 +657,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		for (AssignmentType roleAssignment : targetType.getAssignment()) {
-			if (LensUtil.isDelegationRelation(relation)) {
+			if (DeputyUtils.isDelegationRelation(relation)) {
 				// We have to handle assignments as though they were inducements here.
 				if (!isAllowedByLimitations(assignmentPathSegment, roleAssignment)) {
 					if (LOGGER.isTraceEnabled()) {

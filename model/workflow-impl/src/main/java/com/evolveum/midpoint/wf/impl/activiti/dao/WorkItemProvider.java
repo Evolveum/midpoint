@@ -136,7 +136,6 @@ public class WorkItemProvider {
 		if (assigneeFilter != null) {
             if (isNotEmpty(assigneeFilter.getValue())) {
                 if (assigneeFilter.getValue().size() > 1) {
-					//throw new SchemaException("Filter with more than one assignee is not supported: " + assigneeFilter.getValue());
 					taskQuery = taskQuery.or();
 				}
 				for (PrismValue value : assigneeFilter.getValue()) {

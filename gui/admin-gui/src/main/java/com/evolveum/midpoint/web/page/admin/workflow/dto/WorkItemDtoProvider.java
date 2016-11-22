@@ -17,11 +17,11 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 
@@ -56,7 +57,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     boolean claimable;
 	boolean all;
 
-    public String currentUser() {
+    public String currentUserOid() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal == null) {
             return "Unknown";
@@ -114,18 +115,14 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
     private ObjectQuery createQuery(OperationResult result) throws SchemaException {
 		boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
+		S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
 		if (all && authorizedToSeeAll) {
-			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-					.build();
+			return q.build();
 		} else if (all || !claimable) {
 			// not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
-			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-					.item(WorkItemType.F_ASSIGNEE_REF).ref(currentUser())
-					.build();
+			return QueryUtils.filterForAssignees(q, currentUserOid(), getRepositoryService(), result).build();
         } else {
-			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-					.item(WorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser(), result))
-					.build();
+			return QueryUtils.filterForGroups(q, currentUserOid(), getRepositoryService(), result).build();
         }
     }
 
@@ -152,23 +149,5 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         return count;
     }
 
-    // TODO - fix this temporary implementation (perhaps by storing 'groups' in user context on logon)
-	// TODO: currently we check only the direct assignments, we need to implement more complex mechanism
-	public List<PrismReferenceValue> getGroupsForUser(String oid, OperationResult result) throws SchemaException {
-        List<PrismReferenceValue> retval = new ArrayList<>();
-		UserType userType;
-		try {
-			userType = getRepositoryService().getObject(UserType.class, oid, null, result).asObjectable();
-		} catch (ObjectNotFoundException e) {
-			return retval;
-		}
-		for (AssignmentType assignmentType : userType.getAssignment()) {
-            ObjectReferenceType ref = assignmentType.getTargetRef();
-            if (ref != null) {
-				retval.add(ref.clone().asReferenceValue());
-            }
-        }
-        return retval;
-    }
 
 }
