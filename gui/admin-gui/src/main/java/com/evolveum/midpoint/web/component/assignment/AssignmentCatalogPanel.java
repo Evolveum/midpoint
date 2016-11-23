@@ -124,7 +124,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
                 @Override
                 public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
-                    return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, pageBase);
+                    return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, pageBase);
                 }
 
                 @Override
