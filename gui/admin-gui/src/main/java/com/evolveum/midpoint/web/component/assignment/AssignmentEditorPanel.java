@@ -545,7 +545,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			public MetadataType getObject() {
 				return getModel().getObject().getOldValue().getValue().getMetadata();
 			}
-		});
+		}, "row");
 		metadataPanel.add(new VisibleEnableBehaviour(){
 			@Override
 			public boolean isVisible(){
