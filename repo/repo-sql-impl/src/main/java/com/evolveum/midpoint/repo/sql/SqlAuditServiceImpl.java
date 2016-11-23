@@ -48,6 +48,8 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
@@ -56,6 +58,7 @@ import org.hibernate.jdbc.Work;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import java.math.BigInteger;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -63,6 +66,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -237,13 +242,19 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Validate.notNull(policy, "Cleanup policy must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        final String operation = "deleting";
-        int attempt = 1;
-
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("cleanupAudit");
-
-        if (policy.getMaxAge() == null) {
+        cleanupAuditMaxRecords(policy, parentResult);
+        cleanupAuditMaxAge(policy, parentResult);
+    }
+    
+    private void cleanupAuditMaxAge(CleanupPolicyType policy, OperationResult parentResult) {
+    	
+    	final String operation = "deletingMaxAge";
+    	
+    	SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("cleanupAuditMaxAge");
+    	int attempt = 1;
+    	
+    	if (policy.getMaxAge() == null) {
             return;
         }
 
@@ -289,6 +300,56 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     totalCountHolder.getValue(), (System.currentTimeMillis() - start)/1000L);
         }
     }
+    
+private void cleanupAuditMaxRecords(CleanupPolicyType policy, OperationResult parentResult) {
+    	
+    	final String operation = "deletingMaxRecords";
+    	
+    	SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("cleanupAuditMaxRecords");
+    	int attempt = 1;
+    	
+    	if (policy.getMaxRecords() == null) {
+            return;
+        }
+
+        Integer records = policy.getMaxRecords();
+       
+        // factored out because it produces INFO-level message
+        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
+        if (!dialect.supportsTemporaryTables()) {
+            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.", dialect);
+            throw new SystemException("Dialect " + dialect + " doesn't support temporary tables, couldn't cleanup audit logs.");
+        }
+
+        long start = System.currentTimeMillis();
+        boolean first = true;
+        Holder<Integer> totalCountHolder = new Holder<>(0);
+        try {
+            while (true) {
+                try {
+                    LOGGER.info("{} audit cleanup, deleting up to {} (duration '{}'), batch size {}{}.",
+                            first ? "Starting" : "Restarting",
+                            records, CLEANUP_AUDIT_BATCH_SIZE,
+                            first ? "" : ", up to now deleted " + totalCountHolder.getValue() + " entries");
+                    first = false;
+                    int count;
+                    do {
+                        // the following method may restart due to concurrency (or any other) problem - in any iteration
+                        count = cleanupAuditAttempt(records, totalCountHolder, dialect, parentResult);
+                    } while (count > 0);
+                    return;
+                } catch (RuntimeException ex) {
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, parentResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+            LOGGER.info("Audit cleanup finished; deleted {} entries in {} seconds.",
+                    totalCountHolder.getValue(), (System.currentTimeMillis() - start)/1000L);
+        }
+    }
 
     private int cleanupAuditAttempt(Date minValue, Duration duration, Holder<Integer> totalCountHolder, Dialect dialect, OperationResult subResult) {
 
@@ -301,6 +362,32 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             session = baseHelper.beginTransaction();
 
             int count = cleanupAuditAttempt(minValue, session, dialect);
+
+            session.getTransaction().commit();
+            int totalCount = totalCountHolder.getValue() + count;
+            totalCountHolder.setValue(totalCount);
+            LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}", System.currentTimeMillis()-start, totalCount);
+            return count;
+        } catch (RuntimeException ex) {
+            LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}", System.currentTimeMillis()-start, ex.getMessage());
+			baseHelper.handleGeneralRuntimeException(ex, session, subResult);
+            throw new AssertionError("We shouldn't get here.");         // just because of the need to return a value
+        } finally {
+			baseHelper.cleanupSessionAndResult(session, subResult);
+        }
+    }
+    
+    private int cleanupAuditAttempt(Integer recordsToKeep, Holder<Integer> totalCountHolder, Dialect dialect, OperationResult subResult) {
+
+        long start = System.currentTimeMillis();
+        LOGGER.debug("Starting audit cleanup batch, deleting up to {} (duration '{}'), batch size {}, up to now deleted {} entries.",
+                recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
+
+        Session session = null;
+        try {
+            session = baseHelper.beginTransaction();
+
+            int count = cleanupAuditAttempt(recordsToKeep, session, dialect);
 
             session.getTransaction().commit();
             int totalCount = totalCountHolder.getValue() + count;
@@ -344,6 +431,49 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         LOGGER.trace("Query string = {}", queryString);
         SQLQuery query = session.createSQLQuery(queryString);
         query.setParameter(0, new Timestamp(minValue.getTime()));
+
+        int insertCount = query.executeUpdate();
+        LOGGER.trace("Inserted {} audit record ids ready for deleting.", new Object[]{insertCount});
+
+        //drop records from m_audit_event, m_audit_delta
+        session.createSQLQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
+                RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
+        session.createSQLQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id")).executeUpdate();
+
+        //drop temporary table
+        if (dialect.dropTemporaryTableAfterUse()) {
+            LOGGER.debug("Dropping temporary table.");
+            StringBuilder sb = new StringBuilder();
+            sb.append(dialect.getDropTemporaryTableString());
+            sb.append(' ').append(tempTable);
+
+            session.createSQLQuery(sb.toString()).executeUpdate();
+        }
+
+        return insertCount;
+    }
+    
+    protected int cleanupAuditAttempt(Integer recordsToKeep, Session session, Dialect dialect) {
+        //create temporary table
+        final String tempTable = dialect.generateTemporaryTableName(RAuditEventRecord.TABLE_NAME);
+        createTemporaryTable(session, dialect, tempTable);
+        StringBuilder selectSB = new StringBuilder();
+        selectSB.append("select a.id as id from ").append(RAuditEventRecord.TABLE_NAME).append(" a");
+        selectSB.append(" order by a.").append(RAuditEventRecord.COLUMN_TIMESTAMP).append(" desc");
+        String selectString = selectSB.toString();
+        
+        // batch size
+        RowSelection rowSelection = new RowSelection();
+        rowSelection.setFirstRow(recordsToKeep);
+        rowSelection.setMaxRows(CLEANUP_AUDIT_BATCH_SIZE);
+        LimitHandler limitHandler = dialect.buildLimitHandler(selectString, rowSelection);
+        selectString = limitHandler.getProcessedSql();
+        
+        String queryString = "insert into " + tempTable + " " + selectString;
+        LOGGER.trace("Query string = {}", queryString);
+        SQLQuery query = session.createSQLQuery(queryString);
+        query.setParameter(0, CLEANUP_AUDIT_BATCH_SIZE);
+        query.setParameter(1, recordsToKeep);
 
         int insertCount = query.executeUpdate();
         LOGGER.trace("Inserted {} audit record ids ready for deleting.", new Object[]{insertCount});
