@@ -5062,7 +5062,7 @@
 		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0">
 		     			<xsd:annotation>
 		     				<xsd:documentation>
-		     					Specifies the directorion of association, i.e. if the association point from object to
+		     					Specifies the direction of association, i.e. if the association point from object to
 		     					subject or the other way around. 
 		     				</xsd:documentation>
 		     			</xsd:annotation>
@@ -5102,7 +5102,7 @@
 		     					must be done to fully resolve object-to-subject associations. This attribute provides a
 		     					short-cut mechanism. It is used in cases when there is additional (virtual) attribute that
 		     					goes in the opposite direction as the primary object-to-subject association attribute.
-		     					The assocition short-cut is only usable for object-to-subject associations.
+		     					The association short-cut is only usable for object-to-subject associations.
 		     					
 		     					This property specifies name of the attribute which represents the association short-cut.
 		     					This is the attribute of the subject (e.g. account). This attribute will only be read,
@@ -5157,6 +5157,9 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="objectToSubject">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		The object has an attribute that contains subject identifiers as its values. E.g. a group has a list of members.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OBJECT_TO_SUBJECT"/>
                     </xsd:appinfo>
@@ -5164,6 +5167,9 @@
             </xsd:enumeration>
             <xsd:enumeration value="subjectToObject">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		Subject has an attribute that contains object identifiers as its values. E.g. an account has a list of groups to which it belongs.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SUBJECT_TO_OBJECT"/>
                     </xsd:appinfo>
@@ -12132,6 +12138,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="maxAge" type="xsd:duration" minOccurs="0"/>
+            <xsd:element name="maxRecords" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
