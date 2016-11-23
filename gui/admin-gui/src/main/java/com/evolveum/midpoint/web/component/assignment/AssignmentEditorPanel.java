@@ -540,12 +540,19 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 		initAttributesLayout(constructionContainer);
 
-		MetadataPanel metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new AbstractReadOnlyModel<MetadataType>() {
-			@Override
-			public MetadataType getObject() {
-				return getModel().getObject().getOldValue().getValue().getMetadata();
-			}
-		}, "row");
+		Component metadataPanel;
+        if (UserDtoStatus.ADD.equals(getModel().getObject().getStatus()) ||
+                getModelObject().getOldValue().asContainerable() == null){
+            metadataPanel = new WebMarkupContainer(ID_METADATA_CONTAINER);
+        } else {
+            metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new AbstractReadOnlyModel<MetadataType>() {
+                @Override
+                public MetadataType getObject() {
+                    return getModelObject().getOldValue().getValue().getMetadata();
+                }
+            }, "row");
+        }
+        metadataPanel.setOutputMarkupId(true);
 		metadataPanel.add(new VisibleEnableBehaviour(){
 			@Override
 			public boolean isVisible(){

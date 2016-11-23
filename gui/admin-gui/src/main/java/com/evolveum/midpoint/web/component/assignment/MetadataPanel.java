@@ -72,12 +72,6 @@ public class MetadataPanel extends BasePanel<MetadataType>{
     private void initLayout(){
         WebMarkupContainer metadataBlock = new WebMarkupContainer(ID_METADATA_BLOCK);
         metadataBlock.setOutputMarkupId(true);
-        metadataBlock.add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isVisible(){
-                return getModel() != null && getModelObject() != null;
-            }
-        });
         add(metadataBlock);
 
         WebMarkupContainer headerContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
