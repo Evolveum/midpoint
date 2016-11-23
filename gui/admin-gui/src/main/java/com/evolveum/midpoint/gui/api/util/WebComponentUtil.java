@@ -40,6 +40,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -704,6 +706,22 @@ public final class WebComponentUtil {
 		PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
 
 		return name != null ? name.getOrig() : null;
+	}
+
+	public static <O extends ObjectType> String getName(ObjectReferenceType ref, PageBase pageBase, String operation) {
+		String name = getName(ref);
+		if (StringUtils.isEmpty(name) || name.equals(ref.getOid())) {
+			String oid = ref.getOid();
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
+					.createCollection(GetOperationOptions.createNoFetch());
+			Class<O> type = (Class<O>) ObjectType.class;
+			PrismObject<O> object = WebModelServiceUtils.loadObject(type, oid, pageBase,
+					pageBase.createSimpleTask(operation), new OperationResult(operation));
+			if (object != null) {
+				name = object.getName().getOrig();
+			}
+		}
+		return name;
 	}
 
 	public static String getName(ObjectReferenceType ref) {

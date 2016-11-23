@@ -1,6 +1,10 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -65,9 +69,15 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 
 	@Override
-	protected int internalSize(){
+	protected int internalSize() {
 		String query = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT + auditEventQuery, false);
-		long count = getAuditService().countObjects(query, parameters);
+		long count;
+		try {
+			count = getAuditService().countObjects(query, parameters, new OperationResult("internalSize"));
+		} catch (SecurityViolationException | SchemaException e) {
+			// TODO: proper error handling (MID-3536)
+			throw new SystemException(e.getMessage(), e);
+		}
 
 		return ((Long)count).intValue();
 	}
@@ -89,7 +99,14 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         parameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
 
 
-        List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery, parameters);
+        List<AuditEventRecord> auditRecords;
+		try {
+			auditRecords = getAuditService().listRecords(parameterQuery, parameters, 
+					new OperationResult("listRecords"));
+		} catch (SecurityViolationException | SchemaException e) {
+			// TODO: proper error handling (MID-3536)
+			throw new SystemException(e.getMessage(), e);
+		}
 		if (auditRecords == null){
 			auditRecords = new ArrayList<>();
 		}

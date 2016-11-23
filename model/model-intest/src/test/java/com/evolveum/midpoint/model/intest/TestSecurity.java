@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNull;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -231,6 +232,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	protected static final String ROLE_BASIC_OID = "00000000-0000-0000-0000-00000000aad1";
 
+	protected static final File ROLE_AUDITOR_FILE = new File(TEST_DIR, "role-auditor.xml");
+	protected static final String ROLE_AUDITOR_OID = "475e37e8-b178-11e6-8339-83e2fa7b9828";
+
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
 	private static final String LOG_PREFIX_DENY = "SSSSS=- ";
@@ -283,9 +287,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, initResult);
 		repoAddObjectFromFile(ROLE_BUSINESS_2_FILE, initResult);
 		
-		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, initResult);
-		repoAddObjectFromFile(ROLE_META_NONSENSE_FILE, initResult);
-		repoAddObjectFromFile(ROLE_BASIC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_META_NONSENSE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_BASIC_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_AUDITOR_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, initResult);
@@ -655,6 +660,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertReadCertCasesAllow();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 
 	/**
@@ -676,6 +683,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 	
 	/**
@@ -697,6 +706,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 	
 	@Test
@@ -715,6 +726,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 
 	@Test
@@ -733,6 +746,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 	
 	@Test
@@ -2934,8 +2949,30 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 	}
 
+	@Test
+    public void test360AutzJackAuditorRole() throws Exception {
+		final String TEST_NAME = "test360AutzJackAuditorRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_AUDITOR_OID);
+        login(USER_JACK_USERNAME);
 
-	private void assertSuperuserAccess(int readUserNum) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, IOException {
+        // WHEN
+        assertReadAllow(10);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+		assertReadCertCasesAllow();
+
+        assertGlobalStateUntouched();
+
+        assertAuditReadAllow();
+	}
+
+
+	private void assertSuperuserAccess(int readUserNum) throws Exception {
 		assertReadAllow(readUserNum);
         assertAddAllow();
         assertModifyAllow();
@@ -2948,9 +2985,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Null role spec "+roleSpec, roleSpec);
         assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
         assertFilter(roleSpec.getFilter(), null);
+
+        assertAuditReadAllow();
 	}
 
-	private void assertNoAccess(PrismObject<UserType> userJack) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, IOException {
+	private void assertNoAccess(PrismObject<UserType> userJack) throws Exception {
 		assertReadDeny();
         assertAddDeny();
         assertModifyDeny();
@@ -2962,6 +3001,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Null role spec "+roleSpec, roleSpec);
         assertRoleTypes(roleSpec);
         assertFilter(roleSpec.getFilter(), NoneFilter.class);
+
+        assertAuditReadDeny();
 	}
 	
 	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
@@ -3612,4 +3653,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAttributeFlags(rOcDef, new QName("weapon"), true, true, true);
 	}
 	
+
+	private void assertAuditReadDeny() throws Exception {
+		assertDeny("auditHistory", (task,result) -> getAllAuditRecords(result));
+	}
+
+	private void assertAuditReadAllow() throws Exception {
+		assertAllow("auditHistory", (task,result) -> {
+			List<AuditEventRecord> auditRecords = getAllAuditRecords(result);
+			assertTrue("No audit records", auditRecords != null && !auditRecords.isEmpty());
+		});
+	}
 }

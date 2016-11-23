@@ -20,6 +20,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -3540,6 +3541,36 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertTaskClosed(PrismObject<TaskType> task) {
 		assertEquals("Wrong executionStatus in "+task, TaskExecutionStatusType.CLOSED, task.asObjectable().getExecutionStatus());
+	}
+	
+	protected List<AuditEventRecord> getAllAuditRecords(OperationResult result) throws SecurityViolationException, SchemaException {
+		Map<String,Object> params = new HashMap<>();
+		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, result);
+	}
+	
+	protected List<AuditEventRecord> getObjectAuditRecords(String oid) throws SecurityViolationException, SchemaException {
+		OperationResult result = new OperationResult("getObjectAuditRecords");
+		return getObjectAuditRecords(oid, result);
+	}
+	
+	protected List<AuditEventRecord> getObjectAuditRecords(String oid, OperationResult result) throws SecurityViolationException, SchemaException {
+		Map<String,Object> params = new HashMap<>();
+		params.put("targetOid", oid);
+		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.targetOid = :targetOid) order by aer.timestamp asc", 
+        		params, result);
+	}
+	
+	protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to) throws SecurityViolationException, SchemaException {
+		OperationResult result = new OperationResult("getAuditRecordsFromTo");
+		return getAuditRecordsFromTo(from, to, result);
+	}
+	
+	protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to, OperationResult result) throws SecurityViolationException, SchemaException {
+		Map<String,Object> params = new HashMap<>();
+		params.put("from", from);
+		params.put("to", to);
+		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.timestamp >= :from) and (aer.timestamp <= :to) order by aer.timestamp asc", 
+        		params, result);
 	}
 
 	protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {

@@ -18,12 +18,16 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.assignment.MetadataPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.ResourceReference;
@@ -44,6 +48,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     private static final String ID_HEADER = "header";
     private static final String ID_CONTAINERS = "containers";
     private static final String ID_CONTAINER = "container";
+    private static final String ID_METADATA_CONTAINER = "metadataContainer";
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectPanel.class);
 
@@ -111,6 +116,21 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
             }
         };
         containers.setReuseItems(true);
+
+        MetadataPanel metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new AbstractReadOnlyModel<MetadataType>() {
+            @Override
+            public MetadataType getObject() {
+                return model.getObject().getObject().asObjectable().getMetadata();
+            }
+        });
+        metadataPanel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return !ContainerStatus.ADDING.equals(model.getObject().getStatus());
+            }
+        });
+        addOrReplace(metadataPanel);
+
         if (isToBeReplaced) {
             replace(containers);
         } else {

@@ -42,6 +42,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -103,7 +105,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         List<AuditEventRecord> allRecords = modelAuditService.listRecords("from RAuditEventRecord as aer where 1=1 ", 
-        		new HashMap<String,Object>());
+        		new HashMap<String,Object>(), new OperationResult(TEST_NAME));
         
         // THEN
         display("all records", allRecords);
@@ -526,11 +528,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(hermanReconstructed, ROLE_JUDGE_OID);
         assertAssignments(hermanReconstructed, 2);
     }
-    
-    
-    
 
-    private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) {
+    private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException {
     	List<AuditEventRecord> auditRecords = getObjectAuditRecords(oid);
         display("Object records", auditRecords);
         assertEquals("Wrong number of jack audit records", expectedNumberOfRecords, auditRecords.size());
@@ -538,30 +537,17 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private void assertRecordsFromPrevious(XMLGregorianCalendar from, XMLGregorianCalendar to, 
-			int expectedNumberOfRecords) {
+			int expectedNumberOfRecords) throws SecurityViolationException, SchemaException {
         List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(from, to);
         display("From/to records (previous)", auditRecordsSincePrevious);
         assertEquals("Wrong number of audit records (previous)", expectedNumberOfRecords, auditRecordsSincePrevious.size());	
     }
 
-	private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords) {
+	private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException {
         List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(initialTs, to);
         display("From/to records (initial)", auditRecordsSincePrevious);
         assertEquals("Wrong number of audit records (initial)", expectedNumberOfRecords, auditRecordsSincePrevious.size());	
     }
 
-	private List<AuditEventRecord> getObjectAuditRecords(String oid) {
-		Map<String,Object> params = new HashMap<>();
-		params.put("targetOid", oid);
-		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.targetOid = :targetOid) order by aer.timestamp asc", 
-        		params);
-	}
 	
-	private List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to) {
-		Map<String,Object> params = new HashMap<>();
-		params.put("from", from);
-		params.put("to", to);
-		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.timestamp >= :from) and (aer.timestamp <= :to) order by aer.timestamp asc", 
-        		params);
-	}
 }
