@@ -30,6 +30,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelAuditService;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -37,12 +38,15 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -60,22 +64,22 @@ public class AuditController implements ModelAuditService {
 	
 	@Autowired(required=true)
 	private ModelObjectResolver objectResolver;
+	
+	@Autowired(required = true)
+	private SecurityEnforcer securityEnforcer;
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.audit.api.AuditService#audit(com.evolveum.midpoint.audit.api.AuditEventRecord, com.evolveum.midpoint.task.api.Task)
 	 */
 	@Override
-	public void audit(AuditEventRecord record, Task task) {
-		// TODO: authorizations
+	public void audit(AuditEventRecord record, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+		authorize(ModelAuthorizationAction.AUDIT_RECORD, result);
 		auditService.audit(record, task);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.audit.api.AuditService#listRecords(java.lang.String, java.util.Map)
-	 */
 	@Override
-	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
-		// TODO: authorizations
+	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result) throws SecurityViolationException, SchemaException {
+		authorize(ModelAuthorizationAction.AUDIT_READ, result);
 		return auditService.listRecords(query, params);
 	}
 
@@ -83,14 +87,14 @@ public class AuditController implements ModelAuditService {
 	 * @see com.evolveum.midpoint.audit.api.AuditService#countObjects(java.lang.String, java.util.Map)
 	 */
 	@Override
-	public long countObjects(String query, Map<String, Object> params) {
-		// TODO: authorizations
+	public long countObjects(String query, Map<String, Object> params, OperationResult result) throws SecurityViolationException, SchemaException {
+		authorize(ModelAuthorizationAction.AUDIT_READ, result);
 		return auditService.countObjects(query, params);
 	}
 
 	@Override
-	public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
-		// TODO: authorizations
+	public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) throws SecurityViolationException, SchemaException {
+		authorize(ModelAuthorizationAction.AUDIT_MANAGE, parentResult);
 		auditService.cleanupAudit(policy, parentResult);
 	}
 	
@@ -254,4 +258,9 @@ public class AuditController implements ModelAuditService {
 		return true;
 	}
 
+	private void authorize(ModelAuthorizationAction action, OperationResult result) throws SecurityViolationException, SchemaException {
+		securityEnforcer.authorize(action.getUrl(), AuthorizationPhaseType.REQUEST, null, null, null, null, result);
+		securityEnforcer.authorize(action.getUrl(), AuthorizationPhaseType.EXECUTION, null, null, null, null, result);
+	}
+	
 }

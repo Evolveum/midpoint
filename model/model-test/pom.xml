@@ -92,6 +92,11 @@
 			<artifactId>repo-api</artifactId>
 			<version>3.5-SNAPSHOT</version>
 		</dependency>
+		 <dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>audit-api</artifactId>
+			<version>3.5-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-api</artifactId>
