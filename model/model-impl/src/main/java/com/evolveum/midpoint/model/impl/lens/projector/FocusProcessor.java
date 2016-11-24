@@ -39,7 +39,7 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.MetadataManager;
+import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -137,7 +137,7 @@ public class FocusProcessor {
     private MappingEvaluator mappingHelper;
 	
 	@Autowired(required = true)
-    private MetadataManager metadataManager;
+    private OperationalDataManager metadataManager;
 
 	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription, 
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ObjectNotFoundException,

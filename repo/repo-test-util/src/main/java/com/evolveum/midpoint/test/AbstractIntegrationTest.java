@@ -565,6 +565,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Wrong effectiveStatus in activation in "+focus, expected, activationType.getEffectiveStatus());
 	}
 	
+	protected <F extends FocusType> void  assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
+		ActivationType activationType = assignmentType.getActivation();
+		assertNotNull("No activation in "+assignmentType, activationType);
+		assertEquals("Wrong effectiveStatus in activation in "+assignmentType, expected, activationType.getEffectiveStatus());
+	}
+	
 	protected <F extends FocusType> void  assertValidityStatus(PrismObject<F> focus, TimeIntervalStatusType expected) {
 		ActivationType activationType = focus.asObjectable().getActivation();
 		assertNotNull("No activation in "+focus, activationType);
