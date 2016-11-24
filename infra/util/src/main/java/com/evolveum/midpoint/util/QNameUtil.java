@@ -96,6 +96,12 @@ public class QNameUtil {
 		return new QName(name.getLocalPart());
 	}
 
+	public static QName qualifyIfNeeded(QName name, String defaultNamespace) {
+		return hasNamespace(name) ?
+				name
+				: new QName(defaultNamespace, name.getLocalPart());
+	}
+
 	public static class QNameInfo {
 		@NotNull public final QName name;
 		public final boolean explicitEmptyNamespace;
