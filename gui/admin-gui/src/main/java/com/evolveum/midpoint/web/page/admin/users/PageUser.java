@@ -202,7 +202,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
                                 privilegesList = getItemPrivilegesList(item.getModelObject());
-                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
+                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
                                         privilegesList, assignmentUserMap.get(item.getModelObject()), PageUser.this);
                                 item.add(editor);
                             }
@@ -322,7 +322,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
-                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(),
+                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
                                         privilegesList, null, PageUser.this);
                                 item.add(editor);
                             }

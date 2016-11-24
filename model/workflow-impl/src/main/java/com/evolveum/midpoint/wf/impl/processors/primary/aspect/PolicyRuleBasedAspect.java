@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -145,6 +148,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				ApprovalPolicyActionType defaultPolicyAction = new ApprovalPolicyActionType(prismContext);
 				defaultPolicyAction.getApproverRelation().add(SchemaConstants.ORG_APPROVER);
 				approvalActions.add(defaultPolicyAction);
+				LOGGER.trace("Added default approval action, as no explicit one was found");
 			}
 			boolean useLegacy = configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.ALWAYS
 					|| configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION
@@ -265,19 +269,24 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			}
 		}
 		for (ApprovalPolicyActionType action : approvalActions) {
-			approvalSchema = addApprovalActionIntoApprovalSchema(approvalSchema, action, findApproversByReference(target, result));
+			approvalSchema = addApprovalActionIntoApprovalSchema(approvalSchema, action, findApproversByReference(target, action, result));
 		}
 		assert approvalSchema != null;
 		return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext);
 	}
 
-	private List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, OperationResult result)
-			throws SchemaException {
-		PrismReferenceValue approverReference = new PrismReferenceValue(target.getOid());
-		approverReference.setRelation(SchemaConstants.ORG_APPROVER);
-		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference)
-				.build();
+	private List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, ApprovalPolicyActionType action,
+			OperationResult result) throws SchemaException {
+		if (action.getApproverRelation().isEmpty()) {
+			return Collections.emptyList();
+		}
+		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext).none();
+		for (QName approverRelation : action.getApproverRelation()) {
+			PrismReferenceValue approverReference = new PrismReferenceValue(target.getOid());
+			approverReference.setRelation(QNameUtil.qualifyIfNeeded(approverRelation, SchemaConstants.NS_ORG));
+			q = q.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference);
+		}
+		ObjectQuery query = q.build();
 		LOGGER.trace("Looking for approvers for {} using query:\n{}", target, DebugUtil.debugDumpLazily(query));
 		List<PrismObject<FocusType>> objects = repositoryService.searchObjects(FocusType.class, query, null, result);
 		Set<PrismObject<FocusType>> distinctObjects = new HashSet<>(objects);
