@@ -96,8 +96,8 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 		resourceDummyBlackType = resourceDummyBlack.asObjectable();
 		dummyResourceCtlBlack.setResource(resourceDummyBlack);
         
-        repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult);
-        repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, true, initResult);
+        repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
+        repoAddObjectFromFile(USER_GUYBRUSH_FILE, true, initResult);
 	}
 
 	@Test

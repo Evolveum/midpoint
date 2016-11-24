@@ -468,7 +468,8 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         PrismObject<UserType> userGibbsAfter = getUser(USER_GIBBS_OID);
         dumpFocus("User Gibbs after", userGibbsAfter);
         assertHasOrgs(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
-        assertRoleMembershipRef(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
+        assertRoleMembershipRef(userGibbsAfter);
+        assertDelegatedRef(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID, USER_JACK_OID);
         assertAccount(userGibbsAfter, RESOURCE_DUMMY_OID); // From Scumm Bar
         assertAccount(userGibbsAfter, RESOURCE_DUMMY_YELLOW_OID);
         assertLinks(userGibbsAfter, 2);
@@ -507,7 +508,8 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         PrismObject<UserType> userPintelAfter = getUser(USER_PINTEL_OID);
         dumpFocus("User pintel after", userPintelAfter);
         assertHasOrgs(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
-        assertRoleMembershipRef(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
+        assertRoleMembershipRef(userPintelAfter);
+        assertDelegatedRef(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, USER_BARBOSSA_OID);
         assertAccount(userPintelAfter, RESOURCE_DUMMY_RED_OID);
         assertLinks(userPintelAfter, 1);
         

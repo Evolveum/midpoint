@@ -184,23 +184,9 @@ public class ObjectTypeUtil {
         }
 	}
 
-	// TODO remove this ugly hacking during prism cleanup
-	// The problem is that we need to provide targetRef/construction definition. It is done by instantiating AssignmentType
-	// with a parent (bringing the definition), but removing the parent just before returning, to provide a "free" (parent-less)
-	// instance of AssignmentType.
-	// This has to be done by allowing PCVs to carry their CTD without having to have a parent.
 	@NotNull
 	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref, @Nullable PrismContext prismContext) {
-		AssignmentType assignment;
-		if (prismContext == null) {
-			assignment = new AssignmentType();
-		} else {
-			try {
-				assignment = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class).instantiate().createNewValue().asContainerable();
-			} catch (SchemaException e) {
-				throw new IllegalStateException("Couldn't instantiate AssignmentType: " + e.getMessage(), e);
-			}
-		}
+		AssignmentType assignment = new AssignmentType(prismContext);
 		if (QNameUtil.match(ref.getType(), ResourceType.COMPLEX_TYPE)) {
 			ConstructionType construction = new ConstructionType();
 			construction.setResourceRef(ref);
@@ -208,7 +194,7 @@ public class ObjectTypeUtil {
 		} else {
 			assignment.setTargetRef(ref);
 		}
-		return prismContext != null ? assignment.clone() : assignment;
+		return assignment;
 	}
 
 	@NotNull

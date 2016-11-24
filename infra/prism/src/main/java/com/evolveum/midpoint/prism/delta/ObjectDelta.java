@@ -32,9 +32,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Relative difference (delta) of the object.
@@ -71,7 +73,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     /**
      * Set of relative property deltas. Valid only if changeType==MODIFY
      */
-    private Collection<? extends ItemDelta<?,?>> modifications;
+    @NotNull private final Collection<? extends ItemDelta<?,?>> modifications;
 
     /**
      * Class of the object that we describe.
@@ -488,7 +490,6 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public ObjectDelta<T> clone() {
         ObjectDelta<T> clone = new ObjectDelta<T>(this.objectTypeClass, this.changeType, this.prismContext);
         clone.oid = this.oid;
-        clone.modifications = createEmptyModifications();
         for (ItemDelta<?,?> thisModification: this.modifications) {
         	((Collection)clone.modifications).add(thisModification.clone());
         }
@@ -719,7 +720,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 
     private Collection<? extends ItemDelta<?,?>> createEmptyModifications() {
     	// Lists are easier to debug
-        return new ArrayList<ItemDelta<?,?>>();
+        return new ArrayList<>();
     }
     
     public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition<X> propertyDefinition) {
@@ -1561,4 +1562,83 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         return delta == null || delta.isEmpty();
     }
 
+	/**
+	 * Returns modifications that are related to the given paths; removes them from the original delta.
+	 * Applicable only to modify deltas.
+	 * Currently compares paths by "equals" predicate -- in the future we might want to treat sub/super/equivalent paths!
+	 * So consider this method highly experimental.
+	 *
+	 * @param paths
+	 * @return
+	 */
+	public ObjectDelta<T> subtract(@NotNull Collection<ItemPath> paths) {
+		if (!isModify()) {
+			throw new UnsupportedOperationException("Only for MODIFY deltas, not for " + this);
+		}
+		ObjectDelta<T> rv = new ObjectDelta<T>(this.objectTypeClass, ChangeType.MODIFY, this.prismContext);
+		rv.oid = this.oid;
+		Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
+		while (iterator.hasNext()) {
+			ItemDelta<?, ?> itemDelta = iterator.next();
+			if (paths.contains(itemDelta.getPath())) {
+				rv.addModification(itemDelta);
+				iterator.remove();
+			}
+		}
+		return rv;
+	}
+
+	/**
+	 * Checks if the delta tries to add (or set) a 'value' for the item identified by 'itemPath'. If yes, it removes it.
+	 *
+	 * TODO consider changing return value to 'incremental delta' (or null)
+	 *
+	 * @param itemPath
+	 * @param value
+	 * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
+	 */
+    public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value) {
+		if (isAdd()) {
+			return subtractFromObject(objectToAdd, itemPath, value);
+		} else {
+			return subtractFromModifications(modifications, itemPath, value);
+		}
+	}
+
+	public static boolean subtractFromModifications(Collection<? extends ItemDelta<?, ?>> modifications, @NotNull ItemPath itemPath,
+			@NotNull PrismValue value) {
+		if (modifications == null) {
+			return false;
+		}
+		boolean removed = false;
+		Iterator<? extends ItemDelta<?, ?>> itemDeltaIterator = modifications.iterator();
+		while (itemDeltaIterator.hasNext()) {
+			ItemDelta<?, ?> itemDelta = itemDeltaIterator.next();
+			if (itemPath.equivalent(itemDelta.getPath())) {
+				boolean removed1 = itemDelta.removeValueToAdd(value);
+				boolean removed2 = itemDelta.removeValueToReplace(value);
+				removed = removed || removed1 || removed2;
+				if (itemDelta.isInFactEmpty()) {
+					itemDeltaIterator.remove();
+				}
+			}
+		}
+		return removed;
+	}
+
+	public static boolean subtractFromObject(@NotNull PrismObject<?> object, @NotNull ItemPath itemPath, @NotNull PrismValue value) {
+		Item<PrismValue, ItemDefinition> item = object.findItem(itemPath);
+		if (item == null) {
+			return false;
+		}
+		return item.remove(value);
+	}
+
+	@NotNull
+	public List<ItemPath> getModifiedItems() {
+		if (!isModify()) {
+			throw new UnsupportedOperationException("Supported only for modify deltas");
+		}
+		return modifications.stream().map(ItemDelta::getPath).collect(Collectors.toList());
+	}
 }

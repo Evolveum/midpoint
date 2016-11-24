@@ -43,7 +43,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -78,11 +77,11 @@ public class TestOrgStructMeta extends TestOrgStruct {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        repoAddObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, ObjectTemplateType.class, initResult);
+        repoAddObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
         setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
         
-        repoAddObjectFromFile(ROLE_META_FUNCTIONAL_ORG_FILE, RoleType.class, initResult);
-        repoAddObjectFromFile(ROLE_ORGANIZED_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_META_FUNCTIONAL_ORG_FILE, initResult);
+        repoAddObjectFromFile(ROLE_ORGANIZED_FILE, initResult);
     }
 	
 	@Override

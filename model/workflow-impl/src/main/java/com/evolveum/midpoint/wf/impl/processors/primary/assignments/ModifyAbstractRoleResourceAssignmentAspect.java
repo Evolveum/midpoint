@@ -31,11 +31,6 @@ public class ModifyAbstractRoleResourceAssignmentAspect extends ModifyResourceAs
     //private static final Trace LOGGER = TraceManager.getTrace(ModifyAbstractRoleResourceAssignmentAspect.class);
 
     @Override
-    public boolean isEnabledByDefault() {
-        return false;
-    }
-
-    @Override
     protected boolean isFocusRelevant(ModelContext modelContext) {
         return primaryChangeAspectHelper.isRelatedToType(modelContext, AbstractRoleType.class);
     }

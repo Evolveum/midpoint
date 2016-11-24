@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl;
+package com.evolveum.midpoint.wf.impl.legacy;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
@@ -33,13 +33,10 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,12 +49,12 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -65,28 +62,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.*;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -95,9 +82,9 @@ import static org.testng.AssertJUnit.fail;
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 //@DependsOn("workflowServiceImpl")
-public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
+public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
-    protected static final File TEST_RESOURCE_DIR = new File("src/test/resources");
+    protected static final File TEST_RESOURCE_DIR = new File("src/test/resources/legacy");
     protected static final String DONT_CHECK = "dont-check";
 
     @Autowired
@@ -124,19 +111,21 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
     @Autowired
     protected GeneralChangeProcessor generalChangeProcessor;
 
-    public static final String USERS_AND_ROLES_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/users-and-roles.xml";
+    public static final File USERS_AND_ROLES_FILE = new File(TEST_RESOURCE_DIR, "users-and-roles.xml");
+
     public static final String ROLE_R1_OID = "00000001-d34d-b33f-f00d-000000000001";
     public static final String ROLE_R2_OID = "00000001-d34d-b33f-f00d-000000000002";
     public static final String ROLE_R3_OID = "00000001-d34d-b33f-f00d-000000000003";
     public static final String ROLE_R4_OID = "00000001-d34d-b33f-f00d-000000000004";
-    public static final String USER_BILL_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/user-bill.xml";
+    public static final File USER_BILL_FILE = new File(TEST_RESOURCE_DIR, "user-bill.xml");
     public static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
     public static final String ROLE_R10_OID = "00000001-d34d-b33f-f00d-000000000010";
-    public static final File ROLE_R11_FILE = new File(AbstractIntegrationTest.COMMON_DIR, "role11.xml");
+
+    public static final File ROLE_R11_FILE = new File(TEST_RESOURCE_DIR, "role11.xml");
     public static final String ROLE_R11_OID = "00000001-d34d-b33f-f00d-000000000011";
-    public static final File ROLE_R12_FILE = new File(AbstractIntegrationTest.COMMON_DIR, "role12.xml");
+    public static final File ROLE_R12_FILE = new File(TEST_RESOURCE_DIR, "role12.xml");
     public static final String ROLE_R12_OID = "00000001-d34d-b33f-f00d-000000000012";
-    public static final File ROLE_R13_FILE = new File(AbstractIntegrationTest.COMMON_DIR, "role13.xml");
+    public static final File ROLE_R13_FILE = new File(TEST_RESOURCE_DIR, "role13.xml");
     public static final String ROLE_R13_OID = "00000001-d34d-b33f-f00d-000000000013";
 
     public static final String R1BOSS_OID = "00000000-d34d-b33f-f00d-111111111111";
@@ -145,28 +134,30 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
     public static final String DUMMYBOSS_OID = "00000000-d34d-b33f-f00d-111111111333";
 
     public static final String GROUP_TESTERS_OID = "20000000-0000-0000-3333-000000000002";
-    public static final String GROUP_TESTERS_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/group-testers-dummy.xml";
+    public static final File GROUP_TESTERS_FILE = new File(TEST_RESOURCE_DIR, "group-testers-dummy.xml");
     public static final String GROUP_TESTERS_NAME = "testers";
 
     public static final String GROUP_GUESTS_OID = "20000000-0000-0000-3333-000000000072";
-    public static final String GROUP_GUESTS_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/group-guests-dummy.xml";
+    public static final File GROUP_GUESTS_FILE = new File(TEST_RESOURCE_DIR, "/group-guests-dummy.xml");
     public static final String GROUP_GUESTS_NAME = "guests";
 
     public static final File USER_ELISABETH_FILE = new File(TEST_RESOURCE_DIR, "user-elisabeth.xml");
     public static final String USER_ELISABETH_OID = "c0c010c0-d34d-b33f-f00d-111111112222";
 
-    public static final File ACCOUNT_SHADOW_ELISABETH_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-elisabeth-dummy.xml");
+    public static final File ACCOUNT_SHADOW_ELISABETH_DUMMY_FILE = new File(TEST_RESOURCE_DIR, "account-shadow-elisabeth-dummy.xml");
 
-    public AbstractWfTest() throws JAXBException {
+    public AbstractWfTestLegacy() throws JAXBException {
 		super();
 	}
+
+	protected boolean enablePolicyRuleBasedAspect;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 
 		super.initSystem(initTask, initResult);
-        importObjectFromFile(USERS_AND_ROLES_FILENAME, initResult);
+        importObjectFromFile(USERS_AND_ROLES_FILE, initResult);
         importObjectFromFile(ROLE_R11_FILE, initResult);
         importObjectFromFile(ROLE_R12_FILE, initResult);
         importObjectFromFile(ROLE_R13_FILE, initResult);
@@ -191,35 +182,28 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         ObjectReferenceType approver = role2.getApprovalSchema().getLevel().get(0).getApproverRef().get(0);
         assertEquals("Wrong OID of Role2's approver", R2BOSS_OID, approver.getOid());
 
-        importObjectFromFile(GROUP_TESTERS_FILENAME, initResult);
-        importObjectFromFile(GROUP_GUESTS_FILENAME, initResult);
+        importObjectFromFile(GROUP_TESTERS_FILE, initResult);
+        importObjectFromFile(GROUP_GUESTS_FILE, initResult);
 
         dummyResourceCtl.addGroup(GROUP_TESTERS_NAME);
         dummyResourceCtl.addGroup(GROUP_GUESTS_NAME);
-	}
 
-    protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-        checkApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef(), result);
+        display("setting policyRuleBasedAspect.enabled to", enablePolicyRuleBasedAspect);
+        List<ItemDelta<?, ?>> deltas =
+                DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+                        .item(SystemConfigurationType.F_WORKFLOW_CONFIGURATION, WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
+                                PrimaryChangeProcessorConfigurationType.F_POLICY_RULE_BASED_ASPECT, PcpAspectConfigurationType.F_ENABLED)
+                        .replace(enablePolicyRuleBasedAspect)
+                        .asItemDeltas();
+        repositoryService.modifyObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, deltas, initResult);
+        display("policyRuleBasedAspect.enabled was set to", enablePolicyRuleBasedAspect);
     }
 
-    protected void checkUserApproversForCreate(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-        checkApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getCreateApproverRef(), result);
-    }
-
-    protected void checkApproversForCreate(Class<? extends ObjectType> clazz, String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrismObject<? extends ObjectType> object = repositoryService.getObject(clazz, oid, null, result);
-        checkApprovers(object, expectedApprovers, object.asObjectable().getMetadata().getCreateApproverRef(), result);
-    }
-
-    protected void checkApprovers(PrismObject<? extends ObjectType> object, List<String> expectedApprovers, List<ObjectReferenceType> realApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        HashSet<String> realApproversSet = new HashSet<String>();
-        for (ObjectReferenceType approver : realApprovers) {
-            realApproversSet.add(approver.getOid());
-            assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());
-        }
-        assertEquals("Mismatch in approvers in metadata", new HashSet(expectedApprovers), realApproversSet);
+    @BeforeClass
+    @Parameters({ "enablePolicyRuleBasedAspect" })
+    public void temp(@org.testng.annotations.Optional Boolean enablePolicyRuleBasedAspect) {
+        this.enablePolicyRuleBasedAspect = enablePolicyRuleBasedAspect;
+        System.out.println("Testing with policy rule based aspect = " + enablePolicyRuleBasedAspect);
     }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {
@@ -335,13 +319,11 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
 
     protected void executeTest(String testName, String oid, TestDetails testDetails) throws Exception {
 
-        int workflowSubtaskCount = testDetails.immediate() ? testDetails.subtaskCount()-1 : testDetails.subtaskCount();
-
 		// GIVEN
         prepareNotifications();
         dummyAuditService.clear();
 
-        Task modelTask = taskManager.createTaskInstance(AbstractWfTest.class.getName() + "."+testName);
+        Task modelTask = taskManager.createTaskInstance(AbstractWfTestLegacy.class.getName() + "."+testName);
 
         OperationResult result = new OperationResult("execution");
 
@@ -525,35 +507,6 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker, timeout, 1000);
     }
 
-    protected PrismObject<UserType> getUserFromRepo(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return repositoryService.getObject(UserType.class, oid, null, result);
-    }
-
-    protected boolean assignmentExists(List<AssignmentType> assignmentList, String targetOid) {
-        for (AssignmentType assignmentType : assignmentList) {
-            if (assignmentType.getTargetRef() != null && targetOid.equals(assignmentType.getTargetRef().getOid())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected PrismObject<UserType> findUserInRepo(String name, OperationResult result) throws SchemaException {
-        List<PrismObject<UserType>> users = findUserInRepoUnchecked(name, result);
-        assertEquals("Didn't find exactly 1 user object with name " + name, 1, users.size());
-        return users.get(0);
-    }
-
-    protected List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = QueryBuilder.queryFor(UserType.class, prismContext).item(UserType.F_NAME).eqPoly(name).matchingOrig().build();
-        return repositoryService.searchObjects(UserType.class, q, null, result);
-    }
-
-    protected List<PrismObject<RoleType>> findRoleInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = QueryBuilder.queryFor(RoleType.class, prismContext).item(RoleType.F_NAME).eqPoly(name).matchingOrig().build();
-        return repositoryService.searchObjects(RoleType.class, q, null, result);
-    }
-
     protected void deleteUserFromModel(String name) throws SchemaException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         OperationResult result = new OperationResult("dummy");
@@ -569,6 +522,8 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
             modelService.executeChanges(deltas, new ModelExecuteOptions(), t, result);
 
             LOGGER.info("User " + name + " was deleted");
+        } else {
+            LOGGER.info("User {} was not found", name);
         }
     }
 
@@ -582,5 +537,4 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         Utils.encrypt((Collection) Arrays.asList(focusDelta), protector, null, new OperationResult("dummy"));
         return addFocusDeltaToContext(context, focusDelta);
     }
-
 }

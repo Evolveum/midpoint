@@ -68,7 +68,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_LOCAL_FILE, OrgType.class, initResult);
         
-        repoAddObjectFromFile(USER_TEMPLATE_RANGES_FILE, ObjectTemplateType.class, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_RANGES_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_RANGES_OID, initResult);
 
 		changeEmployeeIdRaw("EM100", initTask, initResult);

@@ -62,7 +62,9 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
 
     public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<UserType> requester) throws SchemaException {
 
-        setRequesterRef(requester);
+		if (requester != null) {
+			setRequesterRef(requester);
+		}
 
 		processorContent.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 

@@ -85,7 +85,7 @@ public class TestSampleImport extends AbstractModelIntegrationTest {
 		modelService.postInit(initResult);
 		LOGGER.trace("initSystem: modelService.postInit() done");
 		
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
 		loginSuperUser(userAdministrator);		
 	}
 	

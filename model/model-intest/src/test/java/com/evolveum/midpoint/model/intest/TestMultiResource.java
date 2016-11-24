@@ -202,10 +202,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		resourceDummyGoliath = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GOLIATH_FILE, RESOURCE_DUMMY_GOLIATH_OID, initTask, initResult);
 		dummyResourceCtlGoliath.setResource(resourceDummyGoliath);
 
-		repoAddObjectFromFile(ROLE_DUMMIES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_DUMMIES_IVORY_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_DUMMIES_BEIGE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_FIGHT_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_DUMMIES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_DUMMIES_IVORY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_DUMMIES_BEIGE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_FIGHT_FILE, initResult);
 		
 		dummyResource.resetBreakMode();
 	}

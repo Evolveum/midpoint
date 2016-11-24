@@ -130,7 +130,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -138,7 +137,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -338,8 +336,8 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         try{
         super.initSystem(initTask, initResult);
         
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
-        repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
+        repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
 
         // This should discover the connectors
         LOGGER.trace("initSystem: trying modelService.postInit()");
@@ -351,10 +349,10 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         // We need to add config after calling postInit() so it will not be applied.
         // we want original logging configuration from the test logback config file, not
         // the one from the system config.
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 
         // Add broken connector before importing resources
-        repoAddObjectFromFile(CONNECTOR_BROKEN_FILENAME, ConnectorType.class, initResult);
+        repoAddObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
 
         // Need to import instead of add, so the (dynamic) connector reference
         // will be resolved
@@ -362,12 +360,12 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
         importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
-        repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
-        repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
-        repoAddObjectFromFile(ROLE_SAILOR_FILENAME, RoleType.class, initResult);
-        repoAddObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);
-        repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
-        repoAddObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
+        repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
+        repoAddObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
+        repoAddObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
+        repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
+        repoAddObjectFromFile(ROLE_JUDGE_FILENAME, initResult);
         } catch (Exception ex){
         	LOGGER.error("erro: {}", ex);
         	throw ex;
@@ -2454,7 +2452,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         final OperationResult result = new OperationResult(TestSanityLegacy.class.getName()
                 + "." + TEST_NAME);
 
-        repoAddObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, TaskType.class, result);
+        repoAddObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, result);
 
 
         // We need to wait for a sync interval, so the task scanner has a chance
@@ -3149,7 +3147,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         // Add reconciliation task. This will trigger reconciliation
 
-        repoAddObjectFromFile(TASK_OPENDJ_RECON_FILENAME, TaskType.class, result);
+        repoAddObjectFromFile(TASK_OPENDJ_RECON_FILENAME, result);
 
 
         // We need to wait for a sync interval, so the task scanner has a chance

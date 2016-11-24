@@ -130,7 +130,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		MiscUtil.copyFile(new File(BROKEN_CSV_SOURCE_FILE_NAME), new File(BROKEN_CSV_TARGET_FILE_NAME));
 		
-		repoAddObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILE, ConnectorType.class, initResult);
+		repoAddObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILE, initResult);
 		
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendSchemaPirate();
@@ -149,7 +149,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		importObjectFromFile(RESOURCE_DUMMY_NOJARS_FILENAME, initResult);
 		
 		// Accounts
-		repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, initResult);
 		
 		// Users
 		userTypeJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();

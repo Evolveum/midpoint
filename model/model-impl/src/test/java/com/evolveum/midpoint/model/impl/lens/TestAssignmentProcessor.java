@@ -475,7 +475,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 	        OperationResult result = task.getResult();
 
-	        repoAddObjectFromFile(USER_LARGO_FILE, UserType.class, result);
+	        repoAddObjectFromFile(USER_LARGO_FILE, result);
 	        
 	        LensContext<UserType> context = createUserAccountContext();
 	        fillContextWithUser(context, USER_LARGO_OID, result);

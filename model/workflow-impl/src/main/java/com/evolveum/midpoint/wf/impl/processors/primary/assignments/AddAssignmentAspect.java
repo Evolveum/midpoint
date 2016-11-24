@@ -40,10 +40,12 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationIn
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -75,14 +77,16 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
 
     //region ------------------------------------------------------------ Things that execute on request arrival
 
+    @NotNull
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
         if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
-            return null;
+            return Collections.emptyList();
         }
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas.getFocusChange(), result);
+        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext,
+                baseConfigurationHelper.getPcpConfiguration(wfConfigurationType), objectTreeDeltas.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         return prepareTaskInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }

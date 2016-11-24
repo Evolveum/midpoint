@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -242,7 +241,7 @@ public class FocusProcessor {
 		        
 		        assignmentProcessor.processAssignmentsProjections(context, now, task, result);
 		        assignmentProcessor.processOrgAssignments(context, result);
-		        assignmentProcessor.processMembershipRef(context, result);
+		        assignmentProcessor.processMembershipAndDelegatedRefs(context, result);
 		        context.recompute();
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);

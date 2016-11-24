@@ -58,7 +58,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -203,7 +202,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		
 		// System Configuration
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);

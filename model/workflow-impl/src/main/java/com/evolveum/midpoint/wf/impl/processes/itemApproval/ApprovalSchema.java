@@ -39,4 +39,6 @@ public interface ApprovalSchema {
     void toApprovalSchemaType(ApprovalSchemaType approvalSchemaType);           // expects empty (newly created) ApprovalSchemaType instance
 
     ApprovalSchemaType toApprovalSchemaType();
+
+	boolean isEmpty();
 }

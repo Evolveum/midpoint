@@ -112,9 +112,9 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		// We want to avoid connector discovery and insert our own connector object
 //		provisioningService.postInit(initResult);
 		
-		connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
+		connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILENAME, initResult);
 		
-		resource = repoAddObjectFromFile(RESOURCE_DUMMY_FILENAME, ResourceType.class, initResult);
+		resource = repoAddObjectFromFile(RESOURCE_DUMMY_FILENAME, initResult);
 		resourceType = resource.asObjectable();
 		
 		dummyResource = DummyResource.getInstance();

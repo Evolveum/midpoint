@@ -234,7 +234,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	protected static final String ROLE_BASIC_OID = "00000000-0000-0000-0000-00000000aad1";
-	
+
 	protected static final File ROLE_AUDITOR_FILE = new File(TEST_DIR, "role-auditor.xml");
 	protected static final String ROLE_AUDITOR_OID = "475e37e8-b178-11e6-8339-83e2fa7b9828";
 
@@ -255,52 +255,51 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
         repoAddObjectsFromFile(CAMPAIGNS_FILE, initResult);
 		
-		repoAddObjectFromFile(ROLE_READONLY_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_REQ_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_EXEC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_REQ_EXEC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_DEEP_EXEC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_DENY_MODIFY_SOME_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_PASSWORD_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ASSIGN_APPLICATION_ROLES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ASSIGN_NON_APPLICATION_ROLES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ASSIGN_ANY_ROLES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_DELEGATOR_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, RoleType.class, initResult);
- 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_REQ_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_REQ_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_DEEP_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_FILE, initResult);
+		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, initResult);
+		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_PASSWORD_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_APPLICATION_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_NON_APPLICATION_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_ANY_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_DELEGATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, initResult);
+		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, initResult);
+ 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, initResult);
 		
-		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_BUSINESS_2_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, initResult);
+		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BUSINESS_2_FILE, initResult);
 		
 		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_NONSENSE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BASIC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_AUDITOR_FILE, RoleType.class, initResult);
 		
-		repoAddObjectFromFile(ROLE_END_USER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_MANAGER_FULL_CONTROL_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MANAGER_FULL_CONTROL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
@@ -664,7 +663,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertReadCertCasesAllow();
         
         assertGlobalStateUntouched();
-        
+
         assertAuditReadDeny();
 	}
 
@@ -687,7 +686,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
-        
+
         assertAuditReadDeny();
 	}
 	
@@ -710,7 +709,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
-        
+
         assertAuditReadDeny();
 	}
 	
@@ -730,7 +729,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
-        
+
         assertAuditReadDeny();
 	}
 
@@ -750,7 +749,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
-        
+
         assertAuditReadDeny();
 	}
 	
@@ -3017,7 +3016,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertGlobalStateUntouched();
 	}
-	
+
 	@Test
     public void test360AutzJackAuditorRole() throws Exception {
 		final String TEST_NAME = "test360AutzJackAuditorRole";
@@ -3026,7 +3025,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_AUDITOR_OID);
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         assertReadAllow(10);
         assertAddDeny();
@@ -3034,9 +3033,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
 
 		assertReadCertCasesAllow();
-        
+
         assertGlobalStateUntouched();
-        
+
         assertAuditReadAllow();
 	}
 
@@ -3054,7 +3053,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Null role spec "+roleSpec, roleSpec);
         assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
         assertFilter(roleSpec.getFilter(), null);
-        
+
         assertAuditReadAllow();
 	}
 
@@ -3070,7 +3069,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Null role spec "+roleSpec, roleSpec);
         assertRoleTypes(roleSpec);
         assertFilter(roleSpec.getFilter(), NoneFilter.class);
-        
+
         assertAuditReadDeny();
 	}
 	
@@ -3722,11 +3721,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAttributeFlags(rOcDef, new QName("weapon"), true, true, true);
 	}
 	
-	
+
 	private void assertAuditReadDeny() throws Exception {
 		assertDeny("auditHistory", (task,result) -> getAllAuditRecords(result));
 	}
-	
+
 	private void assertAuditReadAllow() throws Exception {
 		assertAllow("auditHistory", (task,result) -> {
 			List<AuditEventRecord> auditRecords = getAllAuditRecords(result);

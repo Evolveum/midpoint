@@ -47,17 +47,12 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -142,7 +137,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		dummyResourceCtlRed.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");
 		
-		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE, ShadowType.class, initResult);
+		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE, initResult);
 		
 		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE)).replace("\r\n", "\n");     // for Windows compatibility
 		

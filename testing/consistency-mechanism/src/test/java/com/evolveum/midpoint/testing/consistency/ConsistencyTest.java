@@ -52,7 +52,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
@@ -130,22 +129,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -318,9 +312,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 		
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_LDAP_ADMINS_FILENAME, RoleType.class, initResult);
-		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
+		repoAddObjectFromFile(ROLE_LDAP_ADMINS_FILENAME, initResult);
+		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
 
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
@@ -332,14 +326,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// We need to add config after calling postInit() so it will not be applied.
 		// we want original logging configuration from the test logback config file, not
 		// the one from the system config.
-		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 
 		// Need to import instead of add, so the (dynamic) connector reference
 		// will be resolved correctly
 		importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
 
-		repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
-		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 		
@@ -608,7 +602,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		provisioningService.addObject(shadow.asPrismObject(), null, null, task, secondResult);
 
-		repoAddObjectFromFile(USER_DENIELS_FILENAME, UserType.class, secondResult);
+		repoAddObjectFromFile(USER_DENIELS_FILENAME, secondResult);
 
 	}
 	
@@ -720,7 +714,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			// LOGGER.trace("resource schema handling after modify: {}",
 			// prismContext.silentMarshalObject(res.asObjectable(), LOGGER));
 
-			repoAddObjectFromFile(USER_ABOMBA_FILENAME, UserType.class,
+			repoAddObjectFromFile(USER_ABOMBA_FILENAME,
 					parentResult);
 			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY,
 					USER_ABOMBA_OID, UserType.class, task, null, parentResult);
@@ -733,7 +727,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			assertShadowName(abombaShadow,
 					"uid=abomba,OU=people,DC=example,DC=com");
 
-			repoAddObjectFromFile(USER_ABOM_FILENAME, UserType.class,
+			repoAddObjectFromFile(USER_ABOM_FILENAME,
 					parentResult);
 			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY,
 					USER_ABOM_OID, UserType.class, task, null, parentResult);
@@ -826,7 +820,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
 		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, parentResult);
-		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
 		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT, USER_GUYBRUSH_OID, UserType.class, task, null, parentResult);
@@ -860,7 +854,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult result = new OperationResult(TEST_NAME);
 
 		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, result);
-		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, result);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, result);
 
 		assertUserOneAccountRef(USER_GUYBRUSH_OID);
 		
@@ -896,7 +890,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
 		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILE, parentResult);
-		repoAddObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, parentResult);
 
 		assertUserOneAccountRef(USER_GUYBRUSH_NOT_FOUND_OID);
 		
@@ -938,7 +932,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
 		repoAddShadowFromFile(ACCOUNT_HECTOR_FILE, parentResult);
-		repoAddObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, parentResult);
 
 		assertUserOneAccountRef(USER_HECTOR_NOT_FOUND_OID);
 
@@ -969,7 +963,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult result = task.getResult();
 		PrismObject<UserType> userGuybrushFromFile = PrismTestUtil.parseObject(new File(USER_GUYBRUSH_FILENAME));
 		userGuybrushFromFile.asObjectable().getLinkRef().clear();
-		repoAddObject(UserType.class, userGuybrushFromFile, result);
+		repoAddObject(userGuybrushFromFile, result);
 		assignAccount(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null);
 		
 		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -1096,7 +1090,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		repoAddObjectFromFile(USER_E_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_E_FILENAME, parentResult);
 
 		assertUserNoAccountRef(USER_E_OID, parentResult);
 		
@@ -1316,7 +1310,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.assumeStopped();
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
-		repoAddObjectFromFile(USER_ANGELIKA_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_ANGELIKA_FILENAME, parentResult);
 
 		assertUserNoAccountRef(USER_ANGELIKA_OID, parentResult);
 		
@@ -1353,7 +1347,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = task.getResult();
 		
 		//prepare user 
-		repoAddObjectFromFile(USER_ALICE_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_ALICE_FILENAME, parentResult);
 		
 		assertUserNoAccountRef(USER_ALICE_OID, parentResult);
 
@@ -1479,7 +1473,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
 		// WHEN
-		repoAddObjectFromFile(USER_BOB_NO_GIVEN_NAME_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_BOB_NO_GIVEN_NAME_FILENAME, parentResult);
 
 		assertUserNoAccountRef(USER_BOB_NO_GIVEN_NAME_OID, parentResult);
 
@@ -1537,7 +1531,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.assumeRunning();
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
-		repoAddObjectFromFile(USER_JOHN_WEAK_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_JOHN_WEAK_FILENAME, parentResult);
 
 		assertUserNoAccountRef(USER_JOHN_WEAK_OID, parentResult);
 		
@@ -1576,7 +1570,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.assumeRunning();
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
-		repoAddObjectFromFile(USER_DONALD_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_DONALD_FILENAME, parentResult);
 
 		assertUserNoAccountRef(USER_DONALD_OID, parentResult);
 				
@@ -1711,7 +1705,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.assumeStopped();
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
-		repoAddObjectFromFile(USER_DISCOVERY_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_DISCOVERY_FILENAME, parentResult);
 
 		assertUserNoAccountRef(USER_DISCOVERY_OID, parentResult);
 				
@@ -1878,7 +1872,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_HERMAN_FILENAME));
         String accOid = provisioningService.addObject(account, null, null, task, result);
 //        
-        repoAddObjectFromFile(USER_HERMAN_FILENAME, UserType.class, result);
+        repoAddObjectFromFile(USER_HERMAN_FILENAME, result);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_HERMAN_FILENAME));
         display("Adding user", user);
@@ -2093,7 +2087,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
 		//prepare user 
-		repoAddObjectFromFile(USER_ALICE_FILENAME, UserType.class, parentResult);
+		repoAddObjectFromFile(USER_ALICE_FILENAME, parentResult);
 		
 		assertUserNoAccountRef(USER_ALICE_OID, parentResult);
 
@@ -2153,7 +2147,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		LOGGER.info("start running task");
 		// WHEN
-		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
+		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, result);
 		verbose = true;
 		long started = System.currentTimeMillis();
 		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 120000);
@@ -2225,7 +2219,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		LOGGER.info("start running task");
 		// WHEN
 		long started = System.currentTimeMillis();
-		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
+		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, result);
 		waitForTaskFinish(TASK_OPENDJ_RECONCILIATION_OID, false, 120000);
 		LOGGER.info("Reconciliation task run took {} seconds", (System.currentTimeMillis()-started)/1000L);
 

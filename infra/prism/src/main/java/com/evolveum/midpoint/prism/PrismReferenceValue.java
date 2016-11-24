@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -441,8 +442,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 		
 	@Override
-	public boolean representsSameValue(PrismValue other) {
-		if (other instanceof PrismPropertyValue) {
+	public boolean representsSameValue(PrismValue other, boolean lax) {
+		if (other instanceof PrismReferenceValue) {
 			return representsSameValue((PrismReferenceValue)other);
 		} else {
 			return false;
@@ -451,7 +452,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	
 	public boolean representsSameValue(PrismReferenceValue other) {
 		if (this.getOid() != null && other.getOid() != null) {
-			return this.getOid().equals(other.getOid());
+			return this.getOid().equals(other.getOid()) && Objects.equals(this.getRelation(), other.getRelation());
 		}
 		return false;
 	}
