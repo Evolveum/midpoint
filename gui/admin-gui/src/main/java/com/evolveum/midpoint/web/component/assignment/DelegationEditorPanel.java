@@ -68,17 +68,15 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String DOT_CLASS = DelegationEditorPanel.class.getName() + ".";
     private static final String OPERATION_GET_TARGET_REF_NAME = DOT_CLASS + "getTargetRefName";
 
-    private boolean delegatedToMe;
     private List<UserType> usersToUpdate;
 
-    public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel,
+    public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
                                  List<AssignmentsPreviewDto> privilegesList, UserType user, PageBase pageBase) {
-        super(id, delegationTargetObjectModel, privilegesList, user, pageBase);
+        super(id, delegationTargetObjectModel, delegatedToMe, privilegesList, user, pageBase);
     }
 
     @Override
     protected void initHeaderRow(){
-        delegatedToMe = delegationUser == null;
         if (delegatedToMe){
             privilegesList = getModelObject().getPrivilegeLimitationList();
         }
@@ -185,13 +183,11 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             public void onClick(AjaxRequestTarget target) {
                 AssignmentPreviewDialog assignmentPreviewDialog =
                         new AssignmentPreviewDialog(pageBase.getMainPopupBodyId(),
-                                DelegationEditorPanel.this.getModelObject().getPrivilegeLimitationList(),
+                                privilegesList,
                                 null, pageBase, true){
                             @Override
                             protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentsPreviewDto> dtoList){
                                 DelegationEditorPanel.this.getModelObject().setPrivilegeLimitationList(dtoList);
-                                DelegationEditorPanel.this.privilegesList = dtoList;
-                                privilegesNames = getPrivilegesNamesList();
                                 pageBase.hideMainPopup(target);
                                 reloadBodyComponent(target);
                             }
@@ -225,8 +221,9 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
     private List<String> getPrivilegesNamesList(){
         List<String> privilegesNamesList = new ArrayList<>();
-        if (privilegesList != null){
-            for (AssignmentsPreviewDto assignmentsPreviewDto : privilegesList){
+        List<AssignmentsPreviewDto> dtos = getModel().getObject().getPrivilegeLimitationList();
+        if (dtos != null){
+            for (AssignmentsPreviewDto assignmentsPreviewDto : dtos){
                     privilegesNamesList.add(assignmentsPreviewDto.getTargetName());
             }
         }
@@ -240,10 +237,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
     private String getUserDisplayName(){
         String displayName = "";
-        if (delegationUser.getFullName() != null && StringUtils.isNotEmpty(delegationUser.getFullName().getOrig())){
-            displayName = delegationUser.getFullName().getOrig() + "(" + delegationUser.getName().getOrig() + ")";
-        } else {
-            displayName = delegationUser.getName().getOrig();
+        if (delegationUser != null) {
+            if (delegationUser.getFullName() != null && StringUtils.isNotEmpty(delegationUser.getFullName().getOrig())) {
+                displayName = delegationUser.getFullName().getOrig() + "(" + delegationUser.getName().getOrig() + ")";
+            } else {
+                displayName = delegationUser.getName().getOrig();
+            }
         }
         return displayName;
     }
