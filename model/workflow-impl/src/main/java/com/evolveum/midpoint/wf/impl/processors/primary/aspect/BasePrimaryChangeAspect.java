@@ -83,7 +83,11 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
 	@PostConstruct
     public void init() {
-        changeProcessor.registerChangeAspect(this);
+        changeProcessor.registerChangeAspect(this, isFirst());
+    }
+
+    protected boolean isFirst() {
+        return false;
     }
 
     @Override

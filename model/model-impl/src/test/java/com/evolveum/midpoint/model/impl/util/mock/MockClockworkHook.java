@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -81,7 +82,7 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
 	 * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#invoke(com.evolveum.midpoint.model.api.context.ModelContext, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
+	public HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult result) {
 		assertTrue("Unexpected INITIAL state of the context in the hook", context.getState() != ModelState.INITIAL);
 		// OK to rely on implementation here. This is an implementation test.
 		if (!(context instanceof LensContext)) {
@@ -99,7 +100,7 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
 	}
 
     @Override
-    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
+    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // do nothing
     }
 

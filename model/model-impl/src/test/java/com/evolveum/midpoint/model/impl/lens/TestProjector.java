@@ -39,9 +39,6 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -876,7 +873,7 @@ public class TestProjector extends AbstractLensTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         // Make sure there is a shadow with conflicting account
-        repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class, result);
+        repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);

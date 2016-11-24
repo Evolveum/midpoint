@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -79,7 +80,7 @@ public class NotificationChangeHook implements ChangeHook {
     }
 
     @Override
-    public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
+    public HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult result) {
 
         // todo in the future we should perhaps act in POSTEXECUTION state, but currently the clockwork skips this state
         if (context.getState() != ModelState.FINAL) {
@@ -127,7 +128,7 @@ public class NotificationChangeHook implements ChangeHook {
     }
 
     @Override
-    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
+    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // todo implement this
     }
 

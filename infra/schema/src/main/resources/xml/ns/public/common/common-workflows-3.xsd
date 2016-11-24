@@ -76,10 +76,64 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="useLegacyApproversSpecification" minOccurs="0" type="tns:LegacyApproversSpecificationUsageType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to deal with legacy approvers specifications, i.e. approvalRef, approvalExpression, approvalSchema,
+                        automaticallyApproved items in AbstractRoleType? The default is "ifNoExplicitApprovalPolicyAction", that
+                        means these items are applied only if no explicit approval policy action is encountered.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType" />
             <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="LegacyApproversSpecificationUsageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to deal with legacy approvers specifications, i.e. approvalRef, approvalExpression, approvalSchema,
+                automaticallyApproved items in AbstractRoleType?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The legacy approvers specification is never used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The legacy approvers specification is always used. It is used before any other (policy-based) approval actions.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ifNoExplicitApprovalPolicyAction">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The legacy approvers specification is used if there's no explicit approval policy applicable to a given
+                        target.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="WfChangeProcessorConfigurationType">
         <xsd:annotation>
@@ -175,6 +229,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:WfChangeProcessorConfigurationType">
                 <xsd:sequence>
+                    <xsd:element name="policyRuleBasedAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
                     <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />

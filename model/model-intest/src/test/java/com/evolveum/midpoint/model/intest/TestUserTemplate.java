@@ -67,10 +67,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -105,9 +103,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        repoAddObjectFromFile(ROLE_RASTAMAN_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_RASTAMAN_FILE, initResult);
         
-        repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, ObjectTemplateType.class, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
 	}

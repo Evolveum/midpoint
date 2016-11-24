@@ -31,15 +31,12 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.impl.UserProfileServiceMock;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -80,9 +77,9 @@ public class TestEmpty extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		
-		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
-		repoAddObjectFromFile(SECURITY_POLICY_FILE, SecurityPolicyType.class, initResult);
-		repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+		repoAddObjectFromFile(USER_JACK_FILE, initResult);
 	}
 	
 	@Test

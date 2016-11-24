@@ -33,6 +33,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -77,7 +78,7 @@ public interface ChangeProcessor {
      * Actually, the FOREGROUND return value is quite unusual, because the change processor cannot
      * know in advance whether other processors would not want to process the invocation from the model.
      */
-    HookOperationMode processModelInvocation(ModelContext context, WfConfigurationType wfConfigurationType, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Handles an event from WfMS that indicates finishing of the workflow process instance.

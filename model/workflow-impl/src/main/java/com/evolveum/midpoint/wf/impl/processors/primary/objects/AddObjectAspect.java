@@ -32,14 +32,13 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -56,21 +55,22 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
     protected abstract Class<T> getObjectClass();
     protected abstract String getObjectLabel(T object);
 
-    @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext,
-                                                                               PrimaryChangeProcessorConfigurationType wfConfigurationType,
-                                                                               ObjectTreeDeltas objectTreeDeltas,
-                                                                               Task taskFromModel, OperationResult result) throws SchemaException {
+    @NotNull
+	@Override
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
+                                                                               WfConfigurationType wfConfigurationType,
+                                                                               @NotNull ObjectTreeDeltas objectTreeDeltas,
+                                                                               @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         if (config == null) {
-            return null;            // this should not occur (because this aspect is not enabled by default), but check it just to be sure
+            return Collections.emptyList();            // this should not occur (because this aspect is not enabled by default), but check it just to be sure
         }
         if (!primaryChangeAspectHelper.isRelatedToType(modelContext, getObjectClass()) || objectTreeDeltas.getFocusChange() == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config, objectTreeDeltas.getFocusChange(), result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }

@@ -92,6 +92,10 @@ public class QNameUtil {
 		return !noNamespace(name);
 	}
 
+	public static QName unqualify(QName name) {
+		return new QName(name.getLocalPart());
+	}
+
 	public static class QNameInfo {
 		@NotNull public final QName name;
 		public final boolean explicitEmptyNamespace;

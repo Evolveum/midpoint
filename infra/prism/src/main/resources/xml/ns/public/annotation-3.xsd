@@ -260,7 +260,15 @@
             </xsd:documentation>
         </xsd:annotation>    
     </xsd:element>
-    
+
+    <xsd:element name="deprecatedSince" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Version of data model in which was the item marked as deprecated.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="label" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>

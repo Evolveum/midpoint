@@ -46,6 +46,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.assignments.AssignmentHe
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -79,15 +80,19 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
 	//region ------------------------------------------------------------ Things that execute on request arrival
 
-    @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectTreeDeltas objectTreeDeltas, Task taskFromModel, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    @NotNull
+	@Override
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
+            WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
+            @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (!isFocusRelevant(modelContext)) {
-            return null;
+            return Collections.emptyList();
         }
         List<ApprovalRequest<AssociationAdditionType>> approvalRequestList =
-                getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas, taskFromModel, result);
+                getApprovalRequests(modelContext, baseConfigurationHelper.getPcpConfiguration(wfConfigurationType),
+                        objectTreeDeltas, taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }

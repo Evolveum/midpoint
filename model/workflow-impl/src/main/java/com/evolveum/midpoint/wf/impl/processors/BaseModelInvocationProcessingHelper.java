@@ -207,10 +207,15 @@ public class BaseModelInvocationProcessingHelper {
     }
 
 	public PrismObject<UserType> getRequester(Task task, OperationResult result) {
+		if (task.getOwner() == null) {
+			LOGGER.warn("No requester in task {} -- continuing, but the situation is suspicious.", task);
+			return null;
+		}
+
 		// let's get fresh data (not the ones read on user login)
-		PrismObject<UserType> requester = null;
+		PrismObject<UserType> requester;
 		try {
-			requester = ((PrismObject<UserType>) repositoryService.getObject(UserType.class, task.getOwner().getOid(), null, result));
+			requester = repositoryService.getObject(UserType.class, task.getOwner().getOid(), null, result);
 		} catch (ObjectNotFoundException e) {
 			LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
 			requester = task.getOwner().clone();

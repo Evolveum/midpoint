@@ -22,13 +22,14 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.expression.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -1311,8 +1312,9 @@ public class LensUtil {
 		}
 		return objectDeltaOp;
 	}
-	
+
+	@Deprecated
 	public static boolean isDelegationRelation(QName relation) {
-		return QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY);
+		return DeputyUtils.isDelegationRelation(relation);
 	}
 }

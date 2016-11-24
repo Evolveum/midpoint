@@ -20,11 +20,10 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
  * @author semancik
@@ -66,7 +65,7 @@ public class EvaluationOrder implements DebugDumpable {
 		if (!found) {
 			adeo.orderMap.put(relation, 1);
 		}
-		if (LensUtil.isDelegationRelation(relation)) {
+		if (DeputyUtils.isDelegationRelation(relation)) {
 			adeo.summaryOrder = this.summaryOrder;
 		} else {
 			adeo.summaryOrder = this.summaryOrder + 1;
