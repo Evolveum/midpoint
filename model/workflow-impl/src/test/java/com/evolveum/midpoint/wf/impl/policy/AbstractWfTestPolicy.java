@@ -96,6 +96,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_LEAD2_FILE = new File(TEST_RESOURCE_DIR, "user-lead2.xml");
 	protected static final File USER_LEAD3_FILE = new File(TEST_RESOURCE_DIR, "user-lead3.xml");
 	protected static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
+	protected static final File USER_PIRATE_OWNER_FILE = new File(TEST_RESOURCE_DIR, "user-pirate-owner.xml");
 	protected static final File ROLE_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "041-role-approver.xml");
 	protected static final File ROLE_ROLE1_FILE = new File(TEST_RESOURCE_DIR, "role-role1.xml");
 	protected static final File ROLE_ROLE1A_FILE = new File(TEST_RESOURCE_DIR, "role-role1a.xml");
@@ -113,6 +114,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static String USER_LEAD2_OID;
 	protected static String USER_LEAD3_OID;
 	protected static String USER_LEAD10_OID;
+	protected static String USER_PIRATE_OWNER_OID;
 	protected static String ROLE_APPROVER_OID;
 	protected static String ROLE_ROLE1_OID;
 	protected static String ROLE_ROLE1A_OID;
@@ -170,6 +172,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		USER_LEAD2_OID = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);
 		USER_LEAD3_OID = addAndRecomputeUser(USER_LEAD3_FILE, initTask, initResult);
 		// LEAD10 will be imported later!
+		USER_PIRATE_OWNER_OID = addAndRecomputeUser(USER_PIRATE_OWNER_FILE, initTask, initResult);
 	}
 
 	private String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
@@ -511,8 +514,14 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			display("Work item #" + (i + 1) + ": ", workItem);
 			display("Task ref",
 					workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
-			assertRef("object reference", workItem.getObjectRef(), objectOid, true, true);
-			assertRef("target reference", workItem.getTargetRef(), expectedWorkItems.get(i).targetOid, true, true);
+			if (objectOid != null) {
+				assertRef("object reference", workItem.getObjectRef(), objectOid, true, true);
+			}
+
+			String targetOid = expectedWorkItems.get(i).targetOid;
+			if (targetOid != null) {
+				assertRef("target reference", workItem.getTargetRef(), targetOid, true, true);
+			}
 			assertRef("assignee reference", workItem.getAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
 			// name is not known, as it is not stored in activiti (only OID is)
 			assertRef("task reference", workItem.getTaskRef(), null, false, true);
