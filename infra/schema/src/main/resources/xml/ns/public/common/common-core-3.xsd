@@ -8653,7 +8653,15 @@
     	<xsd:complexContent>
     		<xsd:extension base="tns:AbstractPolicyConstraintType">
 		    	<xsd:sequence>
-		    		<!-- TODO: define operation -->
+		    		<xsd:element name="operation" type="t:ChangeTypeType"  minOccurs="0" maxOccurs="unbounded">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				Specifies the operation(s) for which this constraints should be triggered.
+		        				If not specified then it will be triggered for all operations.
+		        				This defines the object operation (add/modify/delete of the entire object).
+		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
 					<xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
 		        		<xsd:annotation>
 		        			<xsd:documentation>
@@ -8682,7 +8690,17 @@
     	<xsd:complexContent>
     		<xsd:extension base="tns:AbstractPolicyConstraintType">
 		    	<xsd:sequence>
-		    		<!-- TODO: define operation -->
+		    		<xsd:element name="operation" type="t:ModificationTypeType"  minOccurs="0" maxOccurs="unbounded">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				Specifies the operation(s) for which this constraints should be triggered.
+		        				If not specified then it will be triggered for all operations.
+		        				This defines the object modification operation (add/replace/delete of the specific assignment).
+		        				In case that new object is added then all assignments in the object are considered to
+		        				be added. The case of object deletion does not make sense here.
+		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
 					<xsd:element name="relation" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">
 		        		<xsd:annotation>
 		        			<xsd:documentation>

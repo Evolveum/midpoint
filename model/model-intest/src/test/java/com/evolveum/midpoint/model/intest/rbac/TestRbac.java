@@ -41,6 +41,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -121,8 +122,16 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	protected static final String ROLE_IMMUTABLE_OID = "e53baf94-aa99-11e6-962a-5362ec2dd7df";
 	private static final String ROLE_IMMUTABLE_DESCRIPTION = "Role that cannot be modified because there is a modification rule with enforcement action.";
 
+	protected static final File ROLE_IMMUTABLE_GLOBAL_FILE = new File(TEST_DIR, "role-immutable-global.xml");
+	protected static final String ROLE_IMMUTABLE_GLOBAL_OID = "e7ba8884-b2f6-11e6-a0b9-d3540dd687d6";
+	private static final String ROLE_IMMUTABLE_GLOBAL_DESCRIPTION = "Thou shalt not modify this role!";
+	private static final String ROLE_IMMUTABLE_GLOBAL_IDENTIFIER = "GIG001";
+	
 	protected static final File ROLE_NON_ASSIGNABLE_FILE = new File(TEST_DIR, "role-non-assignable.xml");
 	protected static final String ROLE_NON_ASSIGNABLE_OID = "db67d2f0-abd8-11e6-9c30-b35abe3e4e3a";
+	
+	protected static final File ROLE_NON_CREATEABLE_FILE = new File(TEST_DIR, "role-non-createable.xml");
+	protected static final String ROLE_NON_CREATEABLE_OID = "c45a25ce-b2e8-11e6-923e-938d2c54d334";
 	
 	protected static final File ROLE_META_FOOL_FILE = new File(TEST_DIR, "role-meta-fool.xml");
 	protected static final String ROLE_META_FOOL_OID = "2edc5fe4-af3c-11e6-a81e-eb332578ec4f";
@@ -2958,6 +2967,120 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_DESCRIPTION);
 	}
 	
+	/**
+	 * This should go well. The global immutable role has enforced modification,
+	 * but not addition.
+	 */
+	@Test
+    public void test802AddGlobalImmutableRole() throws Exception {
+		final String TEST_NAME = "test802AddGlobalImmutableRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_IMMUTABLE_GLOBAL_FILE);
+        display("Role before", role);
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		addObject(role, task, result);
+
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID);
+        display("Role before", roleAfter);
+        assertNotNull("No role added", roleAfter);
+	}
+	
+	@Test
+    public void test804ModifyRoleImmutableGlobalIdentifier() throws Exception {
+		final String TEST_NAME = "test804ModifyRoleImmutableGlobalIdentifier";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_IDENTIFIER, 
+					task, result, "whatever");
+			
+			AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// THEN
+            TestUtil.displayThen(TEST_NAME);
+            result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID);
+        PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_GLOBAL_DESCRIPTION);
+        PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_IDENTIFIER, ROLE_IMMUTABLE_GLOBAL_IDENTIFIER);
+	}
+	
+	@Test
+    public void test806ModifyRoleImmutableGlobalDescription() throws Exception {
+		final String TEST_NAME = "test806ModifyRoleImmutableGlobalDescription";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_DESCRIPTION, 
+					task, result, "whatever");
+			
+			AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// THEN
+            TestUtil.displayThen(TEST_NAME);
+            result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID);
+        PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_GLOBAL_DESCRIPTION);
+        PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_IDENTIFIER, ROLE_IMMUTABLE_GLOBAL_IDENTIFIER);
+	}
+	
+	@Test
+    public void test809AddNonCreateableRole() throws Exception {
+		final String TEST_NAME = "test809AddNonCreateableRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_NON_CREATEABLE_FILE);
+        display("Role before", role);
+        
+        try {
+	        // WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			addObject(role, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// THEN
+            TestUtil.displayThen(TEST_NAME);
+            result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+
+        assertNoObject(RoleType.class, ROLE_NON_CREATEABLE_OID);
+	}
+	
 	@Test
     public void test810ModifyRoleJudge() throws Exception {
 		final String TEST_NAME = "test810ModifyRoleJudge";
@@ -2980,7 +3103,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_JUDGE_OID);
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, "whatever");
 	}
-
+	
 	@Test
     public void test820AssignRoleNonAssignable() throws Exception {
 		final String TEST_NAME = "test820AssignRoleNonAssignable";
