@@ -37,11 +37,11 @@ public class TestAssignmentApprovalPlainExplicit extends AbstractTestAssignmentA
 	@Override
 	protected String getRoleOid(int number) {
 		switch (number) {
-			case 1: return ROLE_ROLE1A_OID;
-			case 2: return ROLE_ROLE2A_OID;
-			case 3: return ROLE_ROLE3A_OID;
-			case 4: return ROLE_ROLE4A_OID;
-			case 10: return ROLE_ROLE10A_OID;
+			case 1: return roleRole1aOid;
+			case 2: return roleRole2aOid;
+			case 3: return roleRole3aOid;
+			case 4: return roleRole4aOid;
+			case 10: return roleRole10aOid;
 			default: throw new IllegalArgumentException("Wrong role number: " + number);
 		}
 	}
@@ -63,7 +63,7 @@ public class TestAssignmentApprovalPlainExplicit extends AbstractTestAssignmentA
 		super.importLead10(task, result);
 		executeChangesAssertSuccess((ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_APPROVER_REF)
-						.add(ObjectTypeUtil.createObjectRef(USER_LEAD10_OID, ObjectTypes.USER).asReferenceValue())
+						.add(ObjectTypeUtil.createObjectRef(userLead10Oid, ObjectTypes.USER).asReferenceValue())
 				.asObjectDelta(getRoleOid(10)), null, task, result);
 	}
 }

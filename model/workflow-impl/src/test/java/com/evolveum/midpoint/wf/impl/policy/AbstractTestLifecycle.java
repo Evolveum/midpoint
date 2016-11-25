@@ -62,10 +62,10 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 
 		executeChanges((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))
-				.asObjectDelta(USER_PIRATE_OWNER_OID),
+				.asObjectDelta(userPirateOwnerOid),
 				null, initTask, initResult);
 		display("Pirate role", getRole(PIRATE_OID));
-		display("Pirate owner", getUser(USER_PIRATE_OWNER_OID));
+		display("Pirate owner", getUser(userPirateOwnerOid));
 	}
 
 	@Test
@@ -81,8 +81,8 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		//noinspection UnnecessaryLocalVariable
 		ObjectDelta<RoleType> delta1 = descriptionDelta;
 		ExpectedTask expectedTask = new ExpectedTask(null, "Modification of pirate");
-		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(USER_PIRATE_OWNER_OID, null, expectedTask);
-		modifyObject(TEST_NAME, descriptionDelta, delta0, delta1, false, true, USER_PIRATE_OWNER_OID,
+		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userPirateOwnerOid, null, expectedTask);
+		modifyObject(TEST_NAME, descriptionDelta, delta0, delta1, false, true, userPirateOwnerOid,
 				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
 				() -> {},
 				() -> assertNull("Description is modified", getRoleSimple(PIRATE_OID).getDescription()),
@@ -96,8 +96,8 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		login(userAdministrator);
 
 		ExpectedTask expectedTask = new ExpectedTask(null, "Deletion of pirate");
-		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(USER_PIRATE_OWNER_OID, null, expectedTask);
-		deleteObject(TEST_NAME, RoleType.class, PIRATE_OID, false, true, USER_PIRATE_OWNER_OID,
+		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userPirateOwnerOid, null, expectedTask);
+		deleteObject(TEST_NAME, RoleType.class, PIRATE_OID, false, true, userPirateOwnerOid,
 				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));
 	}
 

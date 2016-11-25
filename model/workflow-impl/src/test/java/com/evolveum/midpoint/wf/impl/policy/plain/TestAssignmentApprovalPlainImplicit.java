@@ -24,16 +24,17 @@ import com.evolveum.midpoint.wf.impl.policy.AbstractTestAssignmentApproval;
  *
  * @author mederly
  */
+@SuppressWarnings("Duplicates")
 public class TestAssignmentApprovalPlainImplicit extends AbstractTestAssignmentApproval {
 
 	@Override
 	protected String getRoleOid(int number) {
 		switch (number) {
-			case 1: return ROLE_ROLE1_OID;
-			case 2: return ROLE_ROLE2_OID;
-			case 3: return ROLE_ROLE3_OID;
-			case 4: return ROLE_ROLE4_OID;
-			case 10: return ROLE_ROLE10_OID;
+			case 1: return roleRole1Oid;
+			case 2: return roleRole2Oid;
+			case 3: return roleRole3Oid;
+			case 4: return roleRole4Oid;
+			case 10: return roleRole10Oid;
 			default: throw new IllegalArgumentException("Wrong role number: " + number);
 		}
 	}

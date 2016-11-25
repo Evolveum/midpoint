@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -59,7 +58,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
@@ -107,26 +105,25 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File ROLE_ROLE10A_FILE = new File(TEST_RESOURCE_DIR, "role-role10a.xml");
 	protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
-	// practically final
-	protected static String USER_JACK_OID;
-	protected static String USER_LEAD1_OID;
-	protected static String USER_LEAD1_DEPUTY_1_OID;
-	protected static String USER_LEAD1_DEPUTY_2_OID;
-	protected static String USER_LEAD2_OID;
-	protected static String USER_LEAD3_OID;
-	protected static String USER_LEAD10_OID;
-	protected static String USER_PIRATE_OWNER_OID;
-	protected static String ROLE_APPROVER_OID;
-	protected static String ROLE_ROLE1_OID;
-	protected static String ROLE_ROLE1A_OID;
-	protected static String ROLE_ROLE2_OID;
-	protected static String ROLE_ROLE2A_OID;
-	protected static String ROLE_ROLE3_OID;
-	protected static String ROLE_ROLE3A_OID;
-	protected static String ROLE_ROLE4_OID;
-	protected static String ROLE_ROLE4A_OID;
-	protected static String ROLE_ROLE10_OID;
-	protected static String ROLE_ROLE10A_OID;
+	protected String userJackOid;
+	protected String userLead1Oid;
+	protected String userLead1Deputy1Oid;
+	protected String userLead1Deputy2Oid;
+	protected String userLead2Oid;
+	protected String userLead3Oid;
+	protected String userLead10Oid;
+	protected String userPirateOwnerOid;
+	protected String roleApproverOid;
+	protected String roleRole1Oid;
+	protected String roleRole1aOid;
+	protected String roleRole2Oid;
+	protected String roleRole2aOid;
+	protected String roleRole3Oid;
+	protected String roleRole3aOid;
+	protected String roleRole4Oid;
+	protected String roleRole4aOid;
+	protected String roleRole10Oid;
+	protected String roleRole10aOid;
 
 	@Autowired
 	protected Clockwork clockwork;
@@ -164,24 +161,24 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		login(userAdministrator);
 
-		ROLE_APPROVER_OID = repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult).getOid();
+		roleApproverOid = repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult).getOid();
 
-		USER_JACK_OID = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
-		ROLE_ROLE1_OID = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();
-		ROLE_ROLE1A_OID = repoAddObjectFromFile(ROLE_ROLE1A_FILE, initResult).getOid();
-		ROLE_ROLE2_OID = repoAddObjectFromFile(ROLE_ROLE2_FILE, initResult).getOid();
-		ROLE_ROLE2A_OID = repoAddObjectFromFile(ROLE_ROLE2A_FILE, initResult).getOid();
-		ROLE_ROLE3_OID = repoAddObjectFromFile(ROLE_ROLE3_FILE, initResult).getOid();
-		ROLE_ROLE3A_OID = repoAddObjectFromFile(ROLE_ROLE3A_FILE, initResult).getOid();
-		ROLE_ROLE4_OID = repoAddObjectFromFile(ROLE_ROLE4_FILE, initResult).getOid();
-		ROLE_ROLE4A_OID = repoAddObjectFromFile(ROLE_ROLE4A_FILE, initResult).getOid();
-		ROLE_ROLE10_OID = repoAddObjectFromFile(ROLE_ROLE10_FILE, initResult).getOid();
-		ROLE_ROLE10A_OID = repoAddObjectFromFile(ROLE_ROLE10A_FILE, initResult).getOid();
-		USER_LEAD1_OID = addAndRecomputeUser(USER_LEAD1_FILE, initTask, initResult);
-		USER_LEAD2_OID = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);
-		USER_LEAD3_OID = addAndRecomputeUser(USER_LEAD3_FILE, initTask, initResult);
+		userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
+		roleRole1Oid = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();
+		roleRole1aOid = repoAddObjectFromFile(ROLE_ROLE1A_FILE, initResult).getOid();
+		roleRole2Oid = repoAddObjectFromFile(ROLE_ROLE2_FILE, initResult).getOid();
+		roleRole2aOid = repoAddObjectFromFile(ROLE_ROLE2A_FILE, initResult).getOid();
+		roleRole3Oid = repoAddObjectFromFile(ROLE_ROLE3_FILE, initResult).getOid();
+		roleRole3aOid = repoAddObjectFromFile(ROLE_ROLE3A_FILE, initResult).getOid();
+		roleRole4Oid = repoAddObjectFromFile(ROLE_ROLE4_FILE, initResult).getOid();
+		roleRole4aOid = repoAddObjectFromFile(ROLE_ROLE4A_FILE, initResult).getOid();
+		roleRole10Oid = repoAddObjectFromFile(ROLE_ROLE10_FILE, initResult).getOid();
+		roleRole10aOid = repoAddObjectFromFile(ROLE_ROLE10A_FILE, initResult).getOid();
+		userLead1Oid = addAndRecomputeUser(USER_LEAD1_FILE, initTask, initResult);
+		userLead2Oid = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);
+		userLead3Oid = addAndRecomputeUser(USER_LEAD3_FILE, initTask, initResult);
 		// LEAD10 will be imported later!
-		USER_PIRATE_OWNER_OID = addAndRecomputeUser(USER_PIRATE_OWNER_FILE, initTask, initResult);
+		userPirateOwnerOid = addAndRecomputeUser(USER_PIRATE_OWNER_FILE, initTask, initResult);
 	}
 
 	private String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
@@ -192,12 +189,12 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	}
 
 	protected void importLead10(Task task, OperationResult result) throws Exception {
-		USER_LEAD10_OID = addAndRecomputeUser(USER_LEAD10_FILE, task, result);
+		userLead10Oid = addAndRecomputeUser(USER_LEAD10_FILE, task, result);
 	}
 
 	protected void importLead1Deputies(Task task, OperationResult result) throws Exception {
-		USER_LEAD1_DEPUTY_1_OID = addAndRecomputeUser(USER_LEAD1_DEPUTY_1_FILE, task, result);
-		USER_LEAD1_DEPUTY_2_OID = addAndRecomputeUser(USER_LEAD1_DEPUTY_2_FILE, task, result);
+		userLead1Deputy1Oid = addAndRecomputeUser(USER_LEAD1_DEPUTY_1_FILE, task, result);
+		userLead1Deputy2Oid = addAndRecomputeUser(USER_LEAD1_DEPUTY_2_FILE, task, result);
 	}
 
 	protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {

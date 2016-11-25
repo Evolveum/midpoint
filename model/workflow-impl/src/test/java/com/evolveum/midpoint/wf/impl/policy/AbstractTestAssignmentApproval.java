@@ -87,16 +87,16 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createUserAccountContext();
-		fillContextWithUser(context, USER_JACK_OID, result);
+		fillContextWithUser(context, userJackOid, result);
 		addFocusDeltaToContext(context,
 				(ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
 						.item(UserType.F_ASSIGNMENT).delete(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
-						.asObjectDelta(USER_JACK_OID));
+						.asObjectDelta(userJackOid));
 		clockwork.run(context, task, result);
 
 		assertEquals("Wrong context state", ModelState.FINAL, context.getState());
 		TestUtil.assertSuccess(result);
-		assertNotAssignedRole(getUser(USER_JACK_OID), getRoleOid(1), task, result);
+		assertNotAssignedRole(getUser(userJackOid), getRoleOid(1), task, result);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(userJackOid);
 		executeAssignRole1ToJack(TEST_NAME, true, false, null);
 	}
 
@@ -141,7 +141,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(userJackOid);
 		executeAssignRoles123ToJack(TEST_NAME, false, false, false, false);
 	}
 
@@ -154,7 +154,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(userJackOid);
 		executeAssignRoles123ToJack(TEST_NAME, true, false, false, false);
 	}
 
@@ -170,7 +170,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(userJackOid);
 		executeAssignRoles123ToJack(TEST_NAME, false, true, false, false);
 	}
 
@@ -180,7 +180,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(userJackOid);
 		executeAssignRoles123ToJack(TEST_NAME, true, true, false, false);
 	}
 
@@ -196,7 +196,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(userJackOid);
 		executeAssignRoles123ToJack(TEST_NAME, false, true, true, true);
 	}
 
@@ -206,7 +206,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(userJackOid);
 		executeAssignRoles123ToJack(TEST_NAME, true, true, true, true);
 	}
 
@@ -222,7 +222,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		Task task = createTask(TEST_NAME);
 		importLead1Deputies(task, task.getResult());
 
-		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(userJackOid);
 		executeAssignRole1ToJack(TEST_NAME, false, true, null);
 	}
 
@@ -235,18 +235,18 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(USER_JACK_OID);
-		executeAssignRole1ToJack(TEST_NAME, false, true, USER_LEAD1_DEPUTY_1_OID);
+		unassignAllRoles(userJackOid);
+		executeAssignRole1ToJack(TEST_NAME, false, true, userLead1Deputy1Oid);
 	}
 
 
 	private void executeAssignRole1ToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid) throws Exception {
-		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		PrismObject<UserType> jack = getUser(userJackOid);
 		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
-				.asObjectDelta(USER_JACK_OID);
-		String realApproverOid = approverOid != null ? approverOid : USER_LEAD1_OID;
+				.asObjectDelta(userJackOid);
+		String realApproverOid = approverOid != null ? approverOid : userLead1Oid;
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
 			@Override
 			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
@@ -291,27 +291,27 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			@Override
 			protected List<ExpectedWorkItem> getExpectedWorkItems() {
 				ExpectedTask etask = getExpectedTasks().get(0);
-				return Collections.singletonList(new ExpectedWorkItem(USER_LEAD1_OID, getRoleOid(1), etask));
+				return Collections.singletonList(new ExpectedWorkItem(userLead1Oid, getRoleOid(1), etask));
 			}
 
 			@Override
 			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
 				if (number == 1) {
 					if (yes) {
-						assertAssignedRole(USER_JACK_OID, getRoleOid(1), rootTask, result);
+						assertAssignedRole(userJackOid, getRoleOid(1), rootTask, result);
 						checkWorkItemAuditRecords(createResultMap(getRoleOid(1), WorkflowResult.APPROVED));
-						checkUserApprovers(USER_JACK_OID, Collections.singletonList(realApproverOid), result);
+						checkUserApprovers(userJackOid, Collections.singletonList(realApproverOid), result);
 					} else {
-						assertNotAssignedRole(USER_JACK_OID, getRoleOid(1), rootTask, result);
+						assertNotAssignedRole(userJackOid, getRoleOid(1), rootTask, result);
 					}
 				}
 			}
 
 			@Override
 			protected Boolean decideOnApproval(String executionId) throws Exception {
-				assertActiveWorkItems(USER_LEAD1_OID, 1);
-				assertActiveWorkItems(USER_LEAD1_DEPUTY_1_OID, deputy ? 1 : 0);
-				assertActiveWorkItems(USER_LEAD1_DEPUTY_2_OID, deputy ? 1 : 0);
+				assertActiveWorkItems(userLead1Oid, 1);
+				assertActiveWorkItems(userLead1Deputy1Oid, deputy ? 1 : 0);
+				assertActiveWorkItems(userLead1Deputy2Oid, deputy ? 1 : 0);
 				checkTargetOid(executionId, getRoleOid(1));
 				login(getUser(realApproverOid));
 				return true;
@@ -338,115 +338,36 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		assertEquals("Wrong active work items for " + approverOid, expectedCount, items.size());
 	}
 
-//	private void executeAssignRole1aToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid) throws Exception {
-//		PrismObject<UserType> jack = getUser(USER_JACK_OID);
-//		ObjectDelta<UserType> addRole1aDelta = (ObjectDelta<UserType>) DeltaBuilder
-//				.deltaFor(UserType.class, prismContext)
-//				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(ROLE_ROLE1A_OID, ObjectTypes.ROLE, prismContext))
-//				.asObjectDelta(USER_JACK_OID);
-//		String realApproverOid = approverOid != null ? approverOid : USER_LEAD1_OID;
-//		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
-//			@Override
-//			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
-//				return jack.clone();
-//			}
-//
-//			@Override
-//			protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
-//				return addRole1aDelta.clone();
-//			}
-//
-//			@Override
-//			protected int getNumberOfDeltasToApprove() {
-//				return 1;
-//			}
-//
-//			@Override
-//			protected List<Boolean> getApprovals() {
-//				return Collections.singletonList(true);
-//			}
-//
-//			@Override
-//			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
-//				return Collections.singletonList(addRole1aDelta.clone());
-//			}
-//
-//			@Override
-//			protected ObjectDelta<UserType> getExpectedDelta0() {
-//				return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
-//			}
-//
-//			@Override
-//			protected String getObjectOid() {
-//				return jack.getOid();
-//			}
-//
-//			@Override
-//			protected List<ExpectedTask> getExpectedTasks() {
-//				return Collections.singletonList(new ExpectedTask(ROLE_ROLE1A_OID, "Assigning Role1a to jack"));
-//			}
-//
-//			@Override
-//			protected List<ExpectedWorkItem> getExpectedWorkItems() {
-//				ExpectedTask etask = getExpectedTasks().get(0);
-//				return Collections.singletonList(new ExpectedWorkItem(USER_LEAD1_OID, ROLE_ROLE1A_OID, etask));
-//			}
-//
-//			@Override
-//			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
-//				if (number == 1) {
-//					if (yes) {
-//						assertAssignedRole(USER_JACK_OID, ROLE_ROLE1A_OID, rootTask, result);
-//						checkWorkItemAuditRecords(createResultMap(ROLE_ROLE1A_OID, WorkflowResult.APPROVED));
-//						checkUserApprovers(USER_JACK_OID, Collections.singletonList(realApproverOid), result);
-//					} else {
-//						assertNotAssignedRole(USER_JACK_OID, ROLE_ROLE1A_OID, rootTask, result);
-//					}
-//				}
-//			}
-//
-//			@Override
-//			protected Boolean decideOnApproval(String executionId) throws Exception {
-//				assertActiveWorkItems(USER_LEAD1_OID, 1);
-//				assertActiveWorkItems(USER_LEAD1_DEPUTY_1_OID, deputy ? 1 : 0);
-//				assertActiveWorkItems(USER_LEAD1_DEPUTY_2_OID, deputy ? 1 : 0);
-//				checkTargetOid(executionId, ROLE_ROLE1A_OID);
-//				login(getUser(realApproverOid));
-//				return true;
-//			}
-//		}, 1, immediate);
-//	}
-
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve1, boolean approve2, boolean approve3) throws Exception {
-		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		PrismObject<UserType> jack = getUser(userJackOid);
 		@SuppressWarnings("unchecked")
 		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
-				.asObjectDelta(USER_JACK_OID);
+				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
 		ObjectDelta<UserType> addRole2Delta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(2), ObjectTypes.ROLE, prismContext))
-				.asObjectDelta(USER_JACK_OID);
+				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
 		ObjectDelta<UserType> addRole3Delta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(3), ObjectTypes.ROLE, prismContext))
-				.asObjectDelta(USER_JACK_OID);
+				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
 		ObjectDelta<UserType> addRole4Delta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(4), ObjectTypes.ROLE, prismContext))
-				.asObjectDelta(USER_JACK_OID);
+				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
 		ObjectDelta<UserType> changeDescriptionDelta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
-				.asObjectDelta(USER_JACK_OID);
+				.asObjectDelta(userJackOid);
 		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addRole1Delta, addRole2Delta, addRole3Delta, addRole4Delta, changeDescriptionDelta);
 		ObjectDelta<UserType> delta0 = ObjectDelta.summarize(addRole4Delta, changeDescriptionDelta);
-		String originalDescription = getUser(USER_JACK_OID).asObjectable().getDescription();
+		String originalDescription = getUser(userJackOid).asObjectable().getDescription();
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
 			@Override
 			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
@@ -495,9 +416,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			protected List<ExpectedWorkItem> getExpectedWorkItems() {
 				List<ExpectedTask> etasks = getExpectedTasks();
 				return Arrays.asList(
-						new ExpectedWorkItem(USER_LEAD1_OID, getRoleOid(1), etasks.get(0)),
-						new ExpectedWorkItem(USER_LEAD2_OID, getRoleOid(2), etasks.get(1)),
-						new ExpectedWorkItem(USER_LEAD3_OID, getRoleOid(3), etasks.get(2))
+						new ExpectedWorkItem(userLead1Oid, getRoleOid(1), etasks.get(0)),
+						new ExpectedWorkItem(userLead2Oid, getRoleOid(2), etasks.get(1)),
+						new ExpectedWorkItem(userLead3Oid, getRoleOid(3), etasks.get(2))
 				);
 			}
 
@@ -506,24 +427,24 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 				switch (number) {
 					case 0:
 						if (yes) {
-							assertUserProperty(USER_JACK_OID, UserType.F_DESCRIPTION, TEST_NAME);
-							assertAssignedRole(USER_JACK_OID, getRoleOid(4), rootTask, result);
+							assertUserProperty(userJackOid, UserType.F_DESCRIPTION, TEST_NAME);
+							assertAssignedRole(userJackOid, getRoleOid(4), rootTask, result);
 						} else {
 							if (originalDescription != null) {
-								assertUserProperty(USER_JACK_OID, UserType.F_DESCRIPTION, originalDescription);
+								assertUserProperty(userJackOid, UserType.F_DESCRIPTION, originalDescription);
 							} else {
-								assertUserNoProperty(USER_JACK_OID, UserType.F_DESCRIPTION);
+								assertUserNoProperty(userJackOid, UserType.F_DESCRIPTION);
 							}
-							assertNotAssignedRole(USER_JACK_OID, getRoleOid(4), rootTask, result);
+							assertNotAssignedRole(userJackOid, getRoleOid(4), rootTask, result);
 						}
 						break;
 					case 1:
 					case 2:
 					case 3:
 					if (yes) {
-						assertAssignedRole(USER_JACK_OID, getRoleOid(number), rootTask, result);
+						assertAssignedRole(userJackOid, getRoleOid(number), rootTask, result);
 					} else {
-						assertNotAssignedRole(USER_JACK_OID, getRoleOid(number), rootTask, result);
+						assertNotAssignedRole(userJackOid, getRoleOid(number), rootTask, result);
 					}
 					break;
 
@@ -534,13 +455,13 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			protected Boolean decideOnApproval(String executionId) throws Exception {
 				String targetOid = getTargetOid(executionId);
 				if (getRoleOid(1).equals(targetOid)) {
-					login(getUser(USER_LEAD1_OID));
+					login(getUser(userLead1Oid));
 					return approve1;
 				} else if (getRoleOid(2).equals(targetOid)) {
-					login(getUser(USER_LEAD2_OID));
+					login(getUser(userLead2Oid));
 					return approve2;
 				} else if (getRoleOid(3).equals(targetOid)) {
-					login(getUser(USER_LEAD3_OID));
+					login(getUser(userLead3Oid));
 					return approve3;
 				} else {
 					throw new IllegalStateException("Unexpected approval request for " + targetOid);
