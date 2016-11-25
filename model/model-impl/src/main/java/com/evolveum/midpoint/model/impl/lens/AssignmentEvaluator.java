@@ -294,7 +294,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 
 			LOGGER.trace("Checking for role cycle, comparing segment order {} with path order {}", assignmentPathSegment.getEvaluationOrder(), assignmentPath.getEvaluationOrder());
-			if (assignmentPath.containsTarget((ObjectType) target.asObjectable()) && assignmentPathSegment.getEvaluationOrder().equals(assignmentPath.getEvaluationOrder())) {
+			if (assignmentPath.containsTarget(target.asObjectable()) && assignmentPathSegment.getEvaluationOrder().equals(assignmentPath.getEvaluationOrder())) {
 				throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
 			}
 		}

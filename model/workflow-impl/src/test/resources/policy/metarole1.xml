@@ -17,7 +17,7 @@
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  oid="00000001-d34d-b33f-f00d-M00000000001">
 	<name>Metarole 1 'default'</name>
-	<description>Treats assignments and modifications in the default way</description>
+	<description>Treats assignments and modifications in the default way (but with specific approver/owner relations)</description>
 	<inducement>
 		<policyRule>
 			<policyConstraints>
@@ -25,17 +25,20 @@
 			</policyConstraints>
 			<policyActions>
 				<approval>
-					<approverRelation>approver</approverRelation>
+					<approverRelation>special-approver</approverRelation>
 				</approval>
 			</policyActions>
 		</policyRule>
+		<order>2</order>
+	</inducement>
+	<inducement>
 		<policyRule>
 			<policyConstraints>
 				<modification/>				<!-- applies to all modifications of this metarole-bearer -->
 			</policyConstraints>
 			<policyActions>
 				<approval>
-					<approverRelation>owner</approverRelation>
+					<approverRelation>special-owner</approverRelation>
 				</approval>
 			</policyActions>
 		</policyRule>

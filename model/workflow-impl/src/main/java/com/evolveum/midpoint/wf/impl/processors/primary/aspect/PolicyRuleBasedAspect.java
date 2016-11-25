@@ -75,10 +75,10 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
     protected PrismContext prismContext;
 
     @Autowired
-    protected ItemApprovalProcessInterface itemApprovalProcessInterface;
+	private ItemApprovalProcessInterface itemApprovalProcessInterface;
 
 	@Autowired
-	protected ApprovalSchemaHelper approvalSchemaHelper;
+	private ApprovalSchemaHelper approvalSchemaHelper;
 
     //region ------------------------------------------------------------ Things that execute on request arrival
 
@@ -102,16 +102,16 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
 		if (objectTreeDeltas.getFocusChange() != null) {
-			extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, wfConfigurationType, taskFromModel, result);
-			extractObjectBasedInstructions((LensContext<?>) modelContext, objectTreeDeltas, requester, instructions, taskFromModel, result);
+			extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, wfConfigurationType, result);
+			extractObjectBasedInstructions((LensContext<?>) modelContext, objectTreeDeltas, requester, instructions, result);
 		}
         return instructions;
     }
 
 	private void extractAssignmentBasedInstructions(@NotNull ModelContext<?> modelContext,
-			@NotNull ObjectTreeDeltas objectTreeDeltas, PrismObject<UserType> requester,
+			@NotNull ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<UserType> requester,
 			List<PcpChildWfTaskCreationInstruction> instructions, WfConfigurationType wfConfigurationType,
-			@NotNull Task taskFromModel, @NotNull OperationResult result)
+			@NotNull OperationResult result)
 			throws SchemaException {
 
 		ObjectDelta<? extends ObjectType> focusDelta = objectTreeDeltas.getFocusChange();
@@ -158,6 +158,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 							&& noExplicitApprovalAction;
 			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions, useLegacy, result);
 			if (request != null && !request.getApprovalSchema().isEmpty()) {
+				@SuppressWarnings("unchecked")
 				PrismContainerValue<AssignmentType> assignmentValue = newAssignment.getAssignmentType().asPrismContainerValue();
 				boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue);
 				if (!removed) {
@@ -171,7 +172,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 					miscDataUtil.generateFocusOidIfNeeded(modelContext, focusDelta);
 				}
 				instructions.add(
-						prepareAssignmentRelatedTaskInstruction(request, newAssignment, modelContext, taskFromModel, requester,
+						prepareAssignmentRelatedTaskInstruction(request, newAssignment, modelContext, requester,
 								result));
 			}
 		}
@@ -179,7 +180,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private void extractObjectBasedInstructions(@NotNull LensContext<?> modelContext,
 			@NotNull ObjectTreeDeltas objectTreeDeltas, PrismObject<UserType> requester,
-			List<PcpChildWfTaskCreationInstruction> instructions, @NotNull Task taskFromModel, @NotNull OperationResult result)
+			List<PcpChildWfTaskCreationInstruction> instructions, @NotNull OperationResult result)
 			throws SchemaException {
 
 		ObjectDelta<?> focusDelta = objectTreeDeltas.getFocusChange();
@@ -248,7 +249,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			ApprovalRequest<?> request = new ApprovalRequestImpl<>("dummy", entry.getValue(), prismContext);
 			if (!request.getApprovalSchema().isEmpty()) {
 				instructions.add(
-						prepareObjectRelatedTaskInstruction(request, focusDelta, items, modelContext, taskFromModel, requester, result));
+						prepareObjectRelatedTaskInstruction(request, focusDelta, items, modelContext, requester, result));
 			}
 		}
 	}
@@ -334,7 +335,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	}
 
 	private PcpChildWfTaskCreationInstruction prepareAssignmentRelatedTaskInstruction(ApprovalRequest<?> approvalRequest,
-			EvaluatedAssignment<?> evaluatedAssignment, ModelContext<?> modelContext, Task taskFromModel,
+			EvaluatedAssignment<?> evaluatedAssignment, ModelContext<?> modelContext,
 			PrismObject<UserType> requester, OperationResult result) throws SchemaException {
 
 		String objectOid = getFocusObjectOid(modelContext);
@@ -344,6 +345,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		LOGGER.trace("Approval request = {}", approvalRequest);
 
+		@SuppressWarnings("unchecked")
 		PrismObject<? extends ObjectType> target = (PrismObject<? extends ObjectType>) evaluatedAssignment.getTarget();
 		Validate.notNull(target, "assignment target is null");
 
@@ -371,7 +373,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
     }
 
 	private PcpChildWfTaskCreationInstruction prepareObjectRelatedTaskInstruction(ApprovalRequest<?> approvalRequest,
-			ObjectDelta<?> focusDelta, Set<ItemPath> paths, ModelContext<?> modelContext, Task taskFromModel,
+			ObjectDelta<?> focusDelta, Set<ItemPath> paths, ModelContext<?> modelContext,
 			PrismObject<UserType> requester, OperationResult result) throws SchemaException {
 
 		//String objectOid = getFocusObjectOid(modelContext);
@@ -405,6 +407,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 
+		@SuppressWarnings("unchecked")
 		ObjectDelta<? extends FocusType> delta = (ObjectDelta<? extends FocusType>) subtractModifications(focusDelta, paths);
 		instruction.setDeltasToProcess(delta);
 
