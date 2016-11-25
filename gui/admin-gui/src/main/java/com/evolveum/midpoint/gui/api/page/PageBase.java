@@ -1104,10 +1104,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		submenu.add(created);
 		MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.reports.new"), PageNewReport.class);
 		submenu.add(n);
-        MenuItem auditLogViewer = new MenuItem(createStringResource("PageAuditLogViewer.menuName"),
-                PageAuditLogViewer.class);
-        submenu.add(auditLogViewer);
 
+		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())){
+			MenuItem auditLogViewer = new MenuItem(createStringResource("PageAuditLogViewer.menuName"),
+					PageAuditLogViewer.class);
+			submenu.add(auditLogViewer);
+		}
 		return item;
 	}
 
