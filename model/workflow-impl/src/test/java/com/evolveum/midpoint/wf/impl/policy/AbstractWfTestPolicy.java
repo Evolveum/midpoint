@@ -27,10 +27,7 @@ import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTe
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -274,6 +271,178 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
 			display("Removed assignment " + at + " from " + user);
 		}
+	}
+
+	public void createObject(final String TEST_NAME, ObjectType object, boolean immediate, boolean approve,
+	                         String assigneeOid) throws Exception {
+		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(object.asPrismObject());
+
+		executeTest(TEST_NAME, new TestDetails() {
+			@Override
+			protected LensContext createModelContext(OperationResult result) throws Exception {
+				LensContext<RoleType> lensContext = createLensContext((Class) object.getClass());
+				addFocusDeltaToContext(lensContext, addObjectDelta);
+				return lensContext;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems, OperationResult result) throws Exception {
+				if (immediate) {
+					assertFalse("There is model context in the root task (it should not be there)",
+							wfTaskUtil.hasModelContext(rootTask));
+				} else {
+					ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
+					ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
+					assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
+					assertNoObject(object);
+					ExpectedTask expectedTask = new ExpectedTask(null, "Addition of " + object.getName().getOrig());
+					ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(assigneeOid, null, expectedTask);
+					assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
+							null,
+							Collections.singletonList(expectedTask),
+							Collections.singletonList(expectedWorkItem));
+				}
+			}
+
+			@Override
+			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+				assertNoObject(object);
+			}
+
+			@Override
+			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+				if (approve) {
+					assertObject(object);
+				} else {
+					assertNoObject(object);
+				}
+			}
+
+			@Override
+			protected boolean executeImmediately() {
+				return immediate;
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId) throws Exception {
+				return approve;
+			}
+		}, 1);
+	}
+
+	public <T extends ObjectType> void modifyObject(final String TEST_NAME, ObjectDelta<T> objectDelta,
+			ObjectDelta<T> expectedDelta0, ObjectDelta<T> expectedDelta1,
+			boolean immediate, boolean approve,
+			String assigneeOid,
+			List<ExpectedTask> expectedTasks, List<ExpectedWorkItem> expectedWorkItems,
+			Runnable assertDelta0Executed,
+			Runnable assertDelta1NotExecuted, Runnable assertDelta1Executed) throws Exception {
+
+		executeTest(TEST_NAME, new TestDetails() {
+			@Override
+			protected LensContext createModelContext(OperationResult result) throws Exception {
+				Class<T> clazz = objectDelta.getObjectTypeClass();
+				//PrismObject<T> object = getObject(clazz, objectDelta.getOid());
+				LensContext<T> lensContext = createLensContext(clazz);
+				addFocusDeltaToContext(lensContext, objectDelta);
+				return lensContext;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems, OperationResult result) throws Exception {
+				if (immediate) {
+					assertFalse("There is model context in the root task (it should not be there)",
+							wfTaskUtil.hasModelContext(rootTask));
+				} else {
+					ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
+					ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
+					assertDeltasEqual("Wrong delta left as primary focus delta.", expectedDelta0, realDelta0);
+					assertDelta1NotExecuted.run();
+					assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
+							objectDelta.getOid(), expectedTasks, expectedWorkItems);
+				}
+			}
+
+			@Override
+			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+				assertDelta0Executed.run();
+				assertDelta1NotExecuted.run();
+			}
+
+			@Override
+			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+				assertDelta0Executed.run();
+				if (approve) {
+					assertDelta1Executed.run();
+				} else {
+					assertDelta1NotExecuted.run();
+				}
+			}
+
+			@Override
+			protected boolean executeImmediately() {
+				return immediate;
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId) throws Exception {
+				return approve;
+			}
+		}, 1);
+	}
+
+	public <T extends ObjectType> void deleteObject(final String TEST_NAME, Class<T> clazz, String objectOid,
+			boolean immediate, boolean approve,
+			String assigneeOid,
+			List<ExpectedTask> expectedTasks, List<ExpectedWorkItem> expectedWorkItems) throws Exception {
+
+		executeTest(TEST_NAME, new TestDetails() {
+			@Override
+			protected LensContext createModelContext(OperationResult result) throws Exception {
+				LensContext<T> lensContext = createLensContext(clazz);
+				ObjectDelta<T> deleteDelta = ObjectDelta.createDeleteDelta(clazz, objectOid, prismContext);
+				addFocusDeltaToContext(lensContext, deleteDelta);
+				return lensContext;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems, OperationResult result) throws Exception {
+				if (immediate) {
+					assertFalse("There is model context in the root task (it should not be there)",
+							wfTaskUtil.hasModelContext(rootTask));
+				} else {
+					ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
+					ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
+					assertTrue("Delta0 is not empty: " + realDelta0.debugDump(), realDelta0.isEmpty());
+					assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
+							objectOid, expectedTasks, expectedWorkItems);
+				}
+			}
+
+			@Override
+			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+				assertObjectExists(clazz, objectOid);
+			}
+
+			@Override
+			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+				if (approve) {
+					assertObjectDoesntExist(clazz, objectOid);
+				} else {
+					assertObjectExists(clazz, objectOid);
+				}
+			}
+
+			@Override
+			protected boolean executeImmediately() {
+				return immediate;
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId) throws Exception {
+				return approve;
+			}
+		}, 1);
 	}
 
 	protected abstract class TestDetails {
@@ -700,9 +869,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
 					ObjectDelta expectedDelta0 = testDetails2.getExpectedDelta0();
 					ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
-					if (!expectedDelta0.equivalent(realDelta0)) {
-						fail("Wrong delta left as primary focus delta. Expected:\n" + expectedDelta0.debugDump() + "\nReal:\n" + realDelta0.debugDump());
-					}
+					assertDeltasEqual("Wrong delta left as primary focus delta. ", expectedDelta0, realDelta0);
 					for (int i = 0; i < testDetails2.getNumberOfDeltasToApprove(); i++) {
 						testDetails2.assertDeltaExecuted(i, false, rootTask, result);
 					}
@@ -743,4 +910,23 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 		}, expectedSubTaskCount);
 	}
+
+	protected void assertDeltasEqual(String message, ObjectDelta expectedDelta, ObjectDelta realDelta) {
+		if (!expectedDelta.equivalent(realDelta)) {
+			fail(message + "\nExpected:\n" + expectedDelta.debugDump() + "\nReal:\n" + realDelta.debugDump());
+		}
+	}
+
+	protected void assertNoObject(ObjectType object) throws SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException {
+		assertNull("Object was created but it shouldn't be",
+				searchObjectByName(object.getClass(), object.getName().getOrig()));
+	}
+
+	protected <T extends ObjectType> void assertObject(T object) throws SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException {
+		PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
+		assertNotNull("Object " + object + " was not created", object);
+		objectFromRepo.removeItem(new ItemPath(ObjectType.F_METADATA), Item.class);
+		assertEquals("Object is different from the one that was expected", object, objectFromRepo);
+	}
+
 }

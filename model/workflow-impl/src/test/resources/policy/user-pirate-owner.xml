@@ -23,7 +23,4 @@
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>pirate-owner</name>
     <fullName>Pirate owner</fullName>
-    <assignment>
-        <targetRef oid="00000001-d34d-b33f-f00d-PIRATE000001" type="RoleType" relation="owner"/>
-    </assignment>
 </user>

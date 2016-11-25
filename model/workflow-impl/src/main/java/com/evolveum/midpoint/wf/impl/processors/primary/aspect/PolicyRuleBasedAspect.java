@@ -21,7 +21,9 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -180,16 +182,20 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			throws SchemaException {
 
 		ObjectDelta<?> focusDelta = objectTreeDeltas.getFocusChange();
+		LensFocusContext<?> focusContext = modelContext.getFocusContext();
+		PrismObject<?> object = focusContext.getObjectOld() != null ?
+				focusContext.getObjectOld() : focusContext.getObjectNew();
 		Map<Set<ItemPath>, ApprovalSchemaType> approvalSchemas = new HashMap<>();
 
-		Collection<EvaluatedPolicyRule> policyRules = modelContext.getFocusContext().getPolicyRules();
+		Collection<EvaluatedPolicyRule> policyRules = focusContext.getPolicyRules();
 		for (EvaluatedPolicyRule rule : policyRules) {
 			LOGGER.trace("Processing object-level policy rule:\n{}", DebugUtil.debugDumpLazily(rule));
 			if (rule.getTriggers().isEmpty()) {
 				LOGGER.trace("Skipping the rule because it is not triggered", rule.getName());
 				continue;
 			}
-			if (rule.getActions() == null || rule.getActions().getApproval() == null) {
+			ApprovalPolicyActionType approvalAction = rule.getActions() != null ? rule.getActions().getApproval() : null;
+			if (approvalAction == null) {
 				LOGGER.trace("Skipping the rule because it doesn't contain an approval action", rule.getName());
 				continue;
 			}
@@ -208,9 +214,20 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				key = affectedItems;
 			}
 			approvalSchemas.put(key,
-					addApprovalActionIntoApprovalSchema(approvalSchemas.get(key), rule.getActions().getApproval(), null));
+					addApprovalActionIntoApprovalSchema(
+							approvalSchemas.get(key),
+							approvalAction,
+							findApproversByReference(object, approvalAction, result)));
 		}
-
+		// default rule
+		if (approvalSchemas.isEmpty()) {
+			ApprovalPolicyActionType defaultPolicyAction = new ApprovalPolicyActionType(prismContext);
+			defaultPolicyAction.getApproverRelation().add(SchemaConstants.ORG_OWNER);
+			approvalSchemas.put(Collections.emptySet(),
+					addApprovalActionIntoApprovalSchema(null, defaultPolicyAction,
+							findApproversByReference(object, defaultPolicyAction, result)));
+			LOGGER.trace("Added default approval action, as no explicit one was found");
+		}
 		// create approval requests; also test for overlaps
 		Set<ItemPath> itemsProcessed = null;
 		for (Map.Entry<Set<ItemPath>, ApprovalSchemaType> entry : approvalSchemas.entrySet()) {
@@ -225,8 +242,10 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				itemsProcessed = items;
 			}
 			ApprovalRequest<?> request = new ApprovalRequestImpl<>("dummy", entry.getValue(), prismContext);
-			instructions.add(
-					prepareObjectRelatedTaskInstruction(request, focusDelta, items, modelContext, taskFromModel, requester, result));
+			if (!request.getApprovalSchema().isEmpty()) {
+				instructions.add(
+						prepareObjectRelatedTaskInstruction(request, focusDelta, items, modelContext, taskFromModel, requester, result));
+			}
 		}
 	}
 
@@ -277,7 +296,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, ApprovalPolicyActionType action,
 			OperationResult result) throws SchemaException {
-		if (action.getApproverRelation().isEmpty()) {
+		if (target == null || action.getApproverRelation().isEmpty()) {
 			return Collections.emptyList();
 		}
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext).none();
@@ -371,7 +390,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 
-		ObjectDelta<? extends FocusType> delta = (ObjectDelta<? extends FocusType>) itemsToDelta(focusDelta, paths);
+		ObjectDelta<? extends FocusType> delta = (ObjectDelta<? extends FocusType>) subtractModifications(focusDelta, paths);
 		instruction.setDeltasToProcess(delta);
 
 		instruction.setObjectRef(modelContext, result);
@@ -385,9 +404,22 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		return instruction;
 	}
 
-	private ObjectDelta<?> itemsToDelta(@NotNull ObjectDelta<?> focusDelta, @NotNull Set<ItemPath> itemPaths) {
+	private ObjectDelta<?> subtractModifications(@NotNull ObjectDelta<?> focusDelta, @NotNull Set<ItemPath> itemPaths) {
 		if (itemPaths.isEmpty()) {
-			return focusDelta;
+			ObjectDelta<?> originalDelta = focusDelta.clone();
+			if (focusDelta.isAdd()) {
+				focusDelta.setObjectToAdd(null);
+			} else if (focusDelta.isModify()) {
+				focusDelta.getModifications().clear();
+			} else if (focusDelta.isDelete()) {
+				// hack: convert to empty ADD delta
+				focusDelta.setChangeType(ChangeType.ADD);
+				focusDelta.setObjectToAdd(null);
+				focusDelta.setOid(null);
+			} else {
+				throw new IllegalStateException("Unsupported delta type: " + focusDelta.getChangeType());
+			}
+			return originalDelta;
 		}
 		if (!focusDelta.isModify()) {
 			throw new IllegalStateException("Not a MODIFY delta; delta = " + focusDelta);
