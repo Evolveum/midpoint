@@ -150,7 +150,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 		assertTrue("hidden standard attribute when it should be shown ('hide none')", jackFormattedHideNone.contains(SHIP));
 
         assertTrue("shown operational attribute when it should be hidden ('hide oper')", !jackFormattedHideOper.contains(CREATE_TIMESTAMP));
-        assertTrue("hidden auxiliary attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains(EFFECTIVE_STATUS));
+        assertTrue("shown operational attribute when it should be shown ('hide oper')", !jackFormattedHideOper.contains(EFFECTIVE_STATUS));
         assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide oper')", jackFormattedHideOper.contains(FAMILY_NAME));
         assertTrue("hidden standard attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains(SHIP));
 
