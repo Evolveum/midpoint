@@ -3297,6 +3297,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
+                    	<a:operational>true</a:operational>
                         <a:displayName>ActivationType.effectiveStatus</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -11139,6 +11140,7 @@
             <xsd:appinfo>
 				<a:since>3.5</a:since>
 				<a:experimental>true</a:experimental>
+				<a:container>true</a:container>
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -11186,6 +11188,7 @@
             </xsd:documentation>
             <xsd:appinfo>
 				<a:since>3.5</a:since>
+				<a:container>true</a:container>
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

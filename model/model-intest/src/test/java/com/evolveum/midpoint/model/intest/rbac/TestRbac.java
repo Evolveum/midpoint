@@ -64,6 +64,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -279,6 +280,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
         AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
         assertCreateMetadata(assignmentType, startTs, endTs);
+        assertEffectiveActivation(assignmentType, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
 		assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);

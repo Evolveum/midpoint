@@ -578,14 +578,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		for (ItemPathType itemPathType: itemPaths) {
 			ItemPath itemPath = itemPathType.getItemPath();
-			if (object != null) {
-				Item<?,?> item = object.findItem(itemPath);
-				if (item != null && !item.isEmpty()) {
-					LOGGER.trace("  applicable object item "+itemPath);
-					return true;
+			if (delta == null) {
+				if (object != null) {
+					Item<?,?> item = object.findItem(itemPath);
+					if (item != null && !item.isEmpty()) {
+						LOGGER.trace("  applicable object item "+itemPath);
+						return true;
+					}
 				}
-			}
-			if (delta != null) {
+			} else {
 				ItemDelta<?,?> itemDelta = delta.findItemDelta(itemPath);
 				if (itemDelta != null && !itemDelta.isEmpty()) {
 					LOGGER.trace("  applicable delta item "+itemPath);
@@ -1094,13 +1095,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							}
 						} else {
 							// deny
-							if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
-								// This is "deny all". We cannot have anything stronger than that.
-								// There is no point in continuing the evaluation.
-								LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{getUsername(principal), operationUrl});
-								return NoneFilter.createNone();
+							if (autz.getItem() != null && !autz.getItem().isEmpty()) {
+								// This is a tricky situation. We have deny authorization, but it only denies access to
+								// some items. Therefore we need to find the objects and then filter out the items.
+								// Therefore do not add this authorization into the filter.
+							} else {
+								if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
+									// This is "deny all". We cannot have anything stronger than that.
+									// There is no point in continuing the evaluation.
+									LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{getUsername(principal), operationUrl});
+									return NoneFilter.createNone();
+								}
+								securityFilterDeny = ObjectQueryUtil.filterOr(securityFilterDeny, autzObjSecurityFilter);
 							}
-							securityFilterDeny = ObjectQueryUtil.filterOr(securityFilterDeny, autzObjSecurityFilter);
 						}
 					}
 					

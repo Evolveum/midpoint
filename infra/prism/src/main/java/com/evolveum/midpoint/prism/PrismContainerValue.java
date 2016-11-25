@@ -1055,7 +1055,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 					if (itemDef == null && other.getDefinition() != null) {
 						itemDef = other.getDefinition().findItemDefinition(thisItem.getElementName());
 					}
-					if (itemDef != null && itemDef.isOperational()) {
+					if (isOperationalOnly(thisItem, itemDef)) {
 						continue;
 					}
 				}
@@ -1073,7 +1073,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 					if (itemDef == null && thisValue.getDefinition() != null) {
 						itemDef = thisValue.getDefinition().findItemDefinition(otherItem.getElementName());
 					}
-					if (itemDef != null && itemDef.isOperational()) {
+					if (isOperationalOnly(otherItem, itemDef)) {
 						continue;
 					}
 				}
@@ -1089,6 +1089,36 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 	}	
 	
+	private boolean isOperationalOnly(Item item, ItemDefinition itemDef) {
+		if (itemDef != null && itemDef.isOperational()) {
+			return true;
+		}
+		if (!(item instanceof PrismContainer)) {
+			return false;
+		}
+		PrismContainer<?> container = (PrismContainer)item;
+		for (PrismContainerValue<?> cval: container.getValues()) {
+			if (cval != null) {
+				List<Item<?, ?>> subitems = cval.getItems();
+				if (subitems != null) {
+					for (Item<?, ?> subitem: subitems) {
+						ItemDefinition subItemDef = subitem.getDefinition();
+						if (subItemDef == null) {
+							subItemDef = ((PrismContainerDefinition)itemDef).findItemDefinition(subitem.getElementName());
+						}
+						if (subItemDef == null) {
+							return false;
+						}
+						if (!subItemDef.isOperational()) {
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+
 	@Override
 	protected PrismContainerDefinition<C> getDefinition() {
 		return (PrismContainerDefinition<C>) super.getDefinition();
