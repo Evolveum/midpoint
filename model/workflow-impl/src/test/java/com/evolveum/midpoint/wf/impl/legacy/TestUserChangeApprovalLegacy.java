@@ -46,6 +46,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.WfTestUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
@@ -180,7 +181,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result).asObjectable();
             display("Subtask #"+(i+1)+": ", subtaskType);
             checkTask(subtaskType, subtask.toString(), processNames[i++]);
-            assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
+            WfTestUtil.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
         }
 
         final Collection<SelectorOptions<GetOperationOptions>> options1 = resolveItemsNamed(
@@ -195,30 +196,15 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         for (WorkItemType workItem : workItems) {
             display("Work item #"+(i+1)+": ", workItem);
             display("Task ref", workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
-            assertRef("object reference", workItem.getObjectRef(), USER_JACK_OID, true, true);
-            assertRef("target reference", workItem.getTargetRef(), ROLE_R1_OID, true, true);
-            assertRef("assignee reference", workItem.getAssigneeRef(), R1BOSS_OID, false, true);     // name is not known, as it is not stored in activiti (only OID is)
-            assertRef("task reference", workItem.getTaskRef(), null, false, true);
+            WfTestUtil.assertRef("object reference", workItem.getObjectRef(), USER_JACK_OID, true, true);
+            WfTestUtil.assertRef("target reference", workItem.getTargetRef(), ROLE_R1_OID, true, true);
+            WfTestUtil.assertRef("assignee reference", workItem.getAssigneeRef(), R1BOSS_OID, false, true);     // name is not known, as it is not stored in activiti (only OID is)
+            WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
             final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
             checkTask(subtaskType, "task in workItem", processNames[i++]);
-            assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
+            WfTestUtil.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
         }
     }
-
-    private void assertRef(String what, ObjectReferenceType ref, String oid, boolean targetName, boolean fullObject) {
-        assertNotNull(what + " is null", ref);
-        assertNotNull(what + " contains no OID", ref.getOid());
-        if (oid != null) {
-            assertEquals(what + " contains wrong OID", oid, ref.getOid());
-        }
-        if (targetName) {
-            assertNotNull(what + " contains no target name", ref.getTargetName());
-        }
-        if (fullObject) {
-            assertNotNull(what + " contains no object", ref.asReferenceValue().getObject());
-        }
-    }
-
 
     private void checkTask(TaskType subtaskType, String subtaskName, String processName) {
         assertNull("Unexpected fetch result in wf subtask: " + subtaskName, subtaskType.getFetchResult());

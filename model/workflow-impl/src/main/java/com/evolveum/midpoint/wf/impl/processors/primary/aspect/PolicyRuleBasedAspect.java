@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -296,7 +297,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, ApprovalPolicyActionType action,
 			OperationResult result) throws SchemaException {
-		if (target == null || action.getApproverRelation().isEmpty()) {
+		if (target == null || target.getOid() == null || action.getApproverRelation().isEmpty()) {
 			return Collections.emptyList();
 		}
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext).none();
@@ -381,6 +382,14 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			opName = "deletion";
 		} else {
 			opName = "modification";
+		}
+
+		if (focusDelta.isAdd()) {
+			if (focusDelta.getObjectToAdd().getOid() == null) {
+				String newOid = OidUtil.generateOid();
+				focusDelta.getObjectToAdd().setOid(newOid);
+				((LensFocusContext<?>) modelContext.getFocusContext()).setOid(newOid);
+			}
 		}
 
 		String approvalTaskName = "Approve " + opName + " of " + objectName;

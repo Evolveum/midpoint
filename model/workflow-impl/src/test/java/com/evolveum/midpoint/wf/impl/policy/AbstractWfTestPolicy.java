@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.policy;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -27,7 +24,9 @@ import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTe
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.impl.WfTestUtil;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
@@ -50,8 +50,9 @@ import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -64,15 +65,15 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_TARGET_REF;
 import static org.testng.AssertJUnit.*;
 
 /**
- * @author semancik
+ * @author mederly
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
@@ -226,49 +227,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	}
 
 	protected void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults) {
-		List<AuditEventRecord> workItemRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
-		assertEquals("Unexpected number of work item audit records", expectedResults.size() * 2, workItemRecords.size());
-		for (AuditEventRecord record : workItemRecords) {
-			if (record.getEventStage() != AuditEventStage.EXECUTION) {
-				continue;
-			}
-			if (record.getDeltas().size() != 1) {
-				fail("Wrong # of deltas in work item audit record: " + record.getDeltas().size());
-			}
-			ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
-			Containerable valueToAdd = ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd()
-					.iterator().next()).asContainerable();
-			String oid;
-			if (valueToAdd instanceof AssignmentType) {
-				oid = ((AssignmentType) valueToAdd).getTargetRef().getOid();
-			} else if (valueToAdd instanceof ShadowAssociationType) {
-				oid = ((ShadowAssociationType) valueToAdd).getShadowRef().getOid();
-			} else {
-				continue;
-			}
-			assertNotNull("Unexpected target to approve: " + oid, expectedResults.containsKey(oid));
-			assertEquals("Unexpected result for " + oid, expectedResults.get(oid),
-					WorkflowResult.fromStandardWfAnswer(record.getResult()));
-		}
+		WfTestUtil.checkWorkItemAuditRecords(expectedResults, dummyAuditService);
 	}
 
 	protected void checkWfProcessAuditRecords(Map<String, WorkflowResult> expectedResults) {
-		List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
-		assertEquals("Unexpected number of workflow process instance audit records", expectedResults.size() * 2, records.size());
-		for (AuditEventRecord record : records) {
-			if (record.getEventStage() != AuditEventStage.EXECUTION) {
-				continue;
-			}
-			ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
-			if (!delta.getModifications().isEmpty()) {
-				AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next()
-						.getValuesToAdd().iterator().next()).asContainerable();
-				String oid = assignmentType.getTargetRef().getOid();
-				assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
-				assertEquals("Unexpected result for " + oid, expectedResults.get(oid),
-						WorkflowResult.fromStandardWfAnswer(record.getResult()));
-			}
-		}
+		WfTestUtil.checkWfProcessAuditRecords(expectedResults, dummyAuditService);
 	}
 
 	protected void removeAllAssignments(String oid, OperationResult result) throws Exception {
@@ -334,6 +297,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 			@Override
 			protected Boolean decideOnApproval(String executionId) throws Exception {
+				login(getUser(userLead1Oid));
 				return approve;
 			}
 		}, 1);
@@ -395,6 +359,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 			@Override
 			protected Boolean decideOnApproval(String executionId) throws Exception {
+				login(getUser(userPirateOwnerOid));
 				return approve;
 			}
 		}, 1);
@@ -682,7 +647,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result).asObjectable();
 			display("Subtask #" + (i + 1) + ": ", subtaskType);
 			checkTask(subtaskType, subtask.toString(), expectedTasks.get(i));
-			assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
+			WfTestUtil
+					.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
 			i++;
 		}
 
@@ -693,35 +659,23 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			display("Task ref",
 					workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
 			if (objectOid != null) {
-				assertRef("object reference", workItem.getObjectRef(), objectOid, true, true);
+				WfTestUtil.assertRef("object reference", workItem.getObjectRef(), objectOid, true, true);
 			}
 
 			String targetOid = expectedWorkItems.get(i).targetOid;
 			if (targetOid != null) {
-				assertRef("target reference", workItem.getTargetRef(), targetOid, true, true);
+				WfTestUtil.assertRef("target reference", workItem.getTargetRef(), targetOid, true, true);
 			}
-			assertRef("assignee reference", workItem.getAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
+			WfTestUtil
+					.assertRef("assignee reference", workItem.getAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
 			// name is not known, as it is not stored in activiti (only OID is)
-			assertRef("task reference", workItem.getTaskRef(), null, false, true);
+			WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
 			final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
 			checkTask(subtaskType, "task in workItem", expectedWorkItems.get(i).task);
-			assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
+			WfTestUtil
+					.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
 
 			i++;
-		}
-	}
-
-	private void assertRef(String what, ObjectReferenceType ref, String oid, boolean targetName, boolean fullObject) {
-		assertNotNull(what + " is null", ref);
-		assertNotNull(what + " contains no OID", ref.getOid());
-		if (oid != null) {
-			assertEquals(what + " contains wrong OID", oid, ref.getOid());
-		}
-		if (targetName) {
-			assertNotNull(what + " contains no target name", ref.getTargetName());
-		}
-		if (fullObject) {
-			assertNotNull(what + " contains no object", ref.asReferenceValue().getObject());
 		}
 	}
 
@@ -741,37 +695,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertEquals("Wrong 'approved' state", null, wfc.isApproved());
 		assertEquals("Wrong answer", null, wfc.getAnswer());
 		//assertEquals("Wrong state", null, wfc.getState());
-	}
-
-	protected void assertWfContextAfterRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result,
-			String... processNames) throws Exception {
-
-		final Collection<SelectorOptions<GetOperationOptions>> options =
-				SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
-
-		Task opTask = taskManager.createTaskInstance();
-		TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
-		assertTrue("unexpected process instance id in root task",
-				rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getProcessInstanceId() == null);
-
-		assertEquals("Wrong # of wf subtasks w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length,
-				subtasks.size());
-		int i = 0;
-		for (Task subtask : subtasks) {
-			TaskType subtaskType = modelService.getObject(TaskType.class, subtask.getOid(), options, opTask, result)
-					.asObjectable();
-			display("Subtask #" + (i + 1) + ": ", subtaskType);
-			assertNull("Unexpected fetch result in wf subtask: " + subtask, subtaskType.getFetchResult());
-			WfContextType wfc = subtaskType.getWorkflowContext();
-			assertNotNull("Missing workflow context in wf subtask: " + subtask, wfc);
-			assertNotNull("No process ID in wf subtask: " + subtask, wfc.getProcessInstanceId());
-			assertEquals("Wrong process ID name in subtask: " + subtask, processNames[i++], wfc.getProcessInstanceName());
-			assertNotNull("Missing process start time in subtask: " + subtask, wfc.getStartTimestamp());
-			assertNotNull("Missing process end time in subtask: " + subtask, wfc.getEndTimestamp());
-			assertEquals("Wrong 'approved' state", Boolean.TRUE, wfc.isApproved());
-			assertEquals("Wrong answer", ApprovalUtils.DECISION_APPROVED, wfc.getAnswer());
-			assertEquals("Wrong state", "Final decision is APPROVED", wfc.getState());
-		}
 	}
 
 	protected String getTargetOid(String executionId)
@@ -935,7 +858,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
 		assertNotNull("Object " + object + " was not created", object);
 		objectFromRepo.removeItem(new ItemPath(ObjectType.F_METADATA), Item.class);
-		assertEquals("Object is different from the one that was expected", object, objectFromRepo);
+		assertEquals("Object is different from the one that was expected", object, objectFromRepo.asObjectable());
 	}
 
 }

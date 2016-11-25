@@ -27,20 +27,36 @@ import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
- * Shouldn't be used, as global policy rules are not implemented yet.
+ * Shouldn't be used, as global policy rules for assignments are not implemented yet.
  *
  * @author mederly
  */
 public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval {
 
+	@SuppressWarnings("Duplicates")
 	@Override
 	protected String getRoleOid(int number) {
-		return null;	// TODO
+		switch (number) {
+			case 1: return roleRole1Oid;
+			case 2: return roleRole2Oid;
+			case 3: return roleRole3Oid;
+			case 4: return roleRole4Oid;
+			case 10: return roleRole10Oid;
+			default: throw new IllegalArgumentException("Wrong role number: " + number);
+		}
 	}
 
+	@SuppressWarnings("Duplicates")
 	@Override
 	protected String getRoleName(int number) {
-		return null;	// TODO
+		switch (number) {
+			case 1: return "Role1";
+			case 2: return "Role2";
+			case 3: return "Role3";
+			case 4: return "Role4";
+			case 10: return "Role10";
+			default: throw new IllegalArgumentException("Wrong role number: " + number);
+		}
 	}
 
 	@Override
@@ -66,7 +82,7 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
 		rule.setPolicyConstraints(constraints);
 		PolicyActionsType actions = new PolicyActionsType(prismContext);
 		ApprovalPolicyActionType approvalAction = new ApprovalPolicyActionType(prismContext);
-		approvalAction.getApproverRelation().add(new QName("approverXX"));		// intentionally unqualified
+		approvalAction.getApproverRelation().add(new QName("approverXX"));		// intentionally wrong (tests should fail with this setting)
 		actions.setApproval(approvalAction);
 		rule.setPolicyActions(actions);
 

@@ -304,9 +304,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		for (SelectorOptions<GetOperationOptions> option: options) {
 			try {
 				resolve(containerable, option, task, result);
-			} catch(ObjectNotFoundException ex){
-				result.recordFatalError(ex.getMessage(), ex);
-				return;
+			} catch (ObjectNotFoundException ex) {
+				result.recordWarning(ex.getMessage(), ex);
 			}
 		}
 	}

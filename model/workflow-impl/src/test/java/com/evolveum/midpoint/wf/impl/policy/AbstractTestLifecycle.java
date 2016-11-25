@@ -48,23 +48,39 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 
     protected static final Trace LOGGER = TraceManager.getTrace(AbstractTestLifecycle.class);
 
-	String PIRATE_OID;
+	String rolePirateOid;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+	protected boolean approveObjectAdd() {
+		return false;
+	}
+
+	@Test
+	public void test010CreateRolePirate() throws Exception {
+		final String TEST_NAME = "test010CreateRolePirate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
 		RoleType pirate = new RoleType(prismContext);
 		pirate.setName(PolyStringType.fromOrig("pirate"));
-		repoAddObject(pirate.asPrismObject(), initResult);
-		PIRATE_OID = pirate.getOid();
-		PrismReferenceValue pirateOwner = new PrismReferenceValue(PIRATE_OID, RoleType.COMPLEX_TYPE);
-		pirateOwner.setRelation(SchemaConstants.ORG_OWNER);
 
+		if (approveObjectAdd()) {
+			createObject(TEST_NAME, pirate, false, true, userLead1Oid);
+			rolePirateOid = searchObjectByName(RoleType.class, "pirate").getOid();
+		} else {
+			repoAddObject(pirate.asPrismObject(), result);
+			rolePirateOid = pirate.getOid();
+		}
+
+		PrismReferenceValue pirateOwner = new PrismReferenceValue(rolePirateOid, RoleType.COMPLEX_TYPE);
+		pirateOwner.setRelation(SchemaConstants.ORG_OWNER);
 		executeChanges((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))
 				.asObjectDelta(userPirateOwnerOid),
-				null, initTask, initResult);
-		display("Pirate role", getRole(PIRATE_OID));
+				null, task, result);
+		display("Pirate role", getRole(rolePirateOid));
 		display("Pirate owner", getUser(userPirateOwnerOid));
 	}
 
@@ -76,8 +92,8 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 
 		ObjectDelta<RoleType> descriptionDelta = (ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_DESCRIPTION).replace("Bloody pirate")
-				.asObjectDelta(PIRATE_OID);
-		ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(PIRATE_OID, Collections.emptyList(), RoleType.class, prismContext);
+				.asObjectDelta(rolePirateOid);
+		ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(rolePirateOid, Collections.emptyList(), RoleType.class, prismContext);
 		//noinspection UnnecessaryLocalVariable
 		ObjectDelta<RoleType> delta1 = descriptionDelta;
 		ExpectedTask expectedTask = new ExpectedTask(null, "Modification of pirate");
@@ -85,8 +101,8 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		modifyObject(TEST_NAME, descriptionDelta, delta0, delta1, false, true, userPirateOwnerOid,
 				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
 				() -> {},
-				() -> assertNull("Description is modified", getRoleSimple(PIRATE_OID).getDescription()),
-				() -> assertEquals("Description was NOT modified", "Bloody pirate", getRoleSimple(PIRATE_OID).getDescription()));
+				() -> assertNull("Description is modified", getRoleSimple(rolePirateOid).getDescription()),
+				() -> assertEquals("Description was NOT modified", "Bloody pirate", getRoleSimple(rolePirateOid).getDescription()));
 	}
 
 	@Test
@@ -97,7 +113,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 
 		ExpectedTask expectedTask = new ExpectedTask(null, "Deletion of pirate");
 		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userPirateOwnerOid, null, expectedTask);
-		deleteObject(TEST_NAME, RoleType.class, PIRATE_OID, false, true, userPirateOwnerOid,
+		deleteObject(TEST_NAME, RoleType.class, rolePirateOid, false, true, userPirateOwnerOid,
 				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));
 	}
 
