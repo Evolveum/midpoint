@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
@@ -632,6 +633,18 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 			CryptoUtil.checkEncrypted(primaryDelta);
 		}
 	}
+    
+    public boolean operationMatches(ChangeTypeType operation) {
+    	switch (operation) {
+    		case ADD:
+    			return getOperation() == SimpleOperationName.ADD;
+    		case MODIFY:
+    			return getOperation() == SimpleOperationName.MODIFY;
+    		case DELETE:
+    			return getOperation() == SimpleOperationName.DELETE;
+    	}
+    	throw new IllegalArgumentException("Unknown operaiton "+operation);
+    }
     
 	protected abstract String getElementDefaultDesc();
 	

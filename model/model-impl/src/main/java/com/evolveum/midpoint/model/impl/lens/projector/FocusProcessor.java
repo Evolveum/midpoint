@@ -17,7 +17,9 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -36,10 +38,11 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.MetadataManager;
+import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -73,10 +76,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -84,8 +89,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -137,7 +144,7 @@ public class FocusProcessor {
     private MappingEvaluator mappingHelper;
 	
 	@Autowired(required = true)
-    private MetadataManager metadataManager;
+    private OperationalDataManager metadataManager;
 
 	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription, 
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -357,6 +364,12 @@ public class FocusProcessor {
 	}
 	
 	private <F extends FocusType> void evaluateFocusPolicyRules(LensContext<F> context, String activityDescription,
+			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
+		triggerAssignmentFocusPolicyRules(context, activityDescription, now, task, result);
+		triggerGlobalRules(context);
+	}
+	
+	private <F extends FocusType> void triggerAssignmentFocusPolicyRules(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
@@ -366,25 +379,70 @@ public class FocusProcessor {
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
 			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
 			for (EvaluatedPolicyRule policyRule: policyRules) {
-				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
-				if (policyConstraints == null) {
-					continue;
-				}
-				for (ModificationPolicyConstraintType modificationConstraintType: policyConstraints.getModification()) {
-					focusContext.addPolicyRule(policyRule);
-					if (modificationConstraintMatches(focusContext, modificationConstraintType)) {
-						EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MODIFICATION,
-								modificationConstraintType, "Focus "+focusContext.getHumanReadableName()+" was modified");
-						focusContext.triggerConstraint(policyRule, trigger);
-					}
-				}
+				triggerRule(focusContext, policyRule);
+			}
+		}
+	}
+	
+	private <F extends FocusType> void triggerGlobalRules(LensContext<F> context) throws SchemaException, PolicyViolationException {
+		Collection<EvaluatedPolicyRule> evaluatedRules = new ArrayList<>();
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+		if (systemConfiguration == null) {
+			return;
+		}
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		
+		// We need to consider object before modification here. We need to prohibit the modification, so we
+		// cannot look at modified object.
+		PrismObject<F> focus = focusContext.getObjectCurrent();
+		if (focus == null) {
+			focus = focusContext.getObjectNew();
+		}
+		
+		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
+			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
+			if (cacheRepositoryService.selectorMatches(focusSelector, focus, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
+				EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule);
+				triggerRule(focusContext, evaluatedRule);
 			}
 		}
 	}
 
-	private <F extends FocusType> boolean modificationConstraintMatches(LensFocusContext<F> focusContext, ModificationPolicyConstraintType modificationConstraintType) {
-		// TODO: later: check for modification od individual items
+	private <F extends FocusType> void triggerRule(LensFocusContext<F> focusContext, EvaluatedPolicyRule policyRule) throws PolicyViolationException {
+		PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
+		if (policyConstraints == null) {
+			return;
+		}
+		for (ModificationPolicyConstraintType modificationConstraintType: policyConstraints.getModification()) {
+			focusContext.addPolicyRule(policyRule);
+			if (modificationConstraintMatches(focusContext, policyRule, modificationConstraintType)) {
+				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MODIFICATION,
+						modificationConstraintType, "Focus "+focusContext.getHumanReadableName()+" was modified");
+				focusContext.triggerConstraint(policyRule, trigger);
+			}
+		}
+	}
+
+	private <F extends FocusType> boolean modificationConstraintMatches(LensFocusContext<F> focusContext, EvaluatedPolicyRule policyRule, 
+			ModificationPolicyConstraintType modificationConstraintType) {
+		if (!operationMatches(focusContext, modificationConstraintType.getOperation())) {
+			LOGGER.trace("Rule {} operation not applicable", policyRule.getName());
+			return false;
+		}
+		// TODO: later: check for modification of individual items
 		return focusContext.hasAnyDelta();
+	}
+	
+	private <F extends FocusType> boolean operationMatches(LensFocusContext<F> focusContext, List<ChangeTypeType> operations) {
+		if (operations.isEmpty()) {
+			return true;
+		}
+		for (ChangeTypeType operation: operations) {
+			if (focusContext.operationMatches(operation)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private <F extends FocusType> void applyObjectPolicyConstraints(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException {

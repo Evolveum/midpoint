@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -373,6 +374,24 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		return repository.isAnySubordinate(upperOrgOid, lowerObjectOids);
 	}
+	
+	@Override
+	public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
+			throws SchemaException {
+		return repository.isDescendant(object, orgOid);
+	}
+
+	@Override
+	public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid)
+			throws SchemaException {
+		return repository.isAncestor(object, oid);
+	}
+
+	@Override
+	public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
+			PrismObject<O> object, Trace logger, String logMessagePrefix) throws SchemaException {
+		return repository.selectorMatches(objectSelector, object, logger, logMessagePrefix);
+	}
 
 	private void log(String message, Object... params) {
 		if (LOGGER.isTraceEnabled()) {
@@ -407,4 +426,5 @@ public class RepositoryCache implements RepositoryService {
 	public RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result) {
 		return repository.executeQueryDiagnostics(request, result);
 	}
+
 }

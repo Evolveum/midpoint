@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -175,17 +177,21 @@ public class PageUser extends PageAdminFocus<UserType> {
         return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this) {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
-                FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
-                tabs.add(
-                        new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
+                FocusTabVisibleBehavior authorization;
+                if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())){
+                    authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
+                    tabs.add(
+                            new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
 
-                            private static final long serialVersionUID = 1L;
+                                private static final long serialVersionUID = 1L;
 
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return createObjectHistoryTabPanel(panelId, parentPage);
-                            }
-                        });
+                                @Override
+                                public WebMarkupContainer createPanel(String panelId) {
+                                    return createObjectHistoryTabPanel(panelId, parentPage);
+                                }
+                            });
+                }
+
                 authorization = new FocusTabVisibleBehavior(unwrapModel(),
                         ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL);
                 tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"), authorization)

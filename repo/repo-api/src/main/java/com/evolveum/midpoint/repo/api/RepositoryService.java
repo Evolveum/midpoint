@@ -27,7 +27,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -348,6 +350,10 @@ public interface RepositoryService {
 
 	boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
 	
+	<O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException;
+	
+	<O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException;
+	
 	/**
 	 * <p>Modifies object using relative change description.</p>
 	 * Must fail if user with
@@ -571,4 +577,6 @@ public interface RepositoryService {
 	 */
 	RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result);
 
+	<O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object,
+			Trace logger, String logMessagePrefix) throws SchemaException;
 }

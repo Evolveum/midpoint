@@ -131,7 +131,7 @@ public class ChangeExecutor {
 	private ModelObjectResolver objectResolver;
 	
 	@Autowired(required = true)
-	private MetadataManager metadataManager;
+	private OperationalDataManager metadataManager;
 
 	private PrismObjectDefinition<UserType> userDefinition = null;
 	private PrismObjectDefinition<ShadowType> shadowDefinition = null;

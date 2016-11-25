@@ -182,7 +182,7 @@ public class Clockwork {
     private TaskManager taskManager;
     
     @Autowired(required = true)
-    private MetadataManager metadataManager;
+    private OperationalDataManager metadataManager;
 
     private LensDebugListener debugListener;
 	
