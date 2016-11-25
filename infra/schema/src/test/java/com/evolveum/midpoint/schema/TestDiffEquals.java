@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -113,18 +115,28 @@ public class TestDiffEquals {
         MetadataType metadata1m = new MetadataType();
         metadata1m.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 		a1m.setMetadata(metadata1m);
+		
+		AssignmentType a1e = new AssignmentType();
+        prismContext.adopt(a1e);
+        a1e.setDescription("descr1");
+        ActivationType activation1e = new ActivationType();
+        activation1e.setEffectiveStatus(ActivationStatusType.ENABLED);
+        a1e.setActivation(activation1e);
         
         // WHEN
         assertFalse(a1a.equals(a2));
         assertFalse(a1b.equals(a2));
         assertFalse(a1m.equals(a2));
+        assertFalse(a1e.equals(a2));
         assertFalse(a2.equals(a1a));
         assertFalse(a2.equals(a1b));
         assertFalse(a2.equals(a1m));
+        assertFalse(a2.equals(a1e));
         
         assertTrue(a1a.equals(a1a));
         assertTrue(a1b.equals(a1b));
         assertTrue(a1m.equals(a1m));
+        assertTrue(a1e.equals(a1e));
         assertTrue(a2.equals(a2));
         
         assertTrue(a1a.equals(a1b));
@@ -133,6 +145,12 @@ public class TestDiffEquals {
         assertTrue(a1b.equals(a1m));
         assertTrue(a1m.equals(a1a));
         assertTrue(a1m.equals(a1b));
+        assertTrue(a1m.equals(a1e));
+        assertTrue(a1a.equals(a1e));
+        assertTrue(a1b.equals(a1e));
+        assertTrue(a1e.equals(a1a));
+        assertTrue(a1e.equals(a1b));
+        assertTrue(a1e.equals(a1m));
     }
     
     @Test
