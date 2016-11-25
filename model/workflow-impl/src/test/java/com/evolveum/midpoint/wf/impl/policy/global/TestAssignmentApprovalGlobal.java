@@ -34,6 +34,16 @@ import java.util.List;
 public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval {
 
 	@Override
+	protected String getRoleOid(int number) {
+		return null;	// TODO
+	}
+
+	@Override
+	protected String getRoleName(int number) {
+		return null;	// TODO
+	}
+
+	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 

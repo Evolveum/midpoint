@@ -1113,7 +1113,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		return modelService.executeChanges(deltas, options, task, result);
 	}
-	
+
+	protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChangesAssertSuccess(ObjectDelta<O> objectDelta, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Collection<ObjectDeltaOperation<? extends ObjectType>> rv = executeChanges(objectDelta, options, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return rv;
+	}
+
 	protected void assignAccount(String userOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assignAccount");
 		OperationResult result = task.getResult();
