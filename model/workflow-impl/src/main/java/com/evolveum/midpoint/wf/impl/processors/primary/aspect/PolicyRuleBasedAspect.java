@@ -157,7 +157,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 					|| configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION
 							&& noExplicitApprovalAction;
 			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions, useLegacy, result);
-			if (!request.getApprovalSchema().isEmpty()) {
+			if (request != null && !request.getApprovalSchema().isEmpty()) {
 				PrismContainerValue<AssignmentType> assignmentValue = newAssignment.getAssignmentType().asPrismContainerValue();
 				boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue);
 				if (!removed) {
@@ -232,6 +232,9 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		// create approval requests; also test for overlaps
 		Set<ItemPath> itemsProcessed = null;
 		for (Map.Entry<Set<ItemPath>, ApprovalSchemaType> entry : approvalSchemas.entrySet()) {
+			if (entry.getValue() == null) {
+				continue;
+			}
 			Set<ItemPath> items = entry.getKey();
 			if (itemsProcessed != null) {
 				if (items.isEmpty() || itemsProcessed.isEmpty() || CollectionUtils.containsAny(itemsProcessed, items)) {
@@ -291,8 +294,11 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		for (ApprovalPolicyActionType action : approvalActions) {
 			approvalSchema = addApprovalActionIntoApprovalSchema(approvalSchema, action, findApproversByReference(target, action, result));
 		}
-		assert approvalSchema != null;
-		return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext);
+		if (approvalSchema != null) {
+			return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext);
+		} else {
+			return null;
+		}
 	}
 
 	private List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, ApprovalPolicyActionType action,
@@ -320,7 +326,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			@Nullable List<ObjectReferenceType> additionalReviewers) {
 		if (action.getApprovalSchema() != null) {
 			approvalSchema = approvalSchemaHelper.mergeIntoSchema(approvalSchema, action.getApprovalSchema());
-		} else {
+		} else if (!action.getApproverExpression().isEmpty() || action.getAutomaticallyApproved() != null || !CollectionUtils.isEmpty(additionalReviewers)) {
 			approvalSchema = approvalSchemaHelper
 					.mergeIntoSchema(approvalSchema, action.getApproverExpression(), action.getAutomaticallyApproved(), additionalReviewers);
 		}

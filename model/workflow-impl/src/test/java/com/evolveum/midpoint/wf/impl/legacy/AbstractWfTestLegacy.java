@@ -198,6 +198,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                         .asItemDeltas();
         repositoryService.modifyObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, deltas, initResult);
         display("policyRuleBasedAspect.enabled was set to", enablePolicyRuleBasedAspect);
+
+        systemObjectCache.invalidateCaches();
     }
 
     @BeforeClass
