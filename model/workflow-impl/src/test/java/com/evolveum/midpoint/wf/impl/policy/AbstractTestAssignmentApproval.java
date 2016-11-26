@@ -308,7 +308,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId) throws Exception {
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
 				assertActiveWorkItems(userLead1Oid, 1);
 				assertActiveWorkItems(userLead1Deputy1Oid, deputy ? 1 : 0);
 				assertActiveWorkItems(userLead1Deputy2Oid, deputy ? 1 : 0);
@@ -452,7 +452,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId) throws Exception {
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
 				String targetOid = getTargetOid(executionId);
 				if (getRoleOid(1).equals(targetOid)) {
 					login(getUser(userLead1Oid));

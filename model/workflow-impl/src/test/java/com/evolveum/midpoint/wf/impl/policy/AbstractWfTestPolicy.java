@@ -53,6 +53,7 @@ import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -93,9 +94,12 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_LEAD3_FILE = new File(TEST_RESOURCE_DIR, "user-lead3.xml");
 	protected static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
 	protected static final File USER_PIRATE_OWNER_FILE = new File(TEST_RESOURCE_DIR, "user-pirate-owner.xml");
+	protected static final File USER_SECURITY_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver.xml");
+	protected static final File USER_SECURITY_APPROVER_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy.xml");
 
 	protected static final File ROLE_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "041-role-approver.xml");
-	protected static final File ROLE_METAROLE1_FILE = new File(TEST_RESOURCE_DIR, "metarole1.xml");
+	protected static final File ROLE_METAROLE1_FILE = new File(TEST_RESOURCE_DIR, "metarole-default.xml");
+	protected static final File ROLE_METAROLE2_FILE = new File(TEST_RESOURCE_DIR, "metarole-security.xml");
 	protected static final File ROLE_ROLE1_FILE = new File(TEST_RESOURCE_DIR, "role-role1.xml");
 	protected static final File ROLE_ROLE1A_FILE = new File(TEST_RESOURCE_DIR, "role-role1a.xml");
 	protected static final File ROLE_ROLE1B_FILE = new File(TEST_RESOURCE_DIR, "role-role1b.xml");
@@ -111,6 +115,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File ROLE_ROLE10_FILE = new File(TEST_RESOURCE_DIR, "role-role10.xml");
 	protected static final File ROLE_ROLE10A_FILE = new File(TEST_RESOURCE_DIR, "role-role10a.xml");
 	protected static final File ROLE_ROLE10B_FILE = new File(TEST_RESOURCE_DIR, "role-role10b.xml");
+
+	protected static final File ROLE_ROLE21_FILE = new File(TEST_RESOURCE_DIR, "role-role21-standard.xml");
+	protected static final File ROLE_ROLE22_FILE = new File(TEST_RESOURCE_DIR, "role-role22-special.xml");
+	protected static final File ROLE_ROLE23_FILE = new File(TEST_RESOURCE_DIR, "role-role23-special-and-security.xml");
+
 	protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
 	protected String userJackOid;
@@ -121,9 +130,12 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String userLead3Oid;
 	protected String userLead10Oid;
 	protected String userPirateOwnerOid;
+	protected String userSecurityApproverOid;
+	protected String userSecurityApproverDeputyOid;
 
 	protected String roleApproverOid;
 	protected String roleMetarole1Oid;
+	protected String roleMetarole2Oid;
 	protected String roleRole1Oid;
 	protected String roleRole1aOid;
 	protected String roleRole1bOid;
@@ -139,6 +151,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String roleRole10Oid;
 	protected String roleRole10aOid;
 	protected String roleRole10bOid;
+
+	protected String roleRole21Oid;
+	protected String roleRole22Oid;
+	protected String roleRole23Oid;
 
 	@Autowired
 	protected Clockwork clockwork;
@@ -178,6 +194,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 		roleApproverOid = repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult).getOid();
 		roleMetarole1Oid = repoAddObjectFromFile(ROLE_METAROLE1_FILE, initResult).getOid();
+		roleMetarole2Oid = repoAddObjectFromFile(ROLE_METAROLE2_FILE, initResult).getOid();
 
 		userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
 		roleRole1Oid = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();
@@ -195,11 +212,18 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		roleRole10Oid = repoAddObjectFromFile(ROLE_ROLE10_FILE, initResult).getOid();
 		roleRole10aOid = repoAddObjectFromFile(ROLE_ROLE10A_FILE, initResult).getOid();
 		roleRole10bOid = repoAddObjectFromFile(ROLE_ROLE10B_FILE, initResult).getOid();
+
+		roleRole21Oid = repoAddObjectFromFile(ROLE_ROLE21_FILE, initResult).getOid();
+		roleRole22Oid = repoAddObjectFromFile(ROLE_ROLE22_FILE, initResult).getOid();
+		roleRole23Oid = repoAddObjectFromFile(ROLE_ROLE23_FILE, initResult).getOid();
+
 		userLead1Oid = addAndRecomputeUser(USER_LEAD1_FILE, initTask, initResult);
 		userLead2Oid = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);
 		userLead3Oid = addAndRecomputeUser(USER_LEAD3_FILE, initTask, initResult);
 		// LEAD10 will be imported later!
 		userPirateOwnerOid = addAndRecomputeUser(USER_PIRATE_OWNER_FILE, initTask, initResult);
+		userSecurityApproverOid = addAndRecomputeUser(USER_SECURITY_APPROVER_FILE, initTask, initResult);
+		userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);
 	}
 
 	private String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
@@ -316,7 +340,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId) throws Exception {
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
 				login(getUser(userLead1Oid));
 				return approve;
 			}
@@ -378,7 +402,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId) throws Exception {
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
 				login(getUser(userPirateOwnerOid));
 				return approve;
 			}
@@ -433,7 +457,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId) throws Exception {
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
 				return approve;
 			}
 		}, 1);
@@ -458,8 +482,12 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			return false;
 		}
 
-		protected Boolean decideOnApproval(String executionId) throws Exception {
+		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
 			return true;
+		}
+
+		public List<ApprovalInstruction> getApprovalSequence() {
+			return null;
 		}
 	}
 
@@ -547,28 +575,47 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			String pid = wfTaskUtil.getProcessId(subtask);
 			assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-			//                WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
-			//                assertNotNull("Process instance information cannot be retrieved", processInstance);
-			//                assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
-
-			//String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
-			//WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
-
 			List<org.activiti.engine.task.Task> tasks = activitiEngine.getTaskService().createTaskQuery().processInstanceId(pid).list();
-
 			assertFalse("activiti task not found", tasks.isEmpty());
 
 			for (org.activiti.engine.task.Task task : tasks) {
 				String executionId = task.getExecutionId();
 				display("Execution id = " + executionId);
-				Boolean approve = testDetails.decideOnApproval(executionId);
+				Boolean approve = testDetails.decideOnApproval(executionId, task);
 				if (approve != null) {
 					workflowManager.approveOrRejectWorkItem(task.getId(), approve, null, result);
 					login(userAdministrator);
 					break;
 				}
 			}
+		}
 
+		// alternative way of approvals executions
+		if (CollectionUtils.isNotEmpty(testDetails.getApprovalSequence())) {
+			List<ApprovalInstruction> instructions = new ArrayList<>(testDetails.getApprovalSequence());
+			while (!instructions.isEmpty()) {
+				List<WorkItemType> currentWorkItems = modelService
+						.searchContainers(WorkItemType.class, null, options1, modelTask, result);
+				boolean matched = false;
+				main:
+				for (ApprovalInstruction approvalInstruction : instructions) {
+					for (WorkItemType workItem : currentWorkItems) {
+						if (approvalInstruction.matches(workItem)) {
+							login(getUser(approvalInstruction.approverOid));
+							workflowManager.approveOrRejectWorkItem(workItem.getWorkItemId(), approvalInstruction.approval, null,
+									result);
+							login(userAdministrator);
+							matched = true;
+							instructions.remove(approvalInstruction);
+							break main;
+						}
+					}
+				}
+				if (!matched) {
+					fail("None of approval instructions " + instructions + " matched any of current work items: "
+							+ currentWorkItems);
+				}
+			}
 		}
 
 		waitForTaskClose(rootTask, 60000);
@@ -735,29 +782,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertEquals("Unexpected target OID", expectedOid, realOid);
 	}
 
-	public class ExpectedTask {
-		final String targetOid;
-		final String processName;
-		final List<ExpectedWorkItem> workItems;
-		public ExpectedTask(String targetOid, String processName) {
-			this.targetOid = targetOid;
-			this.processName = processName;
-			this.workItems = new ArrayList<>();
-		}
-	}
-
-	public class ExpectedWorkItem {
-		final String assigneeOid;
-		final String targetOid;
-		final ExpectedTask task;
-		public ExpectedWorkItem(String assigneeOid, String targetOid,
-				ExpectedTask task) {
-			this.assigneeOid = assigneeOid;
-			this.targetOid = targetOid;
-			this.task = task;
-		}
-	}
-
 	protected abstract class TestDetails2<F extends FocusType> {
 		protected PrismObject<F> getFocus(OperationResult result) throws Exception { return null; }
 		protected ObjectDelta<F> getFocusDelta() throws Exception { return null; }
@@ -776,7 +800,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		protected List<ExpectedWorkItem> getExpectedWorkItems() { return null; }
 
 		protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception { }
-		protected Boolean decideOnApproval(String executionId) throws Exception { return true; }
+		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception { return true; }
 
 		protected void sortSubtasks(List<Task> subtasks) {
 			Collections.sort(subtasks, (t1, t2) -> getCompareKey(t1).compareTo(getCompareKey(t2)));
@@ -792,6 +816,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 		protected String getCompareKey(WorkItemType workItem) {
 			return workItem.getAssigneeRef().getOid();
+		}
+
+		public List<ApprovalInstruction> getApprovalSequence() {
+			return null;
 		}
 	}
 
@@ -857,8 +885,13 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId) throws Exception {
-				return testDetails2.decideOnApproval(executionId);
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+				return testDetails2.decideOnApproval(executionId, task);
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return testDetails2.getApprovalSequence();
 			}
 		}, expectedSubTaskCount);
 	}
