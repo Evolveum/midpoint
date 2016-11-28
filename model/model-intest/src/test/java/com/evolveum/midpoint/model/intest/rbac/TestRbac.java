@@ -133,6 +133,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_NON_CREATEABLE_FILE = new File(TEST_DIR, "role-non-createable.xml");
 	protected static final String ROLE_NON_CREATEABLE_OID = "c45a25ce-b2e8-11e6-923e-938d2c54d334";
 	
+	protected static final File ROLE_IMMUTABLE_ASSIGN_FILE = new File(TEST_DIR, "role-immutable-assign.xml");
+	protected static final String ROLE_IMMUTABLE_ASSIGN_OID = "a6b10a7c-b57e-11e6-bcb3-1ba47cb07e2e";
+
+	protected static final File ROLE_META_UNTOUCHABLE_FILE = new File(TEST_DIR, "role-meta-untouchable.xml");
+	protected static final String ROLE_META_UNTOUCHABLE_OID = "a80c9572-b57d-11e6-80a9-6fdae1dc39bc";
+
 	protected static final File ROLE_META_FOOL_FILE = new File(TEST_DIR, "role-meta-fool.xml");
 	protected static final String ROLE_META_FOOL_OID = "2edc5fe4-af3c-11e6-a81e-eb332578ec4f";
 
@@ -192,6 +198,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_META_UNTOUCHABLE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_FOOL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BLOODY_FOOL_FILE, RoleType.class, initResult);
 
@@ -3026,8 +3033,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test806ModifyRoleImmutableGlobalDescription() throws Exception {
-		final String TEST_NAME = "test806ModifyRoleImmutableGlobalDescription";
+    public void test805ModifyRoleImmutableGlobalDescription() throws Exception {
+		final String TEST_NAME = "test805ModifyRoleImmutableGlobalDescription";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -3054,8 +3061,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test809AddNonCreateableRole() throws Exception {
-		final String TEST_NAME = "test809AddNonCreateableRole";
+    public void test806AddNonCreateableRole() throws Exception {
+		final String TEST_NAME = "test806AddNonCreateableRole";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -3080,7 +3087,67 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
         assertNoObject(RoleType.class, ROLE_NON_CREATEABLE_OID);
 	}
+
+	/**
+	 * This role has a metarole which has immutable policy rule in the
+	 * inducement.
+	 */
+	@Test
+    public void test807AddImmutableAssignRole() throws Exception {
+		final String TEST_NAME = "test807AddImmutableAssignRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_IMMUTABLE_ASSIGN_FILE);
+        display("Role before", role);
+        
+        try {
+	        // WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			addObject(role, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// THEN
+            TestUtil.displayThen(TEST_NAME);
+            result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+
+        assertNoObject(RoleType.class, ROLE_IMMUTABLE_ASSIGN_OID);
+	}
 	
+	/**
+	 * The untouchable metarole has immutable policy rule in the
+	 * inducement. So it will apply to member roles, but not to the
+	 * metarole itself. Try if we can modify the metarole.
+	 */
+	@Test
+    public void test808ModifyUntouchableMetarole() throws Exception {
+		final String TEST_NAME = "test808ModifyUntouchableMetarole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyObjectReplaceProperty(RoleType.class, ROLE_META_UNTOUCHABLE_OID, RoleType.F_DESCRIPTION, 
+				task, result, "Touche!");
+			
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_META_UNTOUCHABLE_OID);
+        PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, "Touche!");
+	}
+
 	@Test
     public void test810ModifyRoleJudge() throws Exception {
 		final String TEST_NAME = "test810ModifyRoleJudge";

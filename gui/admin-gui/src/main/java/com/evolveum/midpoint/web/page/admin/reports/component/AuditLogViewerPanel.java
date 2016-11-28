@@ -76,6 +76,7 @@ public class AuditLogViewerPanel extends BasePanel{
     private static final String ID_EVENT_STAGE = "eventStageField";
     private static final String ID_EVENT_STAGE_LABEL = "eventStageLabel";
     private static final String ID_OUTCOME = "outcomeField";
+    private static final String ID_CHANGED_ITEM = "changedItem";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -170,6 +171,14 @@ public class AuditLogViewerPanel extends BasePanel{
 
         to.setOutputMarkupId(true);
         parametersPanel.add(to);
+        
+        PropertyModel<String> changedItemModel = new PropertyModel<String>(auditSearchDto,
+                AuditSearchDto.F_CHANGED_ITEM);
+        TextPanel<String> changedItemPanel = new TextPanel<String>(ID_CHANGED_ITEM, changedItemModel);
+        changedItemPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        changedItemPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        changedItemPanel.setOutputMarkupId(true);
+        parametersPanel.add(changedItemPanel);
 
         PropertyModel<String> hostIdentifierModel = new PropertyModel<String>(auditSearchDto,
                 AuditSearchDto.F_HOST_IDENTIFIER);
@@ -377,7 +386,7 @@ public class AuditLogViewerPanel extends BasePanel{
                 if (search.getTargetName() != null) {
                     parameters.put("targetName", search.getTargetName().getOid());
                 }
-
+                parameters.put("changedItem", search.getChangedItem());
                 parameters.put("eventType", search.getEventType());
                 parameters.put("eventStage", search.getEventStage());
                 parameters.put("outcome", search.getOutcome());

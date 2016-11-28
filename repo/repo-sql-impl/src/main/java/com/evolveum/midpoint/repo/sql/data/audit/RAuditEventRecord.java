@@ -16,11 +16,42 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.ForeignKey;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -30,20 +61,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-
-import javax.persistence.*;
-
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -84,6 +101,7 @@ public class RAuditEventRecord implements Serializable {
     private ROperationResultStatus outcome;
     private String parameter;
     private String message;
+    private Set<RAuditItem> changedItems;
 
     private String result;
 
@@ -111,6 +129,16 @@ public class RAuditEventRecord implements Serializable {
             deltas = new HashSet<RObjectDeltaOperation>();
         }
         return deltas;
+    }
+    
+    @ForeignKey(name = "fk_audit_item")
+    @OneToMany(mappedBy = "record", orphanRemoval = true, fetch = FetchType.LAZY)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RAuditItem> getChangedItems() {
+        if (changedItems == null) {
+        	changedItems = new HashSet<RAuditItem>();
+        }
+        return changedItems;
     }
 
     public String getEventIdentifier() {
@@ -206,6 +234,10 @@ public class RAuditEventRecord implements Serializable {
     public void setDeltas(Set<RObjectDeltaOperation> deltas) {
         this.deltas = deltas;
     }
+    
+    public void setChangedItems(Set<RAuditItem> changedItems) {
+		this.changedItems = changedItems;
+	}
 
     public void setEventIdentifier(String eventIdentifier) {
         this.eventIdentifier = eventIdentifier;
@@ -392,6 +424,19 @@ public class RAuditEventRecord implements Serializable {
                 if (delta == null) {
                     continue;
                 }
+                
+                ObjectDelta<?> objectDelta = delta.getObjectDelta();
+                for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
+                	ItemPath path = itemDelta.getPath();
+                	
+                	if (path != null) {
+                		XPathHolder holder = new XPathHolder(path);
+                		String itemPath = holder.getXPathWithoutDeclarations();
+                		RAuditItem chanedItem = RAuditItem.toRepo(repo, itemPath);
+                		repo.getChangedItems().add(chanedItem);
+                	}
+                }
+                
                 RObjectDeltaOperation rDelta = RObjectDeltaOperation.toRepo(repo, delta, prismContext);
                 rDelta.setTransient(true);
                 rDelta.setRecord(repo);

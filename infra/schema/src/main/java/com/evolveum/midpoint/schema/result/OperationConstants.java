@@ -48,5 +48,6 @@ public class OperationConstants {
 
 	public static final String CHECK_SHADOW_INTEGRITY = PREFIX + ".checkShadowIntegrity";
 	public static final String REINDEX = PREFIX + ".reindex";
+	public static final String AUDIT_REINDEX = PREFIX + ".auditReindex";
 
 }

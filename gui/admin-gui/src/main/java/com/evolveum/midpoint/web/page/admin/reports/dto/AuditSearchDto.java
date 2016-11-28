@@ -43,6 +43,7 @@ public class AuditSearchDto implements Serializable {
 	public static final String F_EVENT_TYPE = "eventType";
 	public static final String F_EVENT_STAGE = "eventStage";
 	public static final String F_OUTCOME = "outcome";
+	public static final String F_CHANGED_ITEM = "changedItem";
 
 	private XMLGregorianCalendar from;
 	private XMLGregorianCalendar to;
@@ -54,6 +55,7 @@ public class AuditSearchDto implements Serializable {
 	private AuditEventTypeType eventType;
 	private AuditEventStageType eventStage;
 	private OperationResultStatusType outcome;
+	private String changedItem;
 
 	public XMLGregorianCalendar getFrom() {
 		return from;
@@ -134,5 +136,13 @@ public class AuditSearchDto implements Serializable {
 	public void setOutcome(OperationResultStatusType outcome) {
 		this.outcome = outcome;
 	}
+	
+	public String getChangedItem() {
+		return changedItem;
+	}
 
+	
+	public void setChangedItem(String changedItem) {
+		this.changedItem = changedItem;
+	}
 }
