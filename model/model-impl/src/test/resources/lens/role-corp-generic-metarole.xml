@@ -57,4 +57,18 @@ metaroles:
         </construction>
         <order>2</order>
     </inducement>
+    <inducement id="2">
+        <policyRule>
+            <policyConstraints>
+                <!-- applies to all assignment operations of this metarole-bearer as the target -->
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRelation>test-approver</approverRelation>
+                </approval>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+    </inducement>
 </role>

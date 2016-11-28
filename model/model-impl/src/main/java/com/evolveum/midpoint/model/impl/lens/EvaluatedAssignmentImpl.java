@@ -46,16 +46,15 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Evaluated assignment that contains all constructions and authorizations from the assignment 
@@ -76,7 +75,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
 	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
-	private Collection<EvaluatedPolicyRule> policyRules;
+	@NotNull private final Collection<EvaluatedPolicyRule> policyRules;
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -304,6 +303,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return presentInOldObject;
 	}
 
+	@NotNull
 	@Override
 	public Collection<EvaluatedPolicyRule> getPolicyRules() {
 		return policyRules;
@@ -316,7 +316,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
-		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
+		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, null);
 		policyRules.add(policyRule);
 	}
 
@@ -327,24 +327,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-
-		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
-		
-		if (rule == null) {
-			// legacy functionality
-			if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-				throw new PolicyViolationException(trigger.getMessage());
-			}
-			
-		} else {
-
-			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
-			String policySituation = rule.getPolicySituation();
-			if (policySituation != null) {
-				policySituations.add(policySituation);
-			}
-		}
-		
+		LensUtil.triggerConstraint(rule, trigger, policySituations);
 	}
 
 	@Override

@@ -1113,7 +1113,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		return modelService.executeChanges(deltas, options, task, result);
 	}
-	
+
+	protected <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> executeChangesAssertSuccess(ObjectDelta<O> objectDelta, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Collection<ObjectDeltaOperation<? extends ObjectType>> rv = executeChanges(objectDelta, options, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return rv;
+	}
+
 	protected void assignAccount(String userOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assignAccount");
 		OperationResult result = task.getResult();
@@ -1164,6 +1171,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected PrismObject<UserType> findUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		return findObjectByName(UserType.class, username);
+	}
+
+	protected RoleType getRoleSimple(String oid) {
+		try {
+			return getRole(oid).asObjectable();
+		} catch (CommonException e) {
+			throw new SystemException("Unexpected exception while getting role " + oid + ": " + e.getMessage(), e);
+		}
 	}
 
     protected PrismObject<RoleType> getRole(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
@@ -2557,7 +2572,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		TestUtil.assertSuccess("getObject(Task) result not success", result);
 		return retTask;
 	}
-	
+
+	protected <T extends ObjectType> void assertObjectExists(Class<T> clazz, String oid) {
+		OperationResult result = new OperationResult("assertObjectExists");
+		try {
+			repositoryService.getObject(clazz, oid, null, result);
+		} catch (ObjectNotFoundException e) {
+			fail("Object of type " + clazz.getName() + " with OID " + oid + " doesn't exist: " + e.getMessage());
+		} catch (SchemaException e) {
+			throw new SystemException("Object of type " + clazz.getName() + " with OID " + oid + " probably exists but couldn't be read: " + e.getMessage(), e);
+		}
+	}
+
+	protected <T extends ObjectType> void assertObjectDoesntExist(Class<T> clazz, String oid) {
+		OperationResult result = new OperationResult("assertObjectDoesntExist");
+		try {
+			PrismObject<T> object = repositoryService.getObject(clazz, oid, null, result);
+			fail("Object of type " + clazz.getName() + " with OID " + oid + " exists even if it shouldn't: " + object.debugDump());
+		} catch (ObjectNotFoundException e) {
+			// ok
+		} catch (SchemaException e) {
+			throw new SystemException("Object of type " + clazz.getName() + " with OID " + oid + " probably exists, and moreover it couldn't be read: " + e.getMessage(), e);
+		}
+	}
+
 	protected <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getObject");
         OperationResult result = task.getResult();

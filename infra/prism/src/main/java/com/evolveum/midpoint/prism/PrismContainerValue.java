@@ -1068,6 +1068,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		if (other.getItems() != null) {
 			for (Item otherItem: other.getItems()) {
 				Item thisItem = thisValue.findItem(otherItem.getElementName());
+				if (thisItem != null) {
+					// Already processed in previous loop
+					continue;
+				}
 				if (!isLiteral) {
 					ItemDefinition itemDef = otherItem.getDefinition();
 					if (itemDef == null && thisValue.getDefinition() != null) {
@@ -1077,13 +1081,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 						continue;
 					}
 				}
-				if (thisItem == null) {
-					// Other has an item that we don't have, this must be an add
-					ItemDelta itemDelta = otherItem.createDelta();
-					itemDelta.addValuesToAdd(otherItem.getClonedValues());
-					if (!itemDelta.isEmpty()) {
-						((Collection)deltas).add(itemDelta);
-					}
+
+				// Other has an item that we don't have, this must be an add
+				ItemDelta itemDelta = otherItem.createDelta();
+				itemDelta.addValuesToAdd(otherItem.getClonedValues());
+				if (!itemDelta.isEmpty()) {
+					((Collection)deltas).add(itemDelta);
 				}
 			}
 		}
@@ -1092,6 +1095,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	private boolean isOperationalOnly(Item item, ItemDefinition itemDef) {
 		if (itemDef != null && itemDef.isOperational()) {
 			return true;
+		}
+		if (item.isEmpty()) {
+			return false;
 		}
 		if (!(item instanceof PrismContainer)) {
 			return false;
@@ -1208,14 +1214,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public void normalize() {
 		checkMutability();
     	if (items != null) {
-	    	Iterator<Item<?,?>> iterator = items.iterator();
-	    	while (iterator.hasNext()) {
-	    		Item<?,?> item = iterator.next();
-	    		item.normalize();
-	    		if (item.isEmpty()) {
-	    			iterator.remove();
-	    		}
-	    	}
+			for (Item<?, ?> item : items) {
+				item.normalize();
+			}
     	}
 	}
 

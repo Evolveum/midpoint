@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.policy.plain;
 
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestAssignmentApproval;
 import com.evolveum.midpoint.wf.impl.policy.AbstractTestLifecycle;
 
 /**

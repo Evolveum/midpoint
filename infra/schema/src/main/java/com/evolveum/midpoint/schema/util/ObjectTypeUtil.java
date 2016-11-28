@@ -198,6 +198,13 @@ public class ObjectTypeUtil {
 	}
 
 	@NotNull
+	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismReferenceValue ref, @Nullable PrismContext prismContext) {
+		ObjectReferenceType ort = new ObjectReferenceType();
+		ort.setupReferenceValue(ref);
+		return createAssignmentTo(ort, prismContext);
+	}
+
+	@NotNull
 	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismContext prismContext) {
 		return createAssignmentTo(createObjectRef(oid, type), prismContext);
 	}

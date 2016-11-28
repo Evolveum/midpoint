@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.PredefinedPolicySituaion;
@@ -36,11 +37,13 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final long serialVersionUID = 1L;
 
 	private PolicyRuleType policyRuleType;
+	private AssignmentPath assignmentPath;
 	private Collection<EvaluatedPolicyRuleTrigger> triggers;
 
-	public EvaluatedPolicyRuleImpl(PolicyRuleType policyRuleType) {
+	public EvaluatedPolicyRuleImpl(PolicyRuleType policyRuleType, AssignmentPath assignmentPath) {
 		super();
 		this.policyRuleType = policyRuleType;
+		this.assignmentPath = assignmentPath;
 		this.triggers = new ArrayList<>();
 	}
 
@@ -52,11 +55,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyRuleType.getName();
 	}
 	
-	
-	
 	@Override
 	public PolicyRuleType getPolicyRule() {
 		return policyRuleType;
+	}
+
+	@Override
+	public AssignmentPath getAssignmentPath() {
+		return assignmentPath;
 	}
 
 	@Override
@@ -118,6 +124,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRule", indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "policyRuleType", policyRuleType.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "triggers", triggers, indent + 1);
 		return sb.toString();
 	}

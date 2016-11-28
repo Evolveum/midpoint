@@ -461,14 +461,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     
     public void normalize() {
 		checkMutability();					// TODO consider if there is real change
-		Iterator<V> iterator = values.iterator();
-    	while (iterator.hasNext()) {
-    		V value = iterator.next();
-    		value.normalize();
-    		if (value.isEmpty()) {
-    			iterator.remove();
-    		}
-    	}
+		for (V value : values) {
+			value.normalize();
+		}
     }
     
     /**

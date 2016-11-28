@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.policy.plain;
+package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestAssignmentApproval;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
+ * @author semancik
  * @author mederly
  */
-public class TestAssignmentApprovalPlain extends AbstractTestAssignmentApproval {
+public interface AssignmentPathSegment extends DebugDumpable {
+	AssignmentType getAssignment();
+
+	ObjectType getTarget();
+
+	ObjectType getSource();
+
+	EvaluationOrder getEvaluationOrder();
+
+	ObjectType getOrderOneObject();
 }

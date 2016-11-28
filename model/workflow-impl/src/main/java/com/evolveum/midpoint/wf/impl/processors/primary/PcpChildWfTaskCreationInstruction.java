@@ -77,7 +77,6 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         }
     }
 
-    @Deprecated
     public <F extends FocusType> void setDeltasToProcess(ObjectDelta<F> delta) {
         setDeltasToProcesses(new ObjectTreeDeltas<>(delta, getChangeProcessor().getPrismContext()));
     }

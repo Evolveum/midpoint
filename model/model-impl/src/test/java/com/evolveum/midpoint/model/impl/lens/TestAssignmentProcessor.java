@@ -16,29 +16,27 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -47,11 +45,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
@@ -652,7 +646,128 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertAttributeValues(accountConstructionDeltaSetTriple.getPlusSet(), LOCATION_QNAME, MINUS);
     }
 
-    private <T> void assertAttributeValues(Collection<PrismPropertyValue<Construction>> accountConstructions, QName attrName, PlusMinusZero attrSet, T... expectedValue) {
+    /**
+     * Checking approval policy rules.
+	 * Visitor has a generic metarole that has associated policy rule.
+     */
+    @Test
+    public void test200AssignVisitor() throws Exception {
+        final String TEST_NAME = "test200AssignVisitor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        LensContext<UserType> context = createUserAccountContext();
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        AssignmentType assignmentType = new AssignmentType(prismContext);
+        assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_VISITOR_OID, ObjectTypes.ROLE));
+        fillContextWithFocus(context, user);
+
+        addFocusDeltaToContext(context, (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(UserType.F_ASSIGNMENT).add(assignmentType)
+                .asObjectDelta(USER_JACK_OID));
+        context.recompute();
+
+        display("Input context", context);
+
+        assertFocusModificationSanity(context);
+
+        // WHEN
+        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+
+        // THEN
+        display("Output context", context);
+        display("outbound processor result", result);
+        //assertSuccess("Outbound processor failed (result)", result);
+
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+
+        DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        assertEquals("Wrong # of added assignments", 1, evaluatedAssignmentTriple.getPlusSet().size());
+
+		EvaluatedAssignmentImpl evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
+		Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
+		assertEquals("Wrong # of policy rules", 1, policyRules.size());
+		EvaluatedPolicyRule policyRule = policyRules.iterator().next();
+		assertNotNull("Not an approval action: " + policyRule.getActions().asPrismContainerValue().debugDump(),
+				policyRule.getActions().getApproval());
+
+		Collection<EvaluatedPolicyRuleTrigger> triggers = policyRule.getTriggers();
+		assertEquals("Wrong # of policy rule triggers", 1, triggers.size());
+		EvaluatedPolicyRuleTrigger trigger = triggers.iterator().next();
+		assertTrue("Wrong type of policy rule trigger constraint: " + trigger.getConstraint().getClass(),
+				trigger.getConstraint() instanceof AssignmentPolicyConstraintType);
+    }
+
+	/**
+	 * Checking approval policy rules.
+	 * Engineer has a generic metarole that has associated policy rule.
+	 * However, it induces an Employee role that has also this generic metarole.
+	 *
+	 * First occurrence of the rule should have a trigger. Second one should be without a trigger.
+	 */
+	@Test
+	public void test210AssignEngineer() throws Exception {
+		final String TEST_NAME = "test210AssignEngineer";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createUserAccountContext();
+		PrismObject<UserType> user = getUser(USER_JACK_OID);
+		AssignmentType assignmentType = new AssignmentType(prismContext);
+		assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_ENGINEER_OID, ObjectTypes.ROLE));
+		fillContextWithFocus(context, user);
+
+		addFocusDeltaToContext(context, (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(assignmentType)
+				.asObjectDelta(USER_JACK_OID));
+		context.recompute();
+
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+
+		// THEN
+		DebugUtil.setDetailedDebugDump(true);
+		display("Output context", context);
+		display("outbound processor result", result);
+		//assertSuccess("Outbound processor failed (result)", result);
+
+		assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+		assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+		assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+
+		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		assertEquals("Wrong # of added assignments", 1, evaluatedAssignmentTriple.getPlusSet().size());
+
+		EvaluatedAssignmentImpl evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
+		Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
+		assertEquals("Wrong # of policy rules", 2, policyRules.size());
+		Iterator<EvaluatedPolicyRule> iterator = policyRules.iterator();
+		EvaluatedPolicyRule policyRule1 = iterator.next();
+		EvaluatedPolicyRule policyRule2 = iterator.next();
+		assertNotNull("Not an approval action (rule1): " + policyRule1.getActions().asPrismContainerValue().debugDump(),
+				policyRule1.getActions().getApproval());
+		assertNotNull("Not an approval action (rule2): " + policyRule2.getActions().asPrismContainerValue().debugDump(),
+				policyRule2.getActions().getApproval());
+
+		List<EvaluatedPolicyRuleTrigger> allTriggers = new ArrayList<>(policyRule1.getTriggers());
+		allTriggers.addAll(policyRule2.getTriggers());
+		assertEquals("Wrong # of policy rule triggers", 1, allTriggers.size());
+		EvaluatedPolicyRuleTrigger trigger = allTriggers.get(0);
+		assertTrue("Wrong type of policy rule trigger constraint: " + trigger.getConstraint().getClass(),
+				trigger.getConstraint() instanceof AssignmentPolicyConstraintType);
+	}
+
+	private <T> void assertAttributeValues(Collection<PrismPropertyValue<Construction>> accountConstructions, QName attrName, PlusMinusZero attrSet, T... expectedValue) {
         Set<T> realValues = getAttributeValues(accountConstructions, attrName, attrSet);
         assertEquals("Unexpected attributes", new HashSet(Arrays.asList(expectedValue)), realValues);
     }

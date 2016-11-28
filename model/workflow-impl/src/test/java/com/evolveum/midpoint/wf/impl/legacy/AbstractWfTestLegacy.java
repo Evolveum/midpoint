@@ -48,6 +48,7 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.impl.WfTestUtil;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
@@ -197,6 +198,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                         .asItemDeltas();
         repositoryService.modifyObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, deltas, initResult);
         display("policyRuleBasedAspect.enabled was set to", enablePolicyRuleBasedAspect);
+
+        systemObjectCache.invalidateCaches();
     }
 
     @BeforeClass
@@ -232,46 +235,12 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         checkWfProcessAuditRecords(expectedResults);
     }
 
-    protected void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults) {
-        List<AuditEventRecord> workItemRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
-        assertEquals("Unexpected number of work item audit records", expectedResults.size()*2, workItemRecords.size());
-        for (AuditEventRecord record : workItemRecords) {
-            if (record.getEventStage() != AuditEventStage.EXECUTION) {
-                continue;
-            }
-            if (record.getDeltas().size() != 1) {
-                fail("Wrong # of deltas in work item audit record: " + record.getDeltas().size());
-            }
-            ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
-            Containerable valueToAdd = ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
-            String oid;
-            if (valueToAdd instanceof AssignmentType) {
-                oid = ((AssignmentType) valueToAdd).getTargetRef().getOid();
-            } else if (valueToAdd instanceof ShadowAssociationType) {
-                oid = ((ShadowAssociationType) valueToAdd).getShadowRef().getOid();
-            } else {
-                continue;
-            }
-            assertNotNull("Unexpected target to approve: " + oid, expectedResults.containsKey(oid));
-            assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.fromStandardWfAnswer(record.getResult()));
-        }
+    void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults) {
+        WfTestUtil.checkWorkItemAuditRecords(expectedResults, dummyAuditService);
     }
 
     protected void checkWfProcessAuditRecords(Map<String, WorkflowResult> expectedResults) {
-        List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
-        assertEquals("Unexpected number of workflow process instance audit records", expectedResults.size() * 2, records.size());
-        for (AuditEventRecord record : records) {
-            if (record.getEventStage() != AuditEventStage.EXECUTION) {
-                continue;
-            }
-            ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
-            if (!delta.getModifications().isEmpty()) {
-                AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd().iterator().next()).asContainerable();
-                String oid = assignmentType.getTargetRef().getOid();
-                assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
-                assertEquals("Unexpected result for " + oid, expectedResults.get(oid), WorkflowResult.fromStandardWfAnswer(record.getResult()));
-            }
-        }
+	    WfTestUtil.checkWfProcessAuditRecords(expectedResults, dummyAuditService);
     }
 
     protected void removeAllAssignments(String oid, OperationResult result) throws Exception {

@@ -15,6 +15,9 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="00000001-d34d-b33f-f00d-0000000000b3">
+	  oid="00000001-d34d-b33f-f00d-00000000003b">
 	<name>Role3b</name>
+	<assignment> <!-- metarole 1 'default' -->
+		<targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
+	</assignment>
 </role>
