@@ -20,8 +20,8 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -29,30 +29,33 @@ import com.evolveum.midpoint.util.QNameUtil;
  * @author semancik
  *
  */
-public class EvaluationOrder implements DebugDumpable {
-	
-	public static final EvaluationOrder ZERO = EvaluationOrder.createZero();
-	public static final EvaluationOrder ONE = ZERO.advance();
-	
-	private int summaryOrder = 0;
-	private HashMap<QName,Integer> orderMap  = new HashMap<>();
+public class EvaluationOrderImpl implements EvaluationOrder {
 
-	public static EvaluationOrder createZero() {
-		EvaluationOrder eo = new EvaluationOrder();
+	public static EvaluationOrder ZERO = createZero();
+	public static EvaluationOrder ONE = ZERO.advance();
+
+	static EvaluationOrderImpl createZero() {
+		EvaluationOrderImpl eo = new EvaluationOrderImpl();
 		eo.orderMap.put(null,0);
 		return eo;
 	}
-	
+
+	private int summaryOrder = 0;
+	private HashMap<QName,Integer> orderMap  = new HashMap<>();
+
+	@Override
 	public int getSummaryOrder() {
 		return summaryOrder;
 	}
 	
+	@Override
 	public EvaluationOrder advance() {
 		return advance(null);
 	}
 	
+	@Override
 	public EvaluationOrder advance(QName relation) {
-		EvaluationOrder adeo = new EvaluationOrder();
+		EvaluationOrderImpl adeo = new EvaluationOrderImpl();
 		boolean found = false;
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
 			if (QNameUtil.match(entry.getKey(), relation)) {
@@ -73,6 +76,7 @@ public class EvaluationOrder implements DebugDumpable {
 		return adeo;
 	}
 	
+	@Override
 	public int getMatchingRelationOrder(QName relation) {
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
 			if (QNameUtil.match(entry.getKey(), relation)) {
@@ -111,7 +115,7 @@ public class EvaluationOrder implements DebugDumpable {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		EvaluationOrder other = (EvaluationOrder) obj;
+		EvaluationOrderImpl other = (EvaluationOrderImpl) obj;
 		if (orderMap == null) {
 			if (other.orderMap != null) {
 				return false;
@@ -130,6 +134,7 @@ public class EvaluationOrder implements DebugDumpable {
 		return "EvaluationOrder(" + shortDump() + ")";
 	}
 	
+	@Override
 	public String shortDump() {
 		StringBuilder sb = new StringBuilder();
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {

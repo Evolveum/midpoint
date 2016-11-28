@@ -316,7 +316,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
-		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
+		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, null);
 		policyRules.add(policyRule);
 	}
 

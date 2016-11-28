@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -30,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  * @author semancik
  *
  */
-public class AssignmentPathSegment implements DebugDumpable {
+public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private ObjectType target;
@@ -41,7 +43,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 	private Boolean isMatchingOrder = null;
 	private boolean processMembership = false;
 	
-	AssignmentPathSegment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, ObjectType target) {
+	AssignmentPathSegmentImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, ObjectType target) {
 		super();
 		this.assignmentIdi = assignmentIdi;
 		this.target = target;
@@ -51,6 +53,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		return assignmentIdi;
 	}
 
+	@Override
 	public AssignmentType getAssignment() {
 		if (assignmentIdi == null || assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
 			return null;
@@ -62,6 +65,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.assignmentIdi = assignmentIdi;
 	}
 
+	@Override
 	public ObjectType getTarget() {
 		return target;
 	}
@@ -70,6 +74,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.target = target;
 	}
 	
+	@Override
 	public ObjectType getSource() {
 		return source;
 	}
@@ -86,6 +91,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.validityOverride = validityOverride;
 	}
 
+	@Override
 	public EvaluationOrder getEvaluationOrder() {
 		return evaluationOrder;
 	}
@@ -94,6 +100,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.evaluationOrder = evaluationOrder;
 	}
 
+	@Override
 	public ObjectType getOrderOneObject() {
 		return varThisObject;
 	}
@@ -171,7 +178,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		AssignmentPathSegment other = (AssignmentPathSegment) obj;
+		AssignmentPathSegmentImpl other = (AssignmentPathSegmentImpl) obj;
 		if (assignmentIdi == null) {
 			if (other.assignmentIdi != null)
 				return false;

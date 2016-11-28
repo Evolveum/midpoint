@@ -36,7 +36,9 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	String getName();
 	
 	PolicyRuleType getPolicyRule();
-	
+
+	AssignmentPath getAssignmentPath();
+
 	PolicyConstraintsType getPolicyConstraints();
 	
 	String getPolicySituation();
