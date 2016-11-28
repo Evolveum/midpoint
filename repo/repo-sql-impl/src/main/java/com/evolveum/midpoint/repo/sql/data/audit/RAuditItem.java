@@ -44,7 +44,7 @@ public class RAuditItem {
         }
         return recordId;
     }
-    
+   
     @Id
     @Column(name = "changedItemPath")
     public String getChangedItemPath() {
@@ -71,5 +71,24 @@ public class RAuditItem {
     	return itemChanged;
     	
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RAuditItem that = (RAuditItem) o;
+
+        if (changedItemPath != null ? !changedItemPath.equals(that.changedItemPath) : that.changedItemPath != null) return false;
+      
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result1 = changedItemPath != null ? changedItemPath.hashCode() : 0;
+        return result1;
+    }
+
 	
 }
