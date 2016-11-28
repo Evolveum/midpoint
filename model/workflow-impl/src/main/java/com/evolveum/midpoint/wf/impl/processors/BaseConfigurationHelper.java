@@ -19,6 +19,7 @@ package com.evolveum.midpoint.wf.impl.processors;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,9 +32,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 
 /**
  * Helper class used to configure a change processor. (Expects the processor to be a subclass of BaseChangeProcessor;
@@ -76,5 +74,17 @@ public class BaseConfigurationHelper {
             return null;
         }
         return systemConfigurationTypePrismObject.asObjectable().getWorkflowConfiguration();
+    }
+
+    public LegacyApproversSpecificationUsageType getUseLegacyApproversSpecification(WfConfigurationType wfConfiguration) {
+        if (wfConfiguration == null || wfConfiguration.getUseLegacyApproversSpecification() == null) {
+            return LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION;
+        } else {
+            return wfConfiguration.getUseLegacyApproversSpecification();
+        }
+    }
+
+    public PrimaryChangeProcessorConfigurationType getPcpConfiguration(WfConfigurationType wfConfigurationType) {
+        return wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
     }
 }

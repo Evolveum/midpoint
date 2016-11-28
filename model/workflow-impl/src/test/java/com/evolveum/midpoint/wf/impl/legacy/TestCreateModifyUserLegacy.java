@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl;
+package com.evolveum.midpoint.wf.impl.legacy;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -36,6 +36,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -43,13 +44,14 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestCreateModifyUser extends AbstractWfTest {
+public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
 
-    protected static final Trace LOGGER = TraceManager.getTrace(TestCreateModifyUser.class);
+    protected static final Trace LOGGER = TraceManager.getTrace(TestCreateModifyUserLegacy.class);
 
-    private static final File REQ_USER_ELISABETH_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR, "user-elisabeth-modify-add-assignment-role3.xml");
+    private static final File REQ_USER_ELISABETH_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR,
+            "user-elisabeth-modify-add-assignment-role3.xml");
 
-    public TestCreateModifyUser() throws JAXBException {
+    public TestCreateModifyUserLegacy() throws JAXBException {
 		super();
 	}
 
@@ -137,4 +139,9 @@ public class TestCreateModifyUser extends AbstractWfTest {
         });
     }
 
+    @Test
+    public void zzzMarkAsNotInitialized() {
+        display("Setting class as not initialized");
+        unsetSystemInitialized();
+    }
 }

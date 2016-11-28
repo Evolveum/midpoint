@@ -32,7 +32,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -46,7 +45,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -76,8 +74,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 //		super.initSystem(initTask, initResult);
 		// Administrator
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);
 	}
 	

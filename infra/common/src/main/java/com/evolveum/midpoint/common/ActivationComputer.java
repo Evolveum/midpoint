@@ -94,7 +94,7 @@ public class ActivationComputer {
 	}
 	
 	public TimeIntervalStatusType getValidityStatus(ActivationType activationType, XMLGregorianCalendar referenceTime) {
-		if (referenceTime == null) {
+		if (activationType == null || referenceTime == null) {
 			return null;
 		}
 		XMLGregorianCalendar validFrom = activationType.getValidFrom();

@@ -33,11 +33,6 @@ public class ModifyUserAbstractRoleAssignmentAspect extends ModifyAbstractRoleAs
     private static final Trace LOGGER = TraceManager.getTrace(ModifyUserAbstractRoleAssignmentAspect.class);
 
     @Override
-    public boolean isEnabledByDefault() {
-        return true;
-    }
-
-    @Override
     protected boolean isFocusRelevant(ModelContext modelContext) {
         return primaryChangeAspectHelper.isRelatedToType(modelContext, UserType.class);
     }

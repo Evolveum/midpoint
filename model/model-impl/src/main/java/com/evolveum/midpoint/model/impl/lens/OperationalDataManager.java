@@ -24,6 +24,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
@@ -55,9 +58,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 @Component
-public class MetadataManager {
+public class OperationalDataManager {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(MetadataManager.class);
+	private static final Trace LOGGER = TraceManager.getTrace(OperationalDataManager.class);
+	
+	@Autowired(required = false)
+	private ActivationComputer activationComputer;
 	
 	// for inserting workflow-related metadata to changed object
 	@Autowired(required = false)
@@ -225,11 +231,21 @@ public class MetadataManager {
 		}
 		
 		transplantRequestMetadata(context, metadataType);
+		
+		ActivationType activationType = assignmentType.getActivation();
+		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), activationType);
+		if (activationType == null) {
+			activationType = new ActivationType();
+			assignmentType.setActivation(activationType);
+		}
+		activationType.setEffectiveStatus(effectiveStatus);
 
 		applyCreateMetadata(context, metadataType, now, task);
 		
-		LOGGER.trace("Adding METADATA {} to assignment cval ({}):\n{}", 
-				 metadataType, desc, assignmentContainerValue.debugDump(1));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Adding operational data {} to assignment cval ({}):\nMETADATA:\n{}\nACTIVATION:\n{}", 
+				 metadataType, desc, assignmentContainerValue.debugDump(1), activationType.asPrismContainerValue().debugDump(1));
+		}
 	}
 
 	private <F extends ObjectType> void applyRequestMetadata(LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {

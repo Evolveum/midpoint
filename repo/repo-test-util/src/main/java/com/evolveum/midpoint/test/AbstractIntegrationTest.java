@@ -44,11 +44,8 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -191,6 +188,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			Task initTask = taskManager.createTaskInstance(this.getClass().getName() + ".initSystem");
+			initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
 			OperationResult result = initTask.getResult();
 			
 			InternalMonitor.reset();
@@ -215,21 +213,35 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		initializedClasses.add(this.getClass());
 	}
 
+	protected void unsetSystemInitialized() {
+		initializedClasses.remove(this.getClass());
+	}
+
 	abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
 
-	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath, Class<T> type,
+	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-		return repoAddObjectFromFile(new File(filePath), type, parentResult);
+		return repoAddObjectFromFile(new File(filePath), parentResult);
 	}
 	
+	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file,
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+		return repoAddObjectFromFile(file, false, parentResult);
+	}
+
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-		return repoAddObjectFromFile(file, type, false, parentResult);
+		return repoAddObjectFromFile(file, false, parentResult);
 	}
-	
+
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
 			boolean metadata, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-			
+		return repoAddObjectFromFile(file, metadata, parentResult);
+	}
+
+	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file,
+			boolean metadata, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".repoAddObjectFromFile");
 		result.addParam("file", file);
@@ -241,7 +253,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		
 		LOGGER.trace("Adding object:\n{}", object.debugDump());
-		repoAddObject(type, object, "from file "+file, result);
+		repoAddObject(object, "from file "+file, result);
 		result.recordSuccess();
 		return object;
 	}
@@ -267,7 +279,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		addBasicMetadata(object);
 		
 		LOGGER.trace("Adding object:\n{}", object.debugDump());
-		repoAddObject(ShadowType.class, object, "from file "+file, result);
+		repoAddObject(object, "from file "+file, result);
 		result.recordSuccess();
 		return object;
 	}
@@ -279,12 +291,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		object.asObjectable().setMetadata(metaData);
 	}
 	
-	protected <T extends ObjectType> void repoAddObject(Class<T> type, PrismObject<T> object,
+	protected <T extends ObjectType> void repoAddObject(PrismObject<T> object,
 			OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
-		repoAddObject(type, object, null, result);
+		repoAddObject(object, null, result);
 	}
 		
-	protected <T extends ObjectType> void repoAddObject(Class<T> type, PrismObject<T> object, String contextDesc,
+	protected <T extends ObjectType> void repoAddObject(PrismObject<T> object, String contextDesc,
 			OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		if (object.canRepresent(TaskType.class)) {
 			Assert.assertNotNull(taskManager, "Task manager is not initialized");
@@ -330,7 +342,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		List<PrismObject<T>> objects = (List) PrismTestUtil.parseObjects(file);
 		for (PrismObject<T> object: objects) {
 			try {
-				repoAddObject(type, object, result);
+				repoAddObject(object, result);
 			} catch (ObjectAlreadyExistsException e) {
 				throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+file, e);
 			} catch (SchemaException e) {
@@ -352,7 +364,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		List<PrismObject> objects = (List) PrismTestUtil.parseObjects(file);
 		for (PrismObject object: objects) {
 			try {
-				repoAddObject((Class) object.asObjectable().getClass(), object, result);
+				repoAddObject(object, result);
 			} catch (ObjectAlreadyExistsException e) {
 				throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+file, e);
 			} catch (SchemaException e) {
@@ -551,6 +563,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ActivationType activationType = focus.asObjectable().getActivation();
 		assertNotNull("No activation in "+focus, activationType);
 		assertEquals("Wrong effectiveStatus in activation in "+focus, expected, activationType.getEffectiveStatus());
+	}
+	
+	protected <F extends FocusType> void  assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
+		ActivationType activationType = assignmentType.getActivation();
+		assertNotNull("No activation in "+assignmentType, activationType);
+		assertEquals("Wrong effectiveStatus in activation in "+assignmentType, expected, activationType.getEffectiveStatus());
 	}
 	
 	protected <F extends FocusType> void  assertValidityStatus(PrismObject<F> focus, TimeIntervalStatusType expected) {

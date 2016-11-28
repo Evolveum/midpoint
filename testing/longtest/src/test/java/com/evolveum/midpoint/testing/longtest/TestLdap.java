@@ -77,7 +77,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -170,7 +169,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 		// System Configuration
         PrismObject<SystemConfigurationType> config;
 		try {
-			config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
+			config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -182,16 +181,16 @@ public class TestLdap extends AbstractModelIntegrationTest {
 //                config.asObjectable().getVersion(), initResult);
 
         // administrator
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);
 		
 		// Users
-		repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILE, initResult);
 		
 		// Roles
-		repoAddObjectFromFile(ROLE_PIRATE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);
 		
 		// Resources
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);

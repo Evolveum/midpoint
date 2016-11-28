@@ -1,6 +1,10 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -65,9 +69,15 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 
 	@Override
-	protected int internalSize(){
-		String query = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT + auditEventQuery, false, true);
-		long count = getAuditService().countObjects(query, parameters);
+	protected int internalSize() {
+		String query = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT + auditEventQuery, false);
+		long count;
+		try {
+			count = getAuditService().countObjects(query, parameters, new OperationResult("internalSize"));
+		} catch (SecurityViolationException | SchemaException e) {
+			// TODO: proper error handling (MID-3536)
+			throw new SystemException(e.getMessage(), e);
+		}
 
 		return ((Long)count).intValue();
 	}
@@ -77,7 +87,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     }
 
 	private List<AuditEventRecordType> listRecords(String query, boolean orderBy, long first, long count){
-		String parameterQuery = generateFullQuery(query, orderBy, false);
+		String parameterQuery = generateFullQuery(query, orderBy);
 
         if (parameters.containsKey(SET_FIRST_RESULT_PARAMETER)){
             parameters.remove(SET_FIRST_RESULT_PARAMETER);
@@ -89,7 +99,14 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         parameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
 
 
-        List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery, parameters);
+        List<AuditEventRecord> auditRecords;
+		try {
+			auditRecords = getAuditService().listRecords(parameterQuery, parameters, 
+					new OperationResult("listRecords"));
+		} catch (SecurityViolationException | SchemaException e) {
+			// TODO: proper error handling (MID-3536)
+			throw new SystemException(e.getMessage(), e);
+		}
 		if (auditRecords == null){
 			auditRecords = new ArrayList<>();
 		}
@@ -109,23 +126,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		this.auditEventQuery = auditEventQuery;
 	}
 
-	private String generateFullQuery(String query, boolean orderBy, boolean isCount){
+	private String generateFullQuery(String query, boolean orderBy){
 		parameters = getParameters();
-		if (parameters.get("changedItem") != null) {
-			if (isCount) {
-				query = "select count(*) from RAuditEventRecord as aer right join aer.changedItems as item where 1=1 and ";
-			} else {
-				query = "from RAuditEventRecord as aer right join aer.changedItems as item where 1=1 and ";
-			}
-//			query += "INNER JOIN aer.changedItems as item on item.record_id = aer.id WHERE 1=1 and  "
-//					+ "(item.changedItemPath = :changedItem) and ";
-			query += "(item.changedItemPath = :changedItem) and ";
-			
-		} else {
-            parameters.remove("changedItem");
-//            query += "where 1=1 and ";
-		}
-		
 		if (parameters.get("from") != null) {
 			query += "(aer.timestamp >= :from) and ";
 		} else {
@@ -181,7 +183,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		} else {
             parameters.remove("taskIdentifier");
 		}
-		
 		query = query.substring(0, query.length()-5); // remove trailing " and "
 		if (orderBy){
 			query +=  AUDIT_RECORDS_ORDER_BY;

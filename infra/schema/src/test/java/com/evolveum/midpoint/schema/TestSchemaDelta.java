@@ -16,17 +16,13 @@
 
 package com.evolveum.midpoint.schema;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -41,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * Test delta operation on real midpoint schema. Similar to TestDelta in prism, but this is using the
@@ -312,4 +310,38 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         assertEquals("Wrong activation administrativeStatus", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
     }
 
+    // subtract of single-valued PCV from multivalued one
+	@Test
+	public void testSubtractAssignmentFromAddDelta() throws Exception {
+		final String TEST_NAME = "testSubtractAssignmentFromAddDelta";
+		displayTestTile(TEST_NAME);
+
+		// GIVEN
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
+		ObjectDelta<UserType> addDelta = ObjectDelta.createAddDelta(user);
+
+		// WHEN
+		PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
+				.findContainerDefinitionByCompileTimeClass(AssignmentType.class).clone();
+		((PrismContainerDefinitionImpl) assignmentDef).setMaxOccurs(1);
+		PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
+
+		PrismContainerValue<AssignmentType> assignmentValue =
+				ObjectTypeUtil.createAssignmentTo("00000001-d34d-b33f-f00d-000000000002", ObjectTypes.ROLE,
+						PrismTestUtil.getPrismContext())
+				.asPrismContainerValue();
+		assignmentContainer.add(assignmentValue);
+
+		System.out.println("Delta before operation:\n" + addDelta.debugDump() + "\n");
+		System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
+		boolean removed = addDelta.subtract(SchemaConstants.PATH_ASSIGNMENT, assignmentValue);
+
+		// THEN
+		System.out.println("Delta after operation:\n" + addDelta.debugDump() + "\n");
+		System.out.println("Removed: " + removed + "\n");
+
+		assertTrue("Not removed", removed);
+		assertTrue("Remaining delta is not an ADD delta", addDelta.isAdd());
+		assertEquals("Wrong # of remaining assignments", 2, addDelta.getObjectToAdd().asObjectable().getAssignment().size());
+	}
 }

@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionObjectDeltaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -179,6 +182,14 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         rv.addAll(projectionChangeMap.values());
         return rv;
     }
+
+    public boolean subtractFromFocusDelta(@NotNull ItemPath itemPath, @NotNull PrismValue value) {
+		if (focusChange == null) {
+			return false;
+		} else {
+			return focusChange.subtract(itemPath, value);
+		}
+	}
 
     @Override
     public String toString() {

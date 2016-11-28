@@ -46,7 +46,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -63,7 +62,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -73,7 +71,6 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -235,12 +232,12 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		binaryAttributeDetector.addBinaryAttribute(ATTRIBUTE_UNICODE_PWD_NAME);
 		
 		// Users
-		repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILE, initResult);
 		
 		// Roles
-		repoAddObjectFromFile(ROLE_PIRATES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_META_ORG_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PIRATES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_META_ORG_FILE, initResult);
 		
 	}
 	

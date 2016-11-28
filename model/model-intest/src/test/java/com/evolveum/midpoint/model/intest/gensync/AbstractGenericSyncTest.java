@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.intest.gensync;
 import java.io.File;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -68,9 +67,9 @@ public class AbstractGenericSyncTest extends AbstractInitializedModelIntegration
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        repoAddObjectFromFile(OBJECT_TEMPLATE_ROLE_FILE, ObjectTemplateType.class, initResult);
-        repoAddObjectFromFile(ROLE_META_DUMMYGROUP_FILE, RoleType.class, initResult);
-        repoAddObjectFromFile(LOOKUP_ROLE_TYPE_FILE, ObjectTemplateType.class, initResult);
+        repoAddObjectFromFile(OBJECT_TEMPLATE_ROLE_FILE, initResult);
+        repoAddObjectFromFile(ROLE_META_DUMMYGROUP_FILE, initResult);
+        repoAddObjectFromFile(LOOKUP_ROLE_TYPE_FILE, initResult);
     }
     
     @Override

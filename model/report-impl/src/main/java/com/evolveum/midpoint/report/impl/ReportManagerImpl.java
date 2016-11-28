@@ -53,6 +53,7 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -163,7 +164,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      * @throws UnsupportedEncodingException 
      */
     @Override
-    public HookOperationMode invoke(ModelContext context, Task task, OperationResult parentResult)  {
+    public HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult parentResult)  {
     	ModelState state = context.getState();
          if (state != ModelState.FINAL) {
              if (LOGGER.isTraceEnabled()) {
@@ -262,7 +263,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     
     
     @Override
-    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
+    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
     	
     }
   

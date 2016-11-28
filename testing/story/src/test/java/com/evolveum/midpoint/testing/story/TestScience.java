@@ -44,16 +44,10 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.sleepycat.je.rep.impl.RepGroupProtocol.Fail;
 
 /**
  * 
@@ -130,7 +124,7 @@ public class TestScience  extends AbstractStoryTest {
 		super.initSystem(initTask, initResult);
 		
 		// Roles
-		repoAddObjectFromFile(ROLE_STATISTICS_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_STATISTICS_FILE, initResult);
 //		repoAddObjectFromFile(ROLE_MATH_FILE, RoleType.class, initResult);
 		
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_AD_SIMULATION_FILE, RESOURCE_OPENDJ_AD_SIMULATION_OID, initTask, initResult);

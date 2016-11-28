@@ -44,5 +44,7 @@ public enum RReferenceOwner {
 
     INCLUDE,                    // 7
 
-    ROLE_MEMBER;                // 8
+    ROLE_MEMBER,                // 8
+
+    DELEGATED;                // 9
 }

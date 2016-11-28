@@ -137,14 +137,16 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	protected PageBase pageBase;
 	protected List<AssignmentsPreviewDto> privilegesList;
 	protected UserType delegationUser;
+	protected boolean delegatedToMe;
 
-	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model,
+	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean delegatedToMe,
 								 List<AssignmentsPreviewDto> privilegesList,
 								 UserType delegationUser, PageBase pageBase) {
 		super(id, model);
 		this.pageBase = pageBase;
 		this.delegationUser = delegationUser;
 		this.privilegesList = privilegesList;
+		this.delegatedToMe = delegatedToMe;
 
 		initLayout();
 	}
@@ -540,12 +542,19 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 		initAttributesLayout(constructionContainer);
 
-		MetadataPanel metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new AbstractReadOnlyModel<MetadataType>() {
-			@Override
-			public MetadataType getObject() {
-				return getModel().getObject().getOldValue().getValue().getMetadata();
-			}
-		});
+		Component metadataPanel;
+        if (UserDtoStatus.ADD.equals(getModel().getObject().getStatus()) ||
+                getModelObject().getOldValue().asContainerable() == null){
+            metadataPanel = new WebMarkupContainer(ID_METADATA_CONTAINER);
+        } else {
+            metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new AbstractReadOnlyModel<MetadataType>() {
+                @Override
+                public MetadataType getObject() {
+                    return getModelObject().getOldValue().getValue().getMetadata();
+                }
+            }, "row");
+        }
+        metadataPanel.setOutputMarkupId(true);
 		metadataPanel.add(new VisibleEnableBehaviour(){
 			@Override
 			public boolean isVisible(){

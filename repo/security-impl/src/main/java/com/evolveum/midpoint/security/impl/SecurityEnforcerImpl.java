@@ -392,29 +392,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
-	private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSpecType, PrismObject<O> object, 
+	private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSelector, PrismObject<O> object, 
 			MidPointPrincipal principal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc) throws SchemaException {
-		if (objectSpecType == null) {
-			LOGGER.trace("  {} not applicable for {} because of null object specification", autzHumanReadableDesc, desc);
-			return false;
-		}
-		SearchFilterType specFilterType = objectSpecType.getFilter();
-		ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
-		OrgRelationObjectSpecificationType specOrgRelation = objectSpecType.getOrgRelation();
-		QName specTypeQName = objectSpecType.getType();     // now it does not matter if it's unqualified
-		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
-		
-		// Type
-		if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
-			LOGGER.trace("  {} not applicable for {} because of type mismatch, expected {}, was {}",
-					new Object[]{autzHumanReadableDesc, desc, specTypeQName, objectDefinition.getTypeName()});
+		if (!repositoryService.selectorMatches(objectSelector, object, LOGGER, "  " + autzHumanReadableDesc + " not applicable for " + desc + " because of ")) {
 			return false;
 		}
 		
+		OrgRelationObjectSpecificationType specOrgRelation = objectSelector.getOrgRelation();
+				
 		// Special
-		List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
+		List<SpecialObjectSpecificationType> specSpecial = objectSelector.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
-			if (specFilterType != null || specOrgRef != null || specOrgRelation != null) {
+			if (objectSelector.getFilter() != null || objectSelector.getOrgRef() != null || specOrgRelation != null) {
 				throw new SchemaException("Both filter/org and special "+desc+" specification specified in "+autzHumanReadableDesc);
 			}
 			for (SpecialObjectSpecificationType special: specSpecial) {
@@ -441,33 +430,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("  {}: specials empty: {}", autzHumanReadableDesc, specSpecial);
 		}
 		
-		// Filter
-		if (specFilterType != null) {
-			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());
-			if (specFilter != null) {
-				ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in "+autzHumanReadableDesc+" "+desc+" is not property-only filter");
-			}
-			try {
-				if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
-					LOGGER.trace("  filter {} not applicable for {}, object OID {}", new Object[] {
-							autzHumanReadableDesc, desc, object.getOid() });
-					return false;
-				}
-			} catch (SchemaException ex) {
-				throw new SchemaException("Could not apply "+autzHumanReadableDesc+" for " + object + ". "
-						+ ex.getMessage(), ex);
-			}
-		}
-			
-		// Org	
-		if (specOrgRef != null) {
-			if (!isDescendant(object, specOrgRef.getOid())) {
-				LOGGER.trace("  org {} not applicable for {}, object OID {} (org={})",
-						new Object[]{autzHumanReadableDesc, desc, object.getOid(), specOrgRef.getOid()});
-				return false;
-			}			
-		}
-		
 		// orgRelation
 		if (specOrgRelation != null) {
 			boolean match = false;
@@ -486,9 +448,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}			
 		}
 		
-		if (objectSpecType instanceof OwnedObjectSelectorType) {
+		if (objectSelector instanceof OwnedObjectSelectorType) {
 			// Owner
-			SubjectedObjectSelectorType ownerSpec = ((OwnedObjectSelectorType)objectSpecType).getOwner();
+			SubjectedObjectSelectorType ownerSpec = ((OwnedObjectSelectorType)objectSelector).getOwner();
 			if (ownerSpec != null) {
 				if (ownerResolver == null) {
 					ownerResolver = userProfileService;
@@ -526,36 +488,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return true;
 		}
 		if (specOrgRelation.getScope() == null) {
-			return isDescendant(object, subjectParentOrgRef.getOid());
+			return repositoryService.isDescendant(object, subjectParentOrgRef.getOid());
 		}
 		switch (specOrgRelation.getScope()) {
 			case ALL_DESCENDANTS:
-				return isDescendant(object, subjectParentOrgRef.getOid());
+				return repositoryService.isDescendant(object, subjectParentOrgRef.getOid());
 			case DIRECT_DESCENDANTS:
 				return hasParentOrgRef(object, subjectParentOrgRef.getOid());
 			case ALL_ANCESTORS:
-				return isAncestor(object, subjectParentOrgRef.getOid());
+				return repositoryService.isAncestor(object, subjectParentOrgRef.getOid());
 			default:
 				throw new UnsupportedOperationException("Unknown orgRelation scope "+specOrgRelation.getScope());
 		}
-	}
-
-	private <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException {
-		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
-		List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
-		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
-			objParentOrgOids.add(objParentOrgRef.getOid());
-		}
-		return repositoryService.isAnySubordinate(orgOid, objParentOrgOids);
-	}
-
-	private <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
-		if (object.getOid() == null) {
-			return false;
-		}
-		Collection<String> oidList = new ArrayList<>(1);
-		oidList.add(oid);
-		return repositoryService.isAnySubordinate(object.getOid(), oidList);
 	}
 	
 	private <O extends ObjectType> boolean hasParentOrgRef(PrismObject<O> object, String oid) {
@@ -578,14 +522,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		for (ItemPathType itemPathType: itemPaths) {
 			ItemPath itemPath = itemPathType.getItemPath();
-			if (object != null) {
-				Item<?,?> item = object.findItem(itemPath);
-				if (item != null && !item.isEmpty()) {
-					LOGGER.trace("  applicable object item "+itemPath);
-					return true;
+			if (delta == null) {
+				if (object != null) {
+					Item<?,?> item = object.findItem(itemPath);
+					if (item != null && !item.isEmpty()) {
+						LOGGER.trace("  applicable object item "+itemPath);
+						return true;
+					}
 				}
-			}
-			if (delta != null) {
+			} else {
 				ItemDelta<?,?> itemDelta = delta.findItemDelta(itemPath);
 				if (itemDelta != null && !itemDelta.isEmpty()) {
 					LOGGER.trace("  applicable delta item "+itemPath);
@@ -1094,13 +1039,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							}
 						} else {
 							// deny
-							if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
-								// This is "deny all". We cannot have anything stronger than that.
-								// There is no point in continuing the evaluation.
-								LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{getUsername(principal), operationUrl});
-								return NoneFilter.createNone();
+							if (autz.getItem() != null && !autz.getItem().isEmpty()) {
+								// This is a tricky situation. We have deny authorization, but it only denies access to
+								// some items. Therefore we need to find the objects and then filter out the items.
+								// Therefore do not add this authorization into the filter.
+							} else {
+								if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
+									// This is "deny all". We cannot have anything stronger than that.
+									// There is no point in continuing the evaluation.
+									LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{getUsername(principal), operationUrl});
+									return NoneFilter.createNone();
+								}
+								securityFilterDeny = ObjectQueryUtil.filterOr(securityFilterDeny, autzObjSecurityFilter);
 							}
-							securityFilterDeny = ObjectQueryUtil.filterOr(securityFilterDeny, autzObjSecurityFilter);
 						}
 					}
 					

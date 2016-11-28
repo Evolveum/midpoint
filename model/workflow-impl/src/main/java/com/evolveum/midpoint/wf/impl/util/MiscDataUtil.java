@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -279,7 +280,11 @@ public class MiscDataUtil {
         if (currentUserOid.equals(assigneeOid)) {       // assigneeOid may be null here
             return true;
         }
-        // 2) is the current user allowed to approve any item?
+        // 2) is the current user a deputy of task assignee?
+		if (DeputyUtils.isDelegationPresent(principal.getUser(), assigneeOid)) {
+			return true;
+		}
+        // 3) is the current user allowed to approve any item?
         try {
 			WfConfigurationType wfConfig = getWorkflowConfiguration(systemObjectCache, result);
 			boolean allowedOthersItemsApproval = wfConfig != null && wfConfig.isAllowCompleteOthersItems() != null ? wfConfig.isAllowCompleteOthersItems() : true;

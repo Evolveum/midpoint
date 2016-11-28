@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNull;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -159,6 +160,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-user.xml");
 	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID = "00000000-0000-0000-0000-00000000ae08";
 	
+	protected static final File ROLE_PROP_DENY_MODIFY_SOME_FILE = new File(TEST_DIR, "role-prop-deny-modify-some.xml");
+	protected static final String ROLE_PROP_DENY_MODIFY_SOME_OID = "d867ca80-b18a-11e6-826e-1b0f95ef9125";
+	
 	protected static final File ROLE_SELF_ACCOUNTS_READ_FILE = new File(TEST_DIR, "role-self-accounts-read.xml");
 	protected static final String ROLE_SELF_ACCOUNTS_READ_OID = "00000000-0000-0000-0000-00000000aa09";
 	
@@ -231,6 +235,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	protected static final String ROLE_BASIC_OID = "00000000-0000-0000-0000-00000000aad1";
 
+	protected static final File ROLE_AUDITOR_FILE = new File(TEST_DIR, "role-auditor.xml");
+	protected static final String ROLE_AUDITOR_OID = "475e37e8-b178-11e6-8339-83e2fa7b9828";
+
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
 	private static final String LOG_PREFIX_DENY = "SSSSS=- ";
@@ -248,50 +255,52 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
         repoAddObjectsFromFile(CAMPAIGNS_FILE, initResult);
 		
-		repoAddObjectFromFile(ROLE_READONLY_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_REQ_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_EXEC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_REQ_EXEC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READONLY_DEEP_EXEC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_PASSWORD_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ASSIGN_APPLICATION_ROLES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ASSIGN_NON_APPLICATION_ROLES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ASSIGN_ANY_ROLES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_DELEGATOR_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, RoleType.class, initResult);
- 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_REQ_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_REQ_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_DEEP_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_FILE, initResult);
+		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, initResult);
+		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_DENY_MODIFY_SOME_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_PASSWORD_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_APPLICATION_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_NON_APPLICATION_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_ANY_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_DELEGATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, initResult);
+		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, initResult);
+ 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, initResult);
 		
-		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_BUSINESS_2_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, initResult);
+		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BUSINESS_2_FILE, initResult);
 		
 		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_NONSENSE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BASIC_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_AUDITOR_FILE, RoleType.class, initResult);
 		
-		repoAddObjectFromFile(ROLE_END_USER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_MANAGER_FULL_CONTROL_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MANAGER_FULL_CONTROL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
@@ -655,6 +664,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertReadCertCasesAllow();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 
 	/**
@@ -676,6 +687,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 	
 	/**
@@ -697,6 +710,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 	
 	@Test
@@ -715,6 +730,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 
 	@Test
@@ -733,6 +750,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertGlobalStateUntouched();
+
+        assertAuditReadDeny();
 	}
 	
 	@Test
@@ -1156,6 +1175,71 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 	}
 
+    @Test
+    public void test220AutzJackPropDenyModifySome() throws Exception {
+		final String TEST_NAME = "test220AutzJackPropDenyModifySome";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_PROP_DENY_MODIFY_SOME_OID);
+		login(USER_JACK_USERNAME);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+		assertReadAllow();
+				
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("Jack", userJack);
+		
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_JACK_GIVEN_NAME));
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_JACK_FAMILY_NAME));
+		PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+			ActivationStatusType.ENABLED);
+		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		assertAssignmentsWithTargets(userJack, 1);
+		
+		PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
+		display("Jack's edit schema", userJackEditSchema);
+		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, true, true);
+		assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, true, true);
+		assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, false, true, false);
+		assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, true, true, false);
+		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, true, true);
+		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, true, true);
+		
+		PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
+		display("Guybrush", userGuybrush);
+		PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_USERNAME));
+		PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FULL_NAME));
+		PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_GIVEN_NAME));
+		PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FAMILY_NAME));
+		PrismAsserts.assertPropertyValue(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+		    	ActivationStatusType.ENABLED);
+		PrismAsserts.assertNoItem(userGuybrush, UserType.F_ADDITIONAL_NAME);
+		PrismAsserts.assertNoItem(userGuybrush, UserType.F_DESCRIPTION);
+		assertAssignmentsWithTargets(userGuybrush, 3);
+		
+		assertAddAllow();
+		
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString("Brethren of the Coast"));
+		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString("Jackie"));
+		
+		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString("Brushie"));
+		assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString("Hectie"));
+				
+		assertDeleteAllow();
+		
+		assertGlobalStateUntouched();
+	}
+    
 	@Test
     public void test230AutzJackMasterMinistryOfRum() throws Exception {
 		final String TEST_NAME = "test230AutzJackMasterMinistryOfRum";
@@ -2934,8 +3018,30 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 	}
 
+	@Test
+    public void test360AutzJackAuditorRole() throws Exception {
+		final String TEST_NAME = "test360AutzJackAuditorRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_AUDITOR_OID);
+        login(USER_JACK_USERNAME);
 
-	private void assertSuperuserAccess(int readUserNum) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, IOException {
+        // WHEN
+        assertReadAllow(10);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+		assertReadCertCasesAllow();
+
+        assertGlobalStateUntouched();
+
+        assertAuditReadAllow();
+	}
+
+
+	private void assertSuperuserAccess(int readUserNum) throws Exception {
 		assertReadAllow(readUserNum);
         assertAddAllow();
         assertModifyAllow();
@@ -2948,9 +3054,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Null role spec "+roleSpec, roleSpec);
         assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
         assertFilter(roleSpec.getFilter(), null);
+
+        assertAuditReadAllow();
 	}
 
-	private void assertNoAccess(PrismObject<UserType> userJack) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, IOException {
+	private void assertNoAccess(PrismObject<UserType> userJack) throws Exception {
 		assertReadDeny();
         assertAddDeny();
         assertModifyDeny();
@@ -2962,6 +3070,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Null role spec "+roleSpec, roleSpec);
         assertRoleTypes(roleSpec);
         assertFilter(roleSpec.getFilter(), NoneFilter.class);
+
+        assertAuditReadDeny();
 	}
 	
 	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
@@ -3612,4 +3722,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAttributeFlags(rOcDef, new QName("weapon"), true, true, true);
 	}
 	
+
+	private void assertAuditReadDeny() throws Exception {
+		assertDeny("auditHistory", (task,result) -> getAllAuditRecords(result));
+	}
+
+	private void assertAuditReadAllow() throws Exception {
+		assertAllow("auditHistory", (task,result) -> {
+			List<AuditEventRecord> auditRecords = getAllAuditRecords(result);
+			assertTrue("No audit records", auditRecords != null && !auditRecords.isEmpty());
+		});
+	}
 }

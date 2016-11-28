@@ -48,7 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -67,8 +66,8 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// DO NOT call super.initSystem() as this will install system config. We do not want that here.
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);
 	}
 	

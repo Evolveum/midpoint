@@ -69,7 +69,14 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
 	COMPLETE_ALL_WORK_ITEMS("completeAllWorkItems", "Complete all work items", "COMPLETE_ALL_WORK_ITEMS_HELP"),
 	READ_ALL_WORK_ITEMS("readAllWorkItems", "Read all work items", "READ_ALL_WORK_ITEMS_HELP"),		// currently not implemented seriously
-	STOP_APPROVAL_PROCESS_INSTANCE("stopApprovalProcessInstance", "Stop approval process instance", "STOP_APPROVAL_PROCESS_INSTANCE_HELP")
+	STOP_APPROVAL_PROCESS_INSTANCE("stopApprovalProcessInstance", "Stop approval process instance", "STOP_APPROVAL_PROCESS_INSTANCE_HELP"),
+	
+	AUDIT_READ("auditRead", "Audit Read", "AUDIT_READ_HELP"),
+	// Authorization to create a user-level (custom) audit record. Does not apply to internal records that are created automatically by the model without
+	// any special authorization
+	AUDIT_RECORD("auditRecord", "Audit Record", "AUDIT_RECORD_HELP"),
+	// Ability to manage the audit log, e.g. to clean it up (exprunge old records).
+	AUDIT_MANAGE("auditManage", "Audit Manage", "AUDIT_MANAGE_HELP")
 	;
 	
 	private String url;

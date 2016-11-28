@@ -20,10 +20,12 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -40,15 +43,19 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
@@ -70,6 +77,8 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -108,6 +117,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Autowired
     private BaseHelper baseHelper;
+    
+    @Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
@@ -904,5 +916,73 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             pm.registerOperationFinish(opHandle, attempt);
         }
     }
+
+	@Override
+	public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
+			PrismObject<O> object, Trace logger, String logMessagePrefix) throws SchemaException {
+		if (objectSelector == null) {
+			logger.trace("{} null object specification", logMessagePrefix);
+			return false;
+		}
+		
+		SearchFilterType specFilterType = objectSelector.getFilter();
+		ObjectReferenceType specOrgRef = objectSelector.getOrgRef();
+		QName specTypeQName = objectSelector.getType();     // now it does not matter if it's unqualified
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
+		
+		// Type
+		if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
+			logger.trace("{} type mismatch, expected {}, was {}", specTypeQName, objectDefinition.getTypeName());
+			return false;
+		}
+		
+		// Filter
+		if (specFilterType != null) {
+			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());
+			if (specFilter != null) {
+				ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
+			}
+			try {
+				if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
+					logger.trace("{} object OID {}", logMessagePrefix, object.getOid() );
+					return false;
+				}
+			} catch (SchemaException ex) {
+				throw new SchemaException(logMessagePrefix + "could not apply for " + object + ": "
+						+ ex.getMessage(), ex);
+			}
+		}
+			
+		// Org	
+		if (specOrgRef != null) {
+			if (!isDescendant(object, specOrgRef.getOid())) {
+				LOGGER.trace("{} object OID {} (org={})",
+						logMessagePrefix, object.getOid(), specOrgRef.getOid());
+				return false;
+			}			
+		}
+		
+		return true;
+	}
+
+	@Override
+	public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException {
+		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+		List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
+		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
+			objParentOrgOids.add(objParentOrgRef.getOid());
+		}
+		return isAnySubordinate(orgOid, objParentOrgOids);
+	}
+	
+	@Override
+	public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
+		if (object.getOid() == null) {
+			return false;
+		}
+		Collection<String> oidList = new ArrayList<>(1);
+		oidList.add(oid);
+		return isAnySubordinate(object.getOid(), oidList);
+	}
 
 }

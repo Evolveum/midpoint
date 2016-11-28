@@ -19,8 +19,11 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -47,12 +50,22 @@ public class MetadataPanel extends BasePanel<MetadataType>{
 
     private static final String ID_METADATA_BLOCK = "metadataBlock";
     private static final String ID_METADATA_ROW = "metadataRow";
+    private static final String ID_HEADER_CONTAINER = "headerContainer";
     private static final String ID_METADATA_PROPERTY_KEY = "metadataPropertyKey";
     private static final String ID_METADATA_FILED = "metadataField";
     private static final String DOT_CLASS = MetadataPanel.class.getSimpleName() + ".";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadObject";
 
-    public MetadataPanel(String id, IModel<MetadataType> model){
+    private String additionalHeaderStyle = "";
+
+    public MetadataPanel(String id, IModel<MetadataType> model) {
         super(id, model);
+        initLayout();
+    }
+
+    public MetadataPanel(String id, IModel<MetadataType> model, String additionalHeaderStyle){
+        super(id, model);
+        this.additionalHeaderStyle = additionalHeaderStyle;
         initLayout();
     }
 
@@ -61,42 +74,57 @@ public class MetadataPanel extends BasePanel<MetadataType>{
         metadataBlock.setOutputMarkupId(true);
         add(metadataBlock);
 
+        WebMarkupContainer headerContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
+        headerContainer.setOutputMarkupId(true);
+        headerContainer.add(new AttributeAppender("class", "prism-header " + additionalHeaderStyle));
+        metadataBlock.add(headerContainer);
+
         RepeatingView metadataRowRepeater = new RepeatingView(ID_METADATA_ROW);
         metadataBlock.add(metadataRowRepeater);
         for (QName qname : metadataFieldsList){
             WebMarkupContainer metadataRow = new WebMarkupContainer(metadataRowRepeater.newChildId());
             metadataRow.setOutputMarkupId(true);
+            if (metadataFieldsList.indexOf(qname) % 2 != 0){
+                metadataRow.add(new AttributeAppender("class", "stripe"));
+            }
             metadataRowRepeater.add(metadataRow);
 
             metadataRow.add(new Label(ID_METADATA_PROPERTY_KEY, createStringResource(DOT_CLASS + qname.getLocalPart())));
-            metadataRow.add(new Label(ID_METADATA_FILED,
-                    new AbstractReadOnlyModel<String>() {
-                        @Override
-                        public String getObject() {
-                            PropertyModel<Object> tempModel = new PropertyModel<Object>(getModel(),
-                                    qname.getLocalPart());
-                            if (tempModel.getObject() instanceof XMLGregorianCalendar){
-                                return WebComponentUtil.getLocalizedDate((XMLGregorianCalendar)tempModel.getObject(),
-                                        DateLabelComponent.MEDIUM_SHORT_STYLE);
-                            } else if (tempModel.getObject() instanceof ObjectReferenceType){
-                                ObjectReferenceType ref = (ObjectReferenceType) tempModel.getObject();
-                                return WebComponentUtil.getName(ref);
-                            } else if (tempModel.getObject() instanceof List){
-                                List list = (List) tempModel.getObject();
-                                String result = "";
-                                for (Object o : list){
-                                    if (o instanceof  ObjectReferenceType){
-                                        if (result.length() > 0){
-                                            result += ", ";
-                                        }
-                                        result += WebComponentUtil.getName((ObjectReferenceType) o);
-                                    }
+
+            AbstractReadOnlyModel<String> metadataFieldModel = new AbstractReadOnlyModel<String>() {
+                @Override
+                public String getObject() {
+                    PropertyModel<Object> tempModel = new PropertyModel<Object>(getModel(),
+                            qname.getLocalPart());
+                    if (tempModel.getObject() instanceof XMLGregorianCalendar){
+                        return WebComponentUtil.getLocalizedDate((XMLGregorianCalendar)tempModel.getObject(),
+                                DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+                    } else if (tempModel.getObject() instanceof ObjectReferenceType){
+                        ObjectReferenceType ref = (ObjectReferenceType) tempModel.getObject();
+                        return WebComponentUtil.getName(ref, getPageBase(), OPERATION_LOAD_USER);
+                    } else if (tempModel.getObject() instanceof List){
+                        List list = (List) tempModel.getObject();
+                        String result = "";
+                        for (Object o : list){
+                            if (o instanceof  ObjectReferenceType){
+                                if (result.length() > 0){
+                                    result += ", ";
                                 }
-                                return result;
+                                result += WebComponentUtil.getName((ObjectReferenceType) o, getPageBase(), OPERATION_LOAD_USER);
                             }
-                            return "";
                         }
-                    }));
+                        return result;
+                    }
+                    return "";
+                }
+            };
+            metadataRow.add(new Label(ID_METADATA_FILED, metadataFieldModel));
+            metadataRow.add(new VisibleEnableBehaviour(){
+                @Override
+                public boolean isVisible(){
+                    return StringUtils.isNotEmpty(metadataFieldModel.getObject());
+                }
+            });
 
         }
 

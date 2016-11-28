@@ -171,6 +171,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		ObjectReferenceType targetRef = new ObjectReferenceType();
 		targetRef.setOid(object.getOid());
 		targetRef.setType(aType.getQname());
+		targetRef.setDescription(object.getDescription());
 		targetRef.setTargetName(object.getName());
 		if (relation != null){
 			targetRef.setRelation(relation);
