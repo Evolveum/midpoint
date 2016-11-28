@@ -193,6 +193,11 @@ public class TestUtil {
 		System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
 	}
+	
+	public static void info(String message) {
+		System.out.println(TEST_OUT_SECTION_PREFIX + message + TEST_OUT_SECTION_SUFFIX);
+		LOGGER.info(TEST_LOG_SECTION_PREFIX + message + TEST_LOG_SECTION_SUFFIX);
+	}
 
 	public static void assertSuccess(String message, OperationResult result, OperationResult originalResult, int stopLevel, int currentLevel, boolean warningOk) {
 		if (!checkResults) {
