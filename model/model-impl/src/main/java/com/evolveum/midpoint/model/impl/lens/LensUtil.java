@@ -29,6 +29,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.expression.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -1314,4 +1316,26 @@ public class LensUtil {
 	public static boolean isDelegationRelation(QName relation) {
 		return DeputyUtils.isDelegationRelation(relation);
 	}
+
+	public static void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations) throws PolicyViolationException {
+
+		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
+
+		if (rule == null) {
+			// legacy functionality
+			if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+				throw new PolicyViolationException(trigger.getMessage());
+			}
+
+		} else {
+
+			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
+			String policySituation = rule.getPolicySituation();
+			if (policySituation != null) {
+				policySituations.add(policySituation);
+			}
+		}
+
+	}
+
 }

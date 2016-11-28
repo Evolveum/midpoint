@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.*;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -856,7 +858,18 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
         DebugUtil.debugDumpWithLabel(sb, "FOCUS", focusContext, indent + 1);
 
-        sb.append("\n");
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent + 1);
+		sb.append("Evaluated assignments:");
+		if (evaluatedAssignmentTriple != null) {
+			dumpEvaluatedAssignments(sb, "Zero", (Collection) evaluatedAssignmentTriple.getZeroSet(), indent + 2);
+			dumpEvaluatedAssignments(sb, "Plus", (Collection) evaluatedAssignmentTriple.getPlusSet(), indent + 2);
+			dumpEvaluatedAssignments(sb, "Minus", (Collection) evaluatedAssignmentTriple.getMinusSet(), indent + 2);
+		} else {
+			sb.append(" (null)");
+		}
+
+		sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("PROJECTIONS:");
         if (projectionContexts.isEmpty()) {
@@ -875,6 +888,34 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
         return sb.toString();
     }
+
+	private <F extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label, Collection<EvaluatedAssignmentImpl<F>> set, int indent) {
+		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, label, indent);
+		for (EvaluatedAssignmentImpl<F> assignment : set) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append(" -> " + assignment.getTarget());
+			sb.append(" [rules(").append(assignment.getPolicyRules().size()).append("): ");
+			boolean first = true;
+			for (EvaluatedPolicyRule rule : assignment.getPolicyRules()) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append("; ");
+				}
+				sb.append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints()));
+				sb.append(" -> ");
+				sb.append(PolicyRuleTypeUtil.toShortString(rule.getActions()));
+				if (!rule.getTriggers().isEmpty()) {
+					sb.append(", T:");
+					rule.getTriggers()
+							.forEach(trigger -> sb.append(" ").append(PolicyRuleTypeUtil.toShortString(trigger.getConstraint())));
+				}
+			}
+			sb.append("]");
+		}
+	}
 
 	public LensContextType toLensContextType() throws SchemaException {
 		PrismContainer<LensContextType> pc = toPrismContainer();

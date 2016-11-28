@@ -22,13 +22,15 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  *
  */
 public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
-	
+
+	@NotNull
 	Collection<EvaluatedPolicyRuleTrigger> getTriggers();
 
 	String getName();
@@ -40,5 +42,5 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	String getPolicySituation();
 	
 	PolicyActionsType getActions();
-	
+
 }

@@ -1208,14 +1208,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public void normalize() {
 		checkMutability();
     	if (items != null) {
-	    	Iterator<Item<?,?>> iterator = items.iterator();
-	    	while (iterator.hasNext()) {
-	    		Item<?,?> item = iterator.next();
-	    		item.normalize();
-	    		if (item.isEmpty()) {
-	    			iterator.remove();
-	    		}
-	    	}
+			for (Item<?, ?> item : items) {
+				item.normalize();
+			}
     	}
 	}
 

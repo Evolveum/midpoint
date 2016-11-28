@@ -28,10 +28,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.jetbrains.annotations.NotNull;
 
 public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable {
 
@@ -59,6 +59,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	 * Returns all policy rules that apply to this assignment - even those that were not triggered.
 	 * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
 	 */
+	@NotNull
 	Collection<EvaluatedPolicyRule> getPolicyRules();
 	
 	public Collection<String> getPolicySituations();

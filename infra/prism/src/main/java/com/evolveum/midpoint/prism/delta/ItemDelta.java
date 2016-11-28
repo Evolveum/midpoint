@@ -742,13 +742,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		if (set == null) {
 			return;
 		}
-		Iterator<V> iterator = set.iterator();
-		while (iterator.hasNext()) {
-			V value = iterator.next();
+		for (V value : set) {
 			value.normalize();
-			if (value.isEmpty()) {
-				iterator.remove();
-			}
 		}
 	}
 
