@@ -1003,12 +1003,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
 		ShadowType shadowType = shadow.asObjectable();
 		
-		try{
-			if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()){
+		LOGGER.debug("Finishing operation {} on {}", shadowType.getFailedOperationType(), object);
+		
+		try {
+			if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
 				getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
-			} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()){
+			} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()) {
 				getShadowCache(Mode.RECON).modifyShadow(shadow, shadow.getOid(), new ArrayList<ItemDelta>(), null, options, task, result);
-			} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()){
+			} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()) {
 				getShadowCache(Mode.RECON).deleteShadow(shadow, options, null, task, result);
 			} else {
 				result.recordWarning("Missing or unknown type of operation to finish: " + shadowType.getFailedOperationType());
@@ -1040,6 +1042,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw e;
 		}
 		result.cleanupResult();
+		LOGGER.debug("Finished operation {} on {}: ", shadowType.getFailedOperationType(), object, result);
 	}
 	
 	private <T extends ObjectType> boolean handleRepoObject(final Class<T> type, PrismObject<T> object,
