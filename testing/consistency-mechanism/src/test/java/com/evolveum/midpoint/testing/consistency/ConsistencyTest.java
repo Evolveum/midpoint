@@ -1308,6 +1308,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		// GIVEN
 		openDJController.assumeStopped();
+		display("OpenDJ stopped");
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
 		repoAddObjectFromFile(USER_ANGELIKA_FILENAME, parentResult);
@@ -1316,9 +1317,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		Task task = taskManager.createTaskInstance();
 		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
 		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_ANGELIKA_OID, UserType.class, task, null, parentResult);
 		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
 		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
@@ -1332,6 +1337,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.start();
 		//and set the resource availability status to UP
 		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
+		TestUtil.info("OpenDJ started, resource UP");
 		
 		checkNormalizedShadowWithAttributes(accountOid, "angelika", "angelika", "angelika", "angelika", false, task, parentResult);
 	}
@@ -2532,10 +2538,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 	
 	private ShadowType checkPostponedAccountBasic(PrismObject<ShadowType> failedAccount, FailedOperationTypeType failedOperation, boolean modify, OperationResult parentResult) throws Exception{
+		display("Repository shadow (postponed operation expected)", failedAccount);
 		assertNotNull("Shadow must not be null", failedAccount);
 		ShadowType failedAccountType = failedAccount.asObjectable();
 		assertNotNull(failedAccountType);
-		displayJaxb("shadow from the repository: ", failedAccountType, ShadowType.COMPLEX_TYPE);
+		// Too much noise
+//		displayJaxb("shadow from the repository: ", failedAccountType, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
 				failedOperation, failedAccountType.getFailedOperationType());
 		assertNotNull("Result of failed shadow must not be null.", failedAccountType.getResult());
@@ -2544,7 +2552,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		if (modify){
 			assertNotNull("Null object change in shadow", failedAccountType.getObjectChange());
 		}
-		display("Shadow with postponed operation", failedAccount);
 		return failedAccountType;
 	}
 	
