@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
@@ -252,6 +253,19 @@ public class AuditController implements ModelAuditService {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public void listRecordsIterative(String query, Map<String, Object> params,
+			AuditResultHandler auditResultHandler) {
+		auditService.listRecordsIterative(query, params, auditResultHandler);
+		
+	}
+
+	@Override
+	public void reindexEntry(AuditEventRecord record) {
+		auditService.reindexEntry(record);
+		
 	}
 
 }
