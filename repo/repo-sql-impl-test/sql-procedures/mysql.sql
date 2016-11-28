@@ -31,6 +31,7 @@ DETERMINISTIC
     DELETE FROM m_assignment_ext_boolean;
     DELETE FROM m_assignment_extension;
     DELETE FROM m_assignment_reference;
+    DELETE FROM m_assignment_policy_situation;
     DELETE FROM m_assignment;
     DELETE FROM m_exclusion;
     DELETE FROM m_connector_target_system;
@@ -49,6 +50,7 @@ DETERMINISTIC
     DELETE FROM m_user_organization;
     DELETE FROM m_user_organizational_unit;
     DELETE FROM m_focus_photo;
+    DELETE FROM m_focus_policy_situation;
     DELETE FROM m_user;
     DELETE FROM m_report;
     DELETE FROM m_report_output;
