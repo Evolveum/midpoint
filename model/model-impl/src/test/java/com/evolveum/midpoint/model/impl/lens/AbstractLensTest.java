@@ -106,7 +106,11 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     protected static final File ROLE_CORP_JOB_METAROLE_FILE = new File(TEST_DIR, "role-corp-job-metarole.xml");
     protected static final String ROLE_CORP_JOB_METAROLE_OID = "12345678-d34d-b33f-f00d-55555555a010";
 
-    protected static final File[] ROLE_CORP_FILES = {
+	protected static final File ROLE_CORP_AUTH_FILE = new File(TEST_DIR, "role-corp-auth.xml");
+	protected static final String ROLE_CORP_AUTH_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
+
+	protected static final File[] ROLE_CORP_FILES = {
+			ROLE_CORP_AUTH_FILE,
             ROLE_CORP_GENERIC_METAROLE_FILE,
             ROLE_CORP_JOB_METAROLE_FILE,
             ROLE_CORP_VISITOR_FILE,

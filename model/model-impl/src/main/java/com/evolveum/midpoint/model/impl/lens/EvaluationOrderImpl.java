@@ -36,12 +36,12 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 
 	static EvaluationOrderImpl createZero() {
 		EvaluationOrderImpl eo = new EvaluationOrderImpl();
-		eo.orderMap.put(null,0);
+		eo.orderMap.put(null, 0);
 		return eo;
 	}
 
 	private int summaryOrder = 0;
-	private HashMap<QName,Integer> orderMap  = new HashMap<>();
+	private HashMap<QName,Integer> orderMap = new HashMap<>();
 
 	@Override
 	public int getSummaryOrder() {

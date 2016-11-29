@@ -70,4 +70,8 @@ metaroles:
             </policyActions>
         </policyRule>
     </inducement>
+    <inducement id="3">
+        <targetRef oid="12345678-d34d-b33f-f00d-55555555aaaa" type="RoleType"/>
+        <order>2</order>
+    </inducement>
 </role>

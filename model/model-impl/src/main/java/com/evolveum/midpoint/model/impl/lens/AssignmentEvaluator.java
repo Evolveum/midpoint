@@ -540,7 +540,7 @@ public class AssignmentEvaluator<F extends FocusType> {
         
 	}
 		
-	private boolean evaluateAssignmentTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegmentImpl assignmentPathSegment,
+	private void evaluateAssignmentTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, FocusType targetType, ObjectType source, QName relation, String sourceDescription,
 			AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
@@ -563,7 +563,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		if (!LensUtil.isValid(targetType, now, activationComputer)) {
 			LOGGER.trace("Skipping evaluation of " + targetType + " because it is not valid");
-			return false;
+			return;
 		}
 		
 		if (targetType instanceof AbstractRoleType) {
@@ -578,7 +578,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
 					LOGGER.trace("Skipping evaluation of "+targetType+" because of condition result ({} -> {}: {})",
 							condOld, condNew, condMode);
-					return false;
+					return;
 				}
 				PlusMinusZero origMode = mode;
 				mode = PlusMinusZero.compute(mode, condMode);
@@ -728,9 +728,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 				assignment.addLegacyPolicyConstraints(policyConstraints);
 			}
 		}
-		
-		return mode != PlusMinusZero.MINUS;
-		
 	}
 
 	private <O extends ObjectType> boolean containsOtherOrgs(AssignmentPath assignmentPath, FocusType thisOrg) {
