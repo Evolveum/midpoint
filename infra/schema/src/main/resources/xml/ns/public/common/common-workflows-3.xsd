@@ -85,6 +85,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="useDefaultApprovalPolicyRules" minOccurs="0" type="tns:DefaultApprovalPolicyRulesUsageType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to use default approval policy rules. The default is "ifNoApprovalPolicyAction", that means
+                        these rules are applied only if no other approval policy action is encountered.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType" />
             <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
         </xsd:sequence>
@@ -129,6 +137,39 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DefaultApprovalPolicyRulesUsageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Whether to use default approval policy rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="never">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default approval policy rules are never used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ifNoApprovalPolicyAction">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default approval policy rules are used if there are no applicable approval policy actions.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IF_NO_APPROVAL_POLICY_ACTION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

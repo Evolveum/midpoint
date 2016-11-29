@@ -147,7 +147,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				}
 			}
 			boolean noExplicitApprovalAction = approvalActions.isEmpty();
-			if (noExplicitApprovalAction) {
+			if (noExplicitApprovalAction
+					&& baseConfigurationHelper.getUseDefaultApprovalPolicyRules(wfConfigurationType) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 				ApprovalPolicyActionType defaultPolicyAction = new ApprovalPolicyActionType(prismContext);
 				defaultPolicyAction.getApproverRelation().add(SchemaConstants.ORG_APPROVER);
 				approvalActions.add(defaultPolicyAction);

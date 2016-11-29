@@ -84,6 +84,14 @@ public class BaseConfigurationHelper {
         }
     }
 
+    public DefaultApprovalPolicyRulesUsageType getUseDefaultApprovalPolicyRules(WfConfigurationType wfConfiguration) {
+        if (wfConfiguration == null || wfConfiguration.getUseDefaultApprovalPolicyRules() == null) {
+            return DefaultApprovalPolicyRulesUsageType.IF_NO_APPROVAL_POLICY_ACTION;
+        } else {
+            return wfConfiguration.getUseDefaultApprovalPolicyRules();
+        }
+    }
+
     public PrimaryChangeProcessorConfigurationType getPcpConfiguration(WfConfigurationType wfConfigurationType) {
         return wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
     }
