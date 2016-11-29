@@ -349,10 +349,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 						sourceDescription, assignmentPath, task, result);
 				
 			} else if (assignmentType.getPolicyRule() != null) {
-				
-				evaluatePolicyRule(evalAssignment, assignmentPathSegment, evaluateOld, mode,
-						isParentValid && isValid, source, sourceDescription, 
-						assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+
+				if (evaluateConstructions && assignmentPathSegment.isMatchingOrder()) {
+					evaluatePolicyRule(evalAssignment, assignmentPathSegment, evaluateOld, mode,
+							isParentValid && isValid, source, sourceDescription,
+							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+				}
 				
 			} else {
 				// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing

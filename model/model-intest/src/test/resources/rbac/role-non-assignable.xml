@@ -20,7 +20,7 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Non-assignable</name>
     <description>Role that cannot be assigned because there is a rule with enforcement action.</description>
-    <assignment>
+    <inducement>
     	<policyRule>
     		<name>non-assignable</name>
     		<policyConstraints>
@@ -30,5 +30,5 @@
 		    	<enforcement/>
 		    </policyActions>
     	</policyRule>
-    </assignment>
+    </inducement>
 </role>
