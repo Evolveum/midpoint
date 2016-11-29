@@ -33,3 +33,17 @@ ALTER TABLE m_focus_policy_situation
   ADD CONSTRAINT fk_focus_policy_situation
 FOREIGN KEY (focus_oid)
 REFERENCES m_focus (oid);
+
+CREATE TABLE m_audit_item (
+  changedItemPath VARCHAR(255) NOT NULL,
+  record_id       BIGINT       NOT NULL,
+  PRIMARY KEY (changedItemPath, record_id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+ALTER TABLE m_audit_item
+  ADD CONSTRAINT fk_audit_item
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event (id);

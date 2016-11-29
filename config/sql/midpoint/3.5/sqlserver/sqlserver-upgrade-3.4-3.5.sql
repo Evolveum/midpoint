@@ -24,3 +24,14 @@ ALTER TABLE m_focus_policy_situation
   ADD CONSTRAINT fk_focus_policy_situation
 FOREIGN KEY (focus_oid)
 REFERENCES m_focus;
+
+CREATE TABLE m_audit_item (
+  changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL,
+  record_id       BIGINT                                 NOT NULL,
+  PRIMARY KEY (changedItemPath, record_id)
+);
+
+ALTER TABLE m_audit_item
+  ADD CONSTRAINT fk_audit_item
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event;
