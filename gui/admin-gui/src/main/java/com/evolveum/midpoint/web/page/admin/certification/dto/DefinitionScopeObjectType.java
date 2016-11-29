@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 /**
- * Created by Kate on 14.12.2015.
+ * Created by honchar.
  */
 public enum DefinitionScopeObjectType {
     FocusType,

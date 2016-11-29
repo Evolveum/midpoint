@@ -212,9 +212,6 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		return list;
 	}
 	private Boolean determineUserOrgRelation(AssignmentType assignment) {
-		if (!AssignmentEditorDtoType.ORG_UNIT.equals(getType())) {
-			return Boolean.FALSE;
-		}
 
 		if (assignment == null || assignment.getTargetRef() == null
 				|| assignment.getTargetRef().getRelation() == null) {
@@ -397,8 +394,8 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			appendTenantAndOrgName(sb);
 		}
 
-		if (determineUserOrgRelation(assignment)) {
-			sb.append(" - Manager");
+		if (assignment.getTargetRef() != null && assignment.getTargetRef().getRelation() != null) {
+			sb.append(" - "  + RelationTypes.getRelationType(assignment.getTargetRef().getRelation()).getHeaderLabel());
 		}
 
 		return sb.toString();
@@ -513,14 +510,6 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public PrismContainerValue<AssignmentType> getNewValue(PrismContext prismContext) throws SchemaException {
-		if (AssignmentEditorDtoType.ORG_UNIT.equals(getType())) {
-			if (isOrgUnitManager()) {
-				newAssignment.getTargetRef().setRelation(SchemaConstants.ORG_MANAGER);
-			} else {
-				newAssignment.getTargetRef().setRelation(null);
-			}
-		}
-
 		// this removes activation element if it's empty
 		ActivationType activation = newAssignment.getActivation();
 		if (activation == null || activation.asPrismContainerValue().isEmpty()) {

@@ -29,10 +29,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -49,7 +46,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
@@ -409,7 +405,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			public boolean isVisible() {
 				AssignmentEditorDto dto = getModel().getObject();
 				if (dto != null) {
-					if (AssignmentEditorDtoType.ORG_UNIT.equals(dto.getType())) {
+					if (AssignmentEditorDtoType.ORG_UNIT.equals(dto.getType()) ||
+                            AssignmentEditorDtoType.SERVICE.equals(dto.getType()) ||
+                            AssignmentEditorDtoType.ROLE.equals(dto.getType())) {
 						return true;
 					}
 				}
@@ -418,22 +416,37 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			}
 		});
 		body.add(relationContainer);
-		
 		ObjectTypeSelectPanel<FocusType> focusType = new ObjectTypeSelectPanel<>(ID_FOCUS_TYPE,
 				new PropertyModel<QName>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
 		body.add(focusType);
 
-		TwoStateBooleanPanel relation = new TwoStateBooleanPanel(ID_RELATION,
-				new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_IS_ORG_UNIT_MANAGER),
-				"user.orgMember", "user.orgManager", null) {
-			@Override
-			protected void onStateChanged(AjaxRequestTarget target, Boolean newValue) {
-					AssignmentEditorPanel.this.updateAssignmentName(target, newValue);
-			}
-		};
+        IModel<RelationTypes> relationModel = new IModel<RelationTypes>() {
+            @Override
+            public RelationTypes getObject() {
+                if (getModelObject().getTargetRef() == null){
+                    return RelationTypes.MEMBER;
+                }
+                return RelationTypes.getRelationType(getModelObject().getTargetRef().getRelation());
+            }
+
+            @Override
+            public void setObject(RelationTypes newValue) {
+                ObjectReferenceType ref = getModelObject().getTargetRef();
+                if (ref != null){
+                    ref.setRelation(newValue.getRelation());
+                }
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+        DropDownChoicePanel relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
+                relationModel, this, false);
+        relation.setEnabled(getModel().getObject().isEditable());
 		relation.setOutputMarkupId(true);
 		relation.setOutputMarkupPlaceholderTag(true);
-		relation.setPanelEnabled(getModel().getObject().isEditable());
 		relation.add(new VisibleEnableBehaviour() {
 
 			@Override
@@ -452,7 +465,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				}
 
 				AssignmentEditorDto object = getModel().getObject();
-				return object.isOrgUnitManager() ? getString("user.orgManager") : getString("user.orgMember");
+                String propertyKey = RelationTypes.class.getSimpleName() + "." +
+                        (object.getTargetRef() == null || object.getTargetRef().getRelation() == null ?
+                        RelationTypes.MEMBER : RelationTypes.getRelationType(object.getTargetRef().getRelation()));
+				return createStringResource(propertyKey).getString();
 			}
 		});
 		relationLabel.setOutputMarkupId(true);
