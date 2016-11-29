@@ -572,6 +572,11 @@ public final class WebComponentUtil {
 
 	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
 			final IModel<E> model, final Component component) {
+		return createEnumPanel(clazz, id, model, component, true);
+
+	}
+	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
+			final IModel<E> model, final Component component, boolean allowNull) {
 		// final Class clazz = model.getObject().getClass();
 		final Object o = model.getObject();
 		return new DropDownChoicePanel(id, model, WebComponentUtil.createReadonlyModelFromEnum(clazz),
@@ -594,7 +599,7 @@ public final class WebComponentUtil {
 					public String getIdValue(E object, int index) {
 						return Integer.toString(index);
 					}
-				}, true);
+				}, allowNull);
 	}
 
 	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def, String id,

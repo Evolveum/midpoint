@@ -145,7 +145,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-//                delegatedToClickPerformed(target);
+                nameClickPerformed(target);
             }
         };
         headerRow.add(delegatedToName);

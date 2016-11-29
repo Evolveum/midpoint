@@ -356,6 +356,15 @@ CREATE TABLE m_audit_event (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 
+CREATE TABLE m_audit_item (
+  changedItemPath VARCHAR(255) NOT NULL,
+  record_id       BIGINT       NOT NULL,
+  PRIMARY KEY (changedItemPath, record_id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
 CREATE TABLE m_connector (
   connectorBundle            VARCHAR(255),
   connectorHostRef_relation  VARCHAR(157),
@@ -1181,6 +1190,11 @@ REFERENCES m_assignment (id, owner_oid);
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event (id);
+
+ALTER TABLE m_audit_item
+  ADD CONSTRAINT fk_audit_item
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event (id);
 

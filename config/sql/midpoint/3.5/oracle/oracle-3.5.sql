@@ -292,6 +292,12 @@ CREATE TABLE m_audit_event (
   PRIMARY KEY (id)
 ) INITRANS 30;
 
+CREATE TABLE m_audit_item (
+  changedItemPath VARCHAR2(255 CHAR) NOT NULL,
+  record_id       NUMBER(19, 0)      NOT NULL,
+  PRIMARY KEY (changedItemPath, record_id)
+) INITRANS 30;
+
 CREATE TABLE m_connector (
   connectorBundle            VARCHAR2(255 CHAR),
   connectorHostRef_relation  VARCHAR2(157 CHAR),
@@ -999,6 +1005,11 @@ REFERENCES m_assignment;
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event;
+
+ALTER TABLE m_audit_item
+  ADD CONSTRAINT fk_audit_item
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
 

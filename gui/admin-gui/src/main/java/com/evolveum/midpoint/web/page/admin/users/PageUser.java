@@ -91,7 +91,6 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private Map<AssignmentEditorDto, UserType> assignmentUserMap = new HashMap();
-    private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
     private List<AssignmentsPreviewDto> privilegesList = new ArrayList<>();
 
     private HashMap<UserType, AssignmentEditorDto> usersToUpdateMap = new HashMap<>();
@@ -122,12 +121,6 @@ public class PageUser extends PageAdminFocus<UserType> {
                 } else {
                     return new ArrayList<>();
                 }
-            }
-        };
-        delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
-            @Override
-            protected List<AssignmentEditorDto> load() {
-                return loadDelegatedToMe();
             }
         };
     }
@@ -323,7 +316,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegatedToMe"),
-                                delegatedToMeModel) {
+                                getDelegatedToMeModel()) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -348,31 +341,13 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                     @Override
                     public String getCount() {
-                        return Integer.toString(delegatedToMeModel.getObject() == null ?
-                                0 : delegatedToMeModel.getObject().size());
+                        return Integer.toString(getDelegatedToMeModel().getObject() == null ?
+                                0 : getDelegatedToMeModel().getObject().size());
                     }
                 });
             }
 
         };
-    }
-
-    private List<AssignmentEditorDto> loadDelegatedToMe() {
-        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
-
-        ObjectWrapper<UserType> focusWrapper = getObjectModel().getObject();
-        PrismObject<UserType> focus = focusWrapper.getObject();
-        List<AssignmentType> assignments = focus.asObjectable().getAssignment();
-        for (AssignmentType assignment : assignments) {
-            if (assignment.getTargetRef() != null &&
-                    UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
-                list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
-            }
-        }
-
-        Collections.sort(list);
-
-        return list;
     }
 
     private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {

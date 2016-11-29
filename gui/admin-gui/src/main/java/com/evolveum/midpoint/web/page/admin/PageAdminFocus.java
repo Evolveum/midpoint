@@ -90,7 +90,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
-	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;	
+	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
+    private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
 	private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
@@ -122,14 +123,25 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 		};
 
-	}
+        delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
+            @Override
+            protected List<AssignmentEditorDto> load() {
+                return loadDelegatedToMe();
+            }
+        };
 
-	public LoadableModel<List<FocusSubwrapperDto<ShadowType>>> getProjectionModel() {
+    }
+
+    public LoadableModel<List<FocusSubwrapperDto<ShadowType>>> getProjectionModel() {
 		return projectionModel;
 	}
 
 	public LoadableModel<List<AssignmentEditorDto>> getAssignmentsModel() {
 		return assignmentsModel;
+	}
+
+	public LoadableModel<List<AssignmentEditorDto>> getDelegatedToMeModel() {
+		return delegatedToMeModel;
 	}
 
 	public List<FocusSubwrapperDto<ShadowType>> getFocusShadows() {
@@ -346,7 +358,25 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		}
 	}
 
-	private List<AssignmentEditorDto> loadAssignments() {
+    private List<AssignmentEditorDto> loadDelegatedToMe() {
+        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+
+        ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
+        PrismObject<F> focus = focusWrapper.getObject();
+        List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+        for (AssignmentType assignment : assignments) {
+            if (assignment.getTargetRef() != null &&
+                    UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+            }
+        }
+
+        Collections.sort(list);
+
+        return list;
+    }
+
+    private List<AssignmentEditorDto> loadAssignments() {
 		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
