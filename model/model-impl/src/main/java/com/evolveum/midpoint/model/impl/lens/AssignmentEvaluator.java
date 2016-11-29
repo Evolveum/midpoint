@@ -351,7 +351,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else if (assignmentType.getPolicyRule() != null) {
 
 				if (evaluateConstructions && assignmentPathSegment.isMatchingOrder()) {
-					evaluatePolicyRule(evalAssignment, assignmentPathSegment, evaluateOld, mode,
+					evaluatePolicyRule(evalAssignment, true, assignmentPathSegment, evaluateOld, mode,
+							isParentValid && isValid, source, sourceDescription,
+							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+				}
+				if (evaluateConstructions && assignmentPathSegment.isMatchingOrderPlusOne()) {
+					evaluatePolicyRule(evalAssignment, false, assignmentPathSegment, evaluateOld, mode,
 							isParentValid && isValid, source, sourceDescription,
 							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
 				}
@@ -433,19 +438,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private void evaluatePolicyRule(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegmentImpl assignmentPathSegment,
+	private void evaluatePolicyRule(EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean focusRule,
+			AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, ObjectType source, String sourceDescription,
-			AssignmentPathImpl assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			AssignmentPathImpl assignmentPath, ObjectType orderOneObject, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
 		
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
 		PolicyRuleType policyRuleType = assignmentTypeNew.getPolicyRule();
 		
-		LOGGER.trace("Evaluating policy rule '{}' in {}", policyRuleType.getName(), source);
+		LOGGER.trace("Evaluating {} policy rule '{}' in {}", focusRule ? "focus" : "target", policyRuleType.getName(), source);
 		
 		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath.clone());
 
-		evaluatedAssignment.addPolicyRule(policyRule);
+		if (focusRule) {
+			evaluatedAssignment.addFocusPolicyRule(policyRule);
+		} else {
+			evaluatedAssignment.addTargetPolicyRule(policyRule);
+		}
 	}
 
 	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
@@ -647,7 +658,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				subAssignmentPathSegment.setOrderOneObject(orderOneObject);
 				subAssignmentPathSegment.setProcessMembership(true);
 
-				if (subAssignmentPathSegment.isMatchingOrder()) {
+				//if (subAssignmentPathSegment.isMatchingOrder()) {
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("E({}): evaluate inducement({}) {} in {}",
 								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement), 
@@ -656,13 +667,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 					String subSourceDescription = targetType+" in "+sourceDescription;
 					evaluateAssignment(assignment, subAssignmentPathSegment, evaluateOld, mode, isValid, targetType, subSourceDescription, assignmentPath, task, result);
 
-				} else {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("E({}): NOT evaluate inducement({}) {} in {}",
-								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement), 
-								FocusTypeUtil.dumpAssignment(roleInducement), targetType);
-					}
-				}
+//				} else {
+//					if (LOGGER.isTraceEnabled()) {
+//						LOGGER.trace("E({}): NOT evaluate inducement({}) {} in {}",
+//								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement),
+//								FocusTypeUtil.dumpAssignment(roleInducement), targetType);
+//					}
+//				}
 			}
 		}
 		

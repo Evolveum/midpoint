@@ -60,7 +60,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	 * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
 	 */
 	@NotNull
-	Collection<EvaluatedPolicyRule> getPolicyRules();
+	Collection<EvaluatedPolicyRule> getFocusPolicyRules();
 	
 	public Collection<String> getPolicySituations();
 	

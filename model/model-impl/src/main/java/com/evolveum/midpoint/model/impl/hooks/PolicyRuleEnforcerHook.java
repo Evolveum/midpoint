@@ -42,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EnforcementPolicyAct
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 /**
  * Hook used to enfore the policy rules that have the enforce action.
@@ -114,7 +113,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		}
 		
 		StringBuilder compositeMessageSb = new StringBuilder();
-		evaluatedAssignmentTriple.accept(assignment -> enforceRules(compositeMessageSb, assignment.getPolicyRules()));
+		evaluatedAssignmentTriple.accept(assignment -> enforceRules(compositeMessageSb, assignment.getFocusPolicyRules()));
 		
 		if (compositeMessageSb.length() != 0) {
 			throw new PolicyViolationException(compositeMessageSb.toString());

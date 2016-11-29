@@ -41,6 +41,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	private EvaluationOrder evaluationOrder;
 	private ObjectType varThisObject;
 	private Boolean isMatchingOrder = null;
+	private Boolean isMatchingOrderPlusOne = null;
 	private boolean processMembership = false;
 	
 	AssignmentPathSegmentImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, ObjectType target) {
@@ -119,32 +120,39 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	public boolean isMatchingOrder() {
 		if (isMatchingOrder == null) {
-			isMatchingOrder = computeMatchingOrder();
+			isMatchingOrder = computeMatchingOrder(0);
 		}
 		return isMatchingOrder;
 	}
 	
-	private boolean computeMatchingOrder() {
+	public boolean isMatchingOrderPlusOne() {
+		if (isMatchingOrderPlusOne == null) {
+			isMatchingOrderPlusOne = computeMatchingOrder(1);
+		}
+		return isMatchingOrderPlusOne;
+	}
+
+	private boolean computeMatchingOrder(int offset) {
 		AssignmentType assignmentType = getAssignment();
 		if (assignmentType.getOrder() == null && assignmentType.getOrderConstraint().isEmpty()) {
 			// compatibility
-			return evaluationOrder.getSummaryOrder() == 1;
+			return evaluationOrder.getSummaryOrder() - offset == 1;
 		}
 		if (assignmentType.getOrder() != null) {
-			if (evaluationOrder.getSummaryOrder() != assignmentType.getOrder()) {
+			if (evaluationOrder.getSummaryOrder() - offset != assignmentType.getOrder()) {
 				return false;
 			}
 		}
 		for (OrderConstraintsType orderConstraint: assignmentType.getOrderConstraint()) {
-			if (!isMatchingConstraint(orderConstraint)) {
+			if (!isMatchingConstraint(orderConstraint, offset)) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private boolean isMatchingConstraint(OrderConstraintsType orderConstraint) {
-		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation());
+	private boolean isMatchingConstraint(OrderConstraintsType orderConstraint, int offset) {
+		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation()) - offset;
 		if (orderConstraint.getOrder() != null) {
 			return orderConstraint.getOrder() == evaluationOrderInt;
 		} else {

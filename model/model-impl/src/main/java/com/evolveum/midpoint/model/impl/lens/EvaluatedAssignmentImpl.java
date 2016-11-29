@@ -75,7 +75,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
 	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
-	@NotNull private final Collection<EvaluatedPolicyRule> policyRules;
+	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules;	// rules related to the focus itself
+	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules;	// rules related to the target of this assignment
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -92,7 +93,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
 		adminGuiConfigurations = new ArrayList<>(); 
-		policyRules = new ArrayList<>();
+		focusPolicyRules = new ArrayList<>();
+		targetPolicyRules = new ArrayList<>();
 	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
@@ -304,20 +306,28 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	@Override
-	public Collection<EvaluatedPolicyRule> getPolicyRules() {
-		return policyRules;
+	public Collection<EvaluatedPolicyRule> getFocusPolicyRules() {
+		return focusPolicyRules;
 	}
 	
-	public void addPolicyRule(EvaluatedPolicyRule policyRule) {
-		policyRules.add(policyRule);
+	public void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
+		focusPolicyRules.add(policyRule);
 	}
-	
+
+	@NotNull
+	public Collection<EvaluatedPolicyRule> getTargetPolicyRules() {
+		return targetPolicyRules;
+	}
+
+	public void addTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+		targetPolicyRules.add(policyRule);
+	}
+
 	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
 		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, null);
-		policyRules.add(policyRule);
+		focusPolicyRules.add(policyRule);
 	}
 
 	@Override
@@ -379,7 +389,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
 		}
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "policyRules", policyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules", focusPolicyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "targetPolicyRules", targetPolicyRules, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
 		return sb.toString();
@@ -387,6 +398,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+policyRules.size()+" rules)";
+		return "EvaluatedAssignment(constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
+				.size()+" rules)";
 	}
 }

@@ -125,9 +125,9 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		}
 
 		for (EvaluatedAssignment<?> newAssignment : evaluatedAssignmentTriple.getPlusSet()) {
-			LOGGER.trace("Assignment to be added: -> {} ({} policy rules)", newAssignment.getTarget(), newAssignment.getPolicyRules().size());
+			LOGGER.trace("Assignment to be added: -> {} ({} policy rules)", newAssignment.getTarget(), newAssignment.getFocusPolicyRules().size());
 			List<ApprovalPolicyActionType> approvalActions = new ArrayList<>();
-			for (EvaluatedPolicyRule rule : newAssignment.getPolicyRules()) {
+			for (EvaluatedPolicyRule rule : newAssignment.getFocusPolicyRules()) {
 				if (rule.getTriggers().isEmpty()) {
 					LOGGER.trace("Skipping rule {} that is present but not triggered", rule.getName());
 					continue;
