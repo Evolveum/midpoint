@@ -5,7 +5,7 @@
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                      oid="00000000-0000-0000-0000-000000000001"
-                     version="41">
+                     version="65">
    <name>SystemConfiguration</name>
    <metadata>
       <createTimestamp>2016-05-25T16:15:56.179+02:00</createTimestamp>
@@ -87,13 +87,13 @@
    <objectTemplate>
       <type>UserType</type>
       <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                         oid="ae2702dc-5fa2-4b0d-a1ed-cd3bf87908fd"
+                         oid="cfcd2fb3-15fb-46ed-b07b-3b702008db25"
                          type="tns:ObjectTemplateType"><!-- User template - Salesforce --></objectTemplateRef>
    </objectTemplate>
    <objectTemplate>
       <type>RoleType</type>
       <objectTemplateRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                         oid="fa3d0199-4c91-4055-8ad5-8f550462de69"
+                         oid="70ef7839-1e00-410f-81c4-3dd8993c65b7"
                          type="tns:ObjectTemplateType"><!-- Group and entitlement role template - Salesforce  --></objectTemplateRef>
    </objectTemplate>
    <notificationConfiguration>

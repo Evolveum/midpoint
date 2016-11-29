@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -176,5 +177,18 @@ public class LoggerAuditServiceImpl implements AuditService {
 	@SuppressWarnings("unused")
 	private void fakeMethod() {
 		LoggingConfigurationManager.getCurrentlyUsedVersion();
+	}
+
+	@Override
+	public void listRecordsIterative(String query, Map<String, Object> params,
+			AuditResultHandler auditResultHandler) {
+		throw new UnsupportedOperationException("Object retrieval not supported");
+		
+	}
+
+	@Override
+	public void reindexEntry(AuditEventRecord record) {
+		throw new UnsupportedOperationException("Reindex entry not supported");
+		
 	}
 }

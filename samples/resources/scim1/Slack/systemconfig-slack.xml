@@ -5,7 +5,7 @@
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                      oid="00000000-0000-0000-0000-000000000001"
-                     version="40">
+                     version="63">
    <name>SystemConfiguration</name>
    <metadata>
       <createTimestamp>2016-05-25T16:15:56.179+02:00</createTimestamp>

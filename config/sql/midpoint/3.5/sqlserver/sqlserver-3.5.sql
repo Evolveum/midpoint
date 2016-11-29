@@ -289,6 +289,12 @@ CREATE TABLE m_audit_event (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE m_audit_item (
+  changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL,
+  record_id       BIGINT                                 NOT NULL,
+  PRIMARY KEY (changedItemPath, record_id)
+);
+
 CREATE TABLE m_connector (
   connectorBundle            NVARCHAR(255) COLLATE database_default,
   connectorHostRef_relation  NVARCHAR(157) COLLATE database_default,
@@ -989,6 +995,11 @@ REFERENCES m_assignment;
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event;
+
+ALTER TABLE m_audit_item
+  ADD CONSTRAINT fk_audit_item
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
 

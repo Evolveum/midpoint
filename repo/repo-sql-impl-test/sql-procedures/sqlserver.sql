@@ -19,6 +19,7 @@ AS
     DELETE FROM m_acc_cert_campaign;
     DELETE FROM m_acc_cert_definition;
     DELETE FROM m_audit_delta;
+    DELETE FROM m_audit_item;
     DELETE FROM m_audit_event;
     DELETE FROM m_object_ext_date;
     DELETE FROM m_object_ext_long;
@@ -35,6 +36,7 @@ AS
     DELETE FROM m_assignment_ext_boolean;
     DELETE FROM m_assignment_extension;
     DELETE FROM m_assignment_reference;
+    DELETE FROM m_assignment_policy_situation;
     DELETE FROM m_assignment;
     DELETE FROM m_exclusion;
     DELETE FROM m_connector_target_system;
@@ -53,6 +55,7 @@ AS
     DELETE FROM m_user_organization;
     DELETE FROM m_user_organizational_unit;
     DELETE FROM m_focus_photo;
+    DELETE FROM m_focus_policy_situation;
     DELETE FROM m_user;
     DELETE FROM m_report;
     DELETE FROM m_report_output;
