@@ -1546,7 +1546,7 @@ public class AssignmentProcessor {
 		if (target != null) {
 			Objectable targetType = target.asObjectable();
 			if (targetType instanceof AbstractRoleType) {
-				Collection<EvaluatedPolicyRule> policyRules = assignment.getFocusPolicyRules();
+				Collection<EvaluatedPolicyRule> policyRules = assignment.getThisTargetPolicyRules();
 				for (EvaluatedPolicyRule policyRule: policyRules) {
 					PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
 					if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
@@ -1607,7 +1607,7 @@ public class AssignmentProcessor {
 			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
 			OperationResult result) throws PolicyViolationException, SchemaException {
 		for(EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
-			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getFocusPolicyRules();
+			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getThisTargetPolicyRules();
 			for (EvaluatedPolicyRule policyRule: policyRules) {
 				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
 				if (policyConstraints == null) {

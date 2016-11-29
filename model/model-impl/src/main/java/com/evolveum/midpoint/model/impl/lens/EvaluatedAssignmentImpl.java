@@ -77,6 +77,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
 	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules;	// rules related to the focus itself
 	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules;	// rules related to the target of this assignment
+	@NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules;	// rules directly related to the target of this assignment
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -95,6 +96,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		adminGuiConfigurations = new ArrayList<>(); 
 		focusPolicyRules = new ArrayList<>();
 		targetPolicyRules = new ArrayList<>();
+		thisTargetPolicyRules = new ArrayList<>();
 	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
@@ -321,6 +323,15 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public void addTargetPolicyRule(EvaluatedPolicyRule policyRule) {
 		targetPolicyRules.add(policyRule);
+	}
+
+	@NotNull
+	public Collection<EvaluatedPolicyRule> getThisTargetPolicyRules() {
+		return thisTargetPolicyRules;
+	}
+
+	public void addThisTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+		thisTargetPolicyRules.add(policyRule);
 	}
 
 	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {

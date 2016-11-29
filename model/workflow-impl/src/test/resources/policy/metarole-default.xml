@@ -29,7 +29,6 @@
 				</approval>
 			</policyActions>
 		</policyRule>
-		<order>2</order>
 	</inducement>
 	<inducement>
 		<policyRule>

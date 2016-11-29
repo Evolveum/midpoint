@@ -677,6 +677,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
+	    //DebugUtil.setDetailedDebugDump(true);
         display("Output context", context);
         display("outbound processor result", result);
         //assertSuccess("Outbound processor failed (result)", result);
@@ -737,7 +738,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
 		// THEN
-		DebugUtil.setDetailedDebugDump(true);
+		//DebugUtil.setDetailedDebugDump(true);
 		display("Output context", context);
 		display("outbound processor result", result);
 		//assertSuccess("Outbound processor failed (result)", result);
@@ -750,8 +751,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		assertEquals("Wrong # of added assignments", 1, evaluatedAssignmentTriple.getPlusSet().size());
 
 		EvaluatedAssignmentImpl evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
-		Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getFocusPolicyRules();
-		assertEquals("Wrong # of policy rules", 2, policyRules.size());
+		assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getFocusPolicyRules().size());
+		assertEquals("Wrong # of this target policy rules", 1, evaluatedAssignment.getThisTargetPolicyRules().size());
+		Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getTargetPolicyRules();
+		assertEquals("Wrong # of target policy rules", 2, policyRules.size());
 		Iterator<EvaluatedPolicyRule> iterator = policyRules.iterator();
 		EvaluatedPolicyRule policyRule1 = iterator.next();
 		EvaluatedPolicyRule policyRule2 = iterator.next();

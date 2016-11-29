@@ -43,11 +43,19 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	private Boolean isMatchingOrder = null;
 	private Boolean isMatchingOrderPlusOne = null;
 	private boolean processMembership = false;
+	private final boolean isAssignment;
 	
-	AssignmentPathSegmentImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, ObjectType target) {
+	AssignmentPathSegmentImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
+	                          ObjectType target, boolean isAssignment) {
 		super();
 		this.assignmentIdi = assignmentIdi;
 		this.target = target;
+		this.isAssignment = isAssignment;
+	}
+
+	@Override
+	public boolean isAssignment() {
+		return isAssignment;
 	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {

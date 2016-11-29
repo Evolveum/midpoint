@@ -42,7 +42,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 	
 	AssignmentPathImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		this.segments = createNewSegments();
-		segments.add(new AssignmentPathSegmentImpl(assignmentIdi, null));
+		segments.add(new AssignmentPathSegmentImpl(assignmentIdi, null, true));
 	}
 
 	private List<AssignmentPathSegmentImpl> createNewSegments() {

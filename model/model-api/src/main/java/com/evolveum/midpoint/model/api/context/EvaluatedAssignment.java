@@ -56,12 +56,32 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	boolean isPresentInOldObject();
 	
 	/**
-	 * Returns all policy rules that apply to this assignment - even those that were not triggered.
-	 * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
+	 * Returns all policy rules that apply to the focal object and are derived from this assignment
+	 * - even those that were not triggered. The policy rules are compiled from all the applicable
+	 * sources (target, meta-roles, etc.)
 	 */
 	@NotNull
 	Collection<EvaluatedPolicyRule> getFocusPolicyRules();
 	
+	/**
+	 * Returns all policy rules that (directly or indirectly) apply to the target object of this assignment
+	 * and are derived from this assignment - even those that were not triggered. The policy rules are compiled
+	 * from all the applicable sources (target, meta-roles, etc.)
+	 */
+	@NotNull
+	Collection<EvaluatedPolicyRule> getTargetPolicyRules();
+
+	/**
+	 * Returns all policy rules that directly apply to the target object of this assignment and are derived
+	 * from this assignment - even those that were not triggered. The policy rules are compiled
+	 * from all the applicable sources (target, meta-roles, etc.)
+	 *
+	 * By "directly apply" we mean that these rules are derived from the assignments of this target.
+	 * Rules that this target got via inducements are not included here.
+	 */
+	@NotNull
+	Collection<EvaluatedPolicyRule> getThisTargetPolicyRules();
+
 	public Collection<String> getPolicySituations();
 	
 	void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;

@@ -19,7 +19,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Governor</name>
-    <inducement>
+    <assignment>
     	<policyRule>
     		<name>min1</name>
     		<policyConstraints>
@@ -28,7 +28,7 @@
 		    	</maxAssignees>
 		    </policyConstraints>
     	</policyRule>
-    </inducement>
+    </assignment>
     <inducement id="1111">
     	<construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>

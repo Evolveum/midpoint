@@ -213,7 +213,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		EvaluatedAssignmentImpl<F> evalAssignment = new EvaluatedAssignmentImpl<>();
 		evalAssignment.setAssignmentIdi(assignmentIdi);
 		AssignmentPathImpl assignmentPath = new AssignmentPathImpl();
-		AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl(assignmentIdi, null);
+		AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl(assignmentIdi, null, true);
 		assignmentPathSegment.setSource(source);
 		assignmentPathSegment.setEvaluationOrder(getInitialEvaluationOrder(assignmentIdi, evaluateOld));
 		assignmentPathSegment.setValidityOverride(true);
@@ -456,7 +456,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 			evaluatedAssignment.addFocusPolicyRule(policyRule);
 		} else {
 			evaluatedAssignment.addTargetPolicyRule(policyRule);
+			if (appliesDirectly(policyRule, evaluatedAssignment)) {
+				evaluatedAssignment.addThisTargetPolicyRule(policyRule);
+			}
 		}
+	}
+
+	private boolean appliesDirectly(EvaluatedPolicyRuleImpl policyRule, EvaluatedAssignmentImpl<F> evalAssignment) {
+		AssignmentPath assignmentPath = policyRule.getAssignmentPath();
+		if (assignmentPath.isEmpty()) {
+			throw new IllegalStateException("Assignment path for " + policyRule + " is empty; in " + evalAssignment);
+		}
+		if (assignmentPath.size() == 1) {
+			//return true;        // the rule is part of the first assignment target object
+			throw new IllegalStateException("Assignment path for " + policyRule + " is of size 1; in " + evalAssignment);
+		}
+		// TODO think out this again
+		// The basic idea is that if we get the rule by an inducement, it does NOT apply directly to
+		// the assignment in question. But we should elaborate this later.
+		return assignmentPath.getSegments().get(1).isAssignment();
 	}
 
 	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
@@ -652,7 +670,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
 				roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
 				roleInducementIdi.recompute();
-				AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(roleInducementIdi, null);
+				AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(roleInducementIdi, null, false);
 				subAssignmentPathSegment.setSource(targetType);
 				subAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
 				subAssignmentPathSegment.setOrderOneObject(orderOneObject);
@@ -695,7 +713,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
 			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
 			roleAssignmentIdi.recompute();
-			AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(roleAssignmentIdi, null);
+			AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(roleAssignmentIdi, null, true);
 			subAssignmentPathSegment.setSource(targetType);
 			String subSourceDescription = targetType+" in "+sourceDescription;
 			QName subrelation = null;
