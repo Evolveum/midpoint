@@ -69,6 +69,5 @@ metaroles:
                 </approval>
             </policyActions>
         </policyRule>
-        <order>2</order>
     </inducement>
 </role>

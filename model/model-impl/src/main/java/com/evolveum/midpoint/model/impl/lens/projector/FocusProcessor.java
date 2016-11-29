@@ -377,7 +377,7 @@ public class FocusProcessor {
 			return;
 		}
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
-			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
+			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getFocusPolicyRules();
 			for (EvaluatedPolicyRule policyRule: policyRules) {
 				triggerRule(focusContext, policyRule);
 			}

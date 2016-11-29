@@ -901,25 +901,30 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append(" -> " + assignment.getTarget());
-			sb.append(" [rules(").append(assignment.getPolicyRules().size()).append("): ");
-			boolean first = true;
-			for (EvaluatedPolicyRule rule : assignment.getPolicyRules()) {
-				if (first) {
-					first = false;
-				} else {
-					sb.append("; ");
-				}
-				sb.append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints()));
-				sb.append(" -> ");
-				sb.append(PolicyRuleTypeUtil.toShortString(rule.getActions()));
-				if (!rule.getTriggers().isEmpty()) {
-					sb.append(", T:");
-					rule.getTriggers()
-							.forEach(trigger -> sb.append(" ").append(PolicyRuleTypeUtil.toShortString(trigger.getConstraint())));
-				}
-			}
-			sb.append("]");
+			dumpRules(sb, "focus rules", assignment.getFocusPolicyRules());
+			dumpRules(sb, "target rules", assignment.getTargetPolicyRules());
 		}
+	}
+
+	private <F extends FocusType> void dumpRules(StringBuilder sb, String label, Collection<EvaluatedPolicyRule> policyRules) {
+		sb.append(" [").append(label).append("(").append(policyRules.size()).append("): ");
+		boolean first = true;
+		for (EvaluatedPolicyRule rule : policyRules) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append("; ");
+			}
+			sb.append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints()));
+			sb.append(" -> ");
+			sb.append(PolicyRuleTypeUtil.toShortString(rule.getActions()));
+			if (!rule.getTriggers().isEmpty()) {
+				sb.append(", T:");
+				rule.getTriggers()
+						.forEach(trigger -> sb.append(" ").append(PolicyRuleTypeUtil.toShortString(trigger.getConstraint())));
+			}
+		}
+		sb.append("]");
 	}
 
 	public LensContextType toLensContextType() throws SchemaException {

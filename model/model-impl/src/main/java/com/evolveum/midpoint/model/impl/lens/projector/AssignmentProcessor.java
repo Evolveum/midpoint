@@ -53,9 +53,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -80,12 +77,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -113,21 +105,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Assignment processor is recomputing user assignments. It recomputes all the assignments whether they are direct
@@ -1558,7 +1546,7 @@ public class AssignmentProcessor {
 		if (target != null) {
 			Objectable targetType = target.asObjectable();
 			if (targetType instanceof AbstractRoleType) {
-				Collection<EvaluatedPolicyRule> policyRules = assignment.getPolicyRules();
+				Collection<EvaluatedPolicyRule> policyRules = assignment.getFocusPolicyRules();
 				for (EvaluatedPolicyRule policyRule: policyRules) {
 					PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
 					if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
@@ -1619,7 +1607,7 @@ public class AssignmentProcessor {
 			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
 			OperationResult result) throws PolicyViolationException, SchemaException {
 		for(EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
-			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
+			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getFocusPolicyRules();
 			for (EvaluatedPolicyRule policyRule: policyRules) {
 				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
 				if (policyConstraints == null) {
