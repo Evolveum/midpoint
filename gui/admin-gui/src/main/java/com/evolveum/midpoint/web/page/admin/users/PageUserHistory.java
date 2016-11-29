@@ -28,16 +28,22 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
@@ -196,6 +202,45 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
                                         0 : getAssignmentsModel().getObject().size());
                             }
                         });
+                authorization = new FocusTabVisibleBehavior(unwrapModel(),
+                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL);
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"), authorization)
+                {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegatedToMe"),
+                                getDelegatedToMeModel()) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void populateItem(ListItem<AssignmentEditorDto> item) {
+                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
+                                        new ArrayList<AssignmentsPreviewDto>(), null, PageUserHistory.this);
+                                item.add(editor);
+                            }
+
+                            @Override
+                            public String getExcludeOid() {
+                                return getObject().getOid();
+                            }
+
+                            @Override
+                            protected List<InlineMenuItem> createAssignmentMenu() {
+                                return new ArrayList<>();
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    public String getCount() {
+                        return Integer.toString(getDelegatedToMeModel().getObject() == null ?
+                                0 : getDelegatedToMeModel().getObject().size());
+                    }
+                });
+
                 return tabs;
 
             }
