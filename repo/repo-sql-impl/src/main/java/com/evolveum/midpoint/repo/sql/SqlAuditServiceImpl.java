@@ -30,6 +30,7 @@ import java.util.Set;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.sql.data.audit.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FlushMode;
@@ -49,10 +50,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
-import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
-import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
@@ -581,6 +578,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		LOGGER.trace("Inserted {} audit record ids ready for deleting.", new Object[] { insertCount });
 
 		// drop records from m_audit_event, m_audit_delta
+		session.createSQLQuery(createDeleteQuery(RAuditItem.TABLE_NAME, tempTable,
+				RAuditItem.COLUMN_RECORD_ID)).executeUpdate();
 		session.createSQLQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
 				RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
 		session.createSQLQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id"))
