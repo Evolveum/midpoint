@@ -160,23 +160,24 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
                             }
                         });
 
-                authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL);
-                tabs.add(
-                        new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections"), authorization) {
-
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return createFocusProjectionsTabPanel(panelId, parentPage);
-                            }
-
-                            @Override
-                            public String getCount() {
-                                return Integer.toString(getProjectionModel().getObject() == null ?
-                                        0 : getProjectionModel().getObject().size());
-                            }
-                        });
+                //hidden, will be displayed in future version
+//                authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL);
+//                tabs.add(
+//                        new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections"), authorization) {
+//
+//                            private static final long serialVersionUID = 1L;
+//
+//                            @Override
+//                            public WebMarkupContainer createPanel(String panelId) {
+//                                return createFocusProjectionsTabPanel(panelId, parentPage);
+//                            }
+//
+//                            @Override
+//                            public String getCount() {
+//                                return Integer.toString(getProjectionModel().getObject() == null ?
+//                                        0 : getProjectionModel().getObject().size());
+//                            }
+//                        });
 
                 authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
                 tabs.add(
