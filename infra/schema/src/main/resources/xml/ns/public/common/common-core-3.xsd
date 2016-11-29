@@ -8499,8 +8499,8 @@
     <xsd:complexType name="PolicyConstraintsType">
     	<xsd:annotation>
     		<xsd:documentation>
-    			Set of governance, risk management, compliance (GRC) and similar policy contraints
-				that influence the identity model. These constraint act as triggers for the rules.
+    			Set of governance, risk management, compliance (GRC) and similar policy constraints
+				that influence the identity model. These constraints act as triggers for the rules.
     		</xsd:documentation>
     		<xsd:appinfo>
                 <a:container/>

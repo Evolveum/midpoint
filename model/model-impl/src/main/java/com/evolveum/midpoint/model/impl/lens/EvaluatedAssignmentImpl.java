@@ -77,7 +77,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
 	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules;	// rules related to the focus itself
 	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules;	// rules related to the target of this assignment
-	@NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules;	// rules directly related to the target of this assignment
+	// rules directly related to the target of this assignment - should be a subset of targetPolicyRules
+	// (this means that if a reference is in thisTargetPolicyRules, then the same reference should
+	// be in targetPolicyRules)
+	@NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules;
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -335,10 +338,29 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
+		if (!constraints.getModification().isEmpty()) {
+			PolicyConstraintsType focusConstraints = constraints.clone();
+			focusConstraints.getAssignment().clear();
+			focusConstraints.getMaxAssignees().clear();
+			focusConstraints.getMinAssignees().clear();
+			focusConstraints.getExclusion().clear();
+			focusPolicyRules.add(toEvaluatedPolicyRule(focusConstraints));
+		}
+		if (!constraints.getMinAssignees().isEmpty() || !constraints.getMaxAssignees().isEmpty()
+				|| !constraints.getAssignment().isEmpty() || !constraints.getExclusion().isEmpty()) {
+			PolicyConstraintsType targetConstraints = constraints.clone();
+			targetConstraints.getModification().clear();
+			EvaluatedPolicyRule evaluatedPolicyRule = toEvaluatedPolicyRule(targetConstraints);
+			targetPolicyRules.add(evaluatedPolicyRule);
+			thisTargetPolicyRules.add(evaluatedPolicyRule);
+		}
+	}
+
+	@NotNull
+	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
-		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, null);
-		focusPolicyRules.add(policyRule);
+		return new EvaluatedPolicyRuleImpl(policyRuleType, null);
 	}
 
 	@Override
