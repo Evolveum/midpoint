@@ -674,24 +674,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 				subAssignmentPathSegment.setSource(targetType);
 				subAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
 				subAssignmentPathSegment.setOrderOneObject(orderOneObject);
-				subAssignmentPathSegment.setProcessMembership(true);
+				subAssignmentPathSegment.setProcessMembership(subAssignmentPathSegment.isMatchingOrder());
 
-				//if (subAssignmentPathSegment.isMatchingOrder()) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("E({}): evaluate inducement({}) {} in {}",
-								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement), 
-								FocusTypeUtil.dumpAssignment(roleInducement), targetType);
-					}
-					String subSourceDescription = targetType+" in "+sourceDescription;
-					evaluateAssignment(assignment, subAssignmentPathSegment, evaluateOld, mode, isValid, targetType, subSourceDescription, assignmentPath, task, result);
-
-//				} else {
-//					if (LOGGER.isTraceEnabled()) {
-//						LOGGER.trace("E({}): NOT evaluate inducement({}) {} in {}",
-//								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement),
-//								FocusTypeUtil.dumpAssignment(roleInducement), targetType);
-//					}
-//				}
+				// Originally we executed the following only if isMatchingOrder. However, sometimes we have to look even into
+				// inducements with non-matching order: for example because we need to extract target-related policy rules
+				// (these are stored with order of one less than orders for focus-related policy rules).
+				//
+				// We need to make sure NOT to extract anything other from such inducements. That's why we set e.g.
+				// processMembership attribute to false for these inducements.
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("E({}): evaluate inducement({}) {} in {}",
+							evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement),
+							FocusTypeUtil.dumpAssignment(roleInducement), targetType);
+				}
+				String subSourceDescription = targetType+" in "+sourceDescription;
+				evaluateAssignment(assignment, subAssignmentPathSegment, evaluateOld, mode, isValid, targetType, subSourceDescription, assignmentPath, task, result);
 			}
 		}
 		
