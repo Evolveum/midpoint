@@ -4,14 +4,14 @@
                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                oid="ae2702dc-5fa2-4b0d-a1ed-cd3bf87908fd"
+                oid="cfcd2fb3-15fb-46ed-b07b-3b702008db25"
                 version="21">
    <name>User template - Salesforce</name>
    <description>
             User template with the impementation of scripts for automatic assigment of roles to Salesforce users.
     	</description>
    <metadata>
-      <createTimestamp>2016-10-11T13:18:27.498+02:00</createTimestamp>
+      <createTimestamp>2016-11-28T11:50:57.786+01:00</createTimestamp>
       <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
    </metadata>

@@ -11,7 +11,7 @@
             User template with the impementation of scripts for automatic assigment of roles to Slack users.
         </description>
    <metadata>
-      <createTimestamp>2016-10-11T11:15:13.961+02:00</createTimestamp>
+      <createTimestamp>2016-11-14T10:35:15.651+01:00</createTimestamp>
       <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
    </metadata>

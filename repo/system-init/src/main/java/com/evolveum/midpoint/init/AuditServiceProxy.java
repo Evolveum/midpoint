@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -58,169 +59,182 @@ import java.util.Vector;
  */
 public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AuditServiceProxy.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AuditServiceProxy.class);
 
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+	@Autowired
+	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
-    @Autowired(required = false)                    // missing in some tests
-    private RepositoryService repositoryService;
+	@Autowired(required = false) // missing in some tests
+	private RepositoryService repositoryService;
 
-    @Autowired
-    private PrismContext prismContext;
+	@Autowired
+	private PrismContext prismContext;
 
-    private List<AuditService> services = new Vector<AuditService>();
+	private List<AuditService> services = new Vector<AuditService>();
 
-    @Override
-    public void audit(AuditEventRecord record, Task task) {
+	@Override
+	public void audit(AuditEventRecord record, Task task) {
 
-        if (services.isEmpty()) {
-            LOGGER.warn("Audit event will not be recorded. No audit services registered.");
-            return;
-        }
+		if (services.isEmpty()) {
+			LOGGER.warn("Audit event will not be recorded. No audit services registered.");
+			return;
+		}
 
-        assertCorrectness(record, task);
-        completeRecord(record, task);
+		assertCorrectness(record, task);
+		completeRecord(record, task);
 
-        for (AuditService service : services) {
-            service.audit(record, task);
-        }
-    }
+		for (AuditService service : services) {
+			service.audit(record, task);
+		}
+	}
 
-    @Override
-    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
-        Validate.notNull(policy, "Cleanup policy must not be null.");
-        Validate.notNull(parentResult, "Operation result must not be null.");
+	@Override
+	public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
+		Validate.notNull(policy, "Cleanup policy must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 
-        for (AuditService service : services) {
-            service.cleanupAudit(policy, parentResult);
-        }
-    }
+		for (AuditService service : services) {
+			service.cleanupAudit(policy, parentResult);
+		}
+	}
 
-    @Override
-    public void registerService(AuditService service) {
-        Validate.notNull(service, "Audit service must not be null.");
-        if (services.contains(service)) {
-            return;
-        }
+	@Override
+	public void registerService(AuditService service) {
+		Validate.notNull(service, "Audit service must not be null.");
+		if (services.contains(service)) {
+			return;
+		}
 
-        services.add(service);
-    }
+		services.add(service);
+	}
 
-    @Override
-    public void unregisterService(AuditService service) {
-        Validate.notNull(service, "Audit service must not be null.");
-        services.remove(service);
-    }
+	@Override
+	public void unregisterService(AuditService service) {
+		Validate.notNull(service, "Audit service must not be null.");
+		services.remove(service);
+	}
 
-    private void assertCorrectness(AuditEventRecord record, Task task) {
-        if (task == null) {
-            LOGGER.warn("Task is null in a call to audit service");
-        }
-    }
+	private void assertCorrectness(AuditEventRecord record, Task task) {
+		if (task == null) {
+			LOGGER.warn("Task is null in a call to audit service");
+		}
+	}
 
-    /**
-     * Complete the record with data that can be computed or discovered from the environment
-     */
-    private void completeRecord(AuditEventRecord record, Task task) {
-        LightweightIdentifier id = null;
-        if (record.getEventIdentifier() == null) {
-            id = lightweightIdentifierGenerator.generate();
-            record.setEventIdentifier(id.toString());
-        }
-        if (record.getTimestamp() == null) {
-            if (id == null) {
-                record.setTimestamp(System.currentTimeMillis());
-            } else {
-                // To be consistent with the ID
-                record.setTimestamp(id.getTimestamp());
-            }
-        }
-        if (record.getTaskIdentifier() == null && task != null) {
-            record.setTaskIdentifier(task.getTaskIdentifier());
-        }
-        if (record.getTaskOID() == null && task != null) {
-            record.setTaskOID(task.getOid());
-        }
-        if (record.getTaskOID() == null && task != null) {
-            record.setTaskOID(task.getOid());
-        }
-        if (record.getSessionIdentifier() == null && task != null) {
-            // TODO
-        }
-        if (record.getInitiator() == null && task != null) {
-            record.setInitiator(task.getOwner());
-        }
+	/**
+	 * Complete the record with data that can be computed or discovered from the
+	 * environment
+	 */
+	private void completeRecord(AuditEventRecord record, Task task) {
+		LightweightIdentifier id = null;
+		if (record.getEventIdentifier() == null) {
+			id = lightweightIdentifierGenerator.generate();
+			record.setEventIdentifier(id.toString());
+		}
+		if (record.getTimestamp() == null) {
+			if (id == null) {
+				record.setTimestamp(System.currentTimeMillis());
+			} else {
+				// To be consistent with the ID
+				record.setTimestamp(id.getTimestamp());
+			}
+		}
+		if (record.getTaskIdentifier() == null && task != null) {
+			record.setTaskIdentifier(task.getTaskIdentifier());
+		}
+		if (record.getTaskOID() == null && task != null) {
+			record.setTaskOID(task.getOid());
+		}
+		if (record.getTaskOID() == null && task != null) {
+			record.setTaskOID(task.getOid());
+		}
+		if (record.getSessionIdentifier() == null && task != null) {
+			// TODO
+		}
+		if (record.getInitiator() == null && task != null) {
+			record.setInitiator(task.getOwner());
+		}
 
-        if (record.getHostIdentifier() == null) {
-            // TODO
-        }
+		if (record.getHostIdentifier() == null) {
+			// TODO
+		}
 
-        if (record.getDeltas() != null) {
-            for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
-                ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
-                final Map<String,PolyString> resolvedOids = new HashMap<>();
-                Visitor namesResolver = new Visitor() {
-                    @Override
-                    public void visit(Visitable visitable) {
-                        if (visitable instanceof PrismReferenceValue) {
-                            PrismReferenceValue refVal = ((PrismReferenceValue) visitable);
-                            String oid = refVal.getOid();
-                            if (oid == null) {  // sanity check; should not happen
-                                return;
-                            }
-                            if (refVal.getTargetName() != null) {
-                                resolvedOids.put(oid, refVal.getTargetName());
-                                return;
-                            }
-                            if (resolvedOids.containsKey(oid)) {
-                                PolyString resolvedName = resolvedOids.get(oid);        // may be null
-                                refVal.setTargetName(resolvedName);
-                                return;
-                            }
-                            if (refVal.getObject() != null) {
-                                PolyString name = refVal.getObject().getName();
-                                refVal.setTargetName(name);
-                                resolvedOids.put(oid, name);
-                                return;
-                            }
-                            if (repositoryService == null) {
-                                LOGGER.warn("No repository, no OID resolution (for {})", oid);
-                                return;
-                            }
-                            PrismObjectDefinition<? extends ObjectType> objectDefinition = null;
-                            if (refVal.getTargetType() != null) {
-                                objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(refVal.getTargetType());
-                            }
-                            Class<? extends ObjectType> objectClass = null;
-                            if (objectDefinition != null) {
-                                objectClass = objectDefinition.getCompileTimeClass();
-                            }
-                            if (objectClass == null) {
-                                objectClass = ObjectType.class;         // the default (shouldn't be needed)
-                            }
-                            SelectorOptions<GetOperationOptions> getNameOnly = SelectorOptions.create(
-                                    new ItemPath(ObjectType.F_NAME), GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-                            try {
-                                PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, Arrays.asList(getNameOnly), new OperationResult("dummy"));
-                                PolyString name = object.getName();
-                                refVal.setTargetName(name);
-                                resolvedOids.put(oid, name);
-                                LOGGER.trace("Resolved {}: {} to {}", objectClass, oid, name);
-                            } catch (ObjectNotFoundException e) {
-                                LOGGER.trace("Couldn't determine the name for {}: {} as it does not exist", objectClass, oid, e);
-                                resolvedOids.put(oid, null);
-                            } catch (SchemaException|RuntimeException e) {
-                                LOGGER.trace("Couldn't determine the name for {}: {} because of unexpected exception", objectClass, oid, e);
-                                resolvedOids.put(oid, null);
-                            }
-                        }
-                    }
-                };
-                delta.accept(namesResolver);
-            }
-        }
-    }
+		if (record.getDeltas() != null) {
+			for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
+				ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
+				final Map<String, PolyString> resolvedOids = new HashMap<>();
+				Visitor namesResolver = new Visitor() {
+					@Override
+					public void visit(Visitable visitable) {
+						if (visitable instanceof PrismReferenceValue) {
+							PrismReferenceValue refVal = ((PrismReferenceValue) visitable);
+							String oid = refVal.getOid();
+							if (oid == null) { // sanity check; should not
+												// happen
+								return;
+							}
+							if (refVal.getTargetName() != null) {
+								resolvedOids.put(oid, refVal.getTargetName());
+								return;
+							}
+							if (resolvedOids.containsKey(oid)) {
+								PolyString resolvedName = resolvedOids.get(oid); // may
+																					// be
+																					// null
+								refVal.setTargetName(resolvedName);
+								return;
+							}
+							if (refVal.getObject() != null) {
+								PolyString name = refVal.getObject().getName();
+								refVal.setTargetName(name);
+								resolvedOids.put(oid, name);
+								return;
+							}
+							if (repositoryService == null) {
+								LOGGER.warn("No repository, no OID resolution (for {})", oid);
+								return;
+							}
+							PrismObjectDefinition<? extends ObjectType> objectDefinition = null;
+							if (refVal.getTargetType() != null) {
+								objectDefinition = prismContext.getSchemaRegistry()
+										.findObjectDefinitionByType(refVal.getTargetType());
+							}
+							Class<? extends ObjectType> objectClass = null;
+							if (objectDefinition != null) {
+								objectClass = objectDefinition.getCompileTimeClass();
+							}
+							if (objectClass == null) {
+								objectClass = ObjectType.class; // the default
+																// (shouldn't be
+																// needed)
+							}
+							SelectorOptions<GetOperationOptions> getNameOnly = SelectorOptions.create(
+									new ItemPath(ObjectType.F_NAME),
+									GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+							try {
+								PrismObject<? extends ObjectType> object = repositoryService.getObject(
+										objectClass, oid, Arrays.asList(getNameOnly),
+										new OperationResult("dummy"));
+								PolyString name = object.getName();
+								refVal.setTargetName(name);
+								resolvedOids.put(oid, name);
+								LOGGER.trace("Resolved {}: {} to {}", objectClass, oid, name);
+							} catch (ObjectNotFoundException e) {
+								LOGGER.trace("Couldn't determine the name for {}: {} as it does not exist",
+										objectClass, oid, e);
+								resolvedOids.put(oid, null);
+							} catch (SchemaException | RuntimeException e) {
+								LOGGER.trace(
+										"Couldn't determine the name for {}: {} because of unexpected exception",
+										objectClass, oid, e);
+								resolvedOids.put(oid, null);
+							}
+						}
+					}
+				};
+				delta.accept(namesResolver);
+			}
+		}
+	}
 
 	@Override
 	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
@@ -228,7 +242,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 		for (AuditService service : services) {
 			if (service.supportsRetrieval()) {
 				List<AuditEventRecord> records = service.listRecords(query, params);
-				if (records != null && !records.isEmpty()){
+				if (records != null && !records.isEmpty()) {
 					result.addAll(records);
 				}
 			}
@@ -236,25 +250,43 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 		return result;
 	}
 
-    @Override
-    public long countObjects(String query, Map<String, Object> params) {
-        long count = 0;
-        for (AuditService service : services) {
-        	if (service.supportsRetrieval()) {
-	            long c = service.countObjects(query, params);
-	            count += c;
-        	}
-        }
-        return count;
-    }
+	@Override
+	public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler) {
+		for (AuditService service : services) {
+			if (service.supportsRetrieval()) {
+				service.listRecordsIterative(query, params, handler);
+			}
+		}
+	}
+
+	@Override
+	public void reindexEntry(AuditEventRecord record) {
+		for (AuditService service : services) {
+			if (service.supportsRetrieval()) {
+				service.reindexEntry(record);
+			}
+		}
+	}
+
+	@Override
+	public long countObjects(String query, Map<String, Object> params) {
+		long count = 0;
+		for (AuditService service : services) {
+			if (service.supportsRetrieval()) {
+				long c = service.countObjects(query, params);
+				count += c;
+			}
+		}
+		return count;
+	}
 
 	@Override
 	public boolean supportsRetrieval() {
 		for (AuditService service : services) {
-        	if (service.supportsRetrieval()) {
-	            return true;
-        	}
-        }
+			if (service.supportsRetrieval()) {
+				return true;
+			}
+		}
 		return false;
 	}
 }

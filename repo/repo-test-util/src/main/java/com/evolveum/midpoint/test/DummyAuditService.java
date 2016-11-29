@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.util.*;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.apache.commons.lang.StringUtils;
@@ -422,5 +423,18 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	@Override
 	public boolean supportsRetrieval() {
 		return false;
+	}
+
+	@Override
+	public void listRecordsIterative(String query, Map<String, Object> params,
+			AuditResultHandler auditResultHandler) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void reindexEntry(AuditEventRecord record) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -4,11 +4,11 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="bf4e629b-de8c-4af2-b58d-99e18e270ebb"
+      oid="70966a69-9b67-406a-a332-bc0c8cfd39a3"
       version="11">
    <name>entitlement metarole</name>
    <metadata>
-      <createTimestamp>2016-07-19T17:47:56.771+02:00</createTimestamp>
+      <createTimestamp>2016-11-28T11:53:20.440+01:00</createTimestamp>
       <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
       <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
    </metadata>
@@ -17,7 +17,7 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="714a197f-fa15-4eac-8f90-f1f2dfdcafc4"
+                      oid="407fa41e-27cd-4396-8a28-c93bc6b48574"
                       type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
          <kind>account</kind>
          <intent>default</intent>
