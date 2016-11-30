@@ -1466,11 +1466,28 @@
                                 </p>
 
                                 <p>
-                                NOTE: This attribute is currently not used; its use is planned.
+                                NOTE: This attribute is not used. Please use executionConstraints/allowedNode instead.
                                 </p>
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.5</a:deprecatedSince>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+					<xsd:element name="executionConstraints" type="tns:TaskExecutionConstraintsType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Constraints on task execution, e.g. a execution group, allowed/disallowed nodes, etc.
+									EXPERIMENTAL
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.5</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     <xsd:element name="schedule" type="tns:ScheduleType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1509,10 +1526,68 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
 
-    <xsd:complexType name="OperationStatsType">
+	<xsd:complexType name="TaskExecutionConstraintsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Constraints on task execution, e.g. a execution group, allowed/disallowed nodes, etc.
+
+				EXPERIMENTAL.
+
+				Especially the support for node constraints is very experimental. It is based on vetoing
+				trigger firing in Quartz scheduler, with the hope that eventually the task would start
+				on a node that supports its execution.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.5</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="group" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						A group this task is a part of. In the future, task execution groups will probably have more
+						complex parameters. But for now, their only parameter is the member tasks limit.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of tasks within the group that can be executed at once (clusterwide). Default is 1.
+						This parameter will be moved into separate task group object in a later version of midPoint.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="allowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Node(s) that this task is allowed to be executed on. If not specified, the task is allowed
+						to be executed on any cluster node (if not restricted by disallowedNode item).
+						VERY EXPERIMENTAL. MAY OR MAY NOT WORK.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="disallowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Node(s) that this task is NOT allowed to be executed on.
+						VERY EXPERIMENTAL. MAY OR MAY NOT WORK.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="retryAfter" type="xsd:duration" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						In what time to retry after execution constraints are not met. The default is 1 minute for group
+						limits and 10 seconds for node constraints.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OperationStatsType">
         <xsd:annotation>
             <xsd:documentation>
                 Operation execution statistics/state. Contains various statistical and state information about execution

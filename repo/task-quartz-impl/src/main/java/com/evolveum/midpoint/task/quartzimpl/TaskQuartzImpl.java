@@ -1207,6 +1207,16 @@ public class TaskQuartzImpl implements Task {
         setSchedule(schedule);
     }
 
+	@Override
+	public TaskExecutionConstraintsType getExecutionConstraints() {
+		return taskPrism.asObjectable().getExecutionConstraints();
+	}
+
+	@Override
+	public String getGroup() {
+		TaskExecutionConstraintsType executionConstraints = getExecutionConstraints();
+		return executionConstraints != null ? executionConstraints.getGroup() : null;
+	}
 
     /*
       * Schedule
