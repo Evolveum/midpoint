@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
@@ -37,7 +39,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @DisallowConcurrentExecution
@@ -192,7 +197,7 @@ public class JobExecutor implements InterruptableJob {
 
 	}
 
-	private boolean executionConstraintsSatisfied(TaskQuartzImpl task, JobExecutionContext context, OperationResult result) {
+	private boolean executionConstraintsSatisfied(TaskQuartzImpl task, JobExecutionContext context, OperationResult result) throws JobExecutionException {
 		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
 		if (executionConstraints == null) {
 			return true;
@@ -205,7 +210,7 @@ public class JobExecutor implements InterruptableJob {
 			ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
 					.getClusterStatusInformation(true, false, result);
 			for (ClusterStatusInformation.TaskInfo taskInfo : clusterStatusInformation.getTasks()) {
-				Task runningTask = null;
+				Task runningTask;
 				try {
 					runningTask = taskManagerImpl.getTask(taskInfo.getOid(), result);
 				} catch (ObjectNotFoundException e) {
@@ -249,10 +254,24 @@ public class JobExecutor implements InterruptableJob {
 	}
 
 	private void reschedule(TaskQuartzImpl task, TaskExecutionConstraintsType executionConstraints,
-			int defaultInterval, JobExecutionContext context, OperationResult result) {
-		Trigger trigger = context.getTrigger();
-
-		//taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
+			int defaultInterval, JobExecutionContext context, OperationResult result) throws JobExecutionException {
+		long startAt;
+		Duration retryAfter = executionConstraints.getRetryAfter();
+		if (retryAfter != null) {
+			XMLGregorianCalendar startAtGc = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+			XmlTypeConverter.addDuration(startAtGc, retryAfter);
+			startAt = XmlTypeConverter.toMillis(startAtGc);
+		} else {
+			startAt = System.currentTimeMillis() + defaultInterval * 1000L;
+		}
+		Trigger trigger = TaskQuartzImplUtil.createTriggerForTask(task, startAt);
+		try {
+			taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
+		} catch (SchedulerException e) {
+			// TODO or handle it somehow?
+			throw new JobExecutionException("Couldn't reschedule task " + task + " (rescheduled because" +
+					" of execution constraints): " + e.getMessage(), e);
+		}
 	}
 
 	private void waitForTransientChildrenAndCloseThem(OperationResult result) {
