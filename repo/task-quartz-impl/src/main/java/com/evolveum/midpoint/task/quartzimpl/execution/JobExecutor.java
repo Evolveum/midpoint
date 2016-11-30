@@ -228,9 +228,10 @@ public class JobExecutor implements InterruptableJob {
 			int limit = executionConstraints.getGroupTaskLimit() != null ? executionConstraints.getGroupTaskLimit() : 1;
 			LOGGER.trace("Tasks in group {}: {}", group, tasksInGroup);
 			if (tasksInGroup.size() >= limit) {
-				LOGGER.info("Limit of {} task(s) in group {} would be exceeded if task {} would start. Existing tasks: {}. Rescheduling.",
-						limit, group, task, tasksInGroup);
-				reschedule(task, executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT, context, result);
+				long rescheduleTime = getRescheduleTime(executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT);
+				LOGGER.info("Limit of {} task(s) in group {} would be exceeded if task {} would start. Existing tasks: {}. Rescheduling at {}.",
+						limit, group, task, tasksInGroup, new Date(rescheduleTime));
+				reschedule(task, rescheduleTime);
 				return false;
 			}
 		}
@@ -239,31 +240,34 @@ public class JobExecutor implements InterruptableJob {
 		String currentNode = taskManagerImpl.getNodeId();
 		List<String> allowedNodes = executionConstraints.getAllowedNode();
 		if (!allowedNodes.isEmpty() && !allowedNodes.contains(currentNode)) {
-			LOGGER.debug("Current node ({}) is not among allowed nodes ({}), rescheduling.", currentNode, allowedNodes);
-			reschedule(task, executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION, context, result);
+			long rescheduleTime = getRescheduleTime(executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION);
+			LOGGER.debug("Current node ({}) is not among allowed nodes ({}), rescheduling at {}.", currentNode, allowedNodes, new Date(rescheduleTime));
+			reschedule(task, rescheduleTime);
 			return false;
 		}
 		List<String> disallowedNodes = executionConstraints.getDisallowedNode();
 		if (disallowedNodes.contains(currentNode)) {
-			LOGGER.debug("Current node ({}) is among disallowed nodes ({}), rescheduling.", currentNode, allowedNodes);
-			reschedule(task, executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION, context, result);
+			long rescheduleTime = getRescheduleTime(executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION);
+			LOGGER.debug("Current node ({}) is among disallowed nodes ({}), rescheduling at {}.", currentNode, allowedNodes, new Date(rescheduleTime));
+			reschedule(task, rescheduleTime);
 			return false;
 		}
 
 		return true;
 	}
 
-	private void reschedule(TaskQuartzImpl task, TaskExecutionConstraintsType executionConstraints,
-			int defaultInterval, JobExecutionContext context, OperationResult result) throws JobExecutionException {
-		long startAt;
+	private long getRescheduleTime(TaskExecutionConstraintsType executionConstraints, int defaultInterval) {
 		Duration retryAfter = executionConstraints.getRetryAfter();
 		if (retryAfter != null) {
 			XMLGregorianCalendar startAtGc = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 			XmlTypeConverter.addDuration(startAtGc, retryAfter);
-			startAt = XmlTypeConverter.toMillis(startAtGc);
+			return XmlTypeConverter.toMillis(startAtGc);
 		} else {
-			startAt = System.currentTimeMillis() + defaultInterval * 1000L;
+			return System.currentTimeMillis() + defaultInterval * 1000L;
 		}
+	}
+
+	private void reschedule(TaskQuartzImpl task, long startAt) throws JobExecutionException {
 		Trigger trigger = TaskQuartzImplUtil.createTriggerForTask(task, startAt);
 		try {
 			taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
