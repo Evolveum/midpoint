@@ -10,6 +10,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
+import com.evolveum.midpoint.web.session.AuditLogStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
@@ -87,8 +89,20 @@ public class PageAuditLogDetails extends PageBase{
             + ".resolveReferenceName()";
     private IModel<AuditEventRecordType> recordModel;
 
-    public PageAuditLogDetails(final AuditEventRecordType recordType) {
+    public PageAuditLogDetails() {
+        AuditLogStorage storage = getSessionStorage().getAuditLog();
+        initModel(storage.getAuditRecord());
+        initLayout();
+    }
 
+    public PageAuditLogDetails(AuditEventRecordType recordType) {
+        initModel(recordType);
+        initLayout();
+    }
+
+    private void initModel(AuditEventRecordType recordType){
+        AuditLogStorage storage = getSessionStorage().getAuditLog();
+        storage.setAuditRecord(recordType);
         recordModel = new LoadableModel<AuditEventRecordType>(false) {
 
             @Override
@@ -96,10 +110,7 @@ public class PageAuditLogDetails extends PageBase{
                 return recordType;
             }
         };
-
-        initLayout();
     }
-
     private void initLayout(){
         WebMarkupContainer eventPanel = new WebMarkupContainer(ID_EVENT_PANEL);
         eventPanel.setOutputMarkupId(true);
@@ -156,6 +167,8 @@ public class PageAuditLogDetails extends PageBase{
     protected void rowItemClickPerformed(AjaxRequestTarget target,
                                          Item<AuditEventRecordType> item, final IModel<AuditEventRecordType> rowModel){
         recordModel.setObject(rowModel.getObject());
+        AuditLogStorage storage = getSessionStorage().getAuditLog();
+        storage.setAuditRecord(rowModel.getObject());
         WebMarkupContainer eventPanel = (WebMarkupContainer)PageAuditLogDetails.this.get(ID_EVENT_PANEL);
         initAuditLogHistoryPanel(eventPanel);
         initEventPanel(eventPanel);
