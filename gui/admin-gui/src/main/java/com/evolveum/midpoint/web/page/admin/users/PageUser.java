@@ -265,6 +265,11 @@ public class PageUser extends PageAdminFocus<UserType> {
                             }
 
                             @Override
+                            protected String getNoAssignmentsSelectedMessage(){
+                                return getString("AssignmentTablePanel.message.noDelegationsSelected");
+                            }
+
+                            @Override
                             protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
                                                                           String popupId) {
                                 privilegesList = getUserPrivilegesList();
