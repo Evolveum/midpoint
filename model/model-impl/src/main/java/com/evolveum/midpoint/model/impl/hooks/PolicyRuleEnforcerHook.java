@@ -42,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EnforcementPolicyAct
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 /**
  * Hook used to enfore the policy rules that have the enforce action.
@@ -99,7 +98,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		ModelElementContext<F> focusContext = context.getFocusContext();
 		
 		StringBuilder compositeMessageSb = new StringBuilder();
-		enforceRules(compositeMessageSb, focusContext.getPolicyRules());
+		enforceTriggeredRules(compositeMessageSb, focusContext.getPolicyRules());
 		if (compositeMessageSb.length() != 0) {
 			throw new PolicyViolationException(compositeMessageSb.toString());
 		}
@@ -114,14 +113,17 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		}
 		
 		StringBuilder compositeMessageSb = new StringBuilder();
-		evaluatedAssignmentTriple.accept(assignment -> enforceRules(compositeMessageSb, assignment.getPolicyRules()));
-		
+		evaluatedAssignmentTriple.accept(assignment -> {
+			enforceTriggeredRules(compositeMessageSb, assignment.getFocusPolicyRules());
+			enforceTriggeredRules(compositeMessageSb, assignment.getTargetPolicyRules());
+		});
+
 		if (compositeMessageSb.length() != 0) {
 			throw new PolicyViolationException(compositeMessageSb.toString());
 		}
 	}
 
-	private <F extends FocusType> void enforceRules(StringBuilder compositeMessageSb, Collection<EvaluatedPolicyRule> policyRules) {
+	private <F extends FocusType> void enforceTriggeredRules(StringBuilder compositeMessageSb, Collection<EvaluatedPolicyRule> policyRules) {
 		for (EvaluatedPolicyRule policyRule: policyRules) {
 
 			Collection<EvaluatedPolicyRuleTrigger> triggers = policyRule.getTriggers();

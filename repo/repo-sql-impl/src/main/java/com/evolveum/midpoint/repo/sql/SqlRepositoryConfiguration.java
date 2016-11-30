@@ -39,7 +39,7 @@ public class SqlRepositoryConfiguration {
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryConfiguration.class);
 
     enum Database {
-        H2, MYSQL, POSTGRESQL, SQLSERVER, ORACLE
+        H2, MYSQL, POSTGRESQL, SQLSERVER, ORACLE, MARIADB
     }
 
     public static final String PROPERTY_DATABASE = "database";
@@ -78,6 +78,13 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
     public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
+
+    private static final String DRIVER_H2 = Driver.class.getName();
+    private static final String DRIVER_MYSQL = "com.mysql.jdbc.Driver";
+    private static final String DRIVER_MARIADB = "org.mariadb.jdbc.Driver";
+    private static final String DRIVER_SQLSERVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+    private static final String DRIVER_POSTGRESQL = "org.postgresql.Driver";
+    private static final String DRIVER_ORACLE = "oracle.jdbc.OracleDriver";
 
     private String database = Database.H2.name();
 
@@ -165,23 +172,26 @@ public class SqlRepositoryConfiguration {
             hibernateHbm2ddl = "update";
 
             hibernateDialect = H2Dialect.class.getName();
-            driverClassName = Driver.class.getName();
+            driverClassName = DRIVER_H2;
         } else {
             embedded = false;
             hibernateHbm2ddl = "validate";
 
             if (Database.MYSQL.name().equalsIgnoreCase(getDatabase())) {
                 hibernateDialect = MidPointMySQLDialect.class.getName();
-                driverClassName = "com.mysql.jdbc.Driver";
+                driverClassName = DRIVER_MYSQL;
             } else if (Database.POSTGRESQL.name().equalsIgnoreCase(getDatabase())) {
                 hibernateDialect = MidPointPostgreSQLDialect.class.getName();
-                driverClassName = "org.postgresql.Driver";
+                driverClassName = DRIVER_POSTGRESQL;
             } else if (Database.ORACLE.name().equalsIgnoreCase(getDatabase())) {
                 hibernateDialect = Oracle10gDialect.class.getName();
-                driverClassName = "oracle.jdbc.OracleDriver";
+                driverClassName = DRIVER_ORACLE;
             } else if (Database.SQLSERVER.name().equalsIgnoreCase(getDatabase())) {
                 hibernateDialect = UnicodeSQLServer2008Dialect.class.getName();
-                driverClassName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+                driverClassName = DRIVER_SQLSERVER;
+            } else if (Database.MARIADB.name().equalsIgnoreCase(getDatabase())) {
+                hibernateDialect = MidPointMySQLDialect.class.getName();
+                driverClassName = DRIVER_MARIADB;
             }
         }
     }
@@ -192,7 +202,7 @@ public class SqlRepositoryConfiguration {
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
-        } else if (isUsingMySQL()) {
+        } else if (isUsingMySQL() || isUsingMariaDB()) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
@@ -545,36 +555,27 @@ public class SqlRepositoryConfiguration {
     }
 
     public boolean isUsingH2() {
-        if (hibernateDialect == null) {
-            return true;
-        }
-        return isUsingDialect(H2Dialect.class);
+        return DRIVER_H2.equals(driverClassName);
     }
 
     public boolean isUsingOracle() {
-        return isUsingDialect(Oracle10gDialect.class);
+        return DRIVER_ORACLE.equals(driverClassName);
     }
 
     public boolean isUsingMySQL() {
-        return isUsingDialect(MidPointMySQLDialect.class);
+        return DRIVER_MYSQL.equals(driverClassName);
+    }
+
+    public boolean isUsingMariaDB() {
+        return DRIVER_MARIADB.equals(driverClassName);
     }
 
     public boolean isUsingPostgreSQL() {
-        return isUsingDialect(PostgresPlusDialect.class)
-                || isUsingDialect(PostgreSQLDialect.class)
-                || isUsingDialect(MidPointPostgreSQLDialect.class);
+        return DRIVER_POSTGRESQL.equals(driverClassName);
     }
 
     public boolean isUsingSQLServer() {
-        return isUsingDialect(UnicodeSQLServer2008Dialect.class);
-    }
-
-    private boolean isUsingDialect(Class<? extends Dialect> dialect) {
-        if (dialect.getName().equals(hibernateDialect)) {
-            return true;
-        }
-
-        return false;
+        return DRIVER_SQLSERVER.equals(driverClassName);
     }
 
     public void setStopOnOrgClosureStartupFailure(boolean stopOnOrgClosureStartupFailure) {

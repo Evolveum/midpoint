@@ -15,12 +15,13 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="00000001-d34d-b33f-f00d-00000000001b">
-	<name>Role1b</name>
-	<assignment> <!-- metarole 1 'default' -->
+	  oid="00000001-d34d-b33f-f00d-000000000023">
+	<name>Role23</name>
+	<description>Special + security approval (org:special-approver, org:security-approver)</description>
+	<assignment> <!-- metarole-default -->
 		<targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
 	</assignment>
-	<inducement>
-		<targetRef oid="00000001-d34d-b33f-f00d-00000000010b" type="RoleType" />
-	</inducement>
+	<assignment> <!-- metarole-security -->
+		<targetRef oid="00000001-d34d-b33f-f00d-M00000000002" type="RoleType"/>
+	</assignment>
 </role>

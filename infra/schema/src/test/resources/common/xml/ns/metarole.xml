@@ -1,11 +1,11 @@
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,29 +13,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<!--
-
-Explanation for roles structure:
-
-user-assignable roles:
-
-  roles of unspecified type
-  - Visitor
-  - Customer
-
-  roles of type: job
-  - Contractor
-  - Employee
-    - Engineer (induces Employee)
-    - Manager (induces Employee)
-
-metaroles:
-
-  - Generic Metarole:                                   assigned to Visitor and Customer
-    - Job Metarole (induces Generic Metarole):          assigned to Contractor, Employee, Engineer, Manager
-
--->
 
 <role oid="12345678-d34d-b33f-f00d-55555555a020"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -61,7 +38,9 @@ metaroles:
         <policyRule>
             <policyConstraints>
                 <!-- applies to all assignment operations of this metarole-bearer as the target -->
-                <assignment/>
+                <assignment>
+                    <!-- intentionally empty -->
+                </assignment>
             </policyConstraints>
             <policyActions>
                 <approval>
@@ -69,9 +48,6 @@ metaroles:
                 </approval>
             </policyActions>
         </policyRule>
-    </inducement>
-    <inducement id="3">
-        <targetRef oid="12345678-d34d-b33f-f00d-55555555aaaa" type="RoleType"/>
         <order>2</order>
     </inducement>
 </role>

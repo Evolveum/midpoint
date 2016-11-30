@@ -125,9 +125,9 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		}
 
 		for (EvaluatedAssignment<?> newAssignment : evaluatedAssignmentTriple.getPlusSet()) {
-			LOGGER.trace("Assignment to be added: -> {} ({} policy rules)", newAssignment.getTarget(), newAssignment.getPolicyRules().size());
+			LOGGER.trace("Assignment to be added: -> {} ({} 'this target' policy rules)", newAssignment.getTarget(), newAssignment.getThisTargetPolicyRules().size());
 			List<ApprovalPolicyActionType> approvalActions = new ArrayList<>();
-			for (EvaluatedPolicyRule rule : newAssignment.getPolicyRules()) {
+			for (EvaluatedPolicyRule rule : newAssignment.getThisTargetPolicyRules()) {
 				if (rule.getTriggers().isEmpty()) {
 					LOGGER.trace("Skipping rule {} that is present but not triggered", rule.getName());
 					continue;
@@ -147,7 +147,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				}
 			}
 			boolean noExplicitApprovalAction = approvalActions.isEmpty();
-			if (noExplicitApprovalAction) {
+			if (noExplicitApprovalAction
+					&& baseConfigurationHelper.getUseDefaultApprovalPolicyRules(wfConfigurationType) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 				ApprovalPolicyActionType defaultPolicyAction = new ApprovalPolicyActionType(prismContext);
 				defaultPolicyAction.getApproverRelation().add(SchemaConstants.ORG_APPROVER);
 				approvalActions.add(defaultPolicyAction);

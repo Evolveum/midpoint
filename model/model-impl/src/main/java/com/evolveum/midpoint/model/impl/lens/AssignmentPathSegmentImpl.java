@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -30,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  * @author semancik
  *
  */
-public class AssignmentPathSegment implements DebugDumpable {
+public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private ObjectType target;
@@ -39,18 +41,28 @@ public class AssignmentPathSegment implements DebugDumpable {
 	private EvaluationOrder evaluationOrder;
 	private ObjectType varThisObject;
 	private Boolean isMatchingOrder = null;
+	private Boolean isMatchingOrderPlusOne = null;
 	private boolean processMembership = false;
+	private final boolean isAssignment;
 	
-	AssignmentPathSegment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, ObjectType target) {
+	AssignmentPathSegmentImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
+	                          ObjectType target, boolean isAssignment) {
 		super();
 		this.assignmentIdi = assignmentIdi;
 		this.target = target;
+		this.isAssignment = isAssignment;
+	}
+
+	@Override
+	public boolean isAssignment() {
+		return isAssignment;
 	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
 		return assignmentIdi;
 	}
 
+	@Override
 	public AssignmentType getAssignment() {
 		if (assignmentIdi == null || assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
 			return null;
@@ -62,6 +74,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.assignmentIdi = assignmentIdi;
 	}
 
+	@Override
 	public ObjectType getTarget() {
 		return target;
 	}
@@ -70,6 +83,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.target = target;
 	}
 	
+	@Override
 	public ObjectType getSource() {
 		return source;
 	}
@@ -86,6 +100,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.validityOverride = validityOverride;
 	}
 
+	@Override
 	public EvaluationOrder getEvaluationOrder() {
 		return evaluationOrder;
 	}
@@ -94,6 +109,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.evaluationOrder = evaluationOrder;
 	}
 
+	@Override
 	public ObjectType getOrderOneObject() {
 		return varThisObject;
 	}
@@ -112,32 +128,39 @@ public class AssignmentPathSegment implements DebugDumpable {
 
 	public boolean isMatchingOrder() {
 		if (isMatchingOrder == null) {
-			isMatchingOrder = computeMatchingOrder();
+			isMatchingOrder = computeMatchingOrder(0);
 		}
 		return isMatchingOrder;
 	}
 	
-	private boolean computeMatchingOrder() {
+	public boolean isMatchingOrderPlusOne() {
+		if (isMatchingOrderPlusOne == null) {
+			isMatchingOrderPlusOne = computeMatchingOrder(1);
+		}
+		return isMatchingOrderPlusOne;
+	}
+
+	private boolean computeMatchingOrder(int offset) {
 		AssignmentType assignmentType = getAssignment();
 		if (assignmentType.getOrder() == null && assignmentType.getOrderConstraint().isEmpty()) {
 			// compatibility
-			return evaluationOrder.getSummaryOrder() == 1;
+			return evaluationOrder.getSummaryOrder() - offset == 1;
 		}
 		if (assignmentType.getOrder() != null) {
-			if (evaluationOrder.getSummaryOrder() != assignmentType.getOrder()) {
+			if (evaluationOrder.getSummaryOrder() - offset != assignmentType.getOrder()) {
 				return false;
 			}
 		}
 		for (OrderConstraintsType orderConstraint: assignmentType.getOrderConstraint()) {
-			if (!isMatchingConstraint(orderConstraint)) {
+			if (!isMatchingConstraint(orderConstraint, offset)) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private boolean isMatchingConstraint(OrderConstraintsType orderConstraint) {
-		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation());
+	private boolean isMatchingConstraint(OrderConstraintsType orderConstraint, int offset) {
+		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation()) - offset;
 		if (orderConstraint.getOrder() != null) {
 			return orderConstraint.getOrder() == evaluationOrderInt;
 		} else {
@@ -171,7 +194,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		AssignmentPathSegment other = (AssignmentPathSegment) obj;
+		AssignmentPathSegmentImpl other = (AssignmentPathSegmentImpl) obj;
 		if (assignmentIdi == null) {
 			if (other.assignmentIdi != null)
 				return false;

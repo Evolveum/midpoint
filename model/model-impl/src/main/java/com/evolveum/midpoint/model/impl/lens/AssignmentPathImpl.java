@@ -18,41 +18,43 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
+import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * @author semancik
  *
  */
-public class AssignmentPath implements DebugDumpable {
+public class AssignmentPathImpl implements AssignmentPath {
 	
-	private List<AssignmentPathSegment> segments;
+	private List<AssignmentPathSegmentImpl> segments;
 
-	public AssignmentPath() {
+	public AssignmentPathImpl() {
 		segments = createNewSegments();
 	}
 	
-	AssignmentPath(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
+	AssignmentPathImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		this.segments = createNewSegments();
-		segments.add(new AssignmentPathSegment(assignmentIdi, null));
+		segments.add(new AssignmentPathSegmentImpl(assignmentIdi, null, true));
 	}
 
-	private List<AssignmentPathSegment> createNewSegments() {
-		return new ArrayList<AssignmentPathSegment>();
+	private List<AssignmentPathSegmentImpl> createNewSegments() {
+		return new ArrayList<>();
 	}
 
-	public List<AssignmentPathSegment> getSegments() {
+	@Override
+	public List<AssignmentPathSegmentImpl> getSegments() {
 		return segments;
 	}
 	
-	public void add(AssignmentPathSegment segment) {
+	public void add(AssignmentPathSegmentImpl segment) {
 		segments.add(segment);
 	}
 	
@@ -61,24 +63,29 @@ public class AssignmentPath implements DebugDumpable {
 	}
 
 	
-	public AssignmentPathSegment getFirstAssignmentSegment() {
+	@Override
+	public AssignmentPathSegmentImpl getFirstAssignmentSegment() {
 		return segments.get(0);
 	}
 	
+	@Override
 	public boolean isEmpty() {
 		return segments.isEmpty();
 	}
 
+	@Override
 	public int size() { return segments.size(); }
 
+	@Override
 	public EvaluationOrder getEvaluationOrder() {
 		if (isEmpty()) {
-			return EvaluationOrder.ZERO;
+			return EvaluationOrderImpl.ZERO;
 		} else {
 			return segments.get(segments.size()-1).getEvaluationOrder();
 		}
 	}
 	
+	@Override
 	public AssignmentPathSegment last() {
 		if (isEmpty()) {
 			return null;
@@ -87,6 +94,7 @@ public class AssignmentPath implements DebugDumpable {
 		}
 	}
 	
+	@Override
 	public boolean containsTarget(ObjectType target) {
 		if (target == null) {
 			return false;
@@ -111,8 +119,8 @@ public class AssignmentPath implements DebugDumpable {
 	/**
 	 * Shallow clone.
 	 */
-	public AssignmentPath clone() {
-		AssignmentPath clone = new AssignmentPath();
+	public AssignmentPathImpl clone() {
+		AssignmentPathImpl clone = new AssignmentPathImpl();
 		clone.segments.addAll(this.segments);
 		return clone;
 	}

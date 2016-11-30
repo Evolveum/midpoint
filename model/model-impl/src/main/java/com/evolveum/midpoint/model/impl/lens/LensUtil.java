@@ -22,13 +22,16 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
+import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.expression.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -54,13 +57,11 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -69,12 +70,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -1018,15 +1017,15 @@ public class LensUtil {
 		}
 	}
 
-	public static AssignmentPathVariables computeAssignmentPathVariables(AssignmentPath assignmentPath) throws SchemaException {
+	public static AssignmentPathVariables computeAssignmentPathVariables(AssignmentPathImpl assignmentPath) throws SchemaException {
     	if (assignmentPath == null || assignmentPath.isEmpty()) {
     		return null;
     	}
     	AssignmentPathVariables vars = new AssignmentPathVariables();
     	
-    	Iterator<AssignmentPathSegment> iterator = assignmentPath.getSegments().iterator();
+    	Iterator<AssignmentPathSegmentImpl> iterator = assignmentPath.getSegments().iterator();
 		while (iterator.hasNext()) {
-			AssignmentPathSegment segment = iterator.next();
+			AssignmentPathSegmentImpl segment = iterator.next();
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> segmentAssignmentIdi = segment.getAssignmentIdi();
 
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignmentIdi;
@@ -1058,7 +1057,7 @@ public class LensUtil {
 			}
 		}
 		
-		AssignmentPathSegment focusAssignmentSegment = assignmentPath.getFirstAssignmentSegment();
+		AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.getFirstAssignmentSegment();
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment = focusAssignmentSegment.getAssignmentIdi().clone();
 		vars.setFocusAssignment(focusAssignment);
 		
@@ -1314,4 +1313,26 @@ public class LensUtil {
 	public static boolean isDelegationRelation(QName relation) {
 		return DeputyUtils.isDelegationRelation(relation);
 	}
+
+	public static void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations) throws PolicyViolationException {
+
+		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
+
+		if (rule == null) {
+			// legacy functionality
+			if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+				throw new PolicyViolationException(trigger.getMessage());
+			}
+
+		} else {
+
+			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
+			String policySituation = rule.getPolicySituation();
+			if (policySituation != null) {
+				policySituations.add(policySituation);
+			}
+		}
+
+	}
+
 }

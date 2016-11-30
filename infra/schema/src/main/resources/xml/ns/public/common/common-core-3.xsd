@@ -3193,7 +3193,7 @@
    			<xsd:element name="orderMin" type="xsd:string" minOccurs="0" maxOccurs="1">
 	   			<xsd:annotation>
     				<xsd:documentation>
-    					Minumim matching order. Applicable only if "order" element is not set.
+    					Minimum matching order. Applicable only if "order" element is not set.
     					Numeric value or string "unbounded".
     				</xsd:documentation>
     			</xsd:annotation>
@@ -3201,7 +3201,7 @@
    			<xsd:element name="orderMax" type="xsd:string" minOccurs="0" maxOccurs="1">
 	   			<xsd:annotation>
     				<xsd:documentation>
-    					Minumim matching order. Applicable only if "order" element is not set.
+    					Maximum matching order. Applicable only if "order" element is not set.
     					Numeric value or string "unbounded".
     				</xsd:documentation>
     			</xsd:annotation>
@@ -8499,8 +8499,8 @@
     <xsd:complexType name="PolicyConstraintsType">
     	<xsd:annotation>
     		<xsd:documentation>
-    			Set of governance, risk management, compliance (GRC) and similar policy contraints
-				that influence the identity model. These constraint act as triggers for the rules.
+    			Set of governance, risk management, compliance (GRC) and similar policy constraints
+				that influence the identity model. These constraints act as triggers for the rules.
     		</xsd:documentation>
     		<xsd:appinfo>
                 <a:container/>

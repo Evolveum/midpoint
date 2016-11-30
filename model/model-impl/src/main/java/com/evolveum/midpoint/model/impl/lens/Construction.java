@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -92,7 +93,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  */
 public class Construction<F extends FocusType> implements DebugDumpable, Serializable {
 
-	private AssignmentPath assignmentPath;
+	private AssignmentPathImpl assignmentPath;
 	private ConstructionType constructionType;
 	private ObjectType source;
 	private ObjectType orderOneObject;
@@ -317,7 +318,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		return assignmentPath;
 	}
 
-	public void setAssignmentPath(AssignmentPath assignmentPath) {
+	public void setAssignmentPath(AssignmentPathImpl assignmentPath) {
 		this.assignmentPath = assignmentPath;
 	}
 

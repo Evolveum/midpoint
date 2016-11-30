@@ -415,7 +415,7 @@ public abstract class TestCompare {
 		
 	}
 	
-	@Test
+	@Test(enabled = false)				// normalization no longer removes empty values
 	public void testEqualsBrokenAssignmentActivation() throws Exception {
 		System.out.println("===[ testEqualsReferenceValues ]===");
 		

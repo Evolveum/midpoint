@@ -14,17 +14,11 @@
   ~ limitations under the License.
   -->
 
-<role oid="12345678-d34d-b33f-f00d-55555555a005"
-	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Visitor</name>
-    <description>Just a random visitor</description>
-	<extension>
-		<ext:resourceName>Dummy Resource</ext:resourceName>
-		<ext:resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-	</extension>
-    <assignment id="1">
-        <targetRef oid="12345678-d34d-b33f-f00d-55555555a020" type="RoleType"/>     <!-- generic metarole -->
-    </assignment>
-    <requestable>true</requestable>
+<role oid="12345678-d34d-b33f-f00d-55555555aaaa"
+xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Auth</name>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#general-auth</action>
+    </authorization>
 </role>

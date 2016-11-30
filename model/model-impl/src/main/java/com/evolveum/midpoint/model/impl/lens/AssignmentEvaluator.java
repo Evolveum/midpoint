@@ -23,7 +23,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
+import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
@@ -209,8 +212,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assertSource(source, assignmentIdi);
 		EvaluatedAssignmentImpl<F> evalAssignment = new EvaluatedAssignmentImpl<>();
 		evalAssignment.setAssignmentIdi(assignmentIdi);
-		AssignmentPath assignmentPath = new AssignmentPath();
-		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentIdi, null);
+		AssignmentPathImpl assignmentPath = new AssignmentPathImpl();
+		AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl(assignmentIdi, null, true);
 		assignmentPathSegment.setSource(source);
 		assignmentPathSegment.setEvaluationOrder(getInitialEvaluationOrder(assignmentIdi, evaluateOld));
 		assignmentPathSegment.setValidityOverride(true);
@@ -232,12 +235,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (assignmentType.getTargetRef() != null) {
 			relation = assignmentType.getTargetRef().getRelation();
 		}
-		return EvaluationOrder.ZERO.advance(relation);
+		return EvaluationOrderImpl.ZERO.advance(relation);
 	}
 
-	private <O extends ObjectType> void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private <O extends ObjectType> void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
 		
 		LOGGER.trace("Evaluate assignment {} (eval constr: {}, mode: {})", assignmentPath, assignmentPathSegment.isMatchingOrder(),
@@ -281,9 +284,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 	 *  Continues with assignment evaluation: Either there is a non-null (resolved) target, passed in "target" parameter,
 	 *  or traditional options stored in assignmentType (construction or focus mappings). TargetRef from assignmentType is ignored.
  	 */
-	private <O extends ObjectType> void evaluateAssignmentWithResolvedTarget(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment,
+	private <O extends ObjectType> void evaluateAssignmentWithResolvedTarget(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, AssignmentType assignmentType, PrismObject<O> target, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			AssignmentPathImpl assignmentPath, AssignmentType assignmentType, PrismObject<O> target, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		if (target != null && evalAssignment.getTarget() == null) {
 			evalAssignment.setTarget(target);
 		}
@@ -346,10 +349,17 @@ public class AssignmentEvaluator<F extends FocusType> {
 						sourceDescription, assignmentPath, task, result);
 				
 			} else if (assignmentType.getPolicyRule() != null) {
-				
-				evaluatePolicyRule(evalAssignment, assignmentPathSegment, evaluateOld, mode,
-						isParentValid && isValid, source, sourceDescription, 
-						assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+
+				if (evaluateConstructions && assignmentPathSegment.isMatchingOrder()) {
+					evaluatePolicyRule(evalAssignment, true, assignmentPathSegment, evaluateOld, mode,
+							isParentValid && isValid, source, sourceDescription,
+							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+				}
+				if (evaluateConstructions && assignmentPathSegment.isMatchingOrderPlusOne()) {
+					evaluatePolicyRule(evalAssignment, false, assignmentPathSegment, evaluateOld, mode,
+							isParentValid && isValid, source, sourceDescription,
+							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+				}
 				
 			} else {
 				// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
@@ -366,9 +376,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void prepareConstructionEvaluation(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void prepareConstructionEvaluation(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			AssignmentPathImpl assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
 		
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
@@ -404,9 +414,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private void evaluateFocusMappings(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateFocusMappings(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			AssignmentPathImpl assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
 		
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
@@ -428,22 +438,46 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private void evaluatePolicyRule(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluatePolicyRule(EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean focusRule,
+			AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			AssignmentPathImpl assignmentPath, ObjectType orderOneObject, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
 		
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
 		PolicyRuleType policyRuleType = assignmentTypeNew.getPolicyRule();
 		
-		LOGGER.trace("Evaluating policy rule '{}' in {}", policyRuleType.getName(), source);
+		LOGGER.trace("Evaluating {} policy rule '{}' in {}", focusRule ? "focus" : "target", policyRuleType.getName(), source);
 		
-		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
+		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath.clone());
 
-		evaluatedAssignment.addPolicyRule(policyRule);
+		if (focusRule) {
+			evaluatedAssignment.addFocusPolicyRule(policyRule);
+		} else {
+			evaluatedAssignment.addTargetPolicyRule(policyRule);
+			if (appliesDirectly(policyRule, evaluatedAssignment)) {
+				evaluatedAssignment.addThisTargetPolicyRule(policyRule);
+			}
+		}
 	}
 
-	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private boolean appliesDirectly(EvaluatedPolicyRuleImpl policyRule, EvaluatedAssignmentImpl<F> evalAssignment) {
+		AssignmentPath assignmentPath = policyRule.getAssignmentPath();
+		if (assignmentPath.isEmpty()) {
+			throw new IllegalStateException("Assignment path for " + policyRule + " is empty; in " + evalAssignment);
+		}
+		if (assignmentPath.size() == 1) {
+			//return true;        // the rule is part of the first assignment target object
+			throw new IllegalStateException("Assignment path for " + policyRule + " is of size 1; in " + evalAssignment);
+		}
+		// TODO think out this again
+		// The basic idea is that if we get the rule by an inducement, it does NOT apply directly to
+		// the assignment in question. But we should elaborate this later.
+		return assignmentPath.getSegments().get(1).isAssignment();
+	}
+
+	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		String oid = targetRef.getOid();
 		
@@ -488,7 +522,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 	}
 	
-	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> clazz, AssignmentPathSegment assignmentPathSegment, ObjectType source, SearchFilterType filter, String sourceDescription, AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> clazz, AssignmentPathSegment assignmentPathSegment, ObjectType source, SearchFilterType filter, String sourceDescription, AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 //		SearchFilterType filter = targetRef.getFilter();
 		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
 		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
@@ -524,9 +558,9 @@ public class AssignmentEvaluator<F extends FocusType> {
         
 	}
 		
-	private boolean evaluateAssignmentTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateAssignmentTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, FocusType targetType, ObjectType source, QName relation, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
 		
 		assignmentPathSegment.setTarget(targetType);
@@ -547,7 +581,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		if (!LensUtil.isValid(targetType, now, activationComputer)) {
 			LOGGER.trace("Skipping evaluation of " + targetType + " because it is not valid");
-			return false;
+			return;
 		}
 		
 		if (targetType instanceof AbstractRoleType) {
@@ -562,7 +596,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
 					LOGGER.trace("Skipping evaluation of "+targetType+" because of condition result ({} -> {}: {})",
 							condOld, condNew, condMode);
-					return false;
+					return;
 				}
 				PlusMinusZero origMode = mode;
 				mode = PlusMinusZero.compute(mode, condMode);
@@ -636,28 +670,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 				ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
 				roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
 				roleInducementIdi.recompute();
-				AssignmentPathSegment subAssignmentPathSegment = new AssignmentPathSegment(roleInducementIdi, null);
+				AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(roleInducementIdi, null, false);
 				subAssignmentPathSegment.setSource(targetType);
 				subAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
 				subAssignmentPathSegment.setOrderOneObject(orderOneObject);
-				subAssignmentPathSegment.setProcessMembership(true);
+				subAssignmentPathSegment.setProcessMembership(subAssignmentPathSegment.isMatchingOrder());
 
-				if (subAssignmentPathSegment.isMatchingOrder()) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("E({}): evaluate inducement({}) {} in {}",
-								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement), 
-								FocusTypeUtil.dumpAssignment(roleInducement), targetType);
-					}
-					String subSourceDescription = targetType+" in "+sourceDescription;
-					evaluateAssignment(assignment, subAssignmentPathSegment, evaluateOld, mode, isValid, targetType, subSourceDescription, assignmentPath, task, result);
-
-				} else {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("E({}): NOT evaluate inducement({}) {} in {}",
-								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement), 
-								FocusTypeUtil.dumpAssignment(roleInducement), targetType);
-					}
+				// Originally we executed the following only if isMatchingOrder. However, sometimes we have to look even into
+				// inducements with non-matching order: for example because we need to extract target-related policy rules
+				// (these are stored with order of one less than orders for focus-related policy rules).
+				//
+				// We need to make sure NOT to extract anything other from such inducements. That's why we set e.g.
+				// processMembership attribute to false for these inducements.
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("E({}): evaluate inducement({}) {} in {}",
+							evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement),
+							FocusTypeUtil.dumpAssignment(roleInducement), targetType);
 				}
+				String subSourceDescription = targetType+" in "+sourceDescription;
+				evaluateAssignment(assignment, subAssignmentPathSegment, evaluateOld, mode, isValid, targetType, subSourceDescription, assignmentPath, task, result);
 			}
 		}
 		
@@ -679,7 +710,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
 			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
 			roleAssignmentIdi.recompute();
-			AssignmentPathSegment subAssignmentPathSegment = new AssignmentPathSegment(roleAssignmentIdi, null);
+			AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(roleAssignmentIdi, null, true);
 			subAssignmentPathSegment.setSource(targetType);
 			String subSourceDescription = targetType+" in "+sourceDescription;
 			QName subrelation = null;
@@ -712,9 +743,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 				assignment.addLegacyPolicyConstraints(policyConstraints);
 			}
 		}
-		
-		return mode != PlusMinusZero.MINUS;
-		
 	}
 
 	private <O extends ObjectType> boolean containsOtherOrgs(AssignmentPath assignmentPath, FocusType thisOrg) {

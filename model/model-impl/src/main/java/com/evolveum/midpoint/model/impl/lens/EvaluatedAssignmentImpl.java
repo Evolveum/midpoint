@@ -46,16 +46,15 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Evaluated assignment that contains all constructions and authorizations from the assignment 
@@ -76,7 +75,12 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
 	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
-	private Collection<EvaluatedPolicyRule> policyRules;
+	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules;	// rules related to the focus itself
+	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules;	// rules related to the target of this assignment
+	// rules directly related to the target of this assignment - should be a subset of targetPolicyRules
+	// (this means that if a reference is in thisTargetPolicyRules, then the same reference should
+	// be in targetPolicyRules)
+	@NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules;
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -93,7 +97,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
 		adminGuiConfigurations = new ArrayList<>(); 
-		policyRules = new ArrayList<>();
+		focusPolicyRules = new ArrayList<>();
+		targetPolicyRules = new ArrayList<>();
+		thisTargetPolicyRules = new ArrayList<>();
 	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
@@ -304,20 +310,57 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return presentInOldObject;
 	}
 
-	@Override
-	public Collection<EvaluatedPolicyRule> getPolicyRules() {
-		return policyRules;
+	@NotNull
+	public Collection<EvaluatedPolicyRule> getFocusPolicyRules() {
+		return focusPolicyRules;
 	}
 	
-	public void addPolicyRule(EvaluatedPolicyRule policyRule) {
-		policyRules.add(policyRule);
+	public void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
+		focusPolicyRules.add(policyRule);
 	}
-	
+
+	@NotNull
+	public Collection<EvaluatedPolicyRule> getTargetPolicyRules() {
+		return targetPolicyRules;
+	}
+
+	public void addTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+		targetPolicyRules.add(policyRule);
+	}
+
+	@NotNull
+	public Collection<EvaluatedPolicyRule> getThisTargetPolicyRules() {
+		return thisTargetPolicyRules;
+	}
+
+	public void addThisTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+		thisTargetPolicyRules.add(policyRule);
+	}
+
 	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
+		if (!constraints.getModification().isEmpty()) {
+			PolicyConstraintsType focusConstraints = constraints.clone();
+			focusConstraints.getAssignment().clear();
+			focusConstraints.getMaxAssignees().clear();
+			focusConstraints.getMinAssignees().clear();
+			focusConstraints.getExclusion().clear();
+			focusPolicyRules.add(toEvaluatedPolicyRule(focusConstraints));
+		}
+		if (!constraints.getMinAssignees().isEmpty() || !constraints.getMaxAssignees().isEmpty()
+				|| !constraints.getAssignment().isEmpty() || !constraints.getExclusion().isEmpty()) {
+			PolicyConstraintsType targetConstraints = constraints.clone();
+			targetConstraints.getModification().clear();
+			EvaluatedPolicyRule evaluatedPolicyRule = toEvaluatedPolicyRule(targetConstraints);
+			targetPolicyRules.add(evaluatedPolicyRule);
+			thisTargetPolicyRules.add(evaluatedPolicyRule);
+		}
+	}
+
+	@NotNull
+	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
-		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
-		policyRules.add(policyRule);
+		return new EvaluatedPolicyRuleImpl(policyRuleType, null);
 	}
 
 	@Override
@@ -327,24 +370,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-
-		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
-		
-		if (rule == null) {
-			// legacy functionality
-			if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-				throw new PolicyViolationException(trigger.getMessage());
-			}
-			
-		} else {
-
-			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
-			String policySituation = rule.getPolicySituation();
-			if (policySituation != null) {
-				policySituations.add(policySituation);
-			}
-		}
-		
+		LensUtil.triggerConstraint(rule, trigger, policySituations);
 	}
 
 	@Override
@@ -396,7 +422,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
 		}
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "policyRules", policyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules", focusPolicyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "targetPolicyRules", targetPolicyRules, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
 		return sb.toString();
@@ -404,6 +431,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+policyRules.size()+" rules)";
+		return "EvaluatedAssignment(constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
+				.size()+" rules)";
 	}
 }

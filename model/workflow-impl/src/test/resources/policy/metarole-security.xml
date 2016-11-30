@@ -15,12 +15,27 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="00000001-d34d-b33f-f00d-00000000001b">
-	<name>Role1b</name>
-	<assignment> <!-- metarole 1 'default' -->
-		<targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
-	</assignment>
+	  oid="00000001-d34d-b33f-f00d-M00000000002">
+	<name>Metarole 'security'</name>
+	<description>Marks really security-sensitive roles</description>
 	<inducement>
-		<targetRef oid="00000001-d34d-b33f-f00d-00000000010b" type="RoleType" />
+		<policyRule>
+			<policyConstraints>
+				<assignment/>				<!-- applies to all assignment operations of this metarole-bearer as the target -->
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>2</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<level>
+							<approverRelation>security-approver</approverRelation>
+							<approverRef oid="00000001-d34d-b33f-f00d-SECAPP000001" type="UserType"/>
+						</level>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
 	</inducement>
 </role>

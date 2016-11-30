@@ -401,24 +401,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	}
 	
 	public void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-
-		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
-		
-		if (rule == null) {
-			// legacy functionality
-			if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-				throw new PolicyViolationException(trigger.getMessage());
-			}
-			
-		} else {
-
-			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
-			String policySituation = rule.getPolicySituation();
-			if (policySituation != null) {
-				policySituations.add(policySituation);
-			}
-		}
-		
+    	LensUtil.triggerConstraint(rule, trigger, policySituations);
 	}
 
 	public Collection<String> getPolicySituations() {
