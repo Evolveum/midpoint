@@ -239,7 +239,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         String displayName = "";
         if (delegationUser != null) {
             if (delegationUser.getFullName() != null && StringUtils.isNotEmpty(delegationUser.getFullName().getOrig())) {
-                displayName = delegationUser.getFullName().getOrig() + "(" + delegationUser.getName().getOrig() + ")";
+                displayName = delegationUser.getFullName().getOrig() + " (" + delegationUser.getName().getOrig() + ")";
             } else {
                 displayName = delegationUser.getName().getOrig();
             }
