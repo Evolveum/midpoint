@@ -573,6 +573,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		SQLQuery query = session.createSQLQuery(queryString);
 		query.setParameter(0, CLEANUP_AUDIT_BATCH_SIZE);
 		query.setParameter(1, recordsToKeep);
+		if (getConfiguration().isUsingSQLServer()) {
+			// this is because generated SQL contains recordToKeep parameter twice in generated SQL query
+			query.setParameter(2, recordsToKeep);
+		}
 
 		int insertCount = query.executeUpdate();
 		LOGGER.trace("Inserted {} audit record ids ready for deleting.", new Object[] { insertCount });

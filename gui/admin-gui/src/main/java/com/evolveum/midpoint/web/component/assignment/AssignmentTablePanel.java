@@ -238,7 +238,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							deleteAssignmentPerformed(target);
+							AssignmentTablePanel.this.deleteAssignmentPerformed(target);
 						}
 					});
 			items.add(item);
@@ -279,12 +279,16 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		List<AssignmentEditorDto> selected = getSelectedAssignments();
 
 		if (selected.isEmpty()) {
-			warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
+			warn(getNoAssignmentsSelectedMessage());
 			target.add(getPageBase().getFeedbackPanel());
 			return;
 		}
 
 		getPageBase().showMainPopup(getDeleteAssignmentPopupContent(), target);
+	}
+
+	protected String getNoAssignmentsSelectedMessage(){
+		return getString("AssignmentTablePanel.message.noAssignmentSelected");
 	}
 
 	private Popupable getDeleteAssignmentPopupContent() {
@@ -335,7 +339,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		}
 		getPageBase().hideMainPopup(target);
 		if (newAssignments.isEmpty()) {
-			warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
+			warn(getNoAssignmentsSelectedMessage());
 			target.add(getPageBase().getFeedbackPanel());
 			return;
 		}
