@@ -353,7 +353,9 @@ public class PageResource extends PageAdminResources {
 		}
 
         final TestConnectionResultPanel testConnectionPanel =
-                new TestConnectionResultPanel(getMainPopupBodyId(), new ListModel<>(new ArrayList<OpResult>()), getPage(), true) {
+                new TestConnectionResultPanel(getMainPopupBodyId(),
+						new ListModel<>(new ArrayList<OpResult>()), getPage(), true) {
+
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -363,8 +365,10 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     protected void initOnFocusBehavior() {
-                        setOnFocusBehavior(new AjaxEventBehavior("onfocus") {
+                        setOnFocusBehavior(new AjaxEventBehavior("focus") {
+
                         	private static final long serialVersionUID = 1L;
+
                             @Override
                             protected void onEvent(AjaxRequestTarget target) {
                                 removeOnFocusBehavior(getOkButton());

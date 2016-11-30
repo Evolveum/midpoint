@@ -1,0 +1,30 @@
+<search>
+    <type>UserType</type>
+    <searchFilter>
+        <equal>
+            <matching>polyStringNorm</matching>
+            <path>name</path>
+            <value>boss1</value>
+        </equal>
+    </searchFilter>
+    <action>
+        <type>modify</type>
+        <parameter>
+          <name>delta</name>
+          <value>
+            <itemDelta>
+              <modificationType>add</modificationType>
+              <path>assignment</path>
+              <value>
+                  <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+                  <activation>
+                     <effectiveStatus>enabled</effectiveStatus>
+                     <validFrom>2016-11-30T00:00:00.000+01:00</validFrom>
+                     <validTo>2016-12-28T00:00:00.000+01:00</validTo>
+                  </activation>
+              </value>
+            </itemDelta>
+          </value>
+        </parameter>
+    </action>
+</search>

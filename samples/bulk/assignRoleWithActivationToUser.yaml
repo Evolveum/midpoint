@@ -1,0 +1,24 @@
+---
+search: 
+ type: UserType
+ searchFilter: 
+  equal: 
+   matching: polyStringNorm
+   path: name
+   value: "boss1"
+ action: 
+  type: modify
+  parameter: 
+   name: delta
+   value: 
+    itemDelta: 
+     modificationType: add
+     path: assignment
+     value: 
+      targetRef: 
+       oid: "00000000-0000-0000-0000-00000000000a"
+       type: RoleType
+      activation: 
+       effectiveStatus: enabled
+       validFrom: "2016-11-30T00:00:00.000+01:00"
+       validTo: "2016-12-28T00:00:00.000+01:00"
