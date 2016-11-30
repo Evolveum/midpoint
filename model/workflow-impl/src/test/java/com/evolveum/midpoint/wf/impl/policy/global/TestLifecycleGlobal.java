@@ -72,7 +72,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		ruleAll.setPolicyConstraints(constraintsAll);
 		PolicyActionsType actionsAll = new PolicyActionsType(prismContext);
 		ApprovalPolicyActionType approvalActionAll = new ApprovalPolicyActionType(prismContext);
-		approvalActionAll.getApproverRelation().add(new QName("owner"));		// intentionally wrong (tests should fail with this setting)
+		approvalActionAll.getApproverRelation().add(new QName("owner"));		// intentionally no namespace
 		actionsAll.setApproval(approvalActionAll);
 		ruleAll.setFocusSelector(focusSelector.clone());
 		ruleAll.setPolicyActions(actionsAll);
@@ -85,10 +85,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		ruleAdd.setPolicyConstraints(constraintsAdd);
 		PolicyActionsType actionsAdd = new PolicyActionsType(prismContext);
 		ApprovalPolicyActionType approvalActionAdd = new ApprovalPolicyActionType(prismContext);
-		ApprovalSchemaType schemaAdd = new ApprovalSchemaType(prismContext);
-		schemaAdd.getLevel().add(new ApprovalLevelType(prismContext));
-		schemaAdd.getLevel().get(0).getApproverRef().add(createObjectRef(userLead1Oid, USER));
-		approvalActionAdd.setApprovalSchema(schemaAdd);
+		approvalActionAdd.getApproverRef().add(createObjectRef(userLead1Oid, USER));
 		actionsAdd.setApproval(approvalActionAdd);
 		ruleAdd.setFocusSelector(focusSelector.clone());
 		ruleAdd.setPolicyActions(actionsAdd);
