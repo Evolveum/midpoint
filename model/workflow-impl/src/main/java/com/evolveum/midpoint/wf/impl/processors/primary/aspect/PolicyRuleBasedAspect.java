@@ -328,9 +328,11 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			@Nullable List<ObjectReferenceType> additionalReviewers) {
 		if (action.getApprovalSchema() != null) {
 			approvalSchema = approvalSchemaHelper.mergeIntoSchema(approvalSchema, action.getApprovalSchema());
-		} else if (!action.getApproverExpression().isEmpty() || action.getAutomaticallyApproved() != null || !CollectionUtils.isEmpty(additionalReviewers)) {
+		} else if (!action.getApproverRef().isEmpty() || !action.getApproverExpression().isEmpty()
+				|| action.getAutomaticallyApproved() != null || !CollectionUtils.isEmpty(additionalReviewers)) {
 			approvalSchema = approvalSchemaHelper
-					.mergeIntoSchema(approvalSchema, action.getApproverExpression(), action.getAutomaticallyApproved(), additionalReviewers);
+					.mergeIntoSchema(approvalSchema, action.getApproverRef(), action.getApproverExpression(),
+							action.getAutomaticallyApproved(), additionalReviewers);
 		}
 		return approvalSchema;
 	}

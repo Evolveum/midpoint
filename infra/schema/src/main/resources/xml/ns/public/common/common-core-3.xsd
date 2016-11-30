@@ -8964,13 +8964,23 @@
 										</xsd:documentation>
 									</xsd:annotation>
 								</xsd:element>
+								<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+									<xsd:annotation>
+										<xsd:documentation>
+											<p>
+												Direct enumeration of the approvers to be used.
+												May be used with approverRelation and approverExpression element(s).
+											</p>
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:element>
 								<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
 									<xsd:annotation>
 										<xsd:documentation>
 											<p>
 												Expression(s) that yield approvers to be used. If specified, the expression(s) are evaluated and
 												the result is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
-												May be used with approverRelation element(s).
+												May be used with approverRelation and approverRef element(s).
 											</p>
 										</xsd:documentation>
 									</xsd:annotation>

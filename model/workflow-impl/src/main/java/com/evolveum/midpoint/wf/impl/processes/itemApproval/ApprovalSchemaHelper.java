@@ -79,8 +79,11 @@ public class ApprovalSchemaHelper {
         }
     }
 
-	public ApprovalSchemaType mergeIntoSchema(ApprovalSchemaType existing, @NotNull List<ExpressionType> approverExpressionList,
-			ExpressionType automaticallyApproved, @Nullable List<ObjectReferenceType> additionalReviewers) {
+	public ApprovalSchemaType mergeIntoSchema(ApprovalSchemaType existing,
+            @NotNull List<ObjectReferenceType> approverRefList,
+            @NotNull List<ExpressionType> approverExpressionList,
+			ExpressionType automaticallyApproved,
+            @Nullable List<ObjectReferenceType> additionalApprovers) {
         if (existing == null) {
             existing = new ApprovalSchemaType(prismContext);
         }
@@ -88,8 +91,9 @@ public class ApprovalSchemaHelper {
 
         ApprovalLevelType level = new ApprovalLevelType(prismContext);
         level.setOrder(maxOrderExisting + 1);
-        if (additionalReviewers != null) {
-            level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(additionalReviewers));
+        level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approverRefList));
+        if (additionalApprovers != null) {
+            level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(additionalApprovers));
         }
         level.getApproverExpression().addAll(approverExpressionList);
         level.setAutomaticallyApproved(automaticallyApproved);
