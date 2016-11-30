@@ -110,7 +110,7 @@ public class PageBulkAction extends PageAdminConfiguration {
 
         ScriptingExpressionType expression = null;
         try {
-            Object parsed = getPrismContext().parserFor(bulkActionDto.getScript()).xml().parseRealValue();
+            Object parsed = getPrismContext().parserFor(bulkActionDto.getScript()).parseRealValue();
             if (parsed == null) {
                 result.recordFatalError("No bulk action object was provided.");
             }
@@ -120,7 +120,7 @@ public class PageBulkAction extends PageAdminConfiguration {
             if (parsed instanceof ScriptingExpressionType) {
                 expression = (ScriptingExpressionType) parsed;
             } else {
-                result.recordFatalError("Provided XML text is not a bulk action object. An instance of {scripting-3}ScriptingExpressionType is expected; you have provided " + parsed.getClass() + " instead.");
+                result.recordFatalError("Provided text is not a bulk action object. An instance of {scripting-3}ScriptingExpressionType is expected; you have provided " + parsed.getClass() + " instead.");
             }
         } catch (SchemaException|RuntimeException e) {
             result.recordFatalError("Couldn't parse bulk action object", e);
