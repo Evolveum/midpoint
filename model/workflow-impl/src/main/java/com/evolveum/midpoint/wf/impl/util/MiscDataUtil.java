@@ -123,7 +123,7 @@ public class MiscDataUtil {
             return null;
         } catch (SchemaException e) {
             // there should be a note in result by now
-            LoggingUtils.logException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
             return null;
         }
     }
@@ -140,7 +140,7 @@ public class MiscDataUtil {
             return oid;
         } catch (SchemaException e) {
             // there should be a note in result by now
-            LoggingUtils.logException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
             return oid;
         }
     }
@@ -215,7 +215,7 @@ public class MiscDataUtil {
                 } catch (ObjectNotFoundException e) {
                     LoggingUtils.logException(LOGGER, "Couldn't resolve assignment " + assignmentType, e);
                 } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't resolve assignment " + assignmentType, e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve assignment " + assignmentType, e);
                 }
             }
         }

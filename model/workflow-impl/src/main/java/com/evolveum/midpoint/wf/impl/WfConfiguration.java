@@ -129,7 +129,7 @@ public class WfConfiguration implements BeanFactoryAware {
             LOGGER.debug("SqlRepositoryFactory is not available, Activiti database configuration (if any) will be taken from 'workflow' configuration section only.");
             LOGGER.trace("Reason is", e);
         } catch (RepositoryServiceFactoryException e) {
-            LoggingUtils.logException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
         }
 
         String explicitJdbcUrl = c.getString(KEY_JDBC_URL, null);

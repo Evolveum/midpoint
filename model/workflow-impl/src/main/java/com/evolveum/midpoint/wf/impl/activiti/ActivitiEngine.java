@@ -107,7 +107,7 @@ public class ActivitiEngine {
             try {
                 resources = resolver.getResources(adf);
             } catch (IOException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't get resources to be automatically deployed from " + adf, e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resources to be automatically deployed from " + adf, e);
                 continue;
             }
 
@@ -116,7 +116,7 @@ public class ActivitiEngine {
                 try {
                     autoDeployResource(resource);
                 } catch (IOException | XPathExpressionException | RuntimeException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't deploy the resource " + resource, e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't deploy the resource " + resource, e);
                 }
 			}
         }
