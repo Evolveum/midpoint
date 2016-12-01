@@ -38,7 +38,7 @@ REFERENCES m_audit_event;
 
 -- Quartz
 
-ALTER TABLE qrtz_fired_triggers ADD COLUMN SCHED_TIME NUMBER(13) NOT NULL;
+ALTER TABLE qrtz_fired_triggers ADD SCHED_TIME NUMBER(13) NOT NULL;
 
 -- Activiti
 
