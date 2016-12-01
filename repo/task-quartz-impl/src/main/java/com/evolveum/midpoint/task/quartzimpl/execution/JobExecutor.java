@@ -23,9 +23,7 @@ import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 import org.quartz.*;
@@ -44,6 +42,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -63,7 +62,7 @@ public class JobExecutor implements InterruptableJob {
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
-    private static final int DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION = 10;
+    private static final int DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION = 60;
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -231,7 +230,7 @@ public class JobExecutor implements InterruptableJob {
 				long rescheduleTime = getRescheduleTime(executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT);
 				LOGGER.info("Limit of {} task(s) in group {} would be exceeded if task {} would start. Existing tasks: {}. Rescheduling at {}.",
 						limit, group, task, tasksInGroup, new Date(rescheduleTime));
-				reschedule(task, rescheduleTime);
+				rescheduleLater(task, rescheduleTime);
 				return false;
 			}
 		}
@@ -239,21 +238,61 @@ public class JobExecutor implements InterruptableJob {
 		// node restrictions
 		String currentNode = taskManagerImpl.getNodeId();
 		List<String> allowedNodes = executionConstraints.getAllowedNode();
-		if (!allowedNodes.isEmpty() && !allowedNodes.contains(currentNode)) {
-			long rescheduleTime = getRescheduleTime(executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION);
-			LOGGER.debug("Current node ({}) is not among allowed nodes ({}), rescheduling at {}.", currentNode, allowedNodes, new Date(rescheduleTime));
-			reschedule(task, rescheduleTime);
+		List<String> disallowedNodes = executionConstraints.getDisallowedNode();
+		if (!passesAllowed(currentNode, allowedNodes)) {
+			rescheduleToAllowedNode(task, "is not among allowed nodes (" + allowedNodes + ")", allowedNodes,
+					disallowedNodes, result);
 			return false;
 		}
-		List<String> disallowedNodes = executionConstraints.getDisallowedNode();
-		if (disallowedNodes.contains(currentNode)) {
-			long rescheduleTime = getRescheduleTime(executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION);
-			LOGGER.debug("Current node ({}) is among disallowed nodes ({}), rescheduling at {}.", currentNode, allowedNodes, new Date(rescheduleTime));
-			reschedule(task, rescheduleTime);
+		if (!passesDisallowed(currentNode, disallowedNodes)) {
+			rescheduleToAllowedNode(task, "is among disallowed nodes (" + disallowedNodes + ")", allowedNodes,
+					disallowedNodes, result);
 			return false;
 		}
 
 		return true;
+	}
+
+	private boolean passesAllowed(String currentNode, List<String> allowedNodes) {
+		return allowedNodes.isEmpty() || allowedNodes.contains(currentNode);
+	}
+
+	private boolean passesDisallowed(String currentNode, List<String> disallowedNodes) {
+		return !disallowedNodes.contains(currentNode);
+	}
+
+	private boolean passes(String node, List<String> allowedNodes, List<String> disallowedNodes) {
+		return passesAllowed(node, allowedNodes) && passesDisallowed(node, disallowedNodes);
+	}
+
+	private void rescheduleToAllowedNode(TaskQuartzImpl task, String reason, List<String> allowedNodes,
+			List<String> disallowedNodes, OperationResult result) throws JobExecutionException {
+		String currentNode = taskManagerImpl.getNodeId();
+		NodeType node = getAvailableNode(allowedNodes, disallowedNodes, result);
+		if (node == null) {
+			LOGGER.info("Task {} cannot be executed on current node ({}) because it {}. But there is currently no available"
+					+ " node to run it on. Rescheduling after {} seconds.",
+					task, currentNode, reason, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION);
+			rescheduleLater(task, System.currentTimeMillis() + DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION * 1000L);
+			return;
+		}
+		LOGGER.debug("Task {} cannot be executed on current node ({}) because it {}, trying to run at {}.",
+				task, currentNode, reason, node);
+		taskManagerImpl.getExecutionManager().scheduleTaskNow(task, node, result);
+	}
+
+	private NodeType getAvailableNode(List<String> allowedNodes, List<String> disallowedNodes, OperationResult result) {
+		ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
+				.getClusterStatusInformation(true, false, result);
+		List<NodeType> matching = clusterStatusInformation.getNodes().stream()
+				.filter(node -> passes(node.getNodeIdentifier(), allowedNodes, disallowedNodes)
+						&& node.getExecutionStatus() == NodeExecutionStatusType.RUNNING)
+				.collect(Collectors.toList());
+		if (matching.isEmpty()) {
+			return null;
+		} else {
+			return matching.get((int) (Math.random() * matching.size()));
+		}
 	}
 
 	private long getRescheduleTime(TaskExecutionConstraintsType executionConstraints, int defaultInterval) {
@@ -267,7 +306,7 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 
-	private void reschedule(TaskQuartzImpl task, long startAt) throws JobExecutionException {
+	private void rescheduleLater(TaskQuartzImpl task, long startAt) throws JobExecutionException {
 		Trigger trigger = TaskQuartzImplUtil.createTriggerForTask(task, startAt);
 		try {
 			taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
@@ -277,6 +316,18 @@ public class JobExecutor implements InterruptableJob {
 					" of execution constraints): " + e.getMessage(), e);
 		}
 	}
+
+//	private void rescheduleElsewhere(TaskQuartzImpl task, String node) throws JobExecutionException {
+//		Trigger trigger = TaskQuartzImplUtil.createTriggerNowForTask(task);
+//		try {
+//			taskManagerImpl.getExecutionManager().scheduleTaskNow(task, node, );
+//			//taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
+//		} catch (SchedulerException e) {
+//			// TODO or handle it somehow?
+//			throw new JobExecutionException("Couldn't reschedule task " + task + " (rescheduled because" +
+//					" of execution constraints): " + e.getMessage(), e);
+//		}
+//	}
 
 	private void waitForTransientChildrenAndCloseThem(OperationResult result) {
         taskManagerImpl.waitForTransientChildren(task, result);

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
+import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
 
 import java.util.*;
@@ -564,6 +565,11 @@ public class ExecutionManager {
             result.recordFatalError(message, e);
             LOGGER.error(message);
         }
+    }
+
+    // nodeId should not be the current node
+    public void scheduleTaskNow(@NotNull Task task, @NotNull NodeType node, @NotNull OperationResult result) {
+        remoteNodesManager.scheduleTaskNow(task, node, result);
     }
 
     public void pauseTaskJob(Task task, OperationResult parentResult) {

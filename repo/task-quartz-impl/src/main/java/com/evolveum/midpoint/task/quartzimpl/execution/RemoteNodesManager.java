@@ -19,10 +19,13 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
+import org.jetbrains.annotations.NotNull;
 import org.quartz.Scheduler;
 import org.quartz.core.jmx.QuartzSchedulerMBean;
 
@@ -43,11 +47,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -71,7 +71,6 @@ public class RemoteNodesManager {
     /**
      * Used exclusively for collecting running task information.
      *
-     * @see ExecutionManager#getClusterStatusInformation(boolean, com.evolveum.midpoint.schema.result.OperationResult)
      * @param info A structure to which information should be added
      * @param node Node which to query
      */
@@ -337,56 +336,56 @@ public class RemoteNodesManager {
 
         LOGGER.debug("Interrupting task " + oid + " running at " + getClusterManager().dumpNodeInfo(node));
 
-//        if (taskManager.isCurrentNode(nodeInfo.getNodeType())) {
-//            taskManager.signalShutdownToTaskLocally(oid);
-//            return;
-//        }
-
-//        if (!taskManager.isClustered()) {       // here we should not come
-//            LOGGER.warn("Remote task interruption is applicable in clustered mode only; doing nothing.");
-//            return;
-//        }
-
-
         String nodeName = node.getNodeIdentifier();
         String address = node.getHostname() + ":" + node.getJmxPort();
 
-        JMXConnector connector = null;
+        Holder<JMXConnector> connectorHolder = new Holder<>();
 
         try {
-            MBeanServerConnection mbsc;
-
-            try {
-                connector = connectViaJmx(address);
-                mbsc = connector.getMBeanServerConnection();
-            } catch (IOException e) {
-                LoggingUtils.logException(LOGGER, "Cannot connect to the remote node {} at {}", e, nodeName, address);
-                result.recordFatalError("Cannot connect to the remote node " + nodeName + " at " + address + ": " + e.getMessage(), e);
-                return;
-            }
-
-            try {
-                QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
-                if (mbeanProxy != null) {
+            QuartzSchedulerMBean mbeanProxy = getSchedulerBean(node, connectorHolder, result);
+            if (mbeanProxy != null) {
+                try {
                     mbeanProxy.interruptJob(oid, Scheduler.DEFAULT_GROUP);
+                    LOGGER.debug("Successfully signalled shutdown to task " + oid + " running at " + getClusterManager().dumpNodeInfo(node));
                     result.recordSuccessIfUnknown();
-                } else {
-                    result.recordFatalError("Cannot interrupt job at " + nodeName + " at " + address + " because the JMX object for scheduler cannot be found on that node.");
+                } catch (Exception e) {   // necessary because of mbeanProxy
+                    String message = "Cannot signal task "+oid+" interruption to remote node "+nodeName+" at "+address;
+                    LoggingUtils.logException(LOGGER, message, e);
+                    result.recordFatalError(message + ":" + e.getMessage(), e);
                 }
-                LOGGER.debug("Successfully signalled shutdown to task " + oid + " running at " + getClusterManager().dumpNodeInfo(node));
             }
-            catch (Exception e) {   // necessary because of mbeanProxy
-                LoggingUtils.logException(LOGGER, "Cannot signal task {} interruption to remote node {} at {}", e, oid, nodeName, address);
+        } finally {
+			closeJmxConnection(connectorHolder, address);
+		}
+    }
+
+	private void closeJmxConnection(Holder<JMXConnector> connectorHolder, String nodeInfo) {
+		try {
+			if (!connectorHolder.isEmpty()) {
+				connectorHolder.getValue().close();
+			}
+		} catch (IOException e) {
+			LoggingUtils.logException(LOGGER, "Cannot close JMX connection to {}", e, nodeInfo);
+		}
+	}
+
+	private QuartzSchedulerMBean getSchedulerBean(NodeType node, Holder<JMXConnector> connectorHolder,
+            OperationResult result) {
+        String nodeName = node.getNodeIdentifier();
+        String address = node.getHostname() + ":" + node.getJmxPort();
+        try {
+            JMXConnector connector = connectViaJmx(address);
+            connectorHolder.setValue(connector);
+            MBeanServerConnection serverConnection = connector.getMBeanServerConnection();
+            QuartzSchedulerMBean bean = getMBeanProxy(nodeName, serverConnection);
+            if (bean == null) {
+                result.recordFatalError("Cannot interrupt job at " + nodeName + " at " + address + " because the JMX object for scheduler cannot be found on that node.");
             }
-        }
-        finally {
-            try {
-                if (connector != null) {
-                    connector.close();
-                }
-            } catch (IOException e) {
-                LoggingUtils.logException(LOGGER, "Cannot close JMX connection to {}", e, address);
-            }
+            return null;
+        } catch (IOException|MalformedObjectNameException e) {
+            LoggingUtils.logException(LOGGER, "Cannot connect to the quartz scheduler bean at remote node {} at {}", e, nodeName, address);
+            result.recordFatalError("Cannot connect to the quartz scheduler bean at remote node " + nodeName + " at " + address + ": " + e.getMessage(), e);
+            return null;
         }
     }
 
@@ -394,9 +393,24 @@ public class RemoteNodesManager {
         return taskManager.getClusterManager();
     }
 
-//    private OperationResult createOperationResult(String methodName) {
-//        return new OperationResult(RemoteNodesManager.class.getName() + "." + methodName);
-//    }
-
-
+    public void scheduleTaskNow(@NotNull Task task, @NotNull NodeType node, @NotNull OperationResult result) {
+        LOGGER.trace("Trying to schedule task {} on {}", task, node.getNodeIdentifier());
+		Holder<JMXConnector> connectorHolder = new Holder<>();
+		try {
+			QuartzSchedulerMBean mbeanProxy = getSchedulerBean(node, connectorHolder, result);
+			if (mbeanProxy != null) {
+				try {
+					mbeanProxy.triggerJob(task.getOid(), Scheduler.DEFAULT_GROUP, Collections.emptyMap());
+					LOGGER.debug("Successfully scheduled " + task + " at " + getClusterManager().dumpNodeInfo(node));
+					result.recordSuccessIfUnknown();
+				} catch (Exception e) {   // necessary because of mbeanProxy
+					String message = "Cannot schedule " + task + " at " + getClusterManager().dumpNodeInfo(node);
+					LoggingUtils.logException(LOGGER, message, e);
+					result.recordFatalError(message + ":" + e.getMessage(), e);
+				}
+			}
+		} finally {
+			closeJmxConnection(connectorHolder, getClusterManager().dumpNodeInfo(node));
+		}
+    }
 }
