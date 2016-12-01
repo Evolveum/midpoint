@@ -126,6 +126,7 @@
     	<phase>execution</phase>
     </authorization>
     <requestable>true</requestable>
+    <delegable>true</delegable>
     <adminGuiConfiguration>
     	<additionalMenuLink>
     		<targetUrl>http://piracy.com/plunder</targetUrl>
