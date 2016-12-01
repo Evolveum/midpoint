@@ -66,15 +66,15 @@ public class AuditLogViewerPanel extends BasePanel{
     private static final String ID_FROM = "fromField";
     private static final String ID_TO = "toField";
     private static final String ID_INITIATOR_NAME = "initiatorNameField";
-    private static final String ID_TARGET_NAME = "targetNameField";
-    private static final String ID_TARGET_NAME_LABEL = "targetNameLabel";
-    private static final String ID_TARGET_OWNER_NAME_LABEL = "targetOwnerNameLabel";
-    private static final String ID_TARGET_OWNER_NAME = "targetOwnerNameField";
+    private static final String ID_TARGET_NAME_FIELD = "targetNameField";
+    private static final String ID_TARGET_NAME = "targetName";
+    private static final String ID_TARGET_OWNER_NAME = "targetOwnerName";
+    private static final String ID_TARGET_OWNER_NAME_FIELD = "targetOwnerNameField";
     private static final String ID_CHANNEL = "channelField";
     private static final String ID_HOST_IDENTIFIER = "hostIdentifierField";
     private static final String ID_EVENT_TYPE = "eventTypeField";
-    private static final String ID_EVENT_STAGE = "eventStageField";
-    private static final String ID_EVENT_STAGE_LABEL = "eventStageLabel";
+    private static final String ID_EVENT_STAGE_FIELD = "eventStageField";
+    private static final String ID_EVENT_STAGE = "eventStage";
     private static final String ID_OUTCOME = "outcomeField";
     private static final String ID_CHANGED_ITEM = "changedItem";
 
@@ -200,35 +200,37 @@ public class AuditLogViewerPanel extends BasePanel{
         eventType.setOutputMarkupId(true);
         parametersPanel.add(eventType);
 
-        Label eventStageLabel = new Label(ID_EVENT_STAGE_LABEL, pageBase.createStringResource("PageAuditLogViewer.eventStageLabel"));
-        eventStageLabel.add(new VisibleEnableBehaviour(){
+        WebMarkupContainer eventStage = new WebMarkupContainer(ID_EVENT_STAGE);
+        eventStage.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
             @Override
-        public boolean isVisible(){
-                return visibilityMap == null || visibilityMap.get(EVENT_STAGE_LABEL_VISIBILITY) == null ?
-                        true : visibilityMap.get(EVENT_STAGE_LABEL_VISIBILITY);
+	        public boolean isVisible(){
+	                return visibilityMap == null || visibilityMap.get(EVENT_STAGE_LABEL_VISIBILITY) == null ?
+	                        true : visibilityMap.get(EVENT_STAGE_LABEL_VISIBILITY);
             }
         });
-        eventStageLabel.setOutputMarkupId(true);
-        parametersPanel.add(eventStageLabel);
+        eventStage.setOutputMarkupId(true);
+        parametersPanel.add(eventStage);
 
         ListModel<AuditEventStageType> eventStageListModel = new ListModel<AuditEventStageType>(
                 Arrays.asList(AuditEventStageType.values()));
         PropertyModel<AuditEventStageType> eventStageModel = new PropertyModel<AuditEventStageType>(
                 auditSearchDto, AuditSearchDto.F_EVENT_STAGE);
-        DropDownChoicePanel<AuditEventStageType> eventStage = new DropDownChoicePanel<AuditEventStageType>(
-                ID_EVENT_STAGE, eventStageModel, eventStageListModel,
+        DropDownChoicePanel<AuditEventStageType> eventStageField = new DropDownChoicePanel<AuditEventStageType>(
+                ID_EVENT_STAGE_FIELD, eventStageModel, eventStageListModel,
                 new EnumChoiceRenderer<AuditEventStageType>(), true);
-        eventStage.add(new VisibleEnableBehaviour() {
-            @Override
+        eventStageField.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
             public boolean isVisible() {
                 return visibilityMap == null || visibilityMap.get(EVENT_STAGE_FIELD_VISIBILITY) == null ?
                         true : visibilityMap.get(EVENT_STAGE_FIELD_VISIBILITY);
             }
         });
-        eventStage.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        eventStage.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        eventStage.setOutputMarkupId(true);
-        parametersPanel.add(eventStage);
+        eventStageField.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        eventStageField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        eventStageField.setOutputMarkupId(true);
+        eventStage.add(eventStageField);
 
         ListModel<OperationResultStatusType> outcomeListModel = new ListModel<OperationResultStatusType>(
                 Arrays.asList(OperationResultStatusType.values()));
@@ -267,7 +269,7 @@ public class AuditLogViewerPanel extends BasePanel{
                 ID_INITIATOR_NAME,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_INITIATOR_NAME),
                 allowedClasses) {
-
+        	private static final long serialVersionUID = 1L;
             @Override
             protected void replaceIfEmpty(ObjectType object) {
                 ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
@@ -277,20 +279,22 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         parametersPanel.add(chooseInitiatorPanel);
 
-        Label targetOwnerNameLabel = new Label(ID_TARGET_OWNER_NAME_LABEL, pageBase.createStringResource("PageAuditLogViewer.targetOwnerNameLabel"));
-        targetOwnerNameLabel.add(new VisibleEnableBehaviour(){
+        WebMarkupContainer targetOwnerName = new WebMarkupContainer(ID_TARGET_OWNER_NAME);
+        targetOwnerName.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
                 return visibilityMap == null || visibilityMap.get(TARGET_OWNER_LABEL_VISIBILITY) == null ?
                         true : visibilityMap.get(TARGET_OWNER_LABEL_VISIBILITY);
             }
         });
-        parametersPanel.add(targetOwnerNameLabel);
+        parametersPanel.add(targetOwnerName);
 
         ValueChooseWrapperPanel<ObjectReferenceType, UserType> chooseTargerOwnerPanel = new ValueChooseWrapperPanel<ObjectReferenceType, UserType>(
-                ID_TARGET_OWNER_NAME,
+                ID_TARGET_OWNER_NAME_FIELD,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME),
                 allowedClasses) {
+        	private static final long serialVersionUID = 1L;
             @Override
             protected void replaceIfEmpty(ObjectType object) {
                 ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
@@ -298,30 +302,33 @@ public class AuditLogViewerPanel extends BasePanel{
                 getModel().setObject(ort);
             }
         };
-        chooseTargerOwnerPanel.add(new VisibleEnableBehaviour(){
-            @Override
+        chooseTargerOwnerPanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
             public boolean isVisible(){
                 return visibilityMap == null || visibilityMap.get(TARGET_OWNER_FIELD_VISIBILITY) == null ?
                         true : visibilityMap.get(TARGET_OWNER_FIELD_VISIBILITY);
             }
         });
-        parametersPanel.add(chooseTargerOwnerPanel);
-
-        Label targetNameLabel = new Label(ID_TARGET_NAME_LABEL, pageBase.createStringResource("PageAuditLogViewer.targetNameLabel"));
-        targetNameLabel.add(new VisibleEnableBehaviour(){
+        targetOwnerName.add(chooseTargerOwnerPanel);
+        
+        WebMarkupContainer targetName = new WebMarkupContainer(ID_TARGET_NAME);
+        targetName.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
                 return visibilityMap == null || visibilityMap.get(TARGET_NAME_LABEL_VISIBILITY) == null ?
                         true : visibilityMap.get(TARGET_NAME_LABEL_VISIBILITY);
             }
         });
-        parametersPanel.add(targetNameLabel);
+        parametersPanel.add(targetName);
         Collection<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
         ValueChooseWrapperPanel<ObjectReferenceType, ObjectType> chooseTargetPanel = new ValueChooseWrapperPanel<ObjectReferenceType, ObjectType>(
-                ID_TARGET_NAME,
+                ID_TARGET_NAME_FIELD,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_NAME),
-                allowedClassesAll){
+                allowedClassesAll) {
+        	private static final long serialVersionUID = 1L;
             @Override
             protected void replaceIfEmpty(ObjectType object) {
                 ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
@@ -329,14 +336,15 @@ public class AuditLogViewerPanel extends BasePanel{
                 getModel().setObject(ort);
             }
         };
-        chooseTargetPanel.add(new VisibleEnableBehaviour(){
+        chooseTargetPanel.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
                 return visibilityMap == null || visibilityMap.get(TARGET_NAME_FIELD_VISIBILITY) == null ?
                         true : visibilityMap.get(TARGET_NAME_FIELD_VISIBILITY);
             }
         });
-        parametersPanel.add(chooseTargetPanel);
+        targetName.add(chooseTargetPanel);
 
         AjaxSubmitButton ajaxButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("BasicSearchPanel.search")) {
