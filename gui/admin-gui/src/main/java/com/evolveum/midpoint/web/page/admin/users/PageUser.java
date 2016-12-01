@@ -270,6 +270,12 @@ public class PageUser extends PageAdminFocus<UserType> {
                             }
 
                             @Override
+                            protected String getAssignmentsDeleteMessage(int size){
+                                return createStringResource("AssignmentTablePanel.modal.message.deleteDelegation",
+                                        size).getString();
+                            }
+
+                            @Override
                             protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
                                                                           String popupId) {
                                 privilegesList = getUserPrivilegesList();
@@ -386,6 +392,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                                 StringUtils.isNotEmpty(assignment.getTargetRef().getOid()) &&
                                 assignment.getTargetRef().getOid().equals(getObjectWrapper().getOid())) {
                             AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this);
+                            dto.setEditable(false);
                             list.add(dto);
                             assignmentUserMap.put(dto, user.asObjectable());
                         }
