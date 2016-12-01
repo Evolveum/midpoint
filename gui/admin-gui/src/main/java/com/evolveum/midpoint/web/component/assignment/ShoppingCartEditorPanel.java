@@ -26,18 +26,19 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * Created by honchar.
  */
-public class ShoppingKartEditorPanel extends AssignmentEditorPanel {
+public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
+	private static final long serialVersionUID = 1L;
 
-    protected static final String ID_BOX = "shoppingKartDetailsBox";
+	protected static final String ID_BOX = "shoppingCartDetailsBox";
     protected static final String ID_DESCRIPTION = "description";
-    protected static final String ID_ICON_BOX = "shoppingKartIconBox";
-    protected static final String ID_ICON = "shoppingKartIcon";
-    protected static final String ID_DISPLAY_NAME = "shoppingKartDisplayName";
+    protected static final String ID_ICON_BOX = "shoppingCartIconBox";
+    protected static final String ID_ICON = "shoppingCartIcon";
+    protected static final String ID_DISPLAY_NAME = "shoppingCartDisplayName";
     protected static final String BOX_CSS_CLASS = "info-box";
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
 
-    public ShoppingKartEditorPanel(String id, IModel<AssignmentEditorDto> model) {
+    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model) {
         super(id, model);
     }
 
