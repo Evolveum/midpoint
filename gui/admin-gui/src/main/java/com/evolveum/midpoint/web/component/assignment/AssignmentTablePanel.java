@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -146,6 +147,17 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 				target.add(assignments);
 			}
 		};
+		checkAll.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible(){
+				for (AssignmentEditorDto dto : getModelObject()){
+					if (dto.isEditable()){
+						return true;
+					}
+				}
+				return false;
+			}
+		});
 		assignments.add(checkAll);
 
 	}
