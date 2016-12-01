@@ -523,6 +523,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, 
         		null, null, (ActivationType) null, true);
+        // Captain is NOT delegable
+        userDelta.addModification((createAssignmentModification(ROLE_CAPTAIN_OID, RoleType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true)));
         userDelta.addModification((createAssignmentModification(ROLE_RED_SAILOR_OID, RoleType.COMPLEX_TYPE, 
         		null, null, (ActivationType) null, true)));
         userDelta.addModification((createAssignmentModification(ROLE_CYAN_SAILOR_OID, RoleType.COMPLEX_TYPE, 
@@ -548,12 +551,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Jack after", userJackAfter);
         assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
         assertAssignedRole(userJackAfter, ROLE_EMPTY_OID);
-        assertAssignments(userJackAfter, 6);
+        assertAssignedRole(userJackAfter, ROLE_CAPTAIN_OID);
+        assertAssignments(userJackAfter, 7);
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_RED_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_CYAN_OID);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
@@ -594,9 +598,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 6);
+        assertAssignments(userJackAfter, 7);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
     
@@ -628,9 +632,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 6);
+        assertAssignments(userJackAfter, 7);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
     
@@ -666,9 +670,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 6);
+        assertAssignments(userJackAfter, 7);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
     
@@ -708,9 +712,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 6);
+        assertAssignments(userJackAfter, 7);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
     
@@ -745,9 +749,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 6);
+        assertAssignments(userJackAfter, 7);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
     
@@ -786,9 +790,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 6);
+        assertAssignments(userJackAfter, 7);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
 
@@ -840,12 +844,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
         assertAssignedRole(userJackAfter, ROLE_EMPTY_OID);
         assertAssignedRole(userJackAfter, ROLE_DRINKER_OID);
-        assertAssignments(userJackAfter, 7);
+        assertAssignedRole(userJackAfter, ROLE_CAPTAIN_OID);
+        assertAssignments(userJackAfter, 8);
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_RED_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_CYAN_OID);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);        
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);        
     }
     
     @Test
@@ -871,9 +876,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertAssignedRole(userJackAfter, ROLE_DRINKER_OID);
-        assertAssignments(userJackAfter, 7);
+        assertAssignments(userJackAfter, 8);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
     
@@ -912,9 +917,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 7);
+        assertAssignments(userJackAfter, 8);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
 
@@ -950,9 +955,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 7);
+        assertAssignments(userJackAfter, 8);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
     
@@ -992,9 +997,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 7);
+        assertAssignments(userJackAfter, 8);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
 
@@ -1037,9 +1042,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
         display("User Jack before", userJackBefore);
-        assertAssignments(userJackBefore, 7);
+        assertAssignments(userJackBefore, 8);
         assertLinks(userJackBefore, 3);
-        assertAuthorizations(userJackBefore, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackBefore, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
         
@@ -1068,13 +1073,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
         assertAccount(userBarbossaAfter, RESOURCE_DUMMY_CYAN_OID);
         assertLinks(userBarbossaAfter, 3);
+        // Command autz should NOT be here, it is not delegable MID-3550
         assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 7);
+        assertAssignments(userJackAfter, 8);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
     
@@ -1116,9 +1122,9 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
-        assertAssignments(userJackAfter, 7);
+        assertAssignments(userJackAfter, 8);
         assertLinks(userJackAfter, 3);
-        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL);
         
     }
    

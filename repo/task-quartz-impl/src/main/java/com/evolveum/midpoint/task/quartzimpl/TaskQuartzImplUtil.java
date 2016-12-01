@@ -175,11 +175,16 @@ public class TaskQuartzImplUtil {
 	}
 
     public static Trigger createTriggerNowForTask(Task task) {
+        return TriggerBuilder.newTrigger()
+                .forJob(createJobKeyForTask(task)).startNow()
+		        .build();
+    }
 
-        TriggerBuilder<Trigger> tb = TriggerBuilder.newTrigger()
-                .forJob(createJobKeyForTask(task)).startNow();
-
-        return tb.build();
+    public static Trigger createTriggerForTask(Task task, long startAt) {
+        return TriggerBuilder.newTrigger()
+                .forJob(createJobKeyForTask(task))
+		        .startAt(new Date(startAt))
+		        .build();
     }
 
     public static long xmlGCtoMillis(XMLGregorianCalendar gc) {

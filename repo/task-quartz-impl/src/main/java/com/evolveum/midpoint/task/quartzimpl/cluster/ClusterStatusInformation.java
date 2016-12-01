@@ -60,10 +60,10 @@ public class ClusterStatusInformation implements Serializable {
         }
     }
 
-    private Map<NodeType,List<TaskInfo>> tasks = new HashMap<NodeType,List<TaskInfo>>();
+    private Map<NodeType,List<TaskInfo>> tasks = new HashMap<>();
 
     public Set<TaskInfo> getTasks() {
-        Set<TaskInfo> retval = new HashSet<TaskInfo>();
+        Set<TaskInfo> retval = new HashSet<>();
         for (List<TaskInfo> tasksOnNode : tasks.values()) {
             retval.addAll(tasksOnNode);
         }
@@ -108,7 +108,7 @@ public class ClusterStatusInformation implements Serializable {
     }
 
     public void addNodeInfo(NodeType node) {
-        tasks.put(node, new ArrayList<TaskInfo>());       // TODO: or null? this is safer...
+        tasks.put(node, new ArrayList<>());       // TODO: or null? this is safer...
     }
 
     public void addNodeAndTaskInfo(NodeType node, List<TaskInfo> taskInfoList) {

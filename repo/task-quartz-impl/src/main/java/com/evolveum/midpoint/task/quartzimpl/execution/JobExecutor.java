@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 import org.quartz.*;
@@ -34,6 +36,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -51,7 +60,10 @@ public class JobExecutor implements InterruptableJob {
 	private static final transient Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
-	
+
+    private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
+    private static final int DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION = 60;
+
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
 	 * the task here.
@@ -82,10 +94,10 @@ public class JobExecutor implements InterruptableJob {
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
             return;
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store using 'xxxxxxx' function. Now exiting the execution routine.", e, oid);
+            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store using 'xxxxxxx' function. Now exiting the execution routine.", e, oid);
             return;
-        } catch (Exception e) {
-			LoggingUtils.logException(LOGGER, "Task with OID {} could not be retrieved, exiting the execution routine.", e, oid);
+        } catch (RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} could not be retrieved, exiting the execution routine.", e, oid);
 			return;
 		}
 
@@ -94,7 +106,7 @@ public class JobExecutor implements InterruptableJob {
             try {
                 context.getScheduler().unscheduleJob(context.getTrigger().getKey());
             } catch (SchedulerException e) {
-                LoggingUtils.logException(LOGGER, "Cannot unschedule job for a non-RUNNABLE task {}", e, task);
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot unschedule job for a non-RUNNABLE task {}", e, task);
             }
             return;
         }
@@ -118,7 +130,7 @@ public class JobExecutor implements InterruptableJob {
                     task.setNodeImmediate(null, executionResult);
                 }
             } catch (ObjectNotFoundException | SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Cannot reset executing-at-node information for recovering task {}", e, task);
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot reset executing-at-node information for recovering task {}", e, task);
             }
 
 			if (!processTaskRecovery(executionResult)) {
@@ -126,7 +138,11 @@ public class JobExecutor implements InterruptableJob {
             }
             isRecovering = true;
         }
-		
+
+		if (!executionConstraintsSatisfied(task, context, executionResult)) {
+			return;			// rescheduling is done within the checker method
+		}
+
         executingThread = Thread.currentThread();
 
 		LOGGER.trace("execute called; task = {}, thread = {}, isRecovering = {}", task, executingThread, isRecovering);
@@ -180,7 +196,140 @@ public class JobExecutor implements InterruptableJob {
 
 	}
 
-    private void waitForTransientChildrenAndCloseThem(OperationResult result) {
+	private boolean executionConstraintsSatisfied(TaskQuartzImpl task, JobExecutionContext context, OperationResult result) throws JobExecutionException {
+		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
+		if (executionConstraints == null) {
+			return true;
+		}
+
+		// group limit
+		String group = executionConstraints.getGroup();
+		if (group != null) {
+			List<Task> tasksInGroup = new ArrayList<>();
+			ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
+					.getClusterStatusInformation(true, false, result);
+			for (ClusterStatusInformation.TaskInfo taskInfo : clusterStatusInformation.getTasks()) {
+				Task runningTask;
+				try {
+					runningTask = taskManagerImpl.getTask(taskInfo.getOid(), result);
+				} catch (ObjectNotFoundException e) {
+					LOGGER.debug("Couldn't find running task {} when checking execution constraints: {}", taskInfo.getOid(), e.getMessage());
+					continue;
+				} catch (SchemaException e) {
+					LoggingUtils.logUnexpectedException(LOGGER,
+							"Couldn't retrieve running task {} when checking execution constraints", e, taskInfo.getOid());
+					continue;
+				}
+				if (group.equals(runningTask.getGroup()) && !task.getOid().equals(runningTask.getOid())) {
+					tasksInGroup.add(runningTask);
+				}
+			}
+			int limit = executionConstraints.getGroupTaskLimit() != null ? executionConstraints.getGroupTaskLimit() : 1;
+			LOGGER.trace("Tasks in group {}: {}", group, tasksInGroup);
+			if (tasksInGroup.size() >= limit) {
+				long rescheduleTime = getRescheduleTime(executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT);
+				LOGGER.info("Limit of {} task(s) in group {} would be exceeded if task {} would start. Existing tasks: {}. Rescheduling at {}.",
+						limit, group, task, tasksInGroup, new Date(rescheduleTime));
+				rescheduleLater(task, rescheduleTime);
+				return false;
+			}
+		}
+
+		// node restrictions
+		String currentNode = taskManagerImpl.getNodeId();
+		List<String> allowedNodes = executionConstraints.getAllowedNode();
+		List<String> disallowedNodes = executionConstraints.getDisallowedNode();
+		if (!passesAllowed(currentNode, allowedNodes)) {
+			rescheduleToAllowedNode(task, "is not among allowed nodes (" + allowedNodes + ")", allowedNodes,
+					disallowedNodes, result);
+			return false;
+		}
+		if (!passesDisallowed(currentNode, disallowedNodes)) {
+			rescheduleToAllowedNode(task, "is among disallowed nodes (" + disallowedNodes + ")", allowedNodes,
+					disallowedNodes, result);
+			return false;
+		}
+
+		return true;
+	}
+
+	private boolean passesAllowed(String currentNode, List<String> allowedNodes) {
+		return allowedNodes.isEmpty() || allowedNodes.contains(currentNode);
+	}
+
+	private boolean passesDisallowed(String currentNode, List<String> disallowedNodes) {
+		return !disallowedNodes.contains(currentNode);
+	}
+
+	private boolean passes(String node, List<String> allowedNodes, List<String> disallowedNodes) {
+		return passesAllowed(node, allowedNodes) && passesDisallowed(node, disallowedNodes);
+	}
+
+	private void rescheduleToAllowedNode(TaskQuartzImpl task, String reason, List<String> allowedNodes,
+			List<String> disallowedNodes, OperationResult result) throws JobExecutionException {
+		String currentNode = taskManagerImpl.getNodeId();
+		NodeType node = getAvailableNode(allowedNodes, disallowedNodes, result);
+		if (node == null) {
+			LOGGER.info("Task {} cannot be executed on current node ({}) because it {}. But there is currently no available"
+					+ " node to run it on. Rescheduling after {} seconds.",
+					task, currentNode, reason, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION);
+			rescheduleLater(task, System.currentTimeMillis() + DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION * 1000L);
+			return;
+		}
+		LOGGER.debug("Task {} cannot be executed on current node ({}) because it {}, trying to run at {}.",
+				task, currentNode, reason, node);
+		taskManagerImpl.getExecutionManager().scheduleTaskNow(task, node, result);
+	}
+
+	private NodeType getAvailableNode(List<String> allowedNodes, List<String> disallowedNodes, OperationResult result) {
+		ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
+				.getClusterStatusInformation(true, false, result);
+		List<NodeType> matching = clusterStatusInformation.getNodes().stream()
+				.filter(node -> passes(node.getNodeIdentifier(), allowedNodes, disallowedNodes)
+						&& node.getExecutionStatus() == NodeExecutionStatusType.RUNNING)
+				.collect(Collectors.toList());
+		if (matching.isEmpty()) {
+			return null;
+		} else {
+			return matching.get((int) (Math.random() * matching.size()));
+		}
+	}
+
+	private long getRescheduleTime(TaskExecutionConstraintsType executionConstraints, int defaultInterval) {
+		Duration retryAfter = executionConstraints.getRetryAfter();
+		if (retryAfter != null) {
+			XMLGregorianCalendar startAtGc = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+			XmlTypeConverter.addDuration(startAtGc, retryAfter);
+			return XmlTypeConverter.toMillis(startAtGc);
+		} else {
+			return System.currentTimeMillis() + defaultInterval * 1000L;
+		}
+	}
+
+	private void rescheduleLater(TaskQuartzImpl task, long startAt) throws JobExecutionException {
+		Trigger trigger = TaskQuartzImplUtil.createTriggerForTask(task, startAt);
+		try {
+			taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
+		} catch (SchedulerException e) {
+			// TODO or handle it somehow?
+			throw new JobExecutionException("Couldn't reschedule task " + task + " (rescheduled because" +
+					" of execution constraints): " + e.getMessage(), e);
+		}
+	}
+
+//	private void rescheduleElsewhere(TaskQuartzImpl task, String node) throws JobExecutionException {
+//		Trigger trigger = TaskQuartzImplUtil.createTriggerNowForTask(task);
+//		try {
+//			taskManagerImpl.getExecutionManager().scheduleTaskNow(task, node, );
+//			//taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
+//		} catch (SchedulerException e) {
+//			// TODO or handle it somehow?
+//			throw new JobExecutionException("Couldn't reschedule task " + task + " (rescheduled because" +
+//					" of execution constraints): " + e.getMessage(), e);
+//		}
+//	}
+
+	private void waitForTransientChildrenAndCloseThem(OperationResult result) {
         taskManagerImpl.waitForTransientChildren(task, result);
 
         // at this moment, there should be no executing child tasks... we just clean-up all runnables that had not started
@@ -231,7 +380,7 @@ public class JobExecutor implements InterruptableJob {
             LoggingUtils.logException(LOGGER, "ThreadStopAction cannot be applied, because the task no longer exists: " + task, e);
             return;
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "ThreadStopAction cannot be applied, because of schema exception. Task = " + task, e);
+            LoggingUtils.logUnexpectedException(LOGGER, "ThreadStopAction cannot be applied, because of schema exception. Task = " + task, e);
             return;
         }
 
@@ -264,8 +413,10 @@ public class JobExecutor implements InterruptableJob {
         LOGGER.info("Closing flawed task {}", task);
         try {
             task.setResultImmediate(result, result);
-        } catch (ObjectNotFoundException | SchemaException e) {
+        } catch (ObjectNotFoundException  e) {
             LoggingUtils.logException(LOGGER, "Couldn't store operation result into the task {}", e, task);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store operation result into the task {}", e, task);
         }
 		closeTask(task, result);
     }
@@ -276,9 +427,9 @@ public class JobExecutor implements InterruptableJob {
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Cannot close task {}, because it does not exist in repository.", e, task);
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot close task {} due to schema exception", e, task);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot close task {} due to schema exception", e, task);
         } catch (SystemException e) {
-            LoggingUtils.logException(LOGGER, "Cannot close task {} due to system exception", e, task);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot close task {} due to system exception", e, task);
         }
     }
 
@@ -529,7 +680,7 @@ mainCycle:
             task.savePendingModifications(result);
 
         } catch (Exception e) {	// TODO: implement correctly after clarification
-			LoggingUtils.logException(LOGGER, "Cannot record run start for task {}", e, task);
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot record run start for task {}", e, task);
 		}
 	}
 
@@ -561,10 +712,10 @@ mainCycle:
 			LoggingUtils.logException(LOGGER, "Cannot record run finish for task {}", ex, task);
 			return false;
         } catch (com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException ex) {
-            LoggingUtils.logException(LOGGER, "Cannot record run finish for task {}", ex, task);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot record run finish for task {}", ex, task);
             return true;
 		} catch (SchemaException ex) {
-			LOGGER.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Unable to record run finish and close the task: {}", ex, task);
 			return true;
 		}
 	}

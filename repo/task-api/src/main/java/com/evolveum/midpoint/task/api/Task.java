@@ -303,6 +303,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void makeSingle(ScheduleType schedule);
 
+    public TaskExecutionConstraintsType getExecutionConstraints();
+
+    public String getGroup();
+
     /**
 	 * Returns the schedule.
 	 */
@@ -903,10 +907,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     public PrismObject<UserType> getRequestee();
 
-    /**
-     * Sets the requestee OID.
-     * @param oid
-     */
     public void setRequesteeTransient(PrismObject<UserType> user);
 
 	LensContextType getModelOperationContext();

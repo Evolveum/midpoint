@@ -805,4 +805,14 @@ public class SimpleTaskAdapter implements Task {
 
     @Override public void setWorkflowContext(WfContextType context) throws SchemaException {
     }
+
+    @Override
+    public TaskExecutionConstraintsType getExecutionConstraints() {
+        return null;
+    }
+
+    @Override
+    public String getGroup() {
+        return null;
+    }
 }
