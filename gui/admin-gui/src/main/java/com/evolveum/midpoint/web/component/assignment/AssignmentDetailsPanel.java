@@ -20,7 +20,7 @@ public class AssignmentDetailsPanel extends BasePanel<AssignmentEditorDto> {
 
     private void initLayout() {
         setOutputMarkupId(true);
-        ShoppingKartEditorPanel assignmentDetailsPanel = new ShoppingKartEditorPanel(ID_DETAILS_PANEL, getModel());
+        ShoppingCartEditorPanel assignmentDetailsPanel = new ShoppingCartEditorPanel(ID_DETAILS_PANEL, getModel());
         assignmentDetailsPanel.setOutputMarkupId(true);
         add(assignmentDetailsPanel);
 
