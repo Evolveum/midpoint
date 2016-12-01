@@ -17,7 +17,8 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Universal Self Delegator</name>    
+    <name>Universal Self Delegator</name>
+    <delegable>true</delegable>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
