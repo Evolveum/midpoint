@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
+import com.evolveum.midpoint.task.quartzimpl.execution.JobStarter;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
@@ -78,7 +79,7 @@ public class Initializer {
                 LOGGER.info("SqlRepositoryFactory is not available, JDBC Job Store configuration will be taken from taskManager section only.");
                 LOGGER.trace("Reason is", e);
             } catch (RepositoryServiceFactoryException e) {
-                LoggingUtils.logException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
             }
 
             configuration.setJdbcJobStoreInformation(midpointConfiguration, sqlConfig, defaultJdbcUrlPrefix);
@@ -95,6 +96,7 @@ public class Initializer {
         WaitForSubtasksByPollingTaskHandler.instantiateAndRegister(taskManager);
         WaitForTasksTaskHandler.instantiateAndRegister(taskManager);
         JobExecutor.setTaskManagerQuartzImpl(taskManager);       // unfortunately, there seems to be no clean way of letting jobs know the taskManager
+        JobStarter.setTaskManagerQuartzImpl(taskManager);        // the same here
 
         taskManager.getExecutionManager().initializeLocalScheduler();
         if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {

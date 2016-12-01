@@ -94,16 +94,15 @@ public class StalledTasksWatcher {
                     LoggingUtils.logException(LOGGER, "Task {} cannot be checked for staleness because it is gone", e, task);
                     continue;
                 } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Task {} cannot be checked for staleness because of schema exception", e, task);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Task {} cannot be checked for staleness because of schema exception", e, task);
                     continue;
                 }
             }
 
             ProgressInformation lastProgressEntry = lastProgressMap.get(task.getTaskIdentifier());
 
-            LOGGER.trace("checkStalledTasks: considering ({}, {}, {}), last information = {}", new Object[] {
-                    task, lastStartedTimestamp, realProgress, lastProgressEntry
-            });
+            LOGGER.trace("checkStalledTasks: considering ({}, {}, {}), last information = {}", task, lastStartedTimestamp,
+                    realProgress, lastProgressEntry);
 
             // check and/or update the last progress information
             if (hasEntryChanged(lastProgressEntry, lastStartedTimestamp, realProgress)) {
@@ -112,12 +111,12 @@ public class StalledTasksWatcher {
                 if (isEntryStalled(currentTimestamp, lastProgressEntry)) {
                     if (currentTimestamp - lastProgressEntry.lastNotificationIssuedTimestamp > taskManager.getConfiguration().getStalledTasksRepeatedNotificationInterval() * 1000L) {
                         LOGGER.error("Task {} seems to be stalled (started {}; progress is still {}, observed since {}){}",
-                                new Object[] { task,
-                                        new Date(lastProgressEntry.lastStartedTimestamp),
-                                        lastProgressEntry.measuredProgress,
-                                        new Date(lastProgressEntry.measurementTimestamp),
-                                        lastProgressEntry.lastNotificationIssuedTimestamp != 0 ?
-                                            " [this is a repeated notification]" : ""});
+                                task,
+                                new Date(lastProgressEntry.lastStartedTimestamp),
+                                lastProgressEntry.measuredProgress,
+                                new Date(lastProgressEntry.measurementTimestamp),
+                                lastProgressEntry.lastNotificationIssuedTimestamp != 0 ?
+									" [this is a repeated notification]" : "");
                         lastProgressEntry.lastNotificationIssuedTimestamp = currentTimestamp;
                     }
                 }

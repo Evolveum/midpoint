@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.*;
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -102,14 +101,14 @@ public class ExecutionManager {
 
         LOGGER.debug("{} task(s) found on nodes that are going down, stopping them.", taskInfoList.size());
 
-        Set<Task> tasks = new HashSet<Task>();
+        Set<Task> tasks = new HashSet<>();
         for (ClusterStatusInformation.TaskInfo taskInfo : taskInfoList) {
             try {
                 tasks.add(taskManager.getTask(taskInfo.getOid(), result));
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Task {} that was about to be stopped does not exist. Ignoring it.", e, taskInfo.getOid());
             } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Task {} that was about to be stopped cannot be read due to schema problem. Ignoring it.", e, taskInfo.getOid());
+                LoggingUtils.logUnexpectedException(LOGGER, "Task {} that was about to be stopped cannot be read due to schema problem. Ignoring it.", e, taskInfo.getOid());
             }
         }
 
@@ -176,7 +175,7 @@ public class ExecutionManager {
 
             LOGGER.trace("Getting node and task info from the current node ({})", node.asObjectable().getNodeIdentifier());
 
-            List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<ClusterStatusInformation.TaskInfo>();
+            List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<>();
             Set<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
             for (Task task : tasks) {
                 taskInfoList.add(new ClusterStatusInformation.TaskInfo(task.getOid()));
@@ -224,14 +223,13 @@ public class ExecutionManager {
     /**
      * Stops given set of tasks and waits for their completion.
      *
-     * @param tasks
+     * @param tasks Tasks to stop.
      * @param csi Cluster status information. Must be relatively current, i.e. got AFTER a moment preventing new tasks
      *            to be scheduled (e.g. when suspending tasks, CSI has to be taken after tasks have been unscheduled;
      *            when stopping schedulers, CSI has to be taken after schedulers were stopped). May be null; in that case
      *            the method will query nodes themselves.
      * @param waitTime How long to wait for task stop. Value less than zero means no wait will be performed.
      * @param clusterwide If false, only tasks running on local node will be stopped.
-     * @param parentResult
      * @return
      *
      * Note: does not throw exceptions: it tries hard to stop the tasks, if something breaks, it just return 'false'
@@ -283,7 +281,7 @@ public class ExecutionManager {
 
         LOGGER.trace("Waiting for task(s) " + tasks + " to complete, at most for " + maxWaitTime + " ms.");
 
-        Set<String> oids = new HashSet<String>();
+        Set<String> oids = new HashSet<>();
         for (Task t : tasks)
             if (t.getOid() != null)
                 oids.add(t.getOid());
@@ -345,7 +343,7 @@ public class ExecutionManager {
 
         String oid = task.getOid();
 
-        LOGGER.trace("stopTaskRun: task = {}, csi = {}, clusterwide = {}", new Object[] { task, csi, clusterwide });
+        LOGGER.trace("stopTaskRun: task = {}, csi = {}, clusterwide = {}", task, csi, clusterwide);
 
         if (!clusterwide) {
             stopLocalTaskIfRunning(oid, parentResult);
@@ -382,7 +380,7 @@ public class ExecutionManager {
             }
             result.recordSuccess();
         } catch (SchedulerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot unschedule task {}", e, task);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot unschedule task {}", e, task);
             result.recordFatalError("Cannot unschedule task " + task, e);
         }
     }
@@ -390,8 +388,7 @@ public class ExecutionManager {
     /**
      * Removes task from quartz. On error, creates a subresult in parent OperationResult. (On success, does nothing to keep ORs from becoming huge.)
      *
-     * @param oid
-     * @param parentResult
+     * @param oid Task OID
      * @return true if the job was successfully removed.
      */
     public boolean removeTaskFromQuartz(String oid, OperationResult parentResult) {
@@ -401,7 +398,7 @@ public class ExecutionManager {
             return true;
         } catch (SchedulerException e) {
             String message = "Cannot delete task " + oid + " from Quartz job store";
-            LoggingUtils.logException(LOGGER, message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
             parentResult.createSubresult(DOT_CLASS + "removeTaskFromQuartz").recordFatalError(message, e);
             return false;
         }
@@ -419,18 +416,18 @@ public class ExecutionManager {
 
 
     /*
-     * Various Auxiliary methods
+     * Various auxiliary methods
      */
 
-    private OperationResult createOperationResult(String methodName) {
-        return new OperationResult(ExecutionManager.class.getName() + "." + methodName);
-    }
+//    private OperationResult createOperationResult(String methodName) {
+//        return new OperationResult(ExecutionManager.class.getName() + "." + methodName);
+//    }
+//
+//    private ClusterManager getClusterManager() {
+//        return taskManager.getClusterManager();
+//    }
 
-    private ClusterManager getClusterManager() {
-        return taskManager.getClusterManager();
-    }
-
-    public void setQuartzScheduler(Scheduler quartzScheduler) {
+    void setQuartzScheduler(Scheduler quartzScheduler) {
         this.quartzScheduler = quartzScheduler;
     }
 
@@ -463,7 +460,7 @@ public class ExecutionManager {
         try {
             localNodeManager.shutdownScheduler();
         } catch (TaskManagerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot shutdown scheduler.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot shutdown scheduler.", e);
         }
     }
 
@@ -484,7 +481,7 @@ public class ExecutionManager {
             result.recordSuccess();
         } catch (SchedulerException e) {
             String message = "Cannot determine next run start time for task with OID " + oid;
-            LoggingUtils.logException(LOGGER, message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
             result.recordFatalError(message, e);
             return null;
         }
@@ -546,7 +543,6 @@ public class ExecutionManager {
         // and then continue after specified interval (i.e. NOT continue according to original schedule) - MID-1410
         if (!getConfiguration().isRunNowKeepsOriginalSchedule() && task.isLooselyBound() && task.isCycle() && task.getSchedule() != null
                 && task.getSchedule().getInterval() != null && task.getSchedule().getInterval() != 0) {
-
             LOGGER.trace("'Run now' for task invoked: unscheduling and rescheduling it; task = {}", task);
             unscheduleTask(task, result);
             ((TaskQuartzImpl) task).setRecreateQuartzTrigger(true);
@@ -568,21 +564,29 @@ public class ExecutionManager {
     }
 
     // nodeId should not be the current node
-    public void scheduleTaskNow(@NotNull Task task, @NotNull NodeType node, @NotNull OperationResult result) {
-        remoteNodesManager.scheduleTaskNow(task, node, result);
+    void redirectTaskToNode(@NotNull Task task, @NotNull NodeType node, @NotNull OperationResult result) {
+        remoteNodesManager.redirectTaskToNode(task, node, result);
     }
 
     public void pauseTaskJob(Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "pauseTaskJob");
         JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
+        TriggerKey standardTriggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
         try {
-            quartzScheduler.pauseJob(jobKey);
+            for (Trigger trigger : quartzScheduler.getTriggersOfJob(jobKey)) {
+                if (standardTriggerKey.equals(trigger.getKey())) {
+                    LOGGER.trace("Suspending {}: pausing standard trigger {}", task, trigger);
+                    quartzScheduler.pauseTrigger(trigger.getKey());
+                } else {
+                    LOGGER.trace("Suspending {}: deleting non-standard trigger {}", task, trigger);
+                    quartzScheduler.unscheduleJob(trigger.getKey());
+                }
+            }
             result.recordSuccess();
         } catch (SchedulerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot pause job for task {}", e, task);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot pause job for task {}", e, task);
             result.recordFatalError("Cannot pause job for task " + task, e);
         }
-
     }
 }
 

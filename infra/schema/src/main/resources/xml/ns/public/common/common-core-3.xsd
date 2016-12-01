@@ -1534,10 +1534,6 @@
 				Constraints on task execution, e.g. a execution group, allowed/disallowed nodes, etc.
 
 				EXPERIMENTAL.
-
-				Especially the support for node constraints is very experimental. It is based on vetoing
-				trigger firing in Quartz scheduler, with the hope that eventually the task would start
-				on a node that supports its execution.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.5</a:since>
@@ -1565,7 +1561,7 @@
 					<xsd:documentation>
 						Node(s) that this task is allowed to be executed on. If not specified, the task is allowed
 						to be executed on any cluster node (if not restricted by disallowedNode item).
-						VERY EXPERIMENTAL. MAY OR MAY NOT WORK.
+						EXPERIMENTAL. MAY OR MAY NOT WORK.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -1573,7 +1569,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Node(s) that this task is NOT allowed to be executed on.
-						VERY EXPERIMENTAL. MAY OR MAY NOT WORK.
+						EXPERIMENTAL. MAY OR MAY NOT WORK.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
