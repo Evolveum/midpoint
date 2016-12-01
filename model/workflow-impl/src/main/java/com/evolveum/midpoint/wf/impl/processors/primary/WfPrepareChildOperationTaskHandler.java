@@ -118,7 +118,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare child model context", e);
             status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
         } catch (CommunicationException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't prepare child model context", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare child model context", e);
             status = TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
         }
         TaskRunResult runResult = new TaskRunResult();

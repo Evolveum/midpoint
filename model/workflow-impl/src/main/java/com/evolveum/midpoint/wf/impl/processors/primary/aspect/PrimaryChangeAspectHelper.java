@@ -206,7 +206,7 @@ public class PrimaryChangeAspectHelper {
                     } catch (ObjectNotFoundException e) {
                         LoggingUtils.logException(LOGGER, "Couldn't resolve reference to {} in {}", e, oid, user);
                     } catch (SchemaException e) {
-                        LoggingUtils.logException(LOGGER, "Couldn't resolve reference to {} in {}", e, oid, user);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve reference to {} in {}", e, oid, user);
                     }
                 }
             }

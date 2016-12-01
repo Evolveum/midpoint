@@ -152,7 +152,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             return HookOperationMode.BACKGROUND;
 
         } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|ObjectAlreadyExistsException|RuntimeException e) {
-            LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
             // todo rollback - at least close open tasks, maybe stop workflow process instances

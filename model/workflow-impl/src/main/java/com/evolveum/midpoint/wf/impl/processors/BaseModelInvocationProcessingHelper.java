@@ -220,7 +220,7 @@ public class BaseModelInvocationProcessingHelper {
 			LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
 			requester = task.getOwner().clone();
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), due to schema exception. Using cached data.", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), due to schema exception. Using cached data.", e);
 			requester = task.getOwner().clone();
 		}
 		return requester;
