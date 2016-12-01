@@ -17,7 +17,8 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>Cyan Sailor</name>    
+    <name>Cyan Sailor</name>
+    <delegable>true</delegable>
     <inducement id="1111">
     	<construction>
     		<!-- Dummy CYAN -->

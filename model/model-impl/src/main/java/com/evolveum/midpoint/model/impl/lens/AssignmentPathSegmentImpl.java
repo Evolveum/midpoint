@@ -15,8 +15,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -24,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
@@ -35,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
 public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+	private QName relation;
 	private ObjectType target;
 	private ObjectType source;
 	private boolean validityOverride = false;
@@ -46,10 +51,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	private final boolean isAssignment;
 	
 	AssignmentPathSegmentImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-	                          ObjectType target, boolean isAssignment) {
+	                          boolean isAssignment) {
 		super();
 		this.assignmentIdi = assignmentIdi;
-		this.target = target;
 		this.isAssignment = isAssignment;
 	}
 
@@ -72,6 +76,15 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		this.assignmentIdi = assignmentIdi;
+	}
+
+	@Override
+	public QName getRelation() {
+		return relation;
+	}
+
+	public void setRelation(QName relation) {
+		this.relation = relation;
 	}
 
 	@Override
@@ -175,6 +188,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			return XsdTypeMapper.isMatchingMultiplicity(evaluationOrderInt, orderMin, orderMax);
 		}
 	}
+	
+	@Override
+	public boolean isDelegation() {
+		return DeputyUtils.isDelegationRelation(relation);
+	}
 
 	@Override
 	public int hashCode() {
@@ -230,7 +248,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			}
 		}
 		if (target != null) {
-			sb.append("-> ").append(target);
+			sb.append("-[");
+			if (relation != null) {
+				sb.append(relation.getLocalPart());
+			}
+			sb.append("]-> ").append(target);
 		}
 		sb.append(")");
 		return sb.toString();
@@ -251,6 +273,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		DebugUtil.debugDumpWithLabelLn(sb, "validityOverride", validityOverride, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", (DebugDumpable)evaluationOrder, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment", assignmentIdi.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "target", target==null?"null":target.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "source", source==null?"null":source.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
