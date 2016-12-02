@@ -473,26 +473,55 @@ public class ExecutionManager {
         taskSynchronizer.synchronizeTask(task, result);
     }
 
-    public Long getNextRunStartTime(String oid, OperationResult result) {
-
-        Trigger t;
-        try {
-            t = quartzScheduler.getTrigger(TaskQuartzImplUtil.createTriggerKeyForTaskOid(oid));
-            result.recordSuccess();
+    public TaskManagerQuartzImpl.NextStartTimes getNextStartTimes(@NotNull String oid, boolean retrieveNextRunStartTime,
+            boolean retrieveRetryTime, OperationResult result) {
+		try {
+            if (retrieveNextRunStartTime && !retrieveRetryTime) {
+				Trigger standardTrigger = quartzScheduler.getTrigger(TaskQuartzImplUtil.createTriggerKeyForTaskOid(oid));
+				result.recordSuccess();
+				return new TaskManagerQuartzImpl.NextStartTimes(standardTrigger, null);
+			} else if (retrieveNextRunStartTime || retrieveRetryTime) {
+				List<? extends Trigger> triggers = quartzScheduler
+						.getTriggersOfJob(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));
+				Trigger standardTrigger = null;
+				Trigger nextRetryTrigger = null;
+				for (Trigger trigger : triggers) {
+					if (oid.equals(trigger.getKey().getName())) {
+						standardTrigger = trigger;
+					} else {
+						if (willOccur(trigger) && (nextRetryTrigger == null || isBefore(trigger, nextRetryTrigger))) {
+							nextRetryTrigger = trigger;
+						}
+					}
+				}
+				result.recordSuccess();
+				return new TaskManagerQuartzImpl.NextStartTimes(
+						retrieveNextRunStartTime ? standardTrigger : null,
+						nextRetryTrigger);		// retrieveRetryTime is always true here
+			} else {
+            	return new TaskManagerQuartzImpl.NextStartTimes(null, null);		// shouldn't occur
+			}
         } catch (SchedulerException e) {
-            String message = "Cannot determine next run start time for task with OID " + oid;
+            String message = "Cannot determine next start times for task with OID " + oid;
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
             result.recordFatalError(message, e);
             return null;
         }
-        if (t == null) {
-            return null;
-        }
-        Date next = t.getNextFireTime();
-        return next == null ? null : next.getTime();
     }
 
-    public boolean synchronizeJobStores(OperationResult result) {
+    // null means "never"
+	private boolean isBefore(Trigger t1, Trigger t2) {
+    	Date date1 = t1.getNextFireTime();
+    	Date date2 = t2.getNextFireTime();
+		return date1 != null
+				&& (date2 == null || date1.getTime() < date2.getTime());
+	}
+
+	private boolean willOccur(Trigger t) {
+		return t.getNextFireTime() != null && t.getNextFireTime().getTime() >= System.currentTimeMillis();
+	}
+
+	public boolean synchronizeJobStores(OperationResult result) {
         return taskSynchronizer.synchronizeJobStores(result);
     }
 

@@ -22,12 +22,10 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -39,7 +37,6 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -658,26 +655,41 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
     private String createScheduledToRunAgain(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
-        Long time = task.getScheduledToStartAgain();
+		boolean runnable = task.getRawExecutionStatus() == TaskExecutionStatus.RUNNABLE;
+        Long scheduledAfter = task.getScheduledToStartAgain();
+		Long retryAfter = runnable ? task.getRetryAfter() : null;
 
-        boolean runnable = task.getRawExecutionStatus() == TaskExecutionStatus.RUNNABLE;
-
-        if (time == null) {
-            return "";
-        } else if (time == 0) {
+        if (scheduledAfter == null) {
+            if (retryAfter == null || retryAfter <= 0) {
+                return "";
+            }
+        } else if (scheduledAfter == TaskDto.NOW) { // TODO what about retryTime?
             return getString(runnable ? "pageTasks.now" : "pageTasks.nowForNotRunningTasks");
-        } else if (time == -1) {
+        } else if (scheduledAfter == TaskDto.RUNS_CONTINUALLY) {	// retryTime is probably null here
             return getString("pageTasks.runsContinually");
-        } else if (time == -2) {
+        } else if (scheduledAfter == TaskDto.ALREADY_PASSED && retryAfter == null) {
             return getString(runnable ? "pageTasks.alreadyPassed" : "pageTasks.alreadyPassedForNotRunningTasks");
         }
 
-        String key = runnable ? "pageTasks.in" : "pageTasks.inForNotRunningTasks";
+        long displayTime;
+        boolean displayAsRetry;
+        if (retryAfter != null && retryAfter > 0 && (scheduledAfter == null || scheduledAfter < 0 || retryAfter < scheduledAfter)) {
+        	displayTime = retryAfter;
+        	displayAsRetry = true;
+		} else {
+        	displayTime = scheduledAfter;
+        	displayAsRetry = false;
+		}
+
+		String key;
+        if (runnable) {
+        	key = displayAsRetry ? "pageTasks.retryIn" : "pageTasks.in";
+		} else {
+        	key = "pageTasks.inForNotRunningTasks";
+		}
 
         //todo i18n
-        return PageBase.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(time, true, true)).getString();
-//        return new StringResourceModel(key, this, null, null,
-//                DurationFormatUtils.formatDurationWords(time, true, true)).getString();
+        return PageBase.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(displayTime, true, true)).getString();
     }
 
     private String createProgress(IModel<TaskDto> taskModel) {

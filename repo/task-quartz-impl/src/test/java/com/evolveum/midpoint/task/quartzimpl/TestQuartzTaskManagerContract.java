@@ -28,11 +28,11 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
@@ -1637,22 +1637,35 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         final String TEST_NAME = "110GroupLimit";
         final OperationResult result = createResult(TEST_NAME);
 
-        PrismObject<TaskType> task1prism = addObjectFromFile(taskFilename(TEST_NAME));
-        waitForTaskStart(task1prism.getOid(), result);
+        TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
+        waitForTaskStart(task1.getOid(), result);
 
         // import second task with the same group
-		PrismObject<TaskType> task2prism = addObjectFromFile(taskFilename(TEST_NAME + "-2"));
+		TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
 
 		Thread.sleep(10000);
-		Task task2 = taskManager.getTask(task2prism.getOid(), result);
+        task1 = getTaskType(task1.getOid(), result);
+        assertNull("First task should have no retry time", task1.getNextRetryTimestamp());
+
+		task2 = getTaskType(task2.getOid(), result);
 		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
+		assertNotNull("Next retry time is not set for second task", task2.getNextRetryTimestamp());
 
 		// now finish first task and check the second one is started
-		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1prism.getOid()), 20000L, result);
+		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
 		assertTrue("Task 1 was not suspended successfully", stopped);
 
-		waitForTaskStart(task2prism.getOid(), result);
-		taskManager.suspendTasks(Collections.singleton(task2prism.getOid()), 20000L, result);
+		waitForTaskStart(task2.getOid(), result);
+		taskManager.suspendTasks(Collections.singleton(task2.getOid()), 20000L, result);
+    }
+
+    private TaskType getTaskType(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.retrieveItemsNamed(
+                TaskType.F_SUBTASK,
+                TaskType.F_NODE_AS_OBSERVED,
+                TaskType.F_NEXT_RUN_START_TIMESTAMP,
+                TaskType.F_NEXT_RETRY_TIMESTAMP);
+        return taskManager.getObject(TaskType.class, oid, options, result).asObjectable();
     }
 
     @Test
@@ -1660,8 +1673,11 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         final String TEST_NAME = "120NodeAllowed";
         final OperationResult result = createResult(TEST_NAME);
 
-        PrismObject<TaskType> taskPrism = addObjectFromFile(taskFilename(TEST_NAME));
-        waitForTaskStart(taskPrism.getOid(), result);
+        TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
+        waitForTaskStart(task.getOid(), result);
+
+        task = getTaskType(task.getOid(), result);
+        assertNull("Task should have no retry time", task.getNextRetryTimestamp());
     }
 
 	@Test
@@ -1669,11 +1685,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 		final String TEST_NAME = "130NodeNotAllowed";
 		final OperationResult result = createResult(TEST_NAME);
 
-		PrismObject<TaskType> taskPrism = addObjectFromFile(taskFilename(TEST_NAME));
+		TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
 		Thread.sleep(10000);
-		Task task = taskManager.getTask(taskPrism.getOid(), result);
+		task = getTaskType(task.getOid(), result);
 		assertNull("Task was started even if it shouldn't be", task.getLastRunStartTimestamp());
-		taskManager.suspendTask(task, 1000L, result);
+        assertNotNull("Next retry time is not set for the task", task.getNextRetryTimestamp());
+		taskManager.suspendTasks(Collections.singleton(task.getOid()), 1000L, result);
 	}
 
 	@Test
@@ -1681,11 +1698,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 		final String TEST_NAME = "140NodeDisallowed";
 		final OperationResult result = createResult(TEST_NAME);
 
-		PrismObject<TaskType> taskPrism = addObjectFromFile(taskFilename(TEST_NAME));
+        TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
 		Thread.sleep(10000);
-		Task task = taskManager.getTask(taskPrism.getOid(), result);
-		assertNull("Task was started even if it shouldn't be", task.getLastRunStartTimestamp());
-		taskManager.suspendTask(task, 1000L, result);
+        task = getTaskType(task.getOid(), result);
+        assertNull("Task was started even if it shouldn't be", task.getLastRunStartTimestamp());
+        assertNotNull("Next retry time is not set for the task", task.getNextRetryTimestamp());
+        taskManager.suspendTasks(Collections.singleton(task.getOid()), 1000L, result);
 	}
 
 	@Test(enabled = true)

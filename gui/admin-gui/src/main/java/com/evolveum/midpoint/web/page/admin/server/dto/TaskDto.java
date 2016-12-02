@@ -84,7 +84,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String CLASS_DOT = TaskDto.class.getName() + ".";
     public static final String OPERATION_NEW = CLASS_DOT + "new";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(TaskDto.class);
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
@@ -121,6 +121,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
 	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
 	public static final String F_HANDLER_DTO = "handlerDto";
+	public static final long RUNS_CONTINUALLY = -1L;
+	public static final long ALREADY_PASSED = -2L;
+	public static final long NOW = 0L;
 
 	private TaskType taskType;
 
@@ -628,6 +631,15 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return xgc2long(taskType.getNextRunStartTimestamp());
     }
 
+	public Long getNextRetryTimeLong() {
+		return xgc2long(taskType.getNextRetryTimestamp());
+	}
+
+	public Long getRetryAfter() {
+    	Long retryAt = getNextRetryTimeLong();
+    	return retryAt != null ? retryAt - System.currentTimeMillis() : null;
+    }
+
     public Long getScheduledToStartAgain() {
         long current = System.currentTimeMillis();
 
@@ -635,7 +647,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
             if (!currentEditableState.recurring) {
                 return null;
             } else if (currentEditableState.bound) {
-                return -1L;             // runs continually; todo provide some information also in this case
+                return RUNS_CONTINUALLY;             // runs continually; todo provide some information also in this case
             }
         }
 
@@ -647,9 +659,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
         if (nextRunStartTimeLong > current + 1000) {
             return nextRunStartTimeLong - System.currentTimeMillis();
         } else if (nextRunStartTimeLong < current - 60000) {
-            return -2L;             // already passed
+            return ALREADY_PASSED;
         } else {
-            return 0L;              // now
+            return NOW;
         }
     }
 
@@ -1086,4 +1098,5 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public TaskEditableState getOriginalEditableState() {
 		return originalEditableState;
 	}
+
 }
