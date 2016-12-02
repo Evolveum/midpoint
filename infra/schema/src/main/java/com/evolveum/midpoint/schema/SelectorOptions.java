@@ -146,6 +146,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
             new ItemPath(TaskType.F_SUBTASK),
             new ItemPath(TaskType.F_NODE_AS_OBSERVED),
             new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP),
+            new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP),
             new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM),
             new ItemPath(LookupTableType.F_ROW),
             new ItemPath(AccessCertificationCampaignType.F_CASE)));

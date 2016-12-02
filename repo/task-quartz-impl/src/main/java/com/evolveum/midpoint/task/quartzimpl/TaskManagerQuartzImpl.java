@@ -49,9 +49,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -925,6 +927,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         addTransientTaskInformation(task.getTaskPrismObject(),
                 clusterStatusInformation,
                 SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options),
+                SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options),
                 SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options),
                 result);
 
@@ -965,6 +968,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	// TODO deduplicate
 	private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 		boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+		boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
 		boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
 		List<Task> subtasks = task.listSubtasks(result);
@@ -975,6 +979,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 				addTransientTaskInformation(subtask.getTaskPrismObject(),
 						clusterStatusInformation,
 						retrieveNextRunStartTime,
+						retrieveRetryTime,
 						retrieveNodeAsObserved,
 						result);
 
@@ -989,6 +994,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private void fillInSubtasks(TaskType task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
         boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
         List<PrismObject<TaskType>> subtasks = listSubtasksForTask(task.getTaskIdentifier(), result);
@@ -999,6 +1005,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 addTransientTaskInformation(subtask,
                         clusterStatusInformation,
                         retrieveNextRunStartTime,
+						retrieveRetryTime,
                         retrieveNodeAsObserved,
                         result);
 
@@ -1153,18 +1160,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
         boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
         boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
         List<PrismObject<TaskType>> retval = new ArrayList<>();
         for (PrismObject<TaskType> taskInRepository : tasksInRepository) {
-            TaskType taskInResult = addTransientTaskInformation(taskInRepository, clusterStatusInformation, retrieveNextRunStartTime, retrieveNodeAsObserved, result);
+            TaskType taskInResult = addTransientTaskInformation(taskInRepository, clusterStatusInformation,
+					retrieveNextRunStartTime, retrieveRetryTime, retrieveNodeAsObserved, result);
             retval.add(taskInResult.asPrismObject());
         }
         result.computeStatus();
         return new SearchResultList(retval);
     }
 
-    private TaskType addTransientTaskInformation(PrismObject<TaskType> taskInRepository, ClusterStatusInformation clusterStatusInformation, boolean retrieveNextRunStartTime, boolean retrieveNodeAsObserved, OperationResult result) {
+    private TaskType addTransientTaskInformation(PrismObject<TaskType> taskInRepository, ClusterStatusInformation clusterStatusInformation,
+			boolean retrieveNextRunStartTime, boolean retrieveRetryTime, boolean retrieveNodeAsObserved, OperationResult result) {
 
         Validate.notNull(taskInRepository.getOid(), "Task OID is null");
         TaskType taskInResult = taskInRepository.asObjectable();
@@ -1174,10 +1184,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 taskInResult.setNodeAsObserved(runsAt.getNodeIdentifier());
             }
         }
-        if (retrieveNextRunStartTime) {
-            Long nextRunStartTime = getNextRunStartTime(taskInResult.getOid(), result);
-            if (nextRunStartTime != null) {
-                taskInResult.setNextRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(nextRunStartTime));
+        if (retrieveNextRunStartTime || retrieveRetryTime) {
+            NextStartTimes times = getNextStartTimes(taskInResult.getOid(), retrieveNextRunStartTime, retrieveRetryTime, result);
+            if (retrieveNextRunStartTime && times.nextScheduledRun != null) {
+                taskInResult.setNextRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(times.nextScheduledRun));
+            }
+            if (retrieveRetryTime && times.nextRetry != null) {
+                taskInResult.setNextRetryTimestamp(XmlTypeConverter.createXMLGregorianCalendar(times.nextRetry));
             }
         }
         Long stalledSince = stalledTasksWatcher.getStalledSinceForTask(taskInResult);
@@ -1796,9 +1809,29 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public Long getNextRunStartTime(String oid, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getNextRunStartTime");
+        return getNextStartTimes(oid, true, false, parentResult).nextScheduledRun;
+    }
+
+    public static class NextStartTimes {
+    	final Long nextScheduledRun;
+    	final Long nextRetry;
+		public NextStartTimes(Trigger standardTrigger, Trigger nextRetryTrigger) {
+			this.nextScheduledRun = getTime(standardTrigger);
+			this.nextRetry = getTime(nextRetryTrigger);
+		}
+		private Long getTime(Trigger t) {
+			return t != null && t.getNextFireTime() != null ? t.getNextFireTime().getTime() : null;
+		}
+	}
+
+	@NotNull
+    public NextStartTimes getNextStartTimes(String oid, boolean retrieveNextRunStartTime, boolean retrieveRetryTime,
+			OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getNextStartTimes");
         result.addParam("oid", oid);
-        return executionManager.getNextRunStartTime(oid, result);
+        result.addParam("retrieveNextRunStartTime", retrieveNextRunStartTime);
+        result.addParam("retrieveRetryTime", retrieveRetryTime);
+        return executionManager.getNextStartTimes(oid, retrieveNextRunStartTime, retrieveRetryTime, result);
     }
 
     public void checkStalledTasks(OperationResult result) {
