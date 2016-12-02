@@ -51,10 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author semancik
@@ -334,8 +331,14 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             }
 	
 	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
-	
-	        LOGGER.info(finishMessage + statistics);
+
+			List<String> failures = coordinatorTask.getLastFailures();
+			if (!failures.isEmpty()) {
+				opResult.createSubresult(taskOperationPrefix + ".errors")
+						.recordStatus(OperationResultStatus.SUCCESS, "Last failures: " + failures);
+			}
+
+			LOGGER.info(finishMessage + statistics);
         }
         
         try {
@@ -347,9 +350,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         }
         
         LOGGER.trace("{} run finished (task {}, run result {})", taskName, coordinatorTask, runResult);
-
-        return runResult;
-		
+		return runResult;
 	}
 
 	private TaskRunResult logErrorAndSetResult(TaskRunResult runResult, H resultHandler, String message, Throwable e,

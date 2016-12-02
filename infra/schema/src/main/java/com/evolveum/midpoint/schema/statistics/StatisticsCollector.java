@@ -25,8 +25,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInfor
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * An object that receives various statistics and state information, processes them and provides
@@ -103,4 +105,7 @@ public interface StatisticsCollector {
 
     void resetActionsExecutedInformation(ActionsExecutedInformationType value);
 
+    // EXPERIMENTAL - TODO: replace by something more serious
+    @NotNull
+    List<String> getLastFailures();
 }

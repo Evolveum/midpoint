@@ -77,6 +77,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -2735,6 +2736,12 @@ public class TaskQuartzImpl implements Task {
 		rv.setActionsExecutedInformation(aeit);
 		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		return rv;
+	}
+
+	@NotNull
+	@Override
+	public List<String> getLastFailures() {
+		return iterativeTaskInformation != null ? iterativeTaskInformation.getLastFailures() : Collections.emptyList();
 	}
 
 	private EnvironmentalPerformanceInformationType getAggregateEnvironmentalPerformanceInformation() {

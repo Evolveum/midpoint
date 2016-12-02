@@ -324,7 +324,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		if (reconciliationTaskResultListener != null) {
 			reconciliationTaskResultListener.process(reconResult);
 		}
-		
+
+		List<String> failures = coordinatorTask.getLastFailures();
+		if (!failures.isEmpty()) {
+			opResult.createSubresult(OperationConstants.RECONCILIATION + ".errors")
+					.recordStatus(OperationResultStatus.SUCCESS, "Last failures: " + failures);
+		}
 		return runResult;
 	}
 
