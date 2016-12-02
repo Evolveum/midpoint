@@ -302,7 +302,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected boolean isAssertOpenFiles() {
-		return true;
+		return false;
 	}
 	
 	protected QName getAssociationGroupName() {

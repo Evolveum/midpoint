@@ -75,7 +75,7 @@ public class NoOpTaskHandler implements TaskHandler {
 			if (stepsProp != null)
 				stepsProp.applyDefinition(stepsPropDef);
 		} catch (SchemaException se) {
-			LoggingUtils.logException(LOGGER, "Cannot apply Prism definition to delay and/or steps property, exiting immediately.", se);
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot apply Prism definition to delay and/or steps property, exiting immediately.", se);
 			opResult.recordFatalError("Cannot apply Prism definition to delay and/or steps property, exiting immediately.", se);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
@@ -120,7 +120,7 @@ public class NoOpTaskHandler implements TaskHandler {
                 runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
                 break;
             } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Cannot report progress for task {} because of schema exception.", e, task);
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot report progress for task {} because of schema exception.", e, task);
                 runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
                 break;
             }

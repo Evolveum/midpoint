@@ -166,7 +166,7 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
     private TaskRunResult reportException(String message, Task task, OperationResult result, TaskRunResult.TaskRunResultStatus status, Throwable cause) {
 
-        LoggingUtils.logException(LOGGER, message, cause);
+        LoggingUtils.logUnexpectedException(LOGGER, message, cause);
         result.recordFatalError(message, cause);
 
         TaskRunResult runResult = new TaskRunResult();

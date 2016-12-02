@@ -81,6 +81,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             }
             if (options.isGetNextRunStartTime()) {
                 propertiesToGet.add(TaskType.F_NEXT_RUN_START_TIMESTAMP);
+                propertiesToGet.add(TaskType.F_NEXT_RETRY_TIMESTAMP);
             }
             Collection<SelectorOptions<GetOperationOptions>> searchOptions =
                     GetOperationOptions.createRetrieveAttributesOptions(propertiesToGet.toArray(new QName[0]));

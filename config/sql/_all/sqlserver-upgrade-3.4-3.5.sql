@@ -1,19 +1,19 @@
-ALTER TABLE m_object ADD (lifecycleState  VARCHAR2(255 CHAR));
+ALTER TABLE m_object ADD lifecycleState NVARCHAR(255) COLLATE database_default;
 
-CREATE INDEX iObjectLifecycleState ON m_object (lifecycleState) INITRANS 30;
+CREATE INDEX iObjectLifecycleState ON m_object (lifecycleState);
 
-ALTER TABLE m_assignment ADD (lifecycleState  VARCHAR2(255 CHAR));
+ALTER TABLE m_assignment ADD lifecycleState NVARCHAR(255) COLLATE database_default;
 
 CREATE TABLE m_assignment_policy_situation (
-  assignment_id   NUMBER(10, 0)     NOT NULL,
-  assignment_oid  VARCHAR2(36 CHAR) NOT NULL,
-  policySituation VARCHAR2(255 CHAR)
-) INITRANS 30;
+  assignment_id   INT                                   NOT NULL,
+  assignment_oid  NVARCHAR(36) COLLATE database_default NOT NULL,
+  policySituation NVARCHAR(255) COLLATE database_default
+);
 
 CREATE TABLE m_focus_policy_situation (
-  focus_oid       VARCHAR2(36 CHAR) NOT NULL,
-  policySituation VARCHAR2(255 CHAR)
-) INITRANS 30;
+  focus_oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  policySituation NVARCHAR(255) COLLATE database_default
+);
 
 ALTER TABLE m_assignment_policy_situation
   ADD CONSTRAINT fk_assignment_policy_situation
@@ -26,10 +26,10 @@ FOREIGN KEY (focus_oid)
 REFERENCES m_focus;
 
 CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR2(255 CHAR) NOT NULL,
-  record_id       NUMBER(19, 0)      NOT NULL,
+  changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL,
+  record_id       BIGINT                                 NOT NULL,
   PRIMARY KEY (changedItemPath, record_id)
-) INITRANS 30;
+);
 
 ALTER TABLE m_audit_item
   ADD CONSTRAINT fk_audit_item
@@ -38,7 +38,7 @@ REFERENCES m_audit_event;
 
 -- Quartz
 
-ALTER TABLE qrtz_fired_triggers ADD SCHED_TIME NUMBER(13) NOT NULL;
+ALTER TABLE QRTZ_FIRED_TRIGGERS ADD SCHED_TIME BIGINT NOT NULL;
 
 -- Activiti
 

@@ -135,7 +135,7 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
         try {
             activitiInterface.queryActivitiProcessInstance(qpc, task, result);
         } catch (RuntimeException|ObjectNotFoundException|ObjectAlreadyExistsException|SchemaException e) {
-            LoggingUtils.logException(LOGGER,
+            LoggingUtils.logUnexpectedException(LOGGER,
                     "Couldn't send a request to query a process instance to workflow management system", e);
             result.recordPartialError("Couldn't send a request to query a process instance to workflow management system", e);
         } finally {

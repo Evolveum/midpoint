@@ -49,9 +49,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -203,7 +205,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         try {
             new Initializer(this).init(result);
         } catch (TaskManagerInitializationException e) {
-            LoggingUtils.logException(LOGGER, "Cannot initialize TaskManager due to the following exception: ", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot initialize TaskManager due to the following exception: ", e);
             throw new SystemException("Cannot initialize TaskManager", e);
         }
 
@@ -248,7 +250,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 try {
                     executionManager.shutdownLocalScheduler();
                 } catch (TaskManagerException e) {
-                    LoggingUtils.logException(LOGGER, "Cannot shutdown Quartz scheduler, continuing with node shutdown", e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot shutdown Quartz scheduler, continuing with node shutdown", e);
                 }
             }
         }
@@ -325,7 +327,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                     !scheduler.isShutdown() &&
                     clusterManager.isClusterManagerThreadActive();
         } catch (SchedulerException e) {
-            LoggingUtils.logException(LOGGER, "Cannot determine the state of the Quartz scheduler", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot determine the state of the Quartz scheduler", e);
             return false;
         }
     }
@@ -361,7 +363,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                     LoggingUtils.logException(LOGGER, message, e);
                 } catch (SchemaException e) {
                     String message = "Cannot suspend task because of schema exception; task = " + task;
-                    LoggingUtils.logException(LOGGER, message, e);
+                    LoggingUtils.logUnexpectedException(LOGGER, message, e);
                 }
 
                 executionManager.pauseTaskJob(task, result);
@@ -413,7 +415,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw e;
         } catch (SchemaException e) {
             String message = "A task cannot be paused due to schema exception; task = " + task;
-            LoggingUtils.logException(LOGGER, message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
             throw e;
         }
 
@@ -451,7 +453,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             } catch (ObjectNotFoundException e) {           // result is already updated
                 LoggingUtils.logException(LOGGER, "Couldn't resume task with OID {}", e, oid);
             } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't resume task with OID {}", e, oid);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resume task with OID {}", e, oid);
             }
         }
         result.computeStatus();
@@ -485,7 +487,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw e;
         } catch (SchemaException e) {
             String message = "A task cannot be resumed/unpaused due to schema exception; task = " + task;
-            LoggingUtils.logException(LOGGER, message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
             throw e;
         }
 
@@ -703,10 +705,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 LoggingUtils.logException(LOGGER, "Error when retrieving task {} or its subtasks before the deletion. Skipping the deletion for this task.", e, oid);
             } catch (SchemaException e) {
                 // same as above
-                LoggingUtils.logException(LOGGER, "Error when retrieving task {} or its subtasks before the deletion. Skipping the deletion for this task.", e, oid);
+                LoggingUtils.logUnexpectedException(LOGGER, "Error when retrieving task {} or its subtasks before the deletion. Skipping the deletion for this task.", e, oid);
             } catch (RuntimeException e) {
                 result.createSubresult(DOT_IMPL_CLASS + "getTaskTree").recordPartialError("Unexpected error when retrieving task tree for " + oid + " before deletion", e);
-                LoggingUtils.logException(LOGGER, "Unexpected error when retrieving task {} or its subtasks before the deletion. Skipping the deletion for this task.", e, oid);
+                LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error when retrieving task {} or its subtasks before the deletion. Skipping the deletion for this task.", e, oid);
             }
         }
 
@@ -728,12 +730,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 deleteTask(task.getOid(), result);
             } catch (ObjectNotFoundException e) {   // in all cases (even RuntimeException) the error is already put into result
                 LoggingUtils.logException(LOGGER, "Error when deleting task {}", e, task);
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Error when deleting task {}", e, task);
-            } catch (RuntimeException e) {
-                LoggingUtils.logException(LOGGER, "Error when deleting task {}", e, task);
+            } catch (SchemaException | RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Error when deleting task {}", e, task);
             }
-        }
+		}
 
         if (result.isUnknown()) {
             result.computeStatus();
@@ -830,7 +830,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                         task.setLightweightHandlerExecuting(true);
                         lightweightTaskHandler.run(task);
                     } catch (Throwable t) {
-                        LoggingUtils.logException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);
                     } finally {
                         task.setLightweightHandlerExecuting(false);
                     }
@@ -842,7 +842,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                         //task.checkDependentTasksOnClose(task.getResult());
                         // task.updateStoredTaskResult();   // has perhaps no meaning for transient tasks
                     } catch (Exception e) {     // todo
-                        LoggingUtils.logException(LOGGER, "Couldn't correctly close task {}", e, task);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't correctly close task {}", e, task);
                     }
                 }
             };
@@ -874,7 +874,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                         }
                     }
                 } catch (Throwable t) {
-                    LoggingUtils.logException(LOGGER, "Exception while waiting for subtask {} to complete.", t, subtask);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Exception while waiting for subtask {} to complete.", t, subtask);
                     result.recordWarning("Got exception while waiting for subtask " + subtask + " to complete: " + t.getMessage(), t);
                 }
                 LOGGER.debug("Waiting for subtask {} done.", subtask);
@@ -927,6 +927,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         addTransientTaskInformation(task.getTaskPrismObject(),
                 clusterStatusInformation,
                 SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options),
+                SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options),
                 SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options),
                 result);
 
@@ -967,6 +968,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	// TODO deduplicate
 	private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 		boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+		boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
 		boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
 		List<Task> subtasks = task.listSubtasks(result);
@@ -977,6 +979,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 				addTransientTaskInformation(subtask.getTaskPrismObject(),
 						clusterStatusInformation,
 						retrieveNextRunStartTime,
+						retrieveRetryTime,
 						retrieveNodeAsObserved,
 						result);
 
@@ -991,6 +994,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private void fillInSubtasks(TaskType task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
         boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
         List<PrismObject<TaskType>> subtasks = listSubtasksForTask(task.getTaskIdentifier(), result);
@@ -1001,6 +1005,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 addTransientTaskInformation(subtask,
                         clusterStatusInformation,
                         retrieveNextRunStartTime,
+						retrieveRetryTime,
                         retrieveNodeAsObserved,
                         result);
 
@@ -1155,18 +1160,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
         boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
         boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
         List<PrismObject<TaskType>> retval = new ArrayList<>();
         for (PrismObject<TaskType> taskInRepository : tasksInRepository) {
-            TaskType taskInResult = addTransientTaskInformation(taskInRepository, clusterStatusInformation, retrieveNextRunStartTime, retrieveNodeAsObserved, result);
+            TaskType taskInResult = addTransientTaskInformation(taskInRepository, clusterStatusInformation,
+					retrieveNextRunStartTime, retrieveRetryTime, retrieveNodeAsObserved, result);
             retval.add(taskInResult.asPrismObject());
         }
         result.computeStatus();
         return new SearchResultList(retval);
     }
 
-    private TaskType addTransientTaskInformation(PrismObject<TaskType> taskInRepository, ClusterStatusInformation clusterStatusInformation, boolean retrieveNextRunStartTime, boolean retrieveNodeAsObserved, OperationResult result) {
+    private TaskType addTransientTaskInformation(PrismObject<TaskType> taskInRepository, ClusterStatusInformation clusterStatusInformation,
+			boolean retrieveNextRunStartTime, boolean retrieveRetryTime, boolean retrieveNodeAsObserved, OperationResult result) {
 
         Validate.notNull(taskInRepository.getOid(), "Task OID is null");
         TaskType taskInResult = taskInRepository.asObjectable();
@@ -1176,10 +1184,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 taskInResult.setNodeAsObserved(runsAt.getNodeIdentifier());
             }
         }
-        if (retrieveNextRunStartTime) {
-            Long nextRunStartTime = getNextRunStartTime(taskInResult.getOid(), result);
-            if (nextRunStartTime != null) {
-                taskInResult.setNextRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(nextRunStartTime));
+        if (retrieveNextRunStartTime || retrieveRetryTime) {
+            NextStartTimes times = getNextStartTimes(taskInResult.getOid(), retrieveNextRunStartTime, retrieveRetryTime, result);
+            if (retrieveNextRunStartTime && times.nextScheduledRun != null) {
+                taskInResult.setNextRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(times.nextScheduledRun));
+            }
+            if (retrieveRetryTime && times.nextRetry != null) {
+                taskInResult.setNextRetryTimestamp(XmlTypeConverter.createXMLGregorianCalendar(times.nextRetry));
             }
         }
         Long stalledSince = stalledTasksWatcher.getStalledSinceForTask(taskInResult);
@@ -1282,7 +1293,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             result.computeStatus();
             return;
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Quartz shadow job cannot be created, because task from repository could not be retrieved; oid = {}", e, oid);
+            LoggingUtils.logUnexpectedException(LOGGER, "Quartz shadow job cannot be created, because task from repository could not be retrieved; oid = {}", e, oid);
             result.computeStatus();
             return;
         }
@@ -1307,7 +1318,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             }
         } catch (SchedulerException e) {
             String message = "Quartz shadow job cannot be removed; oid = " + oid;
-            LoggingUtils.logException(LOGGER, message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
             result.recordFatalError(message);
         }
 
@@ -1585,7 +1596,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Couldn't schedule task with OID {}", e, oid);
             } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't schedule task with OID {}", e, oid);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't schedule task with OID {}", e, oid);
             }
         }
         result.computeStatus();
@@ -1741,7 +1752,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                         deleteTask(task.getOid(), result);
                         deleted++;
                     } catch (SchemaException|ObjectNotFoundException|RuntimeException e) {
-                        LoggingUtils.logException(LOGGER, "Couldn't delete obsolete task {}", e, task);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete obsolete task {}", e, task);
                         lastProblem = e;
                         problems++;
                         if (!task.getTaskIdentifier().equals(rootTask.getTaskIdentifier())) {
@@ -1789,7 +1800,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Couldn't retrieve task with OID {}", e, oid);        // result is updated in getTask
             } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve task with OID {}", e, oid);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve task with OID {}", e, oid);
             }
         }
         result.computeStatus();
@@ -1798,9 +1809,29 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public Long getNextRunStartTime(String oid, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getNextRunStartTime");
+        return getNextStartTimes(oid, true, false, parentResult).nextScheduledRun;
+    }
+
+    public static class NextStartTimes {
+    	final Long nextScheduledRun;
+    	final Long nextRetry;
+		public NextStartTimes(Trigger standardTrigger, Trigger nextRetryTrigger) {
+			this.nextScheduledRun = getTime(standardTrigger);
+			this.nextRetry = getTime(nextRetryTrigger);
+		}
+		private Long getTime(Trigger t) {
+			return t != null && t.getNextFireTime() != null ? t.getNextFireTime().getTime() : null;
+		}
+	}
+
+	@NotNull
+    public NextStartTimes getNextStartTimes(String oid, boolean retrieveNextRunStartTime, boolean retrieveRetryTime,
+			OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getNextStartTimes");
         result.addParam("oid", oid);
-        return executionManager.getNextRunStartTime(oid, result);
+        result.addParam("retrieveNextRunStartTime", retrieveNextRunStartTime);
+        result.addParam("retrieveRetryTime", retrieveRetryTime);
+        return executionManager.getNextStartTimes(oid, retrieveNextRunStartTime, retrieveRetryTime, result);
     }
 
     public void checkStalledTasks(OperationResult result) {
@@ -1818,7 +1849,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 ((TaskQuartzImpl) task).checkDependencies(result);
                 count++;
             } catch (SchemaException | ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't check dependencies for task {}", e, task);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check dependencies for task {}", e, task);
             }
 		}
         LOGGER.trace("Check waiting tasks completed; {} tasks checked.", count);

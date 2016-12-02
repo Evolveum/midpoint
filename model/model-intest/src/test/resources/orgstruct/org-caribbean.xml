@@ -69,6 +69,7 @@
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
 		</assignment>
+		<delegable>true</delegable>
 		<displayName>Department of Things</displayName>
 		<identifier>C004</identifier>
 		<orgType>piracy</orgType>
@@ -83,6 +84,7 @@
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
 		</assignment>
+		<delegable>true</delegable>
 		<displayName>Department of People</displayName>
 		<identifier>C005</identifier>
 		<orgType>piracy</orgType>
@@ -102,6 +104,7 @@
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-c00000000005" type="OrgType"/>
 		</assignment>
+		<delegable>true</delegable>
 		<displayName>Entertainment Section</displayName>
 		<identifier>C006</identifier>
 		<orgType>piracy</orgType>

@@ -229,7 +229,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             return HookOperationMode.BACKGROUND;
 
         } catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|CommunicationException|ConfigurationException|RuntimeException e) {
-            LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
 

@@ -147,19 +147,19 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
             }
 
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks due to schema exception", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks due to schema exception", e);
             status = TaskRunResultStatus.PERMANENT_ERROR;
         } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.PERMANENT_ERROR;
         } catch (ObjectAlreadyExistsException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.PERMANENT_ERROR;
         } catch (CommunicationException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.TEMPORARY_ERROR;
         } catch (ConfigurationException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.PERMANENT_ERROR;
         }
 

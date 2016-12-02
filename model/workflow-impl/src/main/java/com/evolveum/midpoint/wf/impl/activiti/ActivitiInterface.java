@@ -228,7 +228,7 @@ public class ActivitiInterface {
             wfTaskController.onTaskEvent(workItem, taskEvent, result);
         } catch (Exception e) {     // todo fix the exception processing e.g. think about situation where an event cannot be audited - should we allow to proceed?
             String message = "Couldn't process an event coming from the workflow management system";
-            LoggingUtils.logException(LOGGER, message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
             result.recordFatalError(message, e);
         }
     }

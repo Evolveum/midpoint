@@ -33,7 +33,8 @@ class TaskTabsVisibility implements Serializable {
 	public boolean computeSchedulingVisible(PageTaskEdit parentPage) {
 		schedulingVisible = (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow())
 			&& parentPage.isReadableSomeOf(
-				TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP, TaskType.F_NEXT_RUN_START_TIMESTAMP,
+				TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
+				TaskType.F_NEXT_RUN_START_TIMESTAMP, TaskType.F_NEXT_RETRY_TIMESTAMP,
 				TaskType.F_RECURRENCE, TaskType.F_BINDING, TaskType.F_SCHEDULE, TaskType.F_THREAD_STOP_ACTION);
 
 		return schedulingVisible;

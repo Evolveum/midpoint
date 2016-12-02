@@ -168,6 +168,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					TaskType.F_SUBTASK,
 					TaskType.F_NODE_AS_OBSERVED,
 					TaskType.F_NEXT_RUN_START_TIMESTAMP,
+					TaskType.F_NEXT_RETRY_TIMESTAMP,
 					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM));
 			options.addAll(GetOperationOptions.resolveItemsNamed(
 					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF)

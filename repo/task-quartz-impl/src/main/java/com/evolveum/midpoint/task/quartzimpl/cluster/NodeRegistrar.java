@@ -222,10 +222,10 @@ public class NodeRegistrar {
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
             // we do not set error flag here, because we hope that on a node startup the registration would (perhaps) succeed
         } catch (ObjectAlreadyExistsException e) {
-            LoggingUtils.logException(LOGGER, "Cannot register shutdown of this node (name {}, oid {}).", e,
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot register shutdown of this node (name {}, oid {}).", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot register shutdown of this node (name {}, oid {}) due to schema exception.", e,
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot register shutdown of this node (name {}, oid {}) due to schema exception.", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
         }
     }
@@ -253,13 +253,13 @@ public class NodeRegistrar {
                 registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             }
         } catch (ObjectAlreadyExistsException e) {
-            LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}).", e,
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}).", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
             if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
                 registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             }
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}) due to schema exception. Stopping the scheduler.", e,
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}) due to schema exception. Stopping the scheduler.", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
             if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
                 registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
@@ -300,7 +300,7 @@ public class NodeRegistrar {
                 return;
             }
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot check the record of this node (OID = {}) because of schema exception. Stopping the scheduler.", e, oid);
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot check the record of this node (OID = {}) because of schema exception. Stopping the scheduler.", e, oid);
             registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             return;
         }
@@ -366,7 +366,7 @@ public class NodeRegistrar {
             List<PrismObject<NodeType>> nodes = findNodesWithGivenName(result, myName);
             return nodes != null && !nodes.isEmpty();
         } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Existence of a Node cannot be checked due to schema exception.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Existence of a Node cannot be checked due to schema exception.", e);
             return false;
         }
     }
