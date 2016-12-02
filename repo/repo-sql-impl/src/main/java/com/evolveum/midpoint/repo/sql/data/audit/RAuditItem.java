@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
@@ -15,7 +16,8 @@ import org.hibernate.annotations.ForeignKey;
 
 @Entity
 @IdClass(RAuditItemId.class)
-@Table(name = RAuditItem.TABLE_NAME)
+@Table(name = RAuditItem.TABLE_NAME, indexes = {
+		@Index(name = "iChangedItemPath", columnList = "changedItemPath")})
 public class RAuditItem {
 
 	public static final String TABLE_NAME = "m_audit_item";
@@ -46,7 +48,7 @@ public class RAuditItem {
     }
    
     @Id
-    @Column(name = "changedItemPath")
+    @Column(name = "changedItemPath", length=900)
     public String getChangedItemPath() {
 		return changedItemPath;
 	}
