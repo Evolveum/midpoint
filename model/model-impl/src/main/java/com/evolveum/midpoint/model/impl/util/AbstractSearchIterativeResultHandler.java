@@ -162,9 +162,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.enableActionsExecutedStatistics = enableActionsExecutedStatistics;
 	}
 
-	/* (non-Javadoc)
-                 * @see com.evolveum.midpoint.schema.ResultHandler#handle(com.evolveum.midpoint.prism.PrismObject, com.evolveum.midpoint.schema.result.OperationResult)
-                 */
 	@Override
 	public boolean handle(PrismObject<O> object, OperationResult parentResult) {
 		if (object.getOid() == null) {
@@ -207,10 +204,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 	private void recordInterrupted(OperationResult parentResult) {
 		parentResult.createSubresult(taskOperationPrefix + ".handle").recordWarning("Interrupted");
-		if (LOGGER.isWarnEnabled()) {
-            LOGGER.warn("{} {} interrupted",new Object[]{
-                    getProcessShortNameCapitalized(), getContextDesc()});
-        }
+		LOGGER.warn("{} {} interrupted", getProcessShortNameCapitalized(), getContextDesc());
 	}
 
 	public void signalAllItemsSubmitted() {
@@ -313,8 +307,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			RepositoryCache.enter();
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("{} starting for {} {}",new Object[] {
-						getProcessShortNameCapitalized(), object, getContextDesc()});
+				LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, getContextDesc());
 			}
 
 			if (isRecordIterationStatistics()) {
@@ -382,18 +375,18 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			if (logObjectProgress) {
 				if (LOGGER.isInfoEnabled()) {
-					LOGGER.info("{} object {} {} done with status {} (this one: {} ms, avg: {} ms) (total progress: {}, wall clock avg: {} ms)", new Object[]{
+					LOGGER.info("{} object {} {} done with status {} (this one: {} ms, avg: {} ms) (total progress: {}, wall clock avg: {} ms)",
 							getProcessShortNameCapitalized(), object,
 							getContextDesc(), result.getStatus(),
 							duration, total/progress, progress,
-							(System.currentTimeMillis()-this.startTime)/progress});
+							(System.currentTimeMillis()-this.startTime)/progress);
 				}
 			}
 		}
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("{} finished for {} {}, result:\n{}", new Object[]{
-					getProcessShortNameCapitalized(), object, getContextDesc(), result.debugDump()});
+			LOGGER.trace("{} finished for {} {}, result:\n{}", getProcessShortNameCapitalized(), object, getContextDesc(),
+					result.debugDump());
 		}
 
 		if (!cont) {

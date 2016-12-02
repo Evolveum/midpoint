@@ -380,6 +380,7 @@ public class ObjectRetriever {
 
 			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, null, options, session, result);
             session.getTransaction().commit();
+            result.addReturn("object count", list.size());
 			return new SearchResultList<>(list);
 
         } catch (QueryException | RuntimeException ex) {

@@ -1184,14 +1184,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			@Override
 			public boolean handle(ShadowType shadowType) {
-				
+
 				OperationResult handleResult = result.createSubresult(ProvisioningService.class.getName()
 						+ ".searchObjectsIterative.handle");
+				handleResult.addParam("shadow", ObjectTypeUtil.toShortString(shadowType));
 
 				if (shouldDoRepoSearch) {
 					return handleRepoObject(type, shadowType.asPrismObject(), options, handler, handleResult);
 				}
-				
+
 				if (shadowType == null) {
 					throw new IllegalArgumentException("Null shadow in call to handler");
 				}
@@ -1200,15 +1201,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 							SchemaDebugUtil.prettyPrint(shadowType));
 				}
 
-				
-
                 boolean doContinue;
                 try {
                     PrismObject shadow = shadowType.asPrismObject();
                     validateObject(shadow);
-                    
+
                 	doContinue = handler.handle(shadow, handleResult);
-                	
+
                     handleResult.computeStatus();
                     handleResult.recordSuccessIfUnknown();
 
@@ -1243,8 +1242,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                 	handleResult.recordSuccessIfUnknown();
                     // FIXME: hack. Hardcoded ugly summarization of successes. something like
                     // AbstractSummarizingResultHandler [lazyman]
-                    if (result.isSuccess()) {
-                        result.getSubresults().clear();
+                    if (handleResult.isSuccess()) {
+                        handleResult.getSubresults().clear();
                     }
                     result.summarize();
                 }
