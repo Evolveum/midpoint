@@ -380,6 +380,34 @@ public class XPathHolder {
             }
 		}
 	}
+	
+	public String toCanonicalPath() {
+		StringBuilder sb = new StringBuilder("\\");
+		
+        boolean first = true;
+
+		for (XPathSegment seg : segments) {
+
+            if (seg.isIdValueFilter()) {
+            	//for now, we don't want to save concrete id, just the path 
+                continue;
+
+            } else {
+
+                if (!first) {
+                    sb.append("\\");
+                } else {
+                    first = false;
+                }
+
+                QName qname = seg.getQName();
+
+				sb.append(QNameUtil.qNameToUri(qname));
+            }
+		}
+		
+		return sb.toString();
+	}
 
 	public Map<String, String> getNamespaceMap() {
 

@@ -1,11 +1,15 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -172,11 +176,12 @@ public class AuditLogViewerPanel extends BasePanel{
         to.setOutputMarkupId(true);
         parametersPanel.add(to);
         
-        PropertyModel<String> changedItemModel = new PropertyModel<String>(auditSearchDto,
+        PropertyModel<ItemPathDto> changedItemModel = new PropertyModel<ItemPathDto>(auditSearchDto,
                 AuditSearchDto.F_CHANGED_ITEM);
-        TextPanel<String> changedItemPanel = new TextPanel<String>(ID_CHANGED_ITEM, changedItemModel);
-        changedItemPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        changedItemPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        
+        ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, changedItemModel, pageBase);
+//        changedItemPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+//        changedItemPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         changedItemPanel.setOutputMarkupId(true);
         parametersPanel.add(changedItemPanel);
 
@@ -394,7 +399,11 @@ public class AuditLogViewerPanel extends BasePanel{
                 if (search.getTargetName() != null) {
                     parameters.put("targetName", search.getTargetName().getOid());
                 }
-                parameters.put("changedItem", search.getChangedItem());
+                if (search.getChangedItem().toItemPath() != null) {
+                	ItemPath itemPath = search.getChangedItem().toItemPath();
+                	XPathHolder holder = new XPathHolder(itemPath);
+                	parameters.put("changedItem", holder.toCanonicalPath());
+                }
                 parameters.put("eventType", search.getEventType());
                 parameters.put("eventStage", search.getEventStage());
                 parameters.put("outcome", search.getOutcome());

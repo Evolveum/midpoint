@@ -21,10 +21,13 @@ import java.io.Serializable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  *  TODO - get rid of XMLGregorianCalendar - Date conversions
@@ -55,7 +58,7 @@ public class AuditSearchDto implements Serializable {
 	private AuditEventTypeType eventType;
 	private AuditEventStageType eventStage;
 	private OperationResultStatusType outcome;
-	private String changedItem;
+	private ItemPathDto changedItem;
 
 	public XMLGregorianCalendar getFrom() {
 		return from;
@@ -137,12 +140,15 @@ public class AuditSearchDto implements Serializable {
 		this.outcome = outcome;
 	}
 	
-	public String getChangedItem() {
+	public ItemPathDto getChangedItem() {
+		if (changedItem == null) {
+			changedItem = new ItemPathDto();
+			changedItem.setObjectType(UserType.COMPLEX_TYPE);
+		}
 		return changedItem;
 	}
-
 	
-	public void setChangedItem(String changedItem) {
+	public void setChangedItem(ItemPathDto changedItem) {
 		this.changedItem = changedItem;
 	}
 }
