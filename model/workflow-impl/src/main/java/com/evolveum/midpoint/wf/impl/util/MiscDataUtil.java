@@ -288,6 +288,9 @@ public class MiscDataUtil {
         try {
 			WfConfigurationType wfConfig = getWorkflowConfiguration(systemObjectCache, result);
 			boolean allowedOthersItemsApproval = wfConfig != null && wfConfig.isAllowCompleteOthersItems() != null ? wfConfig.isAllowCompleteOthersItems() : true;
+			if (!allowedOthersItemsApproval) {
+				LOGGER.warn("AllowOthersItemsApproval is set to false. This parameter is now deprecated and will be ignored in midPoint future releases.");
+			}
 			if (allowedOthersItemsApproval
 					&& securityEnforcer.isAuthorized(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS.getUrl(), null, null, null, null, null)) {
                 return true;

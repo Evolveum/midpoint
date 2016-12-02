@@ -73,7 +73,11 @@
                     <xsd:documentation>
                         Whether appropriately privileged users (e.g. the administrator) can approve/reject work items
                         assigned to other users.
+                        DEPRECATED. Use authorizations to limit ability to approve/reject arbitrary work items.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecatedSince>3.5</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="useLegacyApproversSpecification" minOccurs="0" type="tns:LegacyApproversSpecificationUsageType">
