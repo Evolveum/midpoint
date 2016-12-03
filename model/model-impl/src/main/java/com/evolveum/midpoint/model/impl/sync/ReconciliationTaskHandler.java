@@ -94,29 +94,35 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	 */
 	private ReconciliationTaskResultListener reconciliationTaskResultListener;
 	
-	@Autowired
+	@Autowired(required = true)
 	private TaskManager taskManager;
 
-	@Autowired
+	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 
-	@Autowired
+	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-	@Autowired
+	@Autowired(required = true)
 	private PrismContext prismContext;
 
-	@Autowired
+	@Autowired(required = true)
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	
-	@Autowired
+	@Autowired(required = true)
 	private AuditService auditService;
 	
-	@Autowired
+	@Autowired(required = true)
 	private Clock clock;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
+
+	private static final int SEARCH_MAX_SIZE = 100;
+
+	private static final int MAX_ITERATIONS = 10;
+
+	private static final int BLOCK_SIZE = 20;
 
 	public ReconciliationTaskResultListener getReconciliationTaskResultListener() {
 		return reconciliationTaskResultListener;
@@ -314,11 +320,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		long resourceReconTime = afterResourceReconTimestamp - beforeResourceReconTimestamp;
 		long shadowReconTime = afterShadowReconTimestamp - afterResourceReconTimestamp;
 		LOGGER.info("Done executing reconciliation of resource {}, object class {}, Etime: {} ms (un-ops: {}, resource: {}, shadow: {})",
-				resource, objectclassDef,
-				etime,
-				unOpsTime,
-				resourceReconTime,
-				shadowReconTime);
+				new Object[]{resource, objectclassDef, 
+					etime,
+					unOpsTime,
+					resourceReconTime,
+					shadowReconTime});
 		
 		reconResult.setRunResult(runResult);		
 		if (reconciliationTaskResultListener != null) {
@@ -458,7 +464,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			
 			ObjectQuery query = objectclassDef.createShadowSearchQuery(resource.getOid());
 
-			OperationResult searchResult = opResult.createSubresult(OperationConstants.RECONCILIATION+".searchIterative");
+			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
 
 			handler.createWorkerThreads(coordinatorTask, searchResult);
 			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, coordinatorTask, searchResult);               // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
@@ -468,7 +474,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 			opResult.computeStatus();
 
-			String message = "Processed " + handler.getProgress() + " shadow(s), got " + handler.getErrors() + " error(s)";
+			String message = "Processed " + handler.getProgress() + " account(s), got " + handler.getErrors() + " error(s)";
             if (interrupted) {
                 message += "; was interrupted during processing";
             }
@@ -480,10 +486,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			if (handler.getErrors() > 0) {
 				resultStatus = OperationResultStatus.PARTIAL_ERROR;
 			}
-			opResult.setStatus(resultStatus);
+			opResult.recordStatus(resultStatus, message);
 			LOGGER.info("Finished resource part of {} reconciliation: {}", resource, message);
-			result.createSubresult(OperationConstants.RECONCILIATION+".resourceReconciliation.statistics")
-					.recordStatus(OperationResultStatus.SUCCESS, message);
 			
 			reconResult.setResourceReconCount(handler.getProgress());
 			reconResult.setResourceReconErrors(handler.getErrors());
@@ -657,7 +661,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 		LOGGER.trace("Scan for unfinished operations starting");
-		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".scanForUnfinishedOperations");
+		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".repoReconciliation");
 		opResult.addParam("reconciled", true);
 
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
@@ -668,7 +672,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		task.setExpectedTotal((long) shadows.size());		// for this phase, obviously
 
-		LOGGER.trace("Found {} shadows that were not successfully processed.", shadows.size());
+		LOGGER.trace("Found {} accounts that were not successfully processed.", shadows.size());
 		reconResult.setUnOpsCount(shadows.size());
 
 		long startedAll = System.currentTimeMillis();
