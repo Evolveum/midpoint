@@ -107,6 +107,9 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     @Override
     public Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf, boolean preAuthorized) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         Set<UserType> retval = new HashSet<UserType>();
+        if (user == null) {
+        	return retval;
+        }
         Collection<String> orgOids = getOrgUnits(user, null, preAuthorized);
         while (!orgOids.isEmpty()) {
             LOGGER.trace("orgOids: {}", orgOids);

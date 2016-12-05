@@ -101,4 +101,54 @@
 		<roleType>application</roleType>
 	</role>
 	
+	<role oid="9ebe365e-baf7-11e6-bf9d-8b7318f64996">
+		<name>Weak Identity Administrator</name>
+		<description>Allows some identity administration.</description>
+		<authorization>
+	    	<name>gui-access</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll</action>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll</action>
+	    </authorization>
+		<authorization>
+	    	<name>autz-read</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	    	<item>c:name</item>
+	    	<item>fullName</item>
+	    	<item>activation/administrativeStatus</item>
+	    	<item>activation/effectiveStatus</item>
+	    	<item>activation/validFrom</item>
+	    	<item>activation/validTo</item>
+	    	<item>assignment</item>
+	    </authorization>
+		<authorization>
+	    	<name>modify some</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<object>
+	    		<type>UserType</type>
+	    	</object>
+	    	<item>description</item>
+	    	<item>activation/administrativeStatus</item>
+	    	<item>activation/validFrom</item>
+	    	<item>activation/validTo</item>
+	    </authorization>
+	    <authorization>
+	    	<name>modify-some-operational-exec</name>
+	    	<description>Required, these are operational properties that midPoint changes automatically</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<phase>execution</phase>
+	    	<object>
+	    		<type>UserType</type>
+	    	</object>
+	    	<item>activation/validityStatus</item>
+	    	<item>activation/validityChangeTimestamp</item>
+	    	<item>activation/effectiveStatus</item>
+	    	<item>activation/disableTimestamp</item>
+	    	<item>activation/disableReason</item>
+	    	<item>activation/enableTimestamp</item>
+	    	<item>activation/archiveTimestamp</item>
+	    	<item>activation/validityChangeTimestamp</item>
+	    </authorization>
+		<roleType>application</roleType>
+	</role>
+	
 </objects>
