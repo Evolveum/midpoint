@@ -304,4 +304,27 @@ public class QNameUtil {
 		return false;
 	}
 
+	public static String escapeElementName(String name) {
+		if (name == null || name.isEmpty()) {
+			return name;	// suspicious but that's not our business
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < name.length(); i++) {
+			char ch = name.charAt(i);
+			if (allowed(ch, i==0)) {
+				sb.append(ch);
+			} else {
+				sb.append("_x").append(Long.toHexString(ch));
+			}
+		}
+		return sb.toString();
+	}
+
+	// TODO fix this method if necessary
+	// see https://www.w3.org/TR/REC-xml/#NT-NameChar (JSON and YAML can - very probably - use any characters for "element" names)
+	private static boolean allowed(char ch, boolean atStart) {
+		return Character.isLetter(ch) || ch == '_'
+				|| (!atStart && (Character.isDigit(ch) || ch == '.' || ch == '-'));
+	}
+
 }
