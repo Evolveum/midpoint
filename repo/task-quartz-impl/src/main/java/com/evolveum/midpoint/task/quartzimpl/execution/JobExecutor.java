@@ -16,29 +16,26 @@
 
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.Validate;
-import org.quartz.*;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.Validate;
+import org.quartz.*;
 
 import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -62,7 +59,7 @@ public class JobExecutor implements InterruptableJob {
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
-    private static final int DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION = 60;
+    private static final int RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE = 60;
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -139,7 +136,7 @@ public class JobExecutor implements InterruptableJob {
             isRecovering = true;
         }
 
-		if (!executionConstraintsSatisfied(task, context, executionResult)) {
+		if (!checkExecutionConstraints(task, context, executionResult)) {
 			return;			// rescheduling is done within the checker method
 		}
 
@@ -196,7 +193,8 @@ public class JobExecutor implements InterruptableJob {
 
 	}
 
-	private boolean executionConstraintsSatisfied(TaskQuartzImpl task, JobExecutionContext context, OperationResult result) throws JobExecutionException {
+	// returns false if constraints are not met (i.e. execution should finish immediately)
+	private boolean checkExecutionConstraints(TaskQuartzImpl task, JobExecutionContext context, OperationResult result) throws JobExecutionException {
 		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
 		if (executionConstraints == null) {
 			return true;
@@ -227,10 +225,14 @@ public class JobExecutor implements InterruptableJob {
 			int limit = executionConstraints.getGroupTaskLimit() != null ? executionConstraints.getGroupTaskLimit() : 1;
 			LOGGER.trace("Tasks in group {}: {}", group, tasksInGroup);
 			if (tasksInGroup.size() >= limit) {
-				long rescheduleTime = getRescheduleTime(executionConstraints, DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT);
-				LOGGER.info("Limit of {} task(s) in group {} would be exceeded if task {} would start. Existing tasks: {}. Rescheduling at {}.",
-						limit, group, task, tasksInGroup, new Date(rescheduleTime));
-				rescheduleLater(task, rescheduleTime);
+				RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints,
+						DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT, task.getNextRunStartTime(result));
+				LOGGER.info("Limit of {} task(s) in group {} would be exceeded if task {} would start. Existing tasks: {}."
+								+ " Will try again at {}{}.", limit, group, task, tasksInGroup, rescheduleTime.asDate(),
+						rescheduleTime.regular ? " (i.e. at the next regular run time)" : "");
+				if (!rescheduleTime.regular) {
+					rescheduleLater(task, rescheduleTime.timestamp);
+				}
 				return false;
 			}
 		}
@@ -241,12 +243,12 @@ public class JobExecutor implements InterruptableJob {
 		List<String> disallowedNodes = executionConstraints.getDisallowedNode();
 		if (!passesAllowed(currentNode, allowedNodes)) {
 			rescheduleToAllowedNode(task, "is not among allowed nodes (" + allowedNodes + ")", allowedNodes,
-					disallowedNodes, result);
+					disallowedNodes, context, result);
 			return false;
 		}
 		if (!passesDisallowed(currentNode, disallowedNodes)) {
 			rescheduleToAllowedNode(task, "is among disallowed nodes (" + disallowedNodes + ")", allowedNodes,
-					disallowedNodes, result);
+					disallowedNodes, context, result);
 			return false;
 		}
 
@@ -266,19 +268,23 @@ public class JobExecutor implements InterruptableJob {
 	}
 
 	private void rescheduleToAllowedNode(TaskQuartzImpl task, String reason, List<String> allowedNodes,
-			List<String> disallowedNodes, OperationResult result) throws JobExecutionException {
+			List<String> disallowedNodes, JobExecutionContext context, OperationResult result) throws JobExecutionException {
 		String currentNode = taskManagerImpl.getNodeId();
 		NodeType node = getAvailableNode(allowedNodes, disallowedNodes, result);
 		if (node == null) {
-			LOGGER.info("Task {} cannot be executed on current node ({}) because it {}. But there is currently no available"
-					+ " node to run it on. Rescheduling after {} seconds.",
-					task, currentNode, reason, DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION);
-			rescheduleLater(task, System.currentTimeMillis() + DEFAULT_RESCHEDULE_TIME_FOR_NODE_EXCLUSION * 1000L);
+			RescheduleTime rescheduleTime = getRescheduleTime(null,
+					RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE, task.getNextRunStartTime(result));
+			LOGGER.info("Task {} cannot be executed on current node ({}) because it {}. But there is currently no suitable"
+					+ " node to run it on. Will try again at {}{}.", task, currentNode, reason, rescheduleTime.asDate(),
+					rescheduleTime.regular ? " (i.e. at the next regular run time)" : "");
+			if (!rescheduleTime.regular) {
+				rescheduleLater(task, rescheduleTime.timestamp);
+			}
 			return;
 		}
-		LOGGER.debug("Task {} cannot be executed on current node ({}) because it {}, trying to run at {}.",
-				task, currentNode, reason, node);
-		taskManagerImpl.getExecutionManager().scheduleTaskNow(task, node, result);
+		LOGGER.debug("Task {} cannot be executed on current node ({}) because it {}, trying to run it at {}.",
+				task, currentNode, reason, node.getNodeIdentifier());
+		taskManagerImpl.getExecutionManager().redirectTaskToNode(task, node, result);
 	}
 
 	private NodeType getAvailableNode(List<String> allowedNodes, List<String> disallowedNodes, OperationResult result) {
@@ -295,14 +301,32 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 
-	private long getRescheduleTime(TaskExecutionConstraintsType executionConstraints, int defaultInterval) {
-		Duration retryAfter = executionConstraints.getRetryAfter();
+	private class RescheduleTime {
+		private final long timestamp;
+		private final boolean regular;
+		private RescheduleTime(long timestamp, boolean regular) {
+			this.timestamp = timestamp;
+			this.regular = regular;
+		}
+		public Date asDate() {
+			return new Date(timestamp);
+		}
+	}
+
+	private RescheduleTime getRescheduleTime(TaskExecutionConstraintsType executionConstraints, int defaultInterval, Long nextTaskRunTime) {
+		long retryAt;
+		Duration retryAfter = executionConstraints != null ? executionConstraints.getRetryAfter() : null;
 		if (retryAfter != null) {
-			XMLGregorianCalendar startAtGc = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-			XmlTypeConverter.addDuration(startAtGc, retryAfter);
-			return XmlTypeConverter.toMillis(startAtGc);
+			retryAt = XmlTypeConverter.toMillis(
+							XmlTypeConverter.addDuration(
+									XmlTypeConverter.createXMLGregorianCalendar(new Date()), retryAfter));
 		} else {
-			return System.currentTimeMillis() + defaultInterval * 1000L;
+			retryAt = System.currentTimeMillis() + defaultInterval * 1000L;
+		}
+		if (nextTaskRunTime != null && nextTaskRunTime < retryAt) {
+			return new RescheduleTime(nextTaskRunTime, true);
+		} else {
+			return new RescheduleTime(retryAt, false);
 		}
 	}
 

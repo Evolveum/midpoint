@@ -37,6 +37,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Fetch;
@@ -431,9 +432,25 @@ public class RAuditEventRecord implements Serializable {
                 	
                 	if (path != null) {
                 		XPathHolder holder = new XPathHolder(path);
-                		String itemPath = holder.getXPathWithoutDeclarations();
-                		RAuditItem chanedItem = RAuditItem.toRepo(repo, itemPath);
-                		repo.getChangedItems().add(chanedItem);
+                		String itemPath = holder.toCanonicalPath();
+                		
+                		String[] pathSegments = itemPath.split("\\\\");
+                		if (pathSegments.length == 0) {
+                			continue;
+                		}
+                	
+                		String changedPath = null;
+                		for (int i= 0; i < pathSegments.length; i++) {
+                			if (StringUtils.isBlank(pathSegments[i])){
+                				continue;
+                			} else {
+                			changedPath += "\\" + pathSegments[i];
+                			RAuditItem chanedItem = RAuditItem.toRepo(repo, changedPath);
+                    		repo.getChangedItems().add(chanedItem);
+                			}
+                		}
+                		
+                		
                 	}
                 }
                 

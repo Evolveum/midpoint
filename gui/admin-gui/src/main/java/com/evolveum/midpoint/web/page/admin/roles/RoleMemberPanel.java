@@ -118,7 +118,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 		DropDownChoice<QName> typeChoice = (DropDownChoice) get(createComponentPath(ID_OBJECT_TYPE));
 		QName type = typeChoice.getModelObject();
 		getMemberTable().clearCache();
-		getMemberTable().refreshTable((Class<FocusType>) WebComponentUtil.qnameToClass(getPrismContext(), type), target);
+		getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
 	}
 
 	private List<OrgType> createTenantList() {

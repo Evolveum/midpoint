@@ -72,6 +72,9 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 	public static final String ID_NEXT_RUN_CONTAINER = "nextRunContainer";
 	public static final String ID_NEXT_RUN = "nextRun";
 	public static final String ID_NEXT_RUN_IN = "nextRunIn";
+	public static final String ID_NEXT_RETRY_CONTAINER = "nextRetryContainer";
+	public static final String ID_NEXT_RETRY = "nextRetry";
+	public static final String ID_NEXT_RETRY_IN = "nextRetryIn";
 
 	public static final String ID_SCHEDULING_TABLE = "schedulingTable";
 	public static final String ID_RECURRING_CONTAINER = "recurringContainer";
@@ -223,6 +226,46 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		nextRunContainer.add(nextRunIn);
 		nextRunContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_NEXT_RUN_START_TIMESTAMP));
 		add(nextRunContainer);
+
+		WebMarkupContainer nextRetryContainer = new WebMarkupContainer(ID_NEXT_RETRY_CONTAINER);
+		Label nextRetry = new Label(ID_NEXT_RETRY, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskDto dto = taskDtoModel.getObject();
+				if (dto.getNextRetryTimeLong() == null) {
+					return "-";
+				} else {
+					return WebComponentUtil.formatDate(new Date(dto.getNextRetryTimeLong()));
+				}
+			}
+		});
+		nextRetryContainer.add(nextRetry);
+
+		Label nextRetryIn = new Label(ID_NEXT_RETRY_IN, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				TaskDto dto = taskDtoModel.getObject();
+				if (dto.getNextRetryTimeLong() == null /* || (dto.isRecurring() && dto.isBound() && dto.isRunning()) */ ) {
+					return "";
+				} else {
+					long currentTime = System.currentTimeMillis();
+					final long in = dto.getNextRetryTimeLong() - currentTime;
+					if (in >= 0) {
+						return getString("TaskStatePanel.message.in", DurationFormatUtils.formatDurationWords(in, true, true));
+					} else {
+						return "";
+					}
+				}
+			}
+		});
+		nextRetryContainer.add(nextRetryIn);
+		nextRetryContainer.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return taskDtoModel.getObject().getNextRetryTimeLong() != null;
+			}
+		});
+		add(nextRetryContainer);
 	}
 	
 	private void initLayoutForSchedulingTable() {

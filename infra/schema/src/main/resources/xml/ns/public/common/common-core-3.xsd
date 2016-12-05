@@ -1395,10 +1395,30 @@
                     <xsd:element name="nextRunStartTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The time when the task should start again. (Null if no further execution is scheduled.)
+                                The time when the task should start again, according to the task's defined schedule.
+								(Null if no further execution is scheduled.)
+								Ad-hoc (retry) run times, like those stemming from unsatisfied execution constraints, are NOT
+								considered here. They are covered by nextRetryTimestamp property.
+
                                 TRANSIENT. This value is not stored in the repo, it is queried dynamically.
                                 (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="nextRetryTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If the start of a task was delayed (typically because of unsatisfied execution constraints),
+								the planned retry time is reported here.
+
+								EXPERIMENTAL.
+
+                                TRANSIENT. This value is not stored in the repo, it is queried dynamically.
+                                (It is currently not possible to use it for filtering or sorting.)
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.5</a:since>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="progress" type="xsd:long" minOccurs="0">
@@ -1534,10 +1554,6 @@
 				Constraints on task execution, e.g. a execution group, allowed/disallowed nodes, etc.
 
 				EXPERIMENTAL.
-
-				Especially the support for node constraints is very experimental. It is based on vetoing
-				trigger firing in Quartz scheduler, with the hope that eventually the task would start
-				on a node that supports its execution.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.5</a:since>
@@ -1565,7 +1581,7 @@
 					<xsd:documentation>
 						Node(s) that this task is allowed to be executed on. If not specified, the task is allowed
 						to be executed on any cluster node (if not restricted by disallowedNode item).
-						VERY EXPERIMENTAL. MAY OR MAY NOT WORK.
+						EXPERIMENTAL. MAY OR MAY NOT WORK.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -1573,7 +1589,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Node(s) that this task is NOT allowed to be executed on.
-						VERY EXPERIMENTAL. MAY OR MAY NOT WORK.
+						EXPERIMENTAL. MAY OR MAY NOT WORK.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

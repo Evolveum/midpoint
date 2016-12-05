@@ -314,6 +314,10 @@ public final class WebComponentUtil {
 		return prismContext.getSchemaRegistry().determineCompileTimeClass(type);
 	}
 	
+	public static <T extends ObjectType> Class<T> qnameToClass(PrismContext prismContext, QName type, Class<T> returnType) {
+		return returnType = prismContext.getSchemaRegistry().determineCompileTimeClass(type);
+	}
+	
 	public static <T extends ObjectType> QName classToQName(PrismContext prismContext, Class<T> clazz) {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
 	}

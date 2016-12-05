@@ -18,15 +18,20 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
+import org.apache.commons.collections.buffer.CircularFifoBuffer;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Pavol Mederly
  */
 public class IterativeTaskInformation {
+
+    public static final int LAST_FAILURES_KEPT = 30;
 
     /*
      * Thread safety: Just like EnvironmentalPerformanceInformation, instances of this class may be accessed from
@@ -61,6 +66,8 @@ public class IterativeTaskInformation {
     protected QName currentObjectType;
     protected String currentObjectOid;
     protected Date currentObjectStartTimestamp;
+
+    protected CircularFifoBuffer lastFailures = new CircularFifoBuffer(LAST_FAILURES_KEPT);
 
     public IterativeTaskInformation() {
         this(null);
@@ -113,6 +120,10 @@ public class IterativeTaskInformation {
             lastFailureExceptionMessage = exception.getClass().getSimpleName() + ": " + exception.getMessage();
             totalFailureDuration += lastFailureDuration;
             totalFailureCount++;
+
+            String name = objectName != null ? objectName
+                    : objectOid != null ? objectOid : "(unnamed)";
+            lastFailures.add(name + ": " + exception.getMessage());
         } else {
             lastSuccessObjectName = objectName;
             lastSuccessObjectDisplayName = objectDisplayName;
@@ -202,5 +213,9 @@ public class IterativeTaskInformation {
             sum.setCurrentObjectOid(delta.getCurrentObjectOid());
             sum.setCurrentObjectStartTimestamp(delta.getCurrentObjectStartTimestamp());
         }
+    }
+
+    public List<String> getLastFailures() {
+        return new ArrayList<>(lastFailures);
     }
 }
