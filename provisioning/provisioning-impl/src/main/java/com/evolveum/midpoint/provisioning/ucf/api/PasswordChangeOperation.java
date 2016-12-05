@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,44 @@ public class PasswordChangeOperation extends Operation {
 		this.oldPassword = oldPassword;
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((newPassword == null) ? 0 : newPassword.hashCode());
+		result = prime * result + ((oldPassword == null) ? 0 : oldPassword.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		PasswordChangeOperation other = (PasswordChangeOperation) obj;
+		if (newPassword == null) {
+			if (other.newPassword != null) {
+				return false;
+			}
+		} else if (!newPassword.equals(other.newPassword)) {
+			return false;
+		}
+		if (oldPassword == null) {
+			if (other.oldPassword != null) {
+				return false;
+			}
+		} else if (!oldPassword.equals(other.oldPassword)) {
+			return false;
+		}
+		return true;
+	}
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();

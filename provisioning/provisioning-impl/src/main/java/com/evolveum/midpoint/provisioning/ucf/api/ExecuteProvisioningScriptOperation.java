@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +88,64 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 
 	public void setScriptOrder(BeforeAfterType scriptOrder) {
 		this.scriptOrder = scriptOrder;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((argument == null) ? 0 : argument.hashCode());
+		result = prime * result + (connectorHost ? 1231 : 1237);
+		result = prime * result + ((language == null) ? 0 : language.hashCode());
+		result = prime * result + (resourceHost ? 1231 : 1237);
+		result = prime * result + ((scriptOrder == null) ? 0 : scriptOrder.hashCode());
+		result = prime * result + ((textCode == null) ? 0 : textCode.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ExecuteProvisioningScriptOperation other = (ExecuteProvisioningScriptOperation) obj;
+		if (argument == null) {
+			if (other.argument != null) {
+				return false;
+			}
+		} else if (!argument.equals(other.argument)) {
+			return false;
+		}
+		if (connectorHost != other.connectorHost) {
+			return false;
+		}
+		if (language == null) {
+			if (other.language != null) {
+				return false;
+			}
+		} else if (!language.equals(other.language)) {
+			return false;
+		}
+		if (resourceHost != other.resourceHost) {
+			return false;
+		}
+		if (scriptOrder != other.scriptOrder) {
+			return false;
+		}
+		if (textCode == null) {
+			if (other.textCode != null) {
+				return false;
+			}
+		} else if (!textCode.equals(other.textCode)) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override
