@@ -426,9 +426,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			+ accountRef.getValues();
 	}
 	
-	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected String assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		String accountOid = getLinkRefOid(user, resourceOid);
 		assertNotNull("User " + user + " has no account on resource " + resourceOid, accountOid);
+		return accountOid;
 	}
 	
 	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
@@ -1361,6 +1362,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected <F extends FocusType> void assertAssignedRole(PrismObject<F> user, String roleOid) {
 		MidPointAsserts.assertAssignedRole(user, roleOid);
+	}
+	
+	protected static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, String... roleOids) {
+		MidPointAsserts.assertAssignedRoles(user, roleOids);
+	}
+	
+	protected static <F extends FocusType> void assertAssignedOrgs(PrismObject<F> user, String... orgOids) {
+		MidPointAsserts.assertAssignedOrgs(user, orgOids);
 	}
 	
 	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, String... roleOids) {

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -56,6 +57,8 @@ public interface ModelInteractionService {
 	static final String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
 	static final String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
 	static final String GET_CONNECTOR_OPERATIONAL_STATUS = CLASS_NAME_WITH_DOT + "getConnectorOperationalStatus";
+	static final String MERGE_OBJECTS_PREVIEW_DELTA = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewDelta";
+	static final String MERGE_OBJECTS_PREVIEW_OBJECT = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewObject";
 	
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
@@ -176,4 +179,13 @@ public interface ModelInteractionService {
 	
 	ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+	
+	<O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type, 
+			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result) 
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+	
+	<O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, 
+			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+
 }
