@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * An object that receives various statistics and state information, processes them and provides
@@ -103,4 +104,6 @@ public interface StatisticsCollector {
 
     void resetActionsExecutedInformation(ActionsExecutedInformationType value);
 
+    // EXPERIMENTAL - TODO: replace by something more serious
+    List<String> getLastFailures();
 }

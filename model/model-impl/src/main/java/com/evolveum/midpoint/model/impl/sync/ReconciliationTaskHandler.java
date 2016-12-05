@@ -350,7 +350,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		if (reconciliationTaskResultListener != null) {
 			reconciliationTaskResultListener.process(reconResult);
 		}
-		
+
+		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, coordinatorTask.getLastFailures(), opResult);
 		return runResult;
 	}
 

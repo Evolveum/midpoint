@@ -2730,6 +2730,15 @@ public class TaskQuartzImpl implements Task {
 		return rv;
 	}
 
+	@Override
+	public List<String> getLastFailures() {
+		if (iterativeTaskInformation != null) {
+			return iterativeTaskInformation.getLastFailures();
+		} else {
+			return Collections.emptyList();
+		}
+	}
+
 	private EnvironmentalPerformanceInformationType getAggregateEnvironmentalPerformanceInformation() {
 		if (environmentalPerformanceInformation == null) {
 			return null;

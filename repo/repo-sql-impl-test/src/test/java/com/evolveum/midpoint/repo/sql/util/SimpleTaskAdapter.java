@@ -41,10 +41,12 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -804,5 +806,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override public void setWorkflowContext(WfContextType context) throws SchemaException {
+    }
+
+    @NotNull
+    @Override
+    public List<String> getLastFailures() {
+        return Collections.emptyList();
     }
 }

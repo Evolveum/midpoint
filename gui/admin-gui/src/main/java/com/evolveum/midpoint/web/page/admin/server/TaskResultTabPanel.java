@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,9 +33,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -90,7 +96,21 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.token"), "token"));
 		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.operation"), "operation"));
 		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.status"), "status"));
-		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.message"), "message"));
+		columns.add(new AbstractColumn<OperationResult, String>(createStringResource("pageTaskEdit.opResult.message"), "message") {
+			@Override
+			public void populateItem(Item<ICellPopulator<OperationResult>> cellItem, String componentId,
+					final IModel<OperationResult> rowModel) {
+				Label label = new Label(componentId, new AbstractReadOnlyModel<String>() {
+					@Override
+					public String getObject() {
+						return WebComponentUtil.nl2br(rowModel.getObject().getMessage());
+					}
+				});
+				label.setEscapeModelStrings(false);
+				cellItem.add(label);
+			}
+		});
+		//columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.message"), "message"));
 		return columns;
 	}
 

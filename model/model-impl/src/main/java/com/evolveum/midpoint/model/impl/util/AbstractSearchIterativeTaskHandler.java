@@ -205,12 +205,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             runResult.setProgress(resultHandler.getProgress());
             return runResult;
         }
-        
+
 		if (query == null) {
 			// the error should already be in the runResult
 			return runResult;
 		}
-		
+
         Class<? extends ObjectType> type = getType(coordinatorTask);
 
         Collection<SelectorOptions<GetOperationOptions>> queryOptions = createQueryOptions(resultHandler, runResult, coordinatorTask, opResult);
@@ -317,8 +317,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             }
 	
 	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
-	
-	        LOGGER.info(finishMessage + statistics);
+			TaskHandlerUtil.appendLastFailuresInformation(taskOperationPrefix, coordinatorTask.getLastFailures(), opResult);
+
+			LOGGER.info("{}", finishMessage + statistics);
         }
         
         try {
@@ -330,11 +331,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             runResult.setProgress(resultHandler.getProgress());
             return runResult;
         }
-        
+
         LOGGER.trace("{} run finished (task {}, run result {})", new Object[]{taskName, coordinatorTask, runResult});
 
         return runResult;
-		
+
 	}
 
     protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
