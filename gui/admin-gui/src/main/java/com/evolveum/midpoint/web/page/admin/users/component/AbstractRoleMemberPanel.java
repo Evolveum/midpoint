@@ -16,6 +16,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -50,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -284,13 +287,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		}
 
 		// Set parentOrgRef in any case. This is not strictly correct.
-		// The parentOrgRef should be added by the projector. But
-		// this is needed to successfully pass through security
-		// TODO: fix MID-3234
-		if (parentOrgRef == null) {
-			parentOrgRef = createReference(relation);
-			objType.getParentOrgRef().add(parentOrgRef);
-		} else {
+				// The parentOrgRef should be added by the projector. But
+				// this is needed to successfully pass through security
+				// TODO: fix MID-3234
+		if (parentOrgRef.getType() != null &&  OrgType.COMPLEX_TYPE.equals(parentOrgRef.getType())) {
 			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
 
@@ -448,7 +448,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 
 	protected abstract ObjectQuery createMemberQuery();
-
 
 	protected String getTaskName(String operation, QueryScope scope, boolean managers) {
 		StringBuilder nameBuilder = new StringBuilder(operation);
