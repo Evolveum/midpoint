@@ -429,7 +429,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-		processDeputyAssignments();
+		boolean isAnythingChanged = processDeputyAssignments();
 
 		ObjectWrapper<O> objectWrapper = getObjectWrapper();
 		LOGGER.debug("Saving object {}", objectWrapper);
@@ -537,8 +537,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					} else {
 						progressReporter.clearProgressPanel();			// from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
 						if (!previewOnly) {
-							result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
-							showResult(result);
+							if (!isAnythingChanged) {
+								result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
+								showResult(result);
+							}
 							redirectBack();
 						} else {
 							warn(getString("PageAdminObjectDetails.noChangesPreview"));
@@ -571,7 +573,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		LOGGER.trace("returning from saveOrPreviewPerformed");
 	}
 
-	protected void processDeputyAssignments(){
+	protected boolean processDeputyAssignments(){
+		return false;
 	}
 
 	protected boolean checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {

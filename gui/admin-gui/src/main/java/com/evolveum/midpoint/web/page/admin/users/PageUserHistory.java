@@ -217,7 +217,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
-                                        new ArrayList<AssignmentsPreviewDto>(), null, PageUserHistory.this);
+                                        new ArrayList<AssignmentsPreviewDto>(), PageUserHistory.this);
                                 item.add(editor);
                             }
 
