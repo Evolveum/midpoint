@@ -18,6 +18,9 @@ package com.evolveum.midpoint.util;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -100,6 +103,22 @@ public class QNameUtil {
 		return hasNamespace(name) ?
 				name
 				: new QName(defaultNamespace, name.getLocalPart());
+	}
+
+	public static <V> V getKey(@NotNull Map<QName, V> map, @NotNull QName key) {
+    	if (hasNamespace(key)) {
+    		return map.get(key);
+		}
+		List<Map.Entry<QName, V>> matching = map.entrySet().stream()
+				.filter(e -> match(e.getKey(), key))
+				.collect(Collectors.toList());
+    	if (matching.isEmpty()) {
+    		return null;
+		} else if (matching.size() == 1) {
+    		return matching.get(0).getValue();
+		} else {
+    		throw new IllegalStateException("More than one matching value for key " + key + ": " + matching);
+		}
 	}
 
 	public static class QNameInfo {
