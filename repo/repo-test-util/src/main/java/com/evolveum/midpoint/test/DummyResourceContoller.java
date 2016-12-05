@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -357,6 +358,14 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 		
 	}
+	
+	public QName getAccountObjectClass() {
+        return new QName(ResourceTypeUtil.getResourceNamespace(getResourceType()), "AccountObjectClass");
+    }
+
+	public QName getGroupObjectClass() {
+        return new QName(ResourceTypeUtil.getResourceNamespace(getResourceType()), "GroupObjectClass");
+    }
 	
 	public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException {
 		DummyOrg org = new DummyOrg(ORG_TOP_NAME);

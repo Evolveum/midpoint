@@ -268,7 +268,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
         
-        dummyResource.setBreakMode(BreakMode.NETWORK);
+        getDummyResource().setBreakMode(BreakMode.NETWORK);
         dummyAuditService.clear();
                 
 		// WHEN
@@ -345,7 +345,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
         
-        dummyResource.setBreakMode(BreakMode.GENERIC);
+        getDummyResource().setBreakMode(BreakMode.GENERIC);
         dummyAuditService.clear();
                 
 		// WHEN
@@ -559,7 +559,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        dummyResource.resetBreakMode();
+        getDummyResource().resetBreakMode();
         
         PrismObject<UserType> user = createUser(userName, userFullName);
         AssignmentType assignmentType = createAssignment(dummyResourceOid, ShadowKindType.ACCOUNT, null);

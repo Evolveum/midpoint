@@ -520,7 +520,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
 		display("User before", userBefore);
     
-		ObjectDelta<UserType> unlinkDelta = createModifyUserUnlinkAccount(USER_GUYBRUSH_OID, resourceDummy);
+		ObjectDelta<UserType> unlinkDelta = createModifyUserUnlinkAccount(USER_GUYBRUSH_OID, getDummyResourceObject());
 		        
 		// WHEN
 		modelService.executeChanges(MiscSchemaUtil.createCollection(unlinkDelta), null, task, result);

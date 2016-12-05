@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group created on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -148,8 +148,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         display("Shadow", shadow);
         
-        assertShadowModel(shadow, SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, GROUP_DUMMY_SWASHBUCKLERS_NAME, resourceDummyType, RESOURCE_DUMMY_GROUP_OBJECTCLASS);
-        IntegrationTestTools.assertAttribute(shadow, resourceDummyType, 
+        assertShadowModel(shadow, SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, GROUP_DUMMY_SWASHBUCKLERS_NAME, getDummyResourceType(), RESOURCE_DUMMY_GROUP_OBJECTCLASS);
+        IntegrationTestTools.assertAttribute(shadow, getDummyResourceType(), 
         		DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION);
 	}
     
@@ -176,7 +176,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group created on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -203,7 +203,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -231,7 +231,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         // TODO: assert role assignment
         
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -265,7 +265,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_LANDLUBERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_LANDLUBERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
@@ -285,7 +285,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         DummyGroup mapmakers = new DummyGroup(GROUP_DUMMY_MAPMAKERS_NAME);
-		dummyResource.addGroup(mapmakers);
+        getDummyResource().addGroup(mapmakers);
         
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
         
@@ -298,7 +298,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertGroupMember(dummyGroup, USER_WALLY_NAME);
@@ -323,7 +323,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertNoGroupMember(dummyGroup, USER_WALLY_NAME);
@@ -347,7 +347,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
 //        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
@@ -435,7 +435,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
-        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimp);
         display("Group", dummyGroupWimp);
 //        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
@@ -505,7 +505,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Wannabe Group", dummyGroupBruteWannabe);
         assertNoGroupMembers(dummyGroupBruteWannabe);
                 
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
 //        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
@@ -573,7 +573,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Wannabe Group", dummyGroupThugWannabe);
         assertNoGroupMembers(dummyGroupThugWannabe);
                 
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
 //        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
@@ -609,7 +609,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_LARGO_USERNAME);
                 
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertNoGroupMember(dummyGroup, USER_LARGO_USERNAME);
@@ -642,7 +642,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_LARGO_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, "newLargo");
                 
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertNoGroupMember(dummyGroup, USER_LARGO_USERNAME);
@@ -706,7 +706,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
-        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimp);
         display("Group", dummyGroupWimp);
         assertGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
@@ -754,7 +754,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Wannabe Group", dummyGroupThugWannabe);
         assertGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
                 
-        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimp);
         display("Group", dummyGroupWimp);
         assertGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
@@ -792,7 +792,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
                 
-        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimp);
         display("Group", dummyGroupWimp);
         assertNoGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
@@ -850,7 +850,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Wannabe Group", dummyGroupThugWannabe);
         assertNoGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
                 
-        DummyGroup dummyGroupWimp = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimp);
         display("Group", dummyGroupWimp);
         assertNoGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
@@ -902,7 +902,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         // Orange resource has explicit referential integrity switched off
         assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
                 
-        DummyGroup dummyGroupWimps = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        DummyGroup dummyGroupWimps = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimps);
         display("Group", dummyGroupWimps);
         assertNoGroupMembers(dummyGroupWimps);
@@ -933,7 +933,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -967,7 +967,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -1000,7 +1000,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -1047,7 +1047,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -1082,7 +1082,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -1116,7 +1116,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
@@ -1151,7 +1151,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User jack", user);
         
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 

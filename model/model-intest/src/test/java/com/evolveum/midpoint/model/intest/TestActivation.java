@@ -663,7 +663,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		assertAccounts(USER_JACK_OID, 1);
         PrismObject<ShadowType> account = getShadowModel(accountOid);
-        assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
+        assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatusEnabled(account);
         assertEnableTimestampShadow(account, startTime, endTime);
 	}
@@ -704,7 +704,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		assertAccounts(USER_JACK_OID, 1);
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
-        assertAccountShadowModel(shadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
+        assertAccountShadowModel(shadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
 	}
 	
@@ -723,7 +723,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
-        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
+        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, getDummyResourceObject(), 
         		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
@@ -748,7 +748,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertDummyDisabled("jack");
 		assertAccounts(USER_JACK_OID, 1);
         PrismObject<ShadowType> account = getShadowModel(accountOid);
-        assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
+        assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatusDisabled(account);
         assertDisableTimestampShadow(account, startTime, endTime);
         assertDisableReasonShadow(account, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
@@ -821,7 +821,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
         
-        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy, 
+        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, getDummyResourceObject(), 
         		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
@@ -862,7 +862,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         ObjectDelta<ShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(accountOid, 
-        		resourceDummy, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
+        		getDummyResourceObject(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
         ObjectDelta<ShadowType> accountDeltaRed = createModifyAccountShadowReplaceDelta(accountRedOid, 
         		resourceDummyRed, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDeltaDefault, accountDeltaRed);
@@ -1099,7 +1099,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> account = getShadowModel(accountOid);
         PrismObject<ShadowType> accountYellow = getShadowModel(accountYellowOid);
         
-        assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
+        assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatus(account, accountStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
         if (!accountStatus) {
         	assertDisableReasonShadow(account, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);

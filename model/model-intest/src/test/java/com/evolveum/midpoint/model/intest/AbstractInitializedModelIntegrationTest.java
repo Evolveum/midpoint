@@ -86,10 +86,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected UserType userTypeGuybrush;
 	protected UserType userTypeElaine;
 	
-	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
-	protected ResourceType resourceDummyType;
-	protected PrismObject<ResourceType> resourceDummy;
 	
 	protected DummyResource dummyResourceRed;
 	protected DummyResourceContoller dummyResourceCtlRed;
@@ -160,14 +157,14 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 		// Resources
 				
-		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.extendSchemaPirate();
-		dummyResource = dummyResourceCtl.getDummyResource();
-		dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(),
-				DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, String.class, false, false);
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, getResourceDummyFile(), RESOURCE_DUMMY_OID, initTask, initResult);
-		resourceDummyType = resourceDummy.asObjectable();
-		dummyResourceCtl.setResource(resourceDummy);
+		dummyResourceCtl = initDummyResource(null, getResourceDummyFile(), RESOURCE_DUMMY_OID, 
+				controller -> {
+					controller.extendSchemaPirate();
+					controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+							DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, String.class, false, false);
+				},
+				initTask, initResult);
+		
 		
 		dummyResourceCtlRed = DummyResourceContoller.create(RESOURCE_DUMMY_RED_NAME, resourceDummyRed);
 		dummyResourceCtlRed.extendSchemaPirate();
@@ -361,19 +358,19 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	}
 	
 	protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
-		assertAccountShadowRepo(accountShadow, oid, username, resourceDummyType);
+		assertAccountShadowRepo(accountShadow, oid, username, dummyResourceCtl.getResource().asObjectable());
 	}
 
     protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
-        assertShadowRepo(accountShadow, oid, username, resourceDummyType, getGroupObjectClass(resourceDummyType));
+        assertShadowRepo(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getGroupObjectClass());
     }
 	
 	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
-		assertShadowModel(accountShadow, oid, username, resourceDummyType, getAccountObjectClass(resourceDummyType));
+		assertShadowModel(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getAccountObjectClass());
 	}
 
     protected void assertDummyGroupShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) throws SchemaException {
-        assertShadowModel(accountShadow, oid, username, resourceDummyType, getGroupObjectClass(resourceDummyType));
+        assertShadowModel(accountShadow, oid, username, dummyResourceCtl.getResourceType(), dummyResourceCtl.getGroupObjectClass());
     }
 	
 	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) throws SchemaException {
