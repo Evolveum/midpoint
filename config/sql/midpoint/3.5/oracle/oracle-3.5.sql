@@ -293,7 +293,7 @@ CREATE TABLE m_audit_event (
 ) INITRANS 30;
 
 CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR2(255 CHAR) NOT NULL,
+  changedItemPath VARCHAR2(900 CHAR) NOT NULL,
   record_id       NUMBER(19, 0)      NOT NULL,
   PRIMARY KEY (changedItemPath, record_id)
 ) INITRANS 30;
@@ -802,6 +802,8 @@ CREATE INDEX iAExtensionString ON m_assignment_ext_string (extensionType, eName,
 CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid) INITRANS 30;
 
 CREATE INDEX iTimestampValue ON m_audit_event (timestampValue) INITRANS 30;
+
+CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath) INITRANS 30;
 
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm) INITRANS 30;
