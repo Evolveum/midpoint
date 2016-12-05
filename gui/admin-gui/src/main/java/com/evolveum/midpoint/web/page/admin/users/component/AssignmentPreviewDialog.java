@@ -216,21 +216,23 @@ public class AssignmentPreviewDialog extends BasePanel implements Popupable {
             }
         });
 
-        columns.add(new AbstractColumn<AssignmentsPreviewDto, String>(createStringResource("Type")) {
+        if (!isDelegationPreview()) {
+            columns.add(new AbstractColumn<AssignmentsPreviewDto, String>(createStringResource("Type")) {
 
-            @Override
-            public void populateItem(Item<ICellPopulator<AssignmentsPreviewDto>> cellItem, String componentId, final IModel<AssignmentsPreviewDto> rowModel) {
-                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                @Override
+                public void populateItem(Item<ICellPopulator<AssignmentsPreviewDto>> cellItem, String componentId, final IModel<AssignmentsPreviewDto> rowModel) {
+                    cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
 
-                    @Override
-                    public String getObject() {
-                        return rowModel.getObject().isDirect() ?
-                                createStringResource("AssignmentPreviewDialog.type.direct").getString() :
-                                createStringResource("AssignmentPreviewDialog.type.indirect").getString();
-                    }
-                }));
-            }
-        });
+                        @Override
+                        public String getObject() {
+                            return rowModel.getObject().isDirect() ?
+                                    createStringResource("AssignmentPreviewDialog.type.direct").getString() :
+                                    createStringResource("AssignmentPreviewDialog.type.indirect").getString();
+                        }
+                    }));
+                }
+            });
+        }
 
         columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
                 createStringResource("AssignmentPreviewDialog.column.description"), AssignmentsPreviewDto.F_TARGET_DESCRIPTION));
@@ -241,12 +243,13 @@ public class AssignmentPreviewDialog extends BasePanel implements Popupable {
         columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
                 createStringResource("AssignmentPreviewDialog.column.orgRef"), AssignmentsPreviewDto.F_ORG_REF_NAME));
 
-        columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
-                createStringResource("AssignmentPreviewDialog.column.kind"), AssignmentsPreviewDto.F_KIND));
+        if (!isDelegationPreview()) {
+            columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
+                    createStringResource("AssignmentPreviewDialog.column.kind"), AssignmentsPreviewDto.F_KIND));
 
-        columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
-                createStringResource("AssignmentPreviewDialog.column.intent"), AssignmentsPreviewDto.F_INTENT));
-
+            columns.add(new PropertyColumn<AssignmentsPreviewDto, String>(
+                    createStringResource("AssignmentPreviewDialog.column.intent"), AssignmentsPreviewDto.F_INTENT));
+        }
         return columns;
     }
 
@@ -261,6 +264,10 @@ public class AssignmentPreviewDialog extends BasePanel implements Popupable {
         } else if(clazz.equals(OrgType.class)){
             setResponsePage(PageOrgUnit.class, parameters);
         }
+    }
+
+    protected boolean isDelegationPreview(){
+        return false;
     }
 
     @Override
