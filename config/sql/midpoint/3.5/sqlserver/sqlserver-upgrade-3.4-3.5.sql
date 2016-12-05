@@ -26,10 +26,12 @@ FOREIGN KEY (focus_oid)
 REFERENCES m_focus;
 
 CREATE TABLE m_audit_item (
-  changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL,
+  changedItemPath NVARCHAR(900) COLLATE database_default NOT NULL,
   record_id       BIGINT                                 NOT NULL,
   PRIMARY KEY (changedItemPath, record_id)
 );
+
+CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath);
 
 ALTER TABLE m_audit_item
   ADD CONSTRAINT fk_audit_item

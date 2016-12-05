@@ -79,8 +79,14 @@ public class PageLogin extends PageBase {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
 
-                CredentialsPolicyType creds = securityPolicy.getCredentials();
                 boolean linkIsVisible = false;
+                
+                if (securityPolicy == null) {
+                	return linkIsVisible;
+                }
+                
+                CredentialsPolicyType creds = securityPolicy.getCredentials();
+                
                 if (creds != null
                         && ((creds.getSecurityQuestions() != null
                         && creds.getSecurityQuestions().getQuestionNumber() != null) || (securityPolicy.getCredentialsReset() != null))) {

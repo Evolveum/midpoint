@@ -39,6 +39,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -86,7 +87,6 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                // do we want to update something?
             }
         };
         selected.add(new VisibleEnableBehaviour(){
@@ -187,6 +187,16 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                         new AssignmentPreviewDialog(pageBase.getMainPopupBodyId(),
                                 privilegesList,
                                 null, pageBase, true){
+                            @Override
+                            protected boolean isDelegationPreview(){
+                                return true;
+                            }
+
+                            @Override
+                            public StringResourceModel getTitle() {
+                                return new StringResourceModel("AssignmentPreviewDialog.delegationPreviewLabel");
+                            }
+
                             @Override
                             protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentsPreviewDto> dtoList){
                                 DelegationEditorPanel.this.getModelObject().setPrivilegeLimitationList(dtoList);
