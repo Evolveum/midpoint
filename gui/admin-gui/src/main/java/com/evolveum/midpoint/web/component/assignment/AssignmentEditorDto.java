@@ -98,8 +98,13 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private AssignmentType newAssignment;
 	private List<ACAttributeDto> attributes;
 	private PageBase pageBase;
+	private UserType delegationOwner;
 
 	public AssignmentEditorDto(UserDtoStatus status, AssignmentType assignment, PageBase pageBase) {
+		this(status, assignment, pageBase, null);
+	}
+
+	public AssignmentEditorDto(UserDtoStatus status, AssignmentType assignment, PageBase pageBase, UserType delegationOwner) {
 		Validate.notNull(status, "User dto status must not be null.");
 		Validate.notNull(assignment, "Assignment must not be null.");
 
@@ -108,6 +113,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.status = status;
 		this.oldAssignment = assignment;
 		this.pageBase = pageBase;
+		this.delegationOwner = delegationOwner;
 
 		PrismContainerValue value = oldAssignment.asPrismContainerValue();
 
@@ -147,7 +153,12 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object,
 																	 QName relation, PageBase pageBase) {
+		return createDtoAddFromSelectedObject(object, relation, pageBase, null);
+	}
+	public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object, QName relation,
+																	 PageBase pageBase, UserType delegationOwner) {
 		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, relation, pageBase);
+		dto.setDelegationOwner(delegationOwner);
 		if (SchemaConstants.ORG_DEPUTY.equals(relation)){
 			dto.setMinimized(false);
 		} else {
@@ -675,10 +686,14 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.privilegeLimitationList = privilegeLimitationList;
 	}
 
-//	private List<AssignmentSelectorType> getAssignmentPrivileges(AssignmentType assignment){
-//
-//
-//	}
+	public UserType getDelegationOwner() {
+		return delegationOwner;
+	}
+
+	public void setDelegationOwner(UserType delegationOwner) {
+		this.delegationOwner = delegationOwner;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)

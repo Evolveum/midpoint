@@ -71,9 +71,9 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private List<UserType> usersToUpdate;
 
     public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
-                                 List<AssignmentsPreviewDto> privilegesList, UserType user, PageBase pageBase) {
-        super(id, delegationTargetObjectModel, delegatedToMe, privilegesList, user, pageBase);
-    }
+                                 List<AssignmentsPreviewDto> privilegesList, PageBase pageBase) {
+            super(id, delegationTargetObjectModel, delegatedToMe, privilegesList, pageBase);
+        }
 
     @Override
     protected void initHeaderRow(){
@@ -164,11 +164,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         DateInput validFrom = new DateInput(ID_DELEGATION_VALID_FROM,
                 createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
+        validFrom.setEnabled(getModel().getObject().isEditable());
         body.add(validFrom);
 
         DateInput validTo = new DateInput(ID_DELEGATION_VALID_TO,
                 createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validTo")));
+        validTo.setEnabled(getModel().getObject().isEditable());
         body.add(validTo);
 
         TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
@@ -237,7 +239,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
     private String getUserDisplayName(){
         String displayName = "";
-        if (delegationUser != null) {
+        UserType delegationUser = getModelObject().getDelegationOwner();
+        if (getModelObject().getDelegationOwner() != null) {
             if (delegationUser.getFullName() != null && StringUtils.isNotEmpty(delegationUser.getFullName().getOrig())) {
                 displayName = delegationUser.getFullName().getOrig() + " (" + delegationUser.getName().getOrig() + ")";
             } else {
