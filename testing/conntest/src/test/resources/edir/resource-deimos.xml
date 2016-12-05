@@ -162,6 +162,7 @@
             	<valueAttribute>ri:dn</valueAttribute>
             	<shortcutAssociationAttribute>ri:groupMembership</shortcutAssociationAttribute>
             	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            	<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
             
             <association>
@@ -174,6 +175,7 @@
             	<valueAttribute>ri:dn</valueAttribute>
             	<shortcutAssociationAttribute>ri:groupMembership</shortcutAssociationAttribute>
             	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            	<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
             
 				<protected>
