@@ -28,7 +28,7 @@
     	<name> role ShipNWeapon</name>
     	<source>
     		<name>extship</name>
-			<path>$user/c:extension/piracy:ship</path>
+			<path>$user/extension/piracy:ship</path>
 		</source>
     	<expression>
             <!-- <assignmentTargetSearch>
