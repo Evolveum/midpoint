@@ -150,12 +150,17 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		checkAll.add(new VisibleEnableBehaviour(){
 			@Override
 			public boolean isVisible(){
+				int count = 0;
 				for (AssignmentEditorDto dto : getModelObject()){
-					if (dto.isEditable()){
-						return true;
+					if (dto.isSimpleView()){
+						count++;
 					}
 				}
-				return false;
+				if (count == getModelObject().size()){
+					return false;
+				} else {
+					return true;
+				}
 			}
 		});
 		assignments.add(checkAll);
@@ -303,6 +308,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return getString("AssignmentTablePanel.message.noAssignmentSelected");
 	}
 
+	protected String getAssignmentsDeleteMessage(int size){
+		return createStringResource("AssignmentTablePanel.modal.message.delete",
+				size).getString();
+	}
+
 	private Popupable getDeleteAssignmentPopupContent() {
 		return new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
 
@@ -310,8 +320,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 			@Override
 			public String getObject() {
-				return createStringResource("AssignmentTablePanel.modal.message.delete",
-						getSelectedAssignments().size()).getString();
+				return getAssignmentsDeleteMessage(getSelectedAssignments().size());
 			}
 		}) {
 

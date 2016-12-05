@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ResourceObjectOperations {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectOperations.class);
 	
 	private Collection<Operation> operations = new ArrayList<>();
 	private PrismObject<ShadowType> currentShadow = null;
@@ -52,6 +56,12 @@ public class ResourceObjectOperations {
 
 	public Collection<Operation> getOperations() {
 		return operations;
+	}
+	
+	public void add(Operation operation) {
+		if (!operations.contains(operation)) {
+			operations.add(operation);
+		}
 	}
 
 	public Collection<? extends ResourceAttribute<?>> getAllIdentifiers() {

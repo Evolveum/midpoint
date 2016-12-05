@@ -97,6 +97,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
+	private static final String GROUP_MELA_NOVA_NAME = "Mela Nova";
 	
 	protected static final int NUMBER_OF_ACCOUNTS = 4;
 	protected static final int LOCKOUT_EXPIRATION_SECONDS = 65;
@@ -173,6 +174,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		return new QName(MidPointConstants.NS_RI, ASSOCIATION_GROUP_NAME);
 	}
 	
+	protected String getOrgGroupsLdapSuffix() {
+		return "ou=orggroups,"+getLdapSuffix();
+	}
+	
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -199,7 +205,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME));
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME));
 		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME));
-		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
+		cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_NAME));
+		cleanupDelete(toOrgGroupDn(GROUP_MELA_NOVA_NAME));
 	}
 
 	@Test
@@ -285,7 +292,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         display("Shadow", shadow);
         groupPiratesOid = shadow.getOid();
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(2);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
@@ -735,15 +742,15 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         display("Entry", entry);
         assertAttribute(entry, "title", "Captain");
         
-        assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
+        Entry groupEntry = assertEDirGroupMember(entry, GROUP_PIRATES_NAME);
+        display("Group entry", groupEntry);
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
-        
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);        
 	}
 	
 	@Test
@@ -757,7 +764,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString(USER_CPTBARBOSSA_USERNAME));
+        renameObject(UserType.class, USER_BARBOSSA_OID, USER_CPTBARBOSSA_USERNAME, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -846,6 +853,32 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertEDirGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
 
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
+	}
+	
+	@Test
+    public void test520RenameOrgMeleeIsland() throws Exception {
+		final String TEST_NAME = "test520RenameOrgMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        renameObject(OrgType.class, orgMeleeIslandOid, GROUP_MELA_NOVA_NAME, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapGroup(GROUP_MELA_NOVA_NAME);
+        
+        PrismObject<OrgType> org = getObject(OrgType.class, orgMeleeIslandOid);
+        String groupMeleeOidAfter = getSingleLinkOid(org);
+        PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOidAfter);
+        display("Shadow (model)", shadow);
 	}
 	
 	// Wait until the lockout of Jack expires, check status
@@ -1070,12 +1103,13 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		assertEDirGroupMember(accountEntry, groupName);
 	}
 	
-	private void assertEDirGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
+	private Entry assertEDirGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
 		Entry groupEntry = getLdapGroupByName(groupName);
 		assertAttributeContains(groupEntry, getLdapGroupMemberAttribute(), accountEntry.getDn().toString());
 		assertAttributeContains(groupEntry, ATTRIBUTE_EQUIVALENT_TO_ME_NAME, accountEntry.getDn().toString());
 		assertAttributeContains(accountEntry, ATTRIBUTE_GROUP_MEMBERSHIP_NAME, groupEntry.getDn().toString());
 		assertAttributeContains(accountEntry, ATTRIBUTE_SECURITY_EQUALS_NAME, groupEntry.getDn().toString());
+		return groupEntry;
 	}
 	
 	private void assertEDirNoGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
@@ -1084,5 +1118,9 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		assertAttributeNotContains(groupEntry, ATTRIBUTE_EQUIVALENT_TO_ME_NAME, accountEntry.getDn().toString());
 		assertAttributeNotContains(accountEntry, ATTRIBUTE_GROUP_MEMBERSHIP_NAME, groupEntry.getDn().toString());
 		assertAttributeNotContains(accountEntry, ATTRIBUTE_SECURITY_EQUALS_NAME, groupEntry.getDn().toString());
+	}
+	
+	protected String toOrgGroupDn(String cn) {
+		return "cn="+cn+","+getOrgGroupsLdapSuffix();
 	}
 }

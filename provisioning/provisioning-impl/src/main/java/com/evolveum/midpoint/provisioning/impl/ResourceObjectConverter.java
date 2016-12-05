@@ -1030,7 +1030,7 @@ public class ResourceObjectConverter {
 			Collection<Operation> operations = resourceObjectOperations.getOperations();
 			
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Excuting entitlement change identifiers={}:", allIdentifiers, DebugUtil.debugDump(operations, 1));
+				LOGGER.trace("Excuting entitlement change identifiers={}:\n{}", allIdentifiers, DebugUtil.debugDump(operations, 1));
 			}
 			
 			OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);

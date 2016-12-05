@@ -492,7 +492,7 @@ class EntitlementConverter {
 							attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
 							PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
 							attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
-							operations.getOperations().add(attributeModification);
+							operations.add(attributeModification);
 						}
 						
 						attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
@@ -752,7 +752,7 @@ class EntitlementConverter {
 				PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
 				attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
 				LOGGER.trace("Collecting entitlement object operations ({}) association {}: {}", modificationType, associationName.getLocalPart(), attributeModification);
-				operations.getOperations().add(attributeModification);
+				operations.add(attributeModification);
 			}
 			
 		}

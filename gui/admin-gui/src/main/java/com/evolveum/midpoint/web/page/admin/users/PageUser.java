@@ -90,11 +90,8 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
-    private Map<AssignmentEditorDto, UserType> assignmentUserMap = new HashMap();
     private List<AssignmentsPreviewDto> privilegesList = new ArrayList<>();
 
-    private HashMap<UserType, AssignmentEditorDto> usersToUpdateMap = new HashMap<>();
-    private boolean isNewDtoAdded = false;
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
     public PageUser() {
@@ -202,7 +199,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
                                 privilegesList = getItemPrivilegesList(item.getModelObject());
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
-                                        privilegesList, assignmentUserMap.get(item.getModelObject()), PageUser.this);
+                                        privilegesList, PageUser.this);
                                 item.add(editor);
                             }
 
@@ -223,6 +220,12 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                                                 @Override
                                                 public void onClick(AjaxRequestTarget target) {
+                                                    if (getUserPrivilegesList() == null ||
+                                                            getUserPrivilegesList().size() == 0){
+                                                        warn(getString("AssignmentTablePanel.modal.message.noDelegationWarning"));
+                                                        target.add(getPageBase().getFeedbackPanel());
+                                                        return;
+                                                    }
                                                     List<QName> supportedTypes = new ArrayList<>();
                                                     supportedTypes.add(UserType.COMPLEX_TYPE);
                                                     ObjectFilter filter = InOidFilter.createInOid(getObjectWrapper().getOid());
@@ -270,6 +273,12 @@ public class PageUser extends PageAdminFocus<UserType> {
                             }
 
                             @Override
+                            protected String getAssignmentsDeleteMessage(int size){
+                                return createStringResource("AssignmentTablePanel.modal.message.deleteDelegation",
+                                        size).getString();
+                            }
+
+                            @Override
                             protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
                                                                           String popupId) {
                                 privilegesList = getUserPrivilegesList();
@@ -288,11 +297,9 @@ public class PageUser extends PageAdminFocus<UserType> {
                                     try {
                                         AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
                                                     PageUser.this.getObjectWrapper().getObject().asObjectable(),
-                                                    SchemaConstants.ORG_DEPUTY, getPageBase());
+                                                    SchemaConstants.ORG_DEPUTY, getPageBase(), (UserType) object);
                                         dto.setPrivilegeLimitationList(privilegesList);
                                         delegationsModel.getObject().add(dto);
-                                        usersToUpdateMap.put((UserType) object, dto);
-                                        assignmentUserMap.put(dto, (UserType) object);
                                     } catch (Exception e) {
                                         error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
                                                 e.getMessage()));
@@ -327,7 +334,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
-                                        privilegesList, null, PageUser.this);
+                                        privilegesList, PageUser.this);
                                 item.add(editor);
                             }
 
@@ -385,9 +392,10 @@ public class PageUser extends PageAdminFocus<UserType> {
                         if (assignment.getTargetRef() != null &&
                                 StringUtils.isNotEmpty(assignment.getTargetRef().getOid()) &&
                                 assignment.getTargetRef().getOid().equals(getObjectWrapper().getOid())) {
-                            AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this);
+                            AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this,
+                                    user.asObjectable());
+                            dto.setEditable(false);
                             list.add(dto);
-                            assignmentUserMap.put(dto, user.asObjectable());
                         }
                     }
                     processedUsersOid.add(user.getOid());
@@ -421,27 +429,18 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected void processDeputyAssignments(){
-        for (UserType user : usersToUpdateMap.keySet()){
-            List<AssignmentType> userAssignments = user.getAssignment();
-            List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();
-//            for (AssignmentType assignment : userAssignments) {
-//                    userAssignmentsDtos.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
-//            }
-            userAssignmentsDtos.add(usersToUpdateMap.get(user));
-            saveDelegationToUser(user, userAssignmentsDtos);
-        }
-        Set<AssignmentEditorDto> assignmentEditorDtos = assignmentUserMap.keySet();
-        List<UserType> list = new ArrayList<UserType>(assignmentUserMap.values());
-        int index = 0;
-        for (AssignmentEditorDto dto : assignmentEditorDtos){
-            if (UserDtoStatus.DELETE.equals(dto.getStatus())){
-                List<AssignmentEditorDto> assignmentsToDelete = new ArrayList<>();
-                assignmentsToDelete.add(dto);
-                saveDelegationToUser(list.get(index), assignmentsToDelete);
+    protected boolean processDeputyAssignments(){
+        boolean isAnythingChanged = false;
+        for (AssignmentEditorDto dto : delegationsModel.getObject()){
+            if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
+                UserType user = dto.getDelegationOwner();
+                List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();
+                userAssignmentsDtos.add(dto);
+                saveDelegationToUser(user, userAssignmentsDtos);
+                isAnythingChanged = true;
             }
-            index++;
         }
+        return isAnythingChanged;
     }
 
     private void saveDelegationToUser(UserType user, List<AssignmentEditorDto> assignmentEditorDtos) {
