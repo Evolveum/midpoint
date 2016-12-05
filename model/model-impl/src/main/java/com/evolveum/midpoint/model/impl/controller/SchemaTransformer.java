@@ -338,8 +338,33 @@ public class SchemaTransformer {
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
 		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecision, phase);
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecision, phase);
-		LOGGER.trace("applySecurityConstraints(itemDef): {}: decisions R={}, A={}, M={}",
-				new Object[]{itemPath, readDecision, addDecision, modifyDecision});
+		
+		boolean anySubElementRead = false;
+		boolean anySubElementAdd = false;
+		boolean anySubElementModify = false;
+		if (itemDefinition instanceof PrismContainerDefinition<?>) {
+			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
+			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
+			for (ItemDefinition subDef: subDefinitions) {
+				if (!subDef.getName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
+					applySecurityConstraintsItemDef(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+					    readDecision, addDecision, modifyDecision, phase);
+				}
+				if (subDef.canRead()) {
+					anySubElementRead = true;
+				}
+				if (subDef.canAdd()) {
+					anySubElementAdd = true;
+				}
+				if (subDef.canModify()) {
+					anySubElementModify = true;
+				}
+			}
+		}
+		
+		LOGGER.trace("applySecurityConstraints(itemDef): {}: decisions R={}, A={}, M={}; subelements R={}, A={}, M={}",
+				itemPath, readDecision, addDecision, modifyDecision, anySubElementRead, anySubElementAdd, anySubElementModify);
+		
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
 			((ItemDefinitionImpl) itemDefinition).setCanRead(false);
 		}
@@ -350,15 +375,14 @@ public class SchemaTransformer {
 			((ItemDefinitionImpl) itemDefinition).setCanModify(false);
 		}
 		
-		if (itemDefinition instanceof PrismContainerDefinition<?>) {
-			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
-			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
-			for (ItemDefinition subDef: subDefinitions) {
-				if (!subDef.getName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
-					applySecurityConstraintsItemDef(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
-					    readDecision, addDecision, modifyDecision, phase);
-				}
-			}
+		if (anySubElementRead) {
+			((ItemDefinitionImpl) itemDefinition).setCanRead(true);
+		}
+		if (anySubElementAdd) {
+			((ItemDefinitionImpl) itemDefinition).setCanAdd(true);
+		}
+		if (anySubElementModify) {
+			((ItemDefinitionImpl) itemDefinition).setCanModify(true);
 		}
 	}
 		
