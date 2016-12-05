@@ -174,6 +174,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		return new QName(MidPointConstants.NS_RI, ASSOCIATION_GROUP_NAME);
 	}
 	
+	protected String getOrgGroupsLdapSuffix() {
+		return "ou=orggroups,"+getLdapSuffix();
+	}
+	
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -200,8 +205,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME));
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME));
 		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME));
-		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
-		cleanupDelete(toGroupDn(GROUP_MELA_NOVA_NAME));
+		cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_NAME));
+		cleanupDelete(toOrgGroupDn(GROUP_MELA_NOVA_NAME));
 	}
 
 	@Test
@@ -287,7 +292,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         display("Shadow", shadow);
         groupPiratesOid = shadow.getOid();
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(2);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
@@ -1113,5 +1118,9 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		assertAttributeNotContains(groupEntry, ATTRIBUTE_EQUIVALENT_TO_ME_NAME, accountEntry.getDn().toString());
 		assertAttributeNotContains(accountEntry, ATTRIBUTE_GROUP_MEMBERSHIP_NAME, groupEntry.getDn().toString());
 		assertAttributeNotContains(accountEntry, ATTRIBUTE_SECURITY_EQUALS_NAME, groupEntry.getDn().toString());
+	}
+	
+	protected String toOrgGroupDn(String cn) {
+		return "cn="+cn+","+getOrgGroupsLdapSuffix();
 	}
 }

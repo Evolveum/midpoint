@@ -212,6 +212,15 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfNames</objectClass>
+			<baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>ou=groups,o=example</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>            
             <attribute>
                 <ref>dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
@@ -222,12 +231,7 @@
                     <expression>
                     	<script>
 	                        <code>
-	                        	import javax.naming.ldap.Rdn
-	                        	import javax.naming.ldap.LdapName
-	                        	
-	                        	dn = new LdapName('ou=groups,o=example')
-	                        	dn.add(new Rdn('cn', name.toString()))
-	                        	return dn.toString()
+	                        	basic.composeDnWithSuffix('cn', name, 'ou=groups,o=example')
 	                        </code>
                         </script>
                     </expression>
@@ -259,6 +263,15 @@
 				<displayName>Organizational Group</displayName>
 				<objectClass>ri:groupOfNames</objectClass>
 				<auxiliaryObjectClass>ri:nestedGroupAux</auxiliaryObjectClass>
+				<baseContext>
+	            	<objectClass>ri:organizationalUnit</objectClass>
+	            	<filter>
+	            		<q:equal>
+	            			<q:path>attributes/dn</q:path>
+	            			<q:value>ou=orggroups,o=example</q:value>
+	            		</q:equal>
+	            	</filter>
+	            </baseContext>
 				<attribute>
 					<ref>ri:member</ref>
 					<matchingRule>mr:distinguishedName</matchingRule>
@@ -274,7 +287,7 @@
 					<expression>
 						<script>
 							<code>
-								return 'cn=' + name + ',ou=groups,o=example'
+								basic.composeDnWithSuffix('cn', name, 'ou=orggroups,o=example')
 							</code>
 						</script>
 					</expression>
@@ -303,6 +316,11 @@
 						<path>$focus/displayName</path>
 					</source>
 				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:member</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
+				<fetchStrategy>minimal</fetchStrategy>
 			</attribute>
             <association>
             	<ref>ri:group</ref>
