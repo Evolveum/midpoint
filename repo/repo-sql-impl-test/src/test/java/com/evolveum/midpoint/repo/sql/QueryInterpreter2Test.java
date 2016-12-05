@@ -1397,7 +1397,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
-                    "  o.oid in :oid\n";
+                    "  o.oid in (:oid)\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -1417,7 +1417,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "where\n" +
-                    "  a.ownerOid in :ownerOid";
+                    "  a.ownerOid in (:ownerOid)";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -2021,7 +2021,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
-                    "  o.objectTypeClass in :objectTypeClass";
+                    "  o.objectTypeClass in (:objectTypeClass)";
 
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -2286,6 +2286,36 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    ) or\n" +
                     "    o.objectTypeClass = :objectTypeClass3\n" +
                     "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test601QueryObjectypeByTwoAbstractTypes() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .type(FocusType.class).block().endBlock()
+					.or().type(AbstractRoleType.class).block().endBlock()
+                    .build();
+            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String expected = "select\n"
+					+ "  o.fullObject,\n"
+					+ "  o.stringsCount,\n"
+					+ "  o.longsCount,\n"
+					+ "  o.datesCount,\n"
+					+ "  o.referencesCount,\n"
+					+ "  o.polysCount,\n"
+					+ "  o.booleansCount\n"
+					+ "from\n"
+					+ "  RObject o\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    o.objectTypeClass in (:objectTypeClass) or\n"
+					+ "    o.objectTypeClass in (:objectTypeClass2)\n"
+					+ "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);

@@ -48,7 +48,12 @@ public class InCondition extends PropertyCondition {
         if (values != null) {
             String parameterNamePrefix = createParameterName(propertyPath);
             String parameterName = rootHibernateQuery.addParameter(parameterNamePrefix, values);        // TODO special treatment of collections?
-            sb.append(propertyPath).append(" in :").append(parameterName);
+            // these parentheses are here because of hibernate bug, manifesting itself as MID-3390
+            boolean useParentheses = values.size() != 1;        // just a (quite dubious) optimization
+            sb.append(propertyPath).append(" in ")
+                    .append(useParentheses ? "(" : "")
+                    .append(":").append(parameterName)
+                    .append(useParentheses ? ")" : "");
         } else {
             sb.append(propertyPath).append(" in (").append(innerQueryText).append(")");
         }
