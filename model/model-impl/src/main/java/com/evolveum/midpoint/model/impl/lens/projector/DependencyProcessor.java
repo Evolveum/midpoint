@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
@@ -255,7 +256,12 @@ public class DependencyProcessor {
 				Iterator<ResourceObjectTypeDependencyType> iterator = depPath.iterator();
 				while (iterator.hasNext()) {
 					ResourceObjectTypeDependencyType el = iterator.next();
-					sb.append(el.getResourceRef().getOid());
+					ObjectReferenceType resourceRef = el.getResourceRef();
+					if (resourceRef != null) {
+						sb.append(resourceRef.getOid());
+					}
+					sb.append("(").append(el.getKind()).append("/");
+					sb.append(el.getIntent()).append(")");
 					if (iterator.hasNext()) {
 						sb.append("->");
 					}

@@ -193,7 +193,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         userDelta.addModification(attributeDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
-        dummyResource.setAddBreakMode(BreakMode.UNSUPPORTED);       // hopefully this does not kick consistency mechanism
+        getDummyResource().setAddBreakMode(BreakMode.UNSUPPORTED);       // hopefully this does not kick consistency mechanism
 
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
@@ -221,7 +221,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 //        dummyAuditService.assertExecutionSuccess();
 
         notificationManager.setDisabled(true);
-        dummyResource.resetBreakMode();
+        getDummyResource().resetBreakMode();
 
         // Check notifications
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -285,7 +285,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
                 
-        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -360,10 +360,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         account.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
         
-        IntegrationTestTools.assertAttribute(account, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME), 
+        IntegrationTestTools.assertAttribute(account,
+        		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
         		"The best pirate captain ever");
         // This one should still be here, even if ignored
-        IntegrationTestTools.assertAttribute(account, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME), 
+        IntegrationTestTools.assertAttribute(account, 
+        		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME), 
         		"cold");
         
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(account);
@@ -843,7 +845,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
         // The user is not associated with the account
-        assertDummyScriptsAdd(null, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(null, accountModel, getDummyResourceType());
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1155,7 +1157,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1454,7 +1456,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1694,7 +1696,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1905,7 +1907,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -2183,7 +2185,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         
-        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -2312,7 +2314,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "smell");
         assertNull("Unexpected loot", dummyAccount.getAttributeValue("loot", Integer.class));
         
-        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -2792,7 +2794,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
         assertEquals("Wrong loot", (Integer)10000, dummyAccount.getAttributeValue("loot", Integer.class));
         
-        assertDummyScriptsAdd(userBlackbeard, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userBlackbeard, accountModel, getDummyResourceType());
         
         // Check audit        
         display("Audit", dummyAuditService);
@@ -2880,7 +2882,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("morgan", "Sir Henry Morgan", true);
         
-        assertDummyScriptsAdd(userMorgan, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userMorgan, accountModel, getDummyResourceType());
         
      // Check audit
         display("Audit", dummyAuditService);
@@ -3219,13 +3221,13 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	}
 	
 	private void purgeScriptHistory() {
-		dummyResource.purgeScriptHistory();
+		getDummyResource().purgeScriptHistory();
 	}
 
 	private void assertNoProvisioningScripts() {
-		if (!dummyResource.getScriptHistory().isEmpty()) {
-			IntegrationTestTools.displayScripts(dummyResource.getScriptHistory());
-			AssertJUnit.fail(dummyResource.getScriptHistory().size()+" provisioning scripts were executed while not expected any");
+		if (!getDummyResource().getScriptHistory().isEmpty()) {
+			IntegrationTestTools.displayScripts(getDummyResource().getScriptHistory());
+			AssertJUnit.fail(getDummyResource().getScriptHistory().size()+" provisioning scripts were executed while not expected any");
 		}
 	}
 
@@ -3255,7 +3257,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		script.addArgSingle("size", "3");
 		script.setLanguage("Logo");
-		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
 	}
 
 	private void assertDummyScriptsModify(PrismObject<UserType> user) {
@@ -3281,19 +3283,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 			reconBeforeScript.addArgSingle("who", name);
 			ProvisioningScriptSpec reconAfterScript = new ProvisioningScriptSpec("He left it dead, and with its head");
 			reconAfterScript.addArgSingle("how", "enabled");
-			IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), reconBeforeScript, modScript, reconAfterScript);
+			IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), reconBeforeScript, modScript, reconAfterScript);
 		} else {
-			IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), modScript);
+			IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), modScript);
 		}
 	}
 
 	private void assertDummyScriptsDelete() {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("The Jabberwock, with eyes of flame");
-		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
 	}
 	
 	private void assertDummyScriptsNone() {
-		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory());
+		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
 	}
 	
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
