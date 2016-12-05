@@ -346,7 +346,9 @@ public class CertDefinitionDto implements Serializable {
             reviewerObject.setUseTargetApprover(Boolean.TRUE.equals(reviewerDto.isUseTargetApprover()));
             reviewerObject.setUseObjectOwner(Boolean.TRUE.equals(reviewerDto.isUseObjectOwner()));
             reviewerObject.setUseObjectApprover(Boolean.TRUE.equals(reviewerDto.isUseObjectApprover()));
-            reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
+            if (reviewerDto.isUseObjectManagerPresent()) {
+				reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
+			}
             reviewerObject.getDefaultReviewerRef().clear();
             reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
             reviewerObject.getAdditionalReviewerRef().clear();
