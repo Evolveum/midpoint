@@ -126,11 +126,7 @@ public class AssignmentPreviewDialog extends BasePanel implements Popupable {
                         selectedDtos.add(dto);
                     }
                 }
-                if (selectedDtos.isEmpty()){
-//                    target.add(AssignmentPreviewDialog.this.fee);
-                } else {
                     AssignmentPreviewDialog.this.addButtonClicked(target, selectedDtos);
-                }
             }
         };
 

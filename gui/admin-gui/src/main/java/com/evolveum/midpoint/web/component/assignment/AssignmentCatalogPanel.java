@@ -338,9 +338,12 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
-        ObjectQuery memberQuery;
+        ObjectQuery memberQuery = null;
         if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
-            memberQuery = createMemberQuery(selectedTreeItemOidModel.getObject());
+            String oid = selectedTreeItemOidModel.getObject();
+            if (StringUtils.isNotEmpty(oid)) {
+                memberQuery = createMemberQuery(oid);
+            }
         } else {
             memberQuery = createMemberQuery(getViewTypeClass(AssignmentViewType.getViewTypeFromSession(pageBase)));
         }

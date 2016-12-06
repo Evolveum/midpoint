@@ -62,15 +62,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
+public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMemberPanel<T> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -81,9 +84,13 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 	private static String ID_PROJECT = "project";
 	private static String ID_INDIRECT_MEMBERS = "indirectMembers";
 	
-	public RoleMemberPanel(String id, IModel<RoleType> model, PageBase pageBase) {
+	public RoleMemberPanel(String id, IModel<T> model, PageBase pageBase) {
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
 		
+	}
+	
+	protected boolean isRole() {
+		return true;
 	}
 
 	private PrismContext getPrismContext() {
@@ -218,14 +225,28 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 		DropDownChoice<QName> typeSelect = createDropDown(ID_OBJECT_TYPE, Model.of(FocusType.COMPLEX_TYPE),
 				allowedTypes, new QNameChoiceRenderer());
 		add(typeSelect);
+		
 
 		DropDownChoice<OrgType> tenant = createDropDown(ID_TENANT, new Model(),
 				createTenantList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(tenant);
-
+		tenant.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return isRole();
+			}
+		});
+		
 		DropDownChoice<OrgType> project = createDropDown(ID_PROJECT, new Model(),
 				createProjectList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(project);
+		
+		project.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return isRole();
+			}
+		});
 		
 		CheckBoxPanel includeIndirectMembers = new CheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<Boolean>(false)) {
 			private static final long serialVersionUID = 1L;
@@ -235,6 +256,13 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 			};
 		};
 		add(includeIndirectMembers);
+		
+		includeIndirectMembers.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return isRole();
+			}
+		});
 		
 
 	}

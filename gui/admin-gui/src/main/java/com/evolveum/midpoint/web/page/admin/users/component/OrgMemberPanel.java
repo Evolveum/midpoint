@@ -440,8 +440,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		ObjectTypes type = typeChoice.getModelObject();
 		target.add(get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE)));
 		getMemberTable().clearCache();
-		getMemberTable().refreshTable((Class<ObjectType>) WebComponentUtil
-				.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName()), target);
+		getMemberTable().refreshTable(WebComponentUtil
+				.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName(), ObjectType.class), target);
 	}
 
 	private MainObjectListPanel<ObjectType> getMemberTable() {

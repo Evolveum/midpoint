@@ -21,24 +21,32 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
+import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
  *
  */
-public class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMainPanel<R> {
+public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMainPanel<R> {
 	private static final long serialVersionUID = 1L;
 	
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
@@ -84,6 +92,24 @@ public class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMain
 			}
 		});
 		
+		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return createMemberPanel(panelId);
+			}
+
+			@Override
+			public boolean isVisible() {
+				return getObjectWrapper().getStatus() != ContainerStatus.ADDING;
+			}
+		});
+		
 		return tabs;
 	}
+	
+	public abstract AbstractRoleMemberPanel<R> createMemberPanel(String panelId);
+	
 }
