@@ -30,10 +30,13 @@ public class RelationalValueSearchQuery implements Serializable {
 	private String searchValue;
 	private RelationalValueSearchType searchType;
 	private ObjectPaging paging;
-	
+
+	public RelationalValueSearchQuery(ObjectPaging paging) {
+		this.paging = paging;
+	}
+
 	public RelationalValueSearchQuery(QName column, String searchValue, RelationalValueSearchType searchType,
 			ObjectPaging paging) {
-		super();
 		this.column = column;
 		this.searchValue = searchValue;
 		this.searchType = searchType;
@@ -41,7 +44,6 @@ public class RelationalValueSearchQuery implements Serializable {
 	}
 
 	public RelationalValueSearchQuery(QName column, String searchValue, RelationalValueSearchType searchType) {
-		super();
 		this.column = column;
 		this.searchValue = searchValue;
 		this.searchType = searchType;

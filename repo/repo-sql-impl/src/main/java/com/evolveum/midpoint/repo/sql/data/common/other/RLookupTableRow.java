@@ -65,10 +65,11 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return ownerOid;
     }
 
+    public static final String ID_COLUMN_NAME = "id";
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
-    @Column(name = "id")
+    @Column(name = ID_COLUMN_NAME)
     @IdQueryProperty
     public Integer getId() {
         return id;
