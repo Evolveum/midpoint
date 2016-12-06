@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -65,6 +67,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_PRIVILEGE = "privilege";
     private static final String ID_LIMIT_PRIVILEGES_BUTTON = "limitPrivilegesButton";
     private List<String> privilegesNames = new ArrayList<>();
+    private static final String ID_EXPAND = "expand";
 
     private static final String DOT_CLASS = DelegationEditorPanel.class.getName() + ".";
     private static final String OPERATION_GET_TARGET_REF_NAME = DOT_CLASS + "getTargetRefName";
@@ -158,6 +161,22 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         }
         delegatedToNameLabel.setOutputMarkupId(true);
         delegatedToName.add(delegatedToNameLabel);
+
+        ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
+                GuiStyleConstants.CLASS_ICON_COLLAPSE) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                nameClickPerformed(target);
+            }
+
+            @Override
+            public boolean isOn() {
+                return !DelegationEditorPanel.this.getModelObject().isMinimized();
+            }
+        };
+        headerRow.add(expandButton);
     }
 
     protected void initBodyLayout(WebMarkupContainer body) {
