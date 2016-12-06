@@ -26,5 +26,6 @@ import java.io.Serializable;
 
 public interface SceneItemValue extends Serializable {
 	String getText();
+	String getAdditionalText();			// this one should not be clickable (in case of references)
 	PrismValue getSourceValue();
 }

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
@@ -811,7 +812,21 @@ public class Visualizer {
 			for (PrismReferenceValue refValue : refValues) {
 				if (refValue != null) {
 					refValue = createRefValueWithObject(refValue, context, task, result);
-					SceneItemValueImpl itemValue = new SceneItemValueImpl(refValue.getTargetName() != null ? getOrig(refValue.getTargetName()) : refValue.getOid());
+					String name;
+					if (refValue.getObject() != null) {
+						name = PolyString.getOrig(refValue.getObject().getName());
+					} else if (refValue.getTargetName() != null) {
+						name = refValue.getTargetName().getOrig();
+					} else {
+						name = refValue.getOid();
+					}
+					String relation;
+					if (refValue.getRelation() != null) {
+						relation = "[" + refValue.getRelation().getLocalPart() + "]";
+					} else {
+						relation = null;
+					}
+					SceneItemValueImpl itemValue = new SceneItemValueImpl(name, relation);
 					itemValue.setSourceValue(refValue);
 					rv.add(itemValue);
 				}
