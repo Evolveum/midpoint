@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -30,7 +31,11 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 	private static final String ID_PARENT = "parentPath";
 
 	public ItemPathSegmentPanel(String id, ItemPathDto model) {
-		super(id, Model.of(model));
+		this(id, Model.of(model));
+	}
+	
+	public ItemPathSegmentPanel(String id, IModel<ItemPathDto> model) {
+		super(id, model);
 
 		initLayout();
 	}
