@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 		super.initSystem(initTask, initResult);
 		
 		dummyResourceGreen.setSyncStyle(DummySyncStyle.SMART);
-		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		getDummyResource().setSyncStyle(DummySyncStyle.DUMB);
 		dummyResourceBlue.setSyncStyle(DummySyncStyle.SMART);
 		
 	}
@@ -51,7 +51,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME);
 		} else if (resource == resourceDummyBlue) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME);
-		} else if (resource == resourceDummy) {
+		} else if (resource == getDummyResourceObject()) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_FILENAME);
 		} else {
 			throw new IllegalArgumentException("Unknown resource "+resource);
@@ -64,7 +64,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 			return TASK_LIVE_SYNC_DUMMY_GREEN_OID;
 		} else if (resource == resourceDummyBlue) {
 			return TASK_LIVE_SYNC_DUMMY_BLUE_OID;
-		} else if (resource == resourceDummy) {
+		} else if (resource == getDummyResourceObject()) {
 			return TASK_LIVE_SYNC_DUMMY_OID;
 		} else {
 			throw new IllegalArgumentException("Unknown resource "+resource);

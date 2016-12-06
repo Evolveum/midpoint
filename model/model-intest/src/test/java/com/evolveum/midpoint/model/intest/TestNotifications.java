@@ -122,7 +122,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		// Check account in dummy resource
 		assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
-		assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+		assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
 
 		notificationManager.setDisabled(true);
 
@@ -285,7 +285,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
-        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
+        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
 
         // Check notifications
 		display("Notifications", dummyTransport);
@@ -2349,13 +2349,13 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	private void purgeScriptHistory() {
-		dummyResource.purgeScriptHistory();
+		getDummyResource().purgeScriptHistory();
 	}
 
 	private void assertNoProvisioningScripts() {
-		if (!dummyResource.getScriptHistory().isEmpty()) {
-			IntegrationTestTools.displayScripts(dummyResource.getScriptHistory());
-			AssertJUnit.fail(dummyResource.getScriptHistory().size()+" provisioning scripts were executed while not expected any");
+		if (!getDummyResource().getScriptHistory().isEmpty()) {
+			IntegrationTestTools.displayScripts(getDummyResource().getScriptHistory());
+			AssertJUnit.fail(getDummyResource().getScriptHistory().size()+" provisioning scripts were executed while not expected any");
 		}
 	}
 
@@ -2385,7 +2385,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 		script.addArgSingle("size", "3");
 		script.setLanguage("Logo");
-		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
 	}
 
 	private void assertDummyScriptsModify(PrismObject<UserType> user) {
@@ -2411,19 +2411,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 			reconBeforeScript.addArgSingle("who", name);
 			ProvisioningScriptSpec reconAfterScript = new ProvisioningScriptSpec("He left it dead, and with its head");
 			reconAfterScript.addArgSingle("how", "enabled");
-			IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), reconBeforeScript, modScript, reconAfterScript);
+			IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), reconBeforeScript, modScript, reconAfterScript);
 		} else {
-			IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), modScript);
+			IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), modScript);
 		}
 	}
 
 	private void assertDummyScriptsDelete() {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("The Jabberwock, with eyes of flame");
-		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
 	}
 	
 	private void assertDummyScriptsNone() {
-		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory());
+		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
 	}
 	
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

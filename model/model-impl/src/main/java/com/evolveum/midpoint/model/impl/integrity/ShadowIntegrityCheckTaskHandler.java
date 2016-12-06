@@ -66,16 +66,16 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
  	// Therefore it must not have task-specific fields. It can only contain fields specific to
  	// all tasks of a specified type
 
-    @Autowired(required = true)
+    @Autowired
     private ProvisioningService provisioningService;
 
-    @Autowired(required = true)
+    @Autowired
     private MatchingRuleRegistry matchingRuleRegistry;
 
-    @Autowired(required = true)
+    @Autowired
     private SynchronizationService synchronizationService;
     
-    @Autowired(required = true)
+    @Autowired
 	private SystemObjectCache systemObjectCache;
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckTaskHandler.class);

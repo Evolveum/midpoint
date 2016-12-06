@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.Name;
@@ -105,7 +106,7 @@ public class IcfNameMapper {
 			// fallback, compatibility
 			return specialAttributeMapIcf.get(icfAttrName);
 		}
-		QName attrXsdName = new QName(resourceSchemaNamespace, icfAttrName,
+		QName attrXsdName = new QName(resourceSchemaNamespace, QNameUtil.escapeElementName(icfAttrName),
 				ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 		return attrXsdName;
 	}

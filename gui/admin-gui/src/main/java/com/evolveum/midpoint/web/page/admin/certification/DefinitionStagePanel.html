@@ -96,11 +96,17 @@
                         <wicket:message key="StageDefinitionPanel.reviewerUseObjectManager"/> <i wicket:id="reviewerUseObjectManagerHelp" wicket:message="title:StageDefinitionPanel.reviewerUseObjectManagerHelp"/>
                     </td>
                     <td class="col-md-8">
-                        <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerOrgType"/> <i wicket:id="reviewerUseObjectManagerOrgTypeHelp" wicket:message="title:StageDefinitionPanel.reviewerUseObjectManagerOrgTypeHelp"/>
-                        <input type="text" class="form-control input-sm" wicket:id="objectManagerOrgType"/>
-                        <div style="margin-top:10px;">
-                            <input type="checkbox" wicket:id="useObjectManagerAllowSelf">
-                            <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerAllowSelf"/> <i wicket:id="reviewerUseObjectManagerAllowSelfHelp" wicket:message="title:StageDefinitionPanel.reviewerUseObjectManagerAllowSelfHelp"/>
+                        <div>
+                            <input type="checkbox" wicket:id="useObjectManager">
+                            <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerBox"/>
+                        </div>
+                        <div class="well" wicket:id="useObjectManagerDetails">
+                            <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerOrgType"/> <i wicket:id="reviewerUseObjectManagerOrgTypeHelp" wicket:message="title:StageDefinitionPanel.reviewerUseObjectManagerOrgTypeHelp"/>
+                            <input type="text" class="form-control input-sm" wicket:id="objectManagerOrgType"/>
+                            <div style="margin-top:10px;">
+                                <input type="checkbox" wicket:id="useObjectManagerAllowSelf">
+                                <wicket:message key="StageDefinitionPanel.reviewerUseObjectManagerAllowSelf"/> <i wicket:id="reviewerUseObjectManagerAllowSelfHelp" wicket:message="title:StageDefinitionPanel.reviewerUseObjectManagerAllowSelfHelp"/>
+                            </div>
                         </div>
                     </td>
                 </tr>

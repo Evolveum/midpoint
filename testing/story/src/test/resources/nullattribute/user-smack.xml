@@ -23,9 +23,9 @@
 	 	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>smack</name>
     <description>Where's the rum?</description>
-    <extension>
-        <piracy:weapon>pistol</piracy:weapon> 
-    </extension>
+    <!--<extension>-->
+        <!--<piracy:weapon>pistol</piracy:weapon> -->
+    <!--</extension>-->
     <fullName>Smack Sparrow</fullName>
     <givenName>Smack</givenName>
     <familyName>Sparrow</familyName>

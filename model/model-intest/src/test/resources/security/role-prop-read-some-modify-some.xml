@@ -19,6 +19,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Prop Read Some Modify Some</name>    
     <authorization>
+    	<name>read-some</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<item>c:name</item>
     	<item>fullName</item>
@@ -26,9 +27,20 @@
     	<item>assignment</item>
     </authorization>
     <authorization>
+    	<name>modify-some</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<item>fullName</item>
     	<item>additionalName</item>
     	<item>description</item>
+    	<item>activation/validFrom</item>
+    </authorization>
+    <authorization>
+    	<name>modify-some-operational-exec</name>
+    	<description>Required, these are operational properties that midPoint changes automatically</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<item>activation/validityStatus</item>
+    	<item>activation/validityChangeTimestamp</item>
+    	<item>activation/effectiveStatus</item>
     </authorization>
 </role>

@@ -1194,4 +1194,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ref.setRelation(relation);
 		return ref;
 	}
+	
+	protected void assertNotReached() {
+		AssertJUnit.fail("Unexpected success");
+	}
 }

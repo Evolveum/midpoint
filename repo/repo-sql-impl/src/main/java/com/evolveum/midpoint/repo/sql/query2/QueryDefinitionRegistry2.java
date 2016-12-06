@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -163,7 +164,7 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     public JpaEntityDefinition findEntityDefinition(QName typeName) {
         Validate.notNull(typeName, "Type name must not be null.");
 
-        JpaEntityDefinition def = definitions.get(typeName);
+        JpaEntityDefinition def = QNameUtil.getKey(definitions, typeName);
         if (def == null) {
             throw new IllegalStateException("Type " + typeName + " couldn't be found in type registry");
         }

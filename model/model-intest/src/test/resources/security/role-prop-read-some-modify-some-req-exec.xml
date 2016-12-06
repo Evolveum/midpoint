@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Prop Read Some Modify Some Req Exec</name>    
     <authorization>
+    	<name>read-some-req</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<phase>request</phase>
     	<item>c:name</item>
@@ -28,6 +29,7 @@
     	<item>c:familyName</item> <!-- Not in exec autz -->
     </authorization>
     <authorization>
+    	<name>read-some-exec</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<phase>execution</phase>
     	<item>c:name</item>
@@ -35,21 +37,37 @@
     	<item>c:additionalName</item> <!-- Not in request autz -->
     	<item>c:activation/c:administrativeStatus</item>
     	<item>c:assignment</item>
+    	<item>activation/validTo</item> <!-- Not in request autz -->
     </authorization>
     <authorization>
+    	<name>modify-some-req</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>request</phase>
     	<item>c:fullName</item>
     	<item>c:additionalName</item>
     	<item>c:description</item>
     	<item>c:costCenter</item> <!-- Not in exec autz -->
+    	<item>activation/validFrom</item>
     </authorization>
     <authorization>
+    	<name>modify-some-exec</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>execution</phase>
     	<item>c:fullName</item>
     	<item>c:additionalName</item>
     	<item>c:description</item>
     	<item>c:organization</item> <!-- Not in request autz -->
+    	<item>activation/validFrom</item>
+    	<item>activation/validTo</item> <!-- Not in request autz -->
+    	<item>activation/effectiveStatus</item> <!-- Not in request autz -->
+    </authorization>
+    <authorization>
+    	<name>modify-some-operational-exec</name>
+    	<description>Required, these are operational properties that midPoint changes automatically</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<item>activation/validityStatus</item>
+    	<item>activation/validityChangeTimestamp</item>
+    	<item>activation/effectiveStatus</item>
     </authorization>
 </role>

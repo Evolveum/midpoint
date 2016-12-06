@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -250,20 +251,13 @@ public class TestNullAttribute extends AbstractStoryTest {
 		
 		
 		 // WHEN
-		//TODO: best way to set extension properties?
-        PrismObject<UserType> userPrism = getUser(USER_SMACK_OID);
-		PrismObject<UserType> userNewPrism = userPrism.clone();
-		prismContext.adopt(userNewPrism);	
-		if (userNewPrism.getExtension()==null)userNewPrism.createExtension();		
-		PrismContainer<?> ext = userNewPrism.getExtension();
-		ext.setPropertyRealValue(new QName(EXTENSION_NS, "ship"), "Black Pearl");
-
-		ObjectDelta<UserType> delta = userPrism.diff(userNewPrism);
-		
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		@SuppressWarnings("unchecked, raw")
+		Collection<ObjectDelta<? extends ObjectType>> deltas =
+				(Collection) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_EXTENSION, new QName(EXTENSION_NS, "ship")).add("Black Pearl")
+				.asObjectDeltas(USER_SMACK_OID);
 		modelService.executeChanges(deltas, null, task, result);
-        
-		
+
 		// THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -286,7 +280,8 @@ public class TestNullAttribute extends AbstractStoryTest {
         
         PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath( DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME),"Smack Sparrow");
         PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath( DUMMY_ACCOUNT_ATTRIBUTE_SHIP),"Black Pearl");
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON),"pistol");
+        // weapon is not in user's extension (MID-3326)
+        //PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON),"pistol");
 
 	}
 	

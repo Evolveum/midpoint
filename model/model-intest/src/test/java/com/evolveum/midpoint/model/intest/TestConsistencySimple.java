@@ -73,7 +73,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 	private enum ResourceObjectOperation { KEEP, DELETE }
 
 	private ObjectClassComplexTypeDefinition getAccountObjectClassDefinition() throws SchemaException {
-		ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyType, prismContext);
+		ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(getDummyResourceObject(), prismContext);
 		return schema.findObjectClassDefinition(dummyResourceCtl.getAccountObjectClassQName());
 	}
 
@@ -200,7 +200,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 		}
 
 		if (resourceObjectOperation == ResourceObjectOperation.DELETE) {
-			dummyResource.deleteAccountByName("jack");
+			getDummyResource().deleteAccountByName("jack");
 			assertNoDummyAccount(null, "jack");
 		} else {
 			assertDummyAccount(null, "jack");

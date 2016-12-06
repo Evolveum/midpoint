@@ -125,6 +125,7 @@ CREATE TABLE m_assignment (
   creatorRef_relation     VARCHAR(157),
   creatorRef_targetOid    VARCHAR(36),
   creatorRef_type         INTEGER,
+  lifecycleState          VARCHAR(255),
   modifierRef_relation    VARCHAR(157),
   modifierRef_targetOid   VARCHAR(36),
   modifierRef_type        INTEGER,
@@ -235,6 +236,12 @@ CREATE TABLE m_assignment_extension (
   PRIMARY KEY (owner_id, owner_owner_oid)
 );
 
+CREATE TABLE m_assignment_policy_situation (
+  assignment_id   INTEGER     NOT NULL,
+  assignment_oid  VARCHAR(36) NOT NULL,
+  policySituation VARCHAR(255)
+);
+
 CREATE TABLE m_assignment_reference (
   owner_id        INTEGER      NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
@@ -284,6 +291,12 @@ CREATE TABLE m_audit_event (
   taskOID           VARCHAR(255),
   timestampValue    TIMESTAMP,
   PRIMARY KEY (id)
+);
+
+CREATE TABLE m_audit_item (
+  changedItemPath VARCHAR(900) NOT NULL,
+  record_id       BIGINT       NOT NULL,
+  PRIMARY KEY (changedItemPath, record_id)
 );
 
 CREATE TABLE m_connector (
@@ -344,6 +357,11 @@ CREATE TABLE m_focus_photo (
   owner_oid VARCHAR(36) NOT NULL,
   photo     BLOB,
   PRIMARY KEY (owner_oid)
+);
+
+CREATE TABLE m_focus_policy_situation (
+  focus_oid       VARCHAR(36) NOT NULL,
+  policySituation VARCHAR(255)
 );
 
 CREATE TABLE m_generic_object (
@@ -779,6 +797,8 @@ CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid)
 
 CREATE INDEX iTimestampValue ON m_audit_event (timestampValue);
 
+CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath);
+
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
 
@@ -969,6 +989,11 @@ ADD CONSTRAINT fk_assignment_ext_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension;
 
+ALTER TABLE m_assignment_policy_situation
+  ADD CONSTRAINT fk_assignment_policy_situation
+FOREIGN KEY (assignment_id, assignment_oid)
+REFERENCES m_assignment;
+
 ALTER TABLE m_assignment_reference
 ADD CONSTRAINT fk_assignment_reference
 FOREIGN KEY (owner_id, owner_owner_oid)
@@ -976,6 +1001,11 @@ REFERENCES m_assignment;
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event;
+
+ALTER TABLE m_audit_item
+  ADD CONSTRAINT fk_audit_item
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
 
@@ -1007,6 +1037,11 @@ REFERENCES m_object;
 ALTER TABLE m_focus_photo
 ADD CONSTRAINT fk_focus_photo
 FOREIGN KEY (owner_oid)
+REFERENCES m_focus;
+
+ALTER TABLE m_focus_policy_situation
+  ADD CONSTRAINT fk_focus_policy_situation
+FOREIGN KEY (focus_oid)
 REFERENCES m_focus;
 
 ALTER TABLE m_generic_object

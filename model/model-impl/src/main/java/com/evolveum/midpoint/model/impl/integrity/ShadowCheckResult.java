@@ -44,6 +44,7 @@ public class ShadowCheckResult {
     private List<String> warnings = new ArrayList<>();
     private List<String> problemCodes = new ArrayList<>();
 
+    private boolean fixByRemovingShadow = false;
     private List<ItemDelta> fixDeltas = new ArrayList<>();
     private List<String> fixForProblems = new ArrayList<>();
     private boolean fixApplied = false;
@@ -115,6 +116,15 @@ public class ShadowCheckResult {
 
     public List<String> getProblemCodes() {
         return problemCodes;
+    }
+
+    public boolean isFixByRemovingShadow() {
+        return fixByRemovingShadow;
+    }
+
+    public void setFixByRemovingShadow(String fixIsForProblem) {
+        this.fixByRemovingShadow = true;
+        fixForProblems.add(fixIsForProblem);
     }
 
     public boolean isFixApplied() {

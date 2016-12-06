@@ -91,6 +91,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private static final File USER_DEGHOULASH_FILE = new File(TEST_DIR, "user-deghoulash.xml");
 	private static final String USER_DEGHOULASH_OID = "c0c010c0-d34d-b33f-f00d-1d11dd11dd11";
 	private static final String USER_DEGHOULASH_NAME = "deghoulash";
+
+	private static final String RESOURCE_DUMMY_CIRCUS_NAME = "circus";
+	private static final File RESOURCE_DUMMY_CIRCUS_FILE = new File(TEST_DIR, "resource-dummy-circus.xml");
+	private static final String RESOURCE_DUMMY_CIRCUS_OID = "65d73d14-bafb-11e6-9de3-ff46daf6e769";
 	
 	private static final File ROLE_IDIOT_FILE = new File(TEST_DIR, "role-idiot.xml");
 	private static final String ROLE_IDIOT_OID = "12345678-d34d-b33f-f00d-555555550001";
@@ -134,6 +138,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		initDummyResource(RESOURCE_DUMMY_CIRCUS_NAME, RESOURCE_DUMMY_CIRCUS_FILE, RESOURCE_DUMMY_CIRCUS_OID, null, initTask, initResult);
 		
 		dummyResourceCtlRed.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");
 		
@@ -451,7 +457,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
-        dummyResource.setModifyBreakMode(BreakMode.SCHEMA);
+        getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
                         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -495,7 +501,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
-        dummyResource.setModifyBreakMode(BreakMode.SCHEMA);
+        getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
                         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -539,7 +545,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
-        dummyResource.setModifyBreakMode(BreakMode.CONFLICT);
+        getDummyResource().setModifyBreakMode(BreakMode.CONFLICT);
                         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -1182,6 +1188,35 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
     }
     
+    /**
+     * Circus resource has a circular dependency. It should fail, but it should
+     * fail with a proper error.
+     * MID-3522
+     */
+    @Test
+    public void test550AssignCircus() throws Exception {
+		final String TEST_NAME = "test550AssignCircus";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+	        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CIRCUS_OID, null, task, result);
+	        
+	        assertNotReached();
+        } catch (PolicyViolationException e) {
+        	// THEN
+            TestUtil.displayThen(TEST_NAME);
+            result.computeStatus();
+            TestUtil.assertFailure(result);
+        }
+        
+    }
+    
     @Test
     public void test600AddUserGuybrushAssignAccount() throws Exception {
 		final String TEST_NAME="test600AddUserGuybrushAssignAccount";
@@ -1236,10 +1271,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        dummyResource.setEnforceSchema(false);
+        getDummyResource().setEnforceSchema(false);
     	DummyAccount dummyAccount = getDummyAccount(null, USER_GUYBRUSH_USERNAME);
     	dummyAccount.addAttributeValues("rogue", "habakuk");
-    	dummyResource.setEnforceSchema(true);
+    	getDummyResource().setEnforceSchema(true);
     	
     	// WHEN
     	TestUtil.displayWhen(TEST_NAME);

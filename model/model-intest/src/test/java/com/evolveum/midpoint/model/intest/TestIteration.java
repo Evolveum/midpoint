@@ -278,8 +278,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Sparrow");
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Tortuga");
-		dummyResource.addAccount(account);
-		repoAddObject(createShadow(resourceDummy, ACCOUNT_JACK_DUMMY_USERNAME), result);
+		getDummyResource().addAccount(account);
+		repoAddObject(createShadow(getDummyResourceObject(), ACCOUNT_JACK_DUMMY_USERNAME), result);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);

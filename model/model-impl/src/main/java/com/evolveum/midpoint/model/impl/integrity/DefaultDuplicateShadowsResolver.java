@@ -67,7 +67,7 @@ public class DefaultDuplicateShadowsResolver implements DuplicateShadowsResolver
         }
         DuplicateShadowsTreatmentInstruction instruction = new DuplicateShadowsTreatmentInstruction();
         instruction.setShadowOidToReplaceDeletedOnes(bestShadow.getOid());
-        instruction.setShadowsToDelete(new ArrayList<PrismObject<ShadowType>>());
+        instruction.setShadowsToDelete(new ArrayList<>());
         for (PrismObject<ShadowType> shadow : shadows) {
             if (!shadow.getOid().equals(bestShadow.getOid())) {
                 instruction.getShadowsToDelete().add(shadow);
