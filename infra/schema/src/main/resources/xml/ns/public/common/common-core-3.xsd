@@ -2798,6 +2798,9 @@
                         and so on. Simply speaking the name is used to distinguish
                         credetials that have the same type but different purpose.
                     </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="failedLogins" type="xsd:int" minOccurs="0">
