@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.sync.TaskHandlerUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -331,14 +332,9 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             }
 	
 	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
+			TaskHandlerUtil.appendLastFailuresInformation(taskOperationPrefix, coordinatorTask.getLastFailures(), opResult);
 
-			List<String> failures = coordinatorTask.getLastFailures();
-			if (!failures.isEmpty()) {
-				opResult.createSubresult(taskOperationPrefix + ".errors")
-						.recordStatus(OperationResultStatus.SUCCESS, "Last failures: " + failures);
-			}
-
-			LOGGER.info(finishMessage + statistics);
+			LOGGER.info("{}", finishMessage + statistics);
         }
         
         try {

@@ -93,6 +93,7 @@ import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -252,6 +253,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired(required=true)
 	protected MidpointFunctions libraryMidpointFunctions;
 	
+	protected DummyResourceCollection dummyResourceCollection;
+	
 	protected DummyAuditService dummyAuditService;
 	
 	protected boolean verbose = true;
@@ -265,6 +268,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
+		dummyResourceCollection = new DummyResourceCollection(modelService);
 		startResources();
 		dummyAuditService = DummyAuditService.getInstance();
 		// Make sure the checks are turned on
@@ -283,6 +287,44 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void cleanUpSecurity() {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		securityContext.setAuthentication(null);
+	}
+	
+	protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid, 
+			FailableProcessor<DummyResourceContoller> controllerInitLambda,
+			Task task, OperationResult result) throws Exception {
+		return dummyResourceCollection.initDummyResource(name, resourceFile, resourceOid, controllerInitLambda, task, result);
+	}
+	
+	protected DummyResourceContoller getDummyResourceController(String name) {
+		return dummyResourceCollection.get(name);
+	}
+	
+	protected DummyResourceContoller getDummyResourceController() {
+		return getDummyResourceController(null);
+	}
+	
+	protected DummyResource getDummyResource(String name) {
+		return dummyResourceCollection.getDummyResource(name);
+	}
+	
+	protected DummyResource getDummyResource() {
+		return getDummyResource(null);
+	}
+	
+	protected PrismObject<ResourceType> getDummyResourceObject(String name) {
+		return dummyResourceCollection.getResourceObject(name);
+	}
+	
+	protected PrismObject<ResourceType> getDummyResourceObject() {
+		return getDummyResourceObject(null);
+	}
+	
+	protected ResourceType getDummyResourceType(String name) {
+		return dummyResourceCollection.getResourceType(name);
+	}
+	
+	protected ResourceType getDummyResourceType() {
+		return getDummyResourceType(null);
 	}
 	
 	protected void importObjectFromFile(String filename) throws FileNotFoundException {

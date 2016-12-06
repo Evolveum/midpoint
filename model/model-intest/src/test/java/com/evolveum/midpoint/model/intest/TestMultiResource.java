@@ -207,7 +207,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_DUMMIES_BEIGE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_FIGHT_FILE, initResult);
 		
-		dummyResource.resetBreakMode();
+		getDummyResource().resetBreakMode();
 	}
 
 	@Test
@@ -237,7 +237,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public void test115JackAssignRoleDummiesFullErrorIvory() throws Exception {
 		final String TEST_NAME = "test115JackAssignRoleDummiesFullErrorIvory";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		dummyResource.setAddBreakMode(BreakMode.NETWORK);
+		getDummyResource().setAddBreakMode(BreakMode.NETWORK);
 		jackAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_IVORY_OID, RESOURCE_DUMMY_IVORY_NAME, true);
 	}
 
@@ -245,7 +245,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public void test116JackUnAssignRoleDummiesFullErrorIvory() throws Exception {
 		final String TEST_NAME = "test116JackUnAssignRoleDummiesFullErrorIvory";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		dummyResource.setAddBreakMode(BreakMode.NETWORK);
+		getDummyResource().setAddBreakMode(BreakMode.NETWORK);
 		jackUnAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_IVORY_OID);
 	}
 	
@@ -253,7 +253,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public void test117JackAssignRoleDummiesFullErrorBeige() throws Exception {
 		final String TEST_NAME = "test117JackAssignRoleDummiesFullErrorBeige";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		dummyResource.setAddBreakMode(BreakMode.NETWORK);
+		getDummyResource().setAddBreakMode(BreakMode.NETWORK);
 		jackAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_BEIGE_OID, RESOURCE_DUMMY_BEIGE_NAME, false);
 	}
 
@@ -261,7 +261,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public void test118JackUnAssignRoleDummiesFullErrorBeige() throws Exception {
 		final String TEST_NAME = "test118JackUnAssignRoleDummiesFullErrorBeige";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		dummyResource.setAddBreakMode(BreakMode.NETWORK);
+		getDummyResource().setAddBreakMode(BreakMode.NETWORK);
 		jackUnAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_BEIGE_OID);
 	}
 	
@@ -269,7 +269,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     public void test120JackAssignRoleDummiesRelative() throws Exception {
 		final String TEST_NAME = "test120JackAssignRoleDummiesRelative";
 		
-		dummyResource.resetBreakMode();
+		getDummyResource().resetBreakMode();
 		// Clean up user
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -288,7 +288,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test121JackTryDeleteAccount";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
-		dummyResource.resetBreakMode();
+		getDummyResource().resetBreakMode();
 		// Clean up user
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -549,8 +549,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        dummyResource.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        display("dummy resource before", dummyResource);
+        getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        display("dummy resource before", getDummyResource());
         		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -565,7 +565,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("user after", userJack);
         assertLinks(userJack, 2);
         
-        display("dummy resource after", dummyResource);
+        display("dummy resource after", getDummyResource());
         
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -630,8 +630,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        dummyResource.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        display("dummy resource before", dummyResource);
+        getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        display("dummy resource before", getDummyResource());
         
         dummyResourceBeige.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         display("beige dummy resource before", dummyResourceBeige);
@@ -648,7 +648,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertLinks(userJack, 2);
         
-        display("dummy resource after", dummyResource);
+        display("dummy resource after", getDummyResource());
         display("beige dummy resource after", dummyResourceBeige);
         
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -676,7 +676,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
-        dummyResource.setModifyBreakMode(BreakMode.SCHEMA);
+        getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
                         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -692,7 +692,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertLinks(userJack, 2);
         
-        display("dummy resource after", dummyResource);
+        display("dummy resource after", getDummyResource());
         display("beige dummy resource after", dummyResourceBeige);
         
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -703,7 +703,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
-        dummyResource.resetBreakMode();
+        getDummyResource().resetBreakMode();
 	}
 	
 	/**
@@ -719,7 +719,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestMultiResource.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        dummyResource.resetBreakMode();
+        getDummyResource().resetBreakMode();
                         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -735,7 +735,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertLinks(userJack, 2);
         
-        display("dummy resource after", dummyResource);
+        display("dummy resource after", getDummyResource());
         display("beige dummy resource after", dummyResourceBeige);
         
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -759,7 +759,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        dummyResource.resetBreakMode();
+        getDummyResource().resetBreakMode();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
 		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, false);
@@ -1254,7 +1254,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummy);
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -1308,7 +1308,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		
-        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummy);
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, getDummyResourceObject());
         
         // WHEN
         try {
@@ -1345,7 +1345,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		
-        ObjectDelta<UserType> userDelta = createModifyUserUnlinkAccount(USER_JACK_OID, resourceDummy);
+        ObjectDelta<UserType> userDelta = createModifyUserUnlinkAccount(USER_JACK_OID, getDummyResourceObject());
         
         // WHEN
         try {
@@ -1409,7 +1409,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		
-        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummy);
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, getDummyResourceObject());
         
         TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -1489,7 +1489,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test380AddAccountPeru";
 		TestUtil.displayTestTile(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-		dummyResource.resetBreakMode();
+		getDummyResource().resetBreakMode();
 		
 		// precondition
 		assertEncryptedUserPassword(USER_JACK_OID, USER_JACK_PASSWORD);

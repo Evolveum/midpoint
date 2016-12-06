@@ -391,8 +391,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         // Make sure that the existing account has the same value as is set by the role
         // This causes problems if the resource does not tolerate duplicate values in deltas. But provisioning
         // should work around that.
-        TestUtil.setAttribute(account, new QName(resourceDummyType.getNamespace(), "title"), DOMUtil.XSD_STRING,
-        		prismContext, "Bloody Pirate");
+        TestUtil.setAttribute(account, 
+        		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
+        		DOMUtil.XSD_STRING, prismContext, "Bloody Pirate");
         
 		ObjectDelta<UserType> delta = ObjectDelta.createModificationAddReference(UserType.class, USER_JACK_OID, 
 				UserType.F_LINK_REF, prismContext, account);
@@ -3233,7 +3234,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Fool", "Simpleton");
 
-        display("Simpleton groups", dummyResource.getGroupByName(GROUP_SIMPLETONS_NAME));
+        display("Simpleton groups", getDummyResource().getGroupByName(GROUP_SIMPLETONS_NAME));
 
         assertDummyGroupMember(null, GROUP_FOOLS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertDummyGroupMember(null, GROUP_SIMPLETONS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -3302,7 +3303,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Fool", "Simpleton");
 
-        display("Simpleton groups", dummyResource.getGroupByName(GROUP_SIMPLETONS_NAME));
+        display("Simpleton groups", getDummyResource().getGroupByName(GROUP_SIMPLETONS_NAME));
 
         assertDummyGroupMember(null, GROUP_FOOLS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         // Group association is non-tolerant. It should be removed.

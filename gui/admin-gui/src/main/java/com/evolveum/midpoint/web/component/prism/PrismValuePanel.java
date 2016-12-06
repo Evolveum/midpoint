@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -463,8 +462,7 @@ public class PrismValuePanel extends Panel {
                       Task task = pageBase.createSimpleTask("loadLookupTable");
                       OperationResult result = task.getResult();
 
-                      Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
-                              GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                      Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions();
                       final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
                               lookupTableUid, options, pageBase, task, result);
 
@@ -596,8 +594,7 @@ public class PrismValuePanel extends Panel {
                       Task task = pageBase.createSimpleTask("loadLookupTable");
                       OperationResult result = task.getResult();
 
-                      Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
-                              GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                      Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions();
                       final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
                               lookupTableUid, options, pageBase, task, result);
 

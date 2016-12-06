@@ -257,8 +257,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlLime.setResource(resourceDummyLime);
 		
 		// Create an account that midPoint does not know about yet
-		dummyResourceCtl.addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
-		dummyResource.getAccountByUsername(USER_RAPP_USERNAME)
+		getDummyResourceController().addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
+		getDummyResource().getAccountByUsername(USER_RAPP_USERNAME)
 					.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Elaine");
 		
 		dummyResourceCtlLime.addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
@@ -746,7 +746,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Lets do some local changes on dummy resource
-        DummyAccount guybrushDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        DummyAccount guybrushDummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
         // fullname has a normal outbound mapping, this change should NOT be corrected
         guybrushDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Dubrish Freepweed");
@@ -765,7 +765,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         
         // Calypso is protected, this should not reconcile
-        DummyAccount calypsoDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        DummyAccount calypsoDummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         calypsoDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
         
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
@@ -773,7 +773,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT, 
         		PrismTestUtil.createPolyString("The crew of The Elaine"));
         
-        dummyResource.purgeScriptHistory();
+        getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         reconciliationTaskResultListener.clear();
@@ -834,9 +834,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 10, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
         
-        display("Script history", dummyResource.getScriptHistory());
+        display("Script history", getDummyResource().getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
@@ -844,7 +844,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
         
@@ -866,15 +866,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Lets do some local changes on dummy resource ... 
-        DummyAccount guybrushDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        DummyAccount guybrushDummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
         // location has strong outbound mapping, this change should be corrected
         guybrushDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
         
         // BREAK it!
-        dummyResource.setBreakMode(BreakMode.NETWORK);
+        getDummyResource().setBreakMode(BreakMode.NETWORK);
 
-        dummyResource.purgeScriptHistory();
+        getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         reconciliationTaskResultListener.clear();
         
@@ -903,12 +903,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 10, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
         
-        display("Script history", dummyResource.getScriptHistory());
+        display("Script history", getDummyResource().getScriptHistory());
         
         // no scripts
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory());
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
         
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -938,9 +938,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         // Fix it!
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
 
-        dummyResource.purgeScriptHistory();
+        getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         reconciliationTaskResultListener.clear();
         rememberShadowFetchOperationCount();
@@ -983,9 +983,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 10, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
         
-        display("Script history", dummyResource.getScriptHistory());
+        display("Script history", getDummyResource().getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
@@ -993,7 +993,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
         
@@ -1018,16 +1018,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Lets do some local changes on dummy resource ... 
-        DummyAccount guybrushDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        DummyAccount guybrushDummyAccount = getDummyResource().getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
         // location has strong outbound mapping, this change should be corrected
         guybrushDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Forbidden Dodecahedron");
         
         // BREAK it!
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
         guybrushDummyAccount.setModifyBreakMode(BreakMode.NETWORK);
 
-        dummyResource.purgeScriptHistory();
+        getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         reconciliationTaskResultListener.clear();
         
@@ -1055,9 +1055,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 10, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
         
-        display("Script history", dummyResource.getScriptHistory());
+        display("Script history", getDummyResource().getScriptHistory());
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
         // Guybrush is broken.
@@ -1065,7 +1065,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -1093,10 +1093,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         // Fix it!
-        dummyResource.setBreakMode(BreakMode.NONE);
-        dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME).setModifyBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
+        getDummyResource().getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME).setModifyBreakMode(BreakMode.NONE);
 
-        dummyResource.purgeScriptHistory();
+        getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         reconciliationTaskResultListener.clear();
@@ -1144,9 +1144,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 10, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
         
-        display("Script history", dummyResource.getScriptHistory());
+        display("Script history", getDummyResource().getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
         addReconScripts(scripts, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", false);
@@ -1154,7 +1154,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
         
@@ -1175,19 +1175,19 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        dummyResource.setBreakMode(BreakMode.NONE);
-        dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME).setModifyBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
+        getDummyResource().getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME).setModifyBreakMode(BreakMode.NONE);
         
         PrismObject<UserType> userHerman = findUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
         String hermanShadowOid = getSingleLinkOid(userHerman);
         
         assertShadows(14);
 
-        dummyResource.renameAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, ACCOUNT_HERMAN_DUMMY_USERNAME, ACCOUNT_HTM_NAME);
+        getDummyResource().renameAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, ACCOUNT_HERMAN_DUMMY_USERNAME, ACCOUNT_HTM_NAME);
         DummyAccount dummyAccountHtm = getDummyAccount(null, ACCOUNT_HTM_NAME);
         dummyAccountHtm.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_HTM_FULL_NAME);
         
-        dummyResource.purgeScriptHistory();
+        getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         reconciliationTaskResultListener.clear();
@@ -1234,9 +1234,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 11, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
         
-        display("Script history", dummyResource.getScriptHistory());
+        display("Script history", getDummyResource().getScriptHistory());
         
         ArrayList<ProvisioningScriptSpec> scripts = new ArrayList<ProvisioningScriptSpec>();
         addReconScripts(scripts, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", false);
@@ -1244,7 +1244,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_STAN_NAME, ACCOUNT_STAN_FULLNAME, false);
         addReconScripts(scripts, ACCOUNT_HTM_NAME, ACCOUNT_HTM_FULL_NAME, true);
-        IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
+        IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID); // the second modification is unlink
         
@@ -1297,7 +1297,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
         
         // Create some illegal account
@@ -1362,7 +1362,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
         
         PrismObject<TaskType> reconTask = getTask(TASK_RECONCILE_DUMMY_AZURE_OID);
@@ -1429,7 +1429,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
         
         assertShadows(16);
@@ -1499,7 +1499,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
         
         dummyResourceCtlAzure.addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
@@ -1595,7 +1595,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
         
         display("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
@@ -1678,7 +1678,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
         
         display("Rapp azure account before", dummyResourceAzure.getAccountByUsername(USER_RAPP_USERNAME));
@@ -1747,7 +1747,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        dummyResource.setBreakMode(BreakMode.NONE);
+        getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
         
         assertShadows(17);

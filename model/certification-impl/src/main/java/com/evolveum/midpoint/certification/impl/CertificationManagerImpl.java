@@ -370,7 +370,7 @@ public class CertificationManagerImpl implements CertificationManager {
         try {
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
             securityEnforcer.authorize(ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN.getUrl(), null,
-                    null, null, null, null, result);
+                    campaign.asPrismObject(), null, null, null, result);
             updateHelper.closeCampaign(campaign, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't close certification campaign: unexpected exception: " + e.getMessage(), e);

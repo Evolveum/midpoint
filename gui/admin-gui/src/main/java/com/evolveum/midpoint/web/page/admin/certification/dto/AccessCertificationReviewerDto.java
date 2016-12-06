@@ -29,17 +29,19 @@ public class AccessCertificationReviewerDto implements Serializable {
     public static final String F_USE_OBJECT_OWNER =  "useObjectOwner";
     public static final String F_USE_OBJECT_APPROVER =  "useObjectApprover";
     public static final String F_USE_OBJECT_MANAGER =  "useObjectManager";
+	public static final String F_USE_OBJECT_MANAGER_PRESENT = "useObjectManagerPresent";
     public static final String F_REVIEWER_EXPRESSION =  "reviewerExpression";
     public static final String F_DEFAULT_REVIEWERS =  "defaultReviewers";
     public static final String F_ADDITIONAL_REVIEWERS =  "additionalReviewers";
 
-    private String name;
+	private String name;
     private String description;
     private boolean useTargetOwner;
     private boolean useTargetApprover;
     private boolean useObjectOwner;
     private boolean useObjectApprover;
     private ManagerSearchDto useObjectManager;
+    private boolean useObjectManagerPresent;
     private ReferenceWrapper defaultReviewers;
     private ReferenceWrapper additionalReviewers;
 
@@ -54,10 +56,12 @@ public class AccessCertificationReviewerDto implements Serializable {
 			useObjectOwner = Boolean.TRUE.equals(reviewerType.isUseObjectOwner());
 			useObjectApprover = Boolean.TRUE.equals(reviewerType.isUseObjectApprover());
 			useObjectManager = new ManagerSearchDto(reviewerType.getUseObjectManager());
+			useObjectManagerPresent = reviewerType.getUseObjectManager() != null;
 			defaultReviewersReference = reviewerType.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF);
 			additionalReviewersReference = reviewerType.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF);
 		} else {
 			useObjectManager = new ManagerSearchDto(null);
+			useObjectManagerPresent = false;
 			PrismReferenceDefinition defReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
 					PrismReferenceDefinition.class,
 					AccessCertificationDefinitionType.F_STAGE_DEFINITION, AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION, F_DEFAULT_REVIEWER_REF);
@@ -119,7 +123,15 @@ public class AccessCertificationReviewerDto implements Serializable {
         this.useObjectApprover = useObjectApprover;
     }
 
-    public ManagerSearchDto getUseObjectManager() {
+	public boolean isUseObjectManagerPresent() {
+		return useObjectManagerPresent;
+	}
+
+	public void setUseObjectManagerPresent(boolean useObjectManagerPresent) {
+		this.useObjectManagerPresent = useObjectManagerPresent;
+	}
+
+	public ManagerSearchDto getUseObjectManager() {
         return useObjectManager;
     }
 

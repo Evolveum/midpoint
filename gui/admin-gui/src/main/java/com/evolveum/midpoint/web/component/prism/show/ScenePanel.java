@@ -39,6 +39,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -69,15 +70,9 @@ public class ScenePanel extends BasePanel<SceneDto> {
 	public static final String ID_NEW_VALUE_LABEL = "newValueLabel";
 	public static final String ID_VALUE_LABEL = "valueLabel";
 
-    public ScenePanel(String id, IModel<SceneDto> model) {
+    public ScenePanel(String id, @NotNull IModel<SceneDto> model) {
         super(id, model);
         setOutputMarkupId(true);
-
-		if (model == null || model.getObject() == null) {
-			throw new IllegalArgumentException("Null or empty SceneDto model");
-		}
-        LOGGER.trace("Creating object panel for {}", model.getObject());
-
         initLayout();
     }
 

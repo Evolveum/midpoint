@@ -35,13 +35,16 @@ FOREIGN KEY (focus_oid)
 REFERENCES m_focus (oid);
 
 CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR(255) NOT NULL,
+  changedItemPath VARCHAR(900) NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (changedItemPath, record_id)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
   ENGINE = InnoDB;
+
+CREATE INDEX iChangedItemPath
+  ON m_audit_item (changedItemPath);
 
 ALTER TABLE m_audit_item
   ADD CONSTRAINT fk_audit_item

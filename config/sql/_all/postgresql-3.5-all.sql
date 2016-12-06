@@ -121,6 +121,7 @@ CREATE TABLE m_assignment (
   creatorRef_relation     VARCHAR(157),
   creatorRef_targetOid    VARCHAR(36),
   creatorRef_type         INT4,
+  lifecycleState          VARCHAR(255),
   modifierRef_relation    VARCHAR(157),
   modifierRef_targetOid   VARCHAR(36),
   modifierRef_type        INT4,
@@ -231,6 +232,12 @@ CREATE TABLE m_assignment_extension (
   PRIMARY KEY (owner_id, owner_owner_oid)
 );
 
+CREATE TABLE m_assignment_policy_situation (
+  assignment_id   INT4        NOT NULL,
+  assignment_oid  VARCHAR(36) NOT NULL,
+  policySituation VARCHAR(255)
+);
+
 CREATE TABLE m_assignment_reference (
   owner_id        INT4         NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
@@ -280,6 +287,12 @@ CREATE TABLE m_audit_event (
   taskOID           VARCHAR(255),
   timestampValue    TIMESTAMP,
   PRIMARY KEY (id)
+);
+
+CREATE TABLE m_audit_item (
+  changedItemPath VARCHAR(900) NOT NULL,
+  record_id       INT8         NOT NULL,
+  PRIMARY KEY (changedItemPath, record_id)
 );
 
 CREATE TABLE m_connector (
@@ -340,6 +353,11 @@ CREATE TABLE m_focus_photo (
   owner_oid VARCHAR(36) NOT NULL,
   photo     BYTEA,
   PRIMARY KEY (owner_oid)
+);
+
+CREATE TABLE m_focus_policy_situation (
+  focus_oid       VARCHAR(36) NOT NULL,
+  policySituation VARCHAR(255)
 );
 
 CREATE TABLE m_generic_object (
@@ -775,6 +793,8 @@ CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid)
 
 CREATE INDEX iTimestampValue ON m_audit_event (timestampValue);
 
+CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath);
+
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
 
@@ -965,6 +985,11 @@ ADD CONSTRAINT fk_assignment_ext_string
 FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_owner_oid)
 REFERENCES m_assignment_extension;
 
+ALTER TABLE m_assignment_policy_situation
+  ADD CONSTRAINT fk_assignment_policy_situation
+FOREIGN KEY (assignment_id, assignment_oid)
+REFERENCES m_assignment;
+
 ALTER TABLE m_assignment_reference
 ADD CONSTRAINT fk_assignment_reference
 FOREIGN KEY (owner_id, owner_owner_oid)
@@ -972,6 +997,11 @@ REFERENCES m_assignment;
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event;
+
+ALTER TABLE m_audit_item
+  ADD CONSTRAINT fk_audit_item
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
 
@@ -1003,6 +1033,11 @@ REFERENCES m_object;
 ALTER TABLE m_focus_photo
 ADD CONSTRAINT fk_focus_photo
 FOREIGN KEY (owner_oid)
+REFERENCES m_focus;
+
+ALTER TABLE m_focus_policy_situation
+  ADD CONSTRAINT fk_focus_policy_situation
+FOREIGN KEY (focus_oid)
 REFERENCES m_focus;
 
 ALTER TABLE m_generic_object
@@ -1313,6 +1348,7 @@ CREATE TABLE qrtz_fired_triggers
     TRIGGER_GROUP VARCHAR(200) NOT NULL,
     INSTANCE_NAME VARCHAR(200) NOT NULL,
     FIRED_TIME BIGINT NOT NULL,
+    SCHED_TIME BIGINT NOT NULL,
     PRIORITY INTEGER NOT NULL,
     STATE VARCHAR(16) NOT NULL,
     JOB_NAME VARCHAR(200) NULL,
@@ -1369,10 +1405,10 @@ create table ACT_GE_PROPERTY (
 );
 
 insert into ACT_GE_PROPERTY
-values ('schema.version', '5.20.0.1', 1);
+values ('schema.version', '5.22.0.0', 1);
 
 insert into ACT_GE_PROPERTY
-values ('schema.history', 'create(5.20.0.1)', 1);
+values ('schema.history', 'create(5.22.0.0)', 1);
 
 insert into ACT_GE_PROPERTY
 values ('next.dbid', '1', 1);

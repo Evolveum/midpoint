@@ -232,6 +232,9 @@ public class CertDefinitionDto implements Serializable {
             dto.setName(scopeTypeObj.getName());
             dto.setDescription(scopeTypeObj.getDescription());
             if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
+                dto.setItemSelectionExpression(((AccessCertificationObjectBasedScopeType) scopeTypeObj).getItemSelectionExpression());
+            }
+            if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
                 AccessCertificationObjectBasedScopeType objScopeType = (AccessCertificationObjectBasedScopeType) scopeTypeObj;
                 if (objScopeType.getObjectType() != null) {
                     dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType().getLocalPart()));
@@ -299,6 +302,7 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
             scopeTypeObj.setIncludeServices(definitionScopeDto.isIncludeServices());
             scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
+            scopeTypeObj.setItemSelectionExpression(definitionScopeDto.getItemSelectionExpression());
         }
         definition.setScopeDefinition(scopeTypeObj);
     }
@@ -342,7 +346,9 @@ public class CertDefinitionDto implements Serializable {
             reviewerObject.setUseTargetApprover(Boolean.TRUE.equals(reviewerDto.isUseTargetApprover()));
             reviewerObject.setUseObjectOwner(Boolean.TRUE.equals(reviewerDto.isUseObjectOwner()));
             reviewerObject.setUseObjectApprover(Boolean.TRUE.equals(reviewerDto.isUseObjectApprover()));
-            reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
+            if (reviewerDto.isUseObjectManagerPresent()) {
+				reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
+			}
             reviewerObject.getDefaultReviewerRef().clear();
             reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
             reviewerObject.getAdditionalReviewerRef().clear();

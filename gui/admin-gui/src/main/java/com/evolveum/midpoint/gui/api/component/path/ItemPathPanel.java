@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -33,7 +34,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 	private static final String ID_NAMESPACE = "namespace";
 	private static final String ID_DEFINITION = "definition";
-	
+
 	private static final String ID_PLUS = "plus";
 	private static final String ID_MINUS = "minus";
 
@@ -41,23 +42,31 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 	public ItemPathPanel(String id, IModel<ItemPathDto> model, PageBase parent) {
 		super(id, model);
-		
+
 		setParent(parent);
 		initNamspaceDefinitionMap();
-		
+
 		initLayout();
-	
-	}
-	
-	public ItemPathPanel(String id, ItemPathDto model, PageBase parent) {
-		this(id, Model.of(model), parent);
-		
 
 	}
-	
-	private void initLayout(){
-		final ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION, getModelObject()) {
+
+	public ItemPathPanel(String id, ItemPathDto model, PageBase parent) {
+		this(id, Model.of(model), parent);
+
+	}
+
+	private void initLayout() {
+		final ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION,
+				new AbstractReadOnlyModel<ItemPathDto>() {
+			
+					private static final long serialVersionUID = 1L;
+					public ItemPathDto getObject() {
+						return ItemPathPanel.this.getModelObject();
+					}
+				}) {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected Map<QName, Collection<ItemDefinition<?>>> getSchemaDefinitionMap() {
 				return schemaDefinitionsMap;
@@ -65,20 +74,20 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		};
 		itemDefPanel.setOutputMarkupId(true);
 		add(itemDefPanel);
-		
+
 		AjaxButton plusButton = new AjaxButton(ID_PLUS) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				refreshItemPathPanel(new ItemPathDto(ItemPathPanel.this.getModelObject()), true, target);
-				
+
 			}
 
-			
 		};
 		plusButton.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				if (getModelObject().getParentPath() == null) {
@@ -89,18 +98,19 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		});
 		plusButton.setOutputMarkupId(true);
 		add(plusButton);
-		
-AjaxButton minusButton = new AjaxButton(ID_MINUS) {
-	private static final long serialVersionUID = 1L;
-			
+
+		AjaxButton minusButton = new AjaxButton(ID_MINUS) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				refreshItemPathPanel(ItemPathPanel.this.getModelObject().getParentPath(), false, target);
-				
+
 			}
 		};
 		minusButton.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return getModelObject().getParentPath() != null;
@@ -108,11 +118,10 @@ AjaxButton minusButton = new AjaxButton(ID_MINUS) {
 		});
 		minusButton.setOutputMarkupId(true);
 		add(minusButton);
-		
 
 		DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<QName>(ID_NAMESPACE,
-				new PropertyModel<QName>(getModel(), "objectType"), new ListModel<QName>(WebComponentUtil.createObjectTypeList()),
-				new QNameChoiceRenderer());
+				new PropertyModel<QName>(getModel(), "objectType"),
+				new ListModel<QName>(WebComponentUtil.createObjectTypeList()), new QNameChoiceRenderer());
 		namespacePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			private static final long serialVersionUID = 1L;
@@ -123,10 +132,11 @@ AjaxButton minusButton = new AjaxButton(ID_MINUS) {
 
 			}
 		});
-		
+
 		namespacePanel.add(new VisibleEnableBehaviour() {
-			
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return getModelObject().getParentPath() == null;
@@ -135,35 +145,40 @@ AjaxButton minusButton = new AjaxButton(ID_MINUS) {
 		namespacePanel.setOutputMarkupId(true);
 		add(namespacePanel);
 	}
-	
-	private void refreshItemPathPanel(ItemPathDto itemPathDto, boolean isAdd,  AjaxRequestTarget target) {
+
+	private void refreshItemPathPanel(ItemPathDto itemPathDto, boolean isAdd, AjaxRequestTarget target) {
 		ItemPathSegmentPanel pathSegmentPanel = (ItemPathSegmentPanel) get(ID_DEFINITION);
 		if (isAdd && !pathSegmentPanel.validate()) {
 			return;
 		}
-		pathSegmentPanel.refreshModel(itemPathDto);
+		
+		if (!isAdd) {
+			itemPathDto = itemPathDto.getParentPath();
+		}
+		// pathSegmentPanel.refreshModel(itemPathDto);
 		this.getModel().setObject(itemPathDto);
-		
-		
+
 		target.add(this);
-		target.add(pathSegmentPanel);
-		
+		// target.add(pathSegmentPanel);
+
 	}
 
 	private void initNamspaceDefinitionMap() {
 		schemaDefinitionsMap = new HashMap<>();
-		Class clazz= WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getModelObject().getObjectType());
-		PrismObjectDefinition<?> objectDef = getPageBase().getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-			Collection<? extends ItemDefinition> defs = objectDef.getDefinitions();
-			Collection<ItemDefinition<?>> itemDefs = new ArrayList<>();
-			for (Definition def : defs) {
-				if (def instanceof ItemDefinition) {
-					ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
-					itemDefs.add(itemDef);
-				}
+		Class clazz = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
+				getModelObject().getObjectType());
+		PrismObjectDefinition<?> objectDef = getPageBase().getPrismContext().getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(clazz);
+		Collection<? extends ItemDefinition> defs = objectDef.getDefinitions();
+		Collection<ItemDefinition<?>> itemDefs = new ArrayList<>();
+		for (Definition def : defs) {
+			if (def instanceof ItemDefinition) {
+				ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
+				itemDefs.add(itemDef);
 			}
-			schemaDefinitionsMap.put(getModelObject().getObjectType(), itemDefs);
-//		}
+		}
+		schemaDefinitionsMap.put(getModelObject().getObjectType(), itemDefs);
+		// }
 	}
 
 }

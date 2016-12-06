@@ -63,10 +63,37 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	 */
 	boolean isDynamic();
 
+	/**
+	 * Returns true if this item can be read (displayed).
+	 * In case of containers this means that the container itself can be read, e.g. that the container
+	 * label or block should be displayed. This usually happens if the container contains at least one
+	 * readable item. 
+	 * This does NOT mean that also all the container items can be displayed. The sub-item permissions
+	 * are controlled by similar properties on the items. This property only applies to the container
+	 * itself: the "shell" of the container. 
+	 */
 	boolean canRead();
 
+	/**
+	 * Returns true if this item can be modified (updated).
+	 * In case of containers this means that the container itself should be displayed in modification forms
+	 * E.g. that the container label or block should be displayed. This usually happens if the container
+	 * contains at least one modifiable item. 
+	 * This does NOT mean that also all the container items can be modified. The sub-item permissions
+	 * are controlled by similar properties on the items. This property only applies to the container
+	 * itself: the "shell" of the container.
+	 */
 	boolean canModify();
 
+	/**
+	 * Returns true if this item can be added: it can be part of an object that is created.
+	 * In case of containers this means that the container itself should be displayed in creation forms
+	 * E.g. that the container label or block should be displayed. This usually happens if the container
+	 * contains at least one createable item. 
+	 * This does NOT mean that also all the container items can be created. The sub-item permissions
+	 * are controlled by similar properties on the items. This property only applies to the container
+	 * itself: the "shell" of the container.
+	 */
 	boolean canAdd();
 
 	PrismReferenceValue getValueEnumerationRef();

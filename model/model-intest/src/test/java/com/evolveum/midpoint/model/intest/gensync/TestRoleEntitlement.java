@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,7 +193,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         shadow.checkConsistence(true, true);
 
-        IntegrationTestTools.assertAttribute(shadow, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
+        IntegrationTestTools.assertAttribute(shadow, getAttributeQName(getDummyResourceObject(), DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
                 "Bloodthirsty Pirates");
 	}
 

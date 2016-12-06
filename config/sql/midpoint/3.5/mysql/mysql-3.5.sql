@@ -357,7 +357,7 @@ CREATE TABLE m_audit_event (
   ENGINE = InnoDB;
 
 CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR(255) NOT NULL,
+  changedItemPath VARCHAR(900) NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (changedItemPath, record_id)
 )
@@ -985,6 +985,8 @@ CREATE INDEX iAExtensionString ON m_assignment_ext_string (extensionType, eName,
 CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid);
 
 CREATE INDEX iTimestampValue ON m_audit_event (timestampValue);
+
+CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath);
 
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 		
 		// This should be the default but let's make sure ...
 		dummyResourceGreen.setSyncStyle(DummySyncStyle.NONE);
-		dummyResource.setSyncStyle(DummySyncStyle.NONE);
+		getDummyResource().setSyncStyle(DummySyncStyle.NONE);
 		dummyResourceBlue.setSyncStyle(DummySyncStyle.NONE);
 		
 		allwaysCheckTimestamp = true;
@@ -59,7 +59,7 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 			importObjectFromFile(TASK_RECONCILE_DUMMY_GREEN_FILENAME);
 		} else if (resource == resourceDummyBlue) {
 			importObjectFromFile(TASK_RECONCILE_DUMMY_BLUE_FILENAME);
-		} else if (resource == resourceDummy) {
+		} else if (resource == getDummyResourceObject()) {
 			importObjectFromFile(TASK_RECONCILE_DUMMY_FILENAME);
 		} else {
 			throw new IllegalArgumentException("Unknown resource "+resource);
@@ -72,7 +72,7 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 			return TASK_RECONCILE_DUMMY_GREEN_OID;
 		} else if (resource == resourceDummyBlue) {
 			return TASK_RECONCILE_DUMMY_BLUE_OID;
-		} else if (resource == resourceDummy) {
+		} else if (resource == getDummyResourceObject()) {
 			return TASK_RECONCILE_DUMMY_OID;
 		} else {
 			throw new IllegalArgumentException("Unknown resource "+resource);

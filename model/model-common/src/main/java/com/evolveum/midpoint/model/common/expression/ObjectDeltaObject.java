@@ -163,7 +163,7 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 	        			if (itemDelta != null) {
 	        				throw new IllegalStateException("Conflicting modification in delta "+delta+": "+itemDelta+" and "+modification);
 	        			}
-	        			itemDelta = (ItemDelta<IV,ID>) modification.getSubDelta(path);	        			
+	        			itemDelta = (ItemDelta<IV,ID>) modification.getSubDelta(path.substract(modification.getPath()));
 	        		}
 	        	}
 			}

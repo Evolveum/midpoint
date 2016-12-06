@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 
         // TODO
         
-        dummyResource.purgeScriptHistory();
+        getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         reconciliationTaskResultListener.clear();
@@ -161,7 +161,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 5, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
         
         assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_UUID_OID);
         
@@ -187,7 +187,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_AUGUSTUS_FULLNAME);
 		dummyResourceUuid.addAccount(account);
         
-        dummyResource.purgeScriptHistory();
+		getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         reconciliationTaskResultListener.clear();
@@ -220,7 +220,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 6, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
                 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_UUID_OID);
         
@@ -268,7 +268,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 		
 		Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
         
-        dummyResource.purgeScriptHistory();
+		getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         reconciliationTaskResultListener.clear();
@@ -299,7 +299,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 6, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
                 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_UUID_OID);
         
@@ -349,7 +349,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 		
 		Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
         
-        dummyResource.purgeScriptHistory();
+		getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
         reconciliationTaskResultListener.clear();
@@ -380,7 +380,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of users", 6, users.size());
         
-        display("Dummy resource", dummyResource.debugDump());
+        display("Dummy resource", getDummyResource().debugDump());
                 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_UUID_OID);
         

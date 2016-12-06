@@ -33,6 +33,7 @@ public class Statistics {
     public static final String NON_NORMALIZED_IDENTIFIER_VALUE = "Non-normalized identifier value";
     public static final String DUPLICATE_SHADOWS = "Duplicate shadows";
     public static final String NO_RESOURCE_OID = "No resource ref or OID";
+    public static final String NO_RESOURCE = "No resource";
     public static final String CANNOT_GET_RESOURCE = "Cannot get resource object";
     public static final String NO_KIND_SPECIFIED = "No kind specified";
     public static final String NO_INTENT_SPECIFIED = "No intent specified";
@@ -56,6 +57,7 @@ public class Statistics {
     private String[] codeList = {
             NON_NORMALIZED_IDENTIFIER_VALUE,
             NO_RESOURCE_OID,
+            NO_RESOURCE,
             CANNOT_GET_RESOURCE,
             NO_KIND_SPECIFIED,
             NO_INTENT_SPECIFIED,
@@ -72,10 +74,10 @@ public class Statistics {
     };
 
     private List<String> fixable = Arrays.asList(NON_NORMALIZED_IDENTIFIER_VALUE,
-            NO_INTENT_SPECIFIED, EXTRA_ACTIVATION_DATA);
+            NO_INTENT_SPECIFIED, EXTRA_ACTIVATION_DATA, NO_RESOURCE_OID, NO_RESOURCE);
 
     // problem code -> number of occurrences [0] and number of shadows [1]
-    Map<String,Counts> problemCount = new HashMap<>();
+    private Map<String,Counts> problemCount = new HashMap<>();
 
 
     public void incrementResources() {
@@ -141,11 +143,7 @@ public class Statistics {
     public void registerProblemCodeOccurrences(List<String> problemCodes) {
         Set<String> alreadySeen = new HashSet<>();
         for (String code : problemCodes) {
-            Counts value = problemCount.get(code);
-            if (value == null) {
-                value = new Counts();
-                problemCount.put(code, value);
-            }
+            Counts value = problemCount.computeIfAbsent(code, k -> new Counts());
             value.cases++;
             if (alreadySeen.add(code)) {
                 value.shadows++;
@@ -156,11 +154,8 @@ public class Statistics {
     public void registerProblemsFixes(List<String> problemCodesFixed) {
         Set<String> alreadySeen = new HashSet<>();
         for (String code : problemCodesFixed) {
-            Counts value = problemCount.get(code);
-            if (value == null) {    // shouldn't occur
-                value = new Counts();
-                problemCount.put(code, value);
-            }
+            // shouldn't occur
+            Counts value = problemCount.computeIfAbsent(code, k -> new Counts());
             value.casesFixed++;
             if (alreadySeen.add(code)) {
                 value.shadowsFixed++;

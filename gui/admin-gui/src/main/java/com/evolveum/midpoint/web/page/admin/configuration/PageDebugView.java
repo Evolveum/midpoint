@@ -19,13 +19,13 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -153,7 +153,9 @@ public class PageDebugView extends PageAdminConfiguration {
             }
             if (LookupTableType.class.isAssignableFrom(type)) {
                 options.add(SelectorOptions.create(LookupTableType.F_ROW,
-                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+                        GetOperationOptions.createRetrieve(
+                        		new RelationalValueSearchQuery(
+                        				ObjectPaging.createPaging(PrismConstants.T_ID, OrderDirection.ASCENDING)))));
             }
             if (AccessCertificationCampaignType.class.isAssignableFrom(type)) {
                 options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,

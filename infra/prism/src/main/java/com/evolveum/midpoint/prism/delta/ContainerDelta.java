@@ -149,6 +149,9 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     		path = path.rest();
     	}
 		ItemDefinition itemDefinition = getDefinition().findItemDefinition(path);
+    	if (itemDefinition == null) {
+    		throw new IllegalStateException("No definition of " + path + " in " + getDefinition());
+		}
 		ItemDelta<?,?> itemDelta = itemDefinition.createEmptyDelta(getPath().subPath(path));
 		itemDelta.addValuesToAdd(findItemValues(id, path, getValuesToAdd()));
 		itemDelta.addValuesToDelete(findItemValues(id, path, getValuesToDelete()));

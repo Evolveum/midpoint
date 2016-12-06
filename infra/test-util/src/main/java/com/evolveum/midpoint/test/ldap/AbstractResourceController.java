@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,10 @@ public abstract class AbstractResourceController {
 
 	public void setResource(PrismObject<ResourceType> resource) {
 		this.resource = resource;
+	}
+	
+	public ResourceType getResourceType() {
+		return resource.asObjectable();
 	}
 
 	public QName getAttributeQName(String attributeName) {

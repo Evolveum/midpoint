@@ -45,7 +45,7 @@ public class TaskChangesPanel extends BasePanel<TaskChangesDto> {
 //			}
 //		}));
 
-        ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<SceneDto>(getModel(), TaskChangesDto.F_PRIMARY_DELTAS));
+        ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<>(getModel(), TaskChangesDto.F_PRIMARY_DELTAS));
         deltaPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
