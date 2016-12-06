@@ -49,6 +49,11 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 				
 			}
 			
+			@Override
+					protected void onConfigure() {
+						itemDefinitionAsStringModel.setObject(null);
+					}
+			
 			
 		};
 	

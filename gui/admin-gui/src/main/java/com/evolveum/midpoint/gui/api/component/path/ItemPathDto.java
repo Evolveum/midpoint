@@ -24,6 +24,7 @@ public class ItemPathDto implements Serializable{
 	
 	public ItemPathDto(ItemPathDto parentPath) {
 		this.parentPath = parentPath;
+		this.path = parentPath.toItemPath();
 //		this.parent = parentPath.toItemPath();
 	}
 	
