@@ -18,10 +18,14 @@ package com.evolveum.midpoint.gui.api.util;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -55,13 +59,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
@@ -559,4 +556,10 @@ public class WebModelServiceUtils {
         return null;
     }
 
+	public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions() {
+		return SelectorOptions.createCollection(LookupTableType.F_ROW,
+				GetOperationOptions.createRetrieve(
+						new RelationalValueSearchQuery(
+								ObjectPaging.createPaging(LookupTableRowType.F_LABEL, OrderDirection.ASCENDING))));
+	}
 }

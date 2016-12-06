@@ -225,10 +225,13 @@ public class LookupTableHelper {
 
             ItemPath orderByPath = paging.getOrderBy();
             if (paging.getDirection() != null && orderByPath != null && !orderByPath.isEmpty()) {
-                if (orderByPath.size() > 1 || !(orderByPath.first() instanceof NameItemPathSegment)) {
-                    throw new SchemaException("OrderBy has to consist of just one naming segment");
+                if (orderByPath.size() > 1 ||
+                        !(orderByPath.first() instanceof NameItemPathSegment) && !(orderByPath.first() instanceof IdentifierPathSegment)) {
+                    throw new SchemaException("OrderBy has to consist of just one naming or identifier segment");
                 }
-                String orderBy = ((NameItemPathSegment) (orderByPath.first())).getName().getLocalPart();
+				ItemPathSegment first = orderByPath.first();
+				String orderBy = first instanceof NameItemPathSegment ?
+						((NameItemPathSegment) first).getName().getLocalPart() : RLookupTableRow.ID_COLUMN_NAME;
                 switch (paging.getDirection()) {
                     case ASCENDING:
                         criteria.addOrder(Order.asc(orderBy));
