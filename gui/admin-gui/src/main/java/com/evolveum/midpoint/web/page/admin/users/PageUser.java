@@ -120,6 +120,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                 }
             }
         };
+        privilegesList = getUserPrivilegesList();
     }
 
     @Override
@@ -197,7 +198,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
-                                privilegesList = getItemPrivilegesList(item.getModelObject());
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
                                         privilegesList, PageUser.this);
                                 item.add(editor);
@@ -220,8 +220,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                                                 @Override
                                                 public void onClick(AjaxRequestTarget target) {
-                                                    if (getUserPrivilegesList() == null ||
-                                                            getUserPrivilegesList().size() == 0){
+                                                    if (privilegesList == null ||
+                                                            privilegesList.size() == 0){
                                                         warn(getString("AssignmentTablePanel.modal.message.noDelegationWarning"));
                                                         target.add(getPageBase().getFeedbackPanel());
                                                         return;
@@ -281,7 +281,6 @@ public class PageUser extends PageAdminFocus<UserType> {
                             @Override
                             protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
                                                                           String popupId) {
-                                privilegesList = getUserPrivilegesList();
                                 ModalWindow window = (ModalWindow) get(popupId);
                                 if (window != null) {
                                     window.close(target);
@@ -298,7 +297,6 @@ public class PageUser extends PageAdminFocus<UserType> {
                                         AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
                                                     PageUser.this.getObjectWrapper().getObject().asObjectable(),
                                                     SchemaConstants.ORG_DEPUTY, getPageBase(), (UserType) object);
-                                        dto.setPrivilegeLimitationList(privilegesList);
                                         delegationsModel.getObject().add(dto);
                                     } catch (Exception e) {
                                         error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
@@ -408,11 +406,6 @@ public class PageUser extends PageAdminFocus<UserType> {
         }
         Collections.sort(list);
         return list;
-    }
-
-    private List<AssignmentsPreviewDto> getItemPrivilegesList(AssignmentEditorDto assignment){
-        return assignment.getPrivilegeLimitationList() == null ? new ArrayList<>() :
-                assignment.getPrivilegeLimitationList();
     }
 
     private List<AssignmentsPreviewDto> getUserPrivilegesList(){
