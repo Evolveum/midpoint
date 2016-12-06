@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.RolePolicyPanel;
+import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -70,22 +71,27 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 		authorization = new FocusTabVisibleBehavior(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL);
 
-		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()), getDetailsPage());
-			}
-
-			@Override
-			public boolean isVisible() {
-				return getObjectWrapper().getStatus() != ContainerStatus.ADDING;
-			}
-		});
+//		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public WebMarkupContainer createPanel(String panelId) {
+//				return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()), getDetailsPage());
+//			}
+//
+//			@Override
+//			public boolean isVisible() {
+//				return getObjectWrapper().getStatus() != ContainerStatus.ADDING;
+//			}
+//		});
 
 		return tabs;
+	}
+	
+	@Override
+	public AbstractRoleMemberPanel<RoleType> createMemberPanel(String panelId) {
+		return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()), getDetailsPage());
 	}
 
 	

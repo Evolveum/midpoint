@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.services;
 
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -13,6 +14,8 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
+import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.web.page.admin.users.component.ServiceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -22,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL, label = "PageService.auth.role.label", description = "PageService.auth.role.description") })
 public class PageService extends PageAdminAbstractRole<ServiceType> implements ProgressReportingAwarePage{
 
-private static final Trace LOGGER = TraceManager.getTrace(PageService.class);
+	private static final long serialVersionUID = 1L;
 	
 	public PageService() {
 		initialize(null);
@@ -59,7 +62,14 @@ private static final Trace LOGGER = TraceManager.getTrace(PageService.class);
 
 	@Override
 	protected AbstractObjectMainPanel<ServiceType> createMainPanel(String id) {
-		return new AbstractRoleMainPanel<ServiceType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this);
+		return new AbstractRoleMainPanel<ServiceType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public AbstractRoleMemberPanel<ServiceType> createMemberPanel(String panelId) {
+				return new ServiceMemberPanel(panelId, Model.of(getObject().asObjectable()), PageService.this);
+			}
+		};
 	}
 
 }

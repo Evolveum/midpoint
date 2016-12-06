@@ -469,5 +469,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected String getTaskName(String operation, QueryScope scope) {
 		return getTaskName(operation, scope, false);
 	}
+	
+//	public <F extends ObjectType> MainObjectListPanel<F> getMemberTable() {
+//		return (MainObjectListPanel<F>) get(
+//				createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
+//	}
 
 }
