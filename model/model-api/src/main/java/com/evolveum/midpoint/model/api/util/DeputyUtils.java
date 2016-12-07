@@ -37,8 +37,18 @@ import java.util.stream.Collectors;
  */
 public class DeputyUtils {
 
+	// This is not the right place for this. But let's leave it here for now.
+	// See MID-3581
 	public static boolean isDelegationRelation(QName relation) {
 		return QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY);
+	}
+	
+	// This is not the right place for this. But let's leave it here for now.
+	// See MID-3581
+	public static boolean isMembershipRelation(QName relation) {
+		return relation == null || 
+				QNameUtil.match(relation, SchemaConstants.ORG_MANAGER) || 
+				QNameUtil.match(relation, SchemaConstants.ORG_META);
 	}
 
 	@NotNull
