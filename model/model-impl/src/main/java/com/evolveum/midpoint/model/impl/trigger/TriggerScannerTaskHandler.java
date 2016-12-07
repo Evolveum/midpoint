@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.trigger;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
 import com.evolveum.midpoint.prism.*;

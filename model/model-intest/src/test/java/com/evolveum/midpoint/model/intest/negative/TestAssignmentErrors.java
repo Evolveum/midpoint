@@ -61,11 +61,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Tests the model service contract by using a broken CSV resource. Tests for negative test cases, mostly
@@ -85,6 +88,9 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	private static final String USER_LEMONHEAD_FULLNAME = "Lemonhead";
 	private static final String USER_SHARPTOOTH_NAME = "sharptooth";
 	private static final String USER_SHARPTOOTH_FULLNAME = "Sharptooth";
+	private static final String USER_SHARPTOOTH_PASSWORD_1_CLEAR = "SHARPyourT33TH";
+	private static final String USER_SHARPTOOTH_PASSWORD_2_CLEAR = "L00SEyourT33TH";
+	private static final String USER_SHARPTOOTH_PASSWORD_3_CLEAR = "HAV3noT33TH";
 	private static final String USER_REDSKULL_NAME = "redskull";
 	private static final String USER_REDSKULL_FULLNAME = "Red Skull";
 
@@ -99,6 +105,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
 	private PrismObject<ResourceType> resource;
 	private String userLemonheadOid;
+	private String userSharptoothOid;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -339,7 +346,15 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         PrismObject<UserType> user = createUser(USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME);
+        CredentialsType credentialsType = new CredentialsType();
+        PasswordType passwordType = new PasswordType();
+        ProtectedStringType passwordPs = new ProtectedStringType();
+        passwordPs.setClearValue(USER_SHARPTOOTH_PASSWORD_1_CLEAR);
+		passwordType.setValue(passwordPs);
+		credentialsType.setPassword(passwordType);
+		user.asObjectable().setCredentials(credentialsType);
         addObject(user);
+        userSharptoothOid = user.getOid();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
@@ -353,6 +368,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 		//not expected that it fails, instead the error in the result is expected
 		modelService.executeChanges(deltas, null, task, result);
         
+		// THEN
 		TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         
@@ -382,6 +398,92 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDeltaOperation<? extends ObjectType> deltaop2 = i.next();
         assertEquals("Unexpected result of second executed deltas", OperationResultStatus.FATAL_ERROR, deltaop2.getExecutionResult().getStatus());
         
+	}
+	
+	/**
+	 * User has assigned account. We recover the resource (clear break mode) and recompute.
+	 * The account should be created.
+	 */
+	@Test
+    public void test212UserSharptoothAssignAccountRecovery() throws Exception {
+		final String TEST_NAME = "test212UserSharptoothAssignAccountRecovery";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+                
+        getDummyResource().resetBreakMode();
+        dummyAuditService.clear();
+                
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(userSharptoothOid, task, result);
+
+        // THEN
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertDummyAccount(null, USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
+        assertDummyPassword(null, USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_PASSWORD_1_CLEAR);
+	}
+	
+	/**
+	 * Change user password. But there is error on the resource.
+	 * User password should be changed, account password unchanged and there
+	 * should be handled error in the result. Delta is remembered in the shadow.
+	 * MID-3569
+	 */
+	@Test
+    public void test214UserSharptoothChangePasswordNetworkError() throws Exception {
+		testUserSharptoothChangePasswordError("test214UserSharptoothChangePasswordNetworkError",
+				BreakMode.NETWORK, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_2_CLEAR,
+				OperationResultStatus.HANDLED_ERROR);
+	}
+
+	/**
+	 * Change user password. But there is error on the resource.
+	 * User password should be changed, account password unchanged and there
+	 * should be partial error in the result. We have no idea what's going on here.
+	 * MID-3569
+	 */
+	@Test
+    public void test215UserSharptoothChangePasswordGenericError() throws Exception {
+		testUserSharptoothChangePasswordError("test215UserSharptoothChangePasswordGenericError",
+				BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
+				OperationResultStatus.PARTIAL_ERROR);
+	}
+
+	public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+                
+        getDummyResource().setBreakMode(breakMode);
+        dummyAuditService.clear();
+                
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserChangePassword(userSharptoothOid, newPassword, task, result);
+
+        // THEN
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertStatus(result, expectedResultStatus);
+        
+        getDummyResource().resetBreakMode();
+        
+        PrismObject<UserType> userAfter = getUser(userSharptoothOid);
+		display("User afte", userAfter);
+        assertEncryptedUserPassword(userAfter, newPassword);
+        
+        assertDummyAccount(null, USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
+        assertDummyPassword(null, USER_SHARPTOOTH_NAME, oldPassword);
 	}
 	
 	/**
@@ -592,4 +694,6 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         return user;        		
 	}
 
+	
+	
 }

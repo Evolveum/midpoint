@@ -244,7 +244,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
     }
 
-    protected void enableDisableScenarios(boolean... values) throws ObjectNotFoundException, SchemaException, com.evolveum.midpoint.util.exception.ExpressionEvaluationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException, com.evolveum.midpoint.model.api.PolicyViolationException, com.evolveum.midpoint.util.exception.SecurityViolationException {
+    protected void enableDisableScenarios(boolean... values) throws ObjectNotFoundException, SchemaException, com.evolveum.midpoint.util.exception.ExpressionEvaluationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException, com.evolveum.midpoint.util.exception.PolicyViolationException, com.evolveum.midpoint.util.exception.SecurityViolationException {
         OperationResult result = new OperationResult("execution");
         Task task = taskManager.createTaskInstance("execution");
         GeneralChangeProcessorConfigurationType gcpConfig = getSystemConfiguration().getWorkflowConfiguration().getGeneralChangeProcessor();
