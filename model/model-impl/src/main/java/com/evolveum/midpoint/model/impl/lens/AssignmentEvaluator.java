@@ -600,6 +600,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throw new SchemaException("Unknown assignment target type " + targetType + " in " + sourceDescription);
 		}
 
+		if (!DeputyUtils.isMembershipRelation(relation) && !DeputyUtils.isDelegationRelation(relation)) {
+			LOGGER.trace("Skipping evaluation of " + targetType + " because it is neigther memberhip nor delegation relation ({})", relation);
+			return;
+		}
+		
 		if (!LensUtil.isValid(targetType, now, activationComputer)) {
 			LOGGER.trace("Skipping evaluation of " + targetType + " because it is not valid");
 			return;
