@@ -41,6 +41,7 @@ public class RoleCatalogStorage implements PageStorage{
      */
 
     private SelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
+    private String selectedOid;
     private TreeStateSet<SelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
     private int selectedTabId = 0;                 //selected tab id on the Org. structure page
     private SelectableBean<OrgType> collapsedItem = null;                 //collapsed tree item
@@ -132,5 +133,13 @@ public class RoleCatalogStorage implements PageStorage{
 
     public void setViewType(AssignmentViewType viewType) {
         this.viewType = viewType;
+    }
+
+    public String getSelectedOid() {
+        return selectedOid;
+    }
+
+    public void setSelectedOid(String selectedOid) {
+        this.selectedOid = selectedOid;
     }
 }
