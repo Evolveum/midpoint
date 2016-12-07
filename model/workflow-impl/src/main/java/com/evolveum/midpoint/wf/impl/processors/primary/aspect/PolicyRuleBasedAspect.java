@@ -22,24 +22,22 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,9 +52,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectName;
@@ -247,7 +243,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			} else {
 				itemsProcessed = items;
 			}
-			ApprovalRequest<?> request = new ApprovalRequestImpl<>("dummy", entry.getValue(), prismContext);
+			ApprovalRequest<?> request = new ApprovalRequestImpl<>("dummy", entry.getValue(), prismContext,
+					createRelationResolver(object, result));
 			if (!request.getApprovalSchema().isEmpty()) {
 				instructions.add(
 						prepareObjectRelatedTaskInstruction(request, focusDelta, items, modelContext, requester, result));
@@ -297,31 +294,11 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			approvalSchema = addApprovalActionIntoApprovalSchema(approvalSchema, action, findApproversByReference(target, action, result));
 		}
 		if (approvalSchema != null) {
-			return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext);
+			return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext,
+					createRelationResolver(target, result));
 		} else {
 			return null;
 		}
-	}
-
-	private List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, ApprovalPolicyActionType action,
-			OperationResult result) throws SchemaException {
-		if (target == null || target.getOid() == null || action.getApproverRelation().isEmpty()) {
-			return Collections.emptyList();
-		}
-		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext).none();
-		for (QName approverRelation : action.getApproverRelation()) {
-			PrismReferenceValue approverReference = new PrismReferenceValue(target.getOid());
-			approverReference.setRelation(QNameUtil.qualifyIfNeeded(approverRelation, SchemaConstants.NS_ORG));
-			q = q.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference);
-		}
-		ObjectQuery query = q.build();
-		LOGGER.trace("Looking for approvers for {} using query:\n{}", target, DebugUtil.debugDumpLazily(query));
-		List<PrismObject<FocusType>> objects = repositoryService.searchObjects(FocusType.class, query, null, result);
-		Set<PrismObject<FocusType>> distinctObjects = new HashSet<>(objects);
-		LOGGER.trace("Found {} approver(s): {}", distinctObjects.size(), DebugUtil.toStringLazily(distinctObjects));
-		return distinctObjects.stream()
-				.map(ObjectTypeUtil::createObjectRef)
-				.collect(Collectors.toList());
 	}
 
 	private ApprovalSchemaType addApprovalActionIntoApprovalSchema(ApprovalSchemaType approvalSchema, ApprovalPolicyActionType action,

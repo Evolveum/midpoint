@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -70,13 +71,14 @@ public class RoleAssignmentHelper {
                 !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
     }
 
-    public ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a, AbstractRoleType role) {
-        return new ApprovalRequestImpl<>(a, config, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
+    public ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a, AbstractRoleType role, RelationResolver relationResolver) {
+        return new ApprovalRequestImpl<>(a, config, role.getApprovalSchema(), role.getApproverRef(),
+                role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext, relationResolver);
     }
 
-    public ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, AbstractRoleType role, List<ItemDeltaType> modifications) {
+    public ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, AbstractRoleType role, List<ItemDeltaType> modifications, RelationResolver relationResolver) {
         AssignmentModification itemToApprove = new AssignmentModification(assignmentType, role, modifications);
-        return new ApprovalRequestImpl<AssignmentModification>(itemToApprove.wrap(prismContext), config, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
+        return new ApprovalRequestImpl<AssignmentModification>(itemToApprove.wrap(prismContext), config, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext, relationResolver);
     }
 
     // TODO is this ok?
