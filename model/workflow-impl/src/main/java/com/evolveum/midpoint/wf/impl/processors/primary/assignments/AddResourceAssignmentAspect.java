@@ -51,8 +51,8 @@ public abstract class AddResourceAssignmentAspect<F extends FocusType> extends A
     }
 
     @Override
-    protected ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, ResourceType resourceType) {
-        return specificAssignmentHelper.createApprovalRequest(config, assignmentType, resourceType);
+    protected ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, ResourceType resourceType, OperationResult result) {
+        return specificAssignmentHelper.createApprovalRequest(config, assignmentType, resourceType, createRelationResolver(resourceType, result));
     }
 
     @Override

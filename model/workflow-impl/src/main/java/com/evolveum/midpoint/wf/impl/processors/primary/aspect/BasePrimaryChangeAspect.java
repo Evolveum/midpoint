@@ -17,11 +17,22 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
@@ -32,14 +43,18 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author mederly
@@ -123,4 +138,40 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         return primaryChangeAspectHelper.isEnabled(processorConfigurationType, this);
     }
 
+    public RelationResolver createRelationResolver(ObjectType object, OperationResult result) {
+        return createRelationResolver(object != null ? object.asPrismObject() : null, result);
+    }
+
+    public RelationResolver createRelationResolver(PrismObject<?> object, OperationResult result) {
+        return relations -> {
+            if (object == null || object.getOid() == null || relations.isEmpty()) {
+                return Collections.emptyList();
+            }
+            S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext).none();
+            for (QName approverRelation : relations) {
+                PrismReferenceValue approverReference = new PrismReferenceValue(object.getOid());
+                approverReference.setRelation(QNameUtil.qualifyIfNeeded(approverRelation, SchemaConstants.NS_ORG));
+                q = q.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference);
+            }
+            ObjectQuery query = q.build();
+            LOGGER.trace("Looking for approvers for {} using query:\n{}", object, DebugUtil.debugDumpLazily(query));
+            List<PrismObject<FocusType>> objects = null;
+            try {
+                objects = repositoryService.searchObjects(FocusType.class, query, null, result);
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't retrieve approvers for " + object + ": " + e.getMessage(), e);
+            }
+            Set<PrismObject<FocusType>> distinctObjects = new HashSet<>(objects);
+            LOGGER.trace("Found {} approver(s): {}", distinctObjects.size(), DebugUtil.toStringLazily(distinctObjects));
+            return distinctObjects.stream()
+                    .map(ObjectTypeUtil::createObjectRef)
+                    .collect(Collectors.toList());
+        };
+    }
+
+    protected List<ObjectReferenceType> findApproversByReference(PrismObject<?> target, ApprovalPolicyActionType action,
+                                                                 OperationResult result) throws SchemaException {
+        return createRelationResolver(target, result)
+                .getApprovers(action.getApproverRelation());
+    }
 }
