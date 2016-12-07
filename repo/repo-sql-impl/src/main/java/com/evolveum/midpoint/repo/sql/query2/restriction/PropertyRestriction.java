@@ -142,7 +142,8 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
         //attempt to fix value type for polystring (if it was string in filter we create polystring from it)
         if (PolyString.class.equals(expectedType) && (value instanceof String)) {
             LOGGER.debug("Trying to query PolyString value but filter contains String '{}'.", filter);
-            value = new PolyString((String) value, (String) value);
+			String orig = (String) value;
+			value = new PolyString(orig, context.getPrismContext().getDefaultPolyStringNormalizer().normalize(orig));
         }
         //attempt to fix value type for polystring (if it was polystringtype in filter we create polystring from it)
         if (PolyString.class.equals(expectedType) && (value instanceof PolyStringType)) {

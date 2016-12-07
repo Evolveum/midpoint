@@ -84,7 +84,9 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
         setSchemaFromConfigAndParameters(config, approvalSchema, approverRef, approverExpression, automaticallyApproved, prismContext);
     }
 
-    protected void setSchemaFromConfigAndParameters(PcpAspectConfigurationType config, ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, PrismContext prismContext) {
+    private void setSchemaFromConfigAndParameters(PcpAspectConfigurationType config, ApprovalSchemaType approvalSchema,
+            List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression, ExpressionType automaticallyApproved,
+            PrismContext prismContext) {
         if (config != null &&
                 (!config.getApproverRef().isEmpty() ||
                 config.getApprovalSchema() != null ||

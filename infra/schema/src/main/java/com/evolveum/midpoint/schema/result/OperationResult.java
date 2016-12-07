@@ -1391,6 +1391,10 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return oid != null ? String.valueOf(oid) : null;
 	}
 
+	public void setMinor(boolean value) {
+		this.minor = value;
+	}
+
 	// primitive implementation - uncomment it if needed
 //    public OperationResult clone() {
 //        return CloneUtil.clone(this);

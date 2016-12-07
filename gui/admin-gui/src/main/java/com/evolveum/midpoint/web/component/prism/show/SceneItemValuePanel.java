@@ -42,6 +42,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 	private static final String ID_ICON = "icon";
 	private static final String ID_LABEL = "label";
 	private static final String ID_LINK = "link";
+	private static final String ID_ADDITIONAL_TEXT = "additionalText";
 
 	public SceneItemValuePanel(String id, IModel<SceneItemValue> model) {
 		super(id, model);
@@ -88,6 +89,14 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 		};
 		link.add(visibleIfReference);
 		add(link);
+
+		final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return getModelObject() != null ? getModelObject().getAdditionalText() : null;
+			}
+		});
+		add(additionalText);
 	}
 
 	private boolean hasValidReferenceValue(SceneItemValue object) {

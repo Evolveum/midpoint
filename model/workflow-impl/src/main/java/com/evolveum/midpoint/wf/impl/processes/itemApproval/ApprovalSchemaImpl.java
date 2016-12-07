@@ -86,12 +86,7 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
     @Override
     public List<? extends ApprovalLevel> getLevels() {
 		List<ApprovalLevelImpl> rv = new ArrayList<>(levels);
-		Collections.sort(rv, new Comparator<ApprovalLevelImpl>() {
-			@Override
-			public int compare(ApprovalLevelImpl o1, ApprovalLevelImpl o2) {
-				return Integer.compare(o1.getOrder(), o2.getOrder());
-			}
-		});
+		Collections.sort(rv, Comparator.comparingInt(ApprovalLevelImpl::getOrder));
         return Collections.unmodifiableList(rv);
     }
 

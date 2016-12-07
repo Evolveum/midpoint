@@ -140,11 +140,19 @@ public class ValueDisplayUtil {
     }
 
     public static String toStringValue(PrismReferenceValue ref) {
+        String rv = getReferredObjectInformation(ref);
+        if (ref.getRelation() != null) {
+        	rv += " [" + ref.getRelation().getLocalPart() + "]";
+		}
+		return rv;
+    }
 
+    private static String getReferredObjectInformation(PrismReferenceValue ref) {
         if (ref.getObject() != null) {
             return ref.getObject().toString();
         } else {
-            return (ref.getTargetType() != null ? (ref.getTargetType().getLocalPart()+":") : "") + ref.getOid();
+            return (ref.getTargetType() != null ? ref.getTargetType().getLocalPart()+":" : "")
+					+ (ref.getTargetName() != null ? ref.getTargetName() : ref.getOid());
         }
     }
 }
