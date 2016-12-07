@@ -1764,7 +1764,7 @@ public class AssignmentProcessor {
 				Comparator<PrismReferenceValue> comparator =
 						(a, b) -> 2*a.getOid().compareTo(b.getOid())
 								+ (Objects.equals(a.getRelation(), b.getRelation()) ? 0 : 1);
-				if (MiscUtil.unorderedCollectionEquals(targetState, existingState.getValues(), comparator)) {
+				if (MiscUtil.unorderedCollectionCompare(targetState, existingState.getValues(), comparator)) {
 					return;
 				}
 			}

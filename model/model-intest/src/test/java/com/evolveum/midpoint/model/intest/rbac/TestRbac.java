@@ -1099,6 +1099,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        // Still needs to be as a member, although with the right relation.
+        assertRoleMembershipRef(userAfter, relation, ROLE_PIRATE_OID);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}

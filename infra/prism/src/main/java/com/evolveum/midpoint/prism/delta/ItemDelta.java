@@ -926,7 +926,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			return !hasAnyValue(valuesToAdd);
 		} else {
 			if (valuesToReplace != null) {
-				return MiscUtil.unorderedCollectionEquals(valuesToReplace, currentItem.getValues(), comparator);
+				return MiscUtil.unorderedCollectionCompare(valuesToReplace, currentItem.getValues(), comparator);
 			}
 			ItemDelta<V,D> narrowed = narrow(object, comparator);
 			boolean narrowedNotEmpty = narrowed.hasAnyValue(narrowed.valuesToAdd) || narrowed.hasAnyValue(narrowed.valuesToDelete);
@@ -1601,19 +1601,16 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	private boolean equivalentSetRealValue(Collection<V> thisValue, Collection<V> otherValues) {
-		Comparator<?> comparator = new Comparator<Object>() {
-			@Override
-			public int compare(Object o1, Object o2) {
-				if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
-					PrismValue v1 = (PrismValue)o1;
-					PrismValue v2 = (PrismValue)o2;
-					return v1.equalsRealValue(v2) ? 0 : 1;
-				} else {
-					return -1;
-				}
-			}
-		};
-		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, comparator);
+		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, 
+				(o1,o2) -> {
+					if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
+						PrismValue v1 = (PrismValue)o1;
+						PrismValue v2 = (PrismValue)o2;
+						return v1.equalsRealValue(v2);
+					} else {
+						return false;
+					}
+				});
 	}
 
 	@Override

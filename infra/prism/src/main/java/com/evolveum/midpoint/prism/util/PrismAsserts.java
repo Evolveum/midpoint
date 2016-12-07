@@ -519,16 +519,7 @@ public class PrismAsserts {
 	private static <C extends Containerable> void assertEquivalentContainerValues(String message, Collection<PrismContainerValue<C>> haveValues,
 			PrismContainerValue<C>[] expectedCVals) {
 		List<PrismContainerValue<C>> expectedValues = Arrays.asList(expectedCVals);
-		Comparator<PrismContainerValue<C>> comparator = new Comparator<PrismContainerValue<C>>() {
-			@Override
-			public int compare(PrismContainerValue<C> a, PrismContainerValue<C> b) {
-				if (a.equivalent(b)) {
-					return 0;
-				}
-				return 1;
-			}
-		};
-		assert MiscUtil.unorderedCollectionEquals(haveValues, expectedValues, comparator) : message;
+		assert MiscUtil.unorderedCollectionEquals(haveValues, expectedValues, (a,b) -> a.equivalent(b)) : message;
 	}
 
 	public static <T> void assertOrigin(ObjectDelta<?> objectDelta, final OriginType... expectedOriginTypes) {
@@ -1099,7 +1090,7 @@ public class PrismAsserts {
 				return s1.compareTo(s2);
 			}
 		};
-		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection, comparator) : message + ": expected "+expectedCollection+
+		assert MiscUtil.unorderedCollectionCompare(actualCollection, expectedCollection, comparator) : message + ": expected "+expectedCollection+
 				"; was "+actualCollection;
 	}
 

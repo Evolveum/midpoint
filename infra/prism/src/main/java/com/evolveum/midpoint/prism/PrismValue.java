@@ -246,16 +246,7 @@ public abstract class PrismValue implements IPrismValue {
 	}
 	
 	public static <V extends PrismValue> boolean equalsRealValues(Collection<V> collection1, Collection<V> collection2) {
-		Comparator comparator = new Comparator<V>() {
-			@Override
-			public int compare(V v1, V v2) {
-				if (v1.equalsRealValue(v2)) {
-					return 0;
-				};
-				return 1;
-			}
-		};
-		return MiscUtil.unorderedCollectionEquals(collection1, collection2, comparator);
+		return MiscUtil.unorderedCollectionEquals(collection1, collection2, (v1, v2) -> v1.equalsRealValue(v2));
 	}
 	
 	public static <V extends PrismValue> boolean containsAll(Collection<V> thisSet, Collection<V> otherSet, boolean ignoreMetadata, boolean isLiteral) {

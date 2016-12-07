@@ -599,11 +599,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 		} else {
 			throw new SchemaException("Unknown assignment target type " + targetType + " in " + sourceDescription);
 		}
-
-		if (!DeputyUtils.isMembershipRelation(relation) && !DeputyUtils.isDelegationRelation(relation)) {
-			LOGGER.trace("Skipping evaluation of " + targetType + " because it is neigther memberhip nor delegation relation ({})", relation);
-			return;
-		}
 		
 		if (!LensUtil.isValid(targetType, now, activationComputer)) {
 			LOGGER.trace("Skipping evaluation of " + targetType + " because it is not valid");
@@ -661,6 +656,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				LOGGER.trace("NOT adding target {} to orgRef: {}", targetType, assignmentPath);
 			}	
+		}
+		
+		if (!DeputyUtils.isMembershipRelation(relation) && !DeputyUtils.isDelegationRelation(relation)) {
+			LOGGER.trace("Cutting evaluation of " + targetType + " because it is neigther memberhip nor delegation relation ({})", relation);
+			return;
 		}
 		
 		EvaluationOrder evaluationOrder = assignmentPath.getEvaluationOrder();
