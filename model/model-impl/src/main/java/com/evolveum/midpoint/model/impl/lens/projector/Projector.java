@@ -415,11 +415,19 @@ public class Projector {
 	private void computeResultStatus(XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
 		boolean hasProjectionErrror = false;
 		OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
+		String message = null;
 		for (OperationResult subresult: result.getSubresults()) {
-			if (subresult.isNotApplicable() || subresult.isSuccess() || subresult.isHandledError()) {
+			if (subresult.isNotApplicable() || subresult.isSuccess()) {
+				continue;
+			}
+			if (subresult.isHandledError()) {
+				if (finalStatus == OperationResultStatus.SUCCESS) {
+					finalStatus = OperationResultStatus.HANDLED_ERROR;
+				}
 				continue;
 			}
 			if (subresult.isError()) {
+				message = subresult.getMessage();
 				if (OPERATION_PROJECT_PROJECTION.equals(subresult.getOperation())) {
 					hasProjectionErrror = true;
 				} else {
@@ -433,6 +441,7 @@ public class Projector {
 			finalStatus = OperationResultStatus.PARTIAL_ERROR;
 		}
 		result.setStatus(finalStatus);
+		result.setMessage(message);
         result.cleanupResult();
         if (LOGGER.isDebugEnabled()) {
         	long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
