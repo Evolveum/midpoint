@@ -578,7 +578,7 @@ public class TestRestService {
 		assertStatus(response, 201);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
-		dummyAuditService.assertRecords(5);
+		dummyAuditService.assertRecords(4);
 		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 		dummyAuditService.assertHasDelta(1, ChangeType.ADD, UserType.class);
 	}
@@ -675,7 +675,7 @@ public class TestRestService {
 		assertStatus(response, 204);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
-		dummyAuditService.assertRecords(5);
+		dummyAuditService.assertRecords(4);
 		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 		dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class);
 		
@@ -724,7 +724,7 @@ public class TestRestService {
 		assertStatus(response, 204);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
-		dummyAuditService.assertRecords(5);
+		dummyAuditService.assertRecords(4);
 		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 		dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class);
 		
@@ -775,7 +775,7 @@ public class TestRestService {
 		assertStatus(response, 201);
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
-		dummyAuditService.assertRecords(5);
+		dummyAuditService.assertRecords(4);
 		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 		dummyAuditService.assertHasDelta(1, ChangeType.ADD, UserType.class);
 	}
