@@ -71,6 +71,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	@Override
 	public Iterator<AuditEventRecordType> internalIterator(long first, long count) {
+		saveCurrentPage(first, count);
 		List<AuditEventRecordType> recordsList = listRecords(auditEventQuery, true, first, count);
 		return recordsList.iterator();
 	}
@@ -221,5 +222,9 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	public void setParameters(Map<String, Object> parameters) {
 		this.parameters = parameters;
+	}
+
+	protected void saveCurrentPage(long from, long count){
+
 	}
 }
