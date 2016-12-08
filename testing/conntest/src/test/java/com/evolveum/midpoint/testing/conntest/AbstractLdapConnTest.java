@@ -370,7 +370,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		}
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, expectedEntries, task, result);
                 
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 2);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();

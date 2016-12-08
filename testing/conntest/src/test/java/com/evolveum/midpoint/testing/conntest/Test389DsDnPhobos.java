@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,26 +29,26 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class Test389DsDnBacchus extends Abstract389DsDnTest {
+public class Test389DsDnPhobos extends Abstract389DsDnTest {
 
 	
 	@Override
 	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-dn-bacchus.xml");
+		return new File(getBaseDir(), "resource-dn-phobos.xml");
 	}
 
 	@Override
 	public String getStartSystemCommand() {
-		return getScriptDirectoryName()+"/389ds-bacchus-start";
+		return getScriptDirectoryName()+"/389ds-phobos-start";
 	}
 
 	@Override
 	public String getStopSystemCommand() {
-		return getScriptDirectoryName()+"/389ds-bacchus-stop";
+		return getScriptDirectoryName()+"/389ds-phobos-stop";
 	}
 	
 	@Override
 	protected String getLdapServerHost() {
-		return "bacchus.lab.evolveum.com";
+		return "phobos.lab.evolveum.com";
 	}
 }
