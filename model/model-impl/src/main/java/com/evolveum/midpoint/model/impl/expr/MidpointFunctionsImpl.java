@@ -58,6 +58,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -80,9 +81,20 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 
 /**
  * @author semancik
@@ -1125,5 +1137,68 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	        } else {
 	            return null;
 	        }
+	}
+
+	@Override
+	public Map<String, String> parseXmlToMap(String xml) {
+		XMLInputFactory factory = XMLInputFactory.newInstance();
+		Map<String, String> resultingMap = new HashMap<String, String>();
+		String value = "";
+		String startName = "";
+		InputStream stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+		boolean isRootElement = true;
+		try {
+			XMLEventReader eventReader = factory.createXMLEventReader(stream);
+			while (eventReader.hasNext()) {
+
+				XMLEvent event = eventReader.nextEvent();
+				Integer code = event.getEventType();
+				if (code == XMLStreamConstants.START_ELEMENT) {
+
+					StartElement startElement = event.asStartElement();
+					startName = startElement.getName().getLocalPart();
+					if (!isRootElement) {
+						resultingMap.put(startName, null);
+					} else {
+						isRootElement = false;
+					}
+				} else if (code == XMLStreamConstants.CHARACTERS) {
+					Characters characters = event.asCharacters();
+					if (!characters.isWhiteSpace()) {
+
+						StringBuilder valueBuilder;
+						if (value != null) {
+							valueBuilder = new StringBuilder(value).append(" ").append(characters.getData().toString());
+						} else {
+							valueBuilder = new StringBuilder(characters.getData().toString());
+						}
+						value = valueBuilder.toString();
+					}
+				} else if (code == XMLStreamConstants.END_ELEMENT) {
+
+					EndElement endElement = event.asEndElement();
+					String endName = endElement.getName().getLocalPart();
+
+					if (endName.equals(startName)) {
+						if (value != null) {
+							resultingMap.put(endName, value);
+							value = null;
+						}
+					} else {
+						LOGGER.info("No value between xml tags, tag name : {0}", endName);
+					}
+
+				} else if (code == XMLStreamConstants.END_DOCUMENT) {
+					isRootElement = true;
+				}
+			}
+		} catch (XMLStreamException e) {
+
+			StringBuilder error = new StringBuilder("Xml stream exception wile parsing xml string")
+					.append(e.getLocalizedMessage());
+			throw new SystemException(error.toString());
+		}
+
+		return resultingMap;
 	}
 }
