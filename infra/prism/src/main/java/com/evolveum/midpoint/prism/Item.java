@@ -796,35 +796,29 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	}
 
 	private boolean equalsRealValues(List<V> thisValue, List<?> otherValues) {
-		Comparator<?> comparator = new Comparator<Object>() {
-			@Override
-			public int compare(Object o1, Object o2) {
-				if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
-					PrismValue v1 = (PrismValue)o1;
-					PrismValue v2 = (PrismValue)o2;
-					return v1.equalsRealValue(v2) ? 0 : 1;
-				} else {
-					return -1;
-				}
-			}
-		};
-		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, comparator);
+		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, 
+				(o1, o2) -> {
+					if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
+						PrismValue v1 = (PrismValue)o1;
+						PrismValue v2 = (PrismValue)o2;
+						return v1.equalsRealValue(v2);
+					} else {
+						return false;
+					}
+				});
 	}
 	
 	private boolean match(List<V> thisValue, List<?> otherValues) {
-		Comparator<?> comparator = new Comparator<Object>() {
-			@Override
-			public int compare(Object o1, Object o2) {
-				if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
-					PrismValue v1 = (PrismValue)o1;
-					PrismValue v2 = (PrismValue)o2;
-					return v1.match(v2) ? 0 : 1;
-				} else {
-					return -1;
-				}
-			}
-		};
-		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, comparator);
+		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, 
+				(o1, o2) -> {
+					if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
+						PrismValue v1 = (PrismValue)o1;
+						PrismValue v2 = (PrismValue)o2;
+						return v1.match(v2);
+					} else {
+						return false;
+					}
+				});
 	}
 
 	@Override

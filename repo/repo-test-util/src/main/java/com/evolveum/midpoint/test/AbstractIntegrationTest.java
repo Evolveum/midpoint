@@ -632,7 +632,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-                                      QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
+            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
+    	assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentfiers, false);
+    }
+    
+    protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
+                                      QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
 		assertShadow(shadow);
 		if (oid != null) {
 			assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
@@ -647,7 +652,39 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
 		
-		PrismAsserts.assertPropertyValue(shadow, ShadowType.F_NAME, PrismTestUtil.createPolyString(username));
+		if (useMatchingRuleForShadowName) {
+			MatchingRule<PolyString> polyMatchingRule = new MatchingRule<PolyString>() {
+
+				@Override
+				public QName getName() {
+					return nameMatchingRule.getName();
+				}
+
+				@Override
+				public boolean isSupported(QName xsdType) {
+					return nameMatchingRule.isSupported(xsdType);
+				}
+
+				@Override
+				public boolean match(PolyString a, PolyString b) throws SchemaException {
+					return nameMatchingRule.match(a.getOrig(), b.getOrig());
+				}
+
+				@Override
+				public boolean matchRegex(PolyString a, String regex) throws SchemaException {
+					return nameMatchingRule.matchRegex(a.getOrig(), regex);
+				}
+
+				@Override
+				public PolyString normalize(PolyString original) throws SchemaException {
+					return new PolyString(nameMatchingRule.normalize(original.getOrig()));
+				}
+				
+			};
+			PrismAsserts.assertPropertyValueMatch(shadow, ShadowType.F_NAME, polyMatchingRule, PrismTestUtil.createPolyString(username));
+		} else {
+			PrismAsserts.assertPropertyValue(shadow, ShadowType.F_NAME, PrismTestUtil.createPolyString(username));
+		}
 		
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);

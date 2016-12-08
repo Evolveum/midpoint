@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebXmlUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -110,13 +111,13 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
         add(clauseTooltip);
     }
 
-    private void updateClausePerformed(AjaxRequestTarget target){
+    private void updateClausePerformed(AjaxRequestTarget target) {
         try {
             updateFilterClause(getPageBase().getPrismContext());
             success(getString("SearchFilterPanel.message.expressionSuccess"));
-        } catch (Exception e){
+        } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not create MapXNode from provided XML filterClause.", e);
-            error(getString("SearchFilterPanel.message.cantSerialize"));
+            error(getString("SearchFilterPanel.message.cantSerialize", e.getMessage()));
         }
 
 //        performFilterClauseHook(target);
@@ -127,7 +128,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 		final String clauseString = clauseStringModel.getObject();
 		if (StringUtils.isNotEmpty(clauseString)) {
 			LOGGER.trace("Filter Clause to serialize: {}", clauseString);
-			RootXNode filterClauseNode = (RootXNode) context.parserFor(clauseString).xml().parseToXNode();
+			RootXNode filterClauseNode = ExpressionUtil.parseSearchFilter(clauseString, context);
 			getModelObject().setFilterClauseXNode(filterClauseNode);
 		} else {
 			if (getModelObject() != null) {

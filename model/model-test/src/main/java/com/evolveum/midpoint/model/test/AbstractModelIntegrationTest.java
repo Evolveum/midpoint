@@ -31,7 +31,6 @@ import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -1535,6 +1534,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 //			assertNotNull("Missing name in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getTargetName());
 		}
 		PrismAsserts.assertSets("Wrong values in roleMembershipRef in "+focus, refOids, roleOids);
+	}
+	
+	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, QName relation, String... roleOids) {
+		if (!MiscUtil.unorderedCollectionEquals(Arrays.asList(roleOids), focus.asObjectable().getRoleMembershipRef(),
+				(expectedOid, hasRef) -> {
+					if (!expectedOid.equals(hasRef.getOid())) {
+						return false;
+					}
+					if (!QNameUtil.match(relation, hasRef.getRelation())) {
+						return false;
+					}
+					return true;
+				})) {
+			AssertJUnit.fail("Wrong values in roleMembershipRef in "+focus
+					+", expected relation "+relation+", OIDs "+Arrays.toString(roleOids)
+					+", but was "+focus.asObjectable().getRoleMembershipRef());
+		}
 	}
 
 	protected <F extends FocusType> void assertDelegatedRef(PrismObject<F> focus, String... oids) {

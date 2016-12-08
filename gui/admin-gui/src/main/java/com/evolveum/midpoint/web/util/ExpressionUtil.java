@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.web.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -242,11 +244,27 @@ public class ExpressionUtil {
 
 	public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
 		expressionObject.getExpressionEvaluator().clear();
-		if (xml != null && StringUtils.isNotBlank(xml)) {
-			xml = WebXmlUtil.wrapInElement("expression", xml);
+		if (StringUtils.isNotBlank(xml)) {
+			xml = WebXmlUtil.wrapInElement("expression", xml, true);
 			LOGGER.info("Expression to serialize: {}", xml);
 			JAXBElement<?> newElement = context.parserFor(xml).xml().parseRealValueToJaxbElement();
 			expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
 		}
 	}
+
+	// TODO move somewhere else? generalize a bit?
+	public static RootXNode parseSearchFilter(String data, PrismContext context) throws SchemaException {
+		String xml = WebXmlUtil.wrapInElement("root", data, false);
+		RootXNode rootXNode = context.parserFor(xml).xml().parseToXNode();
+		if (rootXNode.getSubnode() instanceof MapXNode) {
+			MapXNode mapXNode = (MapXNode) rootXNode.getSubnode();
+			if (mapXNode.size() != 1) {
+				throw new SchemaException("Content cannot be parsed as a search filter: " + mapXNode.debugDump());
+			}
+			return mapXNode.getEntryAsRoot(mapXNode.keySet().iterator().next());
+		} else {
+			throw new SchemaException("Content cannot be parsed as a search filter: " + DebugUtil.debugDump(rootXNode.getSubnode()));
+		}
+	}
+
 }

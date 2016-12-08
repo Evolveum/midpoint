@@ -21,13 +21,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,25 +45,27 @@ public class ResourceAssignmentHelper {
     @Autowired
     private PrismContext prismContext;
 
-    public boolean isResourceAssignment(AssignmentType assignmentType) {
+    boolean isResourceAssignment(AssignmentType assignmentType) {
         return assignmentType.getConstruction() != null;
     }
 
-    public boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, ResourceType resourceType) {
+    boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, ResourceType resourceType) {
         return primaryChangeAspectHelper.hasApproverInformation(config) ||
                 (resourceType.getBusiness() != null && !resourceType.getBusiness().getApproverRef().isEmpty());
     }
 
-    public ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, ResourceType resourceType) {
-        return new ApprovalRequestImpl<>(assignmentType, config, null, resourceType.getBusiness().getApproverRef(), null, null, prismContext);
+    ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, ResourceType resourceType, RelationResolver relationResolver) {
+        return new ApprovalRequestImpl<>(assignmentType, config, null, resourceType.getBusiness().getApproverRef(),
+                null, null, prismContext, relationResolver);
     }
 
-    public ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, ResourceType resourceType, List<ItemDeltaType> modifications) {
+    ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, ResourceType resourceType, List<ItemDeltaType> modifications, RelationResolver relationResolver) {
         AssignmentModification itemToApprove = new AssignmentModification(assignmentType, resourceType, modifications);
-        return new ApprovalRequestImpl<AssignmentModification>(itemToApprove.wrap(prismContext), config, null, resourceType.getBusiness().getApproverRef(), null, null, prismContext);
+        return new ApprovalRequestImpl<>(itemToApprove.wrap(prismContext), config, null,
+                resourceType.getBusiness().getApproverRef(), null, null, prismContext, relationResolver);
     }
 
-    protected ResourceType getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result) {
+    ResourceType getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result) {
         if (assignmentType.getConstruction() == null) {
             return null;
         }
@@ -77,7 +76,7 @@ public class ResourceAssignmentHelper {
         return primaryChangeAspectHelper.resolveTargetRef(resourceRef, ResourceType.class, result);
     }
 
-    protected AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {
+    AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {
         AssignmentType assignmentClone = assignmentType.clone();
         PrismContainerValue.copyDefinition(assignmentClone, assignmentType, prismContext);
         ConstructionType constructionType = assignmentClone.getConstruction();

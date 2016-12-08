@@ -30,7 +30,7 @@
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
-							<approverRef oid="00000001-d34d-b33f-f00d-SECAPP000001" type="UserType"/>
+							<!--<approverRef oid="00000001-d34d-b33f-f00d-SECAPP000001" type="UserType"/>-->
 							<approverRelation>security-approver</approverRelation>
 						</level>
 					</approvalSchema>

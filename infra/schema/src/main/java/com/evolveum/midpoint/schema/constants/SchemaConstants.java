@@ -53,7 +53,9 @@ public abstract class SchemaConstants {
 	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
 	public static final String PREFIX_NS_ORG = "org";
 	public static final String NS_QUERY = QueryConvertor.NS_QUERY;
+	public static final String NS_QUERY_PREFIX = "q";
 	public static final String NS_TYPES = PrismConstants.NS_TYPES;
+	public static final String NS_TYPES_PREFIX = "t";
 	public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
@@ -335,6 +337,7 @@ public abstract class SchemaConstants {
 
 	// These are used in script expressions, they should remain here
 	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 

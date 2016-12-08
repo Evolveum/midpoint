@@ -49,8 +49,8 @@ public abstract class AddAbstractRoleAssignmentAspect<F extends FocusType> exten
     }
 
     @Override
-    public ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a, AbstractRoleType role) {
-        return specificAssignmentHelper.createApprovalRequest(config, a, role);
+    public ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a, AbstractRoleType role, OperationResult result) {
+        return specificAssignmentHelper.createApprovalRequest(config, a, role, createRelationResolver(role, result));
     }
 
     @Override

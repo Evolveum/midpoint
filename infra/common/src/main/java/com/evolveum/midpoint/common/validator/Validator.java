@@ -32,6 +32,7 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.staxmate.dom.DOMConverter;
 import org.w3c.dom.Document;
@@ -170,7 +171,7 @@ public class Validator {
 			
 			int eventType = stream.nextTag();
 			if (eventType == XMLStreamConstants.START_ELEMENT) {
-				if (!stream.getName().equals(SchemaConstants.C_OBJECTS)) {
+				if (!QNameUtil.match(stream.getName(), SchemaConstants.C_OBJECTS)) {
 					// This has to be an import file with a single objects. Try
 					// to process it.
 					OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);

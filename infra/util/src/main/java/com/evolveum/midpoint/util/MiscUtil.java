@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -98,21 +99,22 @@ public class MiscUtil {
 	}
 	
 	public static boolean unorderedCollectionEquals(Collection a, Collection b) {
-		Comparator<?> comparator = new Comparator<Object>() {
-			@Override
-			public int compare(Object o1, Object o2) {
-				return o1.equals(o2) ? 0 : 1;
-			}
-		};
-		return unorderedCollectionEquals(a, b, comparator);
+		return unorderedCollectionEquals(a, b, (xa, xb) -> xa.equals(xb));
 	}
 	
 	/**
 	 * Only zero vs non-zero value of comparator is important. 
 	 */
-	public static boolean unorderedCollectionEquals(Collection a, Collection b, Comparator comparator) {
+	public static <T> boolean unorderedCollectionCompare(Collection<T> a, Collection<T> b, final Comparator<T> comparator) {
+		return unorderedCollectionEquals(a, b, (xa, xb) -> comparator.compare(xa, xb) == 0);
+	}
+	
+	/**
+	 * Only zero vs non-zero value of comparator is important. 
+	 */
+	public static <A,B> boolean unorderedCollectionEquals(Collection<A> a, Collection<B> b, HeteroComparator<A,B> comparator) {
 		if (a == null && b == null) {
-			return true;
+ 			return true;
 		}
 		if (a == null || b == null) {
 			return false;
@@ -120,14 +122,14 @@ public class MiscUtil {
 		if (a.size() != b.size()) {
 			return false;
 		}
-		Collection outstanding = new ArrayList(b.size());
+		Collection<B> outstanding = new ArrayList<>(b.size());
 		outstanding.addAll(b);
-		for (Object ao: a) {
+		for (A ao: a) {
 			boolean found = false;
-			Iterator iterator = outstanding.iterator();
+			Iterator<B> iterator = outstanding.iterator();
 			while(iterator.hasNext()) {
-				Object oo = iterator.next();
-				if (comparator.compare(ao, oo) == 0) {
+				B oo = iterator.next();
+				if (comparator.isEquivalent(ao, oo)) {
 					iterator.remove();
 					found = true;
 				}
