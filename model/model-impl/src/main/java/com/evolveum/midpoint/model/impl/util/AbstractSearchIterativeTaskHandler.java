@@ -330,8 +330,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
                 statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds" +
                     " (wall clock time average: " + resultHandler.getWallAverageTime() + " ms).";
             }
-	
-	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
+			if (!coordinatorTask.canRun()) {
+				statistics += " Task was interrupted during processing.";
+			}
+
+			opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
 			TaskHandlerUtil.appendLastFailuresInformation(taskOperationPrefix, coordinatorTask.getLastFailures(), opResult);
 
 			LOGGER.info("{}", finishMessage + statistics);
