@@ -83,11 +83,13 @@ public class WebXmlUtil {
 	}
 
 	// body is not blank
-	public static String wrapInElement(String name, String body) {
+	public static String wrapInElement(String name, String body, boolean alsoDefaultNamespace) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<").append(name);
 		for (String declaration : declarations) {
-			sb.append("\n    ").append(declaration);
+			if (alsoDefaultNamespace || !declaration.startsWith("xmlns=")) {
+				sb.append("\n    ").append(declaration);
+			}
 		}
 		sb.append(">\n");
 		sb.append(body);

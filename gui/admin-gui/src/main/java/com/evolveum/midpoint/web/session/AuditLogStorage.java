@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -28,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  */
 public class AuditLogStorage implements PageStorage {
     private AuditEventRecordType auditRecord;
+    private AuditSearchDto searchDto;
+    private long pageNumber = 0;
 
     public AuditLogStorage() {
     }
@@ -36,8 +39,27 @@ public class AuditLogStorage implements PageStorage {
         return null;
     }
 
-    public void setSearch(Search roleCatalog) {
+    public void setSearch(Search search) {
 
+    }
+
+    public AuditSearchDto getSearchDto() {
+        if (searchDto == null){
+            searchDto = new AuditSearchDto();
+        }
+        return searchDto;
+    }
+
+    public void setSearchDto(AuditSearchDto searchDto) {
+        this.searchDto = searchDto;
+    }
+
+    public long getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(long pageNumber) {
+        this.pageNumber = pageNumber;
     }
 
     @Override
@@ -46,7 +68,7 @@ public class AuditLogStorage implements PageStorage {
     }
 
     @Override
-    public void setPaging(ObjectPaging roleCatalogPaging) {
+    public void setPaging(ObjectPaging auditLogPaging) {
 
     }
 

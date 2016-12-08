@@ -463,20 +463,15 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 	}
 	
 	public static boolean compareCollectionRealValues(Collection<? extends PrismProperty> col1, Collection<? extends PrismProperty> col2) {
-		return MiscUtil.unorderedCollectionEquals(col1, col2, new Comparator<PrismProperty>() {
-			@Override
-			public int compare(PrismProperty p1, PrismProperty p2) {
-				if (!p1.getElementName().equals(p2.getElementName())) {
-					return 1;
-				}
-				Collection p1RealVals = p1.getRealValues();
-				Collection p2RealVals = p2.getRealValues();
-				if (MiscUtil.unorderedCollectionEquals(p1RealVals, p2RealVals)) {
-					return 0;
-				}
-				return 1;
-			}
-		});
+		return MiscUtil.unorderedCollectionEquals(col1, col2, 
+				(p1, p2) -> {
+					if (!p1.getElementName().equals(p2.getElementName())) {
+						return false;
+					}
+					Collection p1RealVals = p1.getRealValues();
+					Collection p2RealVals = p2.getRealValues();
+					return MiscUtil.unorderedCollectionEquals(p1RealVals, p2RealVals);
+				});
 	}
 
 	@Override

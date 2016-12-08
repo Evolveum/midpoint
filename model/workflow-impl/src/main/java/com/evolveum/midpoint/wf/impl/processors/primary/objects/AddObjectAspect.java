@@ -87,13 +87,12 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
             ((LensFocusContext<?>) modelContext.getFocusContext()).setOid(newOid);
         }
         change.setObjectToAdd(null);            // make the change empty
-        return Arrays.asList(createApprovalRequest(config, objectType));
+        return Arrays.asList(createApprovalRequest(config, objectType, result));
     }
 
     // creates an approval request for a given role create request
-    private ApprovalRequest<T> createApprovalRequest(PcpAspectConfigurationType config, T objectType) {
-
-        return new ApprovalRequestImpl(objectType, config, prismContext);
+    private ApprovalRequest<T> createApprovalRequest(PcpAspectConfigurationType config, T objectType, OperationResult result) {
+        return new ApprovalRequestImpl(objectType, config, prismContext, createRelationResolver(objectType, result));
     }
 
     private List<PcpChildWfTaskCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result,

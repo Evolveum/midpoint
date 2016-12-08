@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,14 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
 
 /**
  * @author Radovan Semancik
@@ -41,6 +48,28 @@ public class ExceptionUtil {
 			return lookForMessage(e.getCause());
 		}
 		return null;
+	}
+	
+	public static boolean isSelected(ErrorSelectorType selector, Throwable exception) {
+		if (selector == null) {
+			return false;
+		}
+		if (exception instanceof CommunicationException) {
+			return selector.isNetwork() == Boolean.TRUE;
+		}
+		if (exception instanceof SecurityViolationException) {
+			return selector.isSecurity() == Boolean.TRUE;
+		}
+		if (exception instanceof PolicyViolationException) {
+			return selector.isPolicy() == Boolean.TRUE;
+		}
+		if (exception instanceof SchemaException) {
+			return selector.isSchema() == Boolean.TRUE;
+		}
+		if (exception instanceof ConfigurationException || exception instanceof ExpressionEvaluationException) {
+			return selector.isConfiguration() == Boolean.TRUE;
+		}
+		return selector.isGeneric() == Boolean.TRUE;
 	}
 	
 }

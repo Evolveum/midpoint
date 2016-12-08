@@ -65,6 +65,7 @@ public class ProfilingDto implements Serializable {
 
 		if (profilingConfiguration != null) {
 
+			profilingEnabled = checkXsdBooleanValue(profilingConfiguration.isEnabled());
 			requestFilter = checkXsdBooleanValue(profilingConfiguration.isRequestFilter());
 			performanceStatistics = checkXsdBooleanValue(profilingConfiguration.isPerformanceStatistics());
 			subsystemModel = checkXsdBooleanValue(profilingConfiguration.isModel());
@@ -122,7 +123,8 @@ public class ProfilingDto implements Serializable {
 		
 		ProfilingConfigurationType config = new ProfilingConfigurationType();
 
-		if (isPerformanceStatistics() || isRequestFilter() || isSubsystemModel() || isSubsystemRepository()
+		if (isProfilingEnabled() || isPerformanceStatistics() || isRequestFilter()
+				|| isSubsystemModel() || isSubsystemRepository()
 				|| isSubsystemProvisioning() || isSubsystemSynchronizationService() || isSubsystemUcf()
 				|| isSubsystemTaskManager() || isSubsystemWorkflow())
 			config.setEnabled(true);

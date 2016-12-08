@@ -27,6 +27,8 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -103,6 +106,7 @@ public class AuditLogViewerPanel extends BasePanel{
     private AuditSearchDto searchDto;
     private PageBase pageBase;
     private Map<String, Boolean> visibilityMap;
+    private AuditLogStorage auditLogStorage;
 
     public AuditLogViewerPanel(String id, PageBase pageBase){
         this(id, pageBase, null);
@@ -122,14 +126,20 @@ public class AuditLogViewerPanel extends BasePanel{
     }
 
     private void initAuditSearchModel(){
+        if (pageBase instanceof PageUser){
+            auditLogStorage = pageBase.getSessionStorage().getUserHistoryAuditLog();
+        } else {
+            auditLogStorage = pageBase.getSessionStorage().getAuditLog();
+        }
         if (searchDto == null){
-            searchDto = new AuditSearchDto();
+            searchDto = auditLogStorage.getSearchDto();
         }
         auditSearchDto = new Model<AuditSearchDto>(searchDto);
 
     }
 
     private void initLayout() {
+
         Form mainForm = new Form(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
@@ -175,7 +185,7 @@ public class AuditLogViewerPanel extends BasePanel{
 
         to.setOutputMarkupId(true);
         parametersPanel.add(to);
-        
+
         PropertyModel<ItemPathDto> changedItemModel = new PropertyModel<ItemPathDto>(auditSearchDto,
                 AuditSearchDto.F_CHANGED_ITEM);
         
@@ -357,6 +367,8 @@ public class AuditLogViewerPanel extends BasePanel{
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                auditLogStorage.setSearchDto(searchDto);
+                auditLogStorage.setPageNumber(0);
                 Form mainForm = (Form) getParent().getParent();
                 addOrReplaceTable(mainForm);
                 getFeedbackPanel().getFeedbackMessages().clear();
@@ -409,11 +421,20 @@ public class AuditLogViewerPanel extends BasePanel{
                 parameters.put("outcome", search.getOutcome());
                 return parameters;
             }
+
+            @Override
+            protected void saveCurrentPage(long from, long count) {
+                if (count != 0) {
+                    auditLogStorage.setPageNumber(from / count);
+                }
+            }
+
         };
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, initColumns(),
                 UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
                 (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER));
         table.setShowPaging(true);
+        table.setCurrentPage(auditLogStorage.getPageNumber());
         table.setOutputMarkupId(true);
         mainForm.addOrReplace(table);
     }

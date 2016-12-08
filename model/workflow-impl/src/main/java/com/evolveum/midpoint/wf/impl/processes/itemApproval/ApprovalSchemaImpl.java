@@ -39,16 +39,18 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
 
     private transient PrismContext prismContext;
 
-	@SuppressWarnings("unused")	// TODO check if not called from dynamic code
-    public ApprovalSchemaImpl(ApprovalSchemaType approvalSchemaType, PrismContext prismContext) {
+    public ApprovalSchemaImpl(ApprovalSchemaType approvalSchemaType, PrismContext prismContext,
+                              RelationResolver relationResolver) {
         setPrismContext(prismContext);
-        initFromApprovalSchemaType(approvalSchemaType);
+        initFromApprovalSchemaType(approvalSchemaType, relationResolver);
     }
 
-    public ApprovalSchemaImpl(ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRefList, List<ExpressionType> approverExpressionList, ExpressionType automaticallyApproved, PrismContext prismContext) {
+    public ApprovalSchemaImpl(ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRefList,
+                              List<ExpressionType> approverExpressionList, ExpressionType automaticallyApproved,
+                              PrismContext prismContext, RelationResolver relationResolver) {
         setPrismContext(prismContext);
         if (approvalSchema != null) {
-            initFromApprovalSchemaType(approvalSchema);
+            initFromApprovalSchemaType(approvalSchema, relationResolver);
         } else if ((approverRefList != null && !approverRefList.isEmpty()) || (approverExpressionList != null && !approverExpressionList.isEmpty())) {
             ApprovalLevelImpl level = new ApprovalLevelImpl(approverRefList, approverExpressionList, automaticallyApproved, prismContext);
             addLevel(level);
@@ -57,11 +59,12 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
         }
     }
 
-    private void initFromApprovalSchemaType(ApprovalSchemaType approvalSchemaType) {
+    private void initFromApprovalSchemaType(ApprovalSchemaType approvalSchemaType,
+                                            RelationResolver relationResolver) {
         this.name = approvalSchemaType.getName();
         this.description = approvalSchemaType.getDescription();
         for (ApprovalLevelType levelType : approvalSchemaType.getLevel()) {
-            addLevel(levelType);
+            addLevel(levelType, relationResolver);
         }
     }
 
@@ -122,8 +125,8 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
         levels.add(level);
     }
 
-    public void addLevel(ApprovalLevelType levelType) {
-        addLevel(new ApprovalLevelImpl(levelType, prismContext));
+    public void addLevel(ApprovalLevelType levelType, RelationResolver relationResolver) {
+        addLevel(new ApprovalLevelImpl(levelType, prismContext, relationResolver));
     }
 
     @Override

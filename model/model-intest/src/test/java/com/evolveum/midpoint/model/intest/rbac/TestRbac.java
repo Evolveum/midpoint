@@ -36,7 +36,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -65,6 +64,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -162,6 +162,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
 	private static final String GROUP_FOOLS_NAME = "fools";
 	private static final String GROUP_SIMPLETONS_NAME = "simpletons";
+
+	/**
+	 * Undefined relation. It is not standard relation not a relation that is in any way configured.
+	 */
+	private static final QName RELATION_COMPLICATED_QNAME = new QName("http://exmple.com/relation", "complicated");
 
 
 	private String userLemonheadOid;
@@ -747,7 +752,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, null, task, result);
+        unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
         
         // THEN
         result.computeStatus();
@@ -874,7 +879,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, null, task, result);
+        unassignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, task, result);
         
         // THEN
         result.computeStatus();
@@ -1001,7 +1006,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, null, task, result);
+        unassignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);
         
         // THEN
         result.computeStatus();
@@ -1014,6 +1019,121 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
+	
+	
+	/**
+	 * Approver relation is not supposed to give any role privileges.
+	 * MID-3580
+	 */
+	@Test
+    public void test160JackAssignRolePirateApprover() throws Exception {
+		testJackAssignRolePirateRelationNoPrivs("test160JackAssignRolePirateApprover", SchemaConstants.ORG_APPROVER);
+	}
+	
+	/**
+	 * MID-3580
+	 */
+	@Test
+    public void test162JackUnassignRolePirateApprover() throws Exception {
+		testJackUnassignRolePirateRelationNoPrivs("test160JackAssignRolePirateApprover", SchemaConstants.ORG_APPROVER);
+		
+	}
+
+	/**
+	 * Owner relation is not supposed to give any role privileges.
+	 * MID-3580
+	 */
+	@Test
+    public void test164JackAssignRolePirateOwner() throws Exception {
+		testJackAssignRolePirateRelationNoPrivs("test164JackAssignRolePirateOwner", SchemaConstants.ORG_OWNER);
+	}
+	
+	/**
+	 * MID-3580
+	 */
+	@Test
+    public void test166JackUnassignRolePirateOwner() throws Exception {
+		testJackUnassignRolePirateRelationNoPrivs("test166JackUnassignRolePirateOwner", SchemaConstants.ORG_OWNER);		
+	}
+
+	/**
+	 * Unknown custom relation is not supposed to give any role privileges.
+	 * MID-3580
+	 */
+	@Test
+    public void test168JackAssignRolePirateComplicated() throws Exception {
+		testJackAssignRolePirateRelationNoPrivs("test168JackAssignRolePirateComplicated", RELATION_COMPLICATED_QNAME);
+	}
+	
+	/**
+	 * MID-3580
+	 */
+	@Test
+    public void test169JackUnassignRolePirateComplicated() throws Exception {
+		testJackUnassignRolePirateRelationNoPrivs("test169JackUnassignRolePirateComplicated", RELATION_COMPLICATED_QNAME);		
+	}
+
+	public void testJackAssignRolePirateRelationNoPrivs(final String TEST_NAME, QName relation) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task =  createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        assertNoAssignments(userBefore);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        // Still needs to be as a member, although with the right relation.
+        assertRoleMembershipRef(userAfter, relation, ROLE_PIRATE_OID);
+
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+    public void testJackUnassignRolePirateRelationNoPrivs(final String TEST_NAME, QName relation) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task =  createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+        // WHEN
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        assertNoAssignments(userAfter);
+
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+	// TODO: assign with owner relation
+	// TODO: assign with custom(unknown) relation
 	
 	//////////////////////
 	// Following tests use POSITIVE enforcement mode
