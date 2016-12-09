@@ -163,6 +163,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 		cleanupDelete(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN));
 		cleanupDelete(toAccountDn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN));
 		cleanupDelete(toGroupDn(GROUP_MONKEYS_CN));
+		cleanupDelete(toGroupDn(GROUP_FOOLS_CN));
 	}
 	
 	@Test
