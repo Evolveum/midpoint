@@ -599,8 +599,8 @@
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
-                <artifactId>connector-csvfile</artifactId>
-                <version>1.4.2.0</version>
+                <artifactId>connector-csv</artifactId>
+                <version>1.4.3.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
