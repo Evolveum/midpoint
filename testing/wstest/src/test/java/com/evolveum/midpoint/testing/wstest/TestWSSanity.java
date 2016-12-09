@@ -257,7 +257,7 @@ public class TestWSSanity extends AbstractWebserviceTest {
         assertAuditLoginLogout(tailer);
         assertAuditIds(tailer);
         assertAuditOperation(tailer, "ADD_OBJECT");
-        tailer.assertAudit(5);
+        tailer.assertAudit(4);
         
         // GET user
         UserType userAfter = getObject(UserType.class, USER_JACK_OID);
