@@ -59,16 +59,13 @@ public class UploadDownloadPanel extends InputPanel {
             protected void onSubmit ( AjaxRequestTarget target )
             {
                 super.onSubmit(target);
-                Component input = getInputFile();
-                try {
-                    FileUpload uploadedFile = getFileUpload();
-                    updateValue(uploadedFile.getBytes());
-                    LOGGER.trace("Upload file success.");
-                    input.success(getString("UploadPanel.message.uploadSuccess"));
-                } catch (Exception e) {
-                    LOGGER.trace("Upload file error.", e);
-                    input.error(getString("UploadPanel.message.uploadError") + " " + e.getMessage());
-                }
+                UploadDownloadPanel.this.uploadFilePerformed(target);
+            }
+
+            @Override
+            protected void onError (AjaxRequestTarget target){
+                super.onError(target);
+                UploadDownloadPanel.this.uploadFilePerformed(target);
             }
         } );
         fileUpload.setOutputMarkupId(true);
