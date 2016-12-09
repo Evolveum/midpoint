@@ -115,7 +115,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
 	
-	protected static final int NUMBER_OF_ACCOUNTS = 16;
+	protected static final int NUMBER_OF_ACCOUNTS = 25;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
 
 	private static final String NS_EXTENSION = "http://whatever.com/my";
@@ -604,8 +604,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
         
-        assertAccountShadow(shadows.get(0), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
-        assertAccountShadow(shadows.get(1), "CN=Adalbert Meduza1,OU=evolveum,DC=win,DC=evolveum,DC=com");
+		assertAccountShadow(shadows.get(0), "a5vg a5vg,CN=Users,DC=win,DC=evolveum,DC=com");
+        assertAccountShadow(shadows.get(1), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
+
+//        assertAccountShadow(shadows.get(0), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
+//        assertAccountShadow(shadows.get(1), "CN=Adalbert Meduza1,OU=evolveum,DC=win,DC=evolveum,DC=com");
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
