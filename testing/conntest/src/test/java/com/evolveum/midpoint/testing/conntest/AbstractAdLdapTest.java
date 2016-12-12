@@ -410,7 +410,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         		NUMBER_OF_ACCOUNTS, task, result);
         
         // TODO: why 11? should be 1
-        assertConnectorOperationIncrement(11);
+        assertConnectorOperationIncrement(12);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -604,7 +604,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
         
-		assertAccountShadow(shadows.get(0), "a5vg a5vg,CN=Users,DC=win,DC=evolveum,DC=com");
+		assertAccountShadow(shadows.get(0), "CN=a5vg a5vg,CN=Users,DC=win,DC=evolveum,DC=com");
         assertAccountShadow(shadows.get(1), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
 
 //        assertAccountShadow(shadows.get(0), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
