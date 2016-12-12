@@ -414,7 +414,7 @@ public class AuditLogViewerPanel extends BasePanel{
                 if (search.getChangedItem().toItemPath() != null) {
                 	ItemPath itemPath = search.getChangedItem().toItemPath();
                 	XPathHolder holder = new XPathHolder(itemPath);
-                	parameters.put("changedItem", holder.toCanonicalPath());
+                	parameters.put("changedItem", holder.toCanonicalPath(null, getPrismContext()));
                 }
                 parameters.put("eventType", search.getEventType());
                 parameters.put("eventStage", search.getEventStage());

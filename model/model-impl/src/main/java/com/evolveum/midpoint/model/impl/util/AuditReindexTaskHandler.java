@@ -1,10 +1,13 @@
 package com.evolveum.midpoint.model.impl.util;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +38,9 @@ public class AuditReindexTaskHandler implements TaskHandler {
 	public static final String HANDLER_URI = ModelPublicConstants.AUDIT_REINDEX_TASK_HANDLER_URI;
 
 	private static final String taskName = "AuditReindex";
+	
+	private int maxResults = 20;
+	private int firstResult = 0;
 
 	@Autowired
 	protected AuditService auditService;
@@ -96,9 +102,22 @@ public class AuditReindexTaskHandler implements TaskHandler {
 						"Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal",
 						e);
 			}
-
-			auditService.listRecordsIterative(null, null, resultHandler);
-			
+			Map<String, Object> params = new HashMap<String, Object>();
+			while (true) {
+				params.put("setFirstResult", firstResult);
+				params.put("setMaxResults", maxResults);
+				List<AuditEventRecord> records = auditService.listRecords(null, params);
+				if (CollectionUtils.isNotEmpty(records)){
+					for (AuditEventRecord record : records) {
+						resultHandler.handle(record);
+						runResult.setProgress(resultHandler.getProgress());
+					}
+					firstResult += maxResults;
+					maxResults = ( (expectedTotal.intValue() - firstResult) > maxResults ? maxResults : (expectedTotal.intValue() - firstResult));
+				} else {
+					break;
+				}
+			}
 			opResult.recordSuccess();
 
 		} catch (ObjectNotFoundException e) {

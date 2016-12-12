@@ -873,6 +873,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			PrismObject<O> object;
 			try {
 				object = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
+				object.checkConsistence();
 				objectHolder.setValue(object);
 			} catch (RuntimeException | SchemaException e) {
 				result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);
