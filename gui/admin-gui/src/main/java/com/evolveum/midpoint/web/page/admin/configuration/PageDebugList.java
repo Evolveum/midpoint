@@ -309,13 +309,34 @@ public class PageDebugList extends PageAdminConfiguration {
 					final IModel<DebugObjectItem> rowModel) {
 
 				TwoValueLinkPanel panel = new TwoValueLinkPanel(componentId,
-						new PropertyModel<String>(rowModel, DebugObjectItem.F_NAME),
+						new AbstractReadOnlyModel<String>() {
+							@Override
+							public String getObject() {
+								DebugObjectItem object = rowModel.getObject();
+								if (object == null) {
+									return null;
+								}
+								StringBuilder sb = new StringBuilder();
+								sb.append(object.getName());
+								if (object.getStatus() != null) {
+									sb.append(" (");
+									sb.append(object.getStatus());
+									sb.append(")");
+								}
+								return sb.toString();
+							}
+						},
 						new PropertyModel<String>(rowModel, DebugObjectItem.F_OID)) {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						DebugObjectItem object = rowModel.getObject();
 						objectEditPerformed(target, object.getOid(), type);
+					}
+
+					@Override
+					public boolean isEnabled() {
+						return rowModel.getObject().getOid() != null;
 					}
 				};
 

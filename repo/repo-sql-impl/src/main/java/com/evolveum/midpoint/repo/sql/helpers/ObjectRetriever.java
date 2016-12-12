@@ -57,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.Criteria;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
@@ -213,7 +214,7 @@ public class ObjectRetriever {
 		}
 
 		LOGGER.trace("Transforming data to JAXB type.");
-		PrismObject<T> prismObject = updateLoadedObject(fullObject, type, oid, options, session, operationResult);
+		PrismObject<T> prismObject = updateLoadedObject(fullObject, type, oid, options, null, session, operationResult);
 		validateObjectType(prismObject, type);
 
 		// this was implemented to allow report parsing errors as warnings to upper layers;
@@ -265,7 +266,7 @@ public class ObjectRetriever {
             }
 
             GetObjectResult focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, options, session, result);
+            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, options, null, session, result);
 
             session.getTransaction().commit();
 
@@ -304,7 +305,7 @@ public class ObjectRetriever {
             }
 
             GetObjectResult user = users.get(0);
-            userType = updateLoadedObject(user, UserType.class, null, null, session, result);
+            userType = updateLoadedObject(user, UserType.class, null, null, null, session, result);
 
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
@@ -397,7 +398,21 @@ public class ObjectRetriever {
 		List<PrismObject<T>> rv = new ArrayList<>();
 		if (objects != null) {
 			for (GetObjectResult object : objects) {
-				PrismObject<T> prismObject = updateLoadedObject(object, type, oid, options, session, result);
+				Holder<PrismObject<T>> partialValueHolder = new Holder<>();
+				PrismObject<T> prismObject;
+				try {
+					prismObject = updateLoadedObject(object, type, oid, options, partialValueHolder, session, result);
+				} catch (Throwable t) {
+					if (!partialValueHolder.isEmpty()) {
+						prismObject = partialValueHolder.getValue();
+					} else {
+						prismObject = prismContext.createObject(type);
+						prismObject.setOid(oid);        // most probably null
+						prismObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
+					}
+					result.recordFatalError("Couldn't retrieve " + type + " " + oid + ": " + t.getMessage(), t);
+					prismObject.asObjectable().setFetchResult(result.createOperationResultType());
+				}
 				rv.add(prismObject);
 			}
 		}
@@ -445,6 +460,7 @@ public class ObjectRetriever {
      */
     private <T extends ObjectType> PrismObject<T> updateLoadedObject(GetObjectResult result, Class<T> type,
     		String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+			Holder<PrismObject<T>> partialValueHolder,
 			Session session, OperationResult operationResult) throws SchemaException {
 
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
@@ -502,6 +518,9 @@ public class ObjectRetriever {
             caseHelper.updateLoadedCampaign(prismObject, options, session);
         }
 
+        if (partialValueHolder != null) {
+        	partialValueHolder.setValue(prismObject);
+		}
         nameResolutionHelper.resolveNamesIfRequested(session, prismObject.getValue(), options);
         validateObjectType(prismObject, type);
 
@@ -565,7 +584,7 @@ public class ObjectRetriever {
 
             if (shadows != null) {
                 for (GetObjectResult shadow : shadows) {
-                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, null, null, session, result);
+                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, null, null, null, session, result);
                     list.add(prismObject);
                 }
             }
@@ -643,7 +662,8 @@ public class ObjectRetriever {
                 while (iterator.hasNext()) {
                     GetObjectResult object = iterator.next();
 
-                    PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, session, result);
+					// TODO treat exceptions encountered within the next call
+                    PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, null, session, result);
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }
