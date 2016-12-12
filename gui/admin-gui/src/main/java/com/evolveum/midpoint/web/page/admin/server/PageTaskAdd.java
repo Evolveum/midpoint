@@ -245,32 +245,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-            	Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
-                OperationResult result = task.getResult();
-                List<QName> objectClassList = new ArrayList<>();
-
-                TaskAddResourcesDto resourcesDto = model.getObject().getResource();
-
-                if(resourcesDto != null){
-                    PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, 
-                    		resourcesDto.getOid(), PageTaskAdd.this, task, result);
-
-                    try {
-                        ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, getPrismContext());
-                        schema.getObjectClassDefinitions();
-
-                        for(Definition def: schema.getDefinitions()){
-                            objectClassList.add(def.getTypeName());
-                        }
-
-                        model.getObject().setObjectClassList(objectClassList);
-                    } catch (Exception e){
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
-                        error("Couldn't load object class list from resource.");
-                    }
-
-                }
-
+                PageTaskAdd.this.loadResource();
                 target.add(get(ID_FORM_MAIN + ":" + ID_OBJECT_CLASS));
             }
         });
@@ -330,6 +305,11 @@ public class PageTaskAdd extends PageAdminTasks {
             }
         });
 
+        if (model.getObject() != null
+                && model.getObject().getResource() != null
+                && model.getObject().getResource().getOid() != null){
+            loadResource();
+        }
         AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
         autoCompleteSettings.setShowListOnEmptyInput(true);
         autoCompleteSettings.setMaxHeightInPx(200);
@@ -411,6 +391,35 @@ public class PageTaskAdd extends PageAdminTasks {
         }
 
         return choices.iterator();
+    }
+
+
+    private void loadResource(){
+        Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
+        OperationResult result = task.getResult();
+        List<QName> objectClassList = new ArrayList<>();
+
+        TaskAddResourcesDto resourcesDto = model.getObject().getResource();
+
+        if(resourcesDto != null){
+            PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
+                    resourcesDto.getOid(), PageTaskAdd.this, task, result);
+
+            try {
+                ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, getPrismContext());
+                schema.getObjectClassDefinitions();
+
+                for(Definition def: schema.getDefinitions()){
+                    objectClassList.add(def.getTypeName());
+                }
+
+                model.getObject().setObjectClassList(objectClassList);
+            } catch (Exception e){
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
+                error("Couldn't load object class list from resource.");
+            }
+
+        }
     }
 
     private void initScheduling(final Form mainForm) {
