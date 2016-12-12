@@ -308,10 +308,10 @@ public class PageDebugView extends PageAdminConfiguration {
                 validateObject(plainTextarea.getModel().getObject(), objectHolder, dataLanguage, validateSchema.getObject(), result);
             }
 
-            if (result.isAcceptable()) {
+			if (result.isAcceptable()) {
                 PrismObject<ObjectType> newObject = objectHolder.getValue();
 
-                ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
+				ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
 
                 if (delta.getPrismContext() == null) {
                 	LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
