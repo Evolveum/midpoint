@@ -690,7 +690,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-csv</artifactId>
+            <artifactId>connector-csvfile</artifactId>
             <scope>runtime</scope>
         </dependency>
      
