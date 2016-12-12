@@ -99,7 +99,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
         Iterator<SelectableBean<OrgType>> iterator = null;
 
         ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
-                .isDirectChildOf(node.getValue().getOid())
+                .isDirectChildOf(node.getValue().getOid())      // TODO what if getValue==null
                 .asc(ObjectType.F_NAME)
                 .build();
         OperationResult result = new OperationResult(LOAD_ORG_UNITS);
@@ -217,7 +217,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     public List<OrgType> getSelectedObjects(){
     	List<OrgType> selectedOrgs = new ArrayList<>();
     	for (SelectableBean<OrgType> selected : getAvailableData()){
-    		if (selected.isSelected()){
+    		if (selected.isSelected() && selected.getValue() != null) {
     			selectedOrgs.add(selected.getValue());
     		}
     	}

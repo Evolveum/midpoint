@@ -446,7 +446,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         for (AssignmentEditorDto dto : providerList) {
             for (SelectableBean<F> providerDataDto : providerDataList){
                 F object = providerDataDto.getValue();
-                if (object.getOid().equals(dto.getTargetRef().getOid())) {
+                if (object != null && object.getOid().equals(dto.getTargetRef().getOid())) {
                     displayAssignmentsList.add(dto);
                     break;
                 }

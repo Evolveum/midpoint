@@ -1169,7 +1169,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			case WORKFLOW: message = "Couldn't search objects in workflow engine"; break;
             default: message = "Couldn't search objects"; break;    // should not occur
         }
-		LoggingUtils.logException(LOGGER, message, e);
+		LoggingUtils.logUnexpectedException(LOGGER, message, e);
 		result.recordFatalError(message, e);
 		result.cleanupResult(e);
 	}

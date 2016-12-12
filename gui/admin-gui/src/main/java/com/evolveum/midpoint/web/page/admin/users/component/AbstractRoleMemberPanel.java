@@ -409,7 +409,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 				if (object instanceof UserType) {
 					cellItem.add(new Label(componentId,
 							WebComponentUtil.getOrigStringFromPoly(((UserType) object).getFullName())));
-				} else if (AbstractRoleType.class.isAssignableFrom(object.getClass())) {
+				} else if (object instanceof AbstractRoleType) {
 					cellItem.add(new Label(componentId, WebComponentUtil
 							.getOrigStringFromPoly(((AbstractRoleType) object).getDisplayName())));
 				} else {
@@ -432,7 +432,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 				ObjectType object = bean.getValue();
 				if (object instanceof UserType) {
 					cellItem.add(new Label(componentId, ((UserType) object).getEmailAddress()));
-				} else if (AbstractRoleType.class.isAssignableFrom(object.getClass())) {
+				} else if (object instanceof AbstractRoleType) {
 					cellItem.add(new Label(componentId, ((AbstractRoleType) object).getIdentifier()));
 				} else {
 					cellItem.add(new Label(componentId, object.getDescription()));

@@ -261,10 +261,12 @@ public class PageConnectorHosts extends PageAdminResources {
 			try {
 				Task task = createSimpleTask(OPERATION_DELETE_HOSTS);
 
-				ObjectDelta<ConnectorHostType> delta = ObjectDelta.createDeleteDelta(ConnectorHostType.class,
-						selectable.getValue().getOid(), getPrismContext());
-				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
-						result);
+				if (selectable.getValue() != null) {
+					ObjectDelta<ConnectorHostType> delta = ObjectDelta.createDeleteDelta(ConnectorHostType.class,
+							selectable.getValue().getOid(), getPrismContext());
+					getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
+							result);
+				}
 			} catch (Exception ex) {
 				result.recordPartialError("Couldn't delete host.", ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete host", ex);
@@ -299,12 +301,14 @@ public class PageConnectorHosts extends PageAdminResources {
 		}
 
 		for (SelectableBean<ConnectorHostType> bean : selected) {
-			ConnectorHostType host = bean.getValue();
-			try {
-				getModelService().discoverConnectors(host, task, result);
-			} catch (Exception ex) {
-				result.recordFatalError("Fail to discover connectors on host '" + host.getHostname() + ":"
-						+ host.getPort() + "'", ex);
+			if (bean.getValue() != null) {
+				ConnectorHostType host = bean.getValue();
+				try {
+					getModelService().discoverConnectors(host, task, result);
+				} catch (Exception ex) {
+					result.recordFatalError("Fail to discover connectors on host '" + host.getHostname() + ":"
+							+ host.getPort() + "'", ex);
+				}
 			}
 		}
 

@@ -167,7 +167,7 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						T object = rowModel.getObject().getValue();
-						return WebComponentUtil.createDefaultIcon(object.asPrismObject());
+						return object != null ? WebComponentUtil.createDefaultIcon(object.asPrismObject()) : null;
 					}
 				};
 
@@ -196,7 +196,7 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						T user = rowModel.getObject().getValue();
-						return WebComponentUtil.createUserIcon(user.asPrismContainer());
+						return user != null ? WebComponentUtil.createUserIcon(user.asPrismContainer()) : null;
 					}
 				};
 			}
@@ -209,7 +209,7 @@ public class ColumnUtils {
                     @Override
                     public String getObject() {
                         T user = rowModel.getObject().getValue();
-                        String iconClass = WebComponentUtil.createUserIcon(user.asPrismContainer());
+                        String iconClass = user != null ? WebComponentUtil.createUserIcon(user.asPrismContainer()) : null;
                         String compareStringValue = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE;
                         String titleValue = "";
                         if (iconClass != null &&
@@ -261,7 +261,7 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						T role = rowModel.getObject().getValue();
-						return WebComponentUtil.createRoleIcon(role.asPrismContainer());
+						return role != null ? WebComponentUtil.createRoleIcon(role.asPrismContainer()) : null;
 					}
 				};
 			}
@@ -280,7 +280,7 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						T org = rowModel.getObject().getValue();
-						return WebComponentUtil.createOrgIcon(org.asPrismContainer());
+						return org != null ? WebComponentUtil.createOrgIcon(org.asPrismContainer()) : null;
 					}
 				};
 			}
@@ -307,7 +307,7 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						T service = rowModel.getObject().getValue();
-						return WebComponentUtil.createServiceIcon(service.asPrismContainer());
+						return service != null ? WebComponentUtil.createServiceIcon(service.asPrismContainer()) : null;
 					}
 				};
 			}
@@ -331,7 +331,7 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						T task = rowModel.getObject().getValue();
-						return WebComponentUtil.createTaskIcon(task.asPrismContainer());
+						return task != null ? WebComponentUtil.createTaskIcon(task.asPrismContainer()) : null;
 					}
 				};
 			}
@@ -416,8 +416,10 @@ public class ColumnUtils {
 					public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
 							String componentId, IModel<SelectableBean<T>> rowModel) {
 						SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
-						PrismProperty<ShadowKindType> pKind = object.getValue().asPrismObject().findProperty(
-								new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+						PrismProperty<ShadowKindType> pKind = object.getValue() != null ?
+								object.getValue().asPrismObject().findProperty(
+										new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND))
+								: null;
 						if (pKind != null) {
 							cellItem.add(new Label(componentId, WebComponentUtil
 									.createLocalizedModelForEnum(pKind.getRealValue(), cellItem)));
@@ -436,8 +438,10 @@ public class ColumnUtils {
 			public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
 					String componentId, IModel<SelectableBean<T>> rowModel) {
 				SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
-				PrismProperty<String> pIntent = object.getValue().asPrismObject().findProperty(
-						new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+				PrismProperty<String> pIntent = object.getValue() != null ?
+						object.getValue().asPrismObject().findProperty(
+								new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT))
+						: null;
 				if (pIntent != null) {
 					cellItem.add(new Label(componentId, pIntent.getRealValue()));
 				} else {
@@ -454,8 +458,10 @@ public class ColumnUtils {
 			public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
 					String componentId, IModel<SelectableBean<T>> rowModel) {
 				SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
-				PrismProperty<QName> pObjectClass = object.getValue().asPrismObject().findProperty(
-						new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
+				PrismProperty<QName> pObjectClass = object.getValue() != null ?
+						object.getValue().asPrismObject().findProperty(
+								new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME))
+						: null;
 				if (pObjectClass != null) {
 					cellItem.add(new Label(componentId, pObjectClass.getRealValue().getLocalPart()));
 				} else {

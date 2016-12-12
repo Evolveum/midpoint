@@ -264,8 +264,11 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
-        final OrgType selectedOgr = selected.getValue();
-        selectedTreeItemOidModel.setObject(selectedOgr.getOid());
+        final OrgType selectedOrg = selected.getValue();
+        if (selectedOrg == null) {
+            return;
+        }
+        selectedTreeItemOidModel.setObject(selectedOrg.getOid());
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
         AssignmentCatalogPanel.this.addOrReplaceLayout(getCatalogItemsPanelContainer());
         target.add(getCatalogItemsPanelContainer());

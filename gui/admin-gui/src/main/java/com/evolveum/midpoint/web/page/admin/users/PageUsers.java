@@ -236,7 +236,9 @@ public class PageUsers extends PageAdminUsers {
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
 					String componentId, IModel<SelectableBean<UserType>> model) {
-				cellItem.add(new Label(componentId, model.getObject().getValue().getLinkRef().size()));
+				cellItem.add(new Label(componentId,
+						model.getObject().getValue() != null ?
+								model.getObject().getValue().getLinkRef().size() : null));
 			}
 		};
 
