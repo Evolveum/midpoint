@@ -252,7 +252,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	private boolean initialized = false;
 
-	private IModel<Integer> workItemCountModel; 
+	private LoadableModel<Integer> workItemCountModel;
 	
 	public PageBase(PageParameters parameters) {
 		super(parameters);
@@ -301,6 +301,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				}
 			}
 		}; 
+	}
+
+	public void resetWorkItemCountModel() {
+		if (workItemCountModel != null) {
+			workItemCountModel.reset();
+		}
 	}
 
 	protected void createBreadcrumb() {
