@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 
@@ -349,7 +350,9 @@ public class DeltaConvertor {
     }
 
     public static Collection<ItemDeltaType> toItemDeltaTypes(ItemDelta delta, DeltaConversionOptions options) throws SchemaException {
-    	delta.checkConsistence();
+    	if (InternalsConfig.consistencyChecks) {
+			delta.checkConsistence();
+		}
         if (!delta.isEmpty() && delta.getPrismContext() == null) {
             throw new IllegalStateException("Non-empty ItemDelta with no prismContext cannot be converted to ItemDeltaType.");
         }

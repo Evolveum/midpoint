@@ -50,6 +50,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -409,15 +410,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
 		}
-		
-		OperationResultRunner.run(result, new Runnable() {
-			@Override
-			public void run() {
-				for(ObjectDelta<? extends ObjectType> delta: deltas) {
+
+		if (InternalsConfig.consistencyChecks) {
+			OperationResultRunner.run(result, () -> {
+				for (ObjectDelta<? extends ObjectType> delta : deltas) {
 					delta.checkConsistence();
 				}
-			}
-		});
+			});
+		}
 		
 		RepositoryCache.enter();
 
