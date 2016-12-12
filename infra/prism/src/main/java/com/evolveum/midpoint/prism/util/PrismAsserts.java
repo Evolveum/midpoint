@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,12 +102,25 @@ public class PrismAsserts {
 		assertSame("Wrong parent for value of container "+container, container, containerValue.getParent());
 		assertPropertyValue(containerValue, propQName, realPropValues);
 	}
+	
+	public static <T> void assertPropertyValueMatch(PrismContainer<?> container, QName propQName, MatchingRule<T> matchingRule, T... realPropValues) throws SchemaException {
+		PrismContainerValue<?> containerValue = container.getValue();
+		assertSame("Wrong parent for value of container "+container, container, containerValue.getParent());
+		assertPropertyValueMatch(containerValue, propQName, matchingRule, realPropValues);
+	}
 		
 	public static <T> void assertPropertyValue(PrismContainerValue<?> containerValue, QName propQName, T... realPropValues) {
 		PrismProperty<T> property = containerValue.findProperty(propQName);
 		assertNotNull("Property " + propQName + " not found in " + containerValue.getParent(), property);
 		assertSame("Wrong parent for property " + property, containerValue, property.getParent());
 		assertPropertyValueDesc(property, containerValue.getParent().toString(), realPropValues);
+	}
+	
+	public static <T> void assertPropertyValueMatch(PrismContainerValue<?> containerValue, QName propQName, MatchingRule<T> matchingRule, T... realPropValues) throws SchemaException {
+		PrismProperty<T> property = containerValue.findProperty(propQName);
+		assertNotNull("Property " + propQName + " not found in " + containerValue.getParent(), property);
+		assertSame("Wrong parent for property " + property, containerValue, property.getParent());
+		assertPropertyValueDesc(property, matchingRule, containerValue.getParent().toString(), realPropValues);
 	}
 	
 	public static <T> void assertPropertyValue(PrismContainer<?> container, ItemPath propPath, T... realPropValues) {
@@ -125,13 +138,22 @@ public class PrismAsserts {
 	public static <T> void assertPropertyValue(PrismProperty<T> property, T... expectedPropValues) {
 		assertPropertyValueDesc(property, null, expectedPropValues);
 	}
-		
+	
 	public static <T> void assertPropertyValueDesc(PrismProperty<T> property, String contextDescrition, T... expectedPropValues) {
+		try {
+			assertPropertyValueDesc(property, null, contextDescrition, expectedPropValues);
+		} catch (SchemaException e) {
+			// null matching rule, cannot happen
+			throw new RuntimeException(e.getMessage(), e);
+		}
+	}
+	
+	public static <T> void assertPropertyValueDesc(PrismProperty<T> property, MatchingRule<T> matchingRule, String contextDescrition, T... expectedPropValues) throws SchemaException {
 		Collection<PrismPropertyValue<T>> pvals = property.getValues();
 		QName propQName = property.getElementName();
 		assert pvals != null && !pvals.isEmpty() : "Empty property "+propQName;
 		assertSet("property "+propQName + (contextDescrition == null ? "" : " in " + contextDescrition), 
-				"value", pvals, expectedPropValues);
+				"value", matchingRule, pvals, expectedPropValues);
 	}
 	
 	public static <T> void assertPropertyValues(String message, Collection<T> expected, Collection<PrismPropertyValue<T>> results) {
@@ -519,16 +541,7 @@ public class PrismAsserts {
 	private static <C extends Containerable> void assertEquivalentContainerValues(String message, Collection<PrismContainerValue<C>> haveValues,
 			PrismContainerValue<C>[] expectedCVals) {
 		List<PrismContainerValue<C>> expectedValues = Arrays.asList(expectedCVals);
-		Comparator<PrismContainerValue<C>> comparator = new Comparator<PrismContainerValue<C>>() {
-			@Override
-			public int compare(PrismContainerValue<C> a, PrismContainerValue<C> b) {
-				if (a.equivalent(b)) {
-					return 0;
-				}
-				return 1;
-			}
-		};
-		assert MiscUtil.unorderedCollectionEquals(haveValues, expectedValues, comparator) : message;
+		assert MiscUtil.unorderedCollectionEquals(haveValues, expectedValues, (a,b) -> a.equivalent(b)) : message;
 	}
 
 	public static <T> void assertOrigin(ObjectDelta<?> objectDelta, final OriginType... expectedOriginTypes) {
@@ -820,20 +833,33 @@ public class PrismAsserts {
 		assert false: message + ": " + suffix;
 	}
 
+	private static <T> void assertSet(String inMessage, String setName, MatchingRule<T> matchingRule, Collection<PrismPropertyValue<T>> actualPValues, T[] expectedValues) throws SchemaException {
+		assertValues(setName + " set in " + inMessage, matchingRule, actualPValues, expectedValues);
+	}
+	
 	private static <T> void assertSet(String inMessage, String setName, Collection<PrismPropertyValue<T>> actualPValues, T[] expectedValues) {
 		assertValues(setName + " set in " + inMessage, actualPValues, expectedValues);
 	}
 	
 	public static <T> void assertValues(String message, Collection<PrismPropertyValue<T>> actualPValues, T... expectedValues) {
+		try {
+			assertValues(message, null, actualPValues, expectedValues);
+		} catch (SchemaException e) {
+			// null matching rule, cannot happen
+			throw new RuntimeException(e.getMessage(), e);
+		}
+	}
+	
+	public static <T> void assertValues(String message, MatchingRule<T> matchingRule, Collection<PrismPropertyValue<T>> actualPValues, T... expectedValues) throws SchemaException {
 		assertNotNull("Null set in " + message, actualPValues);
 		if (expectedValues.length != actualPValues.size()) {
 			fail("Wrong number of values in " + message+ "; expected "+expectedValues.length+" (real values) "
 					+PrettyPrinter.prettyPrint(expectedValues)+"; has "+actualPValues.size()+" (pvalues) "+actualPValues);
 		}
-		for (PrismPropertyValue<?> actualPValue: actualPValues) {
+		for (PrismPropertyValue<T> actualPValue: actualPValues) {
 			boolean found = false;
 			for (T value: expectedValues) {
-				if (value.equals(actualPValue.getValue())) {
+				if (PrismUtil.equals(value, actualPValue.getValue(), matchingRule)) {
 					found = true;
 				}
 			}
@@ -1099,7 +1125,7 @@ public class PrismAsserts {
 				return s1.compareTo(s2);
 			}
 		};
-		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection, comparator) : message + ": expected "+expectedCollection+
+		assert MiscUtil.unorderedCollectionCompare(actualCollection, expectedCollection, comparator) : message + ": expected "+expectedCollection+
 				"; was "+actualCollection;
 	}
 

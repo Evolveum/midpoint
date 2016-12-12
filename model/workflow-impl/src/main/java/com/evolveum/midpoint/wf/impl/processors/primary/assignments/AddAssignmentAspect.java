@@ -118,7 +118,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
                 LOGGER.trace(" - {} (approval required = {})", specificObjectType, approvalRequired);
                 if (approvalRequired) {
                     AssignmentType aCopy = cloneAndCanonicalizeAssignment(a);
-                    approvalRequestList.add(createApprovalRequest(config, aCopy, specificObjectType));
+                    approvalRequestList.add(createApprovalRequest(config, aCopy, specificObjectType, result));
                     assignmentTypeIterator.remove();
 					miscDataUtil.generateFocusOidIfNeeded(modelContext, change);
                 }
@@ -203,7 +203,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
             LOGGER.trace(" - {} (approval required = {})", specificObjectType, approvalRequired);
             if (approvalRequired) {
                 AssignmentType aCopy = cloneAndCanonicalizeAssignment(assignmentType);
-                return createApprovalRequest(config, aCopy, specificObjectType);
+                return createApprovalRequest(config, aCopy, specificObjectType, result);
             }
         }
         return null;
@@ -282,7 +282,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     protected abstract AssignmentType cloneAndCanonicalizeAssignment(AssignmentType a);
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    protected abstract ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, T target);
+    protected abstract ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, T target, OperationResult result);
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
     protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);

@@ -80,7 +80,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
 		for (Serializable s : super.getAvailableData()) {
 			if (s instanceof SelectableBean) {
 				SelectableBean<W> selectable = (SelectableBean<W>) s;
-				if (selectable.isSelected()) {
+				if (selectable.isSelected() && selectable.getValue() != null) {
 					allSelected.add(selectable.getValue());
 				}
 			}

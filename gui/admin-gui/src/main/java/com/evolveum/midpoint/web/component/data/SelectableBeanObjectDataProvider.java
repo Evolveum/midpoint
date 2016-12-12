@@ -85,9 +85,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     
     public List<O> getSelectedData() {
     	preprocessSelectedDataInternal();
-    	for (SelectableBean<O> s : super.getAvailableData()){
-			SelectableBean<O> selectable = (SelectableBean<O>) s;
-			if (selectable.isSelected()){
+    	for (SelectableBean<O> selectable : super.getAvailableData()) {
+			if (selectable.isSelected() && selectable.getValue() != null) {
 				((Set)selected).add(selectable.getValue());
 			}
     	}
@@ -96,24 +95,22 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     	return allSelected;
     }
     
-    private void preprocessSelectedData(){
+    private void preprocessSelectedData() {
     	 preprocessSelectedDataInternal();
          getAvailableData().clear();
     }
     
-    private void preprocessSelectedDataInternal(){
-    	for (SelectableBean<O> available : getAvailableData()){
-     		SelectableBean<O> selectableBean = (SelectableBean<O>) available;
-     		if (selectableBean.isSelected()){
-     			((Set)selected).add(selectableBean.getValue());
+    private void preprocessSelectedDataInternal() {
+    	for (SelectableBean<O> available : getAvailableData()) {
+			if (available.isSelected() && available.getValue() != null) {
+     			((Set)selected).add(available.getValue());
      		}
          }
          
-         for (SelectableBean<O> available : getAvailableData()){
-     		SelectableBean<O> selectableBean = (SelectableBean<O>) available;
-     		if (!selectableBean.isSelected()){
-     			if (selected.contains(selectableBean.getValue())){
-     				selected.remove(selectableBean.getValue());
+         for (SelectableBean<O> available : getAvailableData()) {
+			 if (!available.isSelected()) {
+     			if (selected.contains(available.getValue())) {
+     				selected.remove(available.getValue());
      			}
      		}
          }
@@ -137,7 +134,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             
             ObjectQuery query = getQuery();
             if (query == null){
-            	if (emptyListOnNullQuery){
+            	if (emptyListOnNullQuery) {
             		return new ArrayList<SelectableBean<O>>().iterator();
             	}
             	query = new ObjectQuery();

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.model.api.expr;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -44,6 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -1011,4 +1012,14 @@ public interface MidpointFunctions {
     ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) throws SchemaException;
 
 	Protector getProtector();
+	
+	
+	/**
+	 * Returns a map from the translated xml attribute - value pairs.
+	 *
+	 * @param A string representation of xml formated data. 
+	 * @return
+	 * @throws SystemException when an xml stream exception occurs 
+	 */
+	public Map<String, String> parseXmlToMap(String xml);
 }

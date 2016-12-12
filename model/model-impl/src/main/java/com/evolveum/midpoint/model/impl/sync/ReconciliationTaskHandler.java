@@ -225,7 +225,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		try {
 			if (!scanForUnfinishedOperations(coordinatorTask, resourceOid, reconResult, opResult)) {
-                processInterruption(runResult, resource, coordinatorTask, opResult);
+                processInterruption(runResult, resource, coordinatorTask, opResult);			// appends also "last N failures" (TODO refactor)
                 return runResult;
             }
 		} catch (ObjectNotFoundException ex) {
@@ -235,7 +235,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			processErrorPartial(runResult, "Object already exist", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
 		} catch (CommunicationException ex) {
 			// Error, but not critical. Just try later.
-			processErrorFinal(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, coordinatorTask, opResult);
+			processErrorFinal(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, coordinatorTask, opResult);	// appends also "last N failures" (TODO refactor)
 			return runResult;
 		} catch (SchemaException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
@@ -407,6 +407,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
         }
         runResult.setProgress(task.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);          // not strictly necessary, because using task.canRun() == false the task manager knows we were interrupted
+		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task.getLastFailures(), opResult);	// TODO implement more seriously
     }
 
     private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
@@ -414,6 +415,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
+		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task.getLastFailures(), opResult); // TODO implement more seriously
 		runResult.setRunResultStatus(runResultStatus);
 		runResult.setProgress(task.getProgress());
 		

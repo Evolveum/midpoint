@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
@@ -138,7 +139,8 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
                 AssignmentType assignmentType = getAssignmentToBeModified(assignmentsOld, id);
                 AssignmentType aCopy = cloneAndCanonicalizeAssignment(assignmentType);
                 T target = getAssignmentApprovalTarget(assignmentType, result);
-                ApprovalRequest approvalRequest = createApprovalRequestForModification(config, aCopy, target, entry.getValue());
+                ApprovalRequest approvalRequest = createApprovalRequestForModification(config, aCopy, target, entry.getValue(),
+                        createRelationResolver(target, result));
                 approvalRequestList.add(approvalRequest);
             }
         }
@@ -265,7 +267,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
     protected abstract AssignmentType cloneAndCanonicalizeAssignment(AssignmentType a);
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    protected abstract ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, T target, List<ItemDeltaType> modifications);
+    protected abstract ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, T target, List<ItemDeltaType> modifications, RelationResolver relationResolver);
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
     protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);

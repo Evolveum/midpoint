@@ -37,7 +37,7 @@ public class TaskHandlerUtil {
 			if (failures.size() < IterativeTaskInformation.LAST_FAILURES_KEPT) {
 				sb.append("Failures (").append(failures.size()).append("):\n");
 			} else {
-				sb.append("Last ").append(IterativeTaskInformation.LAST_FAILURES_KEPT).append("failures:\n");
+				sb.append("Last ").append(IterativeTaskInformation.LAST_FAILURES_KEPT).append(" failures:\n");
 			}
 			failures.forEach(f -> sb.append(f).append("\n"));
 			result.createSubresult(operationNamePrefix + ".errors")

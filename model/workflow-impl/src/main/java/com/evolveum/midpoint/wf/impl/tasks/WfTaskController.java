@@ -111,7 +111,7 @@ public class WfTaskController {
 
     public WfTask submitWfTask(WfTaskCreationInstruction instruction, WfTask parentWfTask, WfConfigurationType wfConfigurationType,
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return submitWfTask(instruction, parentWfTask.getTask(), wfConfigurationType, result);
+        return submitWfTask(instruction, parentWfTask.getTask(), wfConfigurationType, null, result);
     }
 
     /**
@@ -121,11 +121,11 @@ public class WfTaskController {
 	 * @param wfConfigurationType
 	 */
     public WfTask submitWfTask(WfTaskCreationInstruction instruction, Task parentTask, WfConfigurationType wfConfigurationType,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+			String channelOverride, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Processing start instruction:\n{}", instruction.debugDump());
         }
-        Task task = submitTask(instruction, parentTask, wfConfigurationType, result);
+        Task task = submitTask(instruction, parentTask, wfConfigurationType, channelOverride, result);
 		WfTask wfTask = recreateWfTask(task, instruction.getChangeProcessor());
         if (!instruction.isNoProcess()) {
             startWorkflowProcessInstance(wfTask, instruction, result);
@@ -173,8 +173,11 @@ public class WfTaskController {
 
     //region Working with midPoint tasks
 
-    private Task submitTask(WfTaskCreationInstruction instruction, Task parentTask, WfConfigurationType wfConfigurationType, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Task submitTask(WfTaskCreationInstruction instruction, Task parentTask, WfConfigurationType wfConfigurationType, String channelOverride, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Task wfTask = instruction.createTask(this, parentTask, wfConfigurationType);
+		if (channelOverride != null) {
+			wfTask.setChannel(channelOverride);
+		}
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Switching workflow root or child task to background:\n{}", wfTask.debugDump());
         }

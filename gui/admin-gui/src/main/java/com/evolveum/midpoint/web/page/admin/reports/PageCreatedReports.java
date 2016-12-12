@@ -267,7 +267,7 @@ public class PageCreatedReports extends PageAdminReports {
                     @Override
                     public Date getObject() {
                         ReportOutputType object = rowModel.getObject().getValue();
-                        MetadataType metadata = object.getMetadata();
+                        MetadataType metadata = object != null ? object.getMetadata() : null;
                         if (metadata == null) {
                             return null;
                         }
@@ -372,7 +372,7 @@ public class PageCreatedReports extends PageAdminReports {
         List<ReportOutputType> selected = new ArrayList<>();
 
         for (SelectableBean<ReportOutputType> row : rows) {
-            if (row.isSelected()) {
+            if (row.isSelected() && row.getValue() != null) {
                 selected.add(row.getValue());
             }
         }

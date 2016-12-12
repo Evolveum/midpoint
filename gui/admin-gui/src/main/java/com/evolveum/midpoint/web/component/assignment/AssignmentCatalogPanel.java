@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
@@ -58,6 +59,7 @@ import org.apache.wicket.model.util.ListModel;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by honchar.
@@ -85,7 +87,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private PageBase pageBase;
     private IModel<String> selectedTreeItemOidModel;
     private String rootOid;
-    private String selectedOid;
     private IModel<Search> searchModel;
     private IModel<AssignmentViewType> viewModel;
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> provider;
@@ -100,7 +101,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         this.pageBase = pageBase;
         this.rootOid = rootOid;
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
-        selectedOid = rootOid;
+//        pageBase.getSessionStorage().getRoleCatalog().setSelectedOid(rootOid);
         initLayout();
     }
 
@@ -202,6 +203,40 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                     return new ArrayList<>();
                 }
 
+                @Override
+                public Set<SelectableBean<OrgType>> getExpandedItems(){
+                    return pageBase.getSessionStorage().getRoleCatalog().getExpandedItems();
+                }
+
+                @Override
+                public void setExpandedItems(TreeStateSet items){
+                    pageBase.getSessionStorage().getRoleCatalog().setExpandedItems(items);
+                }
+
+                @Override
+                public SelectableBean<OrgType> getCollapsedItem(){
+                    return pageBase.getSessionStorage().getRoleCatalog().getCollapsedItem();
+                }
+
+                @Override
+                public void setCollapsedItem(SelectableBean<OrgType> item){
+                    pageBase.getSessionStorage().getRoleCatalog().setCollapsedItem(item);
+                }
+
+                @Override
+                public void setSelectedItem(SelectableBean<OrgType> item){
+                    pageBase.getSessionStorage().getRoleCatalog().setSelectedItem(item);
+                }
+
+                @Override
+                public SelectableBean<OrgType> getSelectedItem(){
+                    return pageBase.getSessionStorage().getRoleCatalog().getSelectedItem();
+                }
+
+                @Override
+                public int getSelectedTabId(){
+                    return pageBase.getSessionStorage().getRoleCatalog().getSelectedTabId();
+                }
             };
             treePanel.setOutputMarkupId(true);
             treePanelContainer.add(new AttributeAppender("class", "col-md-3"));
@@ -229,8 +264,11 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
-        final OrgType selectedOgr = selected.getValue();
-        selectedTreeItemOidModel.setObject(selectedOgr.getOid());
+        final OrgType selectedOrg = selected.getValue();
+        if (selectedOrg == null) {
+            return;
+        }
+        selectedTreeItemOidModel.setObject(selectedOrg.getOid());
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
         AssignmentCatalogPanel.this.addOrReplaceLayout(getCatalogItemsPanelContainer());
         target.add(getCatalogItemsPanelContainer());
@@ -241,12 +279,13 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         selectedTreeItemOidModel = new IModel<String>() {
             @Override
             public String getObject() {
-                return StringUtils.isEmpty(selectedOid) ? rootOid : selectedOid;
+                return StringUtils.isEmpty(pageBase.getSessionStorage().getRoleCatalog().getSelectedOid()) ?
+                        rootOid : pageBase.getSessionStorage().getRoleCatalog().getSelectedOid();
             }
 
             @Override
             public void setObject(String s) {
-                selectedOid = s;
+                pageBase.getSessionStorage().getRoleCatalog().setSelectedOid(s);
             }
 
             @Override

@@ -91,7 +91,10 @@ public class WfHook implements ChangeHook {
         Validate.notNull(taskFromModel);
         Validate.notNull(parentResult);
 
-        OperationResult result = parentResult.createMinorSubresult(OPERATION_INVOKE);
+	    // Generally this cannot be minor as we need the "task switched to background" flag.
+	    // But if the hook does nothing (returns FOREGROUND flag), we mark the result
+	    // as minor afterwards.
+        OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
         result.addParam("taskFromModel", taskFromModel.toString());
         result.addContext("model state", context.getState());
         try {
@@ -113,6 +116,9 @@ public class WfHook implements ChangeHook {
 
             HookOperationMode retval = processModelInvocation(context, wfConfigurationType, taskFromModel, result);
             result.computeStatus();
+            if (retval == HookOperationMode.FOREGROUND) {
+	            result.setMinor(true);
+            }
             return retval;
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't process model invocation in workflow module: " + e.getMessage(), e);

@@ -241,6 +241,11 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				cancelPerformed(target);
 			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				cancelPerformed(target);
+			}
 		};
 		form.add(cancel);
 
@@ -254,7 +259,6 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 			@Override
 			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				System.out.println("asdf");
 				target.add(form);
 			}
 		};

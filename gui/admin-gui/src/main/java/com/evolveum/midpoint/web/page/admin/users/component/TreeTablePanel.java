@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -255,6 +254,9 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+		if (selected.getValue() == null) {
+			return;
+		}
 		getTreePanel().setSelected(selected);
 		target.add(addOrReplace(createMemberPanel(selected.getValue())));
 	}
@@ -288,6 +290,9 @@ public class TreeTablePanel extends BasePanel<String> {
 		OperationResult result = new OperationResult(OPERATION_MOVE_OBJECT);
 
 		OrgType toMove = orgToMove.getValue();
+		if (toMove == null || selected.getValue() == null) {
+			return;
+		}
 		ObjectDelta<OrgType> moveOrgDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, toMove.getOid(),
 				getPageBase().getPrismContext());
 
@@ -333,6 +338,9 @@ public class TreeTablePanel extends BasePanel<String> {
 		OperationResult result = new OperationResult(OPERATION_MOVE_OBJECT);
 
 		OrgType toMove = newRoot.getValue();
+		if (toMove == null) {
+			return;
+		}
 		ObjectDelta<OrgType> moveOrgDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, toMove.getOid(),
 				getPageBase().getPrismContext());
 
@@ -374,7 +382,9 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		Task task = getPageBase().createSimpleTask(OPERATION_RECOMPUTE);
 		OperationResult result = new OperationResult(OPERATION_RECOMPUTE);
-
+		if (orgToRecompute.getValue() == null) {
+			return;
+		}
 		try {
 			ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class,
 					orgToRecompute.getValue().getOid(), getPageBase().getPrismContext());
@@ -427,7 +437,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 	private boolean hasChildren(SelectableBean<OrgType> orgToDelete) {
 		ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
-				.isChildOf(orgToDelete.getValue().getOid())
+				.isChildOf(orgToDelete.getValue().getOid())			// TODO what if orgToDelete.getValue()==null
 				.build();
 		Task task = getPageBase().createSimpleTask(OPERATION_COUNT_CHILDREN);
 		OperationResult result = new OperationResult(OPERATION_COUNT_CHILDREN);
@@ -453,6 +463,9 @@ public class TreeTablePanel extends BasePanel<String> {
 		if (orgToDelete == null) {
 			orgToDelete = getTreePanel().getRootFromProvider();
 		}
+		if (orgToDelete.getValue() == null) {
+			return;
+		}
 		String oidToDelete = orgToDelete.getValue().getOid();
 		WebModelServiceUtils.deleteObject(OrgType.class, oidToDelete, result, page);
 
@@ -474,6 +487,9 @@ public class TreeTablePanel extends BasePanel<String> {
 	private void editRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {
 		if (root == null) {
 			root = getTreePanel().getRootFromProvider();
+		}
+		if (root.getValue() == null) {
+			return;
 		}
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, root.getValue().getOid());

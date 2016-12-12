@@ -81,6 +81,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         if (level.getAutomaticallyApproved() != null) {
             try {
+                opTask.setChannel(wfTask.getChannel());
                 expressionVariables = getDefaultVariables(execution, wfTask, result);
                 preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, opTask, result);
                 if (LOGGER.isTraceEnabled()) {

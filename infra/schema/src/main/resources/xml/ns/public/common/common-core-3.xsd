@@ -4171,11 +4171,99 @@
             </xsd:element>
         	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true"/>
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
-            <!-- TODO -->
+            <xsd:element name="connectorErrorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specifies a method that midPoint will use to evaluate criticality of errors: which errors are
+                		considered to be critical (stops the operation) and which error are non-critical (operation continues).
+                		By default network errors are not considered critical, other errors are critical.
+                		
+                		EXPERIMENTAL: use with care.
+                		
+                		Use of this option may be DANGEROUS. Especially when used to set generic errors as non-critical.
+                		Generic errors means that midPoint has absolutely no idea what is going on. Otherwise the
+                		error would be classified to a more specific category. Continuing an operation where midPoint
+                		has no idea what is going on may have severe consequences. The results are unpredicatble.
+                		If you use this setting then you are on your own. Hic sunt liones.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+		            	<a:experimental>true</a:experimental>
+		            </xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
+    <xsd:complexType name="ErrorSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects error categories, e.g. for the purpose of criticality definition, selection
+                which error types to handle, etc.
+                
+                EXPERIMENTAL: use with care
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            	<a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="network" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects network errors (connection refused, timeouts, unreachable network, connection resets, ...)
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="security" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects security issues (failed authentication, permission denied, ...)
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="policy" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects policy violations. The operation failed because it violates
+        				defined policies (e.g. exlusion policies), it fails data consistency checks,
+        				etc.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="schema" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects schema and data format errors. These are errors that data
+        				not complete, they contain unexpected elements, they do not match
+        				pre-defined schema, etc.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="configuration" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects configuration errors. These are caused by misconfiguration of
+        				midPoint, some of its components, the connector or the resource. This also
+        				includes run-time errors that are likely caused by the configuration, such
+        				as generic errors in the expressions.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="generic" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects generic, system and other non-specific issues. These errors
+        				do not have any substantial definition about their cause. The error
+        				may mean anything.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+        
     <xsd:complexType name="ResourceBusinessConfigurationType">
         <xsd:annotation>
             <xsd:documentation>

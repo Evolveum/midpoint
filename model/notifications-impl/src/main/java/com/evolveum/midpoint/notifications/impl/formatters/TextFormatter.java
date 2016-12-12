@@ -326,17 +326,23 @@ public class TextFormatter {
             }
         }
 
+        String referredObjectIdentification;
         if (object != null) {
-            return PolyString.getOrig(object.asObjectable().getName()) +
+            referredObjectIdentification = PolyString.getOrig(object.asObjectable().getName()) +
                     " (" + object.toDebugType() + ")" +
                     qualifier;
         } else {
+        	String nameOrOid = value.getTargetName() != null ? value.getTargetName().getOrig() : value.getOid();
             if (mightBeRemoved) {
-                return "(cannot display the name of " + localPart(value.getTargetType()) + ":" + value.getOid() + ", as it might be already removed)";
+                referredObjectIdentification = "(cannot display the actual name of " + localPart(value.getTargetType()) + ":" + nameOrOid + ", as it might be already removed)";
             } else {
-                return localPart(value.getTargetType()) + ":" + value.getOid();
+                referredObjectIdentification = localPart(value.getTargetType()) + ":" + nameOrOid;
             }
         }
+
+        return value.getRelation() != null ?
+				referredObjectIdentification + " [" + value.getRelation().getLocalPart() + "]"
+				: referredObjectIdentification;
     }
 
     private PrismObject<? extends ObjectType> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {

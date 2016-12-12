@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
+import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,6 +63,7 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
     public ObjectHistoryTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
                                  PageAdminObjectDetails<F> parentPage) {
         super(id, mainForm, focusWrapperModel, parentPage);
+        parentPage.getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
         initLayout(focusWrapperModel, parentPage);
     }
 

@@ -25,15 +25,26 @@ import com.evolveum.midpoint.prism.PrismValue;
 public class SceneItemValueImpl implements SceneItemValue {
 
 	private final String text;
+	private final String additionalText;
 	private PrismValue sourceValue;
 
 	public SceneItemValueImpl(String text) {
 		this.text = text;
+		this.additionalText = null;
+	}
+
+	public SceneItemValueImpl(String text, String additionalText) {
+		this.text = text;
+		this.additionalText = additionalText;
 	}
 
 	@Override
 	public String getText() {
 		return text;
+	}
+
+	public String getAdditionalText() {
+		return additionalText;
 	}
 
 	@Override

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;

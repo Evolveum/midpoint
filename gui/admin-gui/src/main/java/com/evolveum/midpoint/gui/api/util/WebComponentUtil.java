@@ -42,6 +42,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -767,8 +768,15 @@ public final class WebComponentUtil {
 		if (object == null) {
 			return null;
 		}
-		if (object.canRepresent(OrgType.class)) {
-			PolyString displayName = getValue(object, OrgType.F_DISPLAY_NAME, PolyString.class);
+		if (object.canRepresent(OrgType.class) ||
+				object.canRepresent(RoleType.class) ||
+				object.canRepresent(ServiceType.class)) {
+			PolyString displayName = getValue(object, AbstractRoleType.F_DISPLAY_NAME, PolyString.class);
+			if (displayName != null && displayName.getOrig() != null) {
+				return displayName.getOrig();
+			}
+		} else if (object.canRepresent(UserType.class)){
+			PolyString displayName = getValue(object, UserType.F_FULL_NAME, PolyString.class);
 			if (displayName != null && displayName.getOrig() != null) {
 				return displayName.getOrig();
 			}

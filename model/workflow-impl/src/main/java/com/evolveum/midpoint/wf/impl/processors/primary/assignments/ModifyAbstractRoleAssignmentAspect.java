@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -53,8 +54,8 @@ public abstract class ModifyAbstractRoleAssignmentAspect<F extends FocusType> ex
     }
 
     @Override
-    public ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, AbstractRoleType role, List<ItemDeltaType> modifications) {
-        return specificAssignmentHelper.createApprovalRequestForModification(config, assignmentType, role, modifications);
+    public ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, AbstractRoleType role, List<ItemDeltaType> modifications, RelationResolver relationResolver) {
+        return specificAssignmentHelper.createApprovalRequestForModification(config, assignmentType, role, modifications, relationResolver);
     }
 
     @Override

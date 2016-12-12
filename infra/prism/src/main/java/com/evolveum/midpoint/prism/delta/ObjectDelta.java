@@ -1430,8 +1430,8 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 				return false;
 		} else if (!objectToAdd.equivalent(other.objectToAdd))
 			return false;
-		if (!MiscUtil.unorderedCollectionEquals(this.modifications, other.modifications, (o1, o2) ->
-				((ItemDelta) o1).equivalent((ItemDelta) o2) ? 0 : 1)) {
+		if (!MiscUtil.unorderedCollectionEquals(this.modifications, other.modifications, 
+				(o1, o2) -> o1.equivalent((ItemDelta)o2))) {
 			return false;
 		}
 		return Objects.equals(objectTypeClass, other.objectTypeClass)

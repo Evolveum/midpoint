@@ -325,7 +325,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
     protected ApprovalRequest<AssociationAdditionType>
     createApprovalRequest(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove) {
-        return new ApprovalRequestImpl<>(itemToApprove, config, prismContext);
+        return new ApprovalRequestImpl<>(itemToApprove, config, prismContext, createRelationResolver((PrismObject) null, null));        // TODO rel resolver
     }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource

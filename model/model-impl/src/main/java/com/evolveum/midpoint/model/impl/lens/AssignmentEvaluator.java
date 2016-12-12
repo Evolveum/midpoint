@@ -22,7 +22,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -58,6 +57,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -599,7 +599,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		} else {
 			throw new SchemaException("Unknown assignment target type " + targetType + " in " + sourceDescription);
 		}
-
+		
 		if (!LensUtil.isValid(targetType, now, activationComputer)) {
 			LOGGER.trace("Skipping evaluation of " + targetType + " because it is not valid");
 			return;
@@ -656,6 +656,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				LOGGER.trace("NOT adding target {} to orgRef: {}", targetType, assignmentPath);
 			}	
+		}
+		
+		if (!DeputyUtils.isMembershipRelation(relation) && !DeputyUtils.isDelegationRelation(relation)) {
+			LOGGER.trace("Cutting evaluation of " + targetType + " because it is neigther memberhip nor delegation relation ({})", relation);
+			return;
 		}
 		
 		EvaluationOrder evaluationOrder = assignmentPath.getEvaluationOrder();

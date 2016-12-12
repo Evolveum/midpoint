@@ -51,7 +51,7 @@ public abstract class Abstract389DsTest extends AbstractLdapConnTest {
 
 	@Override
 	protected String getLdapBindPassword() {
-		return "secret123";
+		return "qwe12345";
 	}
 	
 	@Override

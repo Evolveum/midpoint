@@ -88,13 +88,10 @@ public class SearchTest extends BaseSQLRepoTest {
     public void iterateEmptySet() throws Exception {
         OperationResult result = new OperationResult("search empty");
 
-        ResultHandler handler = new ResultHandler() {
-            @Override
-            public boolean handle(PrismObject object, OperationResult parentResult) {
-                fail();
-                return false;
-            }
-        };
+        ResultHandler handler = (object, parentResult) -> {
+			fail();
+			return false;
+		};
 
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_NAME).eqPoly("asdf", "asdf").matchingStrict()
@@ -112,14 +109,10 @@ public class SearchTest extends BaseSQLRepoTest {
 
         final List<PrismObject> objects = new ArrayList<PrismObject>();
 
-        ResultHandler handler = new ResultHandler() {
-            @Override
-            public boolean handle(PrismObject object, OperationResult parentResult) {
-                objects.add(object);
-
-                return true;
-            }
-        };
+        ResultHandler handler = (object, parentResult) -> {
+			objects.add(object);
+			return true;
+		};
 
         repositoryService.searchObjectsIterative(UserType.class, null, handler, null, false, result);
         result.recomputeStatus();
@@ -322,12 +315,12 @@ public class SearchTest extends BaseSQLRepoTest {
 
     }
     
-    @Test(enabled = false)
+    @Test
     public void roleAndOrgAssignmentSearchTest() throws Exception {
-        PrismReferenceValue r456 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
         PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r456)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r123)
                 .and().item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)
                 .build();
         OperationResult result = new OperationResult("search");
@@ -563,4 +556,98 @@ public class SearchTest extends BaseSQLRepoTest {
 		assertTrue(result.isSuccess());
 		assertEquals("Should find one object", 1, roles.size());
 	}
+
+	// testing MID-3568
+    @Test
+    public void caseInsensitiveSearchTest() throws Exception {
+        final String existingNameNorm = "test userx00003";
+        final String existingNameOrig = "Test UserX00003";
+        final String emailLowerCase = "testuserx00003@example.com";
+        final String emailVariousCase = "TeStUsErX00003@EXAmPLE.com";
+
+        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                        .item(UserType.F_FULL_NAME).eqPoly(existingNameNorm).matchingNorm()
+                        .build(),
+                1);
+
+        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_FULL_NAME).eqPoly(existingNameOrig).matchingNorm()
+                .build(),
+                1);
+
+        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_EMAIL_ADDRESS).eq(emailLowerCase).matchingCaseIgnore()
+                .build(),
+                1);
+
+        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_EMAIL_ADDRESS).eq(emailVariousCase).matchingCaseIgnore()
+                .build(),
+                1);
+
+        // comparing polystrings, but providing plain String
+		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.item(UserType.F_FULL_NAME).eq(existingNameNorm).matchingNorm()
+						.build(),
+				1);
+
+		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.item(UserType.F_FULL_NAME).eq(existingNameOrig).matchingNorm()
+						.build(),
+				1);
+
+		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                        .item(UserType.F_FULL_NAME).containsPoly(existingNameNorm).matchingNorm()
+                        .build(),
+                1);
+
+        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_FULL_NAME).containsPoly(existingNameOrig).matchingNorm()
+                .build(),
+                1);
+
+        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_EMAIL_ADDRESS).contains(emailLowerCase).matchingCaseIgnore()
+                .build(),
+                1);
+
+        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_EMAIL_ADDRESS).contains(emailVariousCase).matchingCaseIgnore()
+                .build(),
+                1);
+
+		// comparing polystrings, but providing plain String
+		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.item(UserType.F_FULL_NAME).contains(existingNameNorm).matchingNorm()
+						.build(),
+				1);
+
+		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.item(UserType.F_FULL_NAME).contains(existingNameOrig).matchingNorm()
+						.build(),
+				1);
+	}
+
+    @SuppressWarnings("SameParameterValue")
+	private void assertObjectsFound(ObjectQuery query, int expectedCount) throws Exception {
+    	assertObjectsFoundBySearch(query, expectedCount);
+    	assertObjectsFoundByCount(query, expectedCount);
+	}
+
+    private void assertObjectsFoundBySearch(ObjectQuery query, int expectedCount) throws Exception {
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Wrong # of results found: " + query, expectedCount, users.size());
+    }
+
+    private void assertObjectsFoundByCount(ObjectQuery query, int expectedCount) throws Exception {
+        OperationResult result = new OperationResult("count");
+		int count = repositoryService.countObjects(UserType.class, query, result);
+		result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Wrong # of results found: " + query, expectedCount, count);
+    }
+
 }

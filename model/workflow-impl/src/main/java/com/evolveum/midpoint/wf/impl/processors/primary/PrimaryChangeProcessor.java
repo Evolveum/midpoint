@@ -212,7 +212,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 					// TODO CONSIDER THIS... when OID is no longer transferred
 					instruction.addHandlersAfterWfProcessAtEnd(WfTaskUtil.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
 				}
-				WfTask wfTask = wfTaskController.submitWfTask(instruction, rootWfTask.getTask(), wfConfigurationType, result);
+				WfTask wfTask = wfTaskController.submitWfTask(instruction, rootWfTask.getTask(), wfConfigurationType, null, result);
                 wfTasks.add(wfTask);
             }
 

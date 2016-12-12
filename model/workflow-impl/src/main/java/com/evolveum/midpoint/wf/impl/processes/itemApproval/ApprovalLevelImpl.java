@@ -50,7 +50,8 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
     private transient PrismContext prismContext;
 
-    public ApprovalLevelImpl(ApprovalLevelType levelType, PrismContext prismContext) {
+    public ApprovalLevelImpl(ApprovalLevelType levelType, PrismContext prismContext,
+                             RelationResolver relationResolver) {
 
         Validate.notNull(prismContext, "prismContext must not be null");
 
@@ -60,12 +61,9 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
         setPrismContext(prismContext);
 
-        for (ObjectReferenceType approverRef : levelType.getApproverRef()) {
-            addApproverRef(approverRef);
-        }
-        for (ExpressionType approverExpression : levelType.getApproverExpression()) {
-            addApproverExpression(approverExpression);
-        }
+	    levelType.getApproverRef().forEach(this::addApproverRef);
+	    relationResolver.getApprovers(levelType.getApproverRelation()).forEach(this::addApproverRef);
+	    levelType.getApproverExpression().forEach(this::addApproverExpression);
         this.evaluationStrategy = levelType.getEvaluationStrategy();
         setAutomaticallyApproved(levelType.getAutomaticallyApproved());
     }
@@ -80,14 +78,10 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 		order = 0;
 
         if (approverRefList != null) {
-            for (ObjectReferenceType approverRef : approverRefList) {
-                addApproverRef(approverRef);
-            }
+	        approverRefList.forEach(this::addApproverRef);
         }
         if (approverExpressionList != null) {
-            for (ExpressionType expressionType : approverExpressionList) {
-                addApproverExpression(expressionType);
-            }
+	        approverExpressionList.forEach(this::addApproverExpression);
         }
         setEvaluationStrategy(LevelEvaluationStrategyType.ALL_MUST_AGREE);
         setAutomaticallyApproved(automaticallyApproved);
