@@ -33,11 +33,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.repo.sql.data.audit.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
+import org.hibernate.LockMode;
+import org.hibernate.LockOptions;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
@@ -75,6 +79,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
 	private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
 	private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
+	
+	private static final String QUERY_MAX_RESULT = "setMaxResults"; 
+	private static final String QUERY_FIRST_RESULT = "setFirstResult";
 
 	public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
 		super(repositoryFactory);
@@ -162,10 +169,21 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		Session session = null;
 		try {
 			session = baseHelper.beginTransaction();
-			session.setFlushMode(FlushMode.MANUAL);
+			
 			RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, getPrismContext());
-			session.update(reindexed);
-
+			//TODO FIXME temporary hack, merge will eventyually load the object to the session if there isn't one,
+			// but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
+			// during serializing/deserializing which causes constraint violation on priamry key..
+			Object o = session.load(RAuditEventRecord.class, record.getRepoId());
+			
+			if (o instanceof RAuditEventRecord) {
+				RAuditEventRecord rRecord = (RAuditEventRecord) o;
+				rRecord.getChangedItems().clear();
+				rRecord.getChangedItems().addAll(reindexed.getChangedItems());
+				
+				session.merge(rRecord);
+			}
+			
 			session.getTransaction().commit();
 
 		} catch (DtoTranslationException ex) {
@@ -189,12 +207,14 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		}
 
 		try {
-			session = baseHelper.beginTransaction();
-			session.setFlushMode(FlushMode.MANUAL);
+			session = baseHelper.beginReadOnlyTransaction();
+			
 			Query q;
+			
 			if (StringUtils.isBlank(query)) {
-				q = session.createQuery("from RAuditEventRecord as aer where 1=1 order by aer.timestamp desc");
-
+				query = "from RAuditEventRecord as aer where 1=1 order by aer.timestamp desc";
+				q = session.createQuery(query);
+				setParametersToQuery(q, params);
 			} else {
 				q = session.createQuery(query);
 				setParametersToQuery(q, params);
@@ -204,7 +224,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("List records attempt\n  processed query: {}", q);
 			}
-
+			
 			ScrollableResults resultList = q.scroll();
 
 			auditRecords = new ArrayList<>();
@@ -227,7 +247,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 					LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
 					break;
 				}
-				;
 			}
 
 			session.getTransaction().commit();
@@ -245,7 +264,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		}
 
 	}
-
+	
 	private void setParametersToQuery(Query q, Map<String, Object> params) {
 		if (params == null) {
 			return;

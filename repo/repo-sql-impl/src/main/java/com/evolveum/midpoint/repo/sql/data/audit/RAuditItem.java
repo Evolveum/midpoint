@@ -82,13 +82,14 @@ public class RAuditItem {
         RAuditItem that = (RAuditItem) o;
 
         if (changedItemPath != null ? !changedItemPath.equals(that.changedItemPath) : that.changedItemPath != null) return false;
-      
+//        if (record != null ? !record.equals(that.record) : that.record != null) return false;
         return true;
     }
 
     @Override
     public int hashCode() {
         int result1 = changedItemPath != null ? changedItemPath.hashCode() : 0;
+//        result1 = 31 * result1 + (record != null ? record.hashCode() : 0);
         return result1;
     }
 

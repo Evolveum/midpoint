@@ -29,7 +29,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.*;
 
 import com.evolveum.midpoint.util.QNameUtil;
@@ -381,11 +385,16 @@ public class XPathHolder {
 		}
 	}
 	
-	public String toCanonicalPath() {
+	public String toCanonicalPath(Class objectType, PrismContext prismContext) {
 		StringBuilder sb = new StringBuilder("\\");
 		
         boolean first = true;
-
+        
+        PrismObjectDefinition objDef = null;
+        if (objectType != null) {
+        	 objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+        }
+        ItemDefinition def = null;
 		for (XPathSegment seg : segments) {
 
             if (seg.isIdValueFilter()) {
@@ -394,14 +403,32 @@ public class XPathHolder {
 
             } else {
 
+            	QName qname = seg.getQName();
+            	
                 if (!first) {
                     sb.append("\\");
+                    if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
+                        if (def instanceof PrismContainerDefinition) {
+                        	PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
+                        	def = containerDef.findItemDefinition(qname);
+                        }
+                    	
+                    	if (def != null) {
+                    		qname = def.getName();
+                    	}
+                    }
                 } else {
+                	if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
+                    	def = objDef.findItemDefinition(qname);
+                    	if (def != null) {
+                    		qname = def.getName();
+                    	}
+                    }
                     first = false;
                 }
 
-                QName qname = seg.getQName();
-
+                
+                
 				sb.append(QNameUtil.qNameToUri(qname));
             }
 		}
