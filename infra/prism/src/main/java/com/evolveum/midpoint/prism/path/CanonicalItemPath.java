@@ -67,6 +67,10 @@ public class CanonicalItemPath implements Serializable {
 		return new CanonicalItemPath(itemPath, null, null);
 	}
 
+	private CanonicalItemPath(List<Segment> segments) {
+		this.segments.addAll(segments);
+	}
+
 	private CanonicalItemPath(ItemPath itemPath, Class<? extends Containerable> clazz, PrismContext prismContext) {
 		ItemDefinition def = clazz != null && prismContext != null ?
 				prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz) : null;
@@ -120,14 +124,19 @@ public class CanonicalItemPath implements Serializable {
 		return segments.size();
 	}
 
-	public String asString(int howManySegments) {
+	public CanonicalItemPath allUpToIncluding(int n) {
+		if (n+1 < segments.size()) {
+			return new CanonicalItemPath(segments.subList(0, n+1));
+		} else {
+			return new CanonicalItemPath(segments);
+		}
+	}
+
+	public String asString() {
 		StringBuilder sb = new StringBuilder();
-		Iterator<Segment> iterator = segments.iterator();
-		while (iterator.hasNext() && howManySegments > 0) {
-			Segment segment = iterator.next();
-			howManySegments--;
+		for (Segment segment : segments) {
 			sb.append("\\");
-			if (segment.shortcut == null) {		// always true for unqualified names
+			if (segment.shortcut == null) {        // always true for unqualified names
 				sb.append(QNameUtil.qNameToUri(segment.name));
 			} else {
 				sb.append(SHORTCUT_MARKER).append(segment.shortcut)
@@ -135,10 +144,6 @@ public class CanonicalItemPath implements Serializable {
 			}
 		}
 		return sb.length() == 0 ? "\\" : sb.toString();			// TODO should we really return "\\" on empty path?
-	}
-
-	public String asString() {
-		return asString(segments.size());
 	}
 
 	@Override

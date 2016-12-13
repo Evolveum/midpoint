@@ -462,8 +462,8 @@ public class RAuditEventRecord implements Serializable {
 					ItemPath path = itemDelta.getPath();
 					if (path != null) {		// TODO what if empty?
 						CanonicalItemPath canonical = CanonicalItemPath.create(path, objectDelta.getObjectTypeClass(), prismContext);
-						for (int i = 1; i <= canonical.size(); i++) {
-							RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.asString(i));
+						for (int i = 0; i < canonical.size(); i++) {
+							RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.allUpToIncluding(i).asString());
 							repo.getChangedItems().add(changedItem);
 						}
 					}

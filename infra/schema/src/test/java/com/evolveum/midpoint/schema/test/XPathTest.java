@@ -519,7 +519,7 @@ public class XPathTest {
     	CanonicalItemPath canonicalItemPath = CanonicalItemPath.create(path, clazz, PrismTestUtil.getPrismContext());
 		System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + clazz + ")");
 		for (int i = 0; i < representations.length; i++) {
-    		String c = canonicalItemPath.asString(i+1);
+    		String c = canonicalItemPath.allUpToIncluding(i).asString();
     		assertEquals("Wrong string representation of length " + (i+1), representations[i], c);
 		}
 		assertEquals("Wrong string representation ", representations[representations.length-1], canonicalItemPath.asString());
