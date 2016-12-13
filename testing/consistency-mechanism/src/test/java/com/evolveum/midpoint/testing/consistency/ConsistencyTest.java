@@ -165,8 +165,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
     
     private static final String ROLE_LDAP_ADMINS_FILENAME = REPO_DIR_NAME + "role-admins.xml";
     private static final String ROLE_LDAP_ADMINS_OID = "88888888-8888-8888-8888-000000000009";
-    
-    
 
 	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
     private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
@@ -684,8 +682,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	//MID-1595, MID-1577
 	@Test
-	public void test124AddAccountDirrectAlreadyExists() throws Exception {
-		final String TEST_NAME = "test124AddAccountDirrectAlreadyExists";
+	public void test124AddAccountDirectAlreadyExists() throws Exception {
+		final String TEST_NAME = "test124AddAccountDirectAlreadyExists";
 		TestUtil.displayTestTile(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		Task task = taskManager.createTaskInstance();
@@ -1339,7 +1337,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
 		TestUtil.info("OpenDJ started, resource UP");
 		
-		checkNormalizedShadowWithAttributes(accountOid, "angelika", "angelika", "angelika", "angelika", false, task, parentResult);
+		ShadowType shadowAfter = checkNormalizedShadowWithAttributes(accountOid, "angelika", "angelika", "angelika", "angelika", false, task, parentResult);
 	}
 		
 	@Test
@@ -2611,20 +2609,20 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 	
 	private ShadowType checkNormalizedShadowBasic(String accountOid, String name, boolean modify, Collection<SelectorOptions<GetOperationOptions>> options,Task task, OperationResult parentResult) throws Exception{
-		PrismObject<ShadowType> resourceAcc = modelService.getObject(ShadowType.class, accountOid, options, task, parentResult);
-		assertNotNull(resourceAcc);
-		ShadowType resourceAccount = resourceAcc.asObjectable();
-		displayJaxb("Shadow after discovery: ", resourceAccount, ShadowType.COMPLEX_TYPE);
-		assertNull(name + "'s account after discovery must not have failed opertion.", resourceAccount.getFailedOperationType());
-		assertNull(name + "'s account after discovery must not have result.", resourceAccount.getResult());
-		assertNotNull(name + "'s account must contain reference on the resource", resourceAccount.getResourceRef());
-		assertEquals(resourceTypeOpenDjrepo.getOid(), resourceAccount.getResourceRef().getOid());
+		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, options, task, parentResult);
+		assertNotNull(account);
+		ShadowType accountType = account.asObjectable();
+		display("Shadow after discovery", account);
+		assertNull(name + "'s account after discovery must not have failed opertion.", accountType.getFailedOperationType());
+		assertNull(name + "'s account after discovery must not have result.", accountType.getResult());
+		assertNotNull(name + "'s account must contain reference on the resource", accountType.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), accountType.getResourceRef().getOid());
 		
 		if (modify){
-			assertNull(name + "'s account must not have object change", resourceAccount.getObjectChange());
+			assertNull(name + "'s account must not have object change", accountType.getObjectChange());
 		}
 		
-		return resourceAccount;
+		return accountType;
 //		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
 		
 	}

@@ -1050,16 +1050,17 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		
 		if (thisValue.getItems() !=  null) {
 			for (Item<?,?> thisItem: thisValue.getItems()) {
+				Item otherItem = other.findItem(thisItem.getElementName());
 				if (!isLiteral) {
 					ItemDefinition itemDef = thisItem.getDefinition();
 					if (itemDef == null && other.getDefinition() != null) {
 						itemDef = other.getDefinition().findItemDefinition(thisItem.getElementName());
 					}
-					if (isOperationalOnly(thisItem, itemDef)) {
+					if (isOperationalOnly(thisItem, itemDef)
+							&& (otherItem == null || isOperationalOnly(otherItem, itemDef))) {
 						continue;
 					}
 				}
-				Item otherItem = other.findItem(thisItem.getElementName());
 				// The "delete" delta will also result from the following diff
 				thisItem.diffInternal(otherItem, deltas, ignoreMetadata, isLiteral);
 			}
@@ -1109,7 +1110,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				if (subitems != null) {
 					for (Item<?, ?> subitem: subitems) {
 						ItemDefinition subItemDef = subitem.getDefinition();
-						if (subItemDef == null) {
+						if (subItemDef == null && itemDef != null) {
 							subItemDef = ((PrismContainerDefinition)itemDef).findItemDefinition(subitem.getElementName());
 						}
 						if (subItemDef == null) {

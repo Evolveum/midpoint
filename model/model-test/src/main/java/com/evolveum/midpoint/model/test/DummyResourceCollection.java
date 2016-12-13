@@ -54,9 +54,13 @@ public class DummyResourceCollection {
 		} else {
 			controller.extendSchemaPirate();
 		}
-		modelService.importObjectsFromFile(resourceFile, null, task, result);
-		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-		controller.setResource(resource);
+		if (resourceFile != null) {
+			modelService.importObjectsFromFile(resourceFile, null, task, result);
+		}
+		if (resourceOid != null) {
+			PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+			controller.setResource(resource);
+		}
 		map.put(name, controller);
 		return controller;
 	}

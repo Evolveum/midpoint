@@ -47,6 +47,7 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.xml.namespace.QName;
 
@@ -172,6 +173,30 @@ public class TestDiffEquals {
         assertTrue(a1e.equals(a1m));
     }
     
+    @Test
+    public void testAssignmentEquivalent() throws Exception {
+    	System.out.println("\n\n===[ testAssignmentEquivalent ]===\n");
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        AssignmentType a1 = new AssignmentType(prismContext);
+        ActivationType a1a = new ActivationType(prismContext);
+        a1a.setValidFrom(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        a1a.setEffectiveStatus(ActivationStatusType.ENABLED);
+		a1.setActivation(a1a);
+
+        AssignmentType a2 = new AssignmentType(prismContext);
+		ActivationType a2a = new ActivationType(prismContext);
+		a2a.setEffectiveStatus(ActivationStatusType.ENABLED);
+		a2.setActivation(a2a);
+
+        // WHEN
+        assertFalse(a1.equals(a2));
+        assertFalse(a1.asPrismContainerValue().equivalent(a2.asPrismContainerValue()));			// a bit redundant
+
+		assertFalse(a2.equals(a1));
+		assertFalse(a2.asPrismContainerValue().equivalent(a1.asPrismContainerValue()));			// a bit redundant
+    }
+
     @Test
     public void testContextlessAssignmentEquals() throws Exception {
     	System.out.println("\n\n===[ testContextlessAssignmentEquals ]===\n");
