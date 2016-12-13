@@ -24,7 +24,7 @@
     <suite-files>
         <suite-file path="./basic-tests-suite.xml"/>
     </suite-files>
-    <!--<suite-files>-->
-        <!--<suite-file path="./complex-test-suite.xml"/>-->
-    <!--</suite-files>-->
+    <suite-files>
+        <suite-file path="./complex-test-suite.xml"/>
+    </suite-files>
 </suite>
