@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.impl.sync;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -31,15 +32,25 @@ public class TaskHandlerUtil {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskHandlerUtil.class);
 
-    public static void appendLastFailuresInformation(String operationNamePrefix, List<String> failures, OperationResult result) {
-    	LOGGER.trace("appendLastFailuresInformation: {} failure(s)", failures.size());
+    public static void appendLastFailuresInformation(String operationNamePrefix, Task task, OperationResult result) {
+    	appendLastFailuresInformation(operationNamePrefix, task, false, result);
+    	for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
+			appendLastFailuresInformation(operationNamePrefix, subtask, true, result);
+		}
+	}
+    private static void appendLastFailuresInformation(String operationNamePrefix, Task task, boolean subtask, OperationResult result) {
+		List<String> failures = task.getLastFailures();
 		if (!failures.isEmpty()) {
 			StringBuilder sb = new StringBuilder();
 			if (failures.size() < IterativeTaskInformation.LAST_FAILURES_KEPT) {
-				sb.append("Failures (").append(failures.size()).append("):\n");
+				sb.append("Failures (").append(failures.size()).append(")");
 			} else {
-				sb.append("Last ").append(IterativeTaskInformation.LAST_FAILURES_KEPT).append(" failures:\n");
+				sb.append("Last ").append(IterativeTaskInformation.LAST_FAILURES_KEPT).append(" failures");
 			}
+			if (subtask) {
+				sb.append(" in subtask ").append(task.getName());
+			}
+			sb.append(":\n");
 			for (String failure : failures) {
 				sb.append(failure).append("\n");
 			}

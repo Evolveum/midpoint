@@ -351,7 +351,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			reconciliationTaskResultListener.process(reconResult);
 		}
 
-		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, coordinatorTask.getLastFailures(), opResult);
+		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, coordinatorTask, opResult);
 		return runResult;
 	}
 
@@ -427,7 +427,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
         }
         runResult.setProgress(task.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);          // not strictly necessary, because using task.canRun() == false the task manager knows we were interrupted
-		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task.getLastFailures(), opResult);	// TODO implement more seriously
+		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult);	// TODO implement more seriously
     }
 
     private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
@@ -435,7 +435,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
-		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task.getLastFailures(), opResult); // TODO implement more seriously
+		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult); // TODO implement more seriously
 		runResult.setRunResultStatus(runResultStatus);
 		runResult.setProgress(task.getProgress());
 		

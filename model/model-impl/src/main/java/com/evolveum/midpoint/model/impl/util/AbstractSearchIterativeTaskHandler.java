@@ -320,7 +320,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			}
 
 			opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
-			TaskHandlerUtil.appendLastFailuresInformation(taskOperationPrefix, coordinatorTask.getLastFailures(), opResult);
+			TaskHandlerUtil.appendLastFailuresInformation(taskOperationPrefix, coordinatorTask, opResult);
 
 			LOGGER.info("{}", finishMessage + statistics);
         }
