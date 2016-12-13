@@ -71,9 +71,7 @@ import org.apache.wicket.validation.IValidator;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -755,6 +753,7 @@ public class SynchronizationStep extends WizardStep {
 		}
 
 		for (ObjectSynchronizationType objectSync : resourceType.getSynchronization().getObjectSynchronization()) {
+			objectSync.getObjectClass().removeIf(name -> name == null || StringUtils.isBlank(name.getLocalPart()));
 			if (objectSync.getCondition() != null && ExpressionUtil.isEmpty(objectSync.getCondition())) {
 				objectSync.setCondition(null);
 			}

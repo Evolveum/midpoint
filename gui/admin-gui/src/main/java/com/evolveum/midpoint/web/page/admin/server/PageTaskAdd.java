@@ -407,13 +407,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
             try {
                 ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, getPrismContext());
-                schema.getObjectClassDefinitions();
-
-                for(Definition def: schema.getDefinitions()){
-                    objectClassList.add(def.getTypeName());
-                }
-
-                model.getObject().setObjectClassList(objectClassList);
+                model.getObject().setObjectClassList(schema.getObjectClassList());
             } catch (Exception e){
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
                 error("Couldn't load object class list from resource.");
