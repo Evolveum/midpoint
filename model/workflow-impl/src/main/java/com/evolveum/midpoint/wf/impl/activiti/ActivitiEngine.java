@@ -69,7 +69,7 @@ public class ActivitiEngine {
         sessionFactories.add(new MidPointUserManagerFactory());
 
         ProcessEngineConfiguration pec =
-                ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration()
+                new MidPointStandaloneProcessEngineConfiguration()         // ugly hack (to provide our own mybatis mapping for Task)
                 .setDatabaseSchemaUpdate(wfConfiguration.isActivitiSchemaUpdate() ?
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE :
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE);

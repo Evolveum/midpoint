@@ -58,6 +58,7 @@ import org.activiti.engine.ActivitiException;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.task.IdentityLink;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -266,7 +267,7 @@ public class MiscDataUtil {
                 		systemObjectCache, result);
     }
 
-    public boolean isAuthorizedToSubmit(String taskId, String assigneeOid, SystemObjectCache systemObjectCache, OperationResult result) {
+    public boolean isAuthorizedToSubmit(String taskId, @Nullable String assigneeOid, SystemObjectCache systemObjectCache, OperationResult result) {
         MidPointPrincipal principal;
 		try {
 			principal = securityEnforcer.getPrincipal();
@@ -283,7 +284,7 @@ public class MiscDataUtil {
             return true;
         }
         // 2) is the current user a deputy of task assignee?
-		if (DeputyUtils.isDelegationPresent(principal.getUser(), assigneeOid)) {
+		if (assigneeOid != null && DeputyUtils.isDelegationPresent(principal.getUser(), assigneeOid)) {
 			return true;
 		}
         // 3) is the current user allowed to approve any item?
