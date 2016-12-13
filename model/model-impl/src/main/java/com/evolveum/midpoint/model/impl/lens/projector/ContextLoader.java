@@ -60,12 +60,14 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -1043,10 +1045,39 @@ public class ContextLoader {
 						projContext.setFullShadow(false);
 						LOGGER.warn("Could not find object with oid {}. The projection context {} is marked as thombstone.", projectionObjectOid, projectionHumanReadableName);
 						
-					} catch (SchemaException ex) {
+						
+					} catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException 
+			    			| RuntimeException | Error e) {
+						
+						LOGGER.warn("Problem while getting object with oid {}. Projection context {} is marked as broken: {}: {}", 
+								projectionObjectOid, projectionHumanReadableName, e.getClass().getSimpleName(), e.getMessage());
 						projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-						LOGGER.warn("Schema problem while getting object with oid {}. Projection context {} is marked as broken", projectionObjectOid, projectionHumanReadableName);
-						return;
+						
+						ResourceType resourceType = projContext.getResource();
+						if (resourceType == null) {
+							throw e;
+						} else {
+							ErrorSelectorType errorSelector = null;
+							if (resourceType.getConsistency() != null) {
+								errorSelector = resourceType.getConsistency().getConnectorErrorCriticality();
+							}
+							if (errorSelector == null) {
+								if (e instanceof SchemaException) {
+									// Just continue evaluation. The error is recorded in the result.
+									// The consistency mechanism has (most likely) already done the best.
+									// We cannot do any better.
+									return;
+								} else {
+									throw e;
+								}
+							} else {
+								if (ExceptionUtil.isSelected(errorSelector, e)) {
+									throw e;
+								} else {
+									return;
+								}
+							}
+						}
 					}
 					
 				}
