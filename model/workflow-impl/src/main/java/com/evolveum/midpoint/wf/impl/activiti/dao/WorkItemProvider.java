@@ -49,10 +49,12 @@ import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.USER;
@@ -134,16 +136,13 @@ public class WorkItemProvider {
 		}
 
 		if (assigneeFilter != null) {
-            if (isNotEmpty(assigneeFilter.getValue())) {
-                if (assigneeFilter.getValue().size() > 1) {
-					taskQuery = taskQuery.or();
-				}
-				for (PrismValue value : assigneeFilter.getValue()) {
-					taskQuery = taskQuery.taskAssignee(((PrismReferenceValue) value).getOid());
-				}
-				if (assigneeFilter.getValue().size() > 1) {
-					taskQuery = taskQuery.endOr();
-                }
+			@SuppressWarnings("unchecked")
+			Collection<PrismReferenceValue> assigneeRefs = (Collection<PrismReferenceValue>) assigneeFilter.getValue();
+			if (isNotEmpty(assigneeRefs)) {
+				List<String> oids = assigneeRefs.stream()
+						.map(PrismReferenceValue::getOid)
+						.collect(Collectors.toList());
+				taskQuery = taskQuery.taskAssignee(StringUtils.join(oids, ';'));
             } else {
                 taskQuery = taskQuery.taskUnassigned();
             }
