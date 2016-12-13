@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -362,19 +364,16 @@ public class MiscDataUtil {
         return retval;
     }
 
-    // TODO: currently we check only the direct assignments, we need to implement more complex mechanism
     public boolean isMemberOfActivitiGroup(UserType userType, String activitiGroupId) {
-        ObjectReferenceType abstractRoleRef = groupIdToObjectReference(activitiGroupId);
-        for (AssignmentType assignmentType : userType.getAssignment()) {
-            if (assignmentType.getTargetRef() != null &&
-                    (RoleType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType()) ||
-                     OrgType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())) &&
-                    abstractRoleRef.getOid().equals(assignmentType.getTargetRef().getOid())) {
-                return true;
-            }
-        }
-        return false;
+        ObjectReferenceType groupRef = groupIdToObjectReference(activitiGroupId);
+        return userType.getRoleMembershipRef().stream().anyMatch(ref -> matches(groupRef, ref))
+				|| userType.getDelegatedRef().stream().anyMatch(ref -> matches(groupRef, ref));
     }
+
+	public boolean matches(ObjectReferenceType groupRef, ObjectReferenceType targetRef) {
+		return (QNameUtil.match(SchemaConstants.ORG_MANAGER, targetRef.getRelation()) || targetRef.getRelation() == null)
+				&& targetRef.getOid().equals(groupRef.getOid());
+	}
 
 	public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
 		return resolveObjectReference(ref, false, result);

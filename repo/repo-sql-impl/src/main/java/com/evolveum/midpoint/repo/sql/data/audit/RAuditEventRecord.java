@@ -37,6 +37,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -137,7 +139,7 @@ public class RAuditEventRecord implements Serializable {
 	}
 
 	@ForeignKey(name = "fk_audit_item")
-	@OneToMany(mappedBy = "record", orphanRemoval = true, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "record", orphanRemoval = true)
 	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
 	public Set<RAuditItem> getChangedItems() {
 		if (changedItems == null) {
@@ -329,6 +331,9 @@ public class RAuditEventRecord implements Serializable {
 			return false;
 		if (deltas != null ? !deltas.equals(that.deltas) : that.deltas != null)
 			return false;
+		
+		if (changedItems != null ? !MiscUtil.unorderedCollectionEquals(getChangedItems(), that.getChangedItems()) : that.changedItems != null)
+			return false;
 		if (eventIdentifier != null ? !eventIdentifier.equals(that.eventIdentifier)
 				: that.eventIdentifier != null)
 			return false;
@@ -395,6 +400,7 @@ public class RAuditEventRecord implements Serializable {
 		result = 31 * result + (eventType != null ? eventType.hashCode() : 0);
 		result = 31 * result + (eventStage != null ? eventStage.hashCode() : 0);
 		result = 31 * result + (deltas != null ? deltas.hashCode() : 0);
+		result = 31 * result + (changedItems != null ? changedItems.hashCode() : 0);
 		result = 31 * result + (channel != null ? channel.hashCode() : 0);
 		result = 31 * result + (outcome != null ? outcome.hashCode() : 0);
 		result = 31 * result + (parameter != null ? parameter.hashCode() : 0);
@@ -410,6 +416,11 @@ public class RAuditEventRecord implements Serializable {
 		Validate.notNull(prismContext, "Prism context must not be null.");
 
 		RAuditEventRecord repo = new RAuditEventRecord();
+		
+		if (record.getRepoId() != null) {
+			repo.setId(record.getRepoId());
+		}
+		
 		repo.setChannel(record.getChannel());
 		if (record.getTimestamp() != null) {
 			repo.setTimestamp(new Timestamp(record.getTimestamp()));
@@ -459,7 +470,7 @@ public class RAuditEventRecord implements Serializable {
 
 					if (path != null) {
 						XPathHolder holder = new XPathHolder(path);
-						String itemPath = holder.toCanonicalPath();
+						String itemPath = holder.toCanonicalPath(objectDelta.getObjectTypeClass(), prismContext);
 
 						String[] pathSegments = itemPath.split("\\\\");
 						if (pathSegments.length == 0) {
@@ -489,6 +500,7 @@ public class RAuditEventRecord implements Serializable {
 				rDelta.setRecord(repo);
 				repo.getDeltas().add(rDelta);
 			}
+			
 		} catch (Exception ex) {
 			throw new DtoTranslationException(ex.getMessage(), ex);
 		}
@@ -538,7 +550,8 @@ public class RAuditEventRecord implements Serializable {
 		}
 
 		audit.getDeltas().addAll((Collection) odos);
-
+		audit.setRepoId(repo.getId());
+		
 		return audit;
 		// initiator, target, targetOwner
 
@@ -562,5 +575,9 @@ public class RAuditEventRecord implements Serializable {
 		}
 		PolyString name = refval.getTargetName();
 		return name != null ? name.getOrig() : null;
+	}
+	
+	public void merge(RAuditEventRecord repoRecord) {
+		this.id = repoRecord.id;
 	}
 }

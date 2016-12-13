@@ -252,7 +252,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	private boolean initialized = false;
 
-	private IModel<Integer> workItemCountModel; 
+	private LoadableModel<Integer> workItemCountModel;
 	
 	public PageBase(PageParameters parameters) {
 		super(parameters);
@@ -301,6 +301,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				}
 			}
 		}; 
+	}
+
+	public void resetWorkItemCountModel() {
+		if (workItemCountModel != null) {
+			workItemCountModel.reset();
+		}
 	}
 
 	protected void createBreadcrumb() {
@@ -873,6 +879,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			PrismObject<O> object;
 			try {
 				object = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
+				object.checkConsistence();
 				objectHolder.setValue(object);
 			} catch (RuntimeException | SchemaException e) {
 				result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
     public static final String F_RESOURCE_TYPE = "resourceType";
     public static final String F_FULL_NAME = "fullName";
     public static final String F_DESCRIPTION = "description";
+    public static final String F_STATUS = "status";
 
     private String oid;
     private String name;
@@ -47,6 +49,7 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
     //todo create subclasses
     private String resourceName;
     private String resourceType;
+    private OperationResultStatusType status;			// TODO store full operation result here
 
     private String fullName;
 
@@ -92,9 +95,13 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
         return description;
     }
 
-    public static DebugObjectItem createDebugObjectItem(PrismObject object) {
+    public static DebugObjectItem createDebugObjectItem(PrismObject<? extends ObjectType> object) {
         DebugObjectItem item = new DebugObjectItem(object.getOid(), WebComponentUtil.getName(object),
-                (String) object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class));
+				object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class));
+
+        if (object.asObjectable().getFetchResult() != null) {
+        	item.setStatus(object.asObjectable().getFetchResult().getStatus());
+		}
 
         if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
             PolyString fullName = WebComponentUtil.getValue(object, UserType.F_FULL_NAME, PolyString.class);
@@ -104,7 +111,15 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
         return item;
     }
 
-    @Override
+	public OperationResultStatusType getStatus() {
+		return status;
+	}
+
+	public void setStatus(OperationResultStatusType status) {
+		this.status = status;
+	}
+
+	@Override
     public List<InlineMenuItem> getMenuItems() {
         return new ArrayList<InlineMenuItem>();
     }

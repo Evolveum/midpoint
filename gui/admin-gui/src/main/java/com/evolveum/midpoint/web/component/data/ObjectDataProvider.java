@@ -66,9 +66,9 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     
     public List<T> getSelectedData() {
     	for (Serializable s : super.getAvailableData()){
-    		if (s instanceof SelectableBean){
+    		if (s instanceof SelectableBean) {
     			SelectableBean<T> selectable = (SelectableBean<T>) s;
-    			if (selectable.isSelected()){
+    			if (selectable.isSelected() && selectable.getValue() != null) {
     				selected.add(selectable.getValue());
     			}
     		}
@@ -86,17 +86,17 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         for (W available : getAvailableData()){
         	if (available instanceof SelectableBean){
         		SelectableBean<T> selectableBean = (SelectableBean<T>) available;
-        		if (selectableBean.isSelected()){
+        		if (selectableBean.isSelected() && selectableBean.getValue() != null) {
         			selected.add(selectableBean.getValue());
         		}
         	}
         }
         
-        for (W available : getAvailableData()){
-        	if (available instanceof SelectableBean){
+        for (W available : getAvailableData()) {
+        	if (available instanceof SelectableBean) {
         		SelectableBean<T> selectableBean = (SelectableBean<T>) available;
-        		if (!selectableBean.isSelected()){
-        			if (selected.contains(selectableBean.getValue())){
+        		if (!selectableBean.isSelected()) {
+        			if (selected.contains(selectableBean.getValue())) {
         				selected.remove(selectableBean.getValue());
         			}
         		}

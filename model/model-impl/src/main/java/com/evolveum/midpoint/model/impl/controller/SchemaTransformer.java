@@ -569,7 +569,9 @@ public class SchemaTransformer {
 				// Tolerate some raw meat in that case.
 				tolerateRaw = true;
 			}
-			object.checkConsistence(true, !tolerateRaw, ConsistencyCheckScope.THOROUGH);
+			if (InternalsConfig.consistencyChecks) {
+				object.checkConsistence(true, !tolerateRaw, ConsistencyCheckScope.THOROUGH);
+			}
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;

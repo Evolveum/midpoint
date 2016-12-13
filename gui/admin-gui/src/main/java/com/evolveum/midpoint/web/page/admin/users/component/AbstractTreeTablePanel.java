@@ -150,7 +150,7 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
     protected ObjectQuery createOrgChildQuery() {
     	SelectableBean<OrgType> dto = selected.getObject();
-        String oid = dto != null ? dto.getValue().getOid() : getModel().getObject();
+        String oid = dto != null && dto.getValue() != null ? dto.getValue().getOid() : getModel().getObject();
 
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         String object = basicSearch.getModelObject();

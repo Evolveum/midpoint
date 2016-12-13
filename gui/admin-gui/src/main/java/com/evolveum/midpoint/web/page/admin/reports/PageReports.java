@@ -147,16 +147,14 @@ public class PageReports extends PageAdminReports {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> rowModel) {
                 ReportType report = rowModel.getObject().getValue();
-                reportTypeFilterPerformed(target, report.getOid());
+                if (report != null) {
+                    reportTypeFilterPerformed(target, report.getOid());
+                }
             }
 
             @Override
             public boolean isEnabled(IModel<SelectableBean<ReportType>> rowModel) {
-                if (rowModel.getObject().getValue().isParent()) {
-                    return true;
-                } else {
-                    return false;
-                }
+				return rowModel.getObject().getValue() != null && rowModel.getObject().getValue().isParent();
             }
         };
         columns.add(column);
@@ -178,7 +176,7 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public String getFirstColorCssClass() {
-                if (getRowModel().getObject().getValue().isParent()) {
+                if (getRowModel().getObject().getValue() != null && getRowModel().getObject().getValue().isParent()) {
                     return BUTTON_COLOR_CLASS.PRIMARY.toString();
                 } else {
                     return BUTTON_COLOR_CLASS.PRIMARY.toString() + " " + BUTTON_DISABLED;
@@ -197,7 +195,7 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public boolean isFirstButtonEnabled(IModel<SelectableBean<ReportType>> rowModel) {
-                return rowModel.getObject().getValue().isParent();
+                return getRowModel().getObject().getValue() != null && rowModel.getObject().getValue().isParent();
             }
         };
         columns.add(column);

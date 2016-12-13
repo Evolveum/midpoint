@@ -155,8 +155,8 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        target.add(getFeedbackPanel());
-        target.add(getWorkItemsPanel());
+        resetWorkItemCountModel();
+		target.add(this);
     }
 
     private void claimWorkItemsPerformed(AjaxRequestTarget target) {
@@ -186,8 +186,8 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        target.add(getFeedbackPanel());
-        target.add(getWorkItemsPanel());
+		resetWorkItemCountModel();
+		target.add(this);
     }
 
     private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
@@ -217,7 +217,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-        target.add(getFeedbackPanel());
-        target.add(getWorkItemsPanel());
+		resetWorkItemCountModel();
+		target.add(this);
     }
 }

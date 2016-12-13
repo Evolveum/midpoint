@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.audit.api;
 
+import java.beans.Transient;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public class AuditEventRecord implements DebugDumpable {
-	
+
+
+	private Long repoId;
 	/**
 	 * Timestamp when the event occured.
 	 * Timestamp in millis.
@@ -281,6 +284,15 @@ public class AuditEventRecord implements DebugDumpable {
     public void setParameter(String parameter) {
         this.parameter = parameter;
     }
+    
+    @Transient
+    public Long getRepoId() {
+		return repoId;
+	}
+    
+    public void setRepoId(Long repoId) {
+		this.repoId = repoId;
+	}
 
     public void checkConsistence() {
 		if (initiator != null) {
@@ -301,6 +313,7 @@ public class AuditEventRecord implements DebugDumpable {
 //                throw new IllegalStateException("Status in result (" + result.getStatus() + ") differs from outcome (" + outcome + ")");
 //            }
 //        }
+		
 	}
     
     public AuditEventRecordType createAuditEventRecordType(){
