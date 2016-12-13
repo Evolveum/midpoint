@@ -106,15 +106,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	private static final String BROKEN_CSV_TARGET_FILE_NAME = TEST_TARGET_DIR + "/" + BROKEN_CSV_FILE_NAME;
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(TestBrokenResources.class);
-	
-	protected static DummyResource dummyResource;
-	protected static DummyResourceContoller dummyResourceCtl;
-	protected ResourceType resourceDummyType;
-	protected PrismObject<ResourceType> resourceDummy;
-	
-	protected static DummyResource dummyResourceUnaccessible;
-	protected static DummyResourceContoller dummyResourceUnaccessibleCtl;
-	
+			
 	protected UserType userTypeJack;
 	
 	@Override
@@ -132,17 +124,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		repoAddObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILE, initResult);
 		
-		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.extendSchemaPirate();
-		dummyResource = dummyResourceCtl.getDummyResource();
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
-		resourceDummyType = resourceDummy.asObjectable();
-		dummyResourceCtl.setResource(resourceDummy);
-		
-		dummyResourceUnaccessibleCtl = DummyResourceContoller.create(RESOURCE_DUMMY_UNACCESSIBLE_NAME);
-		dummyResourceUnaccessibleCtl.extendSchemaPirate();
-		dummyResourceUnaccessible = dummyResourceUnaccessibleCtl.getDummyResource();
-		dummyResourceUnaccessible.setBreakMode(BreakMode.NETWORK);
+		initDummyResourcePirate(null, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_UNACCESSIBLE_NAME, null, null, initTask, initResult);
+		getDummyResource(RESOURCE_DUMMY_UNACCESSIBLE_NAME).setBreakMode(BreakMode.NETWORK);
 		
 		importObjectFromFile(RESOURCE_CSVFILE_BROKEN_FILENAME, initResult);
 		importObjectFromFile(RESOURCE_CSVFILE_NOTFOUND_FILENAME, initResult);
@@ -733,7 +717,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 			assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 		} 
 			
-        DummyAccount jackDummyAccount = dummyResource.getAccountByUsername(USER_JACK_USERNAME);
+        DummyAccount jackDummyAccount = getDummyResource().getAccountByUsername(USER_JACK_USERNAME);
         assertNotNull("No jack dummy account", jackDummyAccount);
 	}
 
