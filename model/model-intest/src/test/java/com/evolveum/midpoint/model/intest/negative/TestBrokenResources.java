@@ -106,15 +106,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	private static final String BROKEN_CSV_TARGET_FILE_NAME = TEST_TARGET_DIR + "/" + BROKEN_CSV_FILE_NAME;
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(TestBrokenResources.class);
-	
-	protected static DummyResource dummyResource;
-	protected static DummyResourceContoller dummyResourceCtl;
-	protected ResourceType resourceDummyType;
-	protected PrismObject<ResourceType> resourceDummy;
-	
-	protected static DummyResource dummyResourceUnaccessible;
-	protected static DummyResourceContoller dummyResourceUnaccessibleCtl;
-	
+			
 	protected UserType userTypeJack;
 	
 	@Override
@@ -132,17 +124,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		repoAddObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILE, initResult);
 		
-		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.extendSchemaPirate();
-		dummyResource = dummyResourceCtl.getDummyResource();
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
-		resourceDummyType = resourceDummy.asObjectable();
-		dummyResourceCtl.setResource(resourceDummy);
-		
-		dummyResourceUnaccessibleCtl = DummyResourceContoller.create(RESOURCE_DUMMY_UNACCESSIBLE_NAME);
-		dummyResourceUnaccessibleCtl.extendSchemaPirate();
-		dummyResourceUnaccessible = dummyResourceUnaccessibleCtl.getDummyResource();
-		dummyResourceUnaccessible.setBreakMode(BreakMode.NETWORK);
+		initDummyResourcePirate(null, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_UNACCESSIBLE_NAME, null, null, initTask, initResult);
+		getDummyResource(RESOURCE_DUMMY_UNACCESSIBLE_NAME).setBreakMode(BreakMode.NETWORK);
 		
 		importObjectFromFile(RESOURCE_CSVFILE_BROKEN_FILENAME, initResult);
 		importObjectFromFile(RESOURCE_CSVFILE_NOTFOUND_FILENAME, initResult);
@@ -201,7 +185,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test030ListResources() throws Exception {
 		final String TEST_NAME = "test030ListResources";
-		testListResources(TEST_NAME, 4);
+		testListResources(TEST_NAME, 4, null);
 	}
 
 	@Test
@@ -601,7 +585,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test368ListResources() throws Exception {
 		final String TEST_NAME = "test368ListResources";
-		testListResources(TEST_NAME, 5);
+		testListResources(TEST_NAME, 5, null);
 	}
 	
 	@Test
@@ -630,7 +614,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test370ListResources() throws Exception {
 		final String TEST_NAME = "test370ListResources";
-		testListResources(TEST_NAME, 4);
+		testListResources(TEST_NAME, 4, null);
 	}
 
 	@Test
@@ -650,15 +634,70 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		TestUtil.assertSuccess(result);
 	}
 
+	/**
+	 * No fetch operation should NOT try to read the schema.
+	 * MID-3509
+	 */
 	@Test
-    public void test372ListResources() throws Exception {
-		final String TEST_NAME = "test372ListResources";
-		testListResources(TEST_NAME, 5);
+    public void test372GetUnaccessibleResourceNoFetch() throws Exception {
+		final String TEST_NAME = "test372GetUnaccessibleResourceNoFetch";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        rememberResourceSchemaFetchCount();
+        rememberConnectorInitializationCount();
+        rememberConnectorOperationCount();
+        rememberConnectorSchemaParseCount();
+        
+		// WHEN
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_UNACCESSIBLE_OID, 
+        		GetOperationOptions.createNoFetchCollection(), task, result);
+		
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		display("Resource after", resource);
+		assertNotNull("No resource", resource);
+		
+		assertResourceSchemaFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+		assertConnectorOperationIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
+	}
+	
+	/**
+	 * No fetch operation should NOT try to read the schema.
+	 * MID-3509
+	 */
+	@Test
+    public void test374ListResourcesNoFetch() throws Exception {
+		final String TEST_NAME = "test374ListResourcesNoFetch";
+		
+		rememberResourceSchemaFetchCount();
+        rememberConnectorInitializationCount();
+        rememberConnectorOperationCount();
+        rememberConnectorSchemaParseCount();
+		
+		testListResources(TEST_NAME, 5, GetOperationOptions.createNoFetchCollection());
+		
+		assertResourceSchemaFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+		assertConnectorOperationIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 	}
 	
 	@Test
-    public void test373GetResourceNoConfiguration() throws Exception {
-		final String TEST_NAME = "test373GetResourceNoConfiguration";
+    public void test375ListResources() throws Exception {
+		final String TEST_NAME = "test375ListResources";
+		testListResources(TEST_NAME, 5, null);
+	}
+	
+	@Test
+    public void test377GetResourceNoConfiguration() throws Exception {
+		final String TEST_NAME = "test377GetResourceNoConfiguration";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -733,11 +772,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 			assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 		} 
 			
-        DummyAccount jackDummyAccount = dummyResource.getAccountByUsername(USER_JACK_USERNAME);
+        DummyAccount jackDummyAccount = getDummyResource().getAccountByUsername(USER_JACK_USERNAME);
         assertNotNull("No jack dummy account", jackDummyAccount);
 	}
 
-	public void testListResources(final String TEST_NAME, int expectedNumber) throws Exception {
+	public void testListResources(final String TEST_NAME, int expectedNumber, Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN (1)
@@ -745,12 +784,18 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         OperationResult result = task.getResult();
         
 		// WHEN (1)
-		final SearchResultList<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
+		final SearchResultList<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, options, task, result);
 		
 		// THEN (1)
 		result.computeStatus();
 		display("getObject result", result);
-		assertEquals("Expected partial error (search)", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		if (options == null) {
+			assertEquals("Expected partial error (search)", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		} else if (GetOperationOptions.isNoFetch(SelectorOptions.findRootOptions(options))) {
+			TestUtil.assertSuccess(result);
+		} else {
+			AssertJUnit.fail("unexpected");
+		}
 		display("Got resources: "+resources);
 		assertEquals("Wrong number of resources", expectedNumber, resources.size());
 		
@@ -768,12 +813,18 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		};
 		
 		// WHEN (2)
-		modelService.searchObjectsIterative(ResourceType.class, null, handler, null, task, result);
+		modelService.searchObjectsIterative(ResourceType.class, null, handler, options, task, result);
 		
 		// THEN (2)
 		result.computeStatus();
 		display("getObject result", result);
-		assertEquals("Expected partial error (searchIterative)", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		if (options == null) {
+			assertEquals("Expected partial error (searchIterative)", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		} else if (GetOperationOptions.isNoFetch(SelectorOptions.findRootOptions(options))) {
+			TestUtil.assertSuccess(result);
+		} else {
+			AssertJUnit.fail("unexpected");
+		}
 		display("Got resources: "+resources);
 		assertEquals("Wrong number of resources", expectedNumber, resources.size());
         
