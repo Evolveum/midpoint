@@ -44,12 +44,13 @@ public class QNameUtil {
 
     public static final Trace LOGGER = TraceManager.getTrace(QNameUtil.class);
 
-    // TODO consider where to put all this undeclared-prefixes-things
+	// TODO consider where to put all this undeclared-prefixes-things
     // Hopefully in 3.2 everything will find its place
 
     private static final String UNDECLARED_PREFIX_MARK = "__UNDECLARED__";
+	public static final char DEFAULT_QNAME_URI_SEPARATOR_CHAR = '#';
 
-    // Whether we want to tolerate undeclared XML prefixes in QNames
+	// Whether we want to tolerate undeclared XML prefixes in QNames
     // This is here only for backward compatibility with versions 3.0-3.1.
     // Will be set to false starting with 3.2 (MID-2191)
     private static boolean tolerateUndeclaredPrefixes = false;
@@ -63,7 +64,7 @@ public class QNameUtil {
 	}
 
     public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash) {
-		return qNameToUri(qname, unqualifiedStartsWithHash, '#');
+		return qNameToUri(qname, unqualifiedStartsWithHash, DEFAULT_QNAME_URI_SEPARATOR_CHAR);
 	}
 
     public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash, char separatorChar) {

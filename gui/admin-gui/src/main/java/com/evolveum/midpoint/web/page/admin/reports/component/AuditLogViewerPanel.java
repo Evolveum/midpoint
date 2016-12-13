@@ -6,10 +6,9 @@ import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -38,9 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -413,8 +410,7 @@ public class AuditLogViewerPanel extends BasePanel{
                 }
                 if (search.getChangedItem().toItemPath() != null) {
                 	ItemPath itemPath = search.getChangedItem().toItemPath();
-                	XPathHolder holder = new XPathHolder(itemPath);
-                	parameters.put("changedItem", holder.toCanonicalPath(null, getPrismContext()));
+                	parameters.put("changedItem", CanonicalItemPath.create(itemPath).asString());
                 }
                 parameters.put("eventType", search.getEventType());
                 parameters.put("eventStage", search.getEventStage());

@@ -16,11 +16,16 @@
 
 package com.evolveum.midpoint.schema.test;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
@@ -372,7 +377,7 @@ public class XPathTest {
     @Test
     public void testXPathSerializationToDom() {
         // GIVEN
-        QName qname1 = new QName(SchemaConstants.NS_C, "extension");
+        QName qname1 = new QName(NS_C, "extension");
         QName qname2 = new QName(NS_FOO, "foo");
         XPathHolder xPathHolder1 = new XPathHolder(qname1, qname2);
         QName elementQName = new QName(NS_BAR, "bar");
@@ -426,5 +431,98 @@ public class XPathTest {
         }
 
     }
+
+	@Test
+	public void testCanonicalizationEmpty() throws Exception {
+		assertCanonical(null, null, "\\");
+		assertCanonical(ItemPath.EMPTY_PATH, null, "\\");
+	}
+
+	@Test
+	public void testCanonicalizationSimple() throws Exception {
+		ItemPath path = new ItemPath(UserType.F_NAME);
+		assertCanonical(path, null, "\\" + NS_C + "#name");
+	}
+
+	@Test
+	public void testCanonicalizationSimpleNoNs() throws Exception {
+		ItemPath path = new ItemPath(UserType.F_NAME.getLocalPart());
+		assertCanonical(path, null, "\\#name");
+		assertCanonical(path, UserType.class, "\\" + NS_C + "#name");
+	}
+
+	@Test
+	public void testCanonicalizationMulti() throws Exception {
+		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT, 1234, AssignmentType.F_ACTIVATION,
+				ActivationType.F_ADMINISTRATIVE_STATUS);
+		assertCanonical(path, null, "\\" + NS_C + "#assignment",
+				"\\" + NS_C + "#assignment\\$0#activation",
+				"\\" + NS_C + "#assignment\\$0#activation\\$0#administrativeStatus");
+	}
+
+	@Test
+	public void testCanonicalizationMultiNoNs() throws Exception {
+		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_ACTIVATION.getLocalPart(),
+				ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart());
+		assertCanonical(path, null, "\\#assignment",
+				"\\#assignment\\#activation", "\\#assignment\\#activation\\#administrativeStatus");
+		assertCanonical(path, UserType.class, "\\" + NS_C + "#assignment",
+				"\\" + NS_C + "#assignment\\$0#activation",
+				"\\" + NS_C + "#assignment\\$0#activation\\$0#administrativeStatus");
+	}
+
+	@Test
+	public void testCanonicalizationMixedNs() throws Exception {
+		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION,
+				new QName("http://piracy.org/inventory", "store"),
+				new QName("http://piracy.org/inventory", "shelf"),
+				new QName("x"), ActivationType.F_ADMINISTRATIVE_STATUS);
+		assertCanonical(path, null,
+				"\\#assignment",
+				"\\#assignment\\" + NS_C + "#extension",
+				"\\#assignment\\" + NS_C + "#extension\\http://piracy.org/inventory#store",
+				"\\#assignment\\" + NS_C + "#extension\\http://piracy.org/inventory#store\\$1#shelf",
+				"\\#assignment\\" + NS_C + "#extension\\http://piracy.org/inventory#store\\$1#shelf\\#x",
+				"\\#assignment\\" + NS_C + "#extension\\http://piracy.org/inventory#store\\$1#shelf\\#x\\$0#administrativeStatus");
+		assertCanonical(path, UserType.class,
+				"\\" + NS_C + "#assignment",
+				"\\" + NS_C + "#assignment\\$0#extension",
+				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store",
+				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf",
+				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf\\#x",
+				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf\\#x\\$0#administrativeStatus");
+	}
+
+	@Test
+	public void testCanonicalizationMixedNs2() throws Exception {
+		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION.getLocalPart(),
+				new QName("http://piracy.org/inventory", "store"),
+				new QName("http://piracy.org/inventory", "shelf"),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+		assertCanonical(path, null,
+				"\\#assignment",
+				"\\#assignment\\#extension",
+				"\\#assignment\\#extension\\http://piracy.org/inventory#store",
+				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\$0#shelf",
+				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\$0#shelf\\" + NS_C + "#activation",
+				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\$0#shelf\\" + NS_C + "#activation\\$1#administrativeStatus");
+		assertCanonical(path, UserType.class,
+				"\\" + NS_C + "#assignment",
+				"\\" + NS_C + "#assignment\\$0#extension",
+				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store",
+				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf",
+				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf\\$0#activation",
+				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf\\$0#activation\\$0#administrativeStatus");
+	}
+
+	private void assertCanonical(ItemPath path, Class<? extends Containerable> clazz, String... representations) {
+    	CanonicalItemPath canonicalItemPath = CanonicalItemPath.create(path, clazz, PrismTestUtil.getPrismContext());
+		System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + clazz + ")");
+		for (int i = 0; i < representations.length; i++) {
+    		String c = canonicalItemPath.asString(i+1);
+    		assertEquals("Wrong string representation of length " + (i+1), representations[i], c);
+		}
+		assertEquals("Wrong string representation ", representations[representations.length-1], canonicalItemPath.asString());
+	}
 
 }
