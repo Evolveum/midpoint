@@ -714,7 +714,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			@Override
 			protected void populateItem(ListItem<ACAttributeDto> listItem) {
 				final IModel<ACAttributeDto> attrModel = listItem.getModel();
-				ACAttributePanel acAttribute = new ACAttributePanel(ID_AC_ATTRIBUTE, attrModel);
+				ACAttributePanel acAttribute = new ACAttributePanel(ID_AC_ATTRIBUTE, attrModel, ignoreMandatoryAttributes());
 				acAttribute.setRenderBodyOnly(true);
 				listItem.add(acAttribute);
 				listItem.setOutputMarkupId(true);
@@ -992,4 +992,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return UserDtoStatus.ADD.equals(getModelObject().getStatus());
 	}
 
+	protected boolean ignoreMandatoryAttributes(){
+		return false;
+	}
 }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -33,7 +34,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ACAttributePanel extends BaseDeprecatedPanel<ACAttributeDto> {
+public class ACAttributePanel extends BasePanel<ACAttributeDto> {
 
     private static final String ID_ATTRIBUTE_LABEL = "attributeLabel";
     private static final String ID_VALUES = "values";
@@ -41,12 +42,12 @@ public class ACAttributePanel extends BaseDeprecatedPanel<ACAttributeDto> {
     private static final String ID_REQUIRED = "required";
     private static final String ID_HAS_OUTBOUND = "hasOutbound";
 
-    public ACAttributePanel(String id, IModel<ACAttributeDto> model) {
+    public ACAttributePanel(String id, IModel<ACAttributeDto> model, boolean ignoreMandatoryAttributes) {
         super(id, model);
+        initLayout(ignoreMandatoryAttributes);
     }
 
-    @Override
-    protected void initLayout() {
+    protected void initLayout(boolean ignoreMandatoryAttributes) {
         Label attributeLabel = new Label(ID_ATTRIBUTE_LABEL, new PropertyModel(getModel(), ACAttributeDto.F_NAME));
         add(attributeLabel);
 
@@ -80,7 +81,7 @@ public class ACAttributePanel extends BaseDeprecatedPanel<ACAttributeDto> {
             @Override
             protected void populateItem(ListItem<ACValueConstructionDto> listItem) {
                 Form form = findParent(Form.class);
-                listItem.add(new ACAttributeValuePanel(ID_VALUE, listItem.getModel(), form));
+                listItem.add(new ACAttributeValuePanel(ID_VALUE, listItem.getModel(), ignoreMandatoryAttributes, form));
             }
         };
         add(values);

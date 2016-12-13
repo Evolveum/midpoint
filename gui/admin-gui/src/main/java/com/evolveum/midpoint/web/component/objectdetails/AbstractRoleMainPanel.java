@@ -83,6 +83,11 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					public String getExcludeOid() {
 						return getObject().getOid();
 					}
+
+					@Override
+					protected boolean ignoreMandatoryAttributes(){
+						return true;
+					}
 				};
 			}
 			
