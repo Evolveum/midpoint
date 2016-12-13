@@ -168,7 +168,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	}
 
 	protected void populateItem(ListItem<AssignmentEditorDto> item){
-		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel());
+		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel()){
+			@Override
+			protected boolean ignoreMandatoryAttributes(){
+				return AssignmentTablePanel.this.ignoreMandatoryAttributes();
+			}
+		};
 		item.add(editor);
 
 		editor.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
@@ -545,4 +550,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
     protected boolean getAssignmentMenuVisibility(){
         return true;
     }
+
+    protected boolean ignoreMandatoryAttributes(){
+		return false;
+	}
 }

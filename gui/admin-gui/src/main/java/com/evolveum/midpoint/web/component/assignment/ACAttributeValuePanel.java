@@ -53,21 +53,23 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "remove";
 
-    public ACAttributeValuePanel(String id, IModel<ACValueConstructionDto> iModel, Form form) {
+    public ACAttributeValuePanel(String id, IModel<ACValueConstructionDto> iModel,
+                                 boolean ignoreMandatoryAttributes, Form form) {
         super(id, iModel);
 
-        initLayout(form);
+        initLayout(form, ignoreMandatoryAttributes);
     }
 
-    private void initLayout(Form form) {
+    private void initLayout(Form form, boolean ignoreMandatoryAttributes) {
         ACValueConstructionDto dto = getModel().getObject();
         PrismPropertyDefinition definition = dto.getAttribute().getDefinition();
-        boolean required = definition.getMinOccurs() > 0;
 
         InputPanel input = createTypedInputComponent(ID_INPUT, definition);
         for (FormComponent comp : input.getFormComponents()) {
             comp.setLabel(new PropertyModel(dto.getAttribute(), ACAttributeDto.F_NAME));
-            comp.setRequired(required);
+            if (!ignoreMandatoryAttributes){
+                comp.setRequired(definition.getMinOccurs() > 0);
+            }
 
             comp.add(new AjaxFormComponentUpdatingBehavior("blur") {
                 @Override
