@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author lazyman
@@ -34,7 +35,14 @@ public class StringMatcher extends Matcher<String> {
     public Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, String value, String matcher)
             throws QueryException {
 
-        boolean ignoreCase = IGNORE_CASE.equalsIgnoreCase(matcher);
+        boolean ignoreCase;
+        if (StringUtils.isEmpty(matcher)) {
+        	ignoreCase = false;
+		} else if (IGNORE_CASE.equalsIgnoreCase(matcher)) {
+        	ignoreCase = true;
+		} else {
+			throw new QueryException("Unknown matcher '" + matcher + "'. The only supported explicit matcher for string values is '" + IGNORE_CASE + "'.");
+		}
 
         return basicMatch(hibernateQuery, operation, propertyName, value, ignoreCase);
     }
