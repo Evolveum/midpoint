@@ -299,11 +299,17 @@ public class ResourceDetailsTabPanel extends Panel {
 		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, parentPage.getString(messageKey));
 
 		ConnectorType connectorType = resource.getConnector();
-		String connectorName = StringUtils.substringAfterLast(
-				WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), ".");
-		String connectorVersion = connectorType.getConnectorVersion();
-		infoBoxType.setNumber(connectorName);
-		infoBoxType.setDescription(connectorVersion);
+		if (connectorType == null) {
+			// Connector not found. Probably bad connectorRef reference.
+			infoBoxType.setNumber("--");
+			infoBoxType.setDescription("--");
+		} else {
+			String connectorName = StringUtils.substringAfterLast(
+					WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), ".");
+			String connectorVersion = connectorType.getConnectorVersion();
+			infoBoxType.setNumber(connectorName);
+			infoBoxType.setDescription(connectorVersion);
+		}
 
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
