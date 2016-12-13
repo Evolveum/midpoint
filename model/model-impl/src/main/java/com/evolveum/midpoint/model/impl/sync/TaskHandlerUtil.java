@@ -32,6 +32,7 @@ public class TaskHandlerUtil {
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskHandlerUtil.class);
 
     public static void appendLastFailuresInformation(String operationNamePrefix, List<String> failures, OperationResult result) {
+    	LOGGER.trace("appendLastFailuresInformation: {} failure(s)", failures.size());
 		if (!failures.isEmpty()) {
 			StringBuilder sb = new StringBuilder();
 			if (failures.size() < IterativeTaskInformation.LAST_FAILURES_KEPT) {
