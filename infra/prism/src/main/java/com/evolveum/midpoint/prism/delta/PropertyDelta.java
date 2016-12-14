@@ -282,28 +282,22 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 	}
     
     public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule) {
-		Comparator<PrismPropertyValue<T>> comparator = new Comparator<PrismPropertyValue<T>>() {
-			@Override
-			public int compare(PrismPropertyValue<T> o1, PrismPropertyValue<T> o2) {
-				if (o1.equalsComplex(o2, true, false, matchingRule)) {
-					return 0;
-				} else {
-					return 1;
-				}
+		Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
+			if (o1.equalsComplex(o2, true, false, matchingRule)) {
+				return 0;
+			} else {
+				return 1;
 			}
 		};
 		return (PropertyDelta<T>) super.narrow(object, comparator);
 	}
 
 	public boolean isRedundant(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule) {
-		Comparator<PrismPropertyValue<T>> comparator = new Comparator<PrismPropertyValue<T>>() {
-			@Override
-			public int compare(PrismPropertyValue<T> o1, PrismPropertyValue<T> o2) {
-				if (o1.equalsComplex(o2, true, false, matchingRule)) {
-					return 0;
-				} else {
-					return 1;
-				}
+		Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
+			if (o1.equalsComplex(o2, true, false, matchingRule)) {
+				return 0;
+			} else {
+				return 1;
 			}
 		};
 		return super.isRedundant(object, comparator);
