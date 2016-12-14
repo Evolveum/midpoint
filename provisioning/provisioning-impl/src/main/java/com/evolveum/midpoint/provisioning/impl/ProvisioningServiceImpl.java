@@ -501,7 +501,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		final SearchResultList<PrismObject<T>> objListType = new SearchResultList(new ArrayList<PrismObject<T>>());
+		final SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<PrismObject<T>>());
 		
 		SearchResultMetadata metadata;
 		try {
@@ -514,12 +514,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				return objects;
 			}
 	
-			final ResultHandler<T> handler = new ResultHandler<T>() {
-				@Override
-				public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-					return objListType.add(object);
-				}
-			};
+			final ResultHandler<T> handler = (object, parentResult1) -> objListType.add(object);
 		
 			metadata = searchObjectsIterative(type, query, options, handler, task, result);
 			
@@ -1146,12 +1141,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		if (!ShadowType.class.isAssignableFrom(type)){
 			
-			ResultHandler<T> internalHandler = new ResultHandler<T>() {
-				@Override
-				public boolean handle(PrismObject<T> object, OperationResult objResult) {
-					return handleRepoObject(type, object, options, handler, objResult);
-				}
-			};
+			ResultHandler<T> internalHandler = (object, objResult) -> handleRepoObject(type, object, options, handler, objResult);
 			
 			Collection<SelectorOptions<GetOperationOptions>> repoOptions = null;
 			if (GetOperationOptions.isReadOnly(rootOptions)) {

@@ -708,21 +708,30 @@ public class ShadowManager {
 		if (matchingRuleQName == null) {
 			return;
 		}
+		Class<?> valueClass = null;
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
 		List<PrismValue> newValues = new ArrayList<PrismValue>();
-		for (PrismPropertyValue<T> ppval: eqFilter.getValues()) {
-			T normalizedRealValue = matchingRule.normalize(ppval.getValue());
-			PrismPropertyValue<T> newPPval = ppval.clone();
-			newPPval.setValue(normalizedRealValue);
-			newValues.add(newPPval);
+		if (eqFilter.getValues() != null) {
+			for (PrismPropertyValue<T> ppval : eqFilter.getValues()) {
+				T normalizedRealValue = matchingRule.normalize(ppval.getValue());
+				PrismPropertyValue<T> newPPval = ppval.clone();
+				newPPval.setValue(normalizedRealValue);
+				newValues.add(newPPval);
+				if (normalizedRealValue != null) {
+					valueClass = normalizedRealValue.getClass();
+				}
+			}
+			eqFilter.getValues().clear();
+			eqFilter.getValues().addAll((Collection) newValues);
+			LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there is a matching rule, normalized values: {}",
+					attrName, newValues);
 		}
-		eqFilter.getValues().clear();
-		eqFilter.getValues().addAll((Collection) newValues);
-		LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there is a matching rule, normalized values: {}",
-				attrName, newValues);
 		if (eqFilter.getMatchingRule() == null) {
-			eqFilter.setMatchingRule(matchingRuleQName);
-			LOGGER.trace("Setting matching rule to {}", matchingRuleQName);
+			QName supportedMatchingRule = valueClass != null ?
+					repositoryService.getApproximateSupportedMatchingRule(valueClass, matchingRuleQName) : matchingRuleQName;
+			eqFilter.setMatchingRule(supportedMatchingRule);
+			LOGGER.trace("Setting matching rule to {} (supported by repo as a replacement for {} to search for {})",
+					supportedMatchingRule, matchingRuleQName, valueClass);
 		}
 	}
 
