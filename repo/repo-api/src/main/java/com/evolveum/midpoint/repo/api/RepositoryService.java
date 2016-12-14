@@ -584,15 +584,21 @@ public interface RepositoryService {
 
 	/**
 	 * Returns matching rule supported by the repository for a given data type (String, PolyString, ...), for
-	 * originally indented matching rule.
+	 * originally intended matching rule.
 	 *
-	 * New matching rule must NOT be more selective than the original one. I.e. if values V1, V2 would match
-	 * under the original one, they must also match under the replacement. Therefore it is safe to replace
+	 * New matching rule must NOT be less selective than the original one. I.e. if values V1, V2 would not match
+	 * under the original one, they must not also match under the replacement. Therefore it is safe to replace
 	 * distinguishedName with stringIgnoreCase (but not e.g. the other way around; nor exchangeEmailAddresses
 	 * can be replaced by stringIgnoreCase, because the prefix part is case sensitive).
 	 *
+	 * The assumption is that for unsupported matching rules the repository will store normalized values. And it
+	 * will normalize any values that are used in queries. This is the obligation of the client. So, theoretically,
+	 * it is safe to replace any such matching rule with default (exact) matching rule. But if we replace it with
+	 * something that does not return false positives (i.e. something that is not less sensitive), we get some
+	 * resiliency w.r.t. non-normalized values in repository. TODO TODO TODO think again
+	 *
 	 * If the original matching rule is not supported by the given data type (e.g. trying to use exchangeEmailAddress
-	 * on PolyString), the result may be arbitrary. TODO think this again
+	 * on PolyString), the result may be arbitrary. TODO think again also about this
 	 */
 	QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule);
 }
