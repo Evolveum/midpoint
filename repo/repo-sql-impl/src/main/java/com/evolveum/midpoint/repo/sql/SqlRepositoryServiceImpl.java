@@ -38,6 +38,9 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.helpers.*;
+import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
+import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
+import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -985,4 +988,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return isAnySubordinate(object.getOid(), oidList);
 	}
 
+	@Override
+	public QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule) {
+		if (String.class.equals(dataType)) {
+			return StringMatcher.getApproximateSupportedMatchingRule(originalMatchingRule);
+		} else if (PolyString.class.equals(dataType) || PolyStringType.class.equals(dataType)) {
+			return PolyStringMatcher.getApproximateSupportedMatchingRule(originalMatchingRule);
+		} else {
+			return DefaultMatcher.getApproximateSupportedMatchingRule(originalMatchingRule);
+		}
+	}
 }

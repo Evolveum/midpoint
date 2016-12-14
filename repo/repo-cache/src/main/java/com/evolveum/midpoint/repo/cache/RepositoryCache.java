@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.Validate;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 
@@ -427,4 +428,8 @@ public class RepositoryCache implements RepositoryService {
 		return repository.executeQueryDiagnostics(request, result);
 	}
 
+	@Override
+	public QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule) {
+		return repository.getApproximateSupportedMatchingRule(dataType, originalMatchingRule);
+	}
 }

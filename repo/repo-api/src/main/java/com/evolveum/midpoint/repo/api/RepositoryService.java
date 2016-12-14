@@ -34,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import javax.xml.namespace.QName;
+
 /**
  * <p>Identity Repository Interface.</p>
  * <p>
@@ -579,4 +581,18 @@ public interface RepositoryService {
 
 	<O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object,
 			Trace logger, String logMessagePrefix) throws SchemaException;
+
+	/**
+	 * Returns matching rule supported by the repository for a given data type (String, PolyString, ...), for
+	 * originally indented matching rule.
+	 *
+	 * New matching rule must NOT be more selective than the original one. I.e. if values V1, V2 would match
+	 * under the original one, they must also match under the replacement. Therefore it is safe to replace
+	 * distinguishedName with stringIgnoreCase (but not e.g. the other way around; nor exchangeEmailAddresses
+	 * can be replaced by stringIgnoreCase, because the prefix part is case sensitive).
+	 *
+	 * If the original matching rule is not supported by the given data type (e.g. trying to use exchangeEmailAddress
+	 * on PolyString), the result may be arbitrary. TODO think this again
+	 */
+	QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule);
 }
