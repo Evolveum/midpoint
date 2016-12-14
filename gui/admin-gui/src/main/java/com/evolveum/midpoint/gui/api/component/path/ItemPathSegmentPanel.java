@@ -101,19 +101,19 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 				}
 			}
 		} else {
-
-			for (ItemDefinition<?> def : getSchemaDefinitionMap().get(getModelObject().getObjectType())) {
-				if (def.getName() != null) {
-					if (StringUtils.isBlank(input)) {
-						toSelect.put(def.getName().getLocalPart(), def);
-					} else {
-						if (def.getName().getLocalPart().startsWith(input)) {
+			if (getSchemaDefinitionMap().get(getModelObject().getObjectType()) != null) {
+				for (ItemDefinition<?> def : getSchemaDefinitionMap().get(getModelObject().getObjectType())) {
+					if (def.getName() != null) {
+						if (StringUtils.isBlank(input)) {
 							toSelect.put(def.getName().getLocalPart(), def);
+						} else {
+							if (def.getName().getLocalPart().startsWith(input)) {
+								toSelect.put(def.getName().getLocalPart(), def);
+							}
 						}
 					}
 				}
 			}
-
 		}
 		// }
 		return toSelect;
