@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
+import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
@@ -30,13 +31,14 @@ public class StringMatcher extends Matcher<String> {
 
     //todo will be changed to QName later (after query api update)
     public static final String IGNORE_CASE = StringIgnoreCaseMatchingRule.NAME.getLocalPart();
+    public static final String DEFAULT = DefaultMatchingRule.NAME.getLocalPart();
 
     @Override
     public Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, String value, String matcher)
             throws QueryException {
 
         boolean ignoreCase;
-        if (StringUtils.isEmpty(matcher)) {
+        if (StringUtils.isEmpty(matcher) || DEFAULT.equals(matcher)) {
         	ignoreCase = false;
 		} else if (IGNORE_CASE.equalsIgnoreCase(matcher)) {
         	ignoreCase = true;

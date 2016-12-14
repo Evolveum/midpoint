@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
+import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
@@ -37,6 +38,7 @@ public class PolyStringMatcher extends Matcher<PolyString> {
     public static final String STRICT = PolyStringStrictMatchingRule.NAME.getLocalPart();
     public static final String ORIG = PolyStringOrigMatchingRule.NAME.getLocalPart();
     public static final String NORM = PolyStringNormMatchingRule.NAME.getLocalPart();
+    public static final String DEFAULT = DefaultMatchingRule.NAME.getLocalPart();
 
     public static final String STRICT_IGNORE_CASE = "strictIgnoreCase";
     public static final String ORIG_IGNORE_CASE = "origIgnoreCase";
@@ -50,7 +52,7 @@ public class PolyStringMatcher extends Matcher<PolyString> {
                 || ORIG_IGNORE_CASE.equals(matcher)
                 || NORM_IGNORE_CASE.equals(matcher);
 
-        if (StringUtils.isEmpty(matcher)
+        if (StringUtils.isEmpty(matcher) || DEFAULT.equals(matcher)
                 || STRICT.equals(matcher) || STRICT_IGNORE_CASE.equals(matcher)) {
             AndCondition conjunction = hibernateQuery.createAnd();
             conjunction.add(createOrigMatch(hibernateQuery, operation, propertyName, value, ignoreCase));
