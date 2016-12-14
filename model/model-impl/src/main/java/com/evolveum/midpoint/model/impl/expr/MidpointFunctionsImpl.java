@@ -1141,8 +1141,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public Map<String, String> parseXmlToMap(String xml) {
-		XMLInputFactory factory = XMLInputFactory.newInstance();
 		Map<String, String> resultingMap = new HashMap<String, String>();
+		if(xml!=null&&!xml.isEmpty()){
+		XMLInputFactory factory = XMLInputFactory.newInstance();
 		String value = "";
 		String startName = "";
 		InputStream stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
@@ -1185,7 +1186,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 							value = null;
 						}
 					} else {
-						LOGGER.info("No value between xml tags, tag name : {0}", endName);
+						LOGGER.trace("No value between xml tags, tag name : {0}", endName);
 					}
 
 				} else if (code == XMLStreamConstants.END_DOCUMENT) {
@@ -1198,7 +1199,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 					.append(e.getLocalizedMessage());
 			throw new SystemException(error.toString());
 		}
-
+		}else {
+			LOGGER.trace("Input xml string null or empty.");
+		}
 		return resultingMap;
 	}
 }
