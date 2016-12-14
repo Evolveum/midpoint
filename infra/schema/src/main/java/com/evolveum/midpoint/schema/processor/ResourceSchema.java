@@ -21,7 +21,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author semancik
@@ -46,4 +48,14 @@ public interface ResourceSchema extends PrismSchema {
 	ObjectClassComplexTypeDefinition findObjectClassDefinition(ShadowKindType kind, String intent);
 
 	ObjectClassComplexTypeDefinition findDefaultObjectClassDefinition(ShadowKindType kind);
+
+	default List<QName> getObjectClassList() {
+		List<QName> rv = new ArrayList<>();
+		for (ObjectClassComplexTypeDefinition def : getObjectClassDefinitions()) {
+			if (!rv.contains(def.getTypeName())) {
+				rv.add(def.getTypeName());
+			}
+		}
+		return rv;
+	}
 }

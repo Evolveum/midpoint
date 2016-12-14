@@ -28,21 +28,15 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -52,7 +46,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
@@ -467,31 +460,12 @@ public class RAuditEventRecord implements Serializable {
 				ObjectDelta<?> objectDelta = delta.getObjectDelta();
 				for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
 					ItemPath path = itemDelta.getPath();
-
-					if (path != null) {
-						XPathHolder holder = new XPathHolder(path);
-						String itemPath = holder.toCanonicalPath(objectDelta.getObjectTypeClass(), prismContext);
-
-						String[] pathSegments = itemPath.split("\\\\");
-						if (pathSegments.length == 0) {
-							continue;
+					if (path != null) {		// TODO what if empty?
+						CanonicalItemPath canonical = CanonicalItemPath.create(path, objectDelta.getObjectTypeClass(), prismContext);
+						for (int i = 0; i < canonical.size(); i++) {
+							RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.allUpToIncluding(i).asString());
+							repo.getChangedItems().add(changedItem);
 						}
-
-						String changedPath = null;
-						for (int i = 0; i < pathSegments.length; i++) {
-							if (StringUtils.isBlank(pathSegments[i])) {
-								continue;
-							} else {
-								if (changedPath == null) {
-									changedPath = "\\" + pathSegments[i];
-								} else {
-									changedPath += "\\" + pathSegments[i];
-								}
-								RAuditItem chanedItem = RAuditItem.toRepo(repo, changedPath);
-								repo.getChangedItems().add(chanedItem);
-							}
-						}
-
 					}
 				}
 

@@ -86,37 +86,29 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 		ItemPathDto parentItem = getModelObject().getParentPath();
 		if (parentItem != null) {
 			if (parentItem.getItemDef() instanceof PrismContainerDefinition<?>) {
-				PrismContainerDefinition<?> parentContainer = (PrismContainerDefinition<?>) parentItem
-						.getItemDef();
-				for (ItemDefinition<?> def : parentContainer.getDefinitions()) {
-					if (def.getName() != null) {
-						if (StringUtils.isBlank(input)) {
-							toSelect.put(def.getName().getLocalPart(), def);
-						} else {
-							if (def.getName().getLocalPart().startsWith(input)) {
-								toSelect.put(def.getName().getLocalPart(), def);
-							}
-						}
-					}
-				}
+				PrismContainerDefinition<?> parentContainer = (PrismContainerDefinition<?>) parentItem.getItemDef();
+				collectItems(parentContainer.getDefinitions(), input, toSelect);
 			}
 		} else {
-			if (getSchemaDefinitionMap().get(getModelObject().getObjectType()) != null) {
-				for (ItemDefinition<?> def : getSchemaDefinitionMap().get(getModelObject().getObjectType())) {
-					if (def.getName() != null) {
-						if (StringUtils.isBlank(input)) {
-							toSelect.put(def.getName().getLocalPart(), def);
-						} else {
-							if (def.getName().getLocalPart().startsWith(input)) {
-								toSelect.put(def.getName().getLocalPart(), def);
-							}
-						}
-					}
+			Collection<ItemDefinition<?>> definitions = getSchemaDefinitionMap().get(getModelObject().getObjectType());
+			collectItems(definitions, input, toSelect);
+		}
+		return toSelect;
+	}
+
+	private void collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
+		if (definitions == null) {
+			return;
+		}
+		for (ItemDefinition<?> def : definitions) {
+			if (StringUtils.isBlank(input)) {
+				toSelect.put(def.getName().getLocalPart(), def);
+			} else {
+				if (def.getName().getLocalPart().startsWith(input)) {
+					toSelect.put(def.getName().getLocalPart(), def);
 				}
 			}
 		}
-		// }
-		return toSelect;
 	}
 
 	public void refreshModel(ItemPathDto newModel) {

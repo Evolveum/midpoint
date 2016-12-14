@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
+import com.evolveum.midpoint.prism.match.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -27,6 +25,12 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import org.apache.commons.lang.StringUtils;
+
+import javax.xml.namespace.QName;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -37,12 +41,31 @@ public class PolyStringMatcher extends Matcher<PolyString> {
     public static final String STRICT = PolyStringStrictMatchingRule.NAME.getLocalPart();
     public static final String ORIG = PolyStringOrigMatchingRule.NAME.getLocalPart();
     public static final String NORM = PolyStringNormMatchingRule.NAME.getLocalPart();
+    public static final String DEFAULT = DefaultMatchingRule.NAME.getLocalPart();
 
     public static final String STRICT_IGNORE_CASE = "strictIgnoreCase";
     public static final String ORIG_IGNORE_CASE = "origIgnoreCase";
     public static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
-    @Override
+	private static final List<QName> SUPPORTED_MATCHING_RULES = Arrays
+			.asList(DefaultMatchingRule.NAME,
+					PolyStringStrictMatchingRule.NAME,
+					PolyStringOrigMatchingRule.NAME,
+					PolyStringNormMatchingRule.NAME,
+					new QName(STRICT_IGNORE_CASE),
+					new QName(ORIG_IGNORE_CASE),
+					new QName(NORM_IGNORE_CASE));
+	private static final Map<QName, QName> MATCHING_RULES_CONVERGENCE_MAP = new HashMap<>();
+	static {
+		// Nothing here - the below (String-specific) matching rules should NOT be used for polystrings
+		// TODO think again ... currently the approximate matching rule is the same as original one
+//		MATCHING_RULES_CONVERGENCE_MAP.put(DistinguishedNameMatchingRule.NAME, PolyStringNormMatchingRule.NAME);	//ok?
+//		MATCHING_RULES_CONVERGENCE_MAP.put(ExchangeEmailAddressesMatchingRule.NAME, PolyStringNormMatchingRule.NAME); //ok?
+//		MATCHING_RULES_CONVERGENCE_MAP.put(UuidMatchingRule.NAME, PolyStringNormMatchingRule.NAME);
+//		MATCHING_RULES_CONVERGENCE_MAP.put(XmlMatchingRule.NAME, DefaultMatchingRule.NAME);		//ok?
+	}
+
+	@Override
     public Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value, String matcher)
             throws QueryException {
 
@@ -50,7 +73,7 @@ public class PolyStringMatcher extends Matcher<PolyString> {
                 || ORIG_IGNORE_CASE.equals(matcher)
                 || NORM_IGNORE_CASE.equals(matcher);
 
-        if (StringUtils.isEmpty(matcher)
+        if (StringUtils.isEmpty(matcher) || DEFAULT.equals(matcher)
                 || STRICT.equals(matcher) || STRICT_IGNORE_CASE.equals(matcher)) {
             AndCondition conjunction = hibernateQuery.createAnd();
             conjunction.add(createOrigMatch(hibernateQuery, operation, propertyName, value, ignoreCase));
@@ -78,4 +101,8 @@ public class PolyStringMatcher extends Matcher<PolyString> {
         String realValue = value != null ? value.getOrig() : null;
         return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_ORIG, realValue, ignoreCase);
     }
+
+	public static QName getApproximateSupportedMatchingRule(QName originalMatchingRule) {
+		return Matcher.getApproximateSupportedMatchingRule(originalMatchingRule, SUPPORTED_MATCHING_RULES, MATCHING_RULES_CONVERGENCE_MAP);
+	}
 }

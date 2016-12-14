@@ -789,9 +789,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType(), false);
 				
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Attr conversion ICF: {}({}) -> XSD: {}({})", 
-							new Object[]{icfName, attributeInfo.getType().getSimpleName(),
-								PrettyPrinter.prettyPrint(attrXsdName), PrettyPrinter.prettyPrint(attrXsdType)});
+					LOGGER.trace("Attr conversion ICF: {}({}) -> XSD: {}({})",
+							icfName, attributeInfo.getType().getSimpleName(),
+							PrettyPrinter.prettyPrint(attrXsdName), PrettyPrinter.prettyPrint(attrXsdType));
 				}
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint

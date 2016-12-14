@@ -21,6 +21,8 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author lazyman
  */
@@ -31,5 +33,9 @@ public class DefaultMatcher<T> extends Matcher<T> {
             throws QueryException {
 
         return basicMatch(hibernateQuery, operation, propertyName, value, false);
+    }
+
+    public static QName getApproximateSupportedMatchingRule(QName originalMatchingRule) {
+        return originalMatchingRule;    // TODO ok?
     }
 }

@@ -120,9 +120,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
         try {
             ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
             if (schema != null) {
-                for (Definition def: schema.getDefinitions()) {
-                    list.add(def.getTypeName());
-                }
+                return schema.getObjectClassList();
             }
         } catch (SchemaException|RuntimeException e){
             LoggingUtils.logUnexpectedException(LOGGER, message, e);

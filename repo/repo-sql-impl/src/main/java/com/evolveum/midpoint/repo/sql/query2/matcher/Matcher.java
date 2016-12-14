@@ -20,11 +20,16 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.Validate;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.MatchMode;
+
+import javax.xml.namespace.QName;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -93,5 +98,19 @@ public abstract class Matcher<T> {
         }
 
         return condition;
+    }
+
+    static QName getApproximateSupportedMatchingRule(QName originalMatchingRule, List<QName> supportedMatchingRules,
+			Map<QName, QName> matchingRulesConvergenceMap) {
+        if (originalMatchingRule == null || supportedMatchingRules.contains(originalMatchingRule)) {
+            return originalMatchingRule;
+        }
+        return matchingRulesConvergenceMap.entrySet().stream()
+                .filter(entry -> QNameUtil.match(entry.getKey(), originalMatchingRule))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                // if nothing applicable we return the original one - query interpreter will take care of it
+                // (logging error or throwing an exception) ... TODO rethink this
+                .orElse(originalMatchingRule);
     }
 }

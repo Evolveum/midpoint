@@ -195,7 +195,7 @@ public class ConstraintsChecker {
 		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
-				new Object[]{identifier, foundObjects.size(), query.debugDump()});
+					identifier, foundObjects.size(), query.debugDump());
 		}
 		if (foundObjects.isEmpty()) {
 			Cache.setOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues());

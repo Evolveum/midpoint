@@ -210,7 +210,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	}
 
 	private static class AdHocItemable implements Itemable, Serializable {
-		private final PrismContext prismContext;
+		private transient final PrismContext prismContext;			// might be a problem ... but XPath is not supported anyway
 
 		public AdHocItemable(PrismContext prismContext) {
 			this.prismContext = prismContext;

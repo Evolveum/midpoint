@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.*;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -116,13 +116,6 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
@@ -215,13 +208,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			// todo implement error handling
 		}
 
-		Collections.sort(objects, new Comparator<ObjectViewDto>() {
-
-			@Override
-			public int compare(ObjectViewDto o1, ObjectViewDto o2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
-			}
-		});
+		Collections.sort(objects, (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
 
 		return objects;
 	}
@@ -318,7 +305,8 @@ public class PageDebugList extends PageAdminConfiguration {
 								}
 								StringBuilder sb = new StringBuilder();
 								sb.append(object.getName());
-								if (object.getStatus() != null) {
+								if (object.getStatus() != null && object.getStatus() != OperationResultStatusType.SUCCESS
+										&& object.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
 									sb.append(" (");
 									sb.append(object.getStatus());
 									sb.append(")");
