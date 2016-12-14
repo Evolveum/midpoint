@@ -434,8 +434,8 @@ public class XPathTest {
 
 	@Test
 	public void testCanonicalizationEmpty() throws Exception {
-		assertCanonical(null, null, "\\");
-		assertCanonical(ItemPath.EMPTY_PATH, null, "\\");
+		assertCanonical(null, null, "");
+		assertCanonical(ItemPath.EMPTY_PATH, null, "");
 	}
 
 	@Test

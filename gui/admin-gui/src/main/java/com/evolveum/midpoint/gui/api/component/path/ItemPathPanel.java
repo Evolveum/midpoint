@@ -165,19 +165,23 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 	private void initNamspaceDefinitionMap() {
 		schemaDefinitionsMap = new HashMap<>();
-		Class clazz = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
-				getModelObject().getObjectType());
-		PrismObjectDefinition<?> objectDef = getPageBase().getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(clazz);
-		Collection<? extends ItemDefinition> defs = objectDef.getDefinitions();
-		Collection<ItemDefinition<?>> itemDefs = new ArrayList<>();
-		for (Definition def : defs) {
-			if (def instanceof ItemDefinition) {
-				ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
-				itemDefs.add(itemDef);
+		if (getModelObject().getObjectType() != null) {
+			Class clazz = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
+					getModelObject().getObjectType());
+			if (clazz != null) {
+				PrismObjectDefinition<?> objectDef = getPageBase().getPrismContext().getSchemaRegistry()
+						.findObjectDefinitionByCompileTimeClass(clazz);
+				Collection<? extends ItemDefinition> defs = objectDef.getDefinitions();
+				Collection<ItemDefinition<?>> itemDefs = new ArrayList<>();
+				for (Definition def : defs) {
+					if (def instanceof ItemDefinition) {
+						ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
+						itemDefs.add(itemDef);
+					}
+				}
+				schemaDefinitionsMap.put(getModelObject().getObjectType(), itemDefs);
 			}
 		}
-		schemaDefinitionsMap.put(getModelObject().getObjectType(), itemDefs);
 		// }
 	}
 

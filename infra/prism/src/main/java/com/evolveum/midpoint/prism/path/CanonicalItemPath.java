@@ -143,7 +143,7 @@ public class CanonicalItemPath implements Serializable {
 						.append(QNameUtil.DEFAULT_QNAME_URI_SEPARATOR_CHAR).append(segment.name.getLocalPart());
 			}
 		}
-		return sb.length() == 0 ? "\\" : sb.toString();			// TODO should we really return "\\" on empty path?
+		return sb.toString();
 	}
 
 	@Override
