@@ -23,6 +23,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -37,168 +38,97 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 /**
- * 
  * @author katkav
- *
  */
-public class TestConnectionResultPanel extends BasePanel<List<OpResult>> implements Popupable{
+public class TestConnectionResultPanel extends BasePanel<List<OpResult>> implements Popupable {
 
-    private boolean isFocusSet = false;
-    private boolean waitForResults = false;
-    private IModel<List<OpResult>> model;
-    private AjaxEventBehavior onFocusBehavior;
+    private String resourceOid;
+    private boolean isLoaded = false;
 
-	public TestConnectionResultPanel(String id, IModel<List<OpResult>> model, Page parentPage) {
-        this(id, model, parentPage, false);
+    public TestConnectionResultPanel(String id, String resourceOid, Page parentPage) {
+        super(id);
+        this.resourceOid = resourceOid;
+        initLayout(parentPage);
     }
 
-	public TestConnectionResultPanel(String id, IModel<List<OpResult>> model, Page parentPage, boolean waitForResults) {
-		super(id, model);
-        this.waitForResults = waitForResults;
-        this.model = model;
-		initLayout(parentPage);
-	}
+    private static final long serialVersionUID = 1L;
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final String ID_RESULT = "result";
-	private static final String ID_MESSAGE = "message";
-	private static final String ID_CONTENT_PANEL = "contentPanel";
-	private static final String ID_OK = "ok";
+    private static final String ID_RESULT = "result";
+    private static final String ID_MESSAGE = "message";
+    private static final String ID_CONTENT_PANEL = "contentPanel";
+    private static final String ID_OK = "ok";
 
-	
 
-	private void initLayout(Page parentPage) {
+    private void initLayout(Page parentPage) {
         WebMarkupContainer contentPanel = new WebMarkupContainer(ID_CONTENT_PANEL);
         contentPanel.setOutputMarkupId(true);
         add(contentPanel);
 
-        Label messageLabel = new Label(ID_MESSAGE, ((PageBase)parentPage).createStringResource("TestConnectionResultPanel.message"));
+        Label messageLabel = new Label(ID_MESSAGE, ((PageBase) parentPage).createStringResource("TestConnectionResultPanel.message"));
         messageLabel.setOutputMarkupId(true);
         contentPanel.add(messageLabel);
-        messageLabel.add(new VisibleEnableBehaviour(){
-            public boolean isVisible(){
-                return waitForResults;
+        messageLabel.add(new VisibleEnableBehaviour() {
+            public boolean isVisible() {
+                return !isLoaded;
             }
         });
 
-		RepeatingView resultView = new RepeatingView(ID_RESULT);
-
-		if (model.getObject() != null && model.getObject().size() > 0){
-            initResultsPanel(resultView, parentPage);
-        }
-
-		resultView.setOutputMarkupId(true);
-        resultView.add(new VisibleEnableBehaviour(){
-            public boolean isVisible(){
-                return !waitForResults;
+        AjaxLazyLoadPanel resultsPanel = new AjaxLazyLoadPanel(ID_RESULT) {
+            @Override
+            public Component getLazyLoadComponent(String id) {
+                return new TestConnectionMessagesPanel(id, resourceOid, (PageBase) parentPage);
             }
-        });
-		contentPanel.add(resultView);
-		
-		AjaxButton ok = new AjaxButton(ID_OK) {
-			
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				getPageBase().hideMainPopup(target);
-				okPerformed(target);
-				
-			}
-			
-		};
+            @Override
+            protected void onComponentLoaded(Component component, AjaxRequestTarget target){
+                isLoaded = true;
+                target.add(component);
+                target.add(messageLabel);
+            }
+        };
+        contentPanel.add(resultsPanel);
+
+        AjaxButton ok = new AjaxButton(ID_OK) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+                okPerformed(target);
+
+            }
+
+        };
 
         contentPanel.add(ok);
-	}
-	
-	protected void okPerformed(AjaxRequestTarget target) {
-		
-	}
-
-	@Override
-	public int getWidth() {
-		return 600;
-	}
-
-	@Override
-	public int getHeight() {
-		return 400;
-	}
-
-	@Override
-	public StringResourceModel getTitle() {
-		return new StringResourceModel("TestConnectionResultPanel.testConnection.result");
-	}
-
-	@Override
-	public Component getComponent() {
-		return this;
-	}
-
-
-    public Component getOkButton(){
-        return get(ID_CONTENT_PANEL).get(ID_OK);
     }
 
-    public void setWaitForResults(boolean waitForResults) {
-        this.waitForResults = waitForResults;
+    protected void okPerformed(AjaxRequestTarget target) {
+
     }
 
-    public boolean isFocusSet() {
-        return isFocusSet;
+    @Override
+    public int getWidth() {
+        return 600;
     }
 
-    public void setFocusSet(boolean isFocusSet) {
-        this.isFocusSet = isFocusSet;
+    @Override
+    public int getHeight() {
+        return 400;
     }
 
-    public WebMarkupContainer getContentPanel(){
-        return (WebMarkupContainer)get(ID_CONTENT_PANEL);
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("TestConnectionResultPanel.testConnection.result");
     }
 
-    public void setModelObject(List<OpResult> modelObject) {
-        if (model != null){
-           model.setObject(modelObject);
-        }
+    @Override
+    public Component getComponent() {
+        return this;
     }
 
-    public Component getResultsComponent(){
-        return get(ID_CONTENT_PANEL).get(ID_RESULT);
-    }
-
-    public void initResultsPanel(RepeatingView resultView, Page parentPage){
-        for (OpResult result : model.getObject()) {
-            OperationResultPanel resultPanel = new OperationResultPanel(resultView.newChildId(), new Model<>(result), parentPage);
-            resultPanel.setOutputMarkupId(true);
-            resultView.add(resultPanel);
-        }
-    }
-
-    public AjaxEventBehavior getOnFocusBehavior() {
-        return onFocusBehavior;
-    }
-
-    public void setOnFocusBehavior(AjaxEventBehavior onFocusBehavior) {
-        this.onFocusBehavior = onFocusBehavior;
-    }
-
-    protected void initOnFocusBehavior(){
-    }
-
-    public void setFocusOnComponent(Component component, AjaxRequestTarget target){
-        if (component == null){
-            return;
-        }
-        initOnFocusBehavior();
-        component.add(onFocusBehavior);
-        target.focusComponent(component);
-    }
-
-    protected void removeOnFocusBehavior(Component component){
-        if (component == null){
-            return;
-        }
-        component.remove(onFocusBehavior);
+    public WebMarkupContainer getContentPanel() {
+        return (WebMarkupContainer) get(ID_CONTENT_PANEL);
     }
 }
