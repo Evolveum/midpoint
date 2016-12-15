@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -27,7 +25,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -44,7 +41,6 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
-import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -427,7 +423,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 						LOGGER.debug(
 								"Starting audit cleanup batch, keeping at most {} records, batch size {}, up to now deleted {} entries.",
 								recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
-						count = batchDeletionAttempt((session, tempTable) -> deleteMaxRecordsBatch(session, tempTable, recordsToKeep, dialect),
+						count = batchDeletionAttempt((session, tempTable) -> selectRecordsByNumberToKeep(session, tempTable, recordsToKeep, dialect),
 								totalCountHolder, batchStart, dialect, parentResult);
 					} while (count > 0);
 					return;
@@ -533,7 +529,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		return query.executeUpdate();
 	}
 
-	private int deleteMaxRecordsBatch(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
+	private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
 		Number totalAuditRecords = (Number) session.createCriteria(RAuditEventRecord.class)
 				.setProjection(Projections.rowCount())
 				.uniqueResult();
