@@ -44,9 +44,9 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
@@ -218,6 +218,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     protected static final String TASK_DELETE_DUMMY_ACCOUNTS_OID = "ab28a334-2aca-11e5-afe7-001e8c717e5b";
 
 	private static final String GROUP_CORPSES_NAME = "corpses";
+	
+	@Autowired(required = true)
+	private PasswordPolicyProcessor passwordPolicyProcessor;
 
 	protected DummyResource dummyResourceAzure;
 	protected DummyResourceContoller dummyResourceCtlAzure;
@@ -1563,10 +1566,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID);
         
-        OperationResult satisfyPolicyResult = PasswordPolicyUtils.validatePassword(stringPassword, null, passwordPolicy.asObjectable());
-        assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, satisfyPolicyResult.isSuccess());
-        /////////
-        
+        boolean isPasswordValid = passwordPolicyProcessor.validatePassword(stringPassword, null, passwordPolicy.asObjectable(), result);
+        assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);        
         
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);

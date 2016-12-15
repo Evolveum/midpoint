@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,31 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.common.test;
+package com.evolveum.midpoint.model.impl.lens;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.policy.StringPolicyUtils;
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
+import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,22 +46,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
-public class PasswordPolicyValidatorTest {
+@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
-	public PasswordPolicyValidatorTest() {
+	public static final String BASE_PATH = "src/test/resources/lens/ppolicy/";
 
-	}
+	private static final transient Trace LOGGER = TraceManager.getTrace(TestPasswordPolicy.class);
 
-	public static final String BASE_PATH = "src/test/resources/policy/";
-
-	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordPolicyValidatorTest.class);
-
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
-	
+	@Autowired(required = true)
+	private PasswordPolicyProcessor passwordPolicyProcessor;
+		
 	@Test
 	public void stringPolicyUtilsMinimalTest() throws JAXBException, SchemaException, IOException {
 		String filename = "password-policy-minimal.xml";
@@ -251,10 +244,13 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	private void assertPassword(String passwd, ValuePolicyType pp) {
-		OperationResult validationResult = PasswordPolicyUtils.validatePassword(passwd, null, pp);
-		if (!validationResult.isSuccess()) {
-			AssertJUnit.fail(validationResult.debugDump());
+		OperationResult result = new OperationResult("assertPassword");
+		boolean isValid = passwordPolicyProcessor.validatePassword(passwd, null, pp, result);
+		result.computeStatus();
+		if (!result.isSuccess()) {
+			AssertJUnit.fail(result.debugDump());
 		}
+		AssertJUnit.assertTrue("Password not valid (but result is success)", isValid);
 	}
 
 	@Test
@@ -294,55 +290,12 @@ public class PasswordPolicyValidatorTest {
 
 	private boolean pwdValidHelper(String password, ValuePolicyType pp) {
 		OperationResult op = new OperationResult("Password Validator test with password:" + password);
-		PasswordPolicyUtils.validatePassword(password, null, pp, op);
+		passwordPolicyProcessor.validatePassword(password, null, pp, op);
 		op.computeStatus();
 		String msg = "-> Policy "+pp.getName()+", password '"+password+"': "+op.getStatus();
 		System.out.println(msg);
 		LOGGER.info(msg);
 		LOGGER.trace(op.debugDump());
 		return (op.isSuccess());
-	}
-
-	@Test
-	public void passwordValidationMultipleTest() throws Exception {
-		final String TEST_NAME = "passwordValidationMultipleTest";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
-		String filename = "password-policy-complex.xml";
-		String pathname = BASE_PATH + filename;
-		File file = new File(pathname);
-		
-		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
-
-		String password = "582a**A";
-		
-		OperationResult op = new OperationResult(TEST_NAME);
-		List<ValuePolicyType> pps = new ArrayList<ValuePolicyType>();
-		pps.add(pp);
-		pps.add(pp);
-		pps.add(pp);
-		
-		PasswordPolicyUtils.validatePassword(password, null, pps, op);
-		op.computeStatus();
-		LOGGER.error(op.debugDump());
-		AssertJUnit.assertTrue(op.isSuccess());
-		
-	}
-
-	@Test
-	public void XMLPasswordPolicy() throws JAXBException, SchemaException, IOException {
-
-		String filename = "password-policy-complex.xml";
-		String pathname = BASE_PATH + filename;
-		File file = new File(pathname);
-
-		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
-
-		OperationResult op = new OperationResult("Generator testing");
-
-		// String pswd = PasswordPolicyUtils.generatePassword(pp, op);
-		// LOGGER.info("Generated password: " + pswd);
-		// assertNotNull(pswd);
-		// assertTrue(op.isSuccess());
 	}
 }

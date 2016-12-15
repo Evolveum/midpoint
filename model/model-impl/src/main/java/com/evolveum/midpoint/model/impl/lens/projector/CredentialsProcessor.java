@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.SchemaFailableProcessor;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -52,6 +53,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.MODIFY;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType.WEAK;
@@ -70,19 +72,19 @@ public class CredentialsProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(CredentialsProcessor.class);
 
-	@Autowired
+	@Autowired(required=true)
 	private PrismContext prismContext;
 
-	@Autowired
+	@Autowired(required=true)
 	private MappingFactory mappingFactory;
 
-	@Autowired
+	@Autowired(required=true)
 	private MappingEvaluator mappingEvaluator;
 
-	@Autowired
+	@Autowired(required=true)
 	private PasswordPolicyProcessor passwordPolicyProcessor;
 	
-	@Autowired
+	@Autowired(required=true)
 	private OperationalDataManager metadataManager;
 
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
@@ -98,9 +100,11 @@ public class CredentialsProcessor {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
 		processFocusCredentialsCommon(context,
-				new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD), now, task, result);
+				new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD),
+				now, task, result);
+		
 
-		passwordPolicyProcessor.processPasswordPolicy(focusContext, context, task, result);
+		passwordPolicyProcessor.processPasswordPolicy(focusContext, context, now, task, result);
 	}
 
 	<F extends ObjectType> void processProjectionCredentials(LensContext<F> context,
@@ -124,18 +128,6 @@ public class CredentialsProcessor {
 					SchemaException, PolicyViolationException {
 		
 		processFocusCredentialsCommon(context, SchemaConstants.PATH_NONCE, now, task, result);
-//		
-//
-//		ObjectDelta<F> focusDelta = focusContext.getDelta();
-//		
-//		if (hasValueDelta(focusDelta, SchemaConstants.PATH_NONCE)) {
-//			Collection<? extends ItemDelta<?, ?>> metaDeltas = LensUtil.createModifyMetadataDeltas(
-//					context, SchemaConstants.PATH_NONCE.subPath(AbstractCredentialType.F_METADATA),
-//					focusContext.getObjectDefinition(), now, task);
-//			for (ItemDelta<?, ?> metaDelta : metaDeltas) {
-//				context.getFocusContext().swallowToSecondaryDelta(metaDelta);
-//			}
-//		}
 
 	}
 
@@ -271,32 +263,34 @@ public class CredentialsProcessor {
 		}
 	}
 
-	private <F extends FocusType> void processFocusCredentialsCommon(LensContext<F> context,
-			ItemPath credentialsPath, XMLGregorianCalendar now, Task task, OperationResult result)
+	private <F extends FocusType, R extends AbstractCredentialType> void processFocusCredentialsCommon(LensContext<F> context,
+			ItemPath credentialsPath, 
+			XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		PrismObject<F> focus = focusContext.getObjectAny();
 		if (focusContext.isAdd()) {
-			PrismContainer<AbstractCredentialType> credentialsContainer = focus
+			PrismContainer<R> credentialsContainer = focus
 					.findContainer(credentialsPath);
 			if (credentialsContainer != null) {
-				for (PrismContainerValue<AbstractCredentialType> cVal : credentialsContainer.getValues()) {
+				for (PrismContainerValue<R> cVal : credentialsContainer.getValues()) {
+					// null lambda here. This is not a change.
 					processCredentialsCommonAdd(focus, context, credentialsPath, cVal, now, task, result);
 				}
 			}
 		} else if (focusContext.isModify()) {
 			ObjectDelta<F> focusDelta = focusContext.getDelta();
-			ContainerDelta<AbstractCredentialType> containerDelta = focusDelta
+			ContainerDelta<R> containerDelta = focusDelta
 					.findContainerDelta(credentialsPath);
 			if (containerDelta != null) {
 				if (containerDelta.isAdd()) {
-					for (PrismContainerValue<AbstractCredentialType> cVal : containerDelta.getValuesToAdd()) {
+					for (PrismContainerValue<R> cVal : containerDelta.getValuesToAdd()) {
 						processCredentialsCommonAdd(focus, context, credentialsPath, cVal, now, task, result);
 					}
 				}
 				if (containerDelta.isReplace()) {
-					for (PrismContainerValue<AbstractCredentialType> cVal : containerDelta
+					for (PrismContainerValue<R> cVal : containerDelta
 							.getValuesToReplace()) {
 						processCredentialsCommonAdd(focus, context, credentialsPath, cVal, now, task, result);
 					}
@@ -315,33 +309,6 @@ public class CredentialsProcessor {
 		if (focusContext.isDelete()){
 			return;
 		}
-		processPasswordHistoryDeltas(focus, context, now, task, result);
-	}
-
-	private <F extends FocusType> int getMaxPasswordsToSave(LensFocusContext<F> focusContext,
-			LensContext<F> context, Task task, OperationResult result) throws SchemaException {
-		ValuePolicyType passwordPolicy;
-		if (focusContext.getOrgPasswordPolicy() == null) {
-			passwordPolicy = passwordPolicyProcessor.determineValuePolicy(focusContext.getDelta(),
-					focusContext.getObjectAny(), context, task, result);
-			focusContext.setOrgPasswordPolicy(passwordPolicy);
-		} else {
-			passwordPolicy = focusContext.getOrgPasswordPolicy();
-		}
-
-		if (passwordPolicy == null) {
-			return 0;
-		}
-
-		if (passwordPolicy.getLifetime() == null) {
-			return 0;
-		}
-
-		if (passwordPolicy.getLifetime().getPasswordHistoryLength() == null) {
-			return 0;
-		}
-
-		return passwordPolicy.getLifetime().getPasswordHistoryLength();
 	}
 
 	private <F extends FocusType> boolean hasValueDelta(ObjectDelta<F> focusDelta, ItemPath credentialsPath) {
@@ -350,7 +317,9 @@ public class CredentialsProcessor {
 		}
 		for (PartiallyResolvedDelta<PrismValue, ItemDefinition> partialDelta : focusDelta
 				.findPartial(credentialsPath)) {
-			LOGGER.trace("Residual delta:\n{}", partialDelta.debugDump());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Residual delta:\n{}", partialDelta.debugDump());
+			}
 			ItemPath residualPath = partialDelta.getResidualPath();
 			if (residualPath == null || residualPath.isEmpty()) {
 				continue;
@@ -365,111 +334,25 @@ public class CredentialsProcessor {
 		return false;
 	}
 
-	private <F extends FocusType> void processCredentialsCommonAdd(PrismObject<F> focus,
+	private <F extends FocusType, R extends AbstractCredentialType> void processCredentialsCommonAdd(PrismObject<F> focus,
 			LensContext<F> context, ItemPath credentialsPath,
-			PrismContainerValue<AbstractCredentialType> cVal, XMLGregorianCalendar now, Task task,
-			OperationResult result)
+			PrismContainerValue<R> cVal, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		if (hasValueChange(cVal) && !hasMetadata(cVal)) {
-			MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);
-			ContainerDelta<MetadataType> metadataDelta = ContainerDelta.createModificationAdd(
-					credentialsPath.subPath(AbstractCredentialType.F_METADATA), UserType.class, prismContext,
-					metadataType);
-			context.getFocusContext().swallowToSecondaryDelta(metadataDelta);
-
-		}
-	}
-
-	private <F extends FocusType> void processPasswordHistoryDeltas(PrismObject<F> focus,
-			LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
-					throws SchemaException {
-		Validate.notNull(focus, "Focus object must not be null");
-		if (focus.getCompileTimeClass().equals(UserType.class)) {
-			PrismContainer<PasswordType> password = focus
-					.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
-			if (password == null || password.isEmpty()) {
-				return;
+		if (hasValueChange(cVal)) {
+			if (!hasMetadata(cVal)) {
+				MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);
+				ContainerDelta<MetadataType> metadataDelta = ContainerDelta.createModificationAdd(
+						credentialsPath.subPath(AbstractCredentialType.F_METADATA), UserType.class, prismContext,
+						metadataType);
+				context.getFocusContext().swallowToSecondaryDelta(metadataDelta);
 			}
-			PrismContainer<PasswordHistoryEntryType> historyEntries = password
-					.findOrCreateContainer(PasswordType.F_HISTORY_ENTRY);
-
-			int maxPasswordsToSave = getMaxPasswordsToSave(context.getFocusContext(), context, task, result);
 			
-			List<PasswordHistoryEntryType> historyEntryValues = getSortedHistoryList(historyEntries);
-			createDeleteHistoryDeltasIfNeeded(historyEntryValues, maxPasswordsToSave, context, task, result);
-			if (maxPasswordsToSave > 0) {
-				createAddHistoryDelta(context, password, now);
-			}
 		}
 	}
 
-	private <F extends FocusType> void createAddHistoryDelta(LensContext<F> context,
-			PrismContainer<PasswordType> password, XMLGregorianCalendar now) throws SchemaException {
-		PrismContainerValue<PasswordType> passwordValue = password.getValue();
-		PasswordType passwordRealValue = passwordValue.asContainerable();
-		
-		PrismContainerDefinition<PasswordHistoryEntryType> historyEntryDefinition = password.getDefinition().findContainerDefinition(PasswordType.F_HISTORY_ENTRY);
-		PrismContainer<PasswordHistoryEntryType> historyEntry = historyEntryDefinition.instantiate();
-		
-		PrismContainerValue<PasswordHistoryEntryType> hisotryEntryValue = historyEntry.createNewValue();
-		
-		PasswordHistoryEntryType entryType = hisotryEntryValue.asContainerable();
-		entryType.setValue(passwordRealValue.getValue());
-		entryType.setMetadata(passwordRealValue.getMetadata());
-		entryType.setChangeTimestamp(now);
-	
-		ContainerDelta<PasswordHistoryEntryType> addHisotryDelta = ContainerDelta
-				.createModificationAdd(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY), UserType.class, prismContext, entryType.clone());
-		context.getFocusContext().swallowToSecondaryDelta(addHisotryDelta);
 
-	}
-
-	private <F extends FocusType> void createDeleteHistoryDeltasIfNeeded(
-			List<PasswordHistoryEntryType> historyEntryValues, int maxPasswordsToSave, LensContext<F> context, Task task,
-			OperationResult result) throws SchemaException {
-		
-		if (historyEntryValues.size() == 0) {
-			return;
-		}
-
-		int numberOfHistoryEntriesToDelete = historyEntryValues.size() - maxPasswordsToSave;
-		
-		if (numberOfHistoryEntriesToDelete >= 0) {
-			for (int i = 0; i <= numberOfHistoryEntriesToDelete; i++) {
-				ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDelta
-						.createModificationDelete(
-								new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-										PasswordType.F_HISTORY_ENTRY),
-								UserType.class, prismContext,
-								historyEntryValues.get(i).clone());
-				context.getFocusContext().swallowToSecondaryDelta(deleteHistoryDelta);
-			}
-		}
-
-	}
-
-	private List<PasswordHistoryEntryType> getSortedHistoryList(
-			PrismContainer<PasswordHistoryEntryType> historyEntries) {
-		if (historyEntries.isEmpty()) {
-			return new ArrayList<>();
-		}
-		List<PasswordHistoryEntryType> historyEntryValues = (List<PasswordHistoryEntryType>) historyEntries.getRealValues();
-
-		Collections.sort(historyEntryValues, new Comparator<PasswordHistoryEntryType>() {
-
-			@Override
-			public int compare(PasswordHistoryEntryType o1, PasswordHistoryEntryType o2) {
-				XMLGregorianCalendar changeTimestampFirst = o1.getChangeTimestamp();
-				XMLGregorianCalendar changeTimestampSecond = o2.getChangeTimestamp();
-
-				return changeTimestampFirst.compare(changeTimestampSecond);
-			}
-		});
-		return historyEntryValues;
-	}
-
-	private boolean hasValueChange(PrismContainerValue<AbstractCredentialType> cVal) {
+	private <R extends AbstractCredentialType> boolean hasValueChange(PrismContainerValue<R> cVal) {
 		for (Item<?, ?> item : cVal.getItems()) {
 			QName itemName = item.getElementName();
 			if (isValueElement(itemName)) {
@@ -487,7 +370,7 @@ public class CredentialsProcessor {
 				&& !itemName.equals(AbstractCredentialType.F_PREVIOUS_SUCCESSFUL_LOGIN);
 	}
 
-	private boolean hasMetadata(PrismContainerValue<AbstractCredentialType> cVal) {
+	private <R extends AbstractCredentialType> boolean hasMetadata(PrismContainerValue<R> cVal) {
 		for (Item<?, ?> item : cVal.getItems()) {
 			QName itemName = item.getElementName();
 			if (itemName.equals(AbstractCredentialType.F_METADATA)) {
