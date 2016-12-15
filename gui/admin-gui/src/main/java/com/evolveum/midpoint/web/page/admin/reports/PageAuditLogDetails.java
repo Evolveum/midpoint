@@ -157,7 +157,8 @@ public class PageAuditLogDetails extends PageBase{
         };
         table.getFooterMenu().setVisible(false);
         table.getFooterCountLabel().setVisible(false);
-
+        //TODO hidden temporarily
+        table.setVisible(false);
         table.setOutputMarkupId(true);
         table.setAdditionalBoxCssClasses("without-box-header-top-border");
         eventPanel.addOrReplace(table);
