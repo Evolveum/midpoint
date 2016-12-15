@@ -404,11 +404,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		// handle added accounts
 		
 		List<ShadowType> shadowsToAdd = prepareSubobject(getFocusShadows());
-		if (!shadowsToAdd.isEmpty()){
+		if (!shadowsToAdd.isEmpty()) {
+			shadowsToAdd.forEach(shadowType -> addDefaultKindAndIntent(shadowType.asPrismObject()));
 			focusType.getLink().addAll(shadowsToAdd);
 		}
-		
-		
+
 		List<OrgType> orgsToAdd = prepareSubobject(getParentOrgs());
 		if (!orgsToAdd.isEmpty()){
 			focusType.getParentOrg().addAll(orgsToAdd);
@@ -733,6 +733,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				switch (accDto.getStatus()) {
 					case ADD:
 						account = delta.getObjectToAdd();
+						addDefaultKindAndIntent(account);
 						WebComponentUtil.encryptCredentials(account, true, getMidpointApplication());
 						refValue.setObject(account);
 						refDelta.addValueToAdd(refValue);
@@ -760,7 +761,15 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return refDelta;
 	}
 
-	
+	private void addDefaultKindAndIntent(PrismObject<ShadowType> account) {
+		if (account.asObjectable().getKind() == null) {
+			account.asObjectable().setKind(ShadowKindType.ACCOUNT);
+		}
+		if (account.asObjectable().getIntent() == null) {
+			account.asObjectable().setIntent(SchemaConstants.INTENT_DEFAULT);
+		}
+	}
+
 	private ReferenceDelta prepareUserOrgsDeltaForModify(PrismReferenceDefinition refDef)
 			throws SchemaException {
 		ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
