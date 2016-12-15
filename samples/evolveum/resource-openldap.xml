@@ -57,8 +57,8 @@
 		<icfc:configurationProperties>
 			<icfcldap:port>389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-			<icfcldap:bindDn>cn=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
+			<icfcldap:baseContext>dc=evolveum,dc=net</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=idm,ou=Administrators,dc=evolveum,dc=net</icfcldap:bindDn>
 			<icfcldap:bindPassword>
 				<t:clearValue>secret</t:clearValue>
 			</icfcldap:bindPassword>
@@ -102,7 +102,7 @@
 					<expression>
 						<script>
 							<code>
-								basic.composeDnWithSuffix('uid', name + iterationToken, 'ou=people,dc=example,dc=com')
+								basic.composeDnWithSuffix('uid', name + iterationToken, 'ou=people,dc=evolveum,dc=net')
 							</code>
 						</script>
 					</expression>
@@ -274,7 +274,7 @@
 					<q:equal>
 						<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
 						<q:path>attributes/ri:dn</q:path>
-						<q:value>cn=idm,ou=Administrators,dc=example,dc=com</q:value>
+						<q:value>cn=idm,ou=Administrators,dc=evolveum,dc=net</q:value>
 					</q:equal>
 				</filter>
 			</protected>
@@ -322,7 +322,7 @@
 				<filter>
 					<q:equal>
 						<q:path>attributes/dn</q:path>
-						<q:value>ou=groups,dc=example,dc=com</q:value>
+						<q:value>ou=groups,dc=evolveum,dc=net</q:value>
 					</q:equal>
 				</filter>
 			</baseContext>
@@ -336,7 +336,7 @@
 					<expression>
 						<script>
 							<code>
-								basic.composeDnWithSuffix('cn', name, 'ou=groups,dc=example,dc=com');
+								basic.composeDnWithSuffix('cn', name, 'ou=groups,dc=evolveum,dc=net');
 							</code>
 						</script>
 					</expression>
@@ -348,7 +348,7 @@
 				<outbound>
 					<strength>weak</strength>
 					<expression>
-						<value>cn=fake,dc=example,dc=com</value>
+						<value>cn=fake,dc=evolveum,dc=net</value>
 					</expression>
 				</outbound>
 			</attribute>
@@ -378,7 +378,7 @@
 				<filter>
 					<q:equal>
 						<q:path>attributes/dn</q:path>
-						<q:value>ou=posixgroups,dc=example,dc=com</q:value>
+						<q:value>ou=posixgroups,dc=evolveum,dc=net</q:value>
 					</q:equal>
 				</filter>
 			</baseContext>
@@ -392,7 +392,7 @@
 					<expression>
 						<script>
 							<code>
-								basic.composeDnWithSuffix('cn', name, 'ou=posixgroups,dc=example,dc=com');
+								basic.composeDnWithSuffix('cn', name, 'ou=posixgroups,dc=evolveum,dc=net');
 							</code>
 						</script>
 					</expression>

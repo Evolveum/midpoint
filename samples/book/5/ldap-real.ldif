@@ -1,0 +1,236 @@
+#
+# This is realistic content of the LDAP server
+# There are some data inconsistencies, some
+# typos, missing employee numbers, etc.
+#
+dn: uid=anderson,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: anderson
+cn: Alice Anderson
+sn: Anderson
+givenName: Alice
+employeeNumber: 001
+userPassword: qwe123
+
+dn: uid=brown,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: brown
+cn: Robert Brown
+sn: Brown
+givenName: Robert
+employeeNumber: 002
+userPassword: qwe123
+
+dn: uid=carol,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: carol
+cn: Carol Cooper
+sn: Cooper
+givenName: Carol
+employeeNumber: 003
+userPassword: qwe123
+
+dn: uid=davies,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: davies
+cn: David Davies
+sn: Davies
+givenName: David
+employeeNumber: 004
+userPassword: qwe123
+
+dn: uid=evans,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: evans
+cn: Erin Evans
+sn: Evans
+givenName: Erin
+employeeNumber: 005
+userPassword: qwe123
+
+dn: uid=fox,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: fox
+cn: Frank Fox
+sn: Fox
+givenName: Frank
+userPassword: qwe123
+
+dn: uid=green,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: green
+cn: Goerge Green
+sn: Green
+givenName: Goerge
+employeeNumber: 007
+userPassword: qwe123
+
+dn: uid=harris,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: harris
+cn: Harry Harris
+sn: Harris
+givenName: Harry
+employeeNumber: 008
+userPassword: qwe123
+
+dn: uid=irvine,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: irvine
+cn: Isabella Irvine
+sn: Irvine
+givenName: Isabella
+employeeNumber: 9
+userPassword: qwe123
+
+dn: uid=jones,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: jones
+cn: Jack Jones
+sn: Jones
+givenName: Jack
+employeeNumber: 010
+userPassword: qwe123
+
+dn: uid=knowles,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: knowles
+cn: Kate Knowles
+sn: Knowles
+givenName: Kate
+employeeNumber: 011
+userPassword: qwe123
+
+dn: uid=lewis,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: lewis
+cn: Lily Lewis
+sn: Lewis
+givenName: Lily
+employeeNumber: 012
+userPassword: qwe123
+
+dn: uid=morgan,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: morgan
+cn: Max Morgan
+sn: Morgan
+givenName: Max
+employeeNumber: 013
+userPassword: qwe123
+
+dn: uid=newman,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: newman
+cn: Nathan Newman
+sn: Newman
+givenName: Nathan
+employeeNumber: 014
+userPassword: qwe123
+
+dn: uid=owen,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: owen
+cn: Oliver Owens
+sn: Owen
+givenName: Oliver
+employeeNumber: 015
+userPassword: qwe123
+
+dn: uid=phillips,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: phillips
+cn: Peter Phillips
+sn: Phillips
+givenName: Peter
+employeeNumber: 016
+userPassword: qwe123
+
+dn: uid=quin,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: quin
+cn: Quentin Quin
+sn: Quin
+givenName: Quentin
+employeeNumber: 017
+userPassword: qwe123
+
+dn: uid=russell,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: russell
+cn: Roger Russell
+sn: Russell
+givenName: Roger
+employeeNumber: 018
+userPassword: qwe123
+
+dn: uid=simpson,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: simpson
+cn: Sophia Simpson
+sn: Simpson
+givenName: Sophia
+employeeNumber: 019
+userPassword: qwe123
+
+dn: uid=turner,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: turner
+cn: Thomas Turner
+sn: Turner
+givenName: Thomas
+employeeNumber: 020
+userPassword: qwe123
+
+dn: uid=underhill,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: underhill
+cn: Uma Underhill
+sn: Underhill
+givenName: Uma
+employeeNumber: 021
+userPassword: qwe123
+
+dn: uid=violet,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: violet
+cn: Violet Vickers
+sn: Vickers
+givenName: Violet
+userPassword: qwe123
+
+dn: uid=walker,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: walker
+cn: Johny Walker
+sn: Walker
+givenName: Johny
+employeeNumber: 023
+userPassword: qwe123
+
+dn: uid=xanadu,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: xanadu
+cn: Xenia Xanadu
+sn: Xanadu
+givenName: Xenia
+employeeNumber: 024
+userPassword: qwe123
+
+dn: uid=young,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: young
+cn: Yasmine Young
+sn: Young
+givenName: Yasmine
+employeeNumber: 025
+userPassword: qwe123
+
+dn: uid=zimmerman,ou=People,dc=example,dc=com
+objectclass: inetOrgPerson
+uid: zimmerman
+cn: Zed Zimmerman
+sn: Zimmerman
+givenName: Zed
+employeeNumber: 026
+userPassword: qwe123

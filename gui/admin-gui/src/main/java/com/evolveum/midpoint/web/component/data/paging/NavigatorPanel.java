@@ -16,11 +16,14 @@
 
 package com.evolveum.midpoint.web.component.data.paging;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.Loop;
@@ -100,6 +103,11 @@ public class NavigatorPanel extends Panel {
         AjaxLink previousLink = new AjaxLink(ID_PREVIOUS_LINK) {
 
             @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
+
+            @Override
             public void onClick(AjaxRequestTarget target) {
                 previousPerformed(target);
             }
@@ -125,6 +133,11 @@ public class NavigatorPanel extends Panel {
         }));
         add(first);
         AjaxLink firstLink = new AjaxLink(ID_FIRST_LINK) {
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -225,6 +238,11 @@ public class NavigatorPanel extends Panel {
         AjaxLink nextLink = new AjaxLink(ID_NEXT_LINK) {
 
             @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
+
+            @Override
             public void onClick(AjaxRequestTarget target) {
                 nextPerformed(target);
             }
@@ -251,6 +269,11 @@ public class NavigatorPanel extends Panel {
         add(last);
 
         AjaxLink lastLink = new AjaxLink(ID_LAST_LINK) {
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
 
             @Override
             public void onClick(AjaxRequestTarget target) {
