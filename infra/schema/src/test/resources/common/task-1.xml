@@ -18,6 +18,7 @@
 <task oid="44444444-4444-4444-4444-000000001111"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -26,6 +27,16 @@
 		<t:orig>Example Task</t:orig>
 		<t:norm>example task</t:norm>
 	</name>
+	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+		<mext:objectQuery>
+			<q:filter>
+				<q:equal>
+					<q:path>kind</q:path>
+					<q:value>account</q:value>
+				</q:equal>
+			</q:filter>
+		</mext:objectQuery>
+	</extension>
 	
 	<taskIdentifier>44444444-4444-4444-4444-000000001111</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>

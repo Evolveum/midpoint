@@ -16,17 +16,20 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
@@ -42,6 +45,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -65,7 +69,7 @@ public class TestParseTask {
 		System.out.println("===[ testParseTaskFile ]===");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 		
 		// WHEN
 		PrismObject<TaskType> task = prismContext.parserFor(TASK_FILE).xml().parse();
@@ -82,7 +86,7 @@ public class TestParseTask {
 		System.out.println("===[ testParseTaskDom ]===");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 		
 		Document document = DOMUtil.parseFile(TASK_FILE);
 		Element taskElement = DOMUtil.getFirstChildElement(document);
@@ -103,7 +107,7 @@ public class TestParseTask {
 		System.out.println("===[ testPrismParseJaxb ]===");
 		
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
@@ -126,7 +130,7 @@ public class TestParseTask {
 		System.out.println("===[ testPrismParseJaxbObjectType ]===");
 		
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
@@ -148,7 +152,7 @@ public class TestParseTask {
 		System.out.println("===[ testPrismParseJaxbElement ]===");
 		
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
@@ -171,7 +175,7 @@ public class TestParseTask {
 		System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
 		
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
@@ -246,6 +250,32 @@ public class TestParseTask {
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
+	}
+
+	@Test
+	public static void testSerializeTask() throws Exception {
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+				.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
+				.build();
+
+		QueryType queryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
+
+		PrismPropertyDefinition queryDef = new PrismPropertyDefinitionImpl(
+				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE, getPrismContext());
+		PrismProperty<QueryType> queryProp = queryDef.instantiate();
+		queryProp.setRealValue(queryType);
+
+		TaskType taskType = getPrismContext().createObject(TaskType.class).asObjectable();
+		taskType.setExtension(new ExtensionType(getPrismContext()));
+		taskType.getExtension().asPrismContainerValue().add(queryProp);
+		taskType.setName(PolyStringType.fromOrig("Test task"));
+
+		String xml = getPrismContext().xmlSerializer().serialize(taskType.asPrismObject());
+		System.out.println("Task serialized:\n" + xml);
+
+		PrismObject<TaskType> taskParsed = getPrismContext().parserFor(xml).parse();
+		String xmlSerializedAgain = getPrismContext().xmlSerializer().serialize(taskParsed);
+		System.out.println("Task serialized again:\n" + xmlSerializedAgain);
 	}
 
 }

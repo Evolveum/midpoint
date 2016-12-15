@@ -198,8 +198,13 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         if (getTypeQName() == null) {
             throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
         }
-        T value = valueParser.parse(getTypeQName(), XNodeProcessorEvaluationMode.STRICT);
-        return formatValue(value);
+        // brutal hack - fix this! MID-3616
+		try {
+			T value = valueParser.parse(getTypeQName(), XNodeProcessorEvaluationMode.STRICT);
+			return formatValue(value);
+		} catch (SchemaException e) {
+        	return (String) valueParser.parse(DOMUtil.XSD_STRING, XNodeProcessorEvaluationMode.COMPAT);
+		}
     }
 
     private String formatValue(T value) {
