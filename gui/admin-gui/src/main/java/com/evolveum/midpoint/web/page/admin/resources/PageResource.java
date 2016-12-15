@@ -68,7 +68,6 @@ public class PageResource extends PageAdminResources {
 
 	private static final String DOT_CLASS = PageResource.class.getName() + ".";
 
-	private static final String OPERATION_TEST_CONNECTION = DOT_CLASS + "testConnection";
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 	private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
 
@@ -354,7 +353,7 @@ public class PageResource extends PageAdminResources {
 
         final TestConnectionResultPanel testConnectionPanel =
                 new TestConnectionResultPanel(getMainPopupBodyId(),
-						new ListModel<>(new ArrayList<OpResult>()), getPage(), true) {
+						dto.getOid(), getPage()) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -363,38 +362,38 @@ public class PageResource extends PageAdminResources {
                         refreshStatus(target);
                     }
 
-                    @Override
-                    protected void initOnFocusBehavior() {
-                        setOnFocusBehavior(new AjaxEventBehavior("focus") {
-
-                        	private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void onEvent(AjaxRequestTarget target) {
-                                removeOnFocusBehavior(getOkButton());
-                                OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
-                                List<OpResult>  resultsDto = new ArrayList<>();
-                                try {
-                                    Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
-                                    result = getModelService().testResource(dto.getOid(), task);
-                                    resultsDto = WebComponentUtil.getTestConnectionResults(result,(PageBase) getPage());
-
-                                    getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
-                                } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-                                        | CommunicationException | ConfigurationException e) {
-                                    result.recordFatalError("Failed to test resource connection", e);
-                                }
-
-                                if (result.isSuccess()) {
-                                    result.recomputeStatus();
-                                }
-                                setModelObject(resultsDto);
-                                initResultsPanel((RepeatingView) getResultsComponent(), getPage());
-                                setWaitForResults(false);
-                                target.add(getContentPanel());
-                            }
-                        });
-                    }
+//                    @Override
+//                    protected void initOnFocusBehavior() {
+//                        setOnFocusBehavior(new AjaxEventBehavior("focus") {
+//
+//                        	private static final long serialVersionUID = 1L;
+//
+//                            @Override
+//                            protected void onEvent(AjaxRequestTarget target) {
+//                                removeOnFocusBehavior(getOkButton());
+//                                OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
+//                                List<OpResult>  resultsDto = new ArrayList<>();
+//                                try {
+//                                    Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
+//                                    result = getModelService().testResource(dto.getOid(), task);
+//                                    resultsDto = WebComponentUtil.getTestConnectionResults(result,(PageBase) getPage());
+//
+//                                    getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
+//                                } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
+//                                        | CommunicationException | ConfigurationException e) {
+//                                    result.recordFatalError("Failed to test resource connection", e);
+//                                }
+//
+//                                if (result.isSuccess()) {
+//                                    result.recomputeStatus();
+//                                }
+//                                setModelObject(resultsDto);
+//                                initResultsPanel((RepeatingView) getResultsComponent(), getPage());
+//                                setWaitForResults(false);
+//                                target.add(getContentPanel());
+//                            }
+//                        });
+//                    }
                 };
         testConnectionPanel.setOutputMarkupId(true);
 
@@ -408,10 +407,10 @@ public class PageResource extends PageAdminResources {
         });
 
         showMainPopup(testConnectionPanel, target);
-        if (!testConnectionPanel.isFocusSet()) {
-            testConnectionPanel.setFocusSet(true);
-            testConnectionPanel.setFocusOnComponent(testConnectionPanel.getOkButton(), target);
-        }
+//        if (!testConnectionPanel.isFocusSet()) {
+//            testConnectionPanel.setFocusSet(true);
+//            testConnectionPanel.setFocusOnComponent(testConnectionPanel.getOkButton(), target);
+//        }
 
 	}
 	

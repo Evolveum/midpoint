@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
@@ -82,6 +83,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -103,10 +105,12 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -1234,5 +1238,69 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected void assertNotReached() {
 		AssertJUnit.fail("Unexpected success");
+	}
+	
+	protected void assertPasswordHistoryEntries(PrismObject<UserType> user, String... changedPasswords) {
+		CredentialsType credentials = user.asObjectable().getCredentials();
+		assertNotNull("Null credentials in "+user, credentials);
+		PasswordType passwordType = credentials.getPassword();
+		assertNotNull("Null passwordType in "+user, passwordType);
+		assertPasswordHistoryEntries(user.toString(), passwordType.getHistoryEntry(), changedPasswords);
+	}
+	
+	protected void assertPasswordHistoryEntries(PasswordType passwordType, String... changedPasswords) {
+		assertPasswordHistoryEntries(passwordType.getHistoryEntry(), changedPasswords);
+	}
+	
+	protected void assertPasswordHistoryEntries(List<PasswordHistoryEntryType> historyEntriesType,
+			String... changedPasswords) {
+		assertPasswordHistoryEntries(null, historyEntriesType, changedPasswords);
+	}
+	
+	protected void assertPasswordHistoryEntries(String message, List<PasswordHistoryEntryType> historyEntriesType,
+			String... changedPasswords) {
+		if (message == null) {
+			message = "";
+		} else {
+			message = message + ": ";
+		}
+		if (changedPasswords.length != historyEntriesType.size()) {
+			AssertJUnit.fail(message + "Unexpected number of history entries, expected "
+					+ Arrays.toString(changedPasswords)+"("+changedPasswords.length+"), was "
+					+ getPasswordHistoryHumanReadable(historyEntriesType) + "("+historyEntriesType.size()+")");
+		}
+		assertEquals(message + "Unexpected number of history entries", changedPasswords.length, historyEntriesType.size());
+		for (PasswordHistoryEntryType historyEntry : historyEntriesType) {
+			boolean found = false;
+			try {
+				String clearValue = protector.decryptString(historyEntry.getValue());
+				for (String changedPassword : changedPasswords) {
+					if (changedPassword.equals(clearValue)) {
+						found = true;
+					}
+				}
+
+				if (!found) {
+					AssertJUnit.fail(message + "Unexpected value saved in between password hisotry entries: " + clearValue
+							+ ". Expected "+ Arrays.toString(changedPasswords)+"("+changedPasswords.length+"), was "
+							+ getPasswordHistoryHumanReadable(historyEntriesType) + "("+historyEntriesType.size()+")");
+				}
+			} catch (EncryptionException e) {
+				AssertJUnit.fail(message + "Could not encrypt password");
+			}
+
+		}
+	}
+	
+	protected String getPasswordHistoryHumanReadable(List<PasswordHistoryEntryType> historyEntriesType) {
+		return historyEntriesType.stream()
+			.map(historyEntry -> {
+				try {
+					return protector.decryptString(historyEntry.getValue());
+				} catch (EncryptionException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
+			})
+			.collect(Collectors.joining(", "));
 	}
 }

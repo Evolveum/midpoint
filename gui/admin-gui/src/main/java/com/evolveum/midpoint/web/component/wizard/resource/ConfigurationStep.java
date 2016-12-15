@@ -243,23 +243,10 @@ public class ConfigurationStep extends WizardStep {
 		saveChanges();
 
 		PageBase page = getPageBase();
-		ModelService model = page.getModelService();
-
-		OperationResult result = new OperationResult(TEST_CONNECTION);
-		List<OpResult> resultDtoList = new ArrayList<>();
-		try {
-			Task task = page.createSimpleTask(TEST_CONNECTION);
-			String oid = resourceModelNoFetch.getObject().getOid();
-			result = model.testResource(oid, task);
-			resultDtoList = WebComponentUtil.getTestConnectionResults(result, page);
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Failed to test resource connection", ex);
-		}
-
-		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), new ListModel<>(resultDtoList), getPage());
+		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), resourceModelNoFetch.getObject().getOid(), getPage());
 		testConnectionPanel.setOutputMarkupId(true);
 		page.showMainPopup(testConnectionPanel, target);
-		page.showResult(result, "Test connection failed", false);
+//		page.showResult(result, "Test connection failed", false);
 		target.add(page.getFeedbackPanel());
 		target.add(getForm());
 	}

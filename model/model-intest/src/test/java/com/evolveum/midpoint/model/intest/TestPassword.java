@@ -63,7 +63,10 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
 	private static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
 	private static final String USER_PASSWORD_A_CLEAR = "A"; // too short
-	private static final String USER_PASSWORD_VALID = "abcd123";
+	private static final String USER_PASSWORD_VALID_1 = "abcd123";
+	private static final String USER_PASSWORD_VALID_2 = "abcd223";
+	private static final String USER_PASSWORD_VALID_3 = "abcd323";
+	private static final String USER_PASSWORD_VALID_4 = "abcd423";
 
 	private static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
 
@@ -171,6 +174,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
 		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
 		assertPasswordMetadata(userJack, false, startCal, endCal);
+		// Password policy is not active yet. No history should be kept.
+		assertPasswordHistoryEntries(userJack);
 	}
 	
 	@Test
@@ -493,6 +498,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
 
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+		
+		assertPasswordHistoryEntries(userJack);
 	}
 	
 	/**
@@ -509,12 +516,16 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
+        
 		// WHEN
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_A_CLEAR, task, result);
 		
 		// THEN
 		result.computeStatus();
 		TestUtil.assertPartialError(result);
+		
+		lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -536,6 +547,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		
+		assertPasswordHistoryEntries(userJack);
 	}
 	
 	@Test
@@ -544,7 +557,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -559,11 +572,13 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Change to password that complies with password policy.
+	 * Reconcile user after password policy change. Nothing should be changed in the user.
+	 * Password history should still be empty. We haven't changed the password yet.
+	 * MID-3567
 	 */
 	@Test
-    public void test210ModifyUserJackPasswordGood() throws Exception {
-		final String TEST_NAME = "test210ModifyUserJackPasswordGood";
+    public void test202ReconcileUserJack() throws Exception {
+		final String TEST_NAME = "test202ReconcileUserJack";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -571,36 +586,90 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
-                        
 		// WHEN
-        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID, task, result);
+        reconcileUser(USER_JACK_OID, task, result);
 		
 		// THEN
 		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		TestUtil.assertSuccess(result);
         
-        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
-        
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertLinks(userJack, 4);
         accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
-        assertEncryptedUserPassword(userJack, USER_PASSWORD_VALID);
-        assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
-        
-        assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
-        
+        // Check account in dummy resource (yellow): password is too short for this, original password should remain there
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+        assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
         
+        // Check account in dummy resource (red)
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
+        
+        // User and default dummy account should have unchanged passwords
+        assertEncryptedUserPassword(userJack, USER_PASSWORD_A_CLEAR);
+     	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		
+		assertPasswordHistoryEntries(userJack);
+	}
+	
+	/**
+	 * Change to password that complies with password policy.
+	 */
+	@Test
+    public void test210ModifyUserJackPasswordGood() throws Exception {
+		doTestModifyUserJackPasswordSuccessWithHistory("test210ModifyUserJackPasswordGood",
+				USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
+	}
+	
+	/**
+	 * Reconcile user. Nothing should be changed.
+	 * MID-3567
+	 */
+	@Test
+    public void test212ReconcileUserJack() throws Exception {
+		final String TEST_NAME = "test212ReconcileUserJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        reconcileUser(USER_JACK_OID, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
+	}
+	
+	/**
+	 * Recompute user. Nothing should be changed.
+	 * MID-3567
+	 */
+	@Test
+    public void test214RecomputeUserJack() throws Exception {
+		final String TEST_NAME = "test214RecomputeUserJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
 	}
 	
 	/**
@@ -608,50 +677,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test220ModifyUserJackPasswordBad() throws Exception {
-		final String TEST_NAME = "test220ModifyUserJackPasswordBad";
-        TestUtil.displayTestTile(this, TEST_NAME);
-
-        // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-                       
-        try {
-			// WHEN
-	        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_1_CLEAR, task, result);
-	        
-	        AssertJUnit.fail("Unexpected success");
-	        
-        } catch (PolicyViolationException e) {
-        	// This is expected
-        	display("Exected exception", e);
-        }
-		
-		// THEN
-		result.computeStatus();
-        TestUtil.assertFailure(result);
-        
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack);
-		assertLinks(userJack, 4);
-        accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
-
-        // Make sure that the password is unchanged
-        
-        assertEncryptedUserPassword(userJack, USER_PASSWORD_VALID);
-        assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
-        
-        assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
-        
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
-        
-        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
-
-		// this one is not changed
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		doTestModifyUserJackPasswordFailureWithHistory("test220ModifyUserJackPasswordBad",
+				USER_PASSWORD_1_CLEAR, USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
 	}
 	
 	/**
@@ -694,27 +721,150 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertFailure(result);
         
+        assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
+	}
+	
+	/**
+	 * Change to password that complies with password policy. Again. See that 
+	 * the change is applied correctly and that it is included in the history.
+	 */
+	@Test
+    public void test230ModifyUserJackPasswordGoodAgain() throws Exception {
+		doTestModifyUserJackPasswordSuccessWithHistory("test230ModifyUserJackPasswordGoodAgain",
+				USER_PASSWORD_VALID_2, USER_PASSWORD_A_CLEAR, USER_PASSWORD_VALID_1);
+	}
+	
+	/**
+	 * Change to password that is good but it is the same as current password.
+	 */
+	@Test
+    public void test235ModifyUserJackPasswordGoodSameAsCurrent() throws Exception {
+		doTestModifyUserJackPasswordFailureWithHistory("test235ModifyUserJackPasswordGoodSameAsCurrent",
+				USER_PASSWORD_VALID_2, USER_PASSWORD_VALID_2, USER_PASSWORD_A_CLEAR, USER_PASSWORD_VALID_1);
+	}
+	
+	/**
+	 * Change to password that is good but it is already in the history.
+	 */
+	@Test
+    public void test236ModifyUserJackPasswordGoodInHistory() throws Exception {
+		doTestModifyUserJackPasswordFailureWithHistory("test236ModifyUserJackPasswordGoodInHistory",
+				USER_PASSWORD_VALID_1, USER_PASSWORD_VALID_2, USER_PASSWORD_A_CLEAR, USER_PASSWORD_VALID_1);
+	}
+	
+	/**
+	 * Change to password that is bad and it is already in the history.
+	 */
+	@Test
+    public void test237ModifyUserJackPasswordBadInHistory() throws Exception {
+		doTestModifyUserJackPasswordFailureWithHistory("test237ModifyUserJackPasswordBadInHistory",
+				USER_PASSWORD_A_CLEAR, USER_PASSWORD_VALID_2, USER_PASSWORD_A_CLEAR, USER_PASSWORD_VALID_1);
+	}
+	
+	/**
+	 * Change to password that complies with password policy. Again.
+	 * This time there are enough passwords in the history. So the history should
+	 * be truncated.
+	 */
+	@Test
+    public void test240ModifyUserJackPasswordGoodAgainOverHistory() throws Exception {
+		doTestModifyUserJackPasswordSuccessWithHistory("test240ModifyUserJackPasswordGoodAgainOverHistory",
+				USER_PASSWORD_VALID_3, USER_PASSWORD_VALID_1, USER_PASSWORD_VALID_2);
+	}
+	
+	/**
+	 * Change to password that complies with password policy. Again.
+	 * This time there are enough passwords in the history. So the history should
+	 * be truncated.
+	 */
+	@Test
+    public void test241ModifyUserJackPasswordGoodAgainOverHistoryAgain() throws Exception {
+		doTestModifyUserJackPasswordSuccessWithHistory("test241ModifyUserJackPasswordGoodAgainOverHistoryAgain",
+				USER_PASSWORD_VALID_4, USER_PASSWORD_VALID_2, USER_PASSWORD_VALID_3);
+	}
+	
+	/**
+	 * Reuse old password. Now the password should be out of the history, so
+	 * the system should allow its reuse.
+	 */
+	@Test
+    public void test248ModifyUserJackPasswordGoodReuse() throws Exception {
+		doTestModifyUserJackPasswordSuccessWithHistory("test248ModifyUserJackPasswordGoodReuse",
+				USER_PASSWORD_VALID_1, USER_PASSWORD_VALID_3, USER_PASSWORD_VALID_4);
+	}
+	
+	private void doTestModifyUserJackPasswordSuccessWithHistory(final String TEST_NAME, 
+			String newPassword, String... expectedPasswordHistory) throws Exception {
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
+                        
+		// WHEN
+        modifyUserChangePassword(USER_JACK_OID, newPassword, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
+        
+        assertJackPasswordsWithHistory(newPassword, expectedPasswordHistory);
+	}
+	
+	private void doTestModifyUserJackPasswordFailureWithHistory(final String TEST_NAME, 
+			String newPassword, String oldPassword, String... expectedPasswordHistory) throws Exception {
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        try {
+			// WHEN
+	        modifyUserChangePassword(USER_JACK_OID, newPassword, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+	        
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	display("Exected exception", e);
+        }
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        assertJackPasswordsWithHistory(oldPassword, expectedPasswordHistory);
+	}
+	
+	private void assertJackPasswordsWithHistory(String expectedCurrentPassword, String... expectedPasswordHistory) throws Exception {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertLinks(userJack, 4);
         accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
-        // Make sure that the password is unchanged
-        
-        assertEncryptedUserPassword(userJack, USER_PASSWORD_VALID);
+        assertEncryptedUserPassword(userJack, expectedCurrentPassword);
         assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
         
-        assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+        assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, expectedCurrentPassword);
         
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+        assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, expectedCurrentPassword);
         
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, expectedCurrentPassword);
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		
+		assertPasswordHistoryEntries(userJack, expectedPasswordHistory);
 	}
 	
 	// TODO: add user with password that violates the policy
@@ -771,16 +921,16 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 
 		// Make sure that the password is unchanged
 
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_VALID);
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_VALID_1);
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
-		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);
 
 		assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-		assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+		assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);
 
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
 	}
@@ -817,7 +967,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack, "Jack Sparrow");
 
 		assertNull("User password is not null", userJack.asObjectable().getCredentials().getPassword().getValue());
-		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);			// password mapping is weak here - so no change is expected
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);			// password mapping is weak here - so no change is expected
 
 		assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 
@@ -849,7 +999,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		//assertUserJack(userJack, "Jack Sparrow");			// we changed employeeNumber, so this would fail
 
-		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);			// password mapping is weak here - so no change is expected
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);			// password mapping is weak here - so no change is expected
 
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
@@ -878,7 +1028,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		//assertUserJack(userJack, "Jack Sparrow");					// we changed employeeNumber, so this would fail
 
-		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);			// password mapping is weak here - so no change is expected
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);			// password mapping is weak here - so no change is expected
 
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);

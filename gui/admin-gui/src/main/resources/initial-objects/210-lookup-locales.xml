@@ -49,6 +49,10 @@
 		<label>Русский</label>
 	</row-->
 	<row>
+		<key>pt_BR</key>
+		<label>Português (Brasil)</label>
+	</row>
+	<row>
 		<key>sk</key>
 		<label>Slovenčina</label>
 	</row>
