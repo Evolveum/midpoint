@@ -48,7 +48,7 @@ This file is an example of Resource definition. It defines CSV resource.
 		<!-- Configuration specific for the CSVfile connector -->
 		<icfc:configurationProperties
 					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector">
-			<icfccsvfile:filePath>/var/opt/midpoint-example/resources/hr.csv</icfccsvfile:filePath>
+			<icfccsvfile:filePath>/var/opt/midpoint-book/resources/hr.csv</icfccsvfile:filePath>
 			<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
 			<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
 			<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
