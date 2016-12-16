@@ -8,6 +8,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -17,6 +18,8 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -83,7 +86,26 @@ public class PageAssignmentsList extends PageBase{
         add(mainForm);
 
         AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENT_TABLE_PANEL,
-                createStringResource("FocusType.assignment"), assignmentsModel);
+                createStringResource("FocusType.assignment"), assignmentsModel){
+            @Override
+            protected List<InlineMenuItem> createAssignmentMenu() {
+                List<InlineMenuItem> items = new ArrayList<>();
+                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
+                    InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
+                            new InlineMenuItemAction() {
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public void onClick(AjaxRequestTarget target) {
+                                    deleteAssignmentPerformed(target);
+                                }
+                            });
+                    items.add(item);
+                }
+                return items;
+
+            }
+        };
         mainForm.add(panel);
 
         AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageAssignmentDetails.backButton")) {
