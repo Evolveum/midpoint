@@ -21,11 +21,13 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.QNameUtil;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -34,7 +36,16 @@ import java.util.List;
  */
 public class CanonicalItemPath implements Serializable {
 
-	private static final String SHORTCUT_MARKER = "$";
+	private static final List<Pair<String, String>> EXPLICIT_REPLACEMENTS = Arrays.asList(
+			new ImmutablePair<>("http://midpoint.evolveum.com/xml/ns/public/common/common-", "common"),
+			new ImmutablePair<>("http://midpoint.evolveum.com/xml/ns/public/connector/icf-", "icf"),
+			new ImmutablePair<>("http://midpoint.evolveum.com/xml/ns/public", "public"),
+			new ImmutablePair<>("http://midpoint.evolveum.com/xml/ns", "midpoint"),
+			new ImmutablePair<>("http://prism.evolveum.com/xml/ns", "prism")
+			);
+
+	private static final String SHORTCUT_MARKER_START = "${";
+	private static final String SHORTCUT_MARKER_END = "}";
 
 	// currently we support only named segments in canonical paths
 	public static class Segment implements Serializable {
@@ -137,13 +148,22 @@ public class CanonicalItemPath implements Serializable {
 		for (Segment segment : segments) {
 			sb.append("\\");
 			if (segment.shortcut == null) {        // always true for unqualified names
-				sb.append(QNameUtil.qNameToUri(segment.name));
+				sb.append(extractExplicitReplacements(QNameUtil.qNameToUri(segment.name)));
 			} else {
-				sb.append(SHORTCUT_MARKER).append(segment.shortcut)
+				sb.append(SHORTCUT_MARKER_START).append(segment.shortcut).append(SHORTCUT_MARKER_END)
 						.append(QNameUtil.DEFAULT_QNAME_URI_SEPARATOR_CHAR).append(segment.name.getLocalPart());
 			}
 		}
 		return sb.toString();
+	}
+
+	private String extractExplicitReplacements(String uri) {
+		for (Pair<String, String> mapping : EXPLICIT_REPLACEMENTS) {
+			if (uri.startsWith(mapping.getKey())) {
+				return SHORTCUT_MARKER_START + mapping.getValue() + SHORTCUT_MARKER_END + uri.substring(mapping.getKey().length());
+			}
+		}
+		return uri;
 	}
 
 	@Override

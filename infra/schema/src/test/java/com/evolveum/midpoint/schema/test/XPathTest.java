@@ -23,8 +23,10 @@ import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -438,26 +440,32 @@ public class XPathTest {
 		assertCanonical(ItemPath.EMPTY_PATH, null, "");
 	}
 
+	private static final String COMMON = "${common}3";
+	private static final String ICFS = "${icf}1/connector-schema-3";
+	private static final String ICF = "${icf}1";
+	private static final String ZERO = "${0}";
+	private static final String ONE = "${1}";
+
 	@Test
 	public void testCanonicalizationSimple() throws Exception {
 		ItemPath path = new ItemPath(UserType.F_NAME);
-		assertCanonical(path, null, "\\" + NS_C + "#name");
+		assertCanonical(path, null, "\\" + COMMON + "#name");
 	}
 
 	@Test
 	public void testCanonicalizationSimpleNoNs() throws Exception {
 		ItemPath path = new ItemPath(UserType.F_NAME.getLocalPart());
 		assertCanonical(path, null, "\\#name");
-		assertCanonical(path, UserType.class, "\\" + NS_C + "#name");
+		assertCanonical(path, UserType.class, "\\" + COMMON + "#name");
 	}
 
 	@Test
 	public void testCanonicalizationMulti() throws Exception {
 		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT, 1234, AssignmentType.F_ACTIVATION,
 				ActivationType.F_ADMINISTRATIVE_STATUS);
-		assertCanonical(path, null, "\\" + NS_C + "#assignment",
-				"\\" + NS_C + "#assignment\\$0#activation",
-				"\\" + NS_C + "#assignment\\$0#activation\\$0#administrativeStatus");
+		assertCanonical(path, null, "\\" + COMMON + "#assignment",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#activation",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#activation\\" + ZERO + "#administrativeStatus");
 	}
 
 	@Test
@@ -466,9 +474,9 @@ public class XPathTest {
 				ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart());
 		assertCanonical(path, null, "\\#assignment",
 				"\\#assignment\\#activation", "\\#assignment\\#activation\\#administrativeStatus");
-		assertCanonical(path, UserType.class, "\\" + NS_C + "#assignment",
-				"\\" + NS_C + "#assignment\\$0#activation",
-				"\\" + NS_C + "#assignment\\$0#activation\\$0#administrativeStatus");
+		assertCanonical(path, UserType.class, "\\" + COMMON + "#assignment",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#activation",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#activation\\" + ZERO + "#administrativeStatus");
 	}
 
 	@Test
@@ -479,18 +487,18 @@ public class XPathTest {
 				new QName("x"), ActivationType.F_ADMINISTRATIVE_STATUS);
 		assertCanonical(path, null,
 				"\\#assignment",
-				"\\#assignment\\" + NS_C + "#extension",
-				"\\#assignment\\" + NS_C + "#extension\\http://piracy.org/inventory#store",
-				"\\#assignment\\" + NS_C + "#extension\\http://piracy.org/inventory#store\\$1#shelf",
-				"\\#assignment\\" + NS_C + "#extension\\http://piracy.org/inventory#store\\$1#shelf\\#x",
-				"\\#assignment\\" + NS_C + "#extension\\http://piracy.org/inventory#store\\$1#shelf\\#x\\$0#administrativeStatus");
+				"\\#assignment\\" + COMMON + "#extension",
+				"\\#assignment\\" + COMMON + "#extension\\http://piracy.org/inventory#store",
+				"\\#assignment\\" + COMMON + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf",
+				"\\#assignment\\" + COMMON + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf\\#x",
+				"\\#assignment\\" + COMMON + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf\\#x\\" + ZERO + "#administrativeStatus");
 		assertCanonical(path, UserType.class,
-				"\\" + NS_C + "#assignment",
-				"\\" + NS_C + "#assignment\\$0#extension",
-				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store",
-				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf",
-				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf\\#x",
-				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf\\#x\\$0#administrativeStatus");
+				"\\" + COMMON + "#assignment",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf\\#x",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf\\#x\\" + ZERO + "#administrativeStatus");
 	}
 
 	@Test
@@ -503,17 +511,31 @@ public class XPathTest {
 				"\\#assignment",
 				"\\#assignment\\#extension",
 				"\\#assignment\\#extension\\http://piracy.org/inventory#store",
-				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\$0#shelf",
-				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\$0#shelf\\" + NS_C + "#activation",
-				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\$0#shelf\\" + NS_C + "#activation\\$1#administrativeStatus");
+				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\" + ZERO + "#shelf",
+				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\" + ZERO + "#shelf\\" + COMMON + "#activation",
+				"\\#assignment\\#extension\\http://piracy.org/inventory#store\\" + ZERO + "#shelf\\" + COMMON + "#activation\\" + ONE + "#administrativeStatus");
 		assertCanonical(path, UserType.class,
-				"\\" + NS_C + "#assignment",
-				"\\" + NS_C + "#assignment\\$0#extension",
-				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store",
-				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf",
-				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf\\$0#activation",
-				"\\" + NS_C + "#assignment\\$0#extension\\http://piracy.org/inventory#store\\$1#shelf\\$0#activation\\$0#administrativeStatus");
+				"\\" + COMMON + "#assignment",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf\\" + ZERO + "#activation",
+				"\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf\\" + ZERO + "#activation\\" + ZERO + "#administrativeStatus");
 	}
+
+	// from IntegrationTestTools
+	private static final String NS_RESOURCE_DUMMY_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
+	private static final QName RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME = new QName(NS_RESOURCE_DUMMY_CONFIGURATION ,"uselessString");
+
+	@Test
+	public void testCanonicalizationLong() throws Exception {
+		ItemPath path = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+				RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
+		assertCanonical(path, null, "\\" + COMMON + "#connectorConfiguration",
+				"\\" + COMMON + "#connectorConfiguration\\" + ICFS + "#configurationProperties",
+				"\\" + COMMON + "#connectorConfiguration\\" + ICFS + "#configurationProperties\\" + ICF + "/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector#uselessString");
+	}
+
 
 	private void assertCanonical(ItemPath path, Class<? extends Containerable> clazz, String... representations) {
     	CanonicalItemPath canonicalItemPath = CanonicalItemPath.create(path, clazz, PrismTestUtil.getPrismContext());
