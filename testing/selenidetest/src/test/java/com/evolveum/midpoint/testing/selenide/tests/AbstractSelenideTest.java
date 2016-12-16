@@ -259,7 +259,7 @@ public class AbstractSelenideTest{
     }
 
     public void assignObjectToFocusObject(String linkText, String objectType, String objectName) {
-        assignObjectToFocusObject(linkText, "", objectName, ASSIGNMENT_TAB_NAME);
+        assignObjectToFocusObject(linkText, objectType, objectName, ASSIGNMENT_TAB_NAME);
     }
     /**
      * Prerequirement: user's Edit page is to be opened

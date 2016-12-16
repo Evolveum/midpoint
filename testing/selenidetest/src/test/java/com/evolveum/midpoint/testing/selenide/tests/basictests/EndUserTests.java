@@ -82,7 +82,7 @@ public class EndUserTests extends AbstractSelenideTest{
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
         //check if Success message appears
-        $(byText("Password is successfully changed")).shouldBe(visible);
+        $(byText("Change password (GUI)")).shouldBe(visible);
         //log out
         logout();
         //log in with new password
