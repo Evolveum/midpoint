@@ -558,11 +558,11 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * We make concurrent modify operations to test audit service under higher load
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test300ConcurrentAudits() throws Exception {
 		final String TEST_NAME = "test300ConcurrentAudits";
 		final int NUM_THREADS = 2;
-		final int ITERATIONS = 10000;
+		final int ITERATIONS = 300;
 		final long TIMEOUT = 600000;
 
 		// creating objects
@@ -632,14 +632,14 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Pure audit attempts (TODO move to some other test class in lower levels)
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test310ConcurrentAuditsRaw() throws Exception {
 		final String TEST_NAME = "test310ConcurrentAuditsRaw";
 		final int NUM_THREADS = 2;
-		final int ITERATIONS = 10000;
+		final int ITERATIONS = 300;
 		final long TIMEOUT = 600000;
 
-		final AtomicBoolean failed = new AtomicBoolean(false);
+		final AtomicBoolean failed = new AtomicBoolean(false);		// signal to kill other threads after a failure
 
 		// creating threads + starting them
 		List<Thread> threads = new ArrayList<>(NUM_THREADS);

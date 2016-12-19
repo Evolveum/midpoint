@@ -44,12 +44,13 @@ import java.util.List;
  */
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
     private static final String USER_HOME_VARIABLE = "user.home";
     private static final String MIDPOINT_HOME_VARIABLE = "midpoint.home";
     private static final long C3P0_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
-    private boolean initialized;
+	private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
+	private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
@@ -123,14 +124,16 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         if (getSqlConfiguration().isEmbedded()) {
             dropDatabaseIfExists(config);
+			if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
+				System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");        // to ensure backwards compatibility (H2 1.3.x)
+			}
             if (getSqlConfiguration().isAsServer()) {
                 LOGGER.info("Starting h2 in server mode.");
                 startServer();
             } else {
                 LOGGER.info("H2 prepared to run in local mode (from file).");
             }
-            LOGGER.info("H2 files are in '{}'.",
-                    new Object[]{new File(sqlConfiguration.getBaseDir()).getAbsolutePath()});
+            LOGGER.info("H2 files are in '{}'.", new File(sqlConfiguration.getBaseDir()).getAbsolutePath());
         } else {
             LOGGER.info("Repository is not running in embedded mode.");
         }
@@ -351,7 +354,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         final String fileName = config.getFileName();
         try {
             //removing files based on http://www.h2database.com/html/features.html#database_file_layout
-            File dbFile = new File(file, fileName + ".h2.db");
+            File dbFileOld = new File(file, fileName + ".h2.db");
+            removeFile(dbFileOld);
+            File dbFile = new File(file, fileName + ".mv.db");
             removeFile(dbFile);
             File lockFile = new File(file, fileName + ".lock.db");
             removeFile(lockFile);

@@ -54,7 +54,10 @@ public class RAuditItem {
 	}
     
     public void setRecord(RAuditEventRecord record) {
-		this.record = record;
+		if (record.getId() != 0) {
+			this.recordId = record.getId();
+		}
+    	this.record = record;
 	}
     
    
