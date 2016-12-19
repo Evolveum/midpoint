@@ -173,6 +173,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         StringBuilder jdbcUrl = new StringBuilder(prepareJdbcUrlPrefix(config));
 
+		jdbcUrl.append(";MVCC=FALSE");			// turn off MVCC, revert to table locking
         //disable database closing on exit. By default, a database is closed when the last connection is closed.
         jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE");
         //Both read locks and write locks are kept until the transaction commits.
@@ -363,16 +364,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             File traceFile = new File(file, fileName + ".trace.db");
             removeFile(traceFile);
 
-            File[] tempFiles = file.listFiles(new FilenameFilter() {
-
-                @Override
-                public boolean accept(File parent, String name) {
-                    if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
-                        return true;
-                    }
-                    return false;
-                }
-            });
+            File[] tempFiles = file.listFiles((parent, name) -> {
+				if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
+					return true;
+				}
+				return false;
+			});
             if (tempFiles != null) {
                 for (File temp : tempFiles) {
                     removeFile(temp);
