@@ -22,13 +22,20 @@ import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.util.*;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -47,10 +54,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Test of Model Audit Service.
@@ -559,7 +562,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	public void test300ConcurrentAudits() throws Exception {
 		final String TEST_NAME = "test300ConcurrentAudits";
 		final int NUM_THREADS = 2;
-		final int ITERATIONS = 1000;
+		final int ITERATIONS = 10000;
 		final long TIMEOUT = 600000;
 
 		// creating objects
@@ -625,5 +628,81 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
 		// TODO check audit correctness
 	}
-	
+
+	/**
+	 * Pure audit attempts (TODO move to some other test class in lower levels)
+	 */
+	@Test(enabled = false)
+	public void test310ConcurrentAuditsRaw() throws Exception {
+		final String TEST_NAME = "test310ConcurrentAuditsRaw";
+		final int NUM_THREADS = 2;
+		final int ITERATIONS = 10000;
+		final long TIMEOUT = 600000;
+
+		final AtomicBoolean failed = new AtomicBoolean(false);
+
+		// creating threads + starting them
+		List<Thread> threads = new ArrayList<>(NUM_THREADS);
+		List<Throwable> results = new ArrayList<>(NUM_THREADS);
+		for (int i = 0; i < NUM_THREADS; i++) {
+			final int index = i;
+			Thread thread = new Thread(() -> {
+				login(userAdministrator);
+				Task threadTask = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+				OperationResult threadResult = threadTask.getResult();
+				try {
+					for (int iteration = 0; iteration < ITERATIONS; iteration++) {
+						display("Executing iteration " + iteration + " in worker " + index);
+						AuditEventRecord record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
+						record.setEventIdentifier(
+								String.valueOf(iteration + ":" + System.currentTimeMillis()) + "-" + (int) (Math.random() * 1000000));
+						ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+								.item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Hi" + iteration))
+								.item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
+								.asObjectDelta("oid" + index);
+						record.getDeltas().add(new ObjectDeltaOperation(delta));
+						modelAuditService.audit(record, threadTask, threadResult);
+						if (failed.get()) {
+							results.set(index, new IllegalStateException("Some other thread failed"));
+							return;
+						}
+					}
+					results.set(index, null);
+				} catch (Throwable t) {
+					System.err.println("Thread " + index + " got an exception " + t);
+					LoggingUtils.logUnexpectedException(LOGGER, "Thread {} got an exception", t, index);
+					results.set(index, t);
+					failed.set(true);
+				}
+			});
+			thread.setName("Worker " + i);
+			threads.add(thread);
+			results.add(new IllegalStateException("Thread not finished"));	// cleared on successful finish
+		}
+		threads.forEach(Thread::start);
+
+		// waiting for threads
+		long deadline = System.currentTimeMillis() + TIMEOUT;
+		for (int i = 0; i < NUM_THREADS; i++) {
+			long waitTime = deadline - System.currentTimeMillis();
+			if (waitTime > 0) {
+				threads.get(i).join(waitTime);
+			}
+		}
+
+		// checking results
+		int fails = 0;
+		for (int i = 0; i < NUM_THREADS; i++) {
+			if (results.get(i) != null) {
+				fails++;
+				display("Thread " + i + " produced an exception: " + results.get(i));
+			}
+		}
+		if (fails > 0) {
+			fail(fails + " thread(s) failed: " + results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+		}
+
+		// TODO check audit correctness
+	}
+
 }
