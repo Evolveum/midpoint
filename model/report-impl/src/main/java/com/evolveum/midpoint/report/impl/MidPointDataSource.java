@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class MidPointDataSource implements JRDataSource{
@@ -89,12 +90,12 @@ public class MidPointDataSource implements JRDataSource{
 			return ((PrismProperty) i).getRealValues();
 		} else if (i instanceof PrismReference){
 			if (i.isSingleValue()){
-				return ((PrismReference) i).getValue().asReferencable();
+				return ObjectTypeUtil.createObjectRef(((PrismReference) i).getValue());
 			}
 			
 			List<Referencable> refs = new ArrayList<Referencable>();
 			for (PrismReferenceValue refVal : ((PrismReference) i).getValues()){
-				refs.add(refVal.asReferencable());
+				refs.add(ObjectTypeUtil.createObjectRef(((PrismReference) i).getValue()));
 			}
 			return refs;
 		} else if (i instanceof PrismContainer){
