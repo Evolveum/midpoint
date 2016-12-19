@@ -15,50 +15,34 @@
   ~ limitations under the License.
   -->
 
-<lookupTable oid="00000000-0000-0000-0000-000000000210"
+<lookupTable oid="00000000-0000-0000-0000-000000000230"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 
-	<name>Locales</name>
+	<name>Lifecycle States</name>
 
 	<row>
-		<key>cs</key>
-		<label>Čeština</label>
+		<key>draft</key>
+		<label>Draft</label>
 	</row>
 	<row>
-		<key>de</key>
-		<label>Deutsch</label>
+		<key>proposed</key>
+		<label>Proposed</label>
 	</row>
 	<row>
-		<key>et</key>
-		<label>Eesti</label>
+		<key>active</key>
+		<label>Active</label>
 	</row>
 	<row>
-		<key>en</key>
-		<label>English</label>
+		<key>deprecated</key>
+		<label>Deprecated</label>
 	</row>
 	<row>
-		<key>es</key>
-		<label>Español</label>
+		<key>archived</key>
+		<label>Archived</label>
 	</row>
 	<row>
-		<key>hu</key>
-		<label>Magyar</label>
-	</row>
-	<!--row>
-		<key>ru</key>
-		<label>Русский</label>
-	</row-->
-	<row>
-		<key>pt_BR</key>
-		<label>Português (Brasil)</label>
-	</row>
-	<row>
-		<key>sk</key>
-		<label>Slovenčina</label>
-	</row>
-	<row>
-		<key>tr</key>
-		<label>Türkçe</label>
+		<key>failed</key>
+		<label>Failed</label>
 	</row>
 
 </lookupTable>
