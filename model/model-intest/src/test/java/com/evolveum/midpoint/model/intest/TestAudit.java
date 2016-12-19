@@ -18,15 +18,18 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -104,8 +107,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertTrue(modelAuditService.supportsRetrieval());
         
         // WHEN
-        List<AuditEventRecord> allRecords = modelAuditService.listRecords("from RAuditEventRecord as aer where 1=1 ", 
-        		new HashMap<String,Object>(), new OperationResult(TEST_NAME));
+        List<AuditEventRecord> allRecords = modelAuditService.listRecords("from RAuditEventRecord as aer where 1=1 ",
+				new HashMap<>(), new OperationResult(TEST_NAME));
         
         // THEN
         display("all records", allRecords);
@@ -549,5 +552,78 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong number of audit records (initial)", expectedNumberOfRecords, auditRecordsSincePrevious.size());	
     }
 
+	/**
+	 * We make concurrent modify operations to test audit service under higher load
+	 */
+	@Test(enabled = false)
+	public void test300ConcurrentAudits() throws Exception {
+		final String TEST_NAME = "test300ConcurrentAudits";
+		final int NUM_THREADS = 2;
+		final int ITERATIONS = 1000;
+		final long TIMEOUT = 600000;
+
+		// creating objects
+		List<String> oids = new ArrayList<>(NUM_THREADS);
+		for (int i = 0; i < NUM_THREADS; i++) {
+			UserType user = new UserType(prismContext);
+			user.setName(PolyStringType.fromOrig("user-" + i));
+			addObject(user.asPrismObject());
+			oids.add(user.getOid());
+		}
+		display("OIDs", oids);
+
+		// creating threads + starting them
+		List<Thread> threads = new ArrayList<>(NUM_THREADS);
+		List<Throwable> results = new ArrayList<>(NUM_THREADS);
+		for (int i = 0; i < NUM_THREADS; i++) {
+			final int index = i;
+			Thread thread = new Thread(() -> {
+				login(userAdministrator);
+				Task threadTask = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+				OperationResult threadResult = threadTask.getResult();
+				try {
+					for (int iteration = 0; iteration < ITERATIONS; iteration++) {
+						display("Executing iteration " + iteration + " on user " + index);
+						ObjectDelta delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+								.item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("User " + index + " iteration " + iteration))
+								.asObjectDelta(oids.get(index));
+						executeChangesAssertSuccess(delta, null, threadTask, threadResult);
+					}
+					results.set(index, null);
+				} catch (Throwable t) {
+					System.err.println("Thread " + index + " got an exception " + t);
+					LoggingUtils.logUnexpectedException(LOGGER, "Thread {} got an exception", t, index);
+					results.set(index, t);
+				}
+			});
+			//thread.setName("Worker " + i);
+			threads.add(thread);
+			results.add(new IllegalStateException("Thread not finished"));	// cleared on successful finish
+		}
+		threads.forEach(Thread::start);
+
+		// waiting for threads
+		long deadline = System.currentTimeMillis() + TIMEOUT;
+		for (int i = 0; i < NUM_THREADS; i++) {
+			long waitTime = deadline - System.currentTimeMillis();
+			if (waitTime > 0) {
+				threads.get(i).join(waitTime);
+			}
+		}
+
+		// checking results
+		int fails = 0;
+		for (int i = 0; i < NUM_THREADS; i++) {
+			if (results.get(i) != null) {
+				fails++;
+				display("Thread " + i + " produced an exception: " + results.get(i));
+			}
+		}
+		if (fails > 0) {
+			fail(fails + " thread(s) failed: " + results.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+		}
+
+		// TODO check audit correctness
+	}
 	
 }
