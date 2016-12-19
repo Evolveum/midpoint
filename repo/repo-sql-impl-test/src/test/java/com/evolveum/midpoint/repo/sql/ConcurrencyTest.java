@@ -339,9 +339,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 }
                 
                 ItemDelta delta2 = null;
-                if (propertyDefinition2.getClass().isAssignableFrom(PrismContainerDefinition.class)){
+                if (propertyDefinition2 instanceof PrismContainerDefinition) {
                 	delta2 = new ContainerDelta(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
-                } else{
+                } else {
                 	delta2 = new PropertyDelta(attribute2, (PrismPropertyDefinition) propertyDefinition2, prismContext);
                 }
                 if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
