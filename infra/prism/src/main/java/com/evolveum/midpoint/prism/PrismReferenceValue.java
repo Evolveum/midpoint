@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -522,7 +523,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			referencable.setupReferenceValue(this);
 		}
 
-		// A hack, just to avoid crashes.
+		// A hack, just to avoid crashes. TODO think about this!
 		return new Referencable() {
 			PrismReferenceValue referenceValue = PrismReferenceValue.this;
 			@Override
@@ -533,8 +534,35 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			public void setupReferenceValue(PrismReferenceValue value) {
 				referenceValue = value;
 			}
-			public String getOid() {		// used by some scripts
+			@Override
+			public String getOid() {
 				return referenceValue.getOid();
+			}
+			@Override
+			public QName getType() {
+				return referenceValue.getTargetType();
+			}
+			@Override
+			public PolyStringType getTargetName() {
+				return PrismForJAXBUtil.getReferenceTargetName(referenceValue);
+			}
+			@Override
+			public QName getRelation() {
+				return referenceValue.getRelation();
+			}
+			@Override
+			public String getDescription() {
+				return referenceValue.getDescription();
+			}
+			@Override
+			public EvaluationTimeType getResolutionTime() {
+				return referenceValue.getResolutionTime();
+			}
+			@Override
+			public SearchFilterType getFilter() {
+				SearchFilterType filter = new SearchFilterType();
+				filter.setFilterClauseXNode(PrismForJAXBUtil.getReferenceFilterClauseXNode(referenceValue));
+				return filter;
 			}
 		};
 	}
