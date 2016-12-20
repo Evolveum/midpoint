@@ -59,11 +59,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -3775,6 +3771,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 		return false;
+	}
+
+	// just guessing (good enough for testing)
+	protected boolean isH2() {
+		Task task = createTask("isH2");
+		RepositoryDiag diag = modelDiagnosticService.getRepositoryDiag(task, task.getResult());
+		return diag.isEmbedded() || "org.h2.Driver".equals(diag.getDriverShortName());
 	}
 
 }

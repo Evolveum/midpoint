@@ -565,6 +565,11 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final int ITERATIONS = 300;
 		final long TIMEOUT = 600000;
 
+		if (isH2()) {
+			display("Skipping " + TEST_NAME + " because of H2 database");
+			return;
+		}
+
 		// creating objects
 		List<String> oids = new ArrayList<>(NUM_THREADS);
 		for (int i = 0; i < NUM_THREADS; i++) {
@@ -638,6 +643,11 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final int NUM_THREADS = 2;
 		final int ITERATIONS = 300;
 		final long TIMEOUT = 600000;
+
+		if (isH2()) {
+			display("Skipping " + TEST_NAME + " because of H2 database");
+			return;
+		}
 
 		final AtomicBoolean failed = new AtomicBoolean(false);		// signal to kill other threads after a failure
 
