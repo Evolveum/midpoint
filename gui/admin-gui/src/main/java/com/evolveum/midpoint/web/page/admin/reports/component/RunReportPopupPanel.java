@@ -319,7 +319,8 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
             Collection<PrismObject<T>> objects;
             ObjectQuery query = QueryBuilder.queryFor(targetType, getPrismContext())
-                    .item(new QName(SchemaConstants.NS_C, pLabel)).startsWith(input).matchingCaseIgnore()
+                    .item(new QName(SchemaConstants.NS_C, pLabel)).startsWith(input)
+                        .matching(new QName(SchemaConstants.NS_MATCHING_RULE, "origIgnoreCase"))
                     .maxSize(AUTO_COMPLETE_BOX_SIZE)
                     .build();
             try {
