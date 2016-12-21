@@ -22,13 +22,13 @@
 
     <name>midPoint CLI Interface</name>
     <artifactId>cli</artifactId>
-    <version>3.5-SNAPSHOT</version>
+    <version>3.5</version>
     <packaging>pom</packaging>
 
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.5-SNAPSHOT</version>
+        <version>3.5</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
 
