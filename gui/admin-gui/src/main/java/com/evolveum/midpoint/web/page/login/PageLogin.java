@@ -150,7 +150,7 @@ public class PageLogin extends PageBase {
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 
-        getSessionStorage().clearBreadcrumbs();
+        clearBreadcrumbs();
     }
 
     @Override

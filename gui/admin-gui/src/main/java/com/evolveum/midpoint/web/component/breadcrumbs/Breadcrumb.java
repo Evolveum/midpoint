@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -169,7 +170,8 @@ public class Breadcrumb implements Serializable, DebugDumpable {
         this.visible = visible;
     }
 
-    public void redirect(Component component) {
+    public WebPage redirect() {
+        throw new UnsupportedOperationException("Should be implemented in a subclass");
     }
 
 	public RestartResponseException getRestartResponseException() {

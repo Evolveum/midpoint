@@ -167,9 +167,6 @@ public class PageError extends PageBase {
     }
 
     private void homePerformed(AjaxRequestTarget target) {
-        SessionStorage storage = getSessionStorage();
-        storage.clearBreadcrumbs();
-
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             setResponsePage(PageDashboard.class);

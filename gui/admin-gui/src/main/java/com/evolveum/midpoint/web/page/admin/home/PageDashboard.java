@@ -85,7 +85,7 @@ public class PageDashboard extends PageAdminHome {
     protected void createBreadcrumb() {
         super.createBreadcrumb();
 
-        Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+        Breadcrumb bc = peekBreadcrumb();
         bc.setIcon(new Model("fa fa-dashboard"));
     }
 

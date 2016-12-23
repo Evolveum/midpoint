@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.component.breadcrumbs;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.IPageFactory;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -68,11 +70,12 @@ public class BreadcrumbPageClass extends Breadcrumb {
     }
 
     @Override
-    public void redirect(Component component) {
+    public WebPage redirect() {
+        IPageFactory pFactory = Session.get().getPageFactory();
         if (parameters == null) {
-            component.setResponsePage(page);
+            return pFactory.newPage(page);
         } else {
-            component.setResponsePage(page, parameters);
+            return pFactory.newPage(page, parameters);
         }
     }
 

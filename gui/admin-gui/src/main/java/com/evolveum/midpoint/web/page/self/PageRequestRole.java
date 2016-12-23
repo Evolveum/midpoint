@@ -165,7 +165,7 @@ public class PageRequestRole extends PageSelf {
     protected void createBreadcrumb() {
         super.createBreadcrumb();
 
-        Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+        Breadcrumb bc = peekBreadcrumb();
         bc.setIcon(new Model("fa fa-pencil-square-o"));
     }
 

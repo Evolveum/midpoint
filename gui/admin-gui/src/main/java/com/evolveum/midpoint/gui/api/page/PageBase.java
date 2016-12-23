@@ -17,11 +17,7 @@
 package com.evolveum.midpoint.gui.api.page;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
@@ -37,11 +33,7 @@ import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.Page;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -160,6 +152,7 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
  * @author semancik
  */
 public abstract class PageBase extends WebPage implements ModelServiceLocator {
+
 	private static final long serialVersionUID = 1L;
 
 	private static final String DOT_CLASS = PageBase.class.getName() + ".";
@@ -250,6 +243,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	@SpringBean
 	private MidpointFormValidatorRegistry formValidatorRegistry;
 
+	private List<Breadcrumb> breadcrumbs;
+
 	private boolean initialized = false;
 
 	private LoadableModel<Integer> workItemCountModel;
@@ -319,7 +314,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		}, this.getClass(), getPageParameters());
 
-		getSessionStorage().pushBreadcrumb(bc);
+		pushBreadcrumb(bc);
 	}
 
 	protected void createInstanceBreadcrumb() {
@@ -332,11 +327,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		}, this);
 
-		getSessionStorage().pushBreadcrumb(bc);
+		pushBreadcrumb(bc);
 	}
 
 	public void updateBreadcrumbParameters(String key, Object value) {
-		List<Breadcrumb> list = getSessionStorage().getBreadcrumbs();
+		List<Breadcrumb> list = getBreadcrumbs();
 		if (list.isEmpty()) {
 			return;
 		}
@@ -518,7 +513,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 					@Override
 					public List<Breadcrumb> getObject() {
-						return getSessionStorage().getBreadcrumbs();
+						return getBreadcrumbs();
 					}
 				}) {
 
@@ -578,9 +573,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				SessionStorage storage = MidPointAuthWebSession.getSession().getSessionStorage();
-				storage.clearBreadcrumbs();
-
 				Class<? extends Page> page = MidPointApplication.get().getHomePage();
 				setResponsePage(page);
 			}
@@ -1531,10 +1523,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
 	public Breadcrumb redirectBack() {
-		List<Breadcrumb> breadcrumbs = getSessionStorage().getBreadcrumbs();
+		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
 		if (breadcrumbs.size() < 2) {
-			getSessionStorage().clearBreadcrumbs();
-
 			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
 					AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
 				setResponsePage(PageDashboard.class);
@@ -1550,12 +1540,38 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return breadcrumb;
 	}
 
+	public void navigateToNext(Class<? extends WebPage> page) {
+		navigateToNext(page, null);
+	}
+
+	public void navigateToNext(Class<? extends WebPage> pageType, PageParameters params) {
+		IPageFactory pFactory = Session.get().getPageFactory();
+		WebPage page;
+		if (params == null) {
+			page = pFactory.newPage(pageType);
+		} else {
+			page = pFactory.newPage(pageType, params);
+		}
+
+		navigateToNext(page);
+	}
+
+	public void navigateToNext(WebPage page) {
+    	if (!(page instanceof PageBase)) {
+    		setResponsePage(page);
+    		return;
+		}
+
+		PageBase next = (PageBase) page;
+    	next.setBreadcrumbs(getBreadcrumbs());
+
+		setResponsePage(next);
+	}
+
 	// TODO deduplicate with redirectBack
 	public RestartResponseException redirectBackViaRestartResponseException() {
-		List<Breadcrumb> breadcrumbs = getSessionStorage().getBreadcrumbs();
+		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
 		if (breadcrumbs.size() < 2) {
-			getSessionStorage().clearBreadcrumbs();
-
 			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
 					AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
 				return new RestartResponseException(PageDashboard.class);
@@ -1576,7 +1592,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		boolean found = false;
 
 		//we remove all breadcrumbs that are after "breadcrumb"
-		List<Breadcrumb> breadcrumbs = getSessionStorage().getBreadcrumbs();
+		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
 		Iterator<Breadcrumb> iterator = breadcrumbs.iterator();
 		while (iterator.hasNext()) {
 			Breadcrumb b = iterator.next();
@@ -1586,7 +1602,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				found = true;
 			}
 		}
-		breadcrumb.redirect(this);
+		WebPage page = breadcrumb.redirect();
+
+		setResponsePage(page);
 	}
 
     protected void setTimeZone(PageBase page){
@@ -1607,5 +1625,43 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     protected <T> T runPrivileged(Producer<T> producer) {
     	return securityEnforcer.runPrivileged(producer);
     }
-    
+
+    public void setBreadcrumbs(List<Breadcrumb> breadcrumbs) {
+    	this.breadcrumbs = null;
+
+    	if (breadcrumbs != null) {
+			getBreadcrumbs().addAll(breadcrumbs);
+		}
+	}
+
+	public List<Breadcrumb> getBreadcrumbs() {
+		if (breadcrumbs == null) {
+			breadcrumbs = new Stack<>();
+		}
+		return breadcrumbs;
+	}
+
+	public void pushBreadcrumb(Breadcrumb breadcrumb) {
+		Validate.notNull(breadcrumb, "Breadcrumb must not be null");
+
+		Breadcrumb last = getBreadcrumbs().isEmpty() ?
+				null : getBreadcrumbs().get(getBreadcrumbs().size() - 1);
+		if (last != null && last.equals(breadcrumb)) {
+			return;
+		}
+
+		getBreadcrumbs().add(breadcrumb);
+	}
+
+	public Breadcrumb peekBreadcrumb() {
+		if (getBreadcrumbs().isEmpty()) {
+			return null;
+		}
+
+		return getBreadcrumbs().get(getBreadcrumbs().size() - 1);
+	}
+
+	public void clearBreadcrumbs() {
+		getBreadcrumbs().clear();
+	}
 }
