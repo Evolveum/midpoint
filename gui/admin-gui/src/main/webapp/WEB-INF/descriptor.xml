@@ -20,6 +20,7 @@
     <packagesToScan>com.evolveum.midpoint.web.page</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.home</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.users</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.services</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.roles</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.resources</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.resources.content</packagesToScan>
