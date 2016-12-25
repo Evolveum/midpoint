@@ -181,7 +181,7 @@ public class PageResource extends PageAdminResources {
 				PageParameters parameters = new PageParameters();
 				parameters.add(PageDebugView.PARAM_OBJECT_ID, resourceModel.getObject().getOid());
 				parameters.add(PageDebugView.PARAM_OBJECT_TYPE, "ResourceType");
-				setResponsePage(PageDebugView.class, parameters);
+				navigateToNext(PageDebugView.class, parameters);
 			}
 		};
 		add(editXml);

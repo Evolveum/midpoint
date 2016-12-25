@@ -95,7 +95,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 			
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
-				setResponsePage(PageRole.class);
+				navigateToNext(PageRole.class);
 			}
 		};
 		roleListPanel.setOutputMarkupId(true);
@@ -128,7 +128,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
     private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        setResponsePage(PageRole.class, parameters);
+        navigateToNext(PageRole.class, parameters);
     }
 
 	@Override

@@ -694,7 +694,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, accountOid);
-		setResponsePage(PageAccount.class, parameters);
+		getPageBase().navigateToNext(PageAccount.class, parameters);
 	}
 
 	private <F extends FocusType> F loadShadowOwner(String shadowOid) {

@@ -1680,7 +1680,7 @@ public final class WebComponentUtil {
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
 		Class<? extends PageBase> page = getObjectDetailsPage(objectClass);
 		if (page != null) {
-			component.setResponsePage(page, parameters);
+			((PageBase) component.getPage()).navigateToNext(page, parameters);
 		} else if (failIfUnsupported) {
 			throw new SystemException("Cannot determine details page for "+objectClass);
 		}

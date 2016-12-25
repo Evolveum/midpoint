@@ -167,12 +167,7 @@ public class PageError extends PageBase {
     }
 
     private void homePerformed(AjaxRequestTarget target) {
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
-            setResponsePage(PageDashboard.class);
-        } else {
-            setResponsePage(PageSelfDashboard.class);
-        }
+        setResponsePage(getMidpointApplication().getHomePage());
     }
 
     private void backPerformed(AjaxRequestTarget target) {

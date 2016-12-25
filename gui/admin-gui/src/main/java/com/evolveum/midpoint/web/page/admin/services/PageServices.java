@@ -46,7 +46,7 @@ import java.util.List;
  * @author katkav
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/users", action = {
+@PageDescriptor(url = "/admin/services", action = {
         @AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL,
                 label = PageAdminServices.AUTH_SERVICES_ALL_LABEL,
                 description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
@@ -103,7 +103,7 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
-				setResponsePage(PageService.class);
+				navigateToNext(PageService.class);
 			}
 		};
 		servicePanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES);
@@ -114,8 +114,7 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 	protected void serviceDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, service.getOid());
-		setResponsePage(PageService.class, parameters);
-
+		navigateToNext(PageService.class, parameters);
 	}
 
  	@Override

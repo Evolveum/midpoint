@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -132,7 +133,7 @@ public class TaskWfChildPanel extends Panel {
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-					setResponsePage(PageTaskEdit.class, parameters);
+					((PageBase) getPage()).navigateToNext(PageTaskEdit.class, parameters);
 				}
 			}
 		});

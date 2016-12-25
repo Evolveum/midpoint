@@ -34,12 +34,8 @@ public class PageSelfCredentials extends PageAbstractSelfCredentials{
             target.add(getFeedbackPanel());
         } else {
             showResult(result);
-            if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-                    AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
-                setResponsePage(PageDashboard.class);
-            } else {
-                setResponsePage(PageSelfDashboard.class);
-            }
+
+            setResponsePage(getMidpointApplication().getHomePage());
         }
 	}
 }

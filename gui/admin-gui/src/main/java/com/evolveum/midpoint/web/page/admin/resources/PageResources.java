@@ -168,7 +168,7 @@ public class PageResources extends PageAdminResources {
 
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
-				setResponsePage(PageResourceWizard.class);
+				navigateToNext(PageResourceWizard.class);
 
 			}
 		};
@@ -268,7 +268,7 @@ public class PageResources extends PageAdminResources {
 
         PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-		setResponsePage(PageResource.class, parameters);
+		navigateToNext(PageResource.class, parameters);
 	}
 
 	private List<ResourceType> isAnyResourceSelected(AjaxRequestTarget target, ResourceType single) {
@@ -430,14 +430,14 @@ public class PageResources extends PageAdminResources {
 	private void editResourcePerformed(ResourceType resourceType) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, resourceType.getOid());
-		setResponsePage(new PageResourceWizard(parameters));
+		navigateToNext(new PageResourceWizard(parameters));
 	}
 
 	private void editAsXmlPerformed(ResourceType resourceType) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(PageDebugView.PARAM_OBJECT_ID, resourceType.getOid());
 		parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
-		setResponsePage(PageDebugView.class, parameters);
+		navigateToNext(PageDebugView.class, parameters);
 	}
 
     private void clearSessionStorageForResourcePage() {

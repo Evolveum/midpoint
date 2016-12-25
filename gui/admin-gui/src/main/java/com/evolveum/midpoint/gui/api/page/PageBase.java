@@ -1525,12 +1525,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	public Breadcrumb redirectBack() {
 		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
 		if (breadcrumbs.size() < 2) {
-			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-					AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
-				setResponsePage(PageDashboard.class);
-			} else {
-				setResponsePage(PageSelfDashboard.class);
-			}
+			setResponsePage(getMidpointApplication().getHomePage());
 			
 			return null;
 		}
@@ -1572,12 +1567,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	public RestartResponseException redirectBackViaRestartResponseException() {
 		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
 		if (breadcrumbs.size() < 2) {
-			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-					AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
-				return new RestartResponseException(PageDashboard.class);
-			} else {
-				return new RestartResponseException(PageSelfDashboard.class);
-			}
+			return new RestartResponseException(getApplication().getHomePage());
 		}
 
 		Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);

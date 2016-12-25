@@ -110,7 +110,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
-				setResponsePage(PageCertDefinition.class);
+				navigateToNext(PageCertDefinition.class);
 			}
 		};
 		mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);
@@ -184,13 +184,13 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 	protected void detailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, service.getOid());
-		setResponsePage(PageCertDefinition.class, parameters);
+		navigateToNext(PageCertDefinition.class, parameters);
 	}
 
 	private void showCampaignsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, definition.getOid());
-		setResponsePage(PageCertCampaigns.class, parameters);
+		navigateToNext(PageCertCampaigns.class, parameters);
 	}
 
 	private void createCampaignPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
