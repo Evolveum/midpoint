@@ -312,14 +312,14 @@ public class PageDebugView extends PageAdminConfiguration {
 
                         try {
                             validateObject(result, objectHolder);
-                            if (index == 1){
-                                dataLanguage = PrismContext.LANG_JSON;
-                            } else if (index == 2){
-                                dataLanguage = PrismContext.LANG_YAML;
-                            } else {
-                                dataLanguage = PrismContext.LANG_XML;
-                            }
                             if (result.isAcceptable()) {
+                                if (index == 1){
+                                    dataLanguage = PrismContext.LANG_JSON;
+                                } else if (index == 2){
+                                    dataLanguage = PrismContext.LANG_YAML;
+                                } else {
+                                    dataLanguage = PrismContext.LANG_XML;
+                                }
                                 PrismObject<ObjectType> updatedObject = objectHolder.getValue();
                                 PrismContext context = getMidpointApplication().getPrismContext();
                                 String objectStr = context.serializerFor(dataLanguage).serialize(updatedObject);
@@ -327,6 +327,9 @@ public class PageDebugView extends PageAdminConfiguration {
                                 setSelectedIndex(index);
                                 addOrReplaceEditor();
                                 target.add(mainForm);
+                                target.add(getFeedbackPanel());
+                            } else {
+                                showResult(result);
                                 target.add(getFeedbackPanel());
                             }
                         } catch (Exception ex) {
