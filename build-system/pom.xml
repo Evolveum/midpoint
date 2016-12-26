@@ -72,10 +72,10 @@
         <cron4j.version>2.2.3</cron4j.version>
         <hibernate.version>4.3.11.Final</hibernate.version>
         <h2.version>1.4.193</h2.version>
-        <jdbc.postgres>9.3-1102-jdbc41</jdbc.postgres>
+        <jdbc.postgres>9.4.1212.jre7</jdbc.postgres>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
-        <jdbc.mysql>5.1.31</jdbc.mysql>
-        <wicket.version>7.3.0</wicket.version>
+        <jdbc.mysql>6.0.5</jdbc.mysql>
+        <wicket.version>7.5.0</wicket.version>
         <groovy.version>2.4.0</groovy.version>
         <activiti-engine.version>5.22.0</activiti-engine.version>
         <activiti-spring.version>5.22.0</activiti-spring.version>
