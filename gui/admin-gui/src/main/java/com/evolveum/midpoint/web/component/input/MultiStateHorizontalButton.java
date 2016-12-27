@@ -18,10 +18,11 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 
@@ -56,13 +57,17 @@ public class MultiStateHorizontalButton extends BasePanel{
 
         RepeatingView buttons = new RepeatingView(ID_BUTTON);
         buttons.setOutputMarkupId(true);
-        add(buttons);
+        buttonsPanel.add(buttons);
 
         for (String propertyKey : propertyKeysList){
-            AjaxButton button = new AjaxButton(buttons.newChildId(), pageBase.createStringResource(propertyKey)) {
+            AjaxSubmitButton button = new AjaxSubmitButton(buttons.newChildId(), pageBase.createStringResource(propertyKey)) {
                 @Override
-                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                    MultiStateHorizontalButton.this.onStateChanged(ajaxRequestTarget);
+                public void onSubmit(AjaxRequestTarget ajaxRequestTarget, Form form) {
+                    MultiStateHorizontalButton.this.onStateChanged(propertyKeysList.indexOf(propertyKey), ajaxRequestTarget);
+                }
+                @Override
+                public void onError(AjaxRequestTarget ajaxRequestTarget, Form form) {
+                    MultiStateHorizontalButton.this.onStateChanged(propertyKeysList.indexOf(propertyKey), ajaxRequestTarget);
                 }
             };
             button.add(getActiveButtonClassAppender(propertyKeysList.indexOf(propertyKey)));
@@ -85,11 +90,20 @@ public class MultiStateHorizontalButton extends BasePanel{
         });
     }
 
-    protected void onStateChanged(AjaxRequestTarget target){
+    protected void onStateChanged(int index, AjaxRequestTarget target){
+        setSelectedIndex(index);
         target.add(getButtonsContainer());
     }
 
     protected WebMarkupContainer getButtonsContainer(){
         return (WebMarkupContainer) get(ID_BUTTONS_CONTAINER);
+    }
+
+    public int getSelectedIndex() {
+        return selectedIndex;
+    }
+
+    public void setSelectedIndex(int selectedIndex) {
+        this.selectedIndex = selectedIndex;
     }
 }
