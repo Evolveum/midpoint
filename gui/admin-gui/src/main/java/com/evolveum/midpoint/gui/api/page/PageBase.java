@@ -35,6 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxNewWindowNotifyingBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -260,6 +261,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		Validate.notNull(reportManager, "Report manager was not injected.");
 
 		MidPointAuthWebSession.getSession().setClientCustomization();
+
+		add(new AjaxNewWindowNotifyingBehavior() {
+
+			@Override
+			protected void onNewWindow(AjaxRequestTarget target) {
+				LOGGER.debug("Page version already used in different tab, refreshing page");
+				setResponsePage(getPageClass(), getPageParameters());
+			}
+		});
 
 		initializeModel();
 		
