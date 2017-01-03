@@ -243,7 +243,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         String name = mainMenuItem.getNameModel().getObject();
         Breadcrumb bc = new Breadcrumb(new Model<>(name));
         bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
-        pageBase.pushBreadcrumb(bc);
+        pageBase.addBreadcrumb(bc);
 
         List<MenuItem> items = mainMenuItem.getItems();
         if (!items.isEmpty()) {
@@ -253,7 +253,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
             BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(new Model<>(nameModel.getObject()), first.getPageClass(),
                     first.getParams());
             invisibleBc.setVisible(false);
-            pageBase.pushBreadcrumb(invisibleBc);
+            pageBase.addBreadcrumb(invisibleBc);
         }
 
         setResponsePage(page);

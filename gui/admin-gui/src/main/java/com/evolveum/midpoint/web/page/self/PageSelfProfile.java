@@ -59,7 +59,7 @@ public class PageSelfProfile extends PageUser {
 	protected void createBreadcrumb() {
 		super.createBreadcrumb();
 
-		Breadcrumb bc = peekBreadcrumb();
+		Breadcrumb bc = getLastBreadcrumb();
 		bc.setIcon(new Model("fa fa-user"));
 	}
 

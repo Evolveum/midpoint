@@ -324,7 +324,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		}, this.getClass(), getPageParameters());
 
-		pushBreadcrumb(bc);
+		addBreadcrumb(bc);
 	}
 
 	protected void createInstanceBreadcrumb() {
@@ -337,7 +337,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		}, this);
 
-		pushBreadcrumb(bc);
+		addBreadcrumb(bc);
 	}
 
 	public void updateBreadcrumbParameters(String key, Object value) {
@@ -1603,6 +1603,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		}
 		WebPage page = breadcrumb.redirect();
+		if (page instanceof PageBase) {
+			PageBase base = (PageBase) page;
+			base.setBreadcrumbs(breadcrumbs);
+		}
 
 		setResponsePage(page);
 	}
@@ -1627,7 +1631,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void setBreadcrumbs(List<Breadcrumb> breadcrumbs) {
-    	this.breadcrumbs = null;
+    	getBreadcrumbs().clear();
 
     	if (breadcrumbs != null) {
 			getBreadcrumbs().addAll(breadcrumbs);
@@ -1636,12 +1640,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	public List<Breadcrumb> getBreadcrumbs() {
 		if (breadcrumbs == null) {
-			breadcrumbs = new Stack<>();
+			breadcrumbs = new ArrayList<>();
 		}
 		return breadcrumbs;
 	}
 
-	public void pushBreadcrumb(Breadcrumb breadcrumb) {
+	public void addBreadcrumb(Breadcrumb breadcrumb) {
 		Validate.notNull(breadcrumb, "Breadcrumb must not be null");
 
 		Breadcrumb last = getBreadcrumbs().isEmpty() ?
@@ -1653,7 +1657,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		getBreadcrumbs().add(breadcrumb);
 	}
 
-	public Breadcrumb peekBreadcrumb() {
+	public Breadcrumb getLastBreadcrumb() {
 		if (getBreadcrumbs().isEmpty()) {
 			return null;
 		}

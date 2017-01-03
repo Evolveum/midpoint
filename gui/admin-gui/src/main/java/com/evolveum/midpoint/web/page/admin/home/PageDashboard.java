@@ -22,10 +22,8 @@ import org.apache.wicket.request.component.IRequestablePage;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -45,8 +43,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_ACTIVATION;
 
 /**
  * @author lazyman
@@ -85,7 +81,7 @@ public class PageDashboard extends PageAdminHome {
     protected void createBreadcrumb() {
         super.createBreadcrumb();
 
-        Breadcrumb bc = peekBreadcrumb();
+        Breadcrumb bc = getLastBreadcrumb();
         bc.setIcon(new Model("fa fa-dashboard"));
     }
 
