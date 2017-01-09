@@ -95,7 +95,7 @@ public class MidPointDataSource implements JRDataSource{
 			
 			List<Referencable> refs = new ArrayList<Referencable>();
 			for (PrismReferenceValue refVal : ((PrismReference) i).getValues()){
-				refs.add(ObjectTypeUtil.createObjectRef(((PrismReference) i).getValue()));
+				refs.add(ObjectTypeUtil.createObjectRef(refVal));
 			}
 			return refs;
 		} else if (i instanceof PrismContainer){
