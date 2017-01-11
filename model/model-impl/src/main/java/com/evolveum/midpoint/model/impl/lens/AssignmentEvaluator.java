@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -303,6 +304,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 			LOGGER.trace("Checking for role cycle, comparing segment order {} with path order {}", assignmentPathSegment.getEvaluationOrder(), assignmentPath.getEvaluationOrder());
 			if (assignmentPath.containsTarget(target.asObjectable()) && assignmentPathSegment.getEvaluationOrder().equals(assignmentPath.getEvaluationOrder())) {
+				LOGGER.debug("Role cycle detected for target {} in {}", ObjectTypeUtil.toShortString(target), assignmentPath);
 				throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
 			}
 			
