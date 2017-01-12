@@ -74,7 +74,7 @@ import java.util.List;
  */
 public final class Utils {
 
-	 private static final Trace LOGGER = TraceManager.getTrace(Utils.class);
+	private static final Trace LOGGER = TraceManager.getTrace(Utils.class);
 	private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
 	            + ".resolveReference";
 	
@@ -108,42 +108,37 @@ public final class Utils {
 	 * @param prismContext
 	 * @param result
 	 */
-	public static <T extends ObjectType> void resolveReferences(final PrismObject<T> object, final RepositoryService repository,
-	    		final boolean enforceReferentialIntegrity, final boolean forceFilterReevaluation, final EvaluationTimeType resolutionTime,
-				final PrismContext prismContext, final OperationResult result) {
-	    	
-	    	Visitor visitor = new Visitor() {
-				@Override
-				public void visit(Visitable visitable) {
-					if (!(visitable instanceof PrismReferenceValue)) {
-						return;
-					}
-					resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
-							resolutionTime, prismContext, object.toString(), result);
-				}
-			};
-			object.accept(visitor);
-	    }
+	public static <T extends ObjectType> void resolveReferences(PrismObject<T> object, RepositoryService repository,
+	    		boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType resolutionTime,
+				boolean throwExceptionOnFailure,
+				PrismContext prismContext, OperationResult result) {
+
+		Visitor visitor = visitable -> {
+			if (!(visitable instanceof PrismReferenceValue)) {
+				return;
+			}
+			resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
+					resolutionTime, prismContext, object.toString(), throwExceptionOnFailure, result);
+		};
+		object.accept(visitor);
+	}
 
 	/**
 	 * Resolves references contained in ADD and REPLACE value sets for item modifications in a given ObjectDelta.
 	 * (specially treats collisions with values to be deleted)
 	 */
 
-	public static <T extends ObjectType> void resolveReferences(final ObjectDelta<T> objectDelta, final RepositoryService repository,
-																final boolean enforceReferentialIntegrity, final boolean forceFilterReevaluation,
-																final EvaluationTimeType resolutionTime,
-																final PrismContext prismContext, final OperationResult result) {
+	public static <T extends ObjectType> void resolveReferences(ObjectDelta<T> objectDelta, RepositoryService repository,
+			boolean enforceReferentialIntegrity, boolean forceFilterReevaluation,
+			EvaluationTimeType resolutionTime, boolean throwExceptionOnFailure,
+			PrismContext prismContext, OperationResult result) {
 
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				if (!(visitable instanceof PrismReferenceValue)) {
-					return;
-				}
-				resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
-						resolutionTime, prismContext, objectDelta.toString(), result);
+		Visitor visitor = visitable -> {
+			if (!(visitable instanceof PrismReferenceValue)) {
+				return;
 			}
+			resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
+					resolutionTime, prismContext, objectDelta.toString(), throwExceptionOnFailure, result);
 		};
 		// We could use objectDelta.accept(visitor), but we want to visit only values to add and replace
 		// (NOT values to delete! - otherwise very strange effects could result)
@@ -174,147 +169,172 @@ public final class Utils {
                 pval.accept(visitor);
                 if (!isToBeDeleted && valuesToDelete.contains(pval)) {
                     // value becomes 'to be deleted' -> we remove it from toBeDeleted list
-                    ((ItemDelta<PrismValue,?>)delta).removeValueToDelete(pval);
+                    delta.removeValueToDelete(pval);
                 }
             }
         }
 	}
 
 	private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
-									   boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
-									   PrismContext prismContext, String contextDesc, OperationResult parentResult) {
-			QName refName = refVal.getParent().getElementName();
-			
-			if ((refVal.getResolutionTime() != null && refVal.getResolutionTime() != evaluationTimeType) ||
-					(refVal.getResolutionTime() == null && evaluationTimeType != EvaluationTimeType.IMPORT)) {
-				LOGGER.trace("Skipping resolution of reference {} in {} because the resolutionTime is set to {}", refName, contextDesc, refVal.getResolutionTime());
+			boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
+			PrismContext prismContext, String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
+		QName refName = refVal.getParent().getElementName();
+
+		if ((refVal.getResolutionTime() != null && refVal.getResolutionTime() != evaluationTimeType) ||
+				(refVal.getResolutionTime() == null && evaluationTimeType != EvaluationTimeType.IMPORT)) {
+			LOGGER.trace("Skipping resolution of reference {} in {} because the resolutionTime is set to {}", refName, contextDesc, refVal.getResolutionTime());
+			return;
+		}
+
+		OperationResult result = parentResult.createMinorSubresult(OPERATION_RESOLVE_REFERENCE);
+		result.addContext(OperationResult.CONTEXT_ITEM, refName);
+
+		QName typeQName = null;
+		if (refVal.getTargetType() != null) {
+			typeQName = refVal.getTargetType();
+		}
+		if (typeQName == null) {
+			PrismReferenceDefinition definition = (PrismReferenceDefinition) refVal.getParent().getDefinition();
+			if (definition != null) {
+				typeQName = definition.getTargetTypeName();
+			}
+		}
+		Class<? extends ObjectType> type = ObjectType.class;
+		if (typeQName != null) {
+			type = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
+			if (type == null) {
+				result.recordWarning("Unknown type specified in reference or definition of reference " + refName + ": "
+						+ typeQName);
+				type = ObjectType.class;
+			}
+		}
+		SearchFilterType filter = refVal.getFilter();
+
+		if (!StringUtils.isBlank(refVal.getOid()) && (!forceFilterReevaluation || filter == null)) {
+			// We have OID (and "force filter reevaluation" is not requested or not possible)
+			if (filter != null) {
+				// We have both filter and OID. We will choose OID, but let's at
+				// least log a warning
+				LOGGER.debug("Both OID and filter for property {} in {}, OID takes precedence", refName, contextDesc);
+			}
+			// Nothing to resolve, but let's check if the OID exists
+			PrismObject<? extends ObjectType> object = null;
+			try {
+				object = repository.getObject(type, refVal.getOid(), null, result);
+			} catch (ObjectNotFoundException e) {
+				String message = "Reference " + refName + " refers to a non-existing object " + refVal.getOid();
+				if (enforceReferentialIntegrity) {
+					LOGGER.error(message);
+					result.recordFatalError(message);
+					if (throwExceptionOnFailure) {
+						throw new SystemException(message, e);
+					}
+				} else {
+					LOGGER.warn(message);
+					result.recordWarning(message);
+				}
+			} catch (SchemaException e) {
+				String message = "Schema error while trying to retrieve object " + refVal.getOid() + " : " + e.getMessage();
+				result.recordPartialError(message, e);
+				LOGGER.error(message, e);
+				// But continue otherwise
+			}
+			if (object != null && refVal.getOriginType() != null) {
+				// Check if declared and actual type matches
+				if (!object.getClass().equals(type)) {
+					result.recordWarning("Type mismatch on property " + refName + ": declared:"
+							+ refVal.getOriginType() + ", actual: " + object.getClass());
+				}
+			}
+			result.recordSuccessIfUnknown();
+			parentResult.computeStatus();
+			return;
+		}
+
+		if (filter == null) {
+			if (refVal.getObject() != null) {
+				LOGGER.trace("Skipping resolution of reference {} in {} because the object is present and the filter is not", refName, contextDesc);
+				result.recordNotApplicableIfUnknown();
 				return;
 			}
-			
-	        OperationResult result = parentResult.createMinorSubresult(OPERATION_RESOLVE_REFERENCE);
-	        result.addContext(OperationResult.CONTEXT_ITEM, refName);
+			// No OID and no filter. We are lost.
+			String message = "Neither OID nor filter for property " + refName + ": cannot resolve reference";
+			result.recordFatalError(message);
+			if (throwExceptionOnFailure) {
+				throw new SystemException(message);
+			}
+			return;
+		}
+		// No OID and we have filter. Let's check the filter a bit
+		ObjectFilter objFilter;
+		try{
+			PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+			objFilter = QueryConvertor.parseFilter(filter, objDef);
+		} catch (SchemaException ex){
+			LOGGER.error("Failed to convert object filter from filter because of: "+ ex.getMessage() + "; filter: " + filter.debugDump(), ex);
+			throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);
+		}
 
-	        QName typeQName = null;
-	        if (refVal.getTargetType() != null) {
-	        	typeQName = refVal.getTargetType();
-	        }
-	        if (typeQName == null) {
-	        	PrismReferenceDefinition definition = (PrismReferenceDefinition) refVal.getParent().getDefinition();
-	        	if (definition != null) {
-	        		typeQName = definition.getTargetTypeName();
-	        	}
-	        }
-	        Class<? extends ObjectType> type = ObjectType.class;
-	        if (typeQName != null) {
-	        	type = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
-	            if (type == null) {
-	                result.recordWarning("Unknown type specified in reference or definition of reference " + refName + ": "
-	                        + typeQName);
-	                type = ObjectType.class;
-	            }
-	        }
-	        SearchFilterType filter = refVal.getFilter();
+		LOGGER.trace("Resolving using filter {}", objFilter.debugDump());
+		List<PrismObject<? extends ObjectType>> objects;
+		QName objectType = refVal.getTargetType();
+		if (objectType == null) {
+			String message = "Missing definition of type of reference " + refName;
+			result.recordFatalError(message);
+			if (throwExceptionOnFailure) {
+				throw new SystemException(message);
+			}
+			return;
+		}
 
-	        if (!StringUtils.isBlank(refVal.getOid()) && (!forceFilterReevaluation || filter == null)) {
-	            // We have OID (and "force filter reevaluation" is not requested or not possible)
-	            if (filter != null) {
-	                // We have both filter and OID. We will choose OID, but let's at
-	                // least log a warning
-	            	LOGGER.debug("Both OID and filter for property {} in {}, OID takes precedence", refName, contextDesc);
-	            }
-	            // Nothing to resolve, but let's check if the OID exists
-	            PrismObject<? extends ObjectType> object = null;
-	            try {
-	                object = repository.getObject(type, refVal.getOid(), null, result);
-	            } catch (ObjectNotFoundException e) {
-	            	String message = "Reference " + refName + " refers to a non-existing object " + refVal.getOid();
-	            	if (enforceReferentialIntegrity) {
-	            		LOGGER.error(message);
-	            		result.recordFatalError(message);
-	            	} else {
-	            		LOGGER.warn(message);
-	            		result.recordWarning(message);
-	            	}
-	            } catch (SchemaException e) {
-	            	
-	                result.recordPartialError("Schema error while trying to retrieve object " + refVal.getOid()
-	                        + " : " + e.getMessage(), e);
-	                LOGGER.error(
-	                        "Schema error while trying to retrieve object " + refVal.getOid() + " : "
-	                                + e.getMessage(), e);
-	                // But continue otherwise
-	            }
-	            if (object != null && refVal.getOriginType() != null) {
-	                // Check if declared and actual type matches
-	                if (!object.getClass().equals(type)) {
-	                    result.recordWarning("Type mismatch on property " + refName + ": declared:"
-	                            + refVal.getOriginType() + ", actual: " + object.getClass());
-	                }
-	            }
-	            result.recordSuccessIfUnknown();
-	            parentResult.computeStatus();
-	            return;
-	        }
-	        
-	        if (filter == null) {
-	            // No OID and no filter. We are lost.
-	            result.recordFatalError("Neither OID nor filter for property " + refName
-	                    + ": cannot resolve reference");
-	            return;
-	        }
-	        // No OID and we have filter. Let's check the filter a bit
-	        
-	        ObjectFilter objFilter;
-	        try{
-	        	PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-	        	objFilter = QueryConvertor.parseFilter(filter, objDef);
-	        } catch (SchemaException ex){
-	        	LOGGER.error("Failed to convert object filter from filter because of: "+ ex.getMessage() + "; filter: " + filter.debugDump(), ex);
-	        	throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);
-	        }
-	        
-	        LOGGER.trace("Resolving using filter {}", objFilter.debugDump());
-//	        // Let's do resolving
-	        List<PrismObject<? extends ObjectType>> objects;
-	        QName objectType = refVal.getTargetType();
-	        if (objectType == null) {
-	            result.recordFatalError("Missing definition of type of reference " + refName);
-	            return;
-	        }
-	        
-	        if (containExpression(objFilter)){
-	        	result.recordSuccessIfUnknown();
-	        	return;
-	        }
-	        
-	        try {
-	        	ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
-	            objects = (List)repository.searchObjects(type, query, null, result);
+		if (containExpression(objFilter)){
+			result.recordSuccessIfUnknown();
+			return;
+		}
 
-	        } catch (SchemaException e) {
-	            // This is unexpected, but may happen. Record fatal error
-	            result.recordFatalError("Repository schema error during resolution of reference " + refName, e);
-	            return;
-	        } catch (SystemException e) {
-	            // We don't want this to tear down entire import.
-	            result.recordFatalError("Repository system error during resolution of reference " + refName, e);
-	            return;
-	        }
-	        if (objects.isEmpty()) {
-	            result.recordFatalError("Repository reference " + refName
-	                    + " cannot be resolved: filter matches no object");
-	            return;
-	        }
-	        if (objects.size() > 1) {
-	            result.recordFatalError("Repository reference " + refName
-	                    + " cannot be resolved: filter matches " + objects.size() + " objects");
-	            return;
-	        }
-	        // Bingo. We have exactly one object.
-	        String oid = objects.get(0).getOid();
-	        refVal.setOid(oid);
-	        result.recordSuccessIfUnknown();
-	    }
+		try {
+			ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
+			objects = (List)repository.searchObjects(type, query, null, result);
+
+		} catch (SchemaException e) {
+			// This is unexpected, but may happen. Record fatal error
+			String message = "Repository schema error during resolution of reference " + refName;
+			result.recordFatalError(message, e);
+			if (throwExceptionOnFailure) {
+				throw new SystemException(message, e);
+			}
+			return;
+		} catch (SystemException e) {
+			// We don't want this to tear down entire import.
+			String message = "Repository system error during resolution of reference " + refName;
+			result.recordFatalError(message, e);
+			if (throwExceptionOnFailure) {
+				throw new SystemException(message, e);
+			}
+			return;
+		}
+		if (objects.isEmpty()) {
+			String message = "Repository reference " + refName + " cannot be resolved: filter matches no object";
+			result.recordFatalError(message);
+			if (throwExceptionOnFailure) {
+				throw new SystemException(message);
+			}
+			return;
+		}
+		if (objects.size() > 1) {
+			String message = "Repository reference " + refName
+					+ " cannot be resolved: filter matches " + objects.size() + " objects";
+			result.recordFatalError(message);
+			if (throwExceptionOnFailure) {
+				throw new SystemException(message);
+			}
+			return;
+		}
+		// Bingo. We have exactly one object.
+		String oid = objects.get(0).getOid();
+		refVal.setOid(oid);
+		result.recordSuccessIfUnknown();
+	}
 	
 	private static boolean containExpression(ObjectFilter filter){
 		if (filter == null){
