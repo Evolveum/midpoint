@@ -62,6 +62,8 @@ public enum ObjectTypes {
 
     NODE(NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, ObjectManager.TASK_MANAGER, "nodes"),
 
+    FORM(FormType.COMPLEX_TYPE, SchemaConstantsGenerated.C_FORM, FormType.class, ObjectManager.MODEL, "forms"),
+
     ORG(OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, ObjectManager.MODEL, "orgs"),
 
     ABSTRACT_ROLE(AbstractRoleType.COMPLEX_TYPE, SchemaConstants.C_ABSTRACT_ROLE, AbstractRoleType.class,
