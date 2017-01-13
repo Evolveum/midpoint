@@ -8652,6 +8652,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="groupExpansion" type="c:GroupExpansionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How should be "groups" (orgs, roles) expanded? Default is "byClaimingWorkItem", i.e. they are not
+						expanded at all - their members can claim corresponding work items.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8690,6 +8698,39 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="REJECT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="GroupExpansionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How should be "groups" (orgs, roles) expanded?
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="byClaimingWorkItem">
+				<xsd:annotation>
+					<xsd:documentation>
+						Groups are not expanded at all - their members can claim corresponding work items.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="BY_CLAIMING_WORK_ITEMS"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="onWorkItemCreation">
+				<xsd:annotation>
+					<xsd:documentation>
+						Groups are expanded on work item creation. One work item is created for each member of given org/role.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ON_WORK_ITEM_CREATION"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

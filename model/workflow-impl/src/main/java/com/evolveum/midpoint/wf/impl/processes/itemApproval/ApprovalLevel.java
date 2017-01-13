@@ -18,10 +18,8 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -41,9 +39,13 @@ public interface ApprovalLevel {
 
     ExpressionType getAutomaticallyApproved();
 
+    @NotNull
     ApprovalLevelOutcomeType getOutcomeIfNoApprovers();
 
-    PrismContext getPrismContext();
+	@NotNull
+	GroupExpansionType getGroupExpansion();
+
+	PrismContext getPrismContext();
 
     void setPrismContext(PrismContext prismContext);
 

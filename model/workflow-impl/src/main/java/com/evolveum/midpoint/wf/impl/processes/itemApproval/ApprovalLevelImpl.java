@@ -50,6 +50,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     private LevelEvaluationStrategyType evaluationStrategy;
     private SerializationSafeContainer<ExpressionType> automaticallyApproved;
 	@NotNull private final ApprovalLevelOutcomeType outcomeIfNoApprovers;
+	@NotNull private final GroupExpansionType groupExpansion;
 
     private transient PrismContext prismContext;
 
@@ -69,7 +70,8 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 	    levelType.getApproverExpression().forEach(this::addApproverExpression);
         this.evaluationStrategy = levelType.getEvaluationStrategy();
         setAutomaticallyApproved(levelType.getAutomaticallyApproved());
-        outcomeIfNoApprovers = resolveDefault(levelType.getOutcomeIfNoApprovers());
+        outcomeIfNoApprovers = resolveDefaultOutcomeIfNoApprovers(levelType.getOutcomeIfNoApprovers());
+        groupExpansion = resolveDefaultGroupExpansion(levelType.getGroupExpansion());
     }
 
     //default: all approvers in one level, evaluation strategy = allMustApprove
@@ -91,11 +93,16 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
         }
         setEvaluationStrategy(LevelEvaluationStrategyType.ALL_MUST_AGREE);
         setAutomaticallyApproved(automaticallyApproved);
-		outcomeIfNoApprovers = resolveDefault(null);
+		outcomeIfNoApprovers = resolveDefaultOutcomeIfNoApprovers(null);
+		groupExpansion = resolveDefaultGroupExpansion(null);
     }
 
-	private ApprovalLevelOutcomeType resolveDefault(ApprovalLevelOutcomeType value) {
+	private ApprovalLevelOutcomeType resolveDefaultOutcomeIfNoApprovers(ApprovalLevelOutcomeType value) {
     	return value != null ? value : ApprovalLevelOutcomeType.REJECT;
+	}
+
+	private GroupExpansionType resolveDefaultGroupExpansion(GroupExpansionType value) {
+    	return value != null ? value : GroupExpansionType.BY_CLAIMING_WORK_ITEMS;
 	}
 
 	@Override
@@ -161,6 +168,12 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 	@Override
 	public ApprovalLevelOutcomeType getOutcomeIfNoApprovers() {
 		return outcomeIfNoApprovers;
+	}
+
+	@Override
+	@NotNull
+	public GroupExpansionType getGroupExpansion() {
+		return groupExpansion;
 	}
 
 	public int getOrder() {

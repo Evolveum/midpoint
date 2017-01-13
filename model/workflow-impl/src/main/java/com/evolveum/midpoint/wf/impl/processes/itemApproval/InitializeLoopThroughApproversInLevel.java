@@ -108,7 +108,12 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
                 }
             }
 
-            LOGGER.trace("Approvers at the level {} are: {}", level, approverRefs);
+            LOGGER.trace("Approvers at the level {} (before potential group expansion) are: {}", level, approverRefs);
+            if (level.getGroupExpansion() == GroupExpansionType.ON_WORK_ITEM_CREATION) {
+            	approverRefs = MidpointUtil.expandGroups(approverRefs);
+				LOGGER.trace("Approvers at the level {} (after group expansion) are: {}", level, approverRefs);
+			}
+
             if (approverRefs.isEmpty()) {
                 LOGGER.debug("No approvers at the level '{}' for process {} (id {}) - response is {}", level.getName(),
 						execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
