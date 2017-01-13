@@ -141,7 +141,9 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             if (orgType == null) {
                 for (String orgOid : orgOids) {
                     OrgType org = getOrgByOid(orgOid, preAuthorized);
-                    thisLevelOrgs.add(org);
+                    if (org != null) {
+                        thisLevelOrgs.add(org);
+                    }
                 }
             }
             for (OrgType org: thisLevelOrgs) {
