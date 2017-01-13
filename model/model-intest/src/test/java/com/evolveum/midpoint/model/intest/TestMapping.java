@@ -32,7 +32,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
-import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
