@@ -167,6 +167,21 @@
                 <ref>ri:water</ref>
                 <tolerant>false</tolerant>
             </attribute>
+            
+            <iteration>
+				<maxIterations>5</maxIterations>
+				<tokenExpression>
+					<script>
+						<code>
+							if (iteration == 0) {
+								return "";
+							} else {
+								return "."+iteration;
+							}
+						</code>
+					</script>
+				</tokenExpression>
+			</iteration>
 
 			<activation>
             	<administrativeStatus>
