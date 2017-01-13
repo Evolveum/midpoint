@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -411,25 +411,25 @@ public class DummyResource implements DebugDumpable {
 		checkBlockOperations();
 		if (getBreakMode == BreakMode.NONE) {
 			return accounts.values();
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
+		} else if (getBreakMode == BreakMode.NETWORK) {
 			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
+		} else if (getBreakMode == BreakMode.IO) {
 			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
+		} else if (getBreakMode == BreakMode.SCHEMA) {
 			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
+		} else if (getBreakMode == BreakMode.CONFLICT) {
 			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
+		} else if (getBreakMode == BreakMode.GENERIC) {
 			// The connector will react with generic exception
 			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+		} else if (getBreakMode == BreakMode.RUNTIME) {
 			// The connector will just pass this up
 			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+		} else if (getBreakMode == BreakMode.UNSUPPORTED) {
 			throw new UnsupportedOperationException("Not supported (simulated error)");
 		} else {
 			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+			throw new RuntimeException("Unknown get break mode "+getBreakMode);
 		}
 	}
 	
@@ -439,25 +439,25 @@ public class DummyResource implements DebugDumpable {
 		}
 		if (getBreakMode == BreakMode.NONE) {
 			return map.get(normalize(name));
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
+		} else if (getBreakMode == BreakMode.NETWORK) {
 			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
+		} else if (getBreakMode == BreakMode.IO) {
 			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
+		} else if (getBreakMode == BreakMode.SCHEMA) {
 			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
+		} else if (getBreakMode == BreakMode.CONFLICT) {
 			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
+		} else if (getBreakMode == BreakMode.GENERIC) {
 			// The connector will react with generic exception
 			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+		} else if (getBreakMode == BreakMode.RUNTIME) {
 			// The connector will just pass this up
 			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+		} else if (getBreakMode == BreakMode.UNSUPPORTED) {
 			throw new UnsupportedOperationException("Not supported (simulated error)");
 		} else {
 			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+			throw new RuntimeException("Unknown get break mode "+getBreakMode);
 		}
 	}
 	
@@ -487,25 +487,25 @@ public class DummyResource implements DebugDumpable {
 				throw new IllegalStateException("Arrrr! Wanted "+expectedClass+" with ID "+id+" but got "+dummyObject+" instead");
 			}
 			return (T)dummyObject;
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
+		} else if (getBreakMode == BreakMode.NETWORK) {
 			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
+		} else if (getBreakMode == BreakMode.IO) {
 			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
+		} else if (getBreakMode == BreakMode.SCHEMA) {
 			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
+		} else if (getBreakMode == BreakMode.CONFLICT) {
 			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
+		} else if (getBreakMode == BreakMode.GENERIC) {
 			// The connector will react with generic exception
 			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+		} else if (getBreakMode == BreakMode.RUNTIME) {
 			// The connector will just pass this up
 			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+		} else if (getBreakMode == BreakMode.UNSUPPORTED) {
 			throw new UnsupportedOperationException("Not supported (simulated error)");
 		} else {
 			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+			throw new RuntimeException("Unknown get break mode "+getBreakMode);
 		}
 	}
 	
@@ -529,25 +529,25 @@ public class DummyResource implements DebugDumpable {
 		checkBlockOperations();
 		if (getBreakMode == BreakMode.NONE) {
 			return groups.values();
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
+		} else if (getBreakMode == BreakMode.NETWORK) {
 			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
+		} else if (getBreakMode == BreakMode.IO) {
 			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
+		} else if (getBreakMode == BreakMode.SCHEMA) {
 			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
+		} else if (getBreakMode == BreakMode.CONFLICT) {
 			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
+		} else if (getBreakMode == BreakMode.GENERIC) {
 			// The connector will react with generic exception
 			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+		} else if (getBreakMode == BreakMode.RUNTIME) {
 			// The connector will just pass this up
 			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+		} else if (getBreakMode == BreakMode.UNSUPPORTED) {
 			throw new UnsupportedOperationException("Not supported (simulated error)");
 		} else {
 			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+			throw new RuntimeException("Unknown get break mode "+getBreakMode);
 		}
 	}
 	
@@ -555,25 +555,25 @@ public class DummyResource implements DebugDumpable {
 		checkBlockOperations();
 		if (getBreakMode == BreakMode.NONE) {
 			return privileges.values();
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
+		} else if (getBreakMode == BreakMode.NETWORK) {
 			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
+		} else if (getBreakMode == BreakMode.IO) {
 			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
+		} else if (getBreakMode == BreakMode.SCHEMA) {
 			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
+		} else if (getBreakMode == BreakMode.CONFLICT) {
 			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
+		} else if (getBreakMode == BreakMode.GENERIC) {
 			// The connector will react with generic exception
 			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+		} else if (getBreakMode == BreakMode.RUNTIME) {
 			// The connector will just pass this up
 			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+		} else if (getBreakMode == BreakMode.UNSUPPORTED) {
 			throw new UnsupportedOperationException("Not supported (simulated error)");
 		} else {
 			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+			throw new RuntimeException("Unknown get break mode "+getBreakMode);
 		}
 	}
 	
@@ -581,25 +581,25 @@ public class DummyResource implements DebugDumpable {
 		checkBlockOperations();
 		if (getBreakMode == BreakMode.NONE) {
 			return orgs.values();
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
+		} else if (getBreakMode == BreakMode.NETWORK) {
 			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
+		} else if (getBreakMode == BreakMode.IO) {
 			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
+		} else if (getBreakMode == BreakMode.SCHEMA) {
 			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
+		} else if (getBreakMode == BreakMode.CONFLICT) {
 			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
+		} else if (getBreakMode == BreakMode.GENERIC) {
 			// The connector will react with generic exception
 			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+		} else if (getBreakMode == BreakMode.RUNTIME) {
 			// The connector will just pass this up
 			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+		} else if (getBreakMode == BreakMode.UNSUPPORTED) {
 			throw new UnsupportedOperationException("Not supported (simulated error)");
 		} else {
 			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+			throw new RuntimeException("Unknown get break mode "+getBreakMode);
 		}
 	}
 	

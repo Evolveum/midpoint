@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -908,4 +910,24 @@ public class BasicExpressionFunctions {
     	return composeDn(components);
     }
 	
+    public static String debugDump(Object o) {
+    	if (o == null) {
+    		return "null";
+    	}
+    	if (o instanceof ObjectType) {
+    		return DebugUtil.debugDump(((ObjectType)o).asPrismObject(), 0);
+    	}
+    	return DebugUtil.debugDump(o, 0);
+    }
+    
+    public static String debugDump(Object o, int indent) {
+    	if (o == null) {
+    		return "null";
+    	}
+    	if (o instanceof ObjectType) {
+    		return DebugUtil.debugDump(((ObjectType)o).asPrismObject(), indent);
+    	}
+    	return DebugUtil.debugDump(o, indent);
+    }
+    
 }
