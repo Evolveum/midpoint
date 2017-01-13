@@ -1536,8 +1536,175 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Scabb Island");
-        // TODO: assert drink
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        		"vodka", "whisky", "rum from Scabb Island");
         
+	}
+	
+	/**
+	 * MID-3661
+	 */
+	@Test
+    public void test212ModifyUserLocalityRecon() throws Exception {
+		final String TEST_NAME = "test212ModifyUserLocalityRecon";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        dummyResourceCrimson.resetBreakMode();
+        
+        DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        display("Dummy account before", dummyAccountBefore);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY), 
+        		PrismTestUtil.createPolyString("Scabb Island"));
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+		modelService.executeChanges(deltas, options, task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+		
+		String accountOid = getSingleLinkOid(userAfter);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow after", repoShadow);
+        PrismAsserts.assertNoItem(repoShadow, ShadowType.F_OBJECT_CHANGE);
+        
+        // Check account in dummy resource
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+        display("Dummy account after", dummyAccountAfter);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Scabb Island");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        		"vodka", "whisky", "rum from Scabb Island");
+        
+	}
+	
+	/**
+	 * MID-3661
+	 */
+	@Test
+    public void test214ModifyUserLocalityIOError() throws Exception {
+		final String TEST_NAME = "test214ModifyUserLocalityIOError";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        dummyResourceCrimson.resetBreakMode();
+        
+        DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        display("Dummy account before", dummyAccountBefore);
+        
+        // Make sure that only get is broken and not modify. We want to give the test
+        // a chance to destroy data.
+        dummyResourceCrimson.setGetBreakMode(BreakMode.IO);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString("Booty Island"));
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        
+        dummyResourceCrimson.resetBreakMode();
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+		
+		String accountOid = getSingleLinkOid(userAfter);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow after", repoShadow);
+        PrismAsserts.assertNoItem(repoShadow, ShadowType.F_OBJECT_CHANGE);
+        
+        // Check account in dummy resource
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+        display("Dummy account after", dummyAccountAfter);
+        // TODO: How? Why?
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Booty Island");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        		"vodka", "whisky", "rum from Scabb Island");
+        
+	}
+	
+	/**
+	 * MID-3661
+	 */
+	@Test
+    public void test220NativeModifyDummyCrimsonThenChangePassword() throws Exception {
+		final String TEST_NAME = "test220NativeModifyDummyCrimsonThenChangePassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        dummyResourceCrimson.resetBreakMode();
+        
+        DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        		"brandy", "grappa");
+        display("Dummy account before", dummyAccountBefore);
+        
+        // Make sure that only get is broken and not modify. We want to give the test
+        // a chance to destroy data.
+        dummyResourceCrimson.setGetBreakMode(BreakMode.IO);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserChangePassword(USER_GUYBRUSH_OID, "1wannaBEaP1rat3", task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        
+        dummyResourceCrimson.resetBreakMode();
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+		
+		String accountOid = getSingleLinkOid(userAfter);
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Repo shadow after", repoShadow);
+        PrismAsserts.assertNoItem(repoShadow, ShadowType.F_OBJECT_CHANGE);
+        
+        assertEncryptedUserPassword(userAfter, "1wannaBEaP1rat3");
+        
+        // Check account in dummy resource
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+        display("Dummy account after", dummyAccountAfter);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Booty Island");
+        // location haven't changed and recon was not requested. The mapping was not evaluated.
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        		"brandy", "grappa");
 	}
 
 }
