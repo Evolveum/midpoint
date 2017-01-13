@@ -77,16 +77,17 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         level.setPrismContext(getPrismContext());
 
         List<Decision> decisionList = new ArrayList<Decision>();
-        boolean preApproved = false;
+        ApprovalLevelOutcomeType predeterminedOutcome = null;
 
         if (level.getAutomaticallyApproved() != null) {
             try {
                 opTask.setChannel(wfTask.getChannel());
                 expressionVariables = getDefaultVariables(execution, wfTask, result);
-                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, opTask, result);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Pre-approved = " + preApproved + " for level " + level);
-                }
+                boolean preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, opTask, result);
+				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
+				if (preApproved) {
+					predeterminedOutcome = ApprovalLevelOutcomeType.APPROVE;
+				}
             } catch (Exception e) {     // todo
                 throw new SystemException("Couldn't evaluate auto-approval expression", e);
             }
@@ -94,7 +95,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         Set<LightweightObjectRef> approverRefs = new HashSet<LightweightObjectRef>();
 
-        if (!preApproved) {
+        if (predeterminedOutcome == null) {
             approverRefs.addAll(level.getApproverRefs());
 
             if (!level.getApproverExpressions().isEmpty()) {
@@ -106,16 +107,18 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
                 }
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Approvers at the level " + level + " are: " + approverRefs);
-            }
+            LOGGER.trace("Approvers at the level {} are: {}", level, approverRefs);
             if (approverRefs.isEmpty()) {
-                LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME) + " (id " + execution.getProcessInstanceId() + ")");
+                LOGGER.debug("No approvers at the level '{}' for process {} (id {}) - response is {}", level.getName(),
+						execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
+						execution.getProcessInstanceId(), level.getOutcomeIfNoApprovers());
+                predeterminedOutcome = level.getOutcomeIfNoApprovers();
             }
         }
 
         Boolean stop;
-        if (approverRefs.isEmpty() || preApproved) {
+        if (predeterminedOutcome != null) {
+			execution.setVariableLocal(ProcessVariableNames.PREDETERMINED_LEVEL_OUTCOME, predeterminedOutcome);
             stop = Boolean.TRUE;
         } else {
             stop = Boolean.FALSE;

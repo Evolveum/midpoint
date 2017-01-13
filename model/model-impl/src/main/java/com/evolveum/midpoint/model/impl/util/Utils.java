@@ -178,7 +178,8 @@ public final class Utils {
 	private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
 			boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
 			PrismContext prismContext, String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
-		QName refName = refVal.getParent().getElementName();
+		String refName = refVal.getParent() != null ?
+				refVal.getParent().getElementName().toString() : "(unnamed)";
 
 		if ((refVal.getResolutionTime() != null && refVal.getResolutionTime() != evaluationTimeType) ||
 				(refVal.getResolutionTime() == null && evaluationTimeType != EvaluationTimeType.IMPORT)) {

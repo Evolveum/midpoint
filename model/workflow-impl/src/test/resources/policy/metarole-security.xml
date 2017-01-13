@@ -15,6 +15,7 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	  oid="00000001-d34d-b33f-f00d-M00000000002">
 	<name>Metarole 'security'</name>
 	<description>Marks really security-sensitive roles</description>
@@ -28,12 +29,16 @@
 					<compositionStrategy>
 						<order>2</order>
 					</compositionStrategy>
-					<approvalSchema>
-						<level>
-							<!--<approverRef oid="00000001-d34d-b33f-f00d-SECAPP000001" type="UserType"/>-->
-							<approverRelation>security-approver</approverRelation>
-						</level>
-					</approvalSchema>
+					<!--<approverRelation>security-approver</approverRelation>-->
+					<approverRef type="UserType">
+						<filter>
+							<q:equal>
+								<q:path>name</q:path>
+								<q:value>security-approver</q:value>
+							</q:equal>
+						</filter>
+						<resolutionTime>run</resolutionTime>
+					</approverRef>
 				</approval>
 			</policyActions>
 		</policyRule>

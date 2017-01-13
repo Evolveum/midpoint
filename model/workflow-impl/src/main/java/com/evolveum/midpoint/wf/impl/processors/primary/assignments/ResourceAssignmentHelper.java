@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
@@ -54,15 +55,18 @@ public class ResourceAssignmentHelper {
                 (resourceType.getBusiness() != null && !resourceType.getBusiness().getApproverRef().isEmpty());
     }
 
-    ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, ResourceType resourceType, RelationResolver relationResolver) {
+    ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType,
+            ResourceType resourceType, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         return new ApprovalRequestImpl<>(assignmentType, config, null, resourceType.getBusiness().getApproverRef(),
-                null, null, prismContext, relationResolver);
+                null, null, prismContext, relationResolver, referenceResolver);
     }
 
-    ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, ResourceType resourceType, List<ItemDeltaType> modifications, RelationResolver relationResolver) {
+    ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config,
+			AssignmentType assignmentType, ResourceType resourceType, List<ItemDeltaType> modifications,
+			RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         AssignmentModification itemToApprove = new AssignmentModification(assignmentType, resourceType, modifications);
         return new ApprovalRequestImpl<>(itemToApprove.wrap(prismContext), config, null,
-                resourceType.getBusiness().getApproverRef(), null, null, prismContext, relationResolver);
+                resourceType.getBusiness().getApproverRef(), null, null, prismContext, relationResolver, referenceResolver);
     }
 
     ResourceType getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result) {

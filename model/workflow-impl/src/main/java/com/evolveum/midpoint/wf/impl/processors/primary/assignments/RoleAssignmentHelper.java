@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
@@ -66,23 +67,28 @@ public class RoleAssignmentHelper {
         }
     }
 
-    protected boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, AbstractRoleType role) {
+    boolean shouldAssignmentBeApproved(PcpAspectConfigurationType config, AbstractRoleType role) {
         return primaryChangeAspectHelper.hasApproverInformation(config) ||
                 !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
     }
 
-    public ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a, AbstractRoleType role, RelationResolver relationResolver) {
+    ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a,
+			AbstractRoleType role, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         return new ApprovalRequestImpl<>(a, config, role.getApprovalSchema(), role.getApproverRef(),
-                role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext, relationResolver);
+                role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext, relationResolver, referenceResolver);
     }
 
-    public ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, AbstractRoleType role, List<ItemDeltaType> modifications, RelationResolver relationResolver) {
+    ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config,
+			AssignmentType assignmentType, AbstractRoleType role, List<ItemDeltaType> modifications,
+			RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         AssignmentModification itemToApprove = new AssignmentModification(assignmentType, role, modifications);
-        return new ApprovalRequestImpl<AssignmentModification>(itemToApprove.wrap(prismContext), config, role.getApprovalSchema(), role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext, relationResolver);
+        return new ApprovalRequestImpl<>(itemToApprove.wrap(prismContext), config, role.getApprovalSchema(),
+				role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext,
+				relationResolver, referenceResolver);
     }
 
     // TODO is this ok?
-    protected AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {
+	AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {
         AssignmentType assignmentClone = assignmentType.clone();
         PrismContainerValue.copyDefinition(assignmentClone, assignmentType, prismContext);
 
@@ -90,11 +96,11 @@ public class RoleAssignmentHelper {
         return assignmentClone;
     }
 
-    protected AbstractRoleType getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result) {
+    AbstractRoleType getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result) {
         return primaryChangeAspectHelper.resolveTargetRef(assignmentType, result);
     }
 
-    public String getTargetDisplayName(AbstractRoleType target) {
+    String getTargetDisplayName(AbstractRoleType target) {
         String simpleNameOrOid;
         if (target.getName() != null) {
             simpleNameOrOid = target.getName().getOrig();

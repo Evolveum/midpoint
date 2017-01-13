@@ -39,20 +39,21 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
 
     private transient PrismContext prismContext;
 
-    public ApprovalSchemaImpl(ApprovalSchemaType approvalSchemaType, PrismContext prismContext,
-                              RelationResolver relationResolver) {
+    ApprovalSchemaImpl(ApprovalSchemaType approvalSchemaType, @NotNull PrismContext prismContext,
+            RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         setPrismContext(prismContext);
-        initFromApprovalSchemaType(approvalSchemaType, relationResolver);
+        initFromApprovalSchemaType(approvalSchemaType, relationResolver, referenceResolver);
     }
 
-    public ApprovalSchemaImpl(ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRefList,
-                              List<ExpressionType> approverExpressionList, ExpressionType automaticallyApproved,
-                              PrismContext prismContext, RelationResolver relationResolver) {
+    ApprovalSchemaImpl(ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRefList,
+            List<ExpressionType> approverExpressionList, ExpressionType automaticallyApproved,
+            @NotNull PrismContext prismContext, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         setPrismContext(prismContext);
         if (approvalSchema != null) {
-            initFromApprovalSchemaType(approvalSchema, relationResolver);
+            initFromApprovalSchemaType(approvalSchema, relationResolver, referenceResolver);
         } else if ((approverRefList != null && !approverRefList.isEmpty()) || (approverExpressionList != null && !approverExpressionList.isEmpty())) {
-            ApprovalLevelImpl level = new ApprovalLevelImpl(approverRefList, approverExpressionList, automaticallyApproved, prismContext);
+            ApprovalLevelImpl level = new ApprovalLevelImpl(approverRefList, approverExpressionList,
+                    automaticallyApproved, prismContext, referenceResolver);
             addLevel(level);
         } else {
             throw new IllegalArgumentException("Neither approvalSchema nor approverRef/approverExpression is filled-in");
@@ -60,11 +61,11 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
     }
 
     private void initFromApprovalSchemaType(ApprovalSchemaType approvalSchemaType,
-                                            RelationResolver relationResolver) {
+			RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         this.name = approvalSchemaType.getName();
         this.description = approvalSchemaType.getDescription();
         for (ApprovalLevelType levelType : approvalSchemaType.getLevel()) {
-            addLevel(levelType, relationResolver);
+            addLevel(levelType, relationResolver, referenceResolver);
         }
     }
 
@@ -99,7 +100,7 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
     }
 
     @Override
-    public void setPrismContext(PrismContext prismContext) {
+    public void setPrismContext(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
         for (ApprovalLevel approvalLevel : levels) {
             approvalLevel.setPrismContext(prismContext);
@@ -121,12 +122,12 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
         return ast;
     }
 
-    public void addLevel(ApprovalLevelImpl level) {
+    private void addLevel(ApprovalLevelImpl level) {
         levels.add(level);
     }
 
-    public void addLevel(ApprovalLevelType levelType, RelationResolver relationResolver) {
-        addLevel(new ApprovalLevelImpl(levelType, prismContext, relationResolver));
+    private void addLevel(ApprovalLevelType levelType, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
+        addLevel(new ApprovalLevelImpl(levelType, prismContext, relationResolver, referenceResolver));
     }
 
     @Override

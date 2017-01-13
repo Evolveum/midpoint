@@ -17,16 +17,18 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -47,11 +49,12 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     private List<SerializationSafeContainer<ExpressionType>> approverExpressions = new ArrayList<>();
     private LevelEvaluationStrategyType evaluationStrategy;
     private SerializationSafeContainer<ExpressionType> automaticallyApproved;
+	@NotNull private final ApprovalLevelOutcomeType outcomeIfNoApprovers;
 
     private transient PrismContext prismContext;
 
-    public ApprovalLevelImpl(ApprovalLevelType levelType, PrismContext prismContext,
-                             RelationResolver relationResolver) {
+    ApprovalLevelImpl(ApprovalLevelType levelType, PrismContext prismContext,
+            RelationResolver relationResolver, ReferenceResolver referenceResolver) {
 
         Validate.notNull(prismContext, "prismContext must not be null");
 
@@ -61,15 +64,18 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
         setPrismContext(prismContext);
 
-	    levelType.getApproverRef().forEach(this::addApproverRef);
-	    relationResolver.getApprovers(levelType.getApproverRelation()).forEach(this::addApproverRef);
+	    levelType.getApproverRef().forEach(ref -> addApproverRef(referenceResolver, ref));
+	    relationResolver.getApprovers(levelType.getApproverRelation()).forEach(this::addResolvedApproverRef);
 	    levelType.getApproverExpression().forEach(this::addApproverExpression);
         this.evaluationStrategy = levelType.getEvaluationStrategy();
         setAutomaticallyApproved(levelType.getAutomaticallyApproved());
+        outcomeIfNoApprovers = resolveDefault(levelType.getOutcomeIfNoApprovers());
     }
 
     //default: all approvers in one level, evaluation strategy = allMustApprove
-    public ApprovalLevelImpl(List<ObjectReferenceType> approverRefList, List<ExpressionType> approverExpressionList, ExpressionType automaticallyApproved, PrismContext prismContext) {
+    ApprovalLevelImpl(List<ObjectReferenceType> approverRefList, List<ExpressionType> approverExpressionList,
+            ExpressionType automaticallyApproved, @NotNull PrismContext prismContext,
+			@NotNull ReferenceResolver referenceResolver) {
 
         Validate.notNull(prismContext, "prismContext must not be null");
 
@@ -78,16 +84,21 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 		order = 0;
 
         if (approverRefList != null) {
-	        approverRefList.forEach(this::addApproverRef);
+	        approverRefList.forEach(ref -> addApproverRef(referenceResolver, ref));
         }
         if (approverExpressionList != null) {
 	        approverExpressionList.forEach(this::addApproverExpression);
         }
         setEvaluationStrategy(LevelEvaluationStrategyType.ALL_MUST_AGREE);
         setAutomaticallyApproved(automaticallyApproved);
+		outcomeIfNoApprovers = resolveDefault(null);
     }
 
-    @Override
+	private ApprovalLevelOutcomeType resolveDefault(ApprovalLevelOutcomeType value) {
+    	return value != null ? value : ApprovalLevelOutcomeType.REJECT;
+	}
+
+	@Override
     public String getName() {
         return name;
     }
@@ -146,6 +157,12 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
         this.automaticallyApproved = new SingleItemSerializationSafeContainerImpl<>(automaticallyApproved, prismContext);
     }
 
+	@NotNull
+	@Override
+	public ApprovalLevelOutcomeType getOutcomeIfNoApprovers() {
+		return outcomeIfNoApprovers;
+	}
+
 	public int getOrder() {
 		return order;
 	}
@@ -156,7 +173,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     }
 
     @Override
-    public void setPrismContext(PrismContext prismContext) {
+    public void setPrismContext(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
@@ -178,12 +195,20 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
         return levelType;
     }
 
-    public void addApproverRef(ObjectReferenceType approverRef) {
-        approverRefs.add(new LightweightObjectRefImpl(approverRef));
+    private void addApproverRef(ReferenceResolver referenceResolver, ObjectReferenceType approverRef) {
+		try {
+			referenceResolver.resolveReference(approverRef, toString()).forEach(this::addResolvedApproverRef);
+		} catch (SchemaException|ObjectNotFoundException|ExpressionEvaluationException e) {
+			throw new SystemException("Couldn't resolve approverRef in " + this, e);
+		}
+	}
+
+    private void addResolvedApproverRef(ObjectReferenceType resolvedApproverRef) {
+        approverRefs.add(new LightweightObjectRefImpl(resolvedApproverRef));
     }
 
-    public void addApproverExpression(ExpressionType expressionType) {
-        approverExpressions.add(new SingleItemSerializationSafeContainerImpl<ExpressionType>(expressionType, prismContext));
+    private void addApproverExpression(ExpressionType expressionType) {
+        approverExpressions.add(new SingleItemSerializationSafeContainerImpl<>(expressionType, prismContext));
     }
 
     @Override
