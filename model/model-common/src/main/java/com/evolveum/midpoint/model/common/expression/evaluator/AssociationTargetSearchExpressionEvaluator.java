@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -93,7 +95,7 @@ public class AssociationTargetSearchExpressionEvaluator
 		options.add(SelectorOptions.create(ShadowType.F_ASSOCIATION, GetOperationOptions.createDontRetrieve()));
 	}
 
-	protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, ExpressionEvaluationContext params) {
+	protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
 		ShadowAssociationType associationType = new ShadowAssociationType();
 		PrismContainerValue<ShadowAssociationType> associationCVal = associationType.asPrismContainerValue();
 		associationType.setName(params.getMappingQName());
@@ -103,6 +105,11 @@ public class AssociationTargetSearchExpressionEvaluator
 		associationType.setShadowRef(targetRef);
 		
 		try {
+			
+			if (additionalAttributeDeltas != null) {
+				ItemDelta.applyTo(additionalAttributeDeltas, associationCVal);
+			}
+			
 			getPrismContext().adopt(associationCVal, ShadowType.COMPLEX_TYPE, new ItemPath(ShadowType.F_ASSOCIATION));
 			if (InternalsConfig.consistencyChecks) {
 				associationCVal.assertDefinitions("associationCVal in assignment expression in "+params.getContextDescription());
