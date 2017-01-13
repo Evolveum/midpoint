@@ -53,6 +53,8 @@ public enum ObjectTypeGuiDescriptor {
 
     NODE(ObjectTypes.NODE, "ObjectTypeGuiDescriptor.node", "silk-computer", "silk-computer"),
 
+    FORM(ObjectTypes.FORM, "ObjectTypeGuiDescriptor.form", "", ""),
+
     ORG(ObjectTypes.ORG, "ObjectTypeGuiDescriptor.org", GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_ORG_ICON),
 
     ABSTRACT_ROLE(ObjectTypes.ABSTRACT_ROLE, "ObjectTypeGuiDescriptor.abstractRole", "silk-award_star_gold_3", "silk-award_star_gold_3"),

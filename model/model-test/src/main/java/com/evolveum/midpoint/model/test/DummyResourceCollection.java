@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.FailableProcessor;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -34,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 public class DummyResourceCollection {
 
+	private static final Trace LOGGER = TraceManager.getTrace(DummyResourceCollection.class);
+	
 	private Map<String, DummyResourceContoller> map = new HashMap<>();
 	private ModelService modelService;
 	
@@ -55,7 +59,13 @@ public class DummyResourceCollection {
 			controller.extendSchemaPirate();
 		}
 		if (resourceFile != null) {
+			LOGGER.info("Importing {}", resourceFile);
 			modelService.importObjectsFromFile(resourceFile, null, task, result);
+			OperationResult importResult = result.getLastSubresult();
+			if (importResult.isError()) {
+				throw new RuntimeException("Error importing "+resourceFile+": "+importResult.getMessage());
+			}
+			LOGGER.debug("File {} imported: {}", resourceFile, importResult);
 		}
 		if (resourceOid != null) {
 			PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);

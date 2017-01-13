@@ -86,12 +86,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected UserType userTypeGuybrush;
 	protected UserType userTypeElaine;
 	
-	protected DummyResourceContoller dummyResourceCtl;
-	
-	protected DummyResource dummyResourceRed;
+	protected DummyResourceContoller dummyResourceCtl;	
 	protected DummyResourceContoller dummyResourceCtlRed;
-	protected ResourceType resourceDummyRedType;
-	protected PrismObject<ResourceType> resourceDummyRed;
 	
 	protected DummyResource dummyResourceBlue;
 	protected DummyResourceContoller dummyResourceCtlBlue;
@@ -165,13 +161,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 				},
 				initTask, initResult);
 		
-		
-		dummyResourceCtlRed = DummyResourceContoller.create(RESOURCE_DUMMY_RED_NAME, resourceDummyRed);
-		dummyResourceCtlRed.extendSchemaPirate();
-		dummyResourceRed = dummyResourceCtlRed.getDummyResource();
-		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILE, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
-		resourceDummyRedType = resourceDummyRed.asObjectable();
-		dummyResourceCtlRed.setResource(resourceDummyRed);
+		dummyResourceCtlRed = initDummyResourcePirate(RESOURCE_DUMMY_RED_NAME, 
+				RESOURCE_DUMMY_RED_FILE, RESOURCE_DUMMY_RED_OID, initTask, initResult);
 		
 		dummyResourceCtlBlue = DummyResourceContoller.create(RESOURCE_DUMMY_BLUE_NAME, resourceDummyBlue);
 		dummyResourceCtlBlue.extendSchemaPirate();

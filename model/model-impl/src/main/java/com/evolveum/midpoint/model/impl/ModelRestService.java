@@ -243,8 +243,8 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			finishRequest(task);
-			return RestServiceUtil.buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
-					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
+			return RestServiceUtil.createErrorResponseBuilder(Status.BAD_REQUEST, "Request to add object of type "
+					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type).build();
 		}
 
 
@@ -304,9 +304,9 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			finishRequest(task);
-			return RestServiceUtil.buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
+			return RestServiceUtil.createErrorResponseBuilder(Status.BAD_REQUEST, "Request to add object of type "
 					+ object.getCompileTimeClass().getSimpleName()
-					+ " to the collection of " + type);
+					+ " to the collection of " + type).build();
 		}
 
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
@@ -317,25 +317,24 @@ public class ModelRestService {
 		}
 
 		String oid;
-		Response response;
+		ResponseBuilder builder;
 		try {
 			oid = model.addObject(object, modelExecuteOptions, task, parentResult);
-			LOGGER.debug("returned oid :  {}", oid );
+			LOGGER.debug("returned oid : {}", oid);
 
 			URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
-			ResponseBuilder builder = clazz.isAssignableFrom(TaskType.class) ?
+			builder = clazz.isAssignableFrom(TaskType.class) ?
 					Response.accepted().location(resourceURI) : Response.created(resourceURI);
-
 			// (not used currently)
 			//validateIfRequested(object, options, builder, task, parentResult);
-			response = builder.build();
 		} catch (ObjectAlreadyExistsException e) {
-			response = Response.serverError().entity(e.getMessage()).build();
+			builder = Response.serverError().entity(e.getMessage());
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			builder = RestServiceUtil.createErrorResponseBuilder(ex);
 		}
-
 		parentResult.computeStatus();
+		Response response = RestServiceUtil.createResultHeaders(builder, parentResult).build();
+
 		finishRequest(task);
 		return response;
 	}
@@ -459,7 +458,7 @@ public class ModelRestService {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
 			response = Response.ok().entity(user).build();
 		} catch (ConfigurationException e) {
-			response = RestServiceUtil.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			response = RestServiceUtil.createErrorResponseBuilder(Status.INTERNAL_SERVER_ERROR, e.getMessage()).build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
