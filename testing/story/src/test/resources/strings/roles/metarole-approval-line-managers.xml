@@ -30,6 +30,7 @@
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
+                            <name>Line managers</name>
 							<approverExpression>
 								<script>
 									<code>midpoint.getManagersOidsExceptUser(object)</code>

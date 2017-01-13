@@ -32,6 +32,7 @@
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
+							<name>Security</name>
 							<approverRef type="OrgType">
 								<filter>
 									<q:equal>
