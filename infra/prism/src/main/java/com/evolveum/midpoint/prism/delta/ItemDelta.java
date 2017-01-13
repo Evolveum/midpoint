@@ -1142,6 +1142,13 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		}
 	}
 	
+	public static void applyTo(Collection<? extends ItemDelta> deltas, PrismContainerValue propertyContainerValue)
+			throws SchemaException {
+		for (ItemDelta delta : deltas) {
+			delta.applyTo(propertyContainerValue);
+		}
+	}
+	
 	public static void applyToMatchingPath(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer)
 			throws SchemaException {
 		for (ItemDelta delta : deltas) {
