@@ -95,12 +95,15 @@ public class WorkItemProvider {
 
 	public Integer countWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 		TaskQuery taskQuery = createTaskQuery(query, false, options, result);
-		return (int) taskQuery.count();
+		return taskQuery != null ? (int) taskQuery.count() : 0;
 	}
 
 	public SearchResultList<WorkItemType> searchWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
 			throws SchemaException {
 		TaskQuery taskQuery = createTaskQuery(query, true, options, result);
+		if (taskQuery == null) {
+			return new SearchResultList<>(Collections.emptyList());
+		}
 		Integer offset = query != null ? query.getOffset() : null;
 		Integer maxSize = query != null ? query.getMaxSize() : null;
 		List<Task> tasks;
@@ -114,6 +117,7 @@ public class WorkItemProvider {
 	}
 
 	// primitive 'query interpreter'
+	// returns null if no results should be returned
     private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
         FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_ROLES_REF, F_WORK_ITEM_ID);
         if (components.hasRemainder()) {
@@ -149,7 +153,13 @@ public class WorkItemProvider {
         }
 
         if (candidateRolesFilter != null) {
-            taskQuery = taskQuery.taskCandidateGroupIn(prismReferenceValueListToGroupNames((Collection<PrismReferenceValue>) candidateRolesFilter.getValue()));
+			List<String> candidateGroups = prismReferenceValueListToGroupNames(
+					(Collection<PrismReferenceValue>) candidateRolesFilter.getValue());
+			if (!candidateGroups.isEmpty()) {
+				taskQuery = taskQuery.taskCandidateGroupIn(candidateGroups);
+			} else {
+				return null;			// no groups -> no result
+			}
         }
 
         if (query != null && query.getPaging() != null) {
