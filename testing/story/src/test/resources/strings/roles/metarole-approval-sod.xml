@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role oid="9c0c224f-f279-44b5-b906-8e8418a651a2"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	<name>metarole-approval-sod</name>
+	<description>Requests to assign role holding this metarole will be approved by the SoD approvers</description>
+	<displayName>Metarole: approval by the SoD people</displayName>
+	<inducement>
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>30</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<level>
+							<approverRef type="OrgType">
+								<filter>
+									<q:equal>
+										<q:path>name</q:path>
+										<q:value>SoD Approvers</q:value>
+									</q:equal>
+								</filter>
+								<resolutionTime>run</resolutionTime>
+							</approverRef>
+							<evaluationStrategy>firstDecides</evaluationStrategy>
+							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+						</level>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>
