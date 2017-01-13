@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -139,8 +141,17 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
                 '}';
     }
 
-    @Override
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpWithLabelLn(sb, "Approval schema", name, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Description", description, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Levels", levels, indent + 1);
+		return sb.toString();
+	}
+
+	@Override
     public boolean isEmpty() {
-        return levels.stream().allMatch(l -> l.isEmpty());
+        return levels.stream().allMatch(ApprovalLevelImpl::isEmpty);
     }
 }

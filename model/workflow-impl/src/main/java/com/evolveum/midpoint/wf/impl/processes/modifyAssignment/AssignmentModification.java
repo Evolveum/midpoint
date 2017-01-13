@@ -168,5 +168,10 @@ public class AssignmentModification implements Serializable {
             targetWrapped.clearActualValue();
             modificationsWrapped = new ArrayList<>();           // OK?
         }
+
+        @Override
+        public String debugDump(int indent) {
+            return toString();			// TODO implement
+        }
     }
 }

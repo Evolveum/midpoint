@@ -138,6 +138,13 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         execution.setVariableLocal(ProcessVariableNames.DECISIONS_IN_LEVEL, decisionList);
         execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<>(approverRefs));
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
+
+        if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Approval process instance {} (id {}), level {}: predetermined outcome: {}, approvers: {}",
+					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
+					execution.getProcessInstanceId(),
+					level.getDebugName(), predeterminedOutcome, LightweightObjectRef.toDebugNames(approverRefs));
+		}
     }
 
 	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment) {

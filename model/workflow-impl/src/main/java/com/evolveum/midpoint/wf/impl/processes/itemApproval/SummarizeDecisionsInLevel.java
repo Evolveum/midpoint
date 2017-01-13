@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
@@ -70,8 +71,12 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 		} else {
 			approved = predeterminedOutcome == ApprovalLevelOutcomeType.APPROVE;
 		}
-        LOGGER.trace("approved at this level = {}", approved);
-
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Approval process instance {} (id {}), level {}: result of this level: {}",
+					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
+					execution.getProcessInstanceId(),
+					level.getDebugName(), approved);
+		}
         execution.setVariable(ProcessVariableNames.LOOP_LEVELS_STOP, !approved);
     }
 }

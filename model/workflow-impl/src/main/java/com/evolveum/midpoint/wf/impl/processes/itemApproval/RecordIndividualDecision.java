@@ -116,7 +116,14 @@ public class RecordIndividualDecision implements JavaDelegate {
         }
         execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
-		MidpointUtil.recordDecisionInTask(decision, taskOid);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",
+					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
+                    execution.getProcessInstanceId(),
+                    level.getDebugName(), decision, setLoopApprovesInLevelStop);
+        }
+
+        MidpointUtil.recordDecisionInTask(decision, taskOid);
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -235,6 +236,26 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
                 ", approverExpressions=" + approverExpressions +
                 '}';
     }
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpWithLabelLn(sb, "Order", order, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Name", name, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Description", description, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Evaluation strategy", String.valueOf(evaluationStrategy), indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Outcome if no approvers", String.valueOf(outcomeIfNoApprovers), indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Group expansion", String.valueOf(groupExpansion), indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Approver refs", approverRefs, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Approver expressions", approverExpressions, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Automatically approved", automaticallyApproved, indent);
+		return sb.toString();
+	}
+
+	@Override
+	public String getDebugName() {
+		return order + "/" + name;
+	}
 
 	public boolean isEmpty() {
         return approverRefs.isEmpty() && approverExpressions.isEmpty();

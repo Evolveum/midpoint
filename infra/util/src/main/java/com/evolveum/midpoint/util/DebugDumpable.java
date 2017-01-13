@@ -21,7 +21,7 @@ package com.evolveum.midpoint.util;
  */
 public interface DebugDumpable {
 	
-	public static final Object INDENT_STRING = "  ";
+	String INDENT_STRING = "  ";
 	
 	/**
 	 * Show the content of the object intended for diagnostics by system administrator. The out
