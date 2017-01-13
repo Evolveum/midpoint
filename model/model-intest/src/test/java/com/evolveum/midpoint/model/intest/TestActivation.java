@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -791,7 +791,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Account red (model)", accountRed);
-        assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
+        assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertAdministrativeStatusEnabled(accountRed);
         assertEnableTimestampShadow(accountRed, startTime, endTime);
                 
@@ -846,7 +847,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertAccounts(USER_JACK_OID, 2);
         accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
-        assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
+        assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertAdministrativeStatusDisabled(accountRed);
         assertDisableTimestampShadow(accountRed, startTime, endTime);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
@@ -864,7 +866,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<ShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(accountOid, 
         		getDummyResourceObject(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
         ObjectDelta<ShadowType> accountDeltaRed = createModifyAccountShadowReplaceDelta(accountRedOid, 
-        		resourceDummyRed, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
+        		getDummyResourceObject(RESOURCE_DUMMY_RED_NAME), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDeltaDefault, accountDeltaRed);
 		
 		// WHEN
@@ -947,7 +949,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertAccounts(USER_JACK_OID, 2);
         accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
-        assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
+        assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertAdministrativeStatusDisabled(accountRed);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION);
                 
