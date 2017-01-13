@@ -54,10 +54,10 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     private static final String OPERATION_LIST_ITEMS = DOT_CLASS + "listItems";
     private static final String OPERATION_COUNT_ITEMS = DOT_CLASS + "countItems";
 
-    boolean claimable;
-	boolean all;
+    private boolean claimable;
+	private boolean all;
 
-    public String currentUserOid() {
+    private String currentUserOid() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal == null) {
             return "Unknown";
@@ -82,7 +82,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         try {
             ObjectQuery query = createQuery(first, count, result);
             Collection<SelectorOptions<GetOperationOptions>> options =
-                    Arrays.asList(
+                    Collections.singletonList(
                             SelectorOptions.create(new ItemPath(F_ASSIGNEE_REF), createResolve()));
             List<WorkItemType> items = getModel().searchContainers(WorkItemType.class, query, options, task, result);
 
@@ -128,7 +128,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
 	@Override
     protected int internalSize() {
-        int count = 0;
+        int count;
         Task task = getTaskManager().createTaskInstance();
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {

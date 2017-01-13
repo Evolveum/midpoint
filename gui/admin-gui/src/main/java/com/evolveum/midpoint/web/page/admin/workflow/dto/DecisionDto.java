@@ -38,10 +38,12 @@ public class DecisionDto extends Selectable {
     private Date time;
 
     public DecisionDto(DecisionType decision) {
-        if (decision.getApproverRef() != null && decision.getApproverRef().getTargetName() != null) {
-            this.user = decision.getApproverRef().getTargetName().getOrig();
-        } else {
-            this.user = decision.getApproverRef().getOid();
+        if (decision.getApproverRef() != null) {
+            if (decision.getApproverRef().getTargetName() != null) {
+                this.user = decision.getApproverRef().getTargetName().getOrig();
+            } else {
+                this.user = decision.getApproverRef().getOid();
+            }
         }
         outcome = decision.isApproved();
         this.comment = decision.getComment();

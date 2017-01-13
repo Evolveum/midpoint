@@ -87,6 +87,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
 				if (preApproved) {
 					predeterminedOutcome = ApprovalLevelOutcomeType.APPROVE;
+					recordAutoApprovalDecision(wfTask, true, "Approved automatically by the auto-approval condition.");
 				}
             } catch (Exception e) {     // todo
                 throw new SystemException("Couldn't evaluate auto-approval expression", e);
@@ -113,6 +114,11 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 						execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
 						execution.getProcessInstanceId(), level.getOutcomeIfNoApprovers());
                 predeterminedOutcome = level.getOutcomeIfNoApprovers();
+                if (predeterminedOutcome == ApprovalLevelOutcomeType.APPROVE) {
+					recordAutoApprovalDecision(wfTask, true, "Approved automatically because there were no approvers found.");
+				} else {
+					recordAutoApprovalDecision(wfTask, false, "Rejected automatically because there were no approvers found.");
+				}
             }
         }
 
@@ -129,7 +135,15 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
 
-    private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, 
+	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment) {
+		Decision decision = new Decision();
+		decision.setApproved(approved);
+		decision.setComment(comment);
+		decision.setDate(new Date());
+		MidpointUtil.recordDecisionInTask(decision, wfTask.getOid());
+	}
+
+	private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList,
     		ExpressionVariables expressionVariables, DelegateExecution execution, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<LightweightObjectRef> retval = new ArrayList<>();
         for (ExpressionType approverExpression : approverExpressionList) {
