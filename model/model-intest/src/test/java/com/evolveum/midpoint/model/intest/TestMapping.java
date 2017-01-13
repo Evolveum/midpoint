@@ -78,12 +78,21 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_CRIMSON_NAME = "crimson";
 	protected static final String RESOURCE_DUMMY_CRIMSON_NAMESPACE = MidPointConstants.NS_RI;
 	
+	protected DummyResource dummyResourceCrimson;
+	protected DummyResourceContoller dummyResourceCtlCrimson;
+	protected ResourceType resourceDummyCrimsonType;
+	protected PrismObject<ResourceType> resourceDummyCrimson;
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		initDummyResourcePirate(RESOURCE_DUMMY_CRIMSON_NAME, 
-				RESOURCE_DUMMY_CRIMSON_FILE, RESOURCE_DUMMY_CRIMSON_OID, initTask, initResult);
+		dummyResourceCtlCrimson = DummyResourceContoller.create(RESOURCE_DUMMY_CRIMSON_NAME, resourceDummyRed);
+		dummyResourceCtlCrimson.extendSchemaPirate();
+		dummyResourceCrimson = dummyResourceCtlCrimson.getDummyResource();
+		resourceDummyCrimson = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CRIMSON_FILE, RESOURCE_DUMMY_CRIMSON_OID, initTask, initResult); 
+		resourceDummyCrimsonType = resourceDummyCrimson.asObjectable();
+		dummyResourceCtlCrimson.setResource(resourceDummyCrimson);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 	}
@@ -469,11 +478,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyRedType);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyRedType);
         
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
@@ -1400,7 +1409,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
-        getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
+        dummyResourceCrimson.setGetBreakMode(BreakMode.IO);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -1411,7 +1420,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertPartialError(result);
         
-        getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
+        dummyResourceCrimson.resetBreakMode();
         
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
@@ -1442,14 +1451,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
+        dummyResourceCrimson.resetBreakMode();
         
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString("Scabb Island"));
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Scabb Island"));
 		
 		// THEN
         TestUtil.displayThen(TEST_NAME);
