@@ -350,7 +350,7 @@ public class ExpressionUtil {
 	}
 
 	public static <ID extends ItemDefinition> ID resolveDefinitionPath(ItemPath path,
-			ExpressionVariables variables, PrismObjectDefinition<?> defaultContext, String shortDesc)
+			ExpressionVariables variables, PrismContainerDefinition<?> defaultContext, String shortDesc)
 					throws SchemaException {
 		while (path != null && !path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
 			path = path.rest();

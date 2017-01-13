@@ -300,6 +300,35 @@ public class TestQueryConvertor {
 		}
 
 	}
+	
+	@Test
+	public void testShadowKindTypeQuery() throws Exception {
+		displayTestTitle("testShadowKindTypeQuery");
+		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
+		ObjectQuery query;
+		try {
+			ObjectFilter kindFilter = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+					.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
+					.buildFilter();
+			query = ObjectQuery.createObjectQuery(kindFilter);
+			assertNotNull(query);
+			ObjectFilter filter = query.getFilter();
+			assertTrue("filter is not an instance of type filter", filter instanceof EqualFilter);
+			
+			EqualFilter typeFilter = (EqualFilter) filter;
+			assertEquals(typeFilter.getSingleValue().getRealValue(), ShadowKindType.ACCOUNT);
+			
+			QueryType convertedQueryType = toQueryType(query);
+			
+			toObjectQuery(ShadowType.class, convertedQueryType);
+			
+			displayQueryType(convertedQueryType);
+		} catch (Exception ex) {
+			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			throw ex;
+		}
+
+	}
 
 	private void assertRefFilterValue(RefFilter filter, String oid) {
 		List<? extends PrismValue> values = filter.getValues();
