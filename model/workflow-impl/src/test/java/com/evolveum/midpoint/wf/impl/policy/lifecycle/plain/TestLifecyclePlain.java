@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.policy.plain;
+package com.evolveum.midpoint.wf.impl.policy.lifecycle.plain;
 
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestLifecycle;
+import com.evolveum.midpoint.wf.impl.policy.lifecycle.AbstractTestLifecycle;
 
 /**
  * @author mederly

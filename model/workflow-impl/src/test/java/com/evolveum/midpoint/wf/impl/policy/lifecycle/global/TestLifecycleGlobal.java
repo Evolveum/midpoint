@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.policy.global;
+package com.evolveum.midpoint.wf.impl.policy.lifecycle.global;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestAssignmentApproval;
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestLifecycle;
+import com.evolveum.midpoint.wf.impl.policy.lifecycle.AbstractTestLifecycle;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
@@ -35,7 +32,7 @@ import static com.evolveum.midpoint.schema.constants.ObjectTypes.USER;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 /**
- * Shouldn't be used, as global policy rules for assignments are not implemented yet.
+ * Tests role lifecycle with global policy rules.
  *
  * @author mederly
  */
@@ -51,6 +48,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		super.initSystem(initTask, initResult);
 
 		/*
+		    <!-- ruleAll -->
 			<globalPolicyRule>
 				<policyConstraints>
 					<modification/>
@@ -60,7 +58,28 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 						<approverRelation>owner</approverRelation>
 					</approval>
 				</policyActions>
+				<focusSelector>
+					<type>RoleType</type>
+				</focusSelector>
 			</globalPolicyRule>
+
+			<!-- ruleAdd -->
+			<globalPolicyRule>
+				<policyConstraints>
+					<modification>
+						<operation>add</operation>
+					</modification>
+				</policyConstraints>
+				<policyActions>
+					<approval>
+						<approverRef oid="...userLead1Oid..." type="UserType" />
+					</approval>
+				</policyActions>
+				<focusSelector>
+					<type>RoleType</type>
+				</focusSelector>
+			</globalPolicyRule>
+
 		 */
 
 		ObjectSelectorType focusSelector = new ObjectSelectorType(prismContext);

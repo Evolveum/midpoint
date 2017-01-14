@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.policy.metarole;
+package com.evolveum.midpoint.wf.impl.policy.assignments.metarole;
 
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestAssignmentApproval;
+import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
 
 /**
  * Tests assigning of roles 1..3 with explicitly assigned metaroles (with policy rules).
