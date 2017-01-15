@@ -253,7 +253,8 @@ object.
 									tokenized = input.tokenize('/')
 									log.info("tokenized.size() " +tokenized.size())
 									if (tokenized.size() == 5) {
-									 return validTo = [4]
+										//2016-12-31T23:59:59.000
+										return basic.parseDateTime("yyyy-mm-dd'T'HH:mm:ss.SSS", tokenized[4]);
 									}
 									
 									return null;
