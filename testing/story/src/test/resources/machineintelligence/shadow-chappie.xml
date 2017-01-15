@@ -28,6 +28,6 @@
 		<ri:First_Name>Chappie</ri:First_Name>
 		<ri:Last_Name>von Tetravaal</ri:Last_Name>
 		<ri:Display_Name>Chappie von Tetravaal</ri:Display_Name>
-		<ri:assignments>Earth/Police/C/ACTIVE</ri:assignments>
+		<ri:assignments>Earth/Police/C/INACTIVE/2016-12-31T23:59:59.000</ri:assignments>
 	</attributes>
 </shadow>
