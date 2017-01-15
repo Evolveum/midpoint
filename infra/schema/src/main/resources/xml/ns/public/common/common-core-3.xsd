@@ -8644,6 +8644,22 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="outcomeIfNoApprovers" type="c:ApprovalLevelOutcomeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						What is the outcome (of this level) if there are no approvers? E.g. there are no users that have
+						been assigned a role as an approver; or a user has no managers, etc.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="groupExpansion" type="c:GroupExpansionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How should be "groups" (orgs, roles) expanded? Default is "byClaimingWorkItem", i.e. they are not
+						expanded at all - their members can claim corresponding work items.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8655,7 +8671,73 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="LevelEvaluationStrategyType">
+	<xsd:simpleType name="ApprovalLevelOutcomeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Result (outcome) of an approval process level.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="approve">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation was approved at this level. The approval process will continue at the next level.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="APPROVE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="reject">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation was rejected at this level. The approval process will stop.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="REJECT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="GroupExpansionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How should be "groups" (orgs, roles) expanded?
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="byClaimingWorkItem">
+				<xsd:annotation>
+					<xsd:documentation>
+						Groups are not expanded at all - their members can claim corresponding work items.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="BY_CLAIMING_WORK_ITEMS"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="onWorkItemCreation">
+				<xsd:annotation>
+					<xsd:documentation>
+						Groups are expanded on work item creation. One work item is created for each member of given org/role.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ON_WORK_ITEM_CREATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="LevelEvaluationStrategyType">
         <xsd:annotation>
             <xsd:documentation>
                 Enumeration of approval strategies at a particular level.

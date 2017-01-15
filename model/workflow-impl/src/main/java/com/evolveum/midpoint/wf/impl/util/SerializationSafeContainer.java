@@ -17,13 +17,14 @@
 package com.evolveum.midpoint.wf.impl.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DebugDumpable;
 
 import java.io.Serializable;
 
 /**
  * @author mederly
  */
-public interface SerializationSafeContainer<T> extends Serializable {
+public interface SerializationSafeContainer<T> extends Serializable, DebugDumpable {
     void setValue(T value);
 
     T getValue();

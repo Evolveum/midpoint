@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="e3c28c94-798a-4f93-85f8-de7cbe37315b">
+	<name>metarole-approval-role-approvers-first</name>
+	<description>Requests to assign role holding this metarole will be approved by the role approver(s) using "first decides" method</description>
+	<displayName>Metarole: approval by the role approver(s) - first decides</displayName>
+	<inducement>
+		<policyRule>
+			<policyConstraints>
+				<assignment />
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>40</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<level>
+							<approverRelation>approver</approverRelation>
+							<evaluationStrategy>firstDecides</evaluationStrategy>
+							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+						</level>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>

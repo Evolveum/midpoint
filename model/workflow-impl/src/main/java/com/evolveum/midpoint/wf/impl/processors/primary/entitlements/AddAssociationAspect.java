@@ -136,7 +136,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             ShadowAssociationType a = associationIterator.next();
             AssociationAdditionType itemToApprove = createItemToApprove(a, rsd);
             if (isAssociationRelevant(config, itemToApprove, rsd, modelContext, taskFromModel, result)) {
-                approvalRequestList.add(createApprovalRequest(config, itemToApprove));
+                approvalRequestList.add(createApprovalRequest(config, itemToApprove, modelContext, taskFromModel, result));
                 associationIterator.remove();
                 miscDataUtil.generateProjectionOidIfNeeded(modelContext, shadowType, rsd);
             }
@@ -223,7 +223,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         ShadowAssociationType association = associationCval.asContainerable();
         AssociationAdditionType itemToApprove = createItemToApprove(association, rsd);
         if (isAssociationRelevant(config, itemToApprove, rsd, modelContext, taskFromModel, result)) {
-            return createApprovalRequest(config, itemToApprove);
+            return createApprovalRequest(config, itemToApprove, modelContext, taskFromModel, result);
         } else {
             return null;
         }
@@ -323,9 +323,12 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     }
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    protected ApprovalRequest<AssociationAdditionType>
-    createApprovalRequest(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove) {
-        return new ApprovalRequestImpl<>(itemToApprove, config, prismContext, createRelationResolver((PrismObject) null, null));        // TODO rel resolver
+    private ApprovalRequest<AssociationAdditionType>
+    createApprovalRequest(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove, ModelContext<?> modelContext,
+			Task taskFromModel, OperationResult result) {
+        return new ApprovalRequestImpl<>(itemToApprove, config, prismContext,
+                createRelationResolver((PrismObject) null, result),		// TODO rel resolver
+				createReferenceResolver(modelContext, taskFromModel, result));
     }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource

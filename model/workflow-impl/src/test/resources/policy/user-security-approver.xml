@@ -22,8 +22,8 @@
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>security-approver</name>
-	<assignment> <!-- role23 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000023" type="RoleType" relation="security-approver"/>
-	</assignment>
+	<!--<assignment> &lt;!&ndash; role23 &ndash;&gt;-->
+		<!--<targetRef oid="00000001-d34d-b33f-f00d-000000000023" type="RoleType" relation="security-approver"/>-->
+	<!--</assignment>-->
     <fullName>Security approver</fullName>
 </user>

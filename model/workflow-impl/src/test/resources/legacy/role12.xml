@@ -35,6 +35,7 @@
                 </script>
             </approverExpression>
             <evaluationStrategy>allMustApprove</evaluationStrategy>
+            <outcomeIfNoApprovers>approve</outcomeIfNoApprovers>
         </level>
     </approvalSchema>
 

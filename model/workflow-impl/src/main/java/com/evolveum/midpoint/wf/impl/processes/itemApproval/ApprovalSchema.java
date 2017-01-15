@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-public interface ApprovalSchema {
+public interface ApprovalSchema extends DebugDumpable {
 
     String getName();
 

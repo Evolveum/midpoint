@@ -3776,4 +3776,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return diag.isEmbedded() || "org.h2.Driver".equals(diag.getDriverShortName());
 	}
 
+	protected void assertNoPostponedOperation(PrismObject<ShadowType> shadow) {
+		Item<PrismValue, ItemDefinition> objectChangeItem = shadow.findItem(ShadowType.F_OBJECT_CHANGE);
+		if (objectChangeItem != null) {
+			AssertJUnit.fail("Expected no postponed operation in "+shadow+", but found one: "+objectChangeItem);
+		}
+	}
 }

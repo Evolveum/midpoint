@@ -270,6 +270,14 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
     public void setProcessInterfaceBean(ProcessMidPointInterface processInterfaceBean) {
 		wfContext.setProcessInterface(processInterfaceBean.getBeanName());
     }
+
+	public PRC getProcessorContent() {
+		return processorContent;
+	}
+
+	public PCS getProcessContent() {
+		return processContent;
+	}
 	//endregion
 
     //region Diagnostics

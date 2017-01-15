@@ -98,8 +98,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 
 		if (objectTreeDeltas.getFocusChange() != null) {
-			extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, wfConfigurationType, result);
-			extractObjectBasedInstructions((LensContext<?>) modelContext, objectTreeDeltas, requester, instructions, result);
+			extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, wfConfigurationType, taskFromModel, result);
+			extractObjectBasedInstructions((LensContext<?>) modelContext, objectTreeDeltas, requester, instructions, taskFromModel, result);
 		}
         return instructions;
     }
@@ -107,7 +107,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	private void extractAssignmentBasedInstructions(@NotNull ModelContext<?> modelContext,
 			@NotNull ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<UserType> requester,
 			List<PcpChildWfTaskCreationInstruction> instructions, WfConfigurationType wfConfigurationType,
-			@NotNull OperationResult result)
+			Task taskFromModel, @NotNull OperationResult result)
 			throws SchemaException {
 
 		ObjectDelta<? extends ObjectType> focusDelta = objectTreeDeltas.getFocusChange();
@@ -153,7 +153,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			boolean useLegacy = configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.ALWAYS
 					|| configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION
 							&& noExplicitApprovalAction;
-			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions, useLegacy, result);
+			ApprovalRequest<?> request = createAssignmentApprovalRequest(newAssignment, approvalActions, useLegacy, modelContext, taskFromModel, result);
 			if (request != null && !request.getApprovalSchema().isEmpty()) {
 				@SuppressWarnings("unchecked")
 				PrismContainerValue<AssignmentType> assignmentValue = newAssignment.getAssignmentType().asPrismContainerValue();
@@ -177,7 +177,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private void extractObjectBasedInstructions(@NotNull LensContext<?> modelContext,
 			@NotNull ObjectTreeDeltas objectTreeDeltas, PrismObject<UserType> requester,
-			List<PcpChildWfTaskCreationInstruction> instructions, @NotNull OperationResult result)
+			List<PcpChildWfTaskCreationInstruction> instructions, Task taskFromModel, @NotNull OperationResult result)
 			throws SchemaException {
 
 		ObjectDelta<?> focusDelta = objectTreeDeltas.getFocusChange();
@@ -244,7 +244,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				itemsProcessed = items;
 			}
 			ApprovalRequest<?> request = new ApprovalRequestImpl<>("dummy", entry.getValue(), prismContext,
-					createRelationResolver(object, result));
+					createRelationResolver(object, result), createReferenceResolver(modelContext, taskFromModel, result));
 			if (!request.getApprovalSchema().isEmpty()) {
 				instructions.add(
 						prepareObjectRelatedTaskInstruction(request, focusDelta, items, modelContext, requester, result));
@@ -270,7 +270,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private ApprovalRequest<AssignmentType> createAssignmentApprovalRequest(EvaluatedAssignment<?> newAssignment,
 			List<ApprovalPolicyActionType> approvalActions, boolean useLegacyApprovers,
-			OperationResult result) throws SchemaException {
+			ModelContext<?> modelContext, Task taskFromModel, OperationResult result) throws SchemaException {
 		PrismObject<?> target = newAssignment.getTarget();
 		if (target == null) {
 			throw new IllegalStateException("No target in " + newAssignment);
@@ -295,7 +295,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		}
 		if (approvalSchema != null) {
 			return new ApprovalRequestImpl<>(newAssignment.getAssignmentType(), approvalSchema, prismContext,
-					createRelationResolver(target, result));
+					createRelationResolver(target, result), createReferenceResolver((LensContext) modelContext, taskFromModel, result));
 		} else {
 			return null;
 		}

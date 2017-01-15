@@ -16,14 +16,19 @@
 
 package com.evolveum.midpoint.wf.impl.processes.common;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author mederly
  */
-public interface LightweightObjectRef {
+public interface LightweightObjectRef extends DebugDumpable {
     String getOid();
 
     QName getType();
@@ -33,4 +38,14 @@ public interface LightweightObjectRef {
     String getTargetName();
 
     ObjectReferenceType toObjectReferenceType();
+
+    static List<String> toDebugNames(Collection<LightweightObjectRef> refs) {
+        return refs.stream()
+                .map(LightweightObjectRef::toDebugName)
+				.collect(Collectors.toList());
+    }
+
+    default String toDebugName() {
+    	return QNameUtil.getLocalPart(getType()) + ":" + getOid() + " (" + getTargetName() + ")";
+	}
 }

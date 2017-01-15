@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
@@ -49,8 +52,10 @@ public abstract class AddAbstractRoleAssignmentAspect<F extends FocusType> exten
     }
 
     @Override
-    public ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a, AbstractRoleType role, OperationResult result) {
-        return specificAssignmentHelper.createApprovalRequest(config, a, role, createRelationResolver(role, result));
+    public ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a,
+			AbstractRoleType role, ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
+        return specificAssignmentHelper.createApprovalRequest(config, a, role, createRelationResolver(role, result),
+                createReferenceResolver(modelContext, taskFromModel, result));
     }
 
     @Override
