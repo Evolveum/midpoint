@@ -34,6 +34,7 @@ import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -77,8 +78,14 @@ public class MappingEvaluator {
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
 			Mapping<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	evaluateMapping(mapping, lensContext, null, task, parentResult);
+    }
+    
+    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
+			Mapping<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
 		env.setLensContext(lensContext);
+		env.setProjectionContext(projContext);
 		env.setCurrentResult(parentResult);
 		env.setCurrentTask(task);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);

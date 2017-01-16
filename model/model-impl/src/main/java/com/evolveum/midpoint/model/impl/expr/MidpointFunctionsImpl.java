@@ -484,6 +484,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return null;
 	}
+    
+    @Override
+    public boolean isFullShadow() {
+    	LensProjectionContext projectionContext = getProjectionContext();
+    	if (projectionContext == null) {
+    		LOGGER.debug("Call to isFullShadow while there is no projection context");
+    		return false;
+    	}
+    	return projectionContext.isFullShadow();
+    }
 
 	public <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
@@ -641,6 +651,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return isUniqueHolder.getValue();
     }
     
+    private LensProjectionContext getProjectionContext() {
+    	return ModelExpressionThreadLocalHolder.getProjectionContext();
+    }
+    
     private Task getCurrentTask() {
     	return ModelExpressionThreadLocalHolder.getCurrentTask();
     }
@@ -657,7 +671,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     		return currentResult;
     	}
     }
-    
+        
     private OperationResult createSubresult(String operationName) {
     	OperationResult currentResult = ModelExpressionThreadLocalHolder.getCurrentResult();
     	if (currentResult == null) {
