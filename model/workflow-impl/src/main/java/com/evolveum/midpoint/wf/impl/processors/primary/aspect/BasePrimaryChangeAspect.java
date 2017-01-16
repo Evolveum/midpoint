@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.Utils;
@@ -164,12 +165,14 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         return createRelationResolver(object != null ? object.asPrismObject() : null, result);
     }
 
-	private <O extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(Class<O> clazz, SearchFilterType filter, String sourceDescription,
-			LensContext<?> lensContext, Task task, OperationResult result)
+	private <O extends ObjectType, F extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(Class<O> clazz, SearchFilterType filter, String sourceDescription,
+			LensContext<F> lensContext, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
-		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
-		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
+		env.setLensContext(lensContext);
+		env.setCurrentResult(result);
+		env.setCurrentTask(task);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
 		try {
 
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
@@ -190,9 +193,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 					.collect(Collectors.toList());
 
 		} finally {
-			ModelExpressionThreadLocalHolder.popLensContext();
-			ModelExpressionThreadLocalHolder.popCurrentResult();
-			ModelExpressionThreadLocalHolder.popCurrentTask();
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 	}
 
