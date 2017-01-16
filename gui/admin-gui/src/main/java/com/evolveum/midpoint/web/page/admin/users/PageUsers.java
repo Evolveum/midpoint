@@ -24,8 +24,10 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
@@ -64,8 +66,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -244,7 +244,7 @@ public class PageUsers extends PageAdminUsers {
 
 		columns.add(column);
 
-		column = new InlineMenuHeaderColumn(initInlineMenu());
+		column = new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions());
 		columns.add(column);
 
 		return columns;
@@ -252,6 +252,7 @@ public class PageUsers extends PageAdminUsers {
 
 	private List<InlineMenuItem> initInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+		int menuItemIndex = 0;
 		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"), true,
 				new HeaderMenuAction(this) {
 
@@ -259,7 +260,8 @@ public class PageUsers extends PageAdminUsers {
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						updateActivationPerformed(target, true, null);
 					}
-				}));
+				}, menuItemIndex++, GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
 
 		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"), true,
 				new HeaderMenuAction(this) {
@@ -268,7 +270,8 @@ public class PageUsers extends PageAdminUsers {
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						updateActivationPerformed(target, false, null);
 					}
-				}));
+				}, menuItemIndex++, GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
 		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"), true,
 				new HeaderMenuAction(this) {
@@ -277,7 +280,9 @@ public class PageUsers extends PageAdminUsers {
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						reconcilePerformed(target, null);
 					}
-				}));
+				}, menuItemIndex++, GuiStyleConstants.CLASS_THREE_DOTS));
+
+
 
 		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), true,
 				new HeaderMenuAction(this) {
@@ -286,7 +291,7 @@ public class PageUsers extends PageAdminUsers {
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						unlockPerformed(target, null);
 					}
-				}));
+				}, menuItemIndex++));
 
 		headerMenuItems.add(new InlineMenuItem());
 
@@ -297,7 +302,7 @@ public class PageUsers extends PageAdminUsers {
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						deletePerformed(target, null);
 					}
-				}));
+				}, menuItemIndex));
 
 		return headerMenuItems;
 	}
@@ -306,7 +311,8 @@ public class PageUsers extends PageAdminUsers {
 
 	private List<InlineMenuItem> createRowActions() {
 		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
+		int id = 0;
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -314,9 +320,10 @@ public class PageUsers extends PageAdminUsers {
 						SelectableBean<UserType> rowDto = getRowModel().getObject();
 						updateActivationPerformed(target, true, rowDto.getValue());
 					}
-				}));
+				}, id++, GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -324,9 +331,10 @@ public class PageUsers extends PageAdminUsers {
 						SelectableBean<UserType> rowDto = getRowModel().getObject();
 						updateActivationPerformed(target, false, rowDto.getValue());
 					}
-				}));
+				}, id++, GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -334,9 +342,9 @@ public class PageUsers extends PageAdminUsers {
 						SelectableBean<UserType> rowDto = getRowModel().getObject();
 						reconcilePerformed(target, rowDto.getValue());
 					}
-				}));
+				}, id++, GuiStyleConstants.CLASS_THREE_DOTS));
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"),
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -344,11 +352,11 @@ public class PageUsers extends PageAdminUsers {
 						SelectableBean<UserType> rowDto = getRowModel().getObject();
 						unlockPerformed(target, rowDto.getValue());
 					}
-				}));
+				}, id++));
 
 		menu.add(new InlineMenuItem());
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"),
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -356,8 +364,8 @@ public class PageUsers extends PageAdminUsers {
 						SelectableBean<UserType> rowDto = getRowModel().getObject();
 						deletePerformed(target, rowDto.getValue());
 					}
-				}));
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
+				}, id++));
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -365,7 +373,7 @@ public class PageUsers extends PageAdminUsers {
 						SelectableBean<UserType> rowDto = getRowModel().getObject();
 						mergePerformed(target, rowDto.getValue());
 					}
-				}));
+				}, id++));
 		return menu;
 	}
 

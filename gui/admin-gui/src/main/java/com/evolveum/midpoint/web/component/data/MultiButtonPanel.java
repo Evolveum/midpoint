@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -46,11 +47,16 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
         add(buttons);
         for (int id = 0; id < numberOfButtons; id++) {
-            final int finalId = id;
+            final int finalId = getButtonId(id);
             AjaxButton button = new AjaxButton(String.valueOf(finalId), createStringResource(getCaption(finalId))) {
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     clickPerformed(finalId, target, MultiButtonPanel.this.getModel());
+                }
+                @Override
+                protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                    super.updateAjaxAttributes(attributes);
+                    attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
                 }
                 @Override
                 public boolean isEnabled(){
@@ -90,6 +96,10 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
 
     public String getButtonSizeCssClass(int id) {
         return DoubleButtonColumn.BUTTON_SIZE_CLASS.DEFAULT.toString();
+    }
+
+    protected int getButtonId(int id){
+        return id;
     }
 
     public String getButtonTitle(int id) {

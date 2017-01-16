@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.component.menu.cog;
 
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
@@ -14,6 +15,9 @@ public class InlineMenuItem implements Serializable {
     private IModel<Boolean> visible;
     private InlineMenuItemAction action;
     private boolean submit;
+    private int id = -1;
+    private String buttonIconCssClass;
+    private String buttonColorCssClass;
 
     public InlineMenuItem() {
         this(null, null);
@@ -28,21 +32,43 @@ public class InlineMenuItem implements Serializable {
     }
 
     public InlineMenuItem(IModel<String> label, boolean submit, InlineMenuItemAction action) {
-        this(label, null, null, submit, action);
+        this(label, null, null, submit, action, -1, "", "");
+    }
+
+    public InlineMenuItem(IModel<String> label, boolean submit, InlineMenuItemAction action, int id) {
+        this(label, null, null, submit, action, id, "", DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString());
+    }
+
+    public InlineMenuItem(IModel<String> label, boolean submit, InlineMenuItemAction action, int id,
+                          String buttonIconCssClass) {
+        this(label, null, null, submit, action, id, buttonIconCssClass, DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString());
+    }
+
+    public InlineMenuItem(IModel<String> label, boolean submit, InlineMenuItemAction action, int id,
+                          String buttonIconCssClass, String buttonColorCssClass) {
+        this(label, null, null, submit, action, id, buttonIconCssClass, buttonColorCssClass);
     }
 
     public InlineMenuItem(IModel<String> label, IModel<Boolean> enabled, IModel<Boolean> visible,
                           InlineMenuItemAction action) {
-        this(label, enabled, visible, false, action);
+        this(label, enabled, visible, false, action, -1, "", "");
     }
 
     public InlineMenuItem(IModel<String> label, IModel<Boolean> enabled, IModel<Boolean> visible, boolean submit,
                           InlineMenuItemAction action) {
+        this(label, enabled, visible, submit, action, -1, "", "");
+    }
+
+    public InlineMenuItem(IModel<String> label, IModel<Boolean> enabled, IModel<Boolean> visible, boolean submit,
+                          InlineMenuItemAction action, int id, String buttonIconCssClass, String buttonColorCssClass) {
         this.label = label;
         this.enabled = enabled;
         this.visible = visible;
         this.action = action;
         this.submit = submit;
+        this.id = id;
+        this.buttonIconCssClass = buttonIconCssClass;
+        this.buttonColorCssClass = buttonColorCssClass;
     }
 
     public InlineMenuItemAction getAction() {
@@ -74,5 +100,29 @@ public class InlineMenuItem implements Serializable {
 
     public boolean isMenuHeader() {
         return label != null && action == null;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getButtonIconCssClass() {
+        return buttonIconCssClass;
+    }
+
+    public void setButtonIconCssClass(String buttonIconCssClass) {
+        this.buttonIconCssClass = buttonIconCssClass;
+    }
+
+    public String getButtonColorCssClass() {
+        return buttonColorCssClass;
+    }
+
+    public void setButtonColorCssClass(String buttonColorCssClass) {
+        this.buttonColorCssClass = buttonColorCssClass;
     }
 }
