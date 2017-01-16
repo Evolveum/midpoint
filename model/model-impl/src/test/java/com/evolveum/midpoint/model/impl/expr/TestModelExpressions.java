@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -333,13 +333,11 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
             task = taskManager.createTaskInstance();
         }
         try {
-            ModelExpressionThreadLocalHolder.pushCurrentResult(result);
-            ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 
             return scriptExpression.evaluate(variables, null, useNew, contextDescription, task, result);
         } finally {
-            ModelExpressionThreadLocalHolder.popCurrentTask();
-            ModelExpressionThreadLocalHolder.popCurrentResult();
+            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }
     }
 

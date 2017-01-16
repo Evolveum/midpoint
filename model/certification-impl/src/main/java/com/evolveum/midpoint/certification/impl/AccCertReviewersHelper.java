@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.model.api.expr.OrgStructFunctions;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -111,8 +112,7 @@ public class AccCertReviewersHelper {
     }
 
     private Collection<ObjectReferenceType> getObjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        ModelExpressionThreadLocalHolder.pushCurrentResult(result);
-        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
         try {
             ObjectReferenceType objectRef = _case.getObjectRef();
             ObjectType object = resolveReference(objectRef, ObjectType.class, result);
@@ -141,8 +141,7 @@ public class AccCertReviewersHelper {
             // never occurs, as preAuthorized is TRUE above
             throw new IllegalStateException("Impossible has happened: " + e.getMessage(), e);
         } finally {
-            ModelExpressionThreadLocalHolder.popCurrentResult();
-            ModelExpressionThreadLocalHolder.popCurrentTask();
+            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }
     }
 
