@@ -18,13 +18,17 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -159,7 +163,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 	}
 	
 	@Test
-    public void test011importActiveUserRUR() throws Exception {
+    public void test011importInactiveUserChappie() throws Exception {
 		final String TEST_NAME = "test020ResourceOpenDjGet";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -188,7 +192,10 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         //assert assignment of org
         assertAssignedOrg(userRur, orgs.iterator().next());
         //assert assignment of or in more depth
-        assertAssignment(userRur.asObjectable(), ActivationStatusType.ENABLED, null);
+       
+        XMLGregorianCalendar validTo = XmlTypeConverter
+				.createXMLGregorianCalendar(2016, 12, 31, 23, 59, 59);
+        assertAssignment(userRur.asObjectable(), ActivationStatusType.DISABLED, validTo);
         
 	}
 	
