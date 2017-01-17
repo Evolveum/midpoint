@@ -74,5 +74,10 @@ public class ActivationUtil {
 		}
 		return activation.getLockoutStatus() == LockoutStatusType.LOCKED;
 	}
-	
+
+	public static ActivationType createDisabled() {
+		ActivationType activationType = new ActivationType();
+		activationType.setAdministrativeStatus(ActivationStatusType.DISABLED);
+		return activationType;
+	}
 }
