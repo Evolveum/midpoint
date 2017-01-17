@@ -788,11 +788,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception { return true; }
 
 		protected void sortSubtasks(List<Task> subtasks) {
-			Collections.sort(subtasks, (t1, t2) -> getCompareKey(t1).compareTo(getCompareKey(t2)));
+			Collections.sort(subtasks, Comparator.comparing(this::getCompareKey));
 		}
 
 		protected void sortWorkItems(List<WorkItemType> workItems) {
-			Collections.sort(workItems, (w1, w2) -> getCompareKey(w1).compareTo(getCompareKey(w2)));
+			Collections.sort(workItems, Comparator.comparing(this::getCompareKey));
 		}
 
 		protected String getCompareKey(Task task) {
