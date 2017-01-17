@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.io.Serializable;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -28,7 +29,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 /**
  * @author lazyman
  */
-public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends Revivable, DebugDumpable {
+public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends Revivable, DebugDumpable, Serializable {
 
 	QName getName();
 	
