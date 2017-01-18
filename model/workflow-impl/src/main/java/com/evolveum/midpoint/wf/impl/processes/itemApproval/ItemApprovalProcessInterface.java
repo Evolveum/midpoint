@@ -19,10 +19,14 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -39,7 +43,9 @@ import java.util.Map;
 @Component
 public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 
-    public static final String PROCESS_DEFINITION_KEY = "ItemApproval";
+	private static final Trace LOGGER = TraceManager.getTrace(ItemApprovalProcessInterface.class);
+
+	public static final String PROCESS_DEFINITION_KEY = "ItemApproval";
 
     @Autowired
     private PrismContext prismContext;
@@ -49,6 +55,15 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
         instruction.setSimple(false);
         instruction.setSendStartConfirmation(true);
         instruction.setProcessInterfaceBean(this);
+
+        if (LOGGER.isDebugEnabled() && instruction instanceof PcpChildWfTaskCreationInstruction) {
+			PcpChildWfTaskCreationInstruction instr = (PcpChildWfTaskCreationInstruction) instruction;
+			LOGGER.debug("About to start approval process instance '{}'", instr.getProcessInstanceName());
+			if (instr.getProcessContent() instanceof ItemApprovalSpecificContent) {
+				ItemApprovalSpecificContent iasc = (ItemApprovalSpecificContent) instr.getProcessContent();
+				LOGGER.debug("Approval schema: {}\n", DebugUtil.debugDump(iasc.getApprovalSchema()));
+			}
+		}
     }
 
     @Override public DecisionType extractDecision(Map<String, Object> variables) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3631,15 +3631,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void reconcileUser(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		ObjectDelta<UserType> emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, oid, prismContext);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
 	}
 	
 	protected void reconcileOrg(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		ObjectDelta<OrgType> emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, oid, prismContext);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
 	}
 
 	protected void assertRefEquals(String message, ObjectReferenceType expected, ObjectReferenceType actual) {
@@ -3780,4 +3776,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return diag.isEmbedded() || "org.h2.Driver".equals(diag.getDriverShortName());
 	}
 
+	protected void assertNoPostponedOperation(PrismObject<ShadowType> shadow) {
+		Item<PrismValue, ItemDefinition> objectChangeItem = shadow.findItem(ShadowType.F_OBJECT_CHANGE);
+		if (objectChangeItem != null) {
+			AssertJUnit.fail("Expected no postponed operation in "+shadow+", but found one: "+objectChangeItem);
+		}
+	}
 }

@@ -30,7 +30,8 @@ public enum RObjectType {
     ACCESS_CERTIFICATION_DEFINITION(RAccessCertificationDefinition.class),
     ACCESS_CERTIFICATION_CAMPAIGN(RAccessCertificationCampaign.class),
     SEQUENCE(RSequence.class),
-    SERVICE(RService.class);
+    SERVICE(RService.class),
+    FORM(RForm.class);
 
     private Class<? extends RObject> clazz;
 

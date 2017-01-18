@@ -253,12 +253,14 @@ public class AssignmentPreviewDialog extends BasePanel implements Popupable {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
 
+        PageBase page = getPageBase();
+
         if(clazz.equals(RoleType.class)){
-            setResponsePage(PageRole.class, parameters);
+            page.navigateToNext(PageRole.class, parameters);
         } else if(clazz.equals(ResourceType.class)){
-            setResponsePage(PageResourceWizard.class, parameters);
+            page.navigateToNext(PageResourceWizard.class, parameters);
         } else if(clazz.equals(OrgType.class)){
-            setResponsePage(PageOrgUnit.class, parameters);
+            page.navigateToNext(PageOrgUnit.class, parameters);
         }
     }
 

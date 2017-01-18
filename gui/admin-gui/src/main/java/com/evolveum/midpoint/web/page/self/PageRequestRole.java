@@ -90,7 +90,8 @@ public class PageRequestRole extends PageSelf {
         Form mainForm = new org.apache.wicket.markup.html.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        MultipleAssignmentSelectorPanel<UserType, UserType, RoleType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel,
+        MultipleAssignmentSelectorPanel<UserType, UserType, RoleType> panel =
+                new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel,
                 user, UserType.class, RoleType.class, this);
         mainForm.add(panel);
 
@@ -165,7 +166,7 @@ public class PageRequestRole extends PageSelf {
     protected void createBreadcrumb() {
         super.createBreadcrumb();
 
-        Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+        Breadcrumb bc = getLastBreadcrumb();
         bc.setIcon(new Model("fa fa-pencil-square-o"));
     }
 

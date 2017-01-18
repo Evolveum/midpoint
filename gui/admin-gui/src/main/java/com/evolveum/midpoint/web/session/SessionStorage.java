@@ -18,16 +18,11 @@ package com.evolveum.midpoint.web.session;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Stack;
-
-import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
@@ -60,8 +55,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
     *   Store session information for user preferences about paging size in midPoint GUI
     * */
     private UserProfileStorage userProfile;
-
-	private List<Breadcrumb> breadcrumbs;
 
     /**
      * place to store information in session for various pages
@@ -99,7 +92,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         return (RolesStorage)pageStorageMap.get(KEY_ROLES);
     }
-    
+
     public RoleCatalogStorage getRoleCatalog() {
         if (pageStorageMap.get(KEY_ROLE_CATALOG) == null) {
             pageStorageMap.put(KEY_ROLE_CATALOG, new RoleCatalogStorage());
@@ -135,23 +128,23 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         return (ServicesStorage)pageStorageMap.get(KEY_SERVICES);
     }
-    
+
     public RoleMembersStorage getRoleMembers() {
     	if (pageStorageMap.get(KEY_ROLE_MEMBERS) == null) {
             pageStorageMap.put(KEY_ROLE_MEMBERS, new RoleMembersStorage());
         }
         return (RoleMembersStorage)pageStorageMap.get(KEY_ROLE_MEMBERS);
     }
-    
+
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
     	String key = getContentStorageKey(kind, searchMode);
     	if (pageStorageMap.get(key) == null) {
             pageStorageMap.put(key, new ResourceContentStorage(kind));
         }
         return (ResourceContentStorage)pageStorageMap.get(key);
-		
+
 	}
-    
+
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {
     	if (kind == null) {
 			return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
@@ -171,7 +164,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
 		}
     }
-   
+
 
     public TasksStorage getTasks() {
         if (pageStorageMap.get(KEY_TASKS) == null) {
@@ -193,13 +186,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         return userProfile;
     }
-    
+
     public PageStorage initPageStorage(String key){
     	PageStorage pageStorage = null;
     	if (KEY_USERS.equals(key)){
     		pageStorage = new UsersStorage();
     		pageStorageMap.put(KEY_USERS, pageStorage);
-    		
+
     	} else if (KEY_ROLES.equals(key)){
     		pageStorage = new RolesStorage();
     		pageStorageMap.put(KEY_ROLES, pageStorage);
@@ -218,37 +211,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         userProfile = profile;
     }
 
-    public List<Breadcrumb> getBreadcrumbs() {
-        if (breadcrumbs == null) {
-            breadcrumbs = new Stack<>();
-        }
-        return breadcrumbs;
-    }
-
-    public void pushBreadcrumb(Breadcrumb breadcrumb) {
-        Validate.notNull(breadcrumb, "Breadcrumb must not be null");
-
-        Breadcrumb last = getBreadcrumbs().isEmpty() ?
-                null : getBreadcrumbs().get(getBreadcrumbs().size() - 1);
-        if (last != null && last.equals(breadcrumb)) {
-            return;
-        }
-
-        getBreadcrumbs().add(breadcrumb);
-    }
-
-    public Breadcrumb peekBreadcrumb() {
-        if (getBreadcrumbs().isEmpty()) {
-            return null;
-        }
-
-        return getBreadcrumbs().get(getBreadcrumbs().size() - 1);
-    }
-
-    public void clearBreadcrumbs() {
-        getBreadcrumbs().clear();
-    }
-
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -260,24 +222,15 @@ public class SessionStorage implements Serializable, DebugDumpable {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("SessionStorage\n");
 		DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "breadcrumbs", breadcrumbs, indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent+1);
 		return sb.toString();
 	}
-	
+
 	public void dumpSizeEstimates(StringBuilder sb, int indent) {
 		DebugUtil.dumpObjectSizeEstimate(sb, "SessionStorage", this, indent);
 		if (userProfile != null) {
 			sb.append("\n");
 			DebugUtil.dumpObjectSizeEstimate(sb, "userProfile", userProfile, indent + 1);
-		}
-		if (breadcrumbs != null) {
-			sb.append("\n");
-			DebugUtil.dumpObjectSizeEstimate(sb, "breadcrumbs", (Serializable)breadcrumbs, indent + 1);
-			for (Breadcrumb breadcrumb: breadcrumbs) {
-				sb.append("\n");
-				DebugUtil.dumpObjectSizeEstimate(sb, breadcrumb.getClass().getName(), breadcrumb, indent + 2);
-			}
 		}
 		sb.append("\n");
 		DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable)pageStorageMap, indent + 1);
@@ -285,7 +238,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
 			sb.append("\n");
 			DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
 		}
-
 	}
 
     public void clearResourceContentStorage(){

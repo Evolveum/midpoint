@@ -206,7 +206,7 @@ public class PageReports extends PageAdminReports {
     private void reportTypeFilterPerformed(AjaxRequestTarget target, String oid) {
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, oid);
-        setResponsePage(PageCreatedReports.class, params);
+        navigateToNext(PageCreatedReports.class, params);
     }
 
     //    @Override
@@ -244,7 +244,7 @@ public class PageReports extends PageAdminReports {
     private void configurePerformed(AjaxRequestTarget target, ReportType report) {
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, report.getOid());
-        setResponsePage(PageReport.class, params);
+        navigateToNext(PageReport.class, params);
     }
 
     private ObjectDataProvider getDataProvider() {

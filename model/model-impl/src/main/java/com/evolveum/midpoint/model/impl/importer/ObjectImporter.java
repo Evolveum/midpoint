@@ -150,7 +150,7 @@ public class ObjectImporter {
                 
                 Utils.resolveReferences(object, repository, 
                 		(options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(),
-                        false, EvaluationTimeType.IMPORT, prismContext, objectResult);
+                        false, EvaluationTimeType.IMPORT, false, prismContext, objectResult);
                 
                 objectResult.computeStatus();
                 if (!objectResult.isAcceptable()) {

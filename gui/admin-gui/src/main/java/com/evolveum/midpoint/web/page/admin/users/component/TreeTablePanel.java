@@ -493,7 +493,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		}
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, root.getValue().getOid());
-		setResponsePage(PageOrgUnit.class, parameters);
+		getPageBase().navigateToNext(PageOrgUnit.class, parameters);
 	}
 
 }

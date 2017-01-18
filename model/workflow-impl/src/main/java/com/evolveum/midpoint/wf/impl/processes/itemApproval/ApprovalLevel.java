@@ -17,17 +17,17 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /**
  * @author mederly
  */
-public interface ApprovalLevel {
+public interface ApprovalLevel extends DebugDumpable {
     String getName();
 
     String getDescription();
@@ -40,11 +40,19 @@ public interface ApprovalLevel {
 
     ExpressionType getAutomaticallyApproved();
 
-    PrismContext getPrismContext();
+    @NotNull
+    ApprovalLevelOutcomeType getOutcomeIfNoApprovers();
+
+	@NotNull
+	GroupExpansionType getGroupExpansion();
+
+	PrismContext getPrismContext();
 
     void setPrismContext(PrismContext prismContext);
 
     ApprovalLevelType toApprovalLevelType(PrismContext prismContext);
 
     boolean isEmpty();
+
+	String getDebugName();
 }

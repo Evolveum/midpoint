@@ -94,7 +94,7 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Found password-changing delta, moving it into approval request. Delta = " + delta.debugDump());
                 }
-                ApprovalRequest<String> approvalRequest = createApprovalRequest(delta);
+                ApprovalRequest<String> approvalRequest = createApprovalRequest(delta, modelContext, taskFromModel, result);
                 approvalRequestList.add(approvalRequest);
                 instructions.add(createStartProcessInstruction(modelContext, delta, approvalRequest, taskFromModel, result));
                 deltaIterator.remove();
@@ -103,7 +103,8 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         return instructions;
     }
 
-    private ApprovalRequest<String> createApprovalRequest(ItemDelta delta) {
+    private ApprovalRequest<String> createApprovalRequest(ItemDelta delta, ModelContext<?> modelContext, Task taskFromModel,
+			OperationResult result) {
 
         ObjectReferenceType approverRef = new ObjectReferenceType();
         approverRef.setOid(SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -112,7 +113,9 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         List<ObjectReferenceType> approvers = new ArrayList<ObjectReferenceType>();
         approvers.add(approverRef);
 
-        return new ApprovalRequestImpl("Password change", null, null, approvers, null, null, prismContext, createRelationResolver((PrismObject) null, null));
+        return new ApprovalRequestImpl<>("Password change", null, null, approvers,
+                null, null, prismContext, createRelationResolver((PrismObject) null, result),
+				createReferenceResolver(modelContext, taskFromModel, result));
     }
 
     private PcpChildWfTaskCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {

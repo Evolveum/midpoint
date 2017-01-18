@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema.result;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * 
@@ -101,6 +102,7 @@ public enum OperationResultStatus {
 		}
 	}
 
+	@NotNull
 	public static OperationResultStatusType createStatusType(OperationResultStatus status) {
 		if (status == null) {
 			return OperationResultStatusType.UNKNOWN;

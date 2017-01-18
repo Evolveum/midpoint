@@ -182,10 +182,8 @@ public class PageUsers extends PageAdminUsers {
 			
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
-			setResponsePage(PageUser.class);
-				
+				navigateToNext(PageUser.class);
 			}
-			
 		};
 
 		userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
@@ -347,7 +345,7 @@ public class PageUsers extends PageAdminUsers {
 	private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-		setResponsePage(PageUser.class, parameters);
+		navigateToNext(PageUser.class, parameters);
 	}
 
 	private MainObjectListPanel<UserType> getTable() {

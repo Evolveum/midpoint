@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -363,28 +363,8 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	public DummyObjectClass getAccountObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		if (schemaBreakMode == BreakMode.NONE) {
-			return accountObjectClass;
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("The schema is not available (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("The schema file not found (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error fetching schema (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error fetching schema (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Schema is not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
-		}
+		breakIt(schemaBreakMode, "schema");
+		return accountObjectClass;
 	}
 
 	public DummyObjectClass getAccountObjectClassNoExceptions() {
@@ -409,224 +389,119 @@ public class DummyResource implements DebugDumpable {
 
 	public Collection<DummyAccount> listAccounts() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
-		if (getBreakMode == BreakMode.NONE) {
-			return accounts.values();
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
-		}
+		breakIt(getBreakMode, "get");
+		return accounts.values();
 	}
 	
-	private <T extends DummyObject> T getObjectByName(Map<String,T> map, String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private <T extends DummyObject> T getObjectByName(Map<String,T> map, String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		if (!enforceUniqueName) {
 			throw new IllegalStateException("Attempt to search object by name while resource is in non-unique name mode");
 		}
-		if (getBreakMode == BreakMode.NONE) {
-			return map.get(normalize(name));
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		if (checkBreak) {
+			breakIt(getBreakMode, "get");
 		}
+		return map.get(normalize(name));
 	}
 	
 	public DummyAccount getAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		return getObjectByName(accounts, username);
+		return getObjectByName(accounts, username, true);
+	}
+	
+	public DummyAccount getAccountByUsername(String username, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getObjectByName(accounts, username, checkBreak);
 	}
 	
 	public DummyGroup getGroupByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		return getObjectByName(groups, name);
+		return getObjectByName(groups, name, true);
+	}
+	
+	public DummyGroup getGroupByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getObjectByName(groups, name, checkBreak);
 	}
 	
 	public DummyPrivilege getPrivilegeByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		return getObjectByName(privileges, name);
+		return getObjectByName(privileges, name, true);
+	}
+	
+	public DummyPrivilege getPrivilegeByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getObjectByName(privileges, name, checkBreak);
 	}
 	
 	public DummyOrg getOrgByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		return getObjectByName(orgs, name);
+		return getObjectByName(orgs, name, true);
 	}
 	
-	private <T extends DummyObject> T getObjectById(Class<T> expectedClass, String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		if (getBreakMode == BreakMode.NONE) {
-			DummyObject dummyObject = allObjects.get(id);
-			if (dummyObject == null) {
-				return null;
-			}
-			if (!expectedClass.isInstance(dummyObject)) {
-				throw new IllegalStateException("Arrrr! Wanted "+expectedClass+" with ID "+id+" but got "+dummyObject+" instead");
-			}
-			return (T)dummyObject;
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+	public DummyOrg getOrgByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getObjectByName(orgs, name, checkBreak);
+	}
+	
+	private <T extends DummyObject> T getObjectById(Class<T> expectedClass, String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		if (checkBreak) {
+			breakIt(getBreakMode, "get");
 		}
+		DummyObject dummyObject = allObjects.get(id);
+		if (dummyObject == null) {
+			return null;
+		}
+		if (!expectedClass.isInstance(dummyObject)) {
+			throw new IllegalStateException("Arrrr! Wanted "+expectedClass+" with ID "+id+" but got "+dummyObject+" instead");
+		}
+		return (T)dummyObject;
 	}
 	
 	public DummyAccount getAccountById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		return getObjectById(DummyAccount.class, id);
+		return getObjectById(DummyAccount.class, id, true);
+	}
+	
+	public DummyAccount getAccountById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getObjectById(DummyAccount.class, id, checkBreak);
 	}
 	
 	public DummyGroup getGroupById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		return getObjectById(DummyGroup.class, id);
+		return getObjectById(DummyGroup.class, id, true);
+	}
+	
+	public DummyGroup getGroupById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getObjectById(DummyGroup.class, id, checkBreak);
 	}
 	
 	public DummyPrivilege getPrivilegeById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		return getObjectById(DummyPrivilege.class, id);
+		return getObjectById(DummyPrivilege.class, id, true);
+	}
+	
+	public DummyPrivilege getPrivilegeById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getObjectById(DummyPrivilege.class, id, checkBreak);
 	}
 	
 	public DummyOrg getOrgById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		return getObjectById(DummyOrg.class, id);
+		return getObjectById(DummyOrg.class, id, true);
+	}
+	
+	public DummyOrg getOrgById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getObjectById(DummyOrg.class, id, checkBreak);
 	}
 
 	public Collection<DummyGroup> listGroups() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
-		if (getBreakMode == BreakMode.NONE) {
-			return groups.values();
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
-		}
+		breakIt(getBreakMode, "get");
+		return groups.values();
 	}
 	
 	public Collection<DummyPrivilege> listPrivileges() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
-		if (getBreakMode == BreakMode.NONE) {
-			return privileges.values();
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
-		}
+		breakIt(getBreakMode, "get");
+		return privileges.values();
 	}
 	
 	public Collection<DummyOrg> listOrgs() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
-		if (getBreakMode == BreakMode.NONE) {
-			return orgs.values();
-		} else if (schemaBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (schemaBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (schemaBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
-		}
+		breakIt(getBreakMode, "get");
+		return orgs.values();
 	}
 	
 	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
-		if (addBreakMode == BreakMode.NONE) {
-			// just go on
-		} else if (addBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error during add (simulated error)");
-		} else if (addBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error during add (simulated error)");
-		} else if (addBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation during add (simulated error)");
-		} else if (addBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict during add (simulated error)");
-		} else if (addBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error during add (simulated error)");
-		} else if (addBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic rutime error during add (simulated error)");
-		} else if (addBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Unsupported operation: add (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown break mode "+addBreakMode);
-		}
+		breakIt(addBreakMode, "add");
 		
 		Class<? extends DummyObject> type = newObject.getClass();
 		String normalName = normalize(newObject.getName());
@@ -674,28 +549,7 @@ public class DummyResource implements DebugDumpable {
 
 	private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
-		if (deleteBreakMode == BreakMode.NONE) {
-			// go on
-		} else if (deleteBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (deleteBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (deleteBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (deleteBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict during (simulated error)");
-		} else if (deleteBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (deleteBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (deleteBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
-		}
+		breakIt(deleteBreakMode, "delete");
 		
 		String normalName = normalize(name);
 		T existingObject;
@@ -737,28 +591,7 @@ public class DummyResource implements DebugDumpable {
 
 	private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
-		if (deleteBreakMode == BreakMode.NONE) {
-			// go on
-		} else if (deleteBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (deleteBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (deleteBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (deleteBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (deleteBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (deleteBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (deleteBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
-		}
+		breakIt(deleteBreakMode, "delete");
 		
 		DummyObject object = allObjects.get(id);
 		if (object == null) {
@@ -794,28 +627,7 @@ public class DummyResource implements DebugDumpable {
 
 	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
-		if (modifyBreakMode == BreakMode.NONE) {
-			// go on
-		} else if (modifyBreakMode == BreakMode.NETWORK) {
-			throw new ConnectException("Network error (simulated error)");
-		} else if (modifyBreakMode == BreakMode.IO) {
-			throw new FileNotFoundException("IO error (simulated error)");
-		} else if (modifyBreakMode == BreakMode.SCHEMA) {
-			throw new SchemaViolationException("Schema violation (simulated error)");
-		} else if (modifyBreakMode == BreakMode.CONFLICT) {
-			throw new ConflictException("Conflict (simulated error)");
-		} else if (modifyBreakMode == BreakMode.GENERIC) {
-			// The connector will react with generic exception
-			throw new IllegalArgumentException("Generic error (simulated error)");
-		} else if (modifyBreakMode == BreakMode.RUNTIME) {
-			// The connector will just pass this up
-			throw new IllegalStateException("Generic error (simulated error)");
-		} else if (modifyBreakMode == BreakMode.UNSUPPORTED) {
-			throw new UnsupportedOperationException("Not supported (simulated error)");
-		} else {
-			// This is a real error. Use this strange thing to make sure it passes up
-			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
-		}
+		breakIt(modifyBreakMode, "modify");
 		
 		T existingObject;
 		if (enforceUniqueName) {
@@ -989,6 +801,31 @@ public class DummyResource implements DebugDumpable {
 			}
 		}
 		return result;
+	}
+	
+	void breakIt(BreakMode breakMode, String operation) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		if (breakMode == BreakMode.NONE) {
+			return;
+		} else if (breakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (breakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (breakMode == BreakMode.SCHEMA) {
+			throw new SchemaViolationException("Schema violation (simulated error)");
+		} else if (breakMode == BreakMode.CONFLICT) {
+			throw new ConflictException("Conflict (simulated error)");
+		} else if (breakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (breakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (breakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown "+operation+" break mode "+getBreakMode);
+		}
 	}
 	
 	private synchronized void checkBlockOperations() {

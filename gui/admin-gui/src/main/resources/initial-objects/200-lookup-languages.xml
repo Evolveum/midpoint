@@ -44,10 +44,14 @@
 		<key>hu</key>
 		<label>Magyar</label>
 	</row>
-	<!--row>
+	<row>
+		<key>pt_BR</key>
+		<label>Português (Brasil)</label>
+	</row>
+	<row>
 		<key>ru</key>
 		<label>Русский</label>
-	</row-->
+	</row>
 	<row>
 		<key>sk</key>
 		<label>Slovenčina</label>

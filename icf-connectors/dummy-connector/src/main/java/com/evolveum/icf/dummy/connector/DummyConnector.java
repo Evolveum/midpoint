@@ -289,9 +289,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	
 		        final DummyAccount account;
 		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-		        	account = resource.getAccountByUsername(uid.getUidValue());
+		        	account = resource.getAccountByUsername(uid.getUidValue(), false);
 		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	account = resource.getAccountById(uid.getUidValue());
+		        	account = resource.getAccountById(uid.getUidValue(), false);
 		        } else {
 		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
 		        }
@@ -352,9 +352,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	        	
 	        	final DummyGroup group;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		group = resource.getGroupByName(uid.getUidValue());
+	        		group = resource.getGroupByName(uid.getUidValue(), false);
 		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	group = resource.getGroupById(uid.getUidValue());
+		        	group = resource.getGroupById(uid.getUidValue(), false);
 		        } else {
 		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
 		        }
@@ -402,9 +402,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	        	
 	        	final DummyPrivilege priv;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		priv = resource.getPrivilegeByName(uid.getUidValue());
+	        		priv = resource.getPrivilegeByName(uid.getUidValue(), false);
 		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	priv = resource.getPrivilegeById(uid.getUidValue());
+		        	priv = resource.getPrivilegeById(uid.getUidValue(), false);
 		        } else {
 		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
 		        }
@@ -444,9 +444,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	        	
 	        	final DummyOrg org;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		org = resource.getOrgByName(uid.getUidValue());
+	        		org = resource.getOrgByName(uid.getUidValue(), false);
 		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	org = resource.getOrgById(uid.getUidValue());
+		        	org = resource.getOrgById(uid.getUidValue(), false);
 		        } else {
 		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
 		        }

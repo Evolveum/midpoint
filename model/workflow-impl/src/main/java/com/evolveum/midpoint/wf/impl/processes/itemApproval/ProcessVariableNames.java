@@ -51,6 +51,8 @@ public class ProcessVariableNames {
     // List of decisions done in this level.
     public static final String DECISIONS_IN_LEVEL = "decisionsInLevel";         // List<Decision>
 
+    public static final String PREDETERMINED_LEVEL_OUTCOME = "predeterminedLevelOutcome";         // ApprovalLevelOutcomeType (none if null)
+
     // Whether we have to stop evaluating current level (e.g. because strategy was 'firstDecides' and the first person decided (approved or rejected).
     public static final String LOOP_APPROVERS_IN_LEVEL_STOP = "loopApproversInLevel_stop";  // Boolean
 }

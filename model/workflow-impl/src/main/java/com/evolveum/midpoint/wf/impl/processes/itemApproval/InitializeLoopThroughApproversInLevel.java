@@ -77,16 +77,18 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         level.setPrismContext(getPrismContext());
 
         List<Decision> decisionList = new ArrayList<Decision>();
-        boolean preApproved = false;
+        ApprovalLevelOutcomeType predeterminedOutcome = null;
 
         if (level.getAutomaticallyApproved() != null) {
             try {
                 opTask.setChannel(wfTask.getChannel());
                 expressionVariables = getDefaultVariables(execution, wfTask, result);
-                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, opTask, result);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Pre-approved = " + preApproved + " for level " + level);
-                }
+                boolean preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, opTask, result);
+				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
+				if (preApproved) {
+					predeterminedOutcome = ApprovalLevelOutcomeType.APPROVE;
+					recordAutoApprovalDecision(wfTask, true, "Approved automatically by the auto-approval condition.");
+				}
             } catch (Exception e) {     // todo
                 throw new SystemException("Couldn't evaluate auto-approval expression", e);
             }
@@ -94,7 +96,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         Set<LightweightObjectRef> approverRefs = new HashSet<LightweightObjectRef>();
 
-        if (!preApproved) {
+        if (predeterminedOutcome == null) {
             approverRefs.addAll(level.getApproverRefs());
 
             if (!level.getApproverExpressions().isEmpty()) {
@@ -106,16 +108,28 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
                 }
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Approvers at the level " + level + " are: " + approverRefs);
-            }
+            LOGGER.trace("Approvers at the level {} (before potential group expansion) are: {}", level, approverRefs);
+            if (level.getGroupExpansion() == GroupExpansionType.ON_WORK_ITEM_CREATION) {
+            	approverRefs = MidpointUtil.expandGroups(approverRefs);
+				LOGGER.trace("Approvers at the level {} (after group expansion) are: {}", level, approverRefs);
+			}
+
             if (approverRefs.isEmpty()) {
-                LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME) + " (id " + execution.getProcessInstanceId() + ")");
+                LOGGER.debug("No approvers at the level '{}' for process {} (id {}) - response is {}", level.getName(),
+						execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
+						execution.getProcessInstanceId(), level.getOutcomeIfNoApprovers());
+                predeterminedOutcome = level.getOutcomeIfNoApprovers();
+                if (predeterminedOutcome == ApprovalLevelOutcomeType.APPROVE) {
+					recordAutoApprovalDecision(wfTask, true, "Approved automatically because there were no approvers found.");
+				} else {
+					recordAutoApprovalDecision(wfTask, false, "Rejected automatically because there were no approvers found.");
+				}
             }
         }
 
         Boolean stop;
-        if (approverRefs.isEmpty() || preApproved) {
+        if (predeterminedOutcome != null) {
+			execution.setVariableLocal(ProcessVariableNames.PREDETERMINED_LEVEL_OUTCOME, predeterminedOutcome);
             stop = Boolean.TRUE;
         } else {
             stop = Boolean.FALSE;
@@ -124,9 +138,24 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         execution.setVariableLocal(ProcessVariableNames.DECISIONS_IN_LEVEL, decisionList);
         execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<>(approverRefs));
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
+
+        if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Approval process instance {} (id {}), level {}: predetermined outcome: {}, approvers: {}",
+					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
+					execution.getProcessInstanceId(),
+					level.getDebugName(), predeterminedOutcome, LightweightObjectRef.toDebugNames(approverRefs));
+		}
     }
 
-    private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, 
+	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment) {
+		Decision decision = new Decision();
+		decision.setApproved(approved);
+		decision.setComment(comment);
+		decision.setDate(new Date());
+		MidpointUtil.recordDecisionInTask(decision, wfTask.getOid());
+	}
+
+	private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList,
     		ExpressionVariables expressionVariables, DelegateExecution execution, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<LightweightObjectRef> retval = new ArrayList<>();
         for (ExpressionType approverExpression : approverExpressionList) {

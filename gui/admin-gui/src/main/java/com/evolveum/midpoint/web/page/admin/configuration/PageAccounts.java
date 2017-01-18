@@ -1110,11 +1110,11 @@ public class PageAccounts extends PageAdminConfiguration {
         parameters.add(OnePageParameterEncoder.PARAMETER, focus.getOid());
         
         if (focus instanceof UserType){
-        	setResponsePage(PageUser.class, parameters);
+        	navigateToNext(PageUser.class, parameters);
         } else if (focus instanceof RoleType){
-        	setResponsePage(PageRole.class, parameters);
+            navigateToNext(PageRole.class, parameters);
         } else if (focus instanceof OrgType) {
-        	setResponsePage(PageOrgUnit.class, parameters);
+            navigateToNext(PageOrgUnit.class, parameters);
         } else {
         	 error(getString("PageAccounts.message.unsupportedOwnerType"));
              target.add(getFeedbackPanel());

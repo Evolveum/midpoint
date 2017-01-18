@@ -335,13 +335,13 @@ public class PageConnectorHosts extends PageAdminResources {
 	private void editResourcePerformed(ResourceType resourceType) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, resourceType.getOid());
-		setResponsePage(new PageResourceWizard(parameters));
+		navigateToNext(new PageResourceWizard(parameters));
 	}
 
 	private void editAsXmlPerformed(ResourceType resourceType) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(PageDebugView.PARAM_OBJECT_ID, resourceType.getOid());
 		parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
-		setResponsePage(PageDebugView.class, parameters);
+		navigateToNext(PageDebugView.class, parameters);
 	}
 }

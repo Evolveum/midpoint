@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processes.common;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
@@ -104,5 +105,12 @@ public class LightweightObjectRefImpl implements LightweightObjectRef, Serializa
                 ", type=" + type +
                 ", description='" + description + '\'' +
                 '}';
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpWithLabel(sb, "LightweightObjectRef", toDebugName(), indent);
+		return sb.toString();
     }
 }

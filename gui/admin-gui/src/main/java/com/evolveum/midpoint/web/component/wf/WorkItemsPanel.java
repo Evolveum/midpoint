@@ -140,7 +140,7 @@ public class WorkItemsPanel extends BasePanel {
 				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
-					setResponsePage(PageWorkItem.class, parameters);
+					getPageBase().navigateToNext(PageWorkItem.class, parameters);
 				}
 			};
         } else {

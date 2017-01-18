@@ -214,18 +214,6 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private void initLayout() {
-//		DeleteAllDialog deleteAllDialog = new DeleteAllDialog(ID_DELETE_ALL_DIALOG,
-//				createStringResource("pageDebugList.dialog.title.deleteAll")) {
-//
-//			@Override
-//			public void yesPerformed(AjaxRequestTarget target) {
-//				close(target);
-//
-//				deleteAllIdentitiesConfirmed(target, getModel().getObject());
-//			}
-//		};
-//		add(deleteAllDialog);
-
 		Form main = new Form(ID_MAIN_FORM);
 		add(main);
 
@@ -570,7 +558,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		PageParameters parameters = new PageParameters();
 		parameters.add(PageDebugView.PARAM_OBJECT_ID, oid);
 		parameters.add(PageDebugView.PARAM_OBJECT_TYPE, type.getSimpleName());
-		setResponsePage(PageDebugView.class, parameters);
+		navigateToNext(PageDebugView.class, parameters);
 	}
 
 	private RepositoryObjectDataProvider getTableDataProvider() {
@@ -643,9 +631,9 @@ public class PageDebugList extends PageAdminConfiguration {
 		if (taskOid != null) {
 			PageParameters parameters = new PageParameters();
 			parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-			setResponsePage(PageTaskEdit.class, parameters);
+			navigateToNext(PageTaskEdit.class, parameters);
 		} else {
-			setResponsePage(PageTasks.class);
+			navigateToNext(PageTasks.class);
 		}
 		target.add(getFeedbackPanel());
 
@@ -788,9 +776,9 @@ public class PageDebugList extends PageAdminConfiguration {
 		if (taskOid != null) {
 			PageParameters parameters = new PageParameters();
 			parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-			setResponsePage(PageTaskEdit.class, parameters);
+			navigateToNext(PageTaskEdit.class, parameters);
 		} else {
-			setResponsePage(PageTasks.class);
+			navigateToNext(PageTasks.class);
 		}
 		target.add(getFeedbackPanel());
 	}
@@ -906,9 +894,9 @@ public class PageDebugList extends PageAdminConfiguration {
 		if (taskOid != null) {
 			PageParameters parameters = new PageParameters();
 			parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-			setResponsePage(PageTaskEdit.class, parameters);
+			navigateToNext(PageTaskEdit.class, parameters);
 		} else {
-			setResponsePage(PageTasks.class);
+			navigateToNext(PageTasks.class);
 		}
 		target.add(getFeedbackPanel());
 	}

@@ -261,14 +261,10 @@ public class ModelCrudService {
 
 		OperationResult result = parentResult.createSubresult(ADD_OBJECT);
 		result.addParams(new String[] { "object" }, object);
-		String oid = null;
 
-		// Task task = taskManager.createTaskInstance(); // in the future, this
-		// task instance will come from GUI
+		Utils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
 
-		Utils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, prismContext, result);
-        
-		
+		String oid;
 		RepositoryCache.enter();
 		try {
 
@@ -292,25 +288,7 @@ public class ModelCrudService {
 			result.computeStatus();
 			result.cleanupResult();
 
-		} catch (ExpressionEvaluationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
+		} catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ConfigurationException | RuntimeException ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {

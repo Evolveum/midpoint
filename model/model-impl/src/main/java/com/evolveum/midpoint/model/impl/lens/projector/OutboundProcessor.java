@@ -268,7 +268,7 @@ public class OutboundProcessor {
 		}
 
 		Mapping<V,D> mapping = mappingBuilder.build();
-		mappingEvaluator.evaluateMapping(mapping, context, task, result);
+		mappingEvaluator.evaluateMapping(mapping, context, projCtx, task, result);
     	
 		return mapping;
     }

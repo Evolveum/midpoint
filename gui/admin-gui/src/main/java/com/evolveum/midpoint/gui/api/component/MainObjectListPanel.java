@@ -132,7 +132,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             	
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    setResponsePage(PageImportObject.class);
+                    ((PageBase) getPage()).navigateToNext(PageImportObject.class);
                 }
             };
             add(importObject);

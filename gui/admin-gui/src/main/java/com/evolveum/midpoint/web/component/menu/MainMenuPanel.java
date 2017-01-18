@@ -16,14 +16,16 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.IPageFactory;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -57,7 +59,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private static final String ID_SUB_ITEM = "subItem";
     private static final String ID_SUB_LINK = "subLink";
     private static final String ID_SUB_LABEL = "subLabel";
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(MainMenuPanel.class);
 
     public MainMenuPanel(String id, IModel<MainMenuItem> model) {
@@ -119,9 +121,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
         Label label = new Label(ID_LABEL, menu.getNameModel());
         link.add(label);
-        
+
         final PropertyModel<String> bubbleModel = new PropertyModel<>(menu, MainMenuItem.F_BUBBLE_LABEL);
-                
+
         Label bubble = new Label(ID_BUBBLE, bubbleModel);
         bubble.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -136,18 +138,18 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
         arrow.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-		
+
 			@Override
 		    public boolean isVisible() {
 		        return !menu.getItems().isEmpty() && bubbleModel.getObject() == null;
 		    }
 		});
         link.add(arrow);
-        
+
         WebMarkupContainer submenu = new WebMarkupContainer(ID_SUBMENU);
         submenu.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-		
+
 			@Override
 		    public boolean isVisible() {
 		        return !menu.getItems().isEmpty();
@@ -220,9 +222,16 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
     private void menuItemPerformed(MenuItem menu) {
     	LOGGER.trace("menuItemPerformed: {}", menu);
-        SessionStorage storage = getPageBase().getSessionStorage();
-        storage.clearBreadcrumbs();
-        
+
+        IPageFactory pFactory = Session.get().getPageFactory();
+        WebPage page = pFactory.newPage(menu.getPageClass(), menu.getParams());
+        if (!(page instanceof PageBase)) {
+            setResponsePage(page);
+            return;
+        }
+
+        PageBase pageBase = (PageBase) page;
+
         // IMPORTANT: we need to re-bundle the name to a new models
         // that will not be connected to the old page reference
         // otherwise the old page will somehow remain in the memory
@@ -234,7 +243,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         String name = mainMenuItem.getNameModel().getObject();
         Breadcrumb bc = new Breadcrumb(new Model<>(name));
         bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
-        storage.pushBreadcrumb(bc);
+        pageBase.addBreadcrumb(bc);
 
         List<MenuItem> items = mainMenuItem.getItems();
         if (!items.isEmpty()) {
@@ -244,16 +253,14 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
             BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(new Model<>(nameModel.getObject()), first.getPageClass(),
                     first.getParams());
             invisibleBc.setVisible(false);
-            storage.pushBreadcrumb(invisibleBc);
+            pageBase.addBreadcrumb(invisibleBc);
         }
 
-        setResponsePage(menu.getPageClass(), menu.getParams());
+        setResponsePage(page);
     }
 
     private void mainMenuPerformed(MainMenuItem menu) {
     	LOGGER.trace("mainMenuPerformed: {}", menu);
-        SessionStorage storage = getPageBase().getSessionStorage();
-        storage.clearBreadcrumbs();
 
         if (menu.getParams() == null) {
             setResponsePage(menu.getPageClass());
@@ -264,8 +271,6 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
     private void additionalMenuPerformed(MainMenuItem menu) {
     	LOGGER.trace("additionalMenuPerformed: {}", menu);
-        SessionStorage storage = getPageBase().getSessionStorage();
-        storage.clearBreadcrumbs();
 
         if (menu.getPageClass() != null) {
             setResponsePage(menu.getPageClass());

@@ -17,10 +17,15 @@
 package com.evolveum.midpoint.wf.impl.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -157,4 +162,41 @@ public class SingleItemSerializationSafeContainerImpl<T> implements Serializatio
                 ", prismContext " + (prismContext != null ? "SET" : "NOT SET") +
                 '}';
     }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        if (actualValue != null) {
+			debugDumpValue(indent, sb, actualValue);
+		} else if (valueForStorageWhenNotEncoded != null) {
+			debugDumpValue(indent, sb, valueForStorageWhenNotEncoded);
+		} else if (valueForStorageWhenEncoded != null) {
+			DebugUtil.debugDumpWithLabel(sb, "encoded value", valueForStorageWhenEncoded, indent);
+		} else {
+			DebugUtil.debugDumpWithLabel(sb, "value", "null", indent);
+		}
+        return sb.toString();
+    }
+
+	private void debugDumpValue(int indent, StringBuilder sb, T value) {
+		if (value instanceof DebugDumpable) {
+			DebugUtil.debugDumpWithLabel(sb, "value", (DebugDumpable) value, indent);
+			return;
+		}
+		String stringValue = null;
+		if (value instanceof ExpressionType) {
+			// brutal hack...
+			String xml = null;
+			try {
+				xml = prismContext.xmlSerializer().serializeRealValue(value, SchemaConstantsGenerated.C_EXPRESSION);
+				stringValue = DebugUtil.fixIndentInMultiline(indent, DebugDumpable.INDENT_STRING, xml);
+			} catch (SchemaException e) {
+				LOGGER.warn("Couldn't serialize an expression: {}", value, e);
+			}
+		}
+		if (stringValue == null) {
+			stringValue = String.valueOf(value);
+		}
+		DebugUtil.debugDumpWithLabel(sb, "value", stringValue, indent);
+	}
 }

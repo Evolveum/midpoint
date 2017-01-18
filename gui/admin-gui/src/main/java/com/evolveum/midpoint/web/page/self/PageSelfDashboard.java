@@ -119,7 +119,7 @@ public class PageSelfDashboard extends PageSelf {
     protected void createBreadcrumb() {
         super.createBreadcrumb();
 
-        Breadcrumb bc = getSessionStorage().peekBreadcrumb();
+        Breadcrumb bc = getLastBreadcrumb();
         bc.setIcon(new Model("fa fa-dashboard"));
     }
 

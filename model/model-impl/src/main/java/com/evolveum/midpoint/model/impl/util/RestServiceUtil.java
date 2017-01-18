@@ -19,6 +19,8 @@ package com.evolveum.midpoint.model.impl.util;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -36,40 +38,46 @@ public class RestServiceUtil {
 
 	public static final String MESSAGE_PROPERTY_TASK_NAME = "task";
 	private static final String QUERY_PARAMETER_OPTIONS = "options";
+	public static final String OPERATION_RESULT_STATUS = "OperationResultStatus";
+	public static final String OPERATION_RESULT_MESSAGE = "OperationResultMessage";
 
 	public static Response handleException(Exception ex) {
+		return createErrorResponseBuilder(ex).build();
+	}
+
+	public static Response.ResponseBuilder createErrorResponseBuilder(Exception ex) {
 		if (ex instanceof ObjectNotFoundException) {
-			return buildErrorResponse(Response.Status.NOT_FOUND, ex);
+			return createErrorResponseBuilder(Response.Status.NOT_FOUND, ex);
 		}
 
 		if (ex instanceof CommunicationException) {
-			return buildErrorResponse(Response.Status.GATEWAY_TIMEOUT, ex);
+			return createErrorResponseBuilder(Response.Status.GATEWAY_TIMEOUT, ex);
 		}
 
 		if (ex instanceof SecurityViolationException) {
-			return buildErrorResponse(Response.Status.FORBIDDEN, ex);
+			return createErrorResponseBuilder(Response.Status.FORBIDDEN, ex);
 		}
 
 		if (ex instanceof ConfigurationException) {
-			return buildErrorResponse(Response.Status.BAD_GATEWAY, ex);
+			return createErrorResponseBuilder(Response.Status.BAD_GATEWAY, ex);
 		}
 
 		if (ex instanceof SchemaException
 				|| ex instanceof PolicyViolationException
 				|| ex instanceof ConsistencyViolationException
 				|| ex instanceof ObjectAlreadyExistsException) {
-			return buildErrorResponse(Response.Status.CONFLICT, ex);
+			return createErrorResponseBuilder(Response.Status.CONFLICT, ex);
 		}
 
-		return buildErrorResponse(Response.Status.INTERNAL_SERVER_ERROR, ex);
+		return createErrorResponseBuilder(Response.Status.INTERNAL_SERVER_ERROR, ex);
 	}
 
-	public static Response buildErrorResponse(Response.Status status, Exception ex) {
-		return buildErrorResponse(status, ex.getMessage());
+	private static Response.ResponseBuilder createErrorResponseBuilder(Response.Status status, Exception ex) {
+		return createErrorResponseBuilder(status, ex.getMessage());
 	}
 
-	public static Response buildErrorResponse(Response.Status status, String message) {
-		return Response.status(status).entity(message).type(MediaType.TEXT_PLAIN).build();
+	public static Response.ResponseBuilder createErrorResponseBuilder(Response.Status status, String message) {
+		return Response.status(status).entity(message).type(MediaType.TEXT_PLAIN);
 	}
 
 	public static ModelExecuteOptions getOptions(UriInfo uriInfo){
@@ -88,5 +96,12 @@ public class RestServiceUtil {
 		connEnv.setChannel(SchemaConstants.CHANNEL_REST_URI);
 		connEnv.setSessionId(task.getTaskIdentifier());
 		securityHelper.auditLogout(connEnv, task);
+	}
+
+	// slightly experimental
+	public static Response.ResponseBuilder createResultHeaders(Response.ResponseBuilder builder, OperationResult result) {
+		return builder
+				.header(OPERATION_RESULT_STATUS, OperationResultStatus.createStatusType(result.getStatus()).value())
+				.header(OPERATION_RESULT_MESSAGE, result.getMessage());
 	}
 }

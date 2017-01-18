@@ -712,7 +712,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private void campaignDetailsPerformed(AjaxRequestTarget target, String oid) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-		setResponsePage(PageCertCampaign.class, parameters);
+		navigateToNext(PageCertCampaign.class, parameters);
 	}
 
 	private void deleteCampaignsPerformed(AjaxRequestTarget target,

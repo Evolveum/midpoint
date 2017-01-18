@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.assignments;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -84,27 +83,30 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
             return Collections.emptyList();
         }
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext,
-                baseConfigurationHelper.getPcpConfiguration(wfConfigurationType), objectTreeDeltas.getFocusChange(), result);
+                baseConfigurationHelper.getPcpConfiguration(wfConfigurationType), objectTreeDeltas.getFocusChange(), taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }
         return prepareTaskInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequests(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequests(ModelContext<?> modelContext,
+            PrimaryChangeProcessorConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change,
+            Task taskFromModel, OperationResult result) {
         if (change.getChangeType() != ChangeType.ADD && change.getChangeType() != ChangeType.MODIFY) {
             return null;
         }
         PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
         if (change.getChangeType() == ChangeType.ADD) {
-            return getApprovalRequestsFromFocusAdd(config, change, modelContext, result);
+            return getApprovalRequestsFromFocusAdd(config, change, modelContext, taskFromModel, result);
         } else {
-            return getApprovalRequestsFromFocusModify(config, modelContext.getFocusContext().getObjectOld(), change, result);
+            return getApprovalRequestsFromFocusModify(config, modelContext.getFocusContext().getObjectOld(), change, modelContext, taskFromModel, result);
         }
     }
 
-    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusAdd(PcpAspectConfigurationType config, ObjectDelta<? extends ObjectType> change,
-			ModelContext<?> modelContext, OperationResult result) {
+    private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusAdd(PcpAspectConfigurationType config,
+            ObjectDelta<? extends ObjectType> change,
+            ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
         LOGGER.trace("Relevant assignments in focus add delta:");
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
@@ -118,7 +120,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
                 LOGGER.trace(" - {} (approval required = {})", specificObjectType, approvalRequired);
                 if (approvalRequired) {
                     AssignmentType aCopy = cloneAndCanonicalizeAssignment(a);
-                    approvalRequestList.add(createApprovalRequest(config, aCopy, specificObjectType, result));
+                    approvalRequestList.add(createApprovalRequest(config, aCopy, specificObjectType, modelContext, taskFromModel, result));
                     assignmentTypeIterator.remove();
 					miscDataUtil.generateFocusOidIfNeeded(modelContext, change);
                 }
@@ -128,8 +130,8 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     }
 
     private List<ApprovalRequest<AssignmentType>> getApprovalRequestsFromFocusModify(PcpAspectConfigurationType config,
-                                                                                     PrismObject<?> focusOld,
-                                                                                     ObjectDelta<? extends ObjectType> change, OperationResult result) {
+            PrismObject<?> focusOld,
+            ObjectDelta<? extends ObjectType> change, ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
         LOGGER.trace("Relevant assignments in focus modify delta:");
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = new ArrayList<>();
@@ -150,7 +152,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Assignment to add = {}", assignmentValue.debugDump());
                     }
-                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(config, assignmentValue, result);
+                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(config, assignmentValue, modelContext, taskFromModel, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -167,7 +169,8 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
                     if (existsEquivalentValue(focusOld, assignmentValue)) {
                         continue;
                     }
-                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(config, assignmentValue, result);
+                    ApprovalRequest<AssignmentType> req = processAssignmentToAdd(config, assignmentValue, modelContext,
+                            taskFromModel, result);
                     if (req != null) {
                         approvalRequestList.add(req);
                         valueIterator.remove();
@@ -195,7 +198,9 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         return false;
     }
 
-    private ApprovalRequest<AssignmentType> processAssignmentToAdd(PcpAspectConfigurationType config, PrismContainerValue<AssignmentType> assignmentCVal, OperationResult result) {
+    private ApprovalRequest<AssignmentType> processAssignmentToAdd(PcpAspectConfigurationType config,
+            PrismContainerValue<AssignmentType> assignmentCVal, ModelContext<?> modelContext, Task taskFromModel,
+            OperationResult result) {
         AssignmentType assignmentType = assignmentCVal.asContainerable();
         if (isAssignmentRelevant(assignmentType)) {
             T specificObjectType = getAssignmentApprovalTarget(assignmentType, result);
@@ -203,7 +208,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
             LOGGER.trace(" - {} (approval required = {})", specificObjectType, approvalRequired);
             if (approvalRequired) {
                 AssignmentType aCopy = cloneAndCanonicalizeAssignment(assignmentType);
-                return createApprovalRequest(config, aCopy, specificObjectType, result);
+                return createApprovalRequest(config, aCopy, specificObjectType, modelContext, taskFromModel, result);
             }
         }
         return null;
@@ -262,7 +267,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         addRoleDelta.addValueToAdd(assignmentValue);
 
         Class focusClass = primaryChangeAspectHelper.getFocusClass(modelContext);
-        return ObjectDelta.createModifyDelta(objectOid, addRoleDelta, focusClass, ((LensContext) modelContext).getPrismContext());
+        return ObjectDelta.createModifyDelta(objectOid, addRoleDelta, focusClass, modelContext.getPrismContext());
     }
 
     //endregion
@@ -282,7 +287,8 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     protected abstract AssignmentType cloneAndCanonicalizeAssignment(AssignmentType a);
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    protected abstract ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType assignmentType, T target, OperationResult result);
+    protected abstract ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config,
+            AssignmentType assignmentType, T target, ModelContext<?> modelContext, Task taskFromModel, OperationResult result);
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
     protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);

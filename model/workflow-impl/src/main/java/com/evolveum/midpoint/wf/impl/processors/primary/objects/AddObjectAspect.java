@@ -68,7 +68,8 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
         if (!primaryChangeAspectHelper.isRelatedToType(modelContext, getObjectClass()) || objectTreeDeltas.getFocusChange() == null) {
             return Collections.emptyList();
         }
-        List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config, objectTreeDeltas.getFocusChange(), result);
+        List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config,
+				objectTreeDeltas.getFocusChange(), taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }
@@ -76,7 +77,7 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
     }
 
     private List<ApprovalRequest<T>> getApprovalRequests(ModelContext<?> modelContext, PcpAspectConfigurationType config,
-                                                         ObjectDelta<? extends ObjectType> change, OperationResult result) {
+			ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) {
         if (change.getChangeType() != ChangeType.ADD) {
             return null;
         }
@@ -87,12 +88,14 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
             ((LensFocusContext<?>) modelContext.getFocusContext()).setOid(newOid);
         }
         change.setObjectToAdd(null);            // make the change empty
-        return Arrays.asList(createApprovalRequest(config, objectType, result));
+        return Arrays.asList(createApprovalRequest(config, objectType, modelContext, taskFromModel, result));
     }
 
     // creates an approval request for a given role create request
-    private ApprovalRequest<T> createApprovalRequest(PcpAspectConfigurationType config, T objectType, OperationResult result) {
-        return new ApprovalRequestImpl(objectType, config, prismContext, createRelationResolver(objectType, result));
+    private ApprovalRequest<T> createApprovalRequest(PcpAspectConfigurationType config, T objectType,
+			ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
+        return new ApprovalRequestImpl<>(objectType, config, prismContext, createRelationResolver(objectType, result),
+                createReferenceResolver(modelContext, taskFromModel, result));
     }
 
     private List<PcpChildWfTaskCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result,

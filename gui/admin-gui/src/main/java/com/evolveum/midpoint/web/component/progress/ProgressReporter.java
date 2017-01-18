@@ -40,7 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.time.Duration;
 import org.springframework.security.core.Authentication;
@@ -70,7 +69,7 @@ public class ProgressReporter implements Serializable {
     private AjaxSubmitButton continueEditingButton;
     private ProgressReportingAwarePage parentPage;
     private ProgressPanel progressPanel;
-    private Behavior refreshingBehavior = null;             // behavior is attached to the progress panel
+    private AjaxSelfUpdatingTimerBehavior refreshingBehavior = null;             // behavior is attached to the progress panel
 
     // items related to asynchronously executed operation
     private OperationResult asyncOperationResult;           // Operation result got from the asynchronous operation (null if async op not yet finished)
@@ -178,29 +177,26 @@ public class ProgressReporter implements Serializable {
 
         progressPanel.setTask(task);
         progressListener = new DefaultGuiProgressListener(parentPage, progressPanel.getModelObject());
-        Runnable execution = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    enforcer.setupPreAuthenticatedSecurityContext(authentication);
-                    progressPanel.recordExecutionStart();
-					if (previewOnly) {
-						previewResult = modelInteractionService.previewChanges(deltas, options, task, Collections.singleton((ProgressListener) progressListener), result);
-					} else {
-						modelService.executeChanges(deltas, options, task, Collections.singleton((ProgressListener) progressListener), result);
-					}
-                } catch (CommunicationException|ObjectAlreadyExistsException|ExpressionEvaluationException|
-                        PolicyViolationException|SchemaException|SecurityViolationException|
-                        ConfigurationException|ObjectNotFoundException|RuntimeException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
-                    if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
-                        result.recordFatalError(e.getMessage(), e);
-                    }
-                }
-                progressPanel.recordExecutionStop();
-                asyncOperationResult = result;          // signals that the operation has finished
-            }
-        };
+        Runnable execution = () -> {
+			try {
+				enforcer.setupPreAuthenticatedSecurityContext(authentication);
+				progressPanel.recordExecutionStart();
+				if (previewOnly) {
+					previewResult = modelInteractionService.previewChanges(deltas, options, task, Collections.singleton(progressListener), result);
+				} else {
+					modelService.executeChanges(deltas, options, task, Collections.singleton(progressListener), result);
+				}
+			} catch (CommunicationException|ObjectAlreadyExistsException|ExpressionEvaluationException|
+					PolicyViolationException|SchemaException|SecurityViolationException|
+					ConfigurationException|ObjectNotFoundException|RuntimeException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
+				if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
+					result.recordFatalError(e.getMessage(), e);
+				}
+			}
+			progressPanel.recordExecutionStop();
+			asyncOperationResult = result;          // signals that the operation has finished
+		};
 
         if (abortEnabled) {
             showAbortButton(target);
@@ -226,7 +222,7 @@ public class ProgressReporter implements Serializable {
                     if (asyncOperationResult != null) {         // by checking this we know that async operation has been finished
                         asyncOperationResult.recomputeStatus(); // because we set it to in-progress
 
-                        stopRefreshingProgressPanel();
+                        stopRefreshingProgressPanel(target);
 
                         parentPage.finishProcessing(target, asyncOperationResult, true);
                         asyncOperationResult = null;
@@ -243,9 +239,11 @@ public class ProgressReporter implements Serializable {
         }
     }
 
-    private void stopRefreshingProgressPanel() {
+    private void stopRefreshingProgressPanel(AjaxRequestTarget target) {
         if (refreshingBehavior != null) {
-            progressPanel.remove(refreshingBehavior);
+        	refreshingBehavior.stop(target);
+        	// We cannot remove the behavior, as it would cause NPE because of component == null (since wicket 7.5)
+            //progressPanel.remove(refreshingBehavior);
             refreshingBehavior = null;              // causes re-adding this behavior when re-saving changes
         }
     }

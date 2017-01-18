@@ -230,7 +230,7 @@ public class ResourceDetailsTabPanel extends Panel {
 	private void taskDetailsPerformed(AjaxRequestTarget target, String taskOid) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-		setResponsePage(PageTaskEdit.class, parameters);
+		((PageBase) getPage()).navigateToNext(PageTaskEdit.class, parameters);
 	}
 
 	private InfoBoxPanel createSourceTargetInfo(ResourceType resource) {

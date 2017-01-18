@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,9 +38,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
-import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -82,14 +83,17 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
         if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
             return Collections.emptyList();
         }
-        List<ApprovalRequest<AssignmentModification>> approvalRequestList = getApprovalRequests(modelContext, wfConfigurationType, objectTreeDeltas.getFocusChange(), result);
+        List<ApprovalRequest<AssignmentModification>> approvalRequestList = getApprovalRequests(modelContext,
+                wfConfigurationType, objectTreeDeltas.getFocusChange(), taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }
         return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
     }
 
-    private List<ApprovalRequest<AssignmentModification>> getApprovalRequests(ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, OperationResult result) throws SchemaException {
+    private List<ApprovalRequest<AssignmentModification>> getApprovalRequests(ModelContext<?> modelContext,
+            WfConfigurationType wfConfigurationType, ObjectDelta<? extends ObjectType> change, Task taskFromModel,
+            OperationResult result) throws SchemaException {
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
         }
@@ -140,7 +144,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
                 AssignmentType aCopy = cloneAndCanonicalizeAssignment(assignmentType);
                 T target = getAssignmentApprovalTarget(assignmentType, result);
                 ApprovalRequest approvalRequest = createApprovalRequestForModification(config, aCopy, target, entry.getValue(),
-                        createRelationResolver(target, result));
+                        createRelationResolver(target, result), createReferenceResolver(modelContext, taskFromModel, result));
                 approvalRequestList.add(approvalRequest);
             }
         }
@@ -267,7 +271,9 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
     protected abstract AssignmentType cloneAndCanonicalizeAssignment(AssignmentType a);
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
-    protected abstract ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config, AssignmentType assignmentType, T target, List<ItemDeltaType> modifications, RelationResolver relationResolver);
+    protected abstract ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config,
+            AssignmentType assignmentType, T target, List<ItemDeltaType> modifications, RelationResolver relationResolver,
+            ReferenceResolver referenceResolver);
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
     protected abstract T getAssignmentApprovalTarget(AssignmentType assignmentType, OperationResult result);
