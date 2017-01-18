@@ -20,12 +20,15 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+
+import java.util.List;
 
 /**
  * @author shood
@@ -35,7 +38,15 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
 
     private static final String ID_BUTTONS = "buttons";
 
+    protected IModel<List<InlineMenuItem>> menuItemsModel = null;
     int numberOfButtons;
+
+    public MultiButtonPanel(String id, int numberOfButtons, IModel<T> model, IModel<List<InlineMenuItem>> menuItemsModel){
+        super(id, model);
+        this.numberOfButtons = numberOfButtons;
+        this.menuItemsModel = menuItemsModel;
+        initLayout();
+    }
 
     public MultiButtonPanel(String id, int numberOfButtons, IModel<T> model) {
         super(id, model);
@@ -43,7 +54,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
         add(buttons);
         for (int id = 0; id < numberOfButtons; id++) {

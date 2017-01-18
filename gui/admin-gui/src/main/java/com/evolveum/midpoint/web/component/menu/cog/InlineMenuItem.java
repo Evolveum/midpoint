@@ -94,6 +94,10 @@ public class InlineMenuItem implements Serializable {
         return visible;
     }
 
+    public void setVisible(IModel<Boolean> visible) {
+        this.visible = visible;
+    }
+
     public boolean isDivider() {
         return label == null && action == null;
     }

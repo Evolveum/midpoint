@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.web.component.menu.cog.BasicInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;

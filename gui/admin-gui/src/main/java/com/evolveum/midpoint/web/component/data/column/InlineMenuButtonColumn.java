@@ -16,8 +16,9 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,6 +27,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,7 +49,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     public void populateItem(final Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel) {
         this.rowModel = rowModel;
-        cellItem.add(getPanel(componentId, this.rowModel));
+        cellItem.add(getPanel(componentId, rowModel));
     }
 
     @Override
@@ -56,7 +58,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     }
 
     private Component getPanel(String componentId, IModel<T> rowModel){
-        panel = new MultiButtonPanel<T>(componentId, numberOfDisplayedButtons, rowModel) {
+        panel = new MenuMultiButtonPanel<T>(componentId, rowModel, createMenuModel(rowModel)) {
 
             @Override
             public String getCaption(int id) {
@@ -89,25 +91,54 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
 
             @Override
             public void clickPerformed(int id, AjaxRequestTarget target, IModel<T> model) {
-                for (InlineMenuItem menuItem : menuItems){
-                    if (menuItem.getAction() != null) {
-                        ((ColumnMenuAction) menuItem.getAction()).setRowModel(rowModel);
-                    }
-                }
+                setRowModelToAction(rowModel);
                 InlineMenuButtonColumn.this.menuItemClickPerformed(id, target, model);
             }
         };
         return panel;
     }
 
-    private void menuItemClickPerformed(int id, AjaxRequestTarget target, IModel<T> model){
+    private void setRowModelToAction(IModel<T> rowModel){
         for (InlineMenuItem menuItem : menuItems){
-            if (menuItem.getId() == id){
-                if (menuItem.getAction() != null) {
-                    menuItem.getAction().onClick(target);
-                }
+            if (menuItem.getAction() != null) {
+                ((ColumnMenuAction) menuItem.getAction()).setRowModel(rowModel);
             }
         }
+    }
+
+    private IModel<List<InlineMenuItem>> createMenuModel(final IModel<T> rowModel) {
+        return new LoadableModel<List<InlineMenuItem>>(false) {
+
+            @Override
+            public List<InlineMenuItem> load() {
+                if (rowModel == null){
+                    return menuItems;
+                }
+                if (rowModel.getObject() == null ||
+                        !(rowModel.getObject() instanceof InlineMenuable)) {
+                    return new ArrayList<InlineMenuItem>();
+                }
+                for (InlineMenuItem item : ((InlineMenuable)rowModel.getObject()).getMenuItems()) {
+                    if (!(item.getAction() instanceof ColumnMenuAction)) {
+                        continue;
+                    }
+
+                    ColumnMenuAction action = (ColumnMenuAction) item.getAction();
+                    action.setRowModel(rowModel);
+                }
+                return ((InlineMenuable)rowModel.getObject()).getMenuItems();
+            }
+        };
+    }
+
+    private void menuItemClickPerformed(int id, AjaxRequestTarget target, IModel<T> model){
+            for (InlineMenuItem menuItem : menuItems) {
+                if (menuItem.getId() == id) {
+                    if (menuItem.getAction() != null) {
+                        menuItem.getAction().onClick(target);
+                    }
+                }
+            }
     }
 
     @Override
@@ -138,10 +169,5 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
         }
         return sb.toString();
     }
-
-//    @Override
-//    public void clickPerformed(int id, AjaxRequestTarget target, IModel<SelectableBean<UserType>> model) {
-//
-//    }
 
 }
