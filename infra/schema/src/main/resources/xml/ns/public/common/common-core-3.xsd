@@ -10563,6 +10563,18 @@
                         </xsd:annotation>
                     </xsd:element>
                     
+                    <xsd:element name="deploymentInformation" type="tns:DeploymentInformationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information about midPoint deployment: subscription information, deployment name,
+                                description, color and so on.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.5.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -14366,6 +14378,72 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<xsd:complexType name="DeploymentInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about midPoint deployment: subscription information, deployment name,
+                description, color and so on.
+                These information are not critical for midPoint operation. However they may influence
+                the look and feel of this midPoint instance.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.5.1</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Short name of this midPoint deployment. The name will be displayed
+						on a prominent place in the user interface, most likely displayed as
+						a part of the header (on every page). The name is usually used
+						to distinguish between midPoint deployments in the same organization.
+						Strings such as "DEVEL", "TEST", "UAT" are often used.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Free form description that specifies the details of this deployment.
+						It may be significantly long (few paragraps). It has no special purpose
+						other then a form of "on-line" documentation for the deployment. It will
+						NOT be displayed on every page. It will most likely be displayed on a system
+						configuration pages or in configuration summaries.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="headerColor" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of a color that will be used as a background for a page header.
+						The color can be used as a form of easy look and feel customization to match the
+						customer corporate identity. But perhaps more often the color will be used to
+						distinguish different midPoint environments in the same organization, e.g.
+						green color for devel environment, blue color for testing, etc. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="logo" type="tns:IconType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of a logo that will be used in the title bar on every screen.
+						This can be used as an easy customization and point to a customer logo. Or
+						it may be used as an icon to indicate the environment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="subscriptionIdentifier" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identifier of Evolveum subscription contract that applies to this deployment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:complexType name="CachingPolicyType">
 		<xsd:annotation>
