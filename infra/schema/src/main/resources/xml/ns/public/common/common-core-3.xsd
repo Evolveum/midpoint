@@ -14549,6 +14549,41 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="customerName" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Short name of the organization that is end user of the midPoint deployment.
+						It is supposed to be a company name, such as "ExAmPLE, Inc."
+						It will be displayed together with subscription information. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="customerUrl" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						URL of the customer web site. It will be used as a link target in case
+						that the customer name is displayed as hyperlink. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="partnerName" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Short name of the organization that deployed this midPoint instance.
+						It is usually the name of Evolveum partner.
+						It is supposed to be a company name, such as "ExAmPLE, Inc."
+						It will be displayed together with subscription information. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="partnerUrl" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						URL of the partner web site. It will be used as a link target in case
+						that the partner name is displayed as hyperlink. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="subscriptionIdentifier" type="xsd:string" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
