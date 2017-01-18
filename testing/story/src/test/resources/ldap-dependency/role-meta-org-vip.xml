@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="10000000-0000-0000-0000-000000006602">
+    <name>Org Metarole VIP</name>
+
+    <inducement>
+    	<description>OM-I1-G-vip</description>
+        <construction>
+        	<description>OM-I1-G-vip</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+            <kind>entitlement</kind>
+            <intent>group-vip</intent>
+        </construction>
+    </inducement>
+        
+    <inducement>
+    	<description>OM-I1-OU-vip</description>
+    	<construction>
+    		<description>OM-I1-OU-vip</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+    		<kind>generic</kind>
+    		<intent>ou-vip</intent>
+    	</construction>
+    	<condition>
+	    <expression>
+	      <script>
+	        <code>
+	          focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.class
+	        </code>
+	      </script>
+	    </expression>
+	  </condition> 
+    </inducement>
+ 
+</role>
