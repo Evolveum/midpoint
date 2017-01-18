@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -42,16 +43,6 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.Construction;
-import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -1501,29 +1492,47 @@ public class AssignmentProcessor {
 		}
 		for (EvaluatedAssignmentTargetImpl eRoleA: assignmentA.getRoles().getAllValues()) {
 			for (EvaluatedAssignmentTargetImpl eRoleB: assignmentB.getRoles().getAllValues()) {
-				checkExclusion(assignmentA, eRoleA, eRoleB);
+				checkExclusion(assignmentA, assignmentB, eRoleA, eRoleB);
 			}
 		}
 	}
 
-	private <F extends FocusType> void checkExclusion(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		checkExclusionOneWay(assignmentA, roleA, roleB);
-		checkExclusionOneWay(assignmentA, roleB, roleA);
+	private <F extends FocusType> void checkExclusion(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+		checkExclusionOneWayLegacy(assignmentA, roleA, roleB);
+		checkExclusionOneWayLegacy(assignmentA, roleB, roleA);
+		checkExclusionOneWayRuleBased(assignmentA, roleA, roleB);
+		checkExclusionOneWayRuleBased(assignmentB, roleB, roleA);
 	}
 
-	private <F extends FocusType> void checkExclusionOneWay(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+	private <F extends FocusType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
-			ObjectReferenceType targetRef = exclusionA.getTargetRef();
-			if (roleB.getOid().equals(targetRef.getOid())) {
-				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.EXCLUSION, exclusionA,
-						"Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
-						", they cannot be assigned at the same time");
-				assignmentA.triggerConstraint(null, trigger); 
-						
+			checkAndTriggerExclusionConstraintViolation(assignmentA, roleA, roleB, exclusionA, null);
+		}
+	}
+
+	private <F extends FocusType> void checkExclusionOneWayRuleBased(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+		for (EvaluatedPolicyRule policyRule : assignmentA.getThisTargetPolicyRules()) {	// or getTargetPolicyRules?
+			if (policyRule.getPolicyConstraints() != null) {
+				for (ExclusionPolicyConstraintType exclusionConstraint : policyRule.getPolicyConstraints().getExclusion()) {
+					checkAndTriggerExclusionConstraintViolation(assignmentA, roleA, roleB, exclusionConstraint, policyRule);
+				}
 			}
 		}
 	}
-	
+
+	private <F extends FocusType> void checkAndTriggerExclusionConstraintViolation(EvaluatedAssignmentImpl<F> assignmentA,
+			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB,
+			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule)
+			throws PolicyViolationException {
+		ObjectReferenceType targetRef = constraint.getTargetRef();
+		if (roleB.getOid().equals(targetRef.getOid())) {
+			EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.EXCLUSION,
+					constraint, "Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
+					", they cannot be assigned at the same time");
+			assignmentA.triggerConstraint(policyRule, trigger);
+		}
+	}
+
 	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
 			OperationResult result) throws PolicyViolationException, SchemaException {

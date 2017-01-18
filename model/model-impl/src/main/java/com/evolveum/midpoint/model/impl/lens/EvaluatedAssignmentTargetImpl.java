@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,9 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * @author semancik
@@ -103,14 +100,14 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 					}
 				}
 				
-				for (AssignmentType assignmentInTarget: target.asObjectable().getAssignment()) {
-					PolicyRuleType policyRule = assignmentInTarget.getPolicyRule();
-					if (policyRule != null && policyRule.getPolicyConstraints() != null) {
-						for (ExclusionPolicyConstraintType exclusionType: policyRule.getPolicyConstraints().getExclusion()) {
-							exclusions.add(exclusionType);
-						}
-					}
-				}
+//				for (AssignmentType assignmentInTarget: target.asObjectable().getAssignment()) {
+//					PolicyRuleType policyRule = assignmentInTarget.getPolicyRule();
+//					if (policyRule != null && policyRule.getPolicyConstraints() != null) {
+//						for (ExclusionPolicyConstraintType exclusionType: policyRule.getPolicyConstraints().getExclusion()) {
+//							exclusions.add(new ExclusionConstraintAndPolicyRule(exclusionType, policyRule));
+//						}
+//					}
+//				}
 			}
 		
 		}
