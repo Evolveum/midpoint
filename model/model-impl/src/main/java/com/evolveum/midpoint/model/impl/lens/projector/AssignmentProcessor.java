@@ -659,7 +659,8 @@ public class AssignmentProcessor {
                 projectionContext.setAssignedOld(true);
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
-            } else if (constructionMapTriple.getPlusMap().containsKey(rat) && constructionMapTriple.getMinusMap().containsKey(rat)) {
+            } else if (constructionMapTriple.getPlusMap().containsKey(rat) && constructionMapTriple.getMinusMap().containsKey(rat) && 
+            		plusConstructionPack.hasStrongConstruction()) {
             	// Account was removed and added in the same operation. This is the case if e.g. one role is
             	// removed and another is added and they include the same account.
             	// Keep original account state
