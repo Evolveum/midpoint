@@ -119,6 +119,9 @@ public class GuiStyleConstants {
 	public static final String CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED = "fa fa-check-circle text-muted";
 	public static final String CLASS_OP_RESULT_STATUS_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
 
+	//menu items icons classes
+	public static final String CLASS_THREE_DOTS = "fa fa-ellipsis-h";
+
 	public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
 	public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
 

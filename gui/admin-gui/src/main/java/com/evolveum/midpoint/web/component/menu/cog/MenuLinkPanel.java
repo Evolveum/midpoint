@@ -41,7 +41,7 @@ public class MenuLinkPanel extends Panel {
     }
 
     private void initLayout(IModel<InlineMenuItem> item) {
-        final InlineMenuItem dto = item.getObject();
+        InlineMenuItem dto = item.getObject();
 
         AbstractLink a;
         if (dto.isSubmit()) {

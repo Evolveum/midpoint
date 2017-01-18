@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -43,6 +44,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -64,8 +66,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -242,128 +242,103 @@ public class PageUsers extends PageAdminUsers {
 
 		columns.add(column);
 
-		column = new InlineMenuHeaderColumn(initInlineMenu());
+		column = new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions());
 		columns.add(column);
 
 		return columns;
 	}
 
-	private List<InlineMenuItem> initInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateActivationPerformed(target, true, null);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateActivationPerformed(target, false, null);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						reconcilePerformed(target, null);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						unlockPerformed(target, null);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem());
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"), true,
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						deletePerformed(target, null);
-					}
-				}));
-
-		return headerMenuItems;
-	}
-
-	
-
 	private List<InlineMenuItem> createRowActions() {
 		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
+		int id = 0;
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
+				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<UserType> rowDto = getRowModel().getObject();
-						updateActivationPerformed(target, true, rowDto.getValue());
+						if (getRowModel() == null){
+							updateActivationPerformed(target, true, null);
+						} else {
+							SelectableBean<UserType> rowDto = getRowModel().getObject();
+							updateActivationPerformed(target, true, rowDto.getValue());
+						}
 					}
-				}));
+				}, id++, GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
+				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<UserType> rowDto = getRowModel().getObject();
-						updateActivationPerformed(target, false, rowDto.getValue());
+						if (getRowModel() == null){
+							updateActivationPerformed(target, false, null);
+						} else {
+							SelectableBean<UserType> rowDto = getRowModel().getObject();
+							updateActivationPerformed(target, false, rowDto.getValue());
+						}
 					}
-				}));
+				}, id++, GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<UserType> rowDto = getRowModel().getObject();
-						reconcilePerformed(target, rowDto.getValue());
+						if (getRowModel() == null){
+							reconcilePerformed(target, null);
+						} else {
+							SelectableBean<UserType> rowDto = getRowModel().getObject();
+							reconcilePerformed(target, rowDto.getValue());
+						}
 					}
-				}));
+				}, id++, GuiStyleConstants.CLASS_THREE_DOTS));
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"),
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<UserType> rowDto = getRowModel().getObject();
-						unlockPerformed(target, rowDto.getValue());
+						if (getRowModel() == null){
+							unlockPerformed(target, null);
+						} else {
+							SelectableBean<UserType> rowDto = getRowModel().getObject();
+							unlockPerformed(target, rowDto.getValue());
+						}
 					}
-				}));
+				}, id++));
 
 		menu.add(new InlineMenuItem());
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"),
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<UserType> rowDto = getRowModel().getObject();
-						deletePerformed(target, rowDto.getValue());
+						if (getRowModel() == null){
+							deletePerformed(target, null);
+						} else {
+							SelectableBean<UserType> rowDto = getRowModel().getObject();
+							deletePerformed(target, rowDto.getValue());
+						}
 					}
-				}));
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
+				}, id++));
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<UserType> rowDto = getRowModel().getObject();
-						mergePerformed(target, rowDto.getValue());
+						if (getRowModel() == null){
+							mergePerformed(target, null);
+						} else {
+							SelectableBean<UserType> rowDto = getRowModel().getObject();
+							mergePerformed(target, rowDto.getValue());
+						}
 					}
-				}));
+				}, id++));
 		return menu;
 	}
 
