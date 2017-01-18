@@ -9125,6 +9125,18 @@
 	   				</xsd:documentation>
 	   			</xsd:annotation>
 	   		</xsd:element>
+	   		<xsd:element name="prune" type="tns:PrunePolicyActionType" minOccurs="0" maxOccurs="1">
+	   			<xsd:annotation>
+	   				<xsd:documentation>
+	   					Prune action. The operation will proceed. Any other assignments that are in conflict with
+	   					this assignment that triggered the rule will be "pruned": they will be removed. The removal
+	   					of the conflicting assignments is automatic and silent. It will not be subject to approvals
+	   					or other policy contratints.
+	   					This mechanism can be used for example to implement set of roles where only one of the roles
+	   					can be assigned at a time.
+	   				</xsd:documentation>
+	   			</xsd:annotation>
+	   		</xsd:element>
 	   		<xsd:element name="certification" type="tns:CertificationPolicyActionType" minOccurs="0" maxOccurs="1">
 	   			<xsd:annotation>
 	   				<xsd:documentation>
@@ -9318,6 +9330,26 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="RemediationPolicyActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container />
+				<a:since>3.5</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:PolicyActionType">
+					<xsd:sequence>
+						<!-- TODO -->
+					</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="PrunePolicyActionType">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO
