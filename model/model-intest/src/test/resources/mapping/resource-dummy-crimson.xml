@@ -126,30 +126,35 @@
 					<expression>
 						<script> <!-- MID-3661 -->
 							<code>
-								log.error("XXXXX locality: "+locality)
+								log.error("locality: "+locality)
 								def fixedDrink = []
 								if (account) {
-									log.error("XXXXX account:\n"+basic.debugDump(account,1))
+									log.error("account:\n"+basic.debugDump(account,1))
 									def drink = basic.getAttributeValues(account, 'drink')
-									log.error("XXXXX drink(1): "+drink)
+									log.error("drink(1): "+drink)
 									if (drink != null) {
 										drink.each {
 											if (!it?.startsWith('rum')) {
 												fixedDrink.add(it)
 											}
 										}
-										log.error("XXXXX fixedDrink(2): "+fixedDrink)
+										log.error("fixedDrink(2): "+fixedDrink)
 										if (locality != null) {
 											fixedDrink.add('rum from ' + locality);
 										}
-										log.error("XXXXX fixedDrink(3): "+fixedDrink)
+										log.error("fixedDrink(3): "+fixedDrink)
 									}
 								}
-								log.error("XXXXX fixedDrink(4): "+fixedDrink)
+								log.error("fixedDrink(4): "+fixedDrink)
 								return fixedDrink
 							</code>
 						</script>
 					</expression>
+					<condition>
+						<script>
+							<code>midpoint.isFullShadow()</code>
+						</script>
+					</condition>
 				</outbound>
 			</attribute>
 			<attribute>

@@ -31,11 +31,16 @@ import java.util.List;
  */
 public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
-    private MultiButtonPanel panel;
+    protected MultiButtonPanel panel;
 
     private List<String> captions;
-    private IModel<T> rowModel;
+    protected IModel<T> rowModel;
     private int numberOfButtons;
+
+    public MultiButtonColumn(int numberOfButtons) {
+        super(null);
+        this.numberOfButtons = numberOfButtons;
+    }
 
     public MultiButtonColumn(IModel<String> displayModel, int numberOfButtons) {
         super(displayModel);

@@ -21,6 +21,7 @@ import java.util.Deque;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -68,6 +69,14 @@ public class ModelExpressionThreadLocalHolder {
 			return null;
 		}
 		return (LensContext<F>) env.getLensContext();
+	}
+	
+	public static <F extends ObjectType> LensProjectionContext getProjectionContext() {
+		ExpressionEnvironment<ObjectType> env = getExpressionEnvironment();
+		if (env == null) {
+			return null;
+		}
+		return env.getProjectionContext();
 	}
 	
 	public static Task getCurrentTask() {
