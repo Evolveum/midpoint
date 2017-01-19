@@ -507,6 +507,7 @@ public class DependencyProcessor {
                         String dependencyResourceOid = dependency.getResourceRef() != null ?
                                 dependency.getResourceRef().getOid() : projectionContext.getResource().getOid();
 						if (dependencyResourceOid.equals(accountContext.getResource().getOid())) {
+							if (!dependency.getIntent().equals(projectionContext.getResourceShadowDiscriminator().getIntent())) continue;
 							// Someone depends on us
 							if (ResourceTypeUtil.getDependencyStrictness(dependency) == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 								throw new PolicyViolationException("Cannot remove "+accountContext.getHumanReadableName()
