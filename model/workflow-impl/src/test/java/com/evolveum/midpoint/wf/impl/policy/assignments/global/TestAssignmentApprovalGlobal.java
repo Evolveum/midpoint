@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.policy.global;
+package com.evolveum.midpoint.wf.impl.policy.assignments.global;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestAssignmentApproval;
+import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.policy.plain;
+package com.evolveum.midpoint.wf.impl.policy.assignments.plain;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestAssignmentApproval;
+import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**

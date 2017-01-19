@@ -30,7 +30,8 @@
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
-							<approverRelation>approver</approverRelation>
+                            <name>Role approvers (all)</name>
+                            <approverRelation>approver</approverRelation>
 							<evaluationStrategy>allMustApprove</evaluationStrategy>
 							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
 						</level>

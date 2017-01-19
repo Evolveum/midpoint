@@ -95,9 +95,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
             @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
 
 		List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
-		PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
-
 		if (objectTreeDeltas.getFocusChange() != null) {
+			PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(taskFromModel, result);
 			extractAssignmentBasedInstructions(modelContext, objectTreeDeltas, requester, instructions, wfConfigurationType, taskFromModel, result);
 			extractObjectBasedInstructions((LensContext<?>) modelContext, objectTreeDeltas, requester, instructions, taskFromModel, result);
 		}
@@ -116,7 +115,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) modelContext).getEvaluatedAssignmentTriple();
 		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
-		if (evaluatedAssignmentTriple == null || evaluatedAssignmentTriple.getPlusSet() == null) {
+		if (evaluatedAssignmentTriple == null || !evaluatedAssignmentTriple.hasPlusSet()) {
 			return;
 		}
 

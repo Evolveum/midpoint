@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -495,7 +496,8 @@ public class DependencyProcessor {
 					for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
                         String dependencyResourceOid = dependency.getResourceRef() != null ?
                                 dependency.getResourceRef().getOid() : projectionContext.getResource().getOid();
-						if (dependencyResourceOid.equals(accountContext.getResource().getOid())) {
+						if (dependencyResourceOid.equals(accountContext.getResource().getOid()) &&
+								MiscSchemaUtil.equalsIntent(dependency.getIntent(), projectionContext.getResourceShadowDiscriminator().getIntent())) {
 							// Someone depends on us
 							if (ResourceTypeUtil.getDependencyStrictness(dependency) == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 								throw new PolicyViolationException("Cannot remove "+accountContext.getHumanReadableName()

@@ -859,21 +859,19 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         DebugUtil.debugDumpWithLabel(sb, "FOCUS", focusContext, indent + 1);
 
 		sb.append("\n");
-		if (evaluatedAssignmentTriple != null) {
-			if (DebugUtil.isDetailedDebugDump()) {
-				DebugUtil.debugDumpWithLabel(sb, "EvaluatedAssignments", evaluatedAssignmentTriple, indent + 1);
-				evaluatedAssignmentTriple.debugDump();
-			} else {
-				DebugUtil.indentDebugDump(sb, indent + 1);
-				sb.append("Evaluated assignments:");
-				dumpEvaluatedAssignments(sb, "Zero", (Collection) evaluatedAssignmentTriple.getZeroSet(), indent + 2);
-				dumpEvaluatedAssignments(sb, "Plus", (Collection) evaluatedAssignmentTriple.getPlusSet(), indent + 2);
-				dumpEvaluatedAssignments(sb, "Minus", (Collection) evaluatedAssignmentTriple.getMinusSet(), indent + 2);
-			}
+		if (DebugUtil.isDetailedDebugDump()) {
+			DebugUtil.debugDumpWithLabel(sb, "EvaluatedAssignments", evaluatedAssignmentTriple, indent + 3);
 		} else {
-			sb.append(" (null)");
+			DebugUtil.indentDebugDump(sb, indent + 3);
+			sb.append("Evaluated assignments:");
+			if (evaluatedAssignmentTriple != null) {
+				dumpEvaluatedAssignments(sb, "Zero", (Collection) evaluatedAssignmentTriple.getZeroSet(), indent + 4);
+				dumpEvaluatedAssignments(sb, "Plus", (Collection) evaluatedAssignmentTriple.getPlusSet(), indent + 4);
+				dumpEvaluatedAssignments(sb, "Minus", (Collection) evaluatedAssignmentTriple.getMinusSet(), indent + 4);
+			} else {
+				sb.append(" (null)");
+			}
 		}
-
 		sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("PROJECTIONS:");

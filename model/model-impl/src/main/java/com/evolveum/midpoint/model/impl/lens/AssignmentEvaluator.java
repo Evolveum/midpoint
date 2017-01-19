@@ -662,7 +662,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		if (!DeputyUtils.isMembershipRelation(relation) && !DeputyUtils.isDelegationRelation(relation)) {
-			LOGGER.trace("Cutting evaluation of " + targetType + " because it is neigther memberhip nor delegation relation ({})", relation);
+			LOGGER.trace("Cutting evaluation of " + targetType + " because it is neither membership nor delegation relation ({})", relation);
 			return;
 		}
 		

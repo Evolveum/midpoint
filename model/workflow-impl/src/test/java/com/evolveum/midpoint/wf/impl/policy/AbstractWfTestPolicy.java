@@ -93,7 +93,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_LEAD2_FILE = new File(TEST_RESOURCE_DIR, "user-lead2.xml");
 	protected static final File USER_LEAD3_FILE = new File(TEST_RESOURCE_DIR, "user-lead3.xml");
 	protected static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
-	protected static final File USER_PIRATE_OWNER_FILE = new File(TEST_RESOURCE_DIR, "user-pirate-owner.xml");
 	protected static final File USER_SECURITY_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver.xml");
 	protected static final File USER_SECURITY_APPROVER_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy.xml");
 
@@ -116,10 +115,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File ROLE_ROLE10A_FILE = new File(TEST_RESOURCE_DIR, "role-role10a.xml");
 	protected static final File ROLE_ROLE10B_FILE = new File(TEST_RESOURCE_DIR, "role-role10b.xml");
 
-	protected static final File ROLE_ROLE21_FILE = new File(TEST_RESOURCE_DIR, "role-role21-standard.xml");
-	protected static final File ROLE_ROLE22_FILE = new File(TEST_RESOURCE_DIR, "role-role22-special.xml");
-	protected static final File ROLE_ROLE23_FILE = new File(TEST_RESOURCE_DIR, "role-role23-special-and-security.xml");
-
 	protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
 	protected String userJackOid;
@@ -129,7 +124,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String userLead2Oid;
 	protected String userLead3Oid;
 	protected String userLead10Oid;
-	protected String userPirateOwnerOid;
 	protected String userSecurityApproverOid;
 	protected String userSecurityApproverDeputyOid;
 
@@ -151,10 +145,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String roleRole10Oid;
 	protected String roleRole10aOid;
 	protected String roleRole10bOid;
-
-	protected String roleRole21Oid;
-	protected String roleRole22Oid;
-	protected String roleRole23Oid;
 
 	@Autowired
 	protected Clockwork clockwork;
@@ -213,20 +203,15 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		roleRole10aOid = repoAddObjectFromFile(ROLE_ROLE10A_FILE, initResult).getOid();
 		roleRole10bOid = repoAddObjectFromFile(ROLE_ROLE10B_FILE, initResult).getOid();
 
-		roleRole21Oid = repoAddObjectFromFile(ROLE_ROLE21_FILE, initResult).getOid();
-		roleRole22Oid = repoAddObjectFromFile(ROLE_ROLE22_FILE, initResult).getOid();
-		roleRole23Oid = repoAddObjectFromFile(ROLE_ROLE23_FILE, initResult).getOid();
-
 		userLead1Oid = addAndRecomputeUser(USER_LEAD1_FILE, initTask, initResult);
 		userLead2Oid = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);
 		userLead3Oid = addAndRecomputeUser(USER_LEAD3_FILE, initTask, initResult);
 		// LEAD10 will be imported later!
-		userPirateOwnerOid = addAndRecomputeUser(USER_PIRATE_OWNER_FILE, initTask, initResult);
 		userSecurityApproverOid = addAndRecomputeUser(USER_SECURITY_APPROVER_FILE, initTask, initResult);
 		userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);
 	}
 
-	private String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
+	protected String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
 		String oid = repoAddObjectFromFile(file, initResult).getOid();
 		recomputeUser(oid, initTask, initResult);
 		display("User " + file, getUser(oid));
@@ -403,7 +388,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(getUser(userPirateOwnerOid));
+				login(getUser(assigneeOid));
 				return approve;
 			}
 		}, 1);
@@ -803,11 +788,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception { return true; }
 
 		protected void sortSubtasks(List<Task> subtasks) {
-			Collections.sort(subtasks, (t1, t2) -> getCompareKey(t1).compareTo(getCompareKey(t2)));
+			Collections.sort(subtasks, Comparator.comparing(this::getCompareKey));
 		}
 
 		protected void sortWorkItems(List<WorkItemType> workItems) {
-			Collections.sort(workItems, (w1, w2) -> getCompareKey(w1).compareTo(getCompareKey(w2)));
+			Collections.sort(workItems, Comparator.comparing(this::getCompareKey));
 		}
 
 		protected String getCompareKey(Task task) {

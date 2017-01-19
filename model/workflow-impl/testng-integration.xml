@@ -37,21 +37,21 @@
     </test>
     <test name="Policy (plain)" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.wf.impl.policy.plain.TestAssignmentApprovalPlainImplicit"/>
-            <class name="com.evolveum.midpoint.wf.impl.policy.plain.TestAssignmentApprovalPlainExplicit"/>
-            <class name="com.evolveum.midpoint.wf.impl.policy.plain.TestLifecyclePlain"/>
+            <class name="com.evolveum.midpoint.wf.impl.policy.assignments.plain.TestAssignmentApprovalPlainImplicit"/>
+            <class name="com.evolveum.midpoint.wf.impl.policy.assignments.plain.TestAssignmentApprovalPlainExplicit"/>
+            <class name="com.evolveum.midpoint.wf.impl.policy.lifecycle.plain.TestLifecyclePlain"/>
         </classes>
     </test>
     <test name="Policy (explicit, global)" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
             <!-- global policy for assignments is not implemented yet -->
-            <class name="com.evolveum.midpoint.wf.impl.policy.global.TestLifecycleGlobal"/>
+            <class name="com.evolveum.midpoint.wf.impl.policy.lifecycle.global.TestLifecycleGlobal"/>
         </classes>
     </test>
     <test name="Metarole-driven" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.wf.impl.policy.metarole.TestAssignmentApprovalMetaroleExplicit"/>
-            <class name="com.evolveum.midpoint.wf.impl.policy.metarole.TestAssignmentsWithDifferentMetaroles"/>
+            <class name="com.evolveum.midpoint.wf.impl.policy.assignments.metarole.TestAssignmentApprovalMetaroleExplicit"/>
+            <class name="com.evolveum.midpoint.wf.impl.policy.assignments.metarole.TestAssignmentsWithDifferentMetaroles"/>
         </classes>
     </test>
     <test name="Other" preserve-order="true" parallel="false" verbose="10" enabled="true">

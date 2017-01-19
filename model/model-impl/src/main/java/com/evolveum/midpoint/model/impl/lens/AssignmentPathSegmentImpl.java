@@ -235,16 +235,19 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	public String toString() {
 		StringBuilder sb = new StringBuilder("AssignmentPathSegment(");
 		sb.append(evaluationOrder);
-		if (isMatchingOrder == Boolean.TRUE) {
+		if (isMatchingOrder()) {			// here is a side effect but most probably it's harmless
 			sb.append("(match)");
-		};
+		}
+		if (isMatchingOrderPlusOne()) {
+			sb.append("(match+1)");
+		}
 		sb.append(": ");
 		sb.append(source).append(" ");
 		PrismContainer<AssignmentType> assignment = (PrismContainer<AssignmentType>) assignmentIdi.getAnyItem();
 		if (assignment != null) {
 			AssignmentType assignmentType = assignment.getValue().asContainerable();
 			if (assignmentType.getConstruction() != null) {
-				sb.append("Constr '"+assignmentType.getConstruction().getDescription()+"' ");
+				sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
 			}
 		}
 		if (target != null) {
