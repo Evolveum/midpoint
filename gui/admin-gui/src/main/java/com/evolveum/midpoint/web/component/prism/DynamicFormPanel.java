@@ -15,13 +15,14 @@
  */
 package com.evolveum.midpoint.web.component.prism;
 
-import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,9 +31,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class DynamicFormPanel extends BasePanel {
+public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrapper<O>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -43,17 +44,40 @@ public class DynamicFormPanel extends BasePanel {
 
 	private static final String ID_FORM_FIELDS = "formFields";
 
-	public DynamicFormPanel(String id, String formOid, Form mainForm, boolean runPrivileged,
-			PageBase parentPage) {
+	LoadableModel<ObjectWrapper<O>> wrapperModel = null;
+	
+	public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm, boolean runPrivileged,
+			final PageBase parentPage) {
+		
 		super(id);
+		
+		wrapperModel = new LoadableModel<ObjectWrapper<O>>() {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected ObjectWrapper<O> load() {
+				ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
+				ObjectWrapper<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
+						model.getObject().asPrismObject(), (model.getObject().getOid() == null) ? ContainerStatus.ADDING : ContainerStatus.MODIFYING);
+				objectWrapper.setShowEmpty(true);
+				return objectWrapper;
+			}
+		};
+		
+		
 		setParent(parentPage);
 
 		initLayout(formOid, runPrivileged, mainForm);
 	}
+	
+	@Override
+	public IModel<ObjectWrapper<O>> getModel() {
+		return wrapperModel;
+	}
 
-	private void initLayout(String formOid, boolean runPrivileged, Form mainForm) {
+	private void initLayout(String formOid, boolean runPrivileged, Form<?> mainForm) {
 
-		// String formOid = "";
 		Task task = null;
 		if (runPrivileged) {
 			task = getPageBase().createAnonymousTask(OPERATION_LOAD_FORM);
@@ -76,120 +100,23 @@ public class DynamicFormPanel extends BasePanel {
 			LOGGER.trace("No form definition defined for dynamic form");
 		}
 
-//		List<AbstractFormItemType> formItems = getFormItems(formDefinitionType);
-
-		PrismObjectDefinition<UserType> objectDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByType(UserType.COMPLEX_TYPE);
-		PrismObject<UserType> prismObject;
-		try {
-			prismObject = objectDefinition.instantiate();
-		} catch (SchemaException e) {
-			throw new RestartResponseException(getPageBase());
-		}
-
-		ObjectWrapperFactory owf = new ObjectWrapperFactory(getPageBase());
-		ObjectWrapper<UserType> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
-				prismObject, ContainerStatus.ADDING);
-		objectWrapper.setShowEmpty(true);
-		
-		DynamicFieldGroupPanel formFields = new DynamicFieldGroupPanel(ID_FORM_FIELDS, objectWrapper, formDefinitionType, mainForm, getPageBase());
+		DynamicFieldGroupPanel<O> formFields = new DynamicFieldGroupPanel<O>(ID_FORM_FIELDS, getModel(), formDefinitionType, mainForm, getPageBase());
 		formFields.setOutputMarkupId(true);
 		add(formFields);
-		
-//		RepeatingView itemView = new RepeatingView(ID_PROPERTY);
-//		add(itemView);
-//		for (AbstractFormItemType formItem : formItems) {
-//
-//			if (!(formItem instanceof FormFieldType)) {
-//				continue;
-//			}
-//
-//			FormFieldType formField = (FormFieldType) formItem;
-//
-//			ItemWrapper itemWrapper = createItemWrapper(formItem, objectWrapper);
-//
-//			applyFormDefinition(itemWrapper, formItem);
-//
-//			if (itemWrapper instanceof ContainerWrapper) {
-//				PrismContainerPanel containerPanel = new PrismContainerPanel(itemView.newChildId(),
-//						Model.of((ContainerWrapper)itemWrapper), true, mainForm, getPageBase());
-//				itemView.add(containerPanel);
-//
-//			} else {
-//			
-//				PrismPropertyPanel propertyPanel = new PrismPropertyPanel(itemView.newChildId(),
-//						Model.of(itemWrapper), mainForm, getPageBase());
-//				itemView.add(propertyPanel);
-//			}
-//
-//		}
 
 	}
+	
+	public ObjectDelta<O> getObjectDelta() throws SchemaException {
+		return wrapperModel.getObject().getObjectDelta();
+	}
+	
+	public PrismObject<O> getObject() throws SchemaException {
+		ObjectDelta<O> delta = wrapperModel.getObject().getObjectDelta();
+		if (delta != null && delta.isAdd()) {
+			return delta.getObjectToAdd();
+		}
+		return wrapperModel.getObject().getObject();
+	}
 
-//	private ItemWrapper createItemWrapper(AbstractFormItemType formField, ObjectWrapper objectWrapper) {
-//		ItemPathType itemPathType = formField.getRef();
-//
-//		if (itemPathType == null) {
-//			getSession().error("Bad form item definition. It has to contain reference to the real attribute");
-//			LOGGER.error("Bad form item definition. It has to contain reference to the real attribute");
-//			throw new RestartResponseException(getPageBase());
-//		}
-//
-//		ItemPath path = itemPathType.getItemPath();
-//
-//		ItemWrapper itemWrapper = null;
-//		Item item = objectWrapper.getObject().findItem(path);
-//		if (item instanceof PrismContainer) {
-//			itemWrapper = objectWrapper.findContainerWrapper(path);
-//		} else {
-//			itemWrapper = objectWrapper.findPropertyWrapper(path);
-//		}
-//
-//		if (itemWrapper == null) {
-//			getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
-//			LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
-//			throw new RestartResponseException(getPageBase());
-//		}
-//
-//		return itemWrapper;
-//
-//	}
-//
-//	private void applyFormDefinition(ItemWrapper itemWrapper, AbstractFormItemType formField) {
-//
-//		FormItemDisplayType displayType = formField.getDisplay();
-//
-//		if (displayType == null) {
-//			return;
-//		}
-//
-//		ItemDefinitionImpl itemDef = (ItemDefinitionImpl) itemWrapper.getItemDefinition();
-//		if (StringUtils.isNotEmpty(displayType.getLabel())) {
-//			itemDef.setDisplayName(displayType.getLabel());
-//		}
-//
-//		if (StringUtils.isNotEmpty(displayType.getHelp())) {
-//			itemDef.setHelp(displayType.getHelp());
-//		}
-//
-//		if (StringUtils.isNotEmpty(displayType.getMaxOccurs())) {
-//			itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMaxOccurs()));
-//		}
-//
-//		if (StringUtils.isNotEmpty(displayType.getMinOccurs())) {
-//			itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMinOccurs()));
-//		}
-//
-//	}
-
-//	private List<AbstractFormItemType> getFormItems(FormDefinitionType formDefinitionType) {
-//		List<AbstractFormItemType> items = new ArrayList<>();
-//		List<JAXBElement<? extends AbstractFormItemType>> formItems = formDefinitionType.getFormItem();
-//		for (JAXBElement<? extends AbstractFormItemType> formItem : formItems) {
-//			AbstractFormItemType item = formItem.getValue();
-//			items.add(item);
-//		}
-//		return items;
-//	}
 
 }
