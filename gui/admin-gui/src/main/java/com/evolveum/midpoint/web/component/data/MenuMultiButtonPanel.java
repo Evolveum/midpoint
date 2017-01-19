@@ -78,20 +78,6 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
     private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
         InlineMenuItem item = menuItem.getModelObject();
 
-//        menuItem.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
-//
-//            @Override
-//            public String getObject() {
-//                if (item.isMenuHeader()) {
-//                    return "dropdown-header";
-//                } else if (item.isDivider()) {
-//                    return "divider";
-//                }
-//
-//                return getBoolean(item.getEnabled(), true) ? null : "disabled";
-//            }
-//        }));
-
         if (item.getVisible() != null && item.getVisible().getObject() != null) {
             menuItem.add(new VisibleEnableBehaviour() {
                 @Override
