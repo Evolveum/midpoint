@@ -1499,9 +1499,9 @@ public class AssignmentProcessor {
 
 	private <F extends FocusType> void checkExclusion(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleA, roleB);
-		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleB, roleA);
+		checkExclusionOneWayLegacy(assignmentB, assignmentA, roleB, roleA);
 		checkExclusionOneWayRuleBased(assignmentA, assignmentB, roleA, roleB);
-		checkExclusionOneWayRuleBased(assignmentA, assignmentB, roleB, roleA);
+		checkExclusionOneWayRuleBased(assignmentB, assignmentA, roleB, roleA);
 	}
 
 	private <F extends FocusType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, 

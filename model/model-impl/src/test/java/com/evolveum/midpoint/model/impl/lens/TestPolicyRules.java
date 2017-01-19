@@ -106,6 +106,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		addObject(ROLE_PIRATE_FILE);
 		addObject(ROLE_MUTINIER_FILE);
 		addObject(ROLE_JUDGE_FILE);
+		addObject(ROLE_CONSTABLE_FILE);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		
@@ -162,9 +163,14 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberShadowFetchOperationCount();
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         projector.project(context, "test", task, result);
         
-        // THEN
+        // THEN        
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
         assertAssignAccountToJack(context);
         
         DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple = 
@@ -196,9 +202,14 @@ public class TestPolicyRules extends AbstractLensTest {
         rememberShadowFetchOperationCount();
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         projector.project(context, "test", task, result);
         
-        // THEN
+        // THEN        
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
         assertAssignAccountToJack(context);
         
         DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple = 
@@ -211,6 +222,45 @@ public class TestPolicyRules extends AbstractLensTest {
         EvaluatedPolicyRuleTrigger trigger = assertTriggeredRule(context, PolicyConstraintKindType.EXCLUSION);
         assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in trigger", ROLE_PIRATE_OID, trigger.getConflictingAssignment().getTarget().getOid());
+	}
+	
+	@Test
+    public void test112AssignRoleConstableToJack() throws Exception {
+		final String TEST_NAME = "test112AssignRoleConstableToJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        LensContext<UserType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CONSTABLE_OID);
+
+        display("Input context", context);
+
+        assertFocusModificationSanity(context);
+        rememberShadowFetchOperationCount();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        projector.project(context, "test", task, result);
+        
+        // THEN        
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple = 
+        		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
+//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+        
+        dumpPolicyRules(context);
+        
+        assertEvaluatedRules(context, 2);
+        EvaluatedPolicyRuleTrigger trigger = assertTriggeredRule(context, PolicyConstraintKindType.EXCLUSION);
+        assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
+        assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, trigger.getConflictingAssignment().getTarget().getOid());
 	}
 	
 	private void assertEvaluatedRules(LensContext<UserType> context, int expected) {
