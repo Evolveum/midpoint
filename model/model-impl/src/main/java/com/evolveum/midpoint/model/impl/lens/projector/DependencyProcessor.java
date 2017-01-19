@@ -273,7 +273,9 @@ public class DependencyProcessor {
 				Iterator<ResourceObjectTypeDependencyType> iterator = depPath.iterator();
 				while (iterator.hasNext()) {
 					ResourceObjectTypeDependencyType el = iterator.next();
-					sb.append(el.getResourceRef().getOid());
+					if (el.getResourceRef() != null) {
+						sb.append(el.getResourceRef().getOid());
+					}
 					if (iterator.hasNext()) {
 						sb.append("->");
 					}

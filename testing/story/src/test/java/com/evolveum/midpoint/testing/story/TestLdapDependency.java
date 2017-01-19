@@ -370,7 +370,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	}
 	
 	//test280AssignVipAndSuperVipRoleToHROrg required for  test290UnassignVipRoleFromHROrg
-	//@Test
+	@Test
     public void test280AssignVipAndSuperVipRoleToHROrg() throws Exception {
 		final String TEST_NAME = "test280AssignVipAndSuperVipRoleToHROrg";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -405,9 +405,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		assertLdapObject(orgAfter, ShadowKindType.GENERIC, LDAP_OU_VIP_INTENT);
 	}
 
-	//should result in dependency exception but results in NullPointer
-	//TODO: correct assertions (assertException)
-	//@Test
+	@Test
     public void test290UnassignVipRoleFromHROrg() throws Exception {
 		final String TEST_NAME = "test290UnassignVipRoleFromHROrg";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -416,15 +414,22 @@ public  class TestLdapDependency extends AbstractStoryTest {
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
         
-        // WHEN
-        TestUtil.displayWhen(TEST_NAME);
         display("unassigning vip role org", orgBefore);
-        unassignRoleFromOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
+
+        try {
+	        // WHEN
+	        TestUtil.displayWhen(TEST_NAME);
+	        unassignRoleFromOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
+	        
+	        AssertJUnit.fail("unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        }
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertFailure(result);
         
         dumpOrgTree();
 		dumpLdap();
@@ -433,8 +438,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
         display("AFTER unassigning vip role org", orgAfter);
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 2);
-		assertRoleMembershipRef(orgAfter, ROLE_META_ORG_OID, ORG_TOP_OID);
-		assertNotAssignedRole(orgAfter, ROLE_META_ORG_VIP_OID);
+		assertRoleMembershipRef(orgAfter, ROLE_META_ORG_OID, ROLE_META_ORG_VIP_OID, ROLE_META_ORG_SUPERVIP_OID, ORG_TOP_OID);
+		assertAssignedRole(orgAfter, ROLE_META_ORG_VIP_OID);
 		assertLdapObject(orgAfter, ShadowKindType.ENTITLEMENT, LDAP_GROUP_INTENT);
 		assertLdapObject(orgAfter, ShadowKindType.GENERIC, LDAP_OU_INTENT);
 		//TODO: assert ldap vip objects deleted...
