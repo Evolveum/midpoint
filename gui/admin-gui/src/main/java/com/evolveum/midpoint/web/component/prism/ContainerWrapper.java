@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -150,7 +151,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
     public <IW extends ItemWrapper> IW findPropertyWrapper(QName name) {
         Validate.notNull(name, "QName must not be null.");
         for (ItemWrapper wrapper : getItems()) {
-            if (name.equals(wrapper.getItem().getElementName())) {
+            if (QNameUtil.match(name, wrapper.getItem().getElementName())) {
                 return (IW) wrapper;
             }
         }

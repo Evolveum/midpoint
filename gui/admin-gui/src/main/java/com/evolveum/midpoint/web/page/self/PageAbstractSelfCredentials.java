@@ -350,7 +350,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                             registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                             registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-                    PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password, password);
+                    PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
 
                     Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
 

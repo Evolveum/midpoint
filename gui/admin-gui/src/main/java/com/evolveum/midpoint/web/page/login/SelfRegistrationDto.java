@@ -36,6 +36,8 @@ public class SelfRegistrationDto implements Serializable {
 	
 	private String requiredLifecycleState;
 	private String initialLifecycleState;
+	
+	private ObjectReferenceType formRef;
 
 	public void initSelfRegistrationDto(SecurityPolicyType securityPolicy) throws SchemaException {
 		if (securityPolicy == null) {
@@ -50,6 +52,8 @@ public class SelfRegistrationDto implements Serializable {
 		this.defaultRoles = selfRegistration.getDefaultRole();
 		this.initialLifecycleState = selfRegistration.getInitialLifecycleState();
 		this.requiredLifecycleState = selfRegistration.getRequiredLifecycleState();
+		
+		this.formRef = selfRegistration.getFormRef();
 		
 		AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil.getAuthenticationPolicy(
 				selfRegistration.getAdditionalAuthenticationName(), securityPolicy);
@@ -274,4 +278,7 @@ public class SelfRegistrationDto implements Serializable {
 		this.requiredLifecycleState = requiredLifecycleState;
 	}
 
+	public ObjectReferenceType getFormRef() {
+		return formRef;
+	}
 }

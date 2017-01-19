@@ -13999,6 +13999,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="formFieldGroup" type="tns:FormFieldGroupType" substitutionGroup="tns:formItem" />
 
     <xsd:complexType name="ObjectTreeDeltasType">
         <xsd:annotation>
