@@ -390,15 +390,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "Roles", roles, indent+1);
 		}
-		if (!orgRefVals.isEmpty()) {
-			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "Orgs", indent+1);
-			for (PrismReferenceValue org: orgRefVals) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent+2);
-				sb.append(org.toString());
-			}
-		}
+		dumpRefList(indent, sb, "Orgs", orgRefVals);
+		dumpRefList(indent, sb, "Membership", membershipRefVals);
+		dumpRefList(indent, sb, "Delegation", delegationRefVals);
 		if (!authorizations.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Authorizations", indent+1);
@@ -424,9 +418,22 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules", focusPolicyRules, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "targetPolicyRules", targetPolicyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules", thisTargetPolicyRules, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
 		return sb.toString();
+	}
+
+	private void dumpRefList(int indent, StringBuilder sb, String label, Collection<PrismReferenceValue> referenceValues) {
+		if (!referenceValues.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, label, indent+1);
+			for (PrismReferenceValue refVal: referenceValues) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent+2);
+				sb.append(refVal.toString());
+			}
+		}
 	}
 
 	@Override

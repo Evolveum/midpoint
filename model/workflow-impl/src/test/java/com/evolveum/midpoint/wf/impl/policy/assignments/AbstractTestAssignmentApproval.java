@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.wf.impl.policy;
+package com.evolveum.midpoint.wf.impl.policy.assignments;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
@@ -32,6 +32,9 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
+import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
@@ -50,6 +53,11 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
+ * Testing approvals of role assignments: create/delete assignment, potentially for more roles and combined with other operations.
+ * Testing also with deputies specified.
+ *
+ * Subclasses provide specializations regarding ways how rules and/or approvers are attached to roles.
+ *
  * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
@@ -64,6 +72,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     /**
      * The simplest case: addition of an assignment of single security-sensitive role (Role1).
 	 * Although it induces Role10 membership, it is not a problem, as Role10 approver (Lead10) is not imported yet.
+	 * (Even if it was, Role10 assignment would not be approved, see test030.)
      */
 	@Test
     public void test010AddRole1Assignment() throws Exception {

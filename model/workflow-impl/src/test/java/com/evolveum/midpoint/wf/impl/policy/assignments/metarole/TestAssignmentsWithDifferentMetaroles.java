@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.wf.impl.policy.metarole;
+package com.evolveum.midpoint.wf.impl.policy.assignments.metarole;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -35,6 +35,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,6 +57,37 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy {
 
     protected static final Trace LOGGER = TraceManager.getTrace(TestAssignmentsWithDifferentMetaroles.class);
+
+	protected static final File TEST_ASSIGNMENTS_RESOURCE_DIR = new File("src/test/resources/policy/assignments");
+
+	protected static final File ROLE_ROLE21_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role21-standard.xml");
+	protected static final File ROLE_ROLE22_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role22-special.xml");
+	protected static final File ROLE_ROLE23_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role23-special-and-security.xml");
+
+	protected static final File USER_LEAD21_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead21.xml");
+	protected static final File USER_LEAD22_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead22.xml");
+	protected static final File USER_LEAD23_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead23.xml");
+
+	protected String roleRole21Oid;
+	protected String roleRole22Oid;
+	protected String roleRole23Oid;
+
+	protected String userLead21Oid;
+	protected String userLead22Oid;
+	protected String userLead23Oid;
+
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+
+		roleRole21Oid = repoAddObjectFromFile(ROLE_ROLE21_FILE, initResult).getOid();
+		roleRole22Oid = repoAddObjectFromFile(ROLE_ROLE22_FILE, initResult).getOid();
+		roleRole23Oid = repoAddObjectFromFile(ROLE_ROLE23_FILE, initResult).getOid();
+
+		userLead21Oid = addAndRecomputeUser(USER_LEAD21_FILE, initTask, initResult);
+		userLead22Oid = addAndRecomputeUser(USER_LEAD22_FILE, initTask, initResult);
+		userLead23Oid = addAndRecomputeUser(USER_LEAD23_FILE, initTask, initResult);
+	}
 
 	/**
 	 * Attempt to assign roles 21-23 along with changing description.
@@ -269,9 +301,9 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			protected List<ExpectedWorkItem> getExpectedWorkItems() {
 				List<ExpectedTask> tasks = getExpectedTasks();
 				return Arrays.asList(
-						new ExpectedWorkItem(userLead1Oid, roleRole21Oid, tasks.get(0)),
-						new ExpectedWorkItem(userLead2Oid, roleRole22Oid, tasks.get(1)),
-						new ExpectedWorkItem(userLead3Oid, roleRole23Oid, tasks.get(2))
+						new ExpectedWorkItem(userLead21Oid, roleRole21Oid, tasks.get(0)),
+						new ExpectedWorkItem(userLead22Oid, roleRole22Oid, tasks.get(1)),
+						new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2))
 				);
 			}
 
@@ -310,7 +342,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			/*
 			,
-						new ExpectedWorkItem(userLead2Oid, roleRole22Oid, etasks.get(1)),
+						new ExpectedWorkItem(userLead22Oid, roleRole22Oid, etasks.get(1)),
 
 			 */
 			@Override
@@ -318,11 +350,11 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				List<ExpectedTask> tasks = getExpectedTasks();
 				List<ApprovalInstruction> instructions = new ArrayList<>();
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead1Oid, roleRole21Oid, tasks.get(0)), approve1, userLead1Oid));
+								new ExpectedWorkItem(userLead21Oid, roleRole21Oid, tasks.get(0)), approve1, userLead21Oid));
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead2Oid, roleRole22Oid, tasks.get(1)), approve2, userLead2Oid));
+								new ExpectedWorkItem(userLead22Oid, roleRole22Oid, tasks.get(1)), approve2, userLead22Oid));
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead3Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead3Oid));
+								new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid));
 				if (approve3a) {
 					instructions.add(new ApprovalInstruction(
 							new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(2)), approve3b,

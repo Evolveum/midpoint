@@ -14,38 +14,37 @@
   ~ limitations under the License.
   -->
 
-<role oid="6694724c-5b11-456f-a7e7-bd14312730c8"
+<role oid="34d73991-8cbc-46e5-b8c2-b8b62029e711"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>metarole-approval-sod</name>
-	<description>Requests to assign role holding this metarole will be approved by the SoD approvers</description>
-	<displayName>Metarole: approval by the SoD people</displayName>
+	<name>metarole-criminal-exclusion</name>
 	<inducement>
 		<policyRule>
+			<name>criminal exclusion</name>
 			<policyConstraints>
-				<assignment/>
+				<!-- For the time being let's assume that pirate and thief are also mutually exclusive. -->
+				<exclusion>
+					<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
+				</exclusion>
+				<exclusion>
+					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+				</exclusion>
+				<exclusion>
+					<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
+				</exclusion>
 			</policyConstraints>
 			<policyActions>
+				<enforcement/>
 				<approval>
-					<compositionStrategy>
-						<order>30</order>
-					</compositionStrategy>
-					<approvalSchema>
-						<level>
-							<name>SoD</name>
-							<approverRef type="OrgType">
-								<filter>
-									<q:equal>
-										<q:path>name</q:path>
-										<q:value>SoD Approvers</q:value>
-									</q:equal>
-								</filter>
-								<resolutionTime>run</resolutionTime>
-							</approverRef>
-							<evaluationStrategy>firstDecides</evaluationStrategy>
-							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
-						</level>
-					</approvalSchema>
+					<approverRef type="UserType">
+						<filter>
+							<q:equal>
+								<q:path>name</q:path>
+								<q:value>sod-approver</q:value>
+							</q:equal>
+						</filter>
+						<resolutionTime>run</resolutionTime>
+					</approverRef>
 				</approval>
 			</policyActions>
 		</policyRule>

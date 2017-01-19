@@ -30,6 +30,7 @@
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
+                            <name>Role approvers (first)</name>
 							<approverRelation>approver</approverRelation>
 							<evaluationStrategy>firstDecides</evaluationStrategy>
 							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>

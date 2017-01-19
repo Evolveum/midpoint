@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
   ~ limitations under the License.
   -->
 
-<user oid="00000001-d34d-b33f-f00d-LD1000000002">
-	<name>lead1-deputy2</name>
-	<assignment>
-		<targetRef oid="00000001-d34d-b33f-f00d-L00000000001" type="UserType" relation="deputy"/>
+<user oid="00000001-d34d-b33f-f00d-L00000000023">
+	<name>lead23</name>
+	<assignment> <!-- approver -->
+		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
 	</assignment>
-	<fullName>Lead1 Deputy2</fullName>
-	<familyName>Lead1 Deputy2</familyName>
+	<assignment> <!-- Role23 (special-approver) -->
+		<targetRef oid="00000001-d34d-b33f-f00d-000000000023" type="RoleType" relation="special-approver"/>
+	</assignment>
+	<fullName>Lead23</fullName>
+	<familyName>Lead23</familyName>
 </user>

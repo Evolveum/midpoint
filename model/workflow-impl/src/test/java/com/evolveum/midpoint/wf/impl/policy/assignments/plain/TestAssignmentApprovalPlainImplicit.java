@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.policy.plain;
+package com.evolveum.midpoint.wf.impl.policy.assignments.plain;
 
-import com.evolveum.midpoint.wf.impl.policy.AbstractTestAssignmentApproval;
+import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
 
 /**
  * Tests assigning of roles 1..3 with implicitly defined approvers (i.e. via org:approver assignment).

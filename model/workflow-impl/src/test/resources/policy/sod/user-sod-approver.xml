@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,12 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<user oid="00000001-d34d-b33f-f00d-LD1000000002">
-	<name>lead1-deputy2</name>
-	<assignment>
-		<targetRef oid="00000001-d34d-b33f-f00d-L00000000001" type="UserType" relation="deputy"/>
+<user oid="f15b45d6-f638-413f-9572-83554c7b3b88"
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>sod-approver</name>
+	<assignment> <!-- approver -->
+		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
 	</assignment>
-	<fullName>Lead1 Deputy2</fullName>
-	<familyName>Lead1 Deputy2</familyName>
 </user>
