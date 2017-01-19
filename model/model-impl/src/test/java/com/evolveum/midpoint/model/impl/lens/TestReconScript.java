@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
-		ObjectDelta<UserType> delta = createModifyUserAddAccount(USER_JACK_OID, resourceDummy);
+		ObjectDelta<UserType> delta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(delta);
 		
@@ -84,7 +84,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
 		
 		
-		for (ScriptHistoryEntry script : dummyResource.getScriptHistory()){
+		for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()){
 			String userName = (String) script.getParams().get("midpoint_usercn");
 			String idPath = (String) script.getParams().get("midpoint_idpath");
 			String tempPath = (String) script.getParams().get("midpoint_temppath");
@@ -107,7 +107,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 //		Task task = taskManager.createTaskInstance(TEST_NAME);
 //		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		dummyResource.getScriptHistory().clear();
+        getDummyResource().getScriptHistory().clear();
 		
 		importObjectFromFile(new File(TASK_RECON_DUMMY_FILENAME));
 		
@@ -117,7 +117,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 		
-		for (ScriptHistoryEntry script : dummyResource.getScriptHistory()){
+		for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()){
 			
 			String userName = (String) script.getParams().get("midpoint_usercn");
 			String idPath = (String) script.getParams().get("midpoint_idpath");
@@ -146,7 +146,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         
         provisioningService.addObject(shadow.asPrismObject(), null, null, task, parentResult);
         
-        dummyResource.getScriptHistory().clear();
+        getDummyResource().getScriptHistory().clear();
 		
 //		importObjectFromFile(new File(TASK_RECON_DUMMY_FILENAME));
 //		
@@ -172,7 +172,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		AssertJUnit.assertNotNull("Owner for account " + shadow.asPrismObject() + " not found. Some probelm in recon occured.", user);
 		
 		
-		for (ScriptHistoryEntry script : dummyResource.getScriptHistory()){
+		for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()){
 			
 			String userName = (String) script.getParams().get("midpoint_usercn");
 			String idPath = (String) script.getParams().get("midpoint_idpath");
@@ -204,7 +204,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		
 		repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
 		
-		dummyResource.deleteAccountByName("beforeScript");
+		getDummyResource().deleteAccountByName("beforeScript");
 		
 		
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false);

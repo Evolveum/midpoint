@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,12 +81,12 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyType, prismContext);
+        refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), prismContext);
         
         display("Dummy refined schema", refinedSchema);
         
         // THEN
-        dummyResourceCtl.assertRefinedSchemaSanity(refinedSchema);
+        getDummyResourceController().assertRefinedSchemaSanity(refinedSchema);
 	}
 	
 	@Test
@@ -95,12 +95,12 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        refinedSchemaModel = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyType, LayerType.MODEL, prismContext);
+        refinedSchemaModel = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), LayerType.MODEL, prismContext);
         
         display("Dummy refined schema (MODEL)", refinedSchemaModel);
         
         // THEN
-        dummyResourceCtl.assertRefinedSchemaSanity(refinedSchemaModel);
+        getDummyResourceController().assertRefinedSchemaSanity(refinedSchemaModel);
         
         assertTrue("Not layer refined schema, it is "+refinedSchemaModel.getClass(), refinedSchemaModel instanceof LayerRefinedResourceSchema);
         assertEquals("Wrong layer", LayerType.MODEL, ((LayerRefinedResourceSchema)refinedSchemaModel).getLayer());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,8 +185,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         importObjectFromFile(GROUP_TESTERS_FILE, initResult);
         importObjectFromFile(GROUP_GUESTS_FILE, initResult);
 
-        dummyResourceCtl.addGroup(GROUP_TESTERS_NAME);
-        dummyResourceCtl.addGroup(GROUP_GUESTS_NAME);
+        getDummyResourceController().addGroup(GROUP_TESTERS_NAME);
+        getDummyResourceController().addGroup(GROUP_GUESTS_NAME);
 
         display("setting policyRuleBasedAspect.enabled to", enablePolicyRuleBasedAspect);
         List<ItemDelta<?, ?>> deltas =

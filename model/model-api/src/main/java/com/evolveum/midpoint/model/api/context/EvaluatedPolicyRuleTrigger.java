@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,16 +27,25 @@ import org.jetbrains.annotations.NotNull;
  * 
  * @author semancik
  */
-public class EvaluatedPolicyRuleTrigger {
+public class EvaluatedPolicyRuleTrigger implements DebugDumpable {
 	
 	@NotNull private final PolicyConstraintKindType constraintKind;
 	@NotNull private final AbstractPolicyConstraintType constraint;
 	private final String message;
+	private EvaluatedAssignment conflictingAssignment;
 	
 	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull AbstractPolicyConstraintType constraint, String message) {
 		this.constraintKind = constraintKind;
 		this.constraint = constraint;
 		this.message = message;
+	}
+	
+	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull AbstractPolicyConstraintType constraint, 
+			String message, EvaluatedAssignment conflictingAssignment) {
+		this.constraintKind = constraintKind;
+		this.constraint = constraint;
+		this.message = message;
+		this.conflictingAssignment = conflictingAssignment;
 	}
 
 	/**
@@ -61,6 +73,9 @@ public class EvaluatedPolicyRuleTrigger {
 	}
 
 	
+	public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
+		return conflictingAssignment;
+	}
 
 	@Override
 	public int hashCode() {
@@ -107,6 +122,17 @@ public class EvaluatedPolicyRuleTrigger {
 	@Override
 	public String toString() {
 		return "EvaluatedPolicyRuleTrigger(" + constraintKind + ": " + message + ")";
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRuleTrigger", indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "conflictingAssignment", conflictingAssignment, indent + 1);
+		return sb.toString();
 	}
 
 }

@@ -441,4 +441,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return "EvaluatedAssignment(constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
 				.size()+" rules)";
 	}
+	
+	public String toHumanReadableString() {
+		if (target != null) {
+			return "EvaluatedAssignment(" + target + ")";
+		} else if (constructions != null && !constructions.isEmpty()) {
+			return "EvaluatedAssignment(" + constructions + ")";
+		} else {
+			return toString();
+		}
+	}
 }

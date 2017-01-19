@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1316,6 +1316,9 @@ public class LensUtil {
 	public static void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations) throws PolicyViolationException {
 
 		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.debug("Policy rule {} triggered:\n{}", rule==null?null:rule.getName(), trigger.debugDump(1));
+		}
 
 		if (rule == null) {
 			// legacy functionality

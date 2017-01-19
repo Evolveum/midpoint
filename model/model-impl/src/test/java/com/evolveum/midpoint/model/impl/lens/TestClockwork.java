@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -346,7 +346,7 @@ public class TestClockwork extends AbstractLensTest {
         assertNotNull("No executed delta in "+accContext, executedDelta);
         assertEquals(ChangeType.ADD, executedDelta.getChangeType());
         PrismAsserts.assertPropertyAdd(executedDelta, getIcfsNameAttributePath(), "jack");
-        PrismAsserts.assertPropertyAdd(executedDelta, dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");
+        PrismAsserts.assertPropertyAdd(executedDelta, getDummyResourceController().getAttributeFullnamePath(), "Jack Sparrow");
         
 	}
 	
@@ -370,14 +370,14 @@ public class TestClockwork extends AbstractLensTest {
         
         PrismObject<ShadowType> newAccount = getShadowModel(accountOid);
         assertEquals(DEFAULT_INTENT, newAccount.findProperty(ShadowType.F_INTENT).getRealValue());
-        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
+        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(getDummyResourceType()), "AccountObjectClass"),
                 newAccount.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = newAccount.findReference(ShadowType.F_RESOURCE_REF);
-        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
+        assertEquals(getDummyResourceType().getOid(), resourceRef.getOid());
 
         PrismContainer<?> attributes = newAccount.findContainer(ShadowType.F_ATTRIBUTES);
         assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
-        assertEquals("Jack Sparrow", attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
+        assertEquals("Jack Sparrow", attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(getDummyResourceType()), "fullname")).getRealValue());
 	}
 
 	private LensContext<UserType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, IOException, JAXBException {

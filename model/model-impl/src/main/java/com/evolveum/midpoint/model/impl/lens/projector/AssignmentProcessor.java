@@ -1498,37 +1498,39 @@ public class AssignmentProcessor {
 	}
 
 	private <F extends FocusType> void checkExclusion(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		checkExclusionOneWayLegacy(assignmentA, roleA, roleB);
-		checkExclusionOneWayLegacy(assignmentA, roleB, roleA);
-		checkExclusionOneWayRuleBased(assignmentA, roleA, roleB);
-		checkExclusionOneWayRuleBased(assignmentB, roleB, roleA);
+		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleA, roleB);
+		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleB, roleA);
+		checkExclusionOneWayRuleBased(assignmentA, assignmentB, roleA, roleB);
+		checkExclusionOneWayRuleBased(assignmentA, assignmentB, roleB, roleA);
 	}
 
-	private <F extends FocusType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+	private <F extends FocusType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, 
+			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
-			checkAndTriggerExclusionConstraintViolation(assignmentA, roleA, roleB, exclusionA, null);
+			checkAndTriggerExclusionConstraintViolation(assignmentA, assignmentB, roleA, roleB, exclusionA, null);
 		}
 	}
 
-	private <F extends FocusType> void checkExclusionOneWayRuleBased(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+	private <F extends FocusType> void checkExclusionOneWayRuleBased(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
+			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		for (EvaluatedPolicyRule policyRule : assignmentA.getThisTargetPolicyRules()) {	// or getTargetPolicyRules?
 			if (policyRule.getPolicyConstraints() != null) {
 				for (ExclusionPolicyConstraintType exclusionConstraint : policyRule.getPolicyConstraints().getExclusion()) {
-					checkAndTriggerExclusionConstraintViolation(assignmentA, roleA, roleB, exclusionConstraint, policyRule);
+					checkAndTriggerExclusionConstraintViolation(assignmentA, assignmentB, roleA, roleB, exclusionConstraint, policyRule);
 				}
 			}
 		}
 	}
 
 	private <F extends FocusType> void checkAndTriggerExclusionConstraintViolation(EvaluatedAssignmentImpl<F> assignmentA,
-			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB,
+			EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB,
 			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule)
 			throws PolicyViolationException {
 		ObjectReferenceType targetRef = constraint.getTargetRef();
 		if (roleB.getOid().equals(targetRef.getOid())) {
 			EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.EXCLUSION,
 					constraint, "Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
-					", they cannot be assigned at the same time");
+					", they cannot be assigned at the same time", assignmentB);
 			assignmentA.triggerConstraint(policyRule, trigger);
 		}
 	}
