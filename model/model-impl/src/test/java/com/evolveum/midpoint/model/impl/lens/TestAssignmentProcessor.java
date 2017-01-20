@@ -230,9 +230,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         display("Output context", context);
         display("outbound processor result", result);
 //		assertSuccess("Outbound processor failed (result)", result);

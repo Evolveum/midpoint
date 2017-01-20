@@ -16,16 +16,20 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,21 +37,23 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.Construction;
+import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -64,11 +70,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -76,7 +78,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -90,21 +91,14 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -154,6 +148,9 @@ public class AssignmentProcessor {
     
     @Autowired(required = true)
     private ObjectTemplateProcessor objectTemplateProcessor;
+    
+    @Autowired(required = true)
+    private PolicyRuleProcessor policyRuleProcessor;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -213,6 +210,8 @@ public class AssignmentProcessor {
     		Task task, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
+    	// PREPARE ASSIGNMENT DELTA
+    	
     	LensFocusContext<F> focusContext = context.getFocusContext();
         ObjectDelta<F> focusDelta = focusContext.getDelta();
         
@@ -223,27 +222,6 @@ public class AssignmentProcessor {
 
         checkAssignmentDeltaSanity(context);
         
-        // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
-        // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
-        // not create deltas, it just creates the triples. So we can decide what to do later when we convert triples to deltas.
-
-		// This information is used for various reasons. We specifically distinguish between assignments in objectCurrent and objectOld
-		// to be able to reliably detect phantom adds: a phantom add is an assignment that is both in OLD and CURRENT objects. This is
-		// important in waves greater than 0, where objectCurrent is already updated with existing assignments. (See MID-2422.)
-		Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent = getAssignmentsFromObject(focusContext.getObjectCurrent());
-		Collection<PrismContainerValue<AssignmentType>> assignmentsOld = getAssignmentsFromObject(focusContext.getObjectOld());
-
-        ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
-        assignmentDelta.expand(focusContext.getObjectCurrent());
-
-        LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
-
-        Collection<PrismContainerValue<AssignmentType>> changedAssignments = computeChangedAssignments(assignmentDelta, assignmentsCurrent);
-
-        if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
-			LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
-		}
         
         // ASSIGNMENT EVALUATION
         
@@ -254,24 +232,21 @@ public class AssignmentProcessor {
         
         AssignmentTripleEvaluator<F> assignmentTripleEvaluator = new AssignmentTripleEvaluator<>();
         assignmentTripleEvaluator.setActivationComputer(activationComputer);
-        assignmentTripleEvaluator.setAssignmentDelta(assignmentDelta);
         assignmentTripleEvaluator.setAssignmentEvaluator(assignmentEvaluator);
-        assignmentTripleEvaluator.setAssignmentsCurrent(assignmentsCurrent);
-        assignmentTripleEvaluator.setAssignmentsOld(assignmentsOld);
-        assignmentTripleEvaluator.setChangedAssignments(changedAssignments);
         assignmentTripleEvaluator.setContext(context);
-        assignmentTripleEvaluator.setFocusDelta(focusDelta);
-        assignmentTripleEvaluator.setLogger(LOGGER);
         assignmentTripleEvaluator.setNow(now);
+        assignmentTripleEvaluator.setPrismContext(prismContext);
         assignmentTripleEvaluator.setResult(result);
         assignmentTripleEvaluator.setSource(source);
         assignmentTripleEvaluator.setTask(task);
         
+        // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
+        // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
+        // not create deltas, it just creates the triples. So we can decide what to do later when we convert triples to deltas.
+        
         // Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
         // This is where most of the assignment-level action happens.
-        assignmentTripleEvaluator.processAllAssignments();
-
-        DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = assignmentTripleEvaluator.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
         
         if (LOGGER.isTraceEnabled()) {
@@ -280,10 +255,21 @@ public class AssignmentProcessor {
         
         // PROCESSING POLICIES
         
-        checkAssignmentRules(context, evaluatedAssignmentTriple, result);
-        checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
-        checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
-        checkAssigneeConstraints(context, evaluatedAssignmentTriple, result);
+        policyRuleProcessor.processPolicies(context, evaluatedAssignmentTriple, result);
+        
+        boolean needToReevaluateAssignments = policyRuleProcessor.processPruning(context, evaluatedAssignmentTriple, result);
+        
+        if (needToReevaluateAssignments) {
+        	LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
+        	
+        	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+        	
+        	if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
+            }
+        	
+        	policyRuleProcessor.processPolicies(context, evaluatedAssignmentTriple, result);
+        }
         
         // PROCESSING FOCUS
         
@@ -581,17 +567,7 @@ public class AssignmentProcessor {
     }
     
 
-	private <F extends FocusType> Collection<PrismContainerValue<AssignmentType>> getAssignmentsFromObject(PrismObject<F> object) {
-		Collection<PrismContainerValue<AssignmentType>> assignments = new ArrayList<PrismContainerValue<AssignmentType>>();
-		if (object != null) {
-            PrismContainer<AssignmentType> assignmentContainer = object.findContainer(FocusType.F_ASSIGNMENT);
-            if (assignmentContainer != null) {
-                assignments.addAll(assignmentContainer.getValues());
-            }
-        }
-		return assignments;
-	}
-
+	
 	/**
      * Checks if we do not try to modify assignment.targetRef or assignment.construction.kind or intent.
      *
@@ -1095,181 +1071,6 @@ public class AssignmentProcessor {
         }
     }
 
-	private <F extends FocusType> void checkExclusions(LensContext<F> context, Collection<EvaluatedAssignmentImpl<F>> assignmentsA,
-			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
-		for (EvaluatedAssignmentImpl<F> assignmentA: assignmentsA) {
-			checkExclusion(context, assignmentA, assignmentsB);
-		}
-	}
-
-	private <F extends FocusType> void checkExclusion(LensContext<F> context, EvaluatedAssignmentImpl<F> assignmentA,
-			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
-		for (EvaluatedAssignmentImpl<F> assignmentB: assignmentsB) {
-			checkExclusion(context, assignmentA, assignmentB);
-		}
-	}
-
-	private <F extends FocusType> void checkExclusion(LensContext<F> context, EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB) throws PolicyViolationException {
-		if (assignmentA == assignmentB) {
-			// Same thing, this cannot exclude itself
-			return;
-		}
-		for (EvaluatedAssignmentTargetImpl eRoleA: assignmentA.getRoles().getAllValues()) {
-			for (EvaluatedAssignmentTargetImpl eRoleB: assignmentB.getRoles().getAllValues()) {
-				checkExclusion(assignmentA, assignmentB, eRoleA, eRoleB);
-			}
-		}
-	}
-
-	private <F extends FocusType> void checkExclusion(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleA, roleB);
-		checkExclusionOneWayLegacy(assignmentB, assignmentA, roleB, roleA);
-		checkExclusionOneWayRuleBased(assignmentA, assignmentB, roleA, roleB);
-		checkExclusionOneWayRuleBased(assignmentB, assignmentA, roleB, roleA);
-	}
-
-	private <F extends FocusType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, 
-			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
-			checkAndTriggerExclusionConstraintViolation(assignmentA, assignmentB, roleA, roleB, exclusionA, null);
-		}
-	}
-
-	private <F extends FocusType> void checkExclusionOneWayRuleBased(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
-			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		for (EvaluatedPolicyRule policyRule : assignmentA.getThisTargetPolicyRules()) {	// or getTargetPolicyRules?
-			if (policyRule.getPolicyConstraints() != null) {
-				for (ExclusionPolicyConstraintType exclusionConstraint : policyRule.getPolicyConstraints().getExclusion()) {
-					checkAndTriggerExclusionConstraintViolation(assignmentA, assignmentB, roleA, roleB, exclusionConstraint, policyRule);
-				}
-			}
-		}
-	}
-
-	private <F extends FocusType> void checkAndTriggerExclusionConstraintViolation(EvaluatedAssignmentImpl<F> assignmentA,
-			EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB,
-			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule)
-			throws PolicyViolationException {
-		ObjectReferenceType targetRef = constraint.getTargetRef();
-		if (roleB.getOid().equals(targetRef.getOid())) {
-			EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.EXCLUSION,
-					constraint, "Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
-					", they cannot be assigned at the same time", assignmentB);
-			assignmentA.triggerConstraint(policyRule, trigger);
-		}
-	}
-
-	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-			OperationResult result) throws PolicyViolationException, SchemaException {
-		for (EvaluatedAssignmentImpl<F> assignment: evaluatedAssignmentTriple.union()) {
-			if (evaluatedAssignmentTriple.presentInPlusSet(assignment)) {
-				if (!assignment.isPresentInCurrentObject()) {
-					checkAssigneeConstraints(context, assignment, PlusMinusZero.PLUS, result);		// only really new assignments
-				}
-			} else if (evaluatedAssignmentTriple.presentInZeroSet(assignment)) {
-				// No need to check anything here. Maintain status quo.
-			} else {
-				if (assignment.isPresentInCurrentObject()) {
-					checkAssigneeConstraints(context, assignment, PlusMinusZero.MINUS, result);		// only assignments that are really deleted
-				}
-			}
-		}
-	}
-	
-	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context, EvaluatedAssignment<F> assignment, PlusMinusZero plusMinus, OperationResult result) throws PolicyViolationException, SchemaException {
-		PrismObject<?> target = assignment.getTarget();
-		if (target != null) {
-			Objectable targetType = target.asObjectable();
-			if (targetType instanceof AbstractRoleType) {
-				Collection<EvaluatedPolicyRule> policyRules = assignment.getThisTargetPolicyRules();
-				for (EvaluatedPolicyRule policyRule: policyRules) {
-					PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
-					if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
-						String focusOid = null;
-						if (context.getFocusContext() != null) {
-							focusOid = context.getFocusContext().getOid();
-						}
-						int numberOfAssigneesExceptMyself = countAssignees((PrismObject<? extends AbstractRoleType>)target, focusOid, result);
-						if (plusMinus == PlusMinusZero.PLUS) {
-							numberOfAssigneesExceptMyself++;
-						}
-						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMinAssignees()) {
-							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
-							// Complain only if the situation is getting worse
-							if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MIN_ASSIGNEES,
-										constraint, ""+target+" requires at least "+multiplicity+
-										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
-								assignment.triggerConstraint(policyRule, trigger);
-										
-							}
-						}
-						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
-							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
-							// Complain only if the situation is getting worse
-							if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MAX_ASSIGNEES,
-										constraint, ""+target+" requires at most "+multiplicity+
-										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
-								assignment.triggerConstraint(policyRule, trigger);
-										
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private int countAssignees(PrismObject<? extends AbstractRoleType> target, String selfOid, OperationResult result) throws SchemaException {
-		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext)
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(target.getOid());
-		if (selfOid != null) {
-			q = q.and().not().id(selfOid);
-		}
-		ObjectQuery query = q.build();
-		return repositoryService.countObjects(FocusType.class, query, result);
-	}
-	
-	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-			OperationResult result) throws PolicyViolationException, SchemaException {
-		checkAssignmentRules(context, evaluatedAssignmentTriple.getPlusSet(), result);
-		checkAssignmentRules(context, evaluatedAssignmentTriple.getMinusSet(), result);
-	}
-	
-	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
-			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
-			OperationResult result) throws PolicyViolationException, SchemaException {
-		for(EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
-			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getThisTargetPolicyRules();
-			for (EvaluatedPolicyRule policyRule: policyRules) {
-				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
-				if (policyConstraints == null) {
-					continue;
-				}
-				for (AssignmentPolicyConstraintType assignmentConstraint: policyConstraints.getAssignment()) {
-					if (assignmentConstraint.getRelation().isEmpty()) {
-						if (MiscSchemaUtil.compareRelation(null, evaluatedAssignment.getRelation())) {
-							EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.ASSIGNMENT, 
-									assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
-							evaluatedAssignment.triggerConstraint(policyRule, trigger);
-						}
-					} else {
-						for (QName constraintRelation: assignmentConstraint.getRelation()) {
-							if (MiscSchemaUtil.compareRelation(constraintRelation, evaluatedAssignment.getRelation())) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.ASSIGNMENT, 
-										assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
-								evaluatedAssignment.triggerConstraint(policyRule, trigger);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
 
 
 	public <F extends ObjectType> void removeIgnoredContexts(LensContext<F> context) {
@@ -1283,35 +1084,7 @@ public class AssignmentProcessor {
 			}
 		}
 	}
-	
-	/**
-     * Returns delta of user assignments, both primary and secondary (merged together).
-     * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
-     *
-     * Originally we took only the delta related to current execution wave, to avoid re-processing of already executed assignments.
-	 * But MID-2422 shows that we need to take deltas from waves 0..N (N=current execution wave) [that effectively means all the secondary deltas]
-     */
-	private <F extends FocusType> ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta(LensFocusContext<F> focusContext) throws SchemaException {
-        ObjectDelta<? extends FocusType> focusDelta = (ObjectDelta<? extends FocusType>) focusContext.getAggregatedWaveDelta(focusContext.getLensContext().getExecutionWave());
-        if (focusDelta == null) {
-            return createEmptyAssignmentDelta(focusContext);
-        }
-        ContainerDelta<AssignmentType> assignmentDelta = focusDelta.findContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT));
-        if (assignmentDelta == null) { 
-            return createEmptyAssignmentDelta(focusContext);
-        }
-        return assignmentDelta;
-    }
-    
 
-    private <F extends FocusType> ContainerDelta<AssignmentType> createEmptyAssignmentDelta(LensFocusContext<F> focusContext) {
-        return new ContainerDelta<>(getAssignmentContainerDefinition(focusContext), prismContext);
-    }
-    
-    private <F extends FocusType> PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition(LensFocusContext<F> focusContext) {
-		return focusContext.getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
-	}
-    
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> XMLGregorianCalendar collectFocusTripleFromMappings(
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmnents, 
     		Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
@@ -1422,29 +1195,6 @@ public class AssignmentProcessor {
 				extractedReferences.add(ref);
 			}
 		}
-	}
-
-	private Collection<PrismContainerValue<AssignmentType>> computeChangedAssignments(
-			ContainerDelta<AssignmentType> assignmentDelta, 
-			Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent) {
-		Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
-        // Changes assignments may be "light", i.e. they may contain just the identifier. Make sure that we always have
-        // the full assignment data.
-        Iterator<PrismContainerValue<AssignmentType>> iterator = changedAssignments.iterator();
-        while (iterator.hasNext()) {
-        	PrismContainerValue<AssignmentType> changedAssignment = iterator.next();
-        	if (changedAssignment.getItems().isEmpty()) {
-        		if (changedAssignment.getId() != null) {
-        			for (PrismContainerValue<AssignmentType> assignmentCurrent: assignmentsCurrent) {
-        				if (changedAssignment.getId().equals(assignmentCurrent.getId())) {
-        					iterator.remove();
-        					changedAssignments.add(assignmentCurrent.clone());
-        				}
-        			}
-        		}
-        	}
-        }
-        return changedAssignments;
 	}
 	
 	private <F extends FocusType> AssignmentEvaluator<F> createAssignmentEvaluator(LensContext<F> context,
