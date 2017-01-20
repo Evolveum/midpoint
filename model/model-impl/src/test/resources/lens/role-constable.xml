@@ -15,7 +15,8 @@
   -->
 <role oid="16ac2572-de66-11e6-bc86-23e62333976a"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Constable</name>
     <assignment>
     	<policyRule>
@@ -29,5 +30,19 @@
 		    	<prune/>
 		    </policyActions>
     	</policyRule>
-    </assignment>    
+    </assignment>
+    <inducement>
+    	<construction>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+    		<kind>account</kind>
+    		<attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                	<expression>
+						<value>Constable</value>
+					</expression>
+				</outbound>
+            </attribute>
+    	</construction>
+    </inducement>
 </role>

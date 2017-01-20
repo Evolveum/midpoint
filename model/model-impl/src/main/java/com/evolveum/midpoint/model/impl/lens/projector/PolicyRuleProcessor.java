@@ -30,8 +30,11 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -287,10 +290,11 @@ public class PolicyRuleProcessor {
 					}
 					LOGGER.debug("Pruning assignment {} because it conflicts with added assignment {}", conflictingAssignment, plusAssignment);
 					
-					// TODO
-					// TODO
-					// TODO
-					// TODO
+					PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType().asPrismContainerValue().clone();
+					PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
+					ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(FocusType.F_ASSIGNMENT, focusDef);
+					assignmentDelta.addValuesToDelete(assignmentValueToRemove);
+					context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
 					
 					needToReevaluateAssignments = true;
 				}

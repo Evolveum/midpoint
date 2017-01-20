@@ -434,7 +434,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 		DebugUtil.debugDumpLabelLn(sb, "DeltaSetTriple", indent);
 		
         debugDumpSets(sb, 
-        		val -> sb.append(DebugUtil.debugDump(val, indent + 2)),
+        		val -> sb.append(DebugUtil.debugDump(val, indent + 3)),
         		indent + 1);
 
         return sb.toString();

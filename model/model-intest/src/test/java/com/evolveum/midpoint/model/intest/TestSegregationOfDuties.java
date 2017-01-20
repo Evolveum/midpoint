@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,11 +27,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -44,6 +48,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestSegregationOfDuties extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File TEST_DIR = new File("src/test/resources", "rbac");
+	
+	protected static final File ROLE_PRIZE_GOLD_FILE = new File(TEST_DIR, "role-prize-gold.xml");
+	protected static final String ROLE_PRIZE_GOLD_OID = "bbc22f82-df21-11e6-aa6b-4b1408befd10";
+	protected static final String ROLE_PRIZE_GOLD_SHIP = "Gold";
+	
+	protected static final File ROLE_PRIZE_SILVER_FILE = new File(TEST_DIR, "role-prize-silver.xml");
+	protected static final String ROLE_PRIZE_SILVER_OID = "dfb5fffe-df21-11e6-bb4f-ef02bdbc9d71";
+	protected static final String ROLE_PRIZE_SILVER_SHIP = "Silver";
+	
+	protected static final File ROLE_PRIZE_BRONZE_FILE = new File(TEST_DIR, "role-prize-bronze.xml");
+	protected static final String ROLE_PRIZE_BRONZE_OID = "19f11686-df22-11e6-b0e9-835ed7ca08a5";
+	protected static final String ROLE_PRIZE_BRONZE_SHIP = "Bronze";
+	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+		
+		repoAddObjectFromFile(ROLE_PRIZE_GOLD_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PRIZE_SILVER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PRIZE_BRONZE_FILE, initResult);
+	}
 		
 	@Test
     public void test110SimpleExclusion1() throws Exception {
@@ -296,5 +321,68 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
+	
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test200GuybrushAssignRoleGold() throws Exception {
+		final String TEST_NAME = "test200GuybrushAssignRoleGold";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_GOLD_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_PRIZE_GOLD_OID);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_SILVER_OID);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
+        
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_PRIZE_GOLD_SHIP);
+	}
+
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test202GuybrushAssignRoleSilver() throws Exception {
+		final String TEST_NAME = "test202GuybrushAssignRoleSilver";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_SILVER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_GOLD_OID);
+        assertAssignedRole(userAfter, ROLE_PRIZE_SILVER_OID);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
+        
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_PRIZE_SILVER_SHIP);
+	}
 }

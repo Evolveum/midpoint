@@ -44,6 +44,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -77,6 +78,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -251,6 +253,8 @@ public class TestPolicyRules extends AbstractLensTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        display("Output context", context);
+        
         DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple = 
         		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
 //        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
@@ -261,6 +265,22 @@ public class TestPolicyRules extends AbstractLensTest {
         EvaluatedPolicyRuleTrigger trigger = assertTriggeredRule(context, PolicyConstraintKindType.EXCLUSION);
         assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, trigger.getConflictingAssignment().getTarget().getOid());
+        
+        ObjectDelta<UserType> focusSecondaryDelta = context.getFocusContext().getSecondaryDelta();
+        PrismAsserts.assertIsModify(focusSecondaryDelta);
+        PrismAsserts.assertModifications(focusSecondaryDelta, 2);
+        ContainerDelta<AssignmentType> assignmentDelta = focusSecondaryDelta.findContainerDelta(FocusType.F_ASSIGNMENT);
+        assertEquals("Unexpected assignment secondary delta", 1, assignmentDelta.getValuesToDelete().size());
+        PrismContainerValue<AssignmentType> deletedAssignment = assignmentDelta.getValuesToDelete().iterator().next();
+        assertEquals("Wrong OID in deleted assignment", ROLE_JUDGE_OID, deletedAssignment.asContainerable().getTargetRef().getOid());
+        
+        ObjectDelta<ShadowType> accountSecondaryDelta = assertAssignAccountToJack(context);
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
+    		  getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
+    		  "Constable");
+        PrismAsserts.assertPropertyDelete(accountSecondaryDelta, 
+      		  getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
+      		  "Honorable Justice");
 	}
 	
 	private void assertEvaluatedRules(LensContext<UserType> context, int expected) {
@@ -341,15 +361,11 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Policy rules", sb.toString());
 	}
 
-	private void assertAssignAccountToJack(LensContext<UserType> context) {
+	private ObjectDelta<ShadowType> assertAssignAccountToJack(LensContext<UserType> context) {
         display("Output context", context);
-        // Not loading anything. The account is already loaded in the context
-        assertShadowFetchOperationCountIncrement(0);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
-
         Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
         LensProjectionContext accContext = accountContexts.iterator().next();
@@ -357,14 +373,11 @@ public class TestPolicyRules extends AbstractLensTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
-        assertEquals("Wrong decision", SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
+        assertEquals("Wrong decision", SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
         
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack");
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getDummyResourceController().getAttributeFullnamePath() , "Jack Sparrow");
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
-        		getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME) , "mouth", "pistol");
+        return accountSecondaryDelta;
 
 	}
 
