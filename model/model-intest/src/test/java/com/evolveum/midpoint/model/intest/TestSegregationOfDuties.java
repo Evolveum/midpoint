@@ -49,6 +49,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	
 	protected static final File TEST_DIR = new File("src/test/resources", "rbac");
 	
+	// Gold, silver and bronze: mutual exclusion (prune), directly in the roles
+	
 	protected static final File ROLE_PRIZE_GOLD_FILE = new File(TEST_DIR, "role-prize-gold.xml");
 	protected static final String ROLE_PRIZE_GOLD_OID = "bbc22f82-df21-11e6-aa6b-4b1408befd10";
 	protected static final String ROLE_PRIZE_GOLD_SHIP = "Gold";
@@ -61,6 +63,26 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	protected static final String ROLE_PRIZE_BRONZE_OID = "19f11686-df22-11e6-b0e9-835ed7ca08a5";
 	protected static final String ROLE_PRIZE_BRONZE_SHIP = "Bronze";
 	
+	// Red, green and blue: mutual exclusion (prune) in the metarole
+
+	protected static final File ROLE_META_COLOR_FILE = new File(TEST_DIR, "role-meta-color.xml");
+	protected static final String ROLE_META_COLOR_OID = "0b759ce2-df29-11e6-a84c-9b213183a815";
+	
+	protected static final File ROLE_COLOR_RED_FILE = new File(TEST_DIR, "role-color-red.xml");
+	protected static final String ROLE_COLOR_RED_OID = "eaa4ec3e-df28-11e6-9cca-336e0346d5cc";
+	protected static final String ROLE_COLOR_RED_SHIP = "Red";
+	
+	protected static final File ROLE_COLOR_GREEN_FILE = new File(TEST_DIR, "role-color-green.xml");
+	protected static final String ROLE_COLOR_GREEN_OID = "2fd9e8f4-df29-11e6-9605-cfcedd703b9e";
+	protected static final String ROLE_COLOR_GREEN_SHIP = "Green";
+	
+	protected static final File ROLE_COLOR_BLUE_FILE = new File(TEST_DIR, "role-color-blue.xml");
+	protected static final String ROLE_COLOR_BLUE_OID = "553e8df2-df29-11e6-a7ca-cb7c1f38d89f";
+	protected static final String ROLE_COLOR_BLUE_SHIP = "Blue";
+	
+	protected static final File ROLE_COLOR_NONE_FILE = new File(TEST_DIR, "role-color-none.xml");
+	protected static final String ROLE_COLOR_NONE_OID = "662a997e-df2b-11e6-9bb3-5f235d1a8e60";
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -68,6 +90,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		repoAddObjectFromFile(ROLE_PRIZE_GOLD_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PRIZE_SILVER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PRIZE_BRONZE_FILE, initResult);
+		
+		repoAddObjectFromFile(ROLE_META_COLOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_COLOR_RED_FILE, initResult);
+		repoAddObjectFromFile(ROLE_COLOR_GREEN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_COLOR_BLUE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_COLOR_NONE_FILE, initResult);
 	}
 		
 	@Test
@@ -352,6 +380,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_PRIZE_GOLD_SHIP);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK);
 	}
 
 	/**
@@ -384,5 +414,270 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_PRIZE_SILVER_SHIP);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK);
+	}
+	
+	/**
+	 * Mix in ordinary role to check for interferences.
+	 * MID-3685
+	 */
+	@Test
+    public void test204GuybrushAssignRoleSailor() throws Exception {
+		final String TEST_NAME = "test204GuybrushAssignRoleSailor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_GOLD_OID);
+        assertAssignedRole(userAfter, ROLE_PRIZE_SILVER_OID);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+        
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_PRIZE_SILVER_SHIP);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+	}
+	
+	
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test206GuybrushAssignRoleBronze() throws Exception {
+		final String TEST_NAME = "test206GuybrushAssignRoleBronze";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_BRONZE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_GOLD_OID);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_SILVER_OID);
+        assertAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+        
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_PRIZE_BRONZE_SHIP);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+	}
+	
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test208GuybrushUnassignRoleBronze() throws Exception {
+		final String TEST_NAME = "test209GuybrushUnassignRoleSilver";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_PRIZE_BRONZE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_GOLD_OID);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_SILVER_OID);
+        assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+	}
+
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test209GuybrushUnassignRoleSailor() throws Exception {
+		final String TEST_NAME = "test209GuybrushUnassignRoleSailor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedNoRole(userAfter);
+
+        assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+	}
+
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test210GuybrushAssignRoleRed() throws Exception {
+		final String TEST_NAME = "test210GuybrushAssignRoleRed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+        
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_COLOR_RED_SHIP);
+	}
+	
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test212GuybrushAssignRoleGreen() throws Exception {
+		final String TEST_NAME = "test212GuybrushAssignRoleGreen";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_GREEN_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+        
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_COLOR_GREEN_SHIP);
+	}
+	
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test214GuybrushAssignRoleColorNone() throws Exception {
+		final String TEST_NAME = "test214GuybrushAssignRoleColorNone";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_NONE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+        
+        assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * MID-3685
+	 */
+	@Test
+    public void test216GuybrushAssignRoleBlue() throws Exception {
+		final String TEST_NAME = "test216GuybrushAssignRoleBlue";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+        
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_COLOR_BLUE_SHIP);
 	}
 }
