@@ -17,7 +17,10 @@ package com.evolveum.midpoint.web.component.menu.cog;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -34,8 +37,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
 
+    private static String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
+    private static String ID_MENU_ITEM_BUTTON = "menuItemButton";
     private static String ID_MENU_ITEM = "menuItem";
     private static String ID_MENU_ITEM_BODY = "menuItemBody";
+    private static String ID_MENU_ITEM_ICON = "menuItemIcon";
 
     private boolean hideByDefault;
 
@@ -62,6 +68,28 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
 
     @Override
     protected void initLayout() {
+        WebMarkupContainer menuItemContainer = new WebMarkupContainer(ID_MENU_ITEM_CONTAINER);
+        menuItemContainer.setOutputMarkupId(true);
+        menuItemContainer.add(new AttributeAppender("class", getMenuItemContainerClass()));
+        menuItemContainer.add(new AttributeAppender("style", getMenuItemContainerStyle()));
+        add(menuItemContainer);
+
+        AjaxButton menuItemButton = new AjaxButton(ID_MENU_ITEM_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        menuItemButton.setOutputMarkupId(true);
+        menuItemButton.add(new AttributeAppender("class", "dropdown-toggle " + getAdditionalButtonClass()));
+        menuItemButton.add(new AttributeAppender("style", getMenuItemButtonStyle()));
+        menuItemContainer.add(menuItemButton);
+
+        WebMarkupContainer icon = new WebMarkupContainer(ID_MENU_ITEM_ICON);
+        icon.setOutputMarkupId(true);
+        icon.add(new AttributeAppender("class", getIconClass()));
+        menuItemButton.add(icon);
+
         ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, getModel()) {
 
             @Override
@@ -77,7 +105,7 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
                 return list != null && !list.isEmpty();
             }
         });
-        add(li);
+        menuItemContainer.add(li);
     }
 
     private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
@@ -120,6 +148,26 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
         }
         menuItemBody.setRenderBodyOnly(true);
         menuItem.add(menuItemBody);
+    }
+
+    protected String getIconClass(){
+        return "fa fa-cog";
+    }
+
+    protected String getAdditionalButtonClass(){
+        return "";
+    }
+
+    protected String getMenuItemButtonStyle(){
+        return "border-top: 2px; !important";
+    }
+
+    protected String getMenuItemContainerClass(){
+        return "nav nav-pills cog pull-right";
+    }
+
+    protected String getMenuItemContainerStyle(){
+        return "";
     }
 
     private boolean getBoolean(IModel<Boolean> model, boolean def) {

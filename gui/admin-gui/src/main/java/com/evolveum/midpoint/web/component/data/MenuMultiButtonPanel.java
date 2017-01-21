@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel;
@@ -40,7 +37,7 @@ import java.util.List;
  * Created by honchar
  */
 public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPanel<T> {
-    private static final String ID_MENU_ITEM = "menuItem";
+    private static final String ID_INLINE_MENU_PANEL = "inlineMenuPanel";
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
     private static final String ID_MENU_BUTTON_CONTAINER = "menuButtonContainer";
 
@@ -52,26 +49,32 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
     protected void initLayout() {
         super.initLayout();
 
-        WebMarkupContainer menuButtonContainer = new WebMarkupContainer(ID_MENU_BUTTON_CONTAINER);
-        menuButtonContainer.setOutputMarkupId(true);
-        add(menuButtonContainer);
-
-        ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, menuItemsModel) {
-
+        add(new InlineMenu(ID_INLINE_MENU_PANEL, menuItemsModel){
             @Override
-            protected void populateItem(ListItem<InlineMenuItem> item) {
-                initMenuItem(item);
+            protected String getIconClass(){
+                return "fa fa-ellipsis-h";
             }
-        };
-        li.add(new VisibleEnableBehaviour() {
+           @Override
+            protected String getAdditionalButtonClass(){
+                return "btn btn-default btn-xs";
+            }
 
-            @Override
-            public boolean isVisible() {
-                return menuItemsModel != null && menuItemsModel.getObject() != null &&
-                        !menuItemsModel.getObject().isEmpty();
+           @Override
+           protected String getMenuItemContainerClass(){
+               return "none";
             }
+
+           @Override
+           protected String getMenuItemButtonStyle(){
+               return "";
+            }
+
+           @Override
+           protected String getMenuItemContainerStyle(){
+               return "margin-left: -37px; margin-bottom: -3px; list-style: none;";
+            }
+
         });
-        menuButtonContainer.add(li);
 
     }
 
