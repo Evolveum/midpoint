@@ -1315,9 +1315,9 @@ public class LensUtil {
 
 	public static void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations) throws PolicyViolationException {
 
-		LOGGER.debug("Policy rule {} triggered: ", rule==null?null:rule.getName(), trigger);
+		LOGGER.debug("Policy rule {} triggered: {}", rule==null?null:rule.getName(), trigger);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.debug("Policy rule {} triggered:\n{}", rule==null?null:rule.getName(), trigger.debugDump(1));
+			LOGGER.trace("Policy rule {} triggered:\n{}", rule==null?null:rule.getName(), trigger.debugDump(1));
 		}
 
 		if (rule == null) {
@@ -1336,5 +1336,23 @@ public class LensUtil {
 		}
 
 	}
+	
+	public static void procesRuleWithException(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger, 
+			Collection<String> policySituations, PolicyExceptionType policyException) throws PolicyViolationException {
+
+		LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not trigerring", rule==null?null:rule.getName());
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Policy rule {} would be triggered, but there is an exception for it:\nTrigger:\n{}\nException:\n{}", 
+					rule==null?null:rule.getName(), trigger.debugDump(1), policyException);
+		}
+
+		if (rule == null) {
+			return;
+		}
+		((EvaluatedPolicyRuleImpl)rule).addPolicyException(policyException);
+
+	}
+	
 
 }

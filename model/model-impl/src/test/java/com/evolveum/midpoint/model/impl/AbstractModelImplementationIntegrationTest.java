@@ -44,6 +44,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import static org.testng.AssertJUnit.*;
 
@@ -230,9 +231,15 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 	protected ObjectDelta<UserType> addModificationToContextAssignRole(
 			LensContext<UserType> context, String userOid, String roleOid)
 			throws SchemaException {
+		return addModificationToContextAssignRole(context, userOid, roleOid, null);
+	}
+	
+	protected ObjectDelta<UserType> addModificationToContextAssignRole(
+			LensContext<UserType> context, String userOid, String roleOid, Consumer<AssignmentType> modificationBlock)
+			throws SchemaException {
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, 
-				roleOid, RoleType.COMPLEX_TYPE, null, null, null, true);
+				roleOid, RoleType.COMPLEX_TYPE, null, modificationBlock, true);
 		focusContext.addPrimaryDelta(userDelta);
 		return userDelta;
 	}

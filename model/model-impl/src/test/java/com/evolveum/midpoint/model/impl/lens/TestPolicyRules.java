@@ -84,6 +84,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -100,6 +101,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPolicyRules extends AbstractLensTest {
 		
+	private static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME = "criminal exclusion";
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -226,9 +229,62 @@ public class TestPolicyRules extends AbstractLensTest {
         assertEquals("Wrong conflicting assignment in trigger", ROLE_PIRATE_OID, trigger.getConflictingAssignment().getTarget().getOid());
 	}
 	
+	/**
+	 * Assignment with an exception from the exclusion rule.
+	 */
 	@Test
-    public void test112AssignRoleConstableToJack() throws Exception {
-		final String TEST_NAME = "test112AssignRoleConstableToJack";
+    public void test112AssignRolePirateWithExceptionToJack() throws Exception {
+		final String TEST_NAME = "test112AssignRolePirateWithExceptionToJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        LensContext<UserType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID,
+        		assignment -> {
+        			PolicyExceptionType policyException = new PolicyExceptionType();
+        			policyException.setRuleName(ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME);
+					assignment.getPolicyException().add(policyException);
+        		});
+
+        display("Input context", context);
+
+        assertFocusModificationSanity(context);
+        rememberShadowFetchOperationCount();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        projector.project(context, "test", task, result);
+        
+        // THEN        
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignAccountToJack(context);
+        
+        DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple = 
+        		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
+//        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+        
+        dumpPolicyRules(context);
+        
+        List<EvaluatedPolicyRule> evaluatedRules = assertEvaluatedRules(context, 1);
+        assertTriggeredRules(context, 0, null);
+
+        EvaluatedPolicyRule evaluatedPolicyRule = evaluatedRules.get(0);
+        Collection<PolicyExceptionType> exceptions = evaluatedPolicyRule.getPolicyExceptions();
+        assertEquals("Wrong number of exceptions", 1, exceptions.size());
+        PolicyExceptionType policyException = exceptions.iterator().next();
+        assertEquals("Wrong rule name in poliy excpetion", ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME, policyException.getRuleName());        
+	}
+	
+	@Test
+    public void test120AssignRoleConstableToJack() throws Exception {
+		final String TEST_NAME = "test120AssignRoleConstableToJack";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -283,10 +339,11 @@ public class TestPolicyRules extends AbstractLensTest {
       		  "Honorable Justice");
 	}
 	
-	private void assertEvaluatedRules(LensContext<UserType> context, int expected) {
+	private List<EvaluatedPolicyRule> assertEvaluatedRules(LensContext<UserType> context, int expected) {
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		forEvaluatedRule(context, rule -> rules.add(rule));
 		assertEquals("Unexpected number of evaluated policy rules in the context", expected, rules.size());
+		return rules;
 	}
 	
 	private void assertTriggeredRules(LensContext<UserType> context, int expected, PolicyConstraintKindType expectedConstraintKind) {
@@ -355,6 +412,11 @@ public class TestPolicyRules extends AbstractLensTest {
             			DebugUtil.indentDebugDump(sb, 6);
             			sb.append("conflict: ").append(((EvaluatedAssignmentImpl)trigger.getConflictingAssignment()).toHumanReadableString());
         			}
+        		}
+        		for (PolicyExceptionType exc: rule.getPolicyExceptions()) {
+        			sb.append("\n");
+        			DebugUtil.indentDebugDump(sb, 5);
+        			sb.append("exception: ").append(exc);
         		}
         	}
         }, 1);

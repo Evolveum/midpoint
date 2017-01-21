@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,5 +45,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	String getPolicySituation();
 	
 	PolicyActionsType getActions();
+	
+	Collection<PolicyExceptionType> getPolicyExceptions();
 
 }

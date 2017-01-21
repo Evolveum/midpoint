@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -370,9 +372,30 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-		LensUtil.triggerConstraint(rule, trigger, policySituations);
+		boolean hasException = processRuleExceptions(this, rule, trigger);
+		
+		if (trigger.getConflictingAssignment() != null) {
+			hasException = hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) trigger.getConflictingAssignment(), rule, trigger);
+		}
+		
+		if (!hasException) {
+			LensUtil.triggerConstraint(rule, trigger, policySituations);
+		}
 	}
 
+	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
+		boolean hasException = false; 
+		for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
+			if (policyException.getRuleName().equals(rule.getName())) {
+				LensUtil.procesRuleWithException(rule, trigger, policySituations, policyException);
+				hasException = true;
+//			} else {
+//				LOGGER.trace("Skipped exception because it does not match rule name, exception: {}, rule: {}", policyException.getRuleName(), rule.getName());
+			}
+		}
+		return hasException;
+	}
+	
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();

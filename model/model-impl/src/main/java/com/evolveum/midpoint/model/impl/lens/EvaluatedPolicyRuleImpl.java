@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,12 +40,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private PolicyRuleType policyRuleType;
 	private AssignmentPath assignmentPath;
 	private Collection<EvaluatedPolicyRuleTrigger> triggers;
+	private Collection<PolicyExceptionType> policyExceptions;
 
 	public EvaluatedPolicyRuleImpl(PolicyRuleType policyRuleType, AssignmentPath assignmentPath) {
 		super();
 		this.policyRuleType = policyRuleType;
 		this.assignmentPath = assignmentPath;
 		this.triggers = new ArrayList<>();
+		this.policyExceptions = new ArrayList<>();
 	}
 
 	@Override
@@ -79,6 +82,17 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public void addTrigger(EvaluatedPolicyRuleTrigger trigger) {
 		triggers.add(trigger);
 	}
+
+	@NotNull
+	@Override
+	public Collection<PolicyExceptionType> getPolicyExceptions() {
+		return policyExceptions;
+	}
+	
+	public void addPolicyException(PolicyExceptionType exception) {
+		policyExceptions.add(exception);
+	}
+
 
 	@Override
 	public PolicyActionsType getActions() {

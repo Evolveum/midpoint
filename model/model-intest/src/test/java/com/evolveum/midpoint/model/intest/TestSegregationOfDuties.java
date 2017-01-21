@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -350,6 +353,139 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
 	
+	@Test
+    public void test171SimpleExclusion1WithPolicyException() throws Exception {
+		final String TEST_NAME = "test171SimpleExclusion1WithPolicyException";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        
+        PrismObject<UserType> userJackIn = getUser(USER_JACK_OID);
+        assertAssignedRoles(userJackIn, ROLE_JUDGE_OID, ROLE_PIRATE_OID);
+        
+        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        
+        assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+	
+	@Test
+    public void test172SimpleExclusion2WithPolicyException() throws Exception {
+		final String TEST_NAME = "test172SimpleExclusion2WithPolicyException";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
+        PrismObject<UserType> userJackIn = getUser(USER_JACK_OID);
+        assertAssignedRoles(userJackIn, ROLE_JUDGE_OID, ROLE_PIRATE_OID);
+                
+        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        
+        assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+	
+	@Test
+    public void test173SimpleExclusion3WithPolicyException() throws Exception {
+		final String TEST_NAME = "test173SimpleExclusion3WithPolicyException";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(), task, result);
+        
+        PrismObject<UserType> userJackIn = getUser(USER_JACK_OID);
+        assertAssignedRoles(userJackIn, ROLE_JUDGE_OID, ROLE_PIRATE_OID);
+                
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(), task, result);
+        
+        assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+
+	@Test
+    public void test174SimpleExclusion4WithPolicyException() throws Exception {
+		final String TEST_NAME = "test174SimpleExclusion4WithPolicyException";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(), task, result);
+
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        PrismObject<UserType> userJackIn = getUser(USER_JACK_OID);
+        assertAssignedRoles(userJackIn, ROLE_JUDGE_OID, ROLE_PIRATE_OID);
+                
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(), task, result);
+        
+        assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+	
+	/**
+	 * Add pirate role to judge. But include policy exception in the pirate assignment, so it
+	 * should go OK. The assign thief (without exception). The exception in the pirate assignment
+	 * should only apply to that assignment. The assignment of thief should fail.
+	 */
+	@Test
+    public void test180JudgeExceptionalPirateAndThief() throws Exception {
+		final String TEST_NAME = "test180JudgeExceptionalPirateAndThief";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        
+        PrismObject<UserType> userJackIn = getUser(USER_JACK_OID);
+        assertAssignedRoles(userJackIn, ROLE_JUDGE_OID, ROLE_PIRATE_OID);
+        
+        try {
+	        // This should die
+	        assignRole(USER_JACK_OID, ROLE_THIEF_OID, task, result);
+	        
+	        AssertJUnit.fail("Expected policy violation after adding thief role, but it went well");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        }
+        
+        // Cleanup
+        
+        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        
+        assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+
+	Consumer<AssignmentType> getJudgeExceptionBlock() {
+		return assignment -> {
+			PolicyExceptionType policyException = new PolicyExceptionType();
+			policyException.setRuleName(ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME);
+			assignment.getPolicyException().add(policyException);
+		};
+	}
+		
 	/**
 	 * MID-3685
 	 */
