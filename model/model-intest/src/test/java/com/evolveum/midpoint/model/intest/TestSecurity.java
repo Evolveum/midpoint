@@ -1919,12 +1919,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ASSIGN_APPLICATION_ROLES_OID);
         
-        assertAllow("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-			}
-		});
+        assertAllow("assign application role to jack", 
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
+			);
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -1937,12 +1934,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			}
 		});
 
-        assertAllow("unassign application role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-			}
-		});
+        assertAllow("unassign application role from jack", 
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
+			);
 
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
@@ -1978,12 +1972,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ASSIGN_ANY_ROLES_OID);
         
-        assertAllow("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-			}
-		});
+        assertAllow("assign application role to jack", 
+        		(task, result) ->  assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
+			);
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -1996,12 +1987,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			}
 		});
 
-        assertAllow("unassign application role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-			}
-		});
+        assertAllow("unassign application role from jack",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
+			);
 
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -2009,6 +1997,64 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
         assertRoleTypes(spec);
         assertFilter(spec.getFilter(), TypeFilter.class);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Check that the #assign authorization does not allow assignment that contains
+	 * policyException or policyRule.
+	 */
+	@Test
+    public void test273AutzJackRedyAssignmentExceptionRules() throws Exception {
+		final String TEST_NAME = "test273AutzJackRedyAssignmentExceptionRules";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);        
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_ANY_ROLES_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertReadAllow(10);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        assertAssignedRole(user, ROLE_ASSIGN_ANY_ROLES_OID);
+        
+        assertDeny("assign application role to jack", 
+        		(task, result) ->  assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, null,
+        				assignment -> {
+        					PolicyExceptionType policyException = new PolicyExceptionType();
+                			policyException.setRuleName("whatever");
+        					assignment.getPolicyException().add(policyException);
+        				},
+        				task, result)
+			);
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+
+        assertDeny("assign application role to jack", 
+        		(task, result) ->  assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null,
+        				assignment -> {
+							PolicyRuleType policyRule = new PolicyRuleType();
+							policyRule.setName("whatever");
+							assignment.setPolicyRule(policyRule);
+        				},
+        				task, result)
+			);
+
+
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
         
         assertGlobalStateUntouched();
 	}
