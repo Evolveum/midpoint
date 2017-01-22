@@ -242,7 +242,7 @@ public class PageUsers extends PageAdminUsers {
 
 		columns.add(column);
 
-		column = new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions());
+		column = new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(), 3);
 		columns.add(column);
 
 		return columns;
@@ -250,7 +250,6 @@ public class PageUsers extends PageAdminUsers {
 
 	private List<InlineMenuItem> createRowActions() {
 		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
-		int id = 0;
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
 				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
@@ -264,7 +263,8 @@ public class PageUsers extends PageAdminUsers {
 							updateActivationPerformed(target, true, rowDto.getValue());
 						}
 					}
-				}, id++, GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				}, InlineMenuItem.INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
+				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
@@ -280,10 +280,12 @@ public class PageUsers extends PageAdminUsers {
 							updateActivationPerformed(target, false, rowDto.getValue());
 						}
 					}
-				}, id++, GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				}, InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
+				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"), false,
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
+				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -295,7 +297,9 @@ public class PageUsers extends PageAdminUsers {
 							reconcilePerformed(target, rowDto.getValue());
 						}
 					}
-				}, id++, GuiStyleConstants.CLASS_THREE_DOTS));
+				}, InlineMenuItem.INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
+				GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
@@ -309,7 +313,7 @@ public class PageUsers extends PageAdminUsers {
 							unlockPerformed(target, rowDto.getValue());
 						}
 					}
-				}, id++));
+				}, InlineMenuItem.INLINE_MENU_ITEM_ID.UNLOCK.getMenuItemId()));
 
 		menu.add(new InlineMenuItem());
 
@@ -325,7 +329,7 @@ public class PageUsers extends PageAdminUsers {
 							deletePerformed(target, rowDto.getValue());
 						}
 					}
-				}, id++));
+				}, InlineMenuItem.INLINE_MENU_ITEM_ID.DELETE.getMenuItemId()));
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
@@ -338,7 +342,7 @@ public class PageUsers extends PageAdminUsers {
 							mergePerformed(target, rowDto.getValue());
 						}
 					}
-				}, id++));
+				}, InlineMenuItem.INLINE_MENU_ITEM_ID.MERGE.getMenuItemId()));
 		return menu;
 	}
 

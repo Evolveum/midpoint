@@ -35,7 +35,7 @@ public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T,
 
     private List<String> captions;
     protected IModel<T> rowModel;
-    private int numberOfButtons;
+    protected int numberOfButtons;
 
     public MultiButtonColumn(int numberOfButtons) {
         super(null);

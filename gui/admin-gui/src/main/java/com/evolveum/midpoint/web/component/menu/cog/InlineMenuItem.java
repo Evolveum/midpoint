@@ -35,6 +35,20 @@ public class InlineMenuItem implements Serializable {
     private String buttonIconCssClass;
     private String buttonColorCssClass;
 
+    public static enum INLINE_MENU_ITEM_ID{
+        ENABLE(0), DISABLE(1), RECONCILE(2),
+        UNLOCK(3), DELETE(4), MERGE(5);
+
+        private int menuItemId = -1;
+
+        private INLINE_MENU_ITEM_ID(final int id){menuItemId = id;}
+
+        public int getMenuItemId(){
+            return menuItemId;
+        }
+        public String toString(){return Integer.toString(menuItemId);}
+    }
+
     public InlineMenuItem() {
         this(null, null);
     }
