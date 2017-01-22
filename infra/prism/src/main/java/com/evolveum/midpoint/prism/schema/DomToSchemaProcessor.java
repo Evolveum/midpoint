@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -349,6 +350,10 @@ class DomToSchemaProcessor {
 			ctd.setXsdAnyMarker(true);
 		}
 
+		if (isList(complexType)) {
+			ctd.setListMarker(true);
+		}
+
 		extractDocumentation(ctd, complexType.getAnnotation());
 
 		if (getSchemaRegistry() != null) {
@@ -545,7 +550,7 @@ class DomToSchemaProcessor {
 		}
 	}
 
-	private PrismReferenceDefinition processObjectReferenceDefinition(XSType xsType, QName elementName,
+	private PrismReferenceDefinitionImpl processObjectReferenceDefinition(XSType xsType, QName elementName,
 			XSAnnotation annotation, ComplexTypeDefinition containingCtd, XSParticle elementParticle,
 			boolean inherited) throws SchemaException {
 		QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
@@ -665,29 +670,22 @@ class DomToSchemaProcessor {
 					// {"+xsType.getTargetNamespace()+"}"+xsType.getName());
 				}
 				XSAnnotation annotation = xsElementDecl.getAnnotation();
+				ItemDefinitionImpl definition;
 
 				if (isPropertyContainer(xsElementDecl) || isObjectDefinition(xsType)) {
-
 					ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeQName);
-					PrismContainerDefinition<?> propertyContainerDefinition = createPropertyContainerDefinition(
+					definition = createPropertyContainerDefinition(
 							xsType, xsElementDecl, complexTypeDefinition, annotation, null, true);
-					schema.getDefinitions().add(propertyContainerDefinition);
-
 				} else if (isObjectReference(xsElementDecl, xsType)) {
-
-					PrismReferenceDefinition refDef = processObjectReferenceDefinition(xsType, elementName,
+					definition = processObjectReferenceDefinition(xsType, elementName,
 							annotation, null, null, false);
-
-					schema.getDefinitions().add(refDef);
-
 				} else {
-
-					// Create a top-level property definition (even if this is a
-					// XSD complex type)
-					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeQName,
-							null, xsElementDecl.getAnnotation(), null);
-					schema.getDefinitions().add(propDef);
+					// Create a top-level property definition (even if this is a XSD complex type)
+					definition = createPropertyDefinition(xsType, elementName, typeQName,
+							null, annotation, null);
 				}
+				definition.setSubstitutionHead(getSubstitutionHead(xsElementDecl));
+				schema.getDefinitions().add(definition);
 
 			} else if (xsElementDecl.getTargetNamespace().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
 				// This is OK to ignore. These are imported elements from other
@@ -698,6 +696,15 @@ class DomToSchemaProcessor {
 				// "+xsElementDecl.getTargetNamespace()+" while expecting
 				// "+schema.getNamespace());
 			}
+		}
+	}
+
+	private QName getSubstitutionHead(XSElementDecl element) {
+		XSElementDecl head = element.getSubstAffiliation();
+		if (head == null) {
+			return null;
+		} else {
+			return new QName(head.getTargetNamespace(), head.getName());
 		}
 	}
 
@@ -731,8 +738,7 @@ class DomToSchemaProcessor {
 	}
 
 	/**
-	 * Determine whether the definition contains xsd:any (directly or
-	 * indirectly)
+	 * Determine whether the definition contains xsd:any (directly or indirectly)
 	 */
 	private boolean isAny(XSType xsType) {
 		if (xsType instanceof XSComplexType) {
@@ -751,6 +757,35 @@ class DomToSchemaProcessor {
 		return false;
 	}
 
+	/**
+	 * Determine whether the definition contains "list" attribute (directly or indirectly)
+	 */
+	private boolean isList(XSComplexType complexType) {
+		Collection<? extends XSAttributeUse> attributeUses = complexType.getAttributeUses();
+		return attributeUses != null && attributeUses.stream()
+				.anyMatch(au -> au.getDecl() != null && DOMUtil.IS_LIST_ATTRIBUTE_NAME.equals(au.getDecl().getName()));
+	}
+
+	// not much tested
+	private void applyToDeclarations(XSComponent component, Consumer<XSDeclaration> consumer) {
+		if (component == null) {
+			return;
+		}
+		if (component instanceof XSDeclaration) {
+			consumer.accept((XSDeclaration) component);
+		}
+		// recursion (if needed)
+		if (component instanceof XSParticle) {
+			applyToDeclarations(((XSParticle) component).getTerm(), consumer);
+		} else if (component instanceof XSModelGroup) {
+			for (XSParticle particle : ((XSModelGroup) component).getChildren()) {
+				applyToDeclarations(particle, consumer);
+			}
+		} else if (component instanceof XSModelGroupDecl) {
+			applyToDeclarations(((XSModelGroupDecl) component).getModelGroup(), consumer);
+		}
+	}
+
 	private QName determineSupertype(XSType type) {
 		XSType baseType = type.getBaseType();
 		if (baseType == null) {
@@ -763,8 +798,7 @@ class DomToSchemaProcessor {
 	}
 
 	/**
-	 * Determine whether the definition contains xsd:any (directly or
-	 * indirectly)
+	 * Determine whether the definition contains xsd:any (directly or indirectly)
 	 */
 	private boolean isAny(XSTerm term) {
 		if (term.isWildcard()) {
@@ -887,13 +921,13 @@ class DomToSchemaProcessor {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private PrismContainerDefinition<?> createPropertyContainerDefinition(XSType xsType,
+	private PrismContainerDefinitionImpl<?> createPropertyContainerDefinition(XSType xsType,
 			XSElementDecl elementDecl, ComplexTypeDefinition complexTypeDefinition,
-			XSAnnotation complexTypeAnnotation, XSParticle elementParticle, boolean topLevel)
+			XSAnnotation annotation, XSParticle elementParticle, boolean topLevel)
 					throws SchemaException {
 
 		QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
-		PrismContainerDefinitionImpl<?> pcd = null;
+		PrismContainerDefinitionImpl<?> pcd;
 
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 
@@ -903,19 +937,19 @@ class DomToSchemaProcessor {
 				compileTimeClass = getSchemaRegistry().determineCompileTimeClass(complexTypeDefinition.getTypeName());
 			}
 			pcd = definitionFactory.createObjectDefinition(elementName, complexTypeDefinition, prismContext,
-					compileTimeClass, complexTypeAnnotation, elementParticle);
+					compileTimeClass, annotation, elementParticle);
 			// Multiplicity is fixed to a single-value here
 			pcd.setMinOccurs(1);
 			pcd.setMaxOccurs(1);
 		} else {
 			pcd = definitionFactory.createContainerDefinition(elementName, complexTypeDefinition,
-					prismContext, complexTypeAnnotation, elementParticle);
+					prismContext, annotation, elementParticle);
 			setMultiplicity(pcd, elementParticle, elementDecl.getAnnotation(), topLevel);
 		}
 
 		markRuntime(pcd);
 
-		parseItemDefinitionAnnotations(pcd, complexTypeAnnotation);
+		parseItemDefinitionAnnotations(pcd, annotation);
 		parseItemDefinitionAnnotations(pcd, elementDecl.getAnnotation());
 		if (elementParticle != null) {
 			parseItemDefinitionAnnotations(pcd, elementParticle.getAnnotation());
@@ -1144,6 +1178,11 @@ class DomToSchemaProcessor {
 
 		// documentation
 		extractDocumentation(itemDef, annotation);
+
+		Boolean heterogeneousListItem = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_HETEROGENEOUS_LIST_ITEM);
+		if (heterogeneousListItem != null) {
+			itemDef.setHeterogeneousListItem(heterogeneousListItem);
+		}
 	}
 
 	private boolean isDeprecated(XSElementDecl xsElementDecl) throws SchemaException {

@@ -15,29 +15,29 @@
   ~ limitations under the License.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000222"
-                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-                xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-                xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-                xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>User Template</name>
+				xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+				xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+				xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	<name>User Template</name>
 
-    <mapping>
-        <authoritative>true</authoritative>
-        <source>
-            <path>$user/extension/orgPath</path>
-        </source>
-        <expression>
-        <script>
-            <code>
-                'up'
-            </code>
-        </script>
-        <value>up</value>           <!-- this is schema-compliant, but illegal from the point of view of prism structures -->
-    </expression>
-        <target>
-            <path>$user/extension/test</path>
-        </target>
-    </mapping>
+	<mapping>
+		<authoritative>true</authoritative>
+		<source>
+			<path>$user/extension/orgPath</path>
+		</source>
+		<expression>
+			<script>
+				<code>
+					'up'
+				</code>
+			</script>
+			<value>up</value>           <!-- this is schema-compliant, but illegal from the point of view of prism structures -->
+		</expression>
+		<target>
+			<path>$user/extension/test</path>
+		</target>
+	</mapping>
 
 </objectTemplate>

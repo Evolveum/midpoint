@@ -16,9 +16,7 @@
 package com.evolveum.midpoint.prism.lex.dom;
 
 import com.evolveum.midpoint.prism.marshaller.XPathHolder;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -35,13 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -51,11 +44,10 @@ import java.util.Map.Entry;
 public class DomLexicalWriter {
 	
 	private Document doc;
-	private Element topElement;
 	private boolean serializeCompositeObjects = false;
 	private SchemaRegistry schemaRegistry;
 
-    DomLexicalWriter(DomLexicalProcessor parser, SchemaRegistry schemaRegistry) {
+    DomLexicalWriter(SchemaRegistry schemaRegistry) {
 		super();
 		this.schemaRegistry = schemaRegistry;
 	}
@@ -72,17 +64,16 @@ public class DomLexicalWriter {
 		if (schemaRegistry == null) {
 			return null;
 		}
-		return ((SchemaRegistryImpl) schemaRegistry).getNamespacePrefixMapper();
+		return schemaRegistry.getNamespacePrefixMapper();
 	}
 
 	private void initialize() {
 		doc = DOMUtil.getDocument();
-		topElement = null;
 	}
 
     private void initializeWithExistingDocument(Document document) {
         doc = document;
-        topElement = document.getDocumentElement();         // TODO is this ok?
+		document.getDocumentElement();
     }
 
     @NotNull
@@ -118,21 +109,24 @@ public class DomLexicalWriter {
 		if (subnode instanceof PrimitiveXNode){
 			serializePrimitiveElementOrAttribute((PrimitiveXNode) subnode, topElement, rootElementName, false);
 			return DOMUtil.getFirstChildElement(topElement);
-		} 
-		if (!(subnode instanceof MapXNode)) {
-			throw new SchemaException("Sub-root xnode is not map, cannot serialize to XML (it is "+subnode+")");
 		}
-        // at this point we can put frequently used namespaces (e.g. c, t, q, ri) into the document to eliminate their use
-        // on many places inside the doc (MID-2198)
-        DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
-		serializeMap((MapXNode) subnode, topElement);
+		if (subnode instanceof MapXNode) {
+			// at this point we can put frequently used namespaces (e.g. c, t, q, ri) into the document to eliminate their use
+			// on many places inside the doc (MID-2198)
+			DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
+			serializeMap((MapXNode) subnode, topElement);
+		} else if (subnode.isHeterogeneousList()) {
+			DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
+			serializeExplicitList((ListXNode) subnode, topElement);
+		} else {
+			throw new SchemaException("Sub-root xnode is not a map nor an explicit list, cannot serialize to XML (it is "+subnode+")");
+		}
 		return topElement;
 	}
 
-    public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
+	Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
 		initialize();
 		Element element = createElement(elementName, null);
-        topElement = element;
 		serializeMap(xmap, element);
 		return element;
 	}
@@ -141,15 +135,8 @@ public class DomLexicalWriter {
 		for (Entry<QName,XNode> entry: xmap.entrySet()) {
 			QName elementQName = entry.getKey();
 			XNode xsubnode = entry.getValue();
-			if (xsubnode instanceof ListXNode) {
-				ListXNode xlist = (ListXNode)xsubnode;
-				for (XNode xsubsubnode: xlist) {
-					serializeSubnode(xsubsubnode, topElement, elementQName);
-				}
-			} else {
-				serializeSubnode(xsubnode, topElement, elementQName);
-			}
-		}		
+			serializeSubnode(xsubnode, topElement, elementQName);
+		}
 	}
 	
 	private void serializeSubnode(XNode xsubnode, Element parentElement, QName elementName) throws SchemaException {
@@ -168,7 +155,6 @@ public class DomLexicalWriter {
 				DOMUtil.setXsiType(element, setQNamePrefixExplicitIfNeeded(xsubnode.getTypeQName()));
 			}
 			parentElement.appendChild(element);
-//			System.out.println("subnode " + xsubnode.debugDump());
 			serializeMap((MapXNode)xsubnode, element);
 		} else if (xsubnode instanceof PrimitiveXNode<?>) {
 			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xsubnode;
@@ -179,8 +165,14 @@ public class DomLexicalWriter {
 			}
 		} else if (xsubnode instanceof ListXNode) {
 			ListXNode xlist = (ListXNode)xsubnode;
-			for (XNode xsubsubnode: xlist) {
-				serializeSubnode(xsubsubnode, parentElement, elementName);
+			if (xlist.isHeterogeneousList()) {
+				Element element = createElement(elementName, parentElement);
+				serializeExplicitList(xlist, element);
+				parentElement.appendChild(element);
+			} else {
+				for (XNode xsubsubnode : xlist) {
+					serializeSubnode(xsubsubnode, parentElement, elementName);
+				}
 			}
 		} else if (xsubnode instanceof SchemaXNode) {
 			serializeSchema((SchemaXNode)xsubnode, parentElement);
@@ -189,7 +181,17 @@ public class DomLexicalWriter {
 		}
 	}
 
-	public Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
+	private void serializeExplicitList(ListXNode list, Element parent) throws SchemaException {
+		for (XNode node : list) {
+			if (node.getElementName() == null) {
+				throw new SchemaException("In a list, there are both nodes with element names and nodes without them: " + list);
+			}
+			serializeSubnode(node, parent, node.getElementName());
+		}
+		DOMUtil.setAttributeValue(parent, DOMUtil.IS_LIST_ATTRIBUTE_NAME, "true");
+	}
+
+	Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
 		initialize();
 		Element parent = DOMUtil.createElement(doc, new QName("fake","fake"));
 		serializePrimitiveElementOrAttribute(xprim, parent, elementName, false);

@@ -77,6 +77,9 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	 */
 	boolean isXsdAnyMarker();
 
+	// TODO. EXPERIMENTAL.
+	boolean isListMarker();
+
 	/**
 	 * When resolving unqualified names for items contained in this CTD, what should be the default namespace
 	 * to look into at first. Currently does NOT apply recursively (to inner CTDs).

@@ -17,6 +17,17 @@ public class MidpointYAMLGenerator extends YAMLGenerator {
 		super(ctxt, jsonFeatures, yamlFeatures, codec, out, version);
 	}
 
+	/**
+	 * Brutal hack, as default behavior has lead to the following:
+	 *  - !<http://midpoint.evolveum.com/xml/ns/public/model/scripting-3/SearchExpressionType>
+	 *    !<http://midpoint.evolveum.com/xml/ns/public/model/scripting-3/SearchExpressionType> '@element': "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3#search"
+	 *
+	 * (so we need to explicitly reset typeId after writing it)
+	 */
+	public void resetTypeId() {
+		_typeId = null;
+	}
+
 	@Override
 	protected ScalarEvent _scalarEvent(String value, Character style) {
 		if (value.contains("\n")) {

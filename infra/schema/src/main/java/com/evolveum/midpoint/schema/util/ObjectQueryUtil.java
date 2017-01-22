@@ -24,14 +24,11 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -44,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 public class ObjectQueryUtil {
 
@@ -233,14 +231,14 @@ public class ObjectQueryUtil {
 		filter.accept(visitor);
 	}
 
-	public static String dump(QueryType query) throws SchemaException {
+	public static String dump(QueryType query, @NotNull PrismContext prismContext) throws SchemaException {
 		if (query == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("Query(");
 		sb.append(query.getDescription()).append("):\n");
 		if (query.getFilter() != null && query.getFilter().containsFilterClause())
-			sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClauseAsElement()));
+			sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClauseAsElement(prismContext)));
 		else
 			sb.append("(no filter)");
 		return sb.toString();

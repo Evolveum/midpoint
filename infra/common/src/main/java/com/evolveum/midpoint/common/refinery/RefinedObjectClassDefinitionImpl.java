@@ -757,6 +757,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return ObjectClassComplexTypeDefinitionImpl.instantiate(elementName, this);
 	}
 
+	@Override
+	public boolean isListMarker() {
+		return originalObjectClassDefinition.isListMarker();
+	}
+
 	//endregion
 
     //region ==== Parsing =================================================================================

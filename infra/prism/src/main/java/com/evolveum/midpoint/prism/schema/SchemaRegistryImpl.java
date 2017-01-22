@@ -748,6 +748,29 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		}
 		return schema.findTypeDefinitionByType(typeName, definitionClass);
 	}
+
+	@NotNull
+	@Override
+	public <TD extends TypeDefinition> Collection<? extends TD> findTypeDefinitionsByType(@NotNull QName typeName,
+			@NotNull Class<TD> definitionClass) {
+		if (QNameUtil.noNamespace(typeName)) {
+			return resolveGlobalTypeDefinitionsWithoutNamespace(typeName.getLocalPart(), definitionClass);
+		}
+		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
+		if (schema == null) {
+			return Collections.emptyList();
+		}
+		return schema.findTypeDefinitionsByType(typeName, definitionClass);
+	}
+
+	@NotNull
+	@Override
+	public <TD extends TypeDefinition> Collection<TD> findTypeDefinitionsByElementName(@NotNull QName name, @NotNull Class<TD> clazz) {
+		return findItemDefinitionsByElementName(name, ItemDefinition.class).stream()
+				.flatMap(itemDef -> findTypeDefinitionsByType(itemDef.getTypeName(), clazz).stream())
+				.collect(Collectors.toList());
+	}
+
 	//endregion
 
 	//region Finding items (nonstandard cases)
@@ -966,6 +989,18 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		return found;
 	}
 
+	@NotNull
+	private <TD extends TypeDefinition> Collection<TD> resolveGlobalTypeDefinitionsWithoutNamespace(String typeLocalName, Class<TD> definitionClass) {
+		List<TD> rv = new ArrayList<>();
+		for (SchemaDescription schemaDescription : parsedSchemas.values()) {
+			PrismSchema schema = schemaDescription.getSchema();
+			if (schema != null) {
+				rv.addAll(schema.findTypeDefinitionsByType(new QName(schema.getNamespace(), typeLocalName), definitionClass));
+			}
+		}
+		return rv;
+	}
+
 	/**
 	 * Looks for a top-level definition for the specified element name (in all schemas).
 	 */
@@ -999,29 +1034,19 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		return schema.findItemDefinitionByElementName(itemName, ItemDefinition.class);
 	}
 
-	private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass) {
-		return resolveGlobalItemDefinitionWithoutNamespace(localPart, definitionClass, true, null);
-	}
+//	private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass) {
+//		return resolveGlobalItemDefinitionWithoutNamespace(localPart, definitionClass, true, null);
+//	}
 
 	private <ID extends ItemDefinition> List<ID> resolveGlobalItemDefinitionsWithoutNamespace(String localPart, Class<ID> definitionClass) {
 		return resolveGlobalItemDefinitionsWithoutNamespace(localPart, definitionClass, null);
 	}
 
 	private <ID extends ItemDefinition> ID resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<ID> definitionClass, boolean exceptionIfAmbiguous, @Nullable List<String> ignoredNamespaces) {
-		List<ID> found = resolveGlobalItemDefinitionsWithoutNamespace(localPart, definitionClass, ignoredNamespaces);
-		if (found.isEmpty()) {
-			return null;
-		} else if (found.size() == 1) {
-			return found.get(0);
-		} else {
-			if (exceptionIfAmbiguous) {
-				throw new IllegalArgumentException("Multiple possible resolutions for unqualified element name "
-						+ localPart + "; in namespaces " +
-						found.stream().map(ItemDefinition::getName).collect(Collectors.toList()));
-			} else {
-				return null;
-			}
-		}
+		return DefinitionStoreUtils.getOne(
+				resolveGlobalItemDefinitionsWithoutNamespace(localPart, definitionClass, ignoredNamespaces),
+				exceptionIfAmbiguous,
+				"Multiple possible resolutions for unqualified element name '" + localPart + "'");
 	}
 
 	@NotNull
@@ -1044,21 +1069,21 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 
-	private QName resolveElementNameIfNeeded(QName elementName) {
-		return resolveElementNameIfNeeded(elementName, true);
-	}
+//	private QName resolveElementNameIfNeeded(QName elementName) {
+//		return resolveElementNameIfNeeded(elementName, true);
+//	}
 
-	private QName resolveElementNameIfNeeded(QName elementName, boolean exceptionIfAmbiguous) {
-		if (StringUtils.isNotEmpty(elementName.getNamespaceURI())) {
-			return elementName;
-		}
-		ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class, exceptionIfAmbiguous, null);
-		if (itemDef != null) {
-			return itemDef.getName();
-		} else {
-			return null;
-		}
-	}
+//	private QName resolveElementNameIfNeeded(QName elementName, boolean exceptionIfAmbiguous) {
+//		if (StringUtils.isNotEmpty(elementName.getNamespaceURI())) {
+//			return elementName;
+//		}
+//		ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class, exceptionIfAmbiguous, null);
+//		if (itemDef != null) {
+//			return itemDef.getName();
+//		} else {
+//			return null;
+//		}
+//	}
 
 	//endregion
 
@@ -1092,8 +1117,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		}
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
-				PrismSchema schema = desc.getSchema();
-				return schema;
+				return desc.getSchema();
 			}
 		}
 		return null;

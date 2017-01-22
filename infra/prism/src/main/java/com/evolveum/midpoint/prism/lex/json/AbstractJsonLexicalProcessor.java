@@ -59,9 +59,10 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractJsonLexicalProcessor.class);
 	
-	static final String PROP_NAMESPACE = "@ns";
-	static final String PROP_TYPE = "@type";
-	static final String PROP_VALUE = "@value";
+	private static final String PROP_NAMESPACE = "@ns";
+	private static final String PROP_TYPE = "@type";
+	private static final String PROP_ELEMENT = "@element";
+	private static final String PROP_VALUE = "@value";
 
 	//region Parsing implementation
 
@@ -85,7 +86,6 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
 	}
 
-	protected abstract JsonParser createJacksonParser(String dataString) throws SchemaException;
     protected abstract JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException;
 
 	class JsonParsingContext {
@@ -96,6 +96,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		// Entries that should be skipped when filling-in default namespaces - those that are explicitly set with no-NS ('#name').
 		// (Values for these entries are not important. Only key presence is relevant.)
 		@NotNull final IdentityHashMap<Entry<QName,XNode>, Object> noNamespaceEntries = new IdentityHashMap<>();
+		@NotNull final IdentityHashMap<XNode, Object> noNamespaceElementNames = new IdentityHashMap<>();
 		JsonParsingContext(@NotNull JsonParser parser, @NotNull ParsingContext prismParsingContext) {
 			this.parser = parser;
 			this.prismParsingContext = prismParsingContext;
@@ -147,10 +148,23 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 				}
 				processDefaultNamespaces(subnode, currentDefault, ctx);
 			}
-		} else if (xnode instanceof ListXNode) {
-			for (XNode item : (ListXNode) xnode) {
-				processDefaultNamespaces(item, parentDefault, ctx);
+			qualifyElementNameIfNeeded(map, currentDefault, ctx);
+		} else {
+			qualifyElementNameIfNeeded(xnode, parentDefault, ctx);
+			if (xnode instanceof ListXNode) {
+				for (XNode item : (ListXNode) xnode) {
+					processDefaultNamespaces(item, parentDefault, ctx);
+				}
 			}
+		}
+	}
+
+	private void qualifyElementNameIfNeeded(XNode node, String namespace, JsonParsingContext ctx) {
+		if (node.getElementName() != null
+				&& QNameUtil.noNamespace(node.getElementName())
+				&& StringUtils.isNotEmpty(namespace)
+				&& !ctx.noNamespaceElementNames.containsKey(node)) {
+			node.setElementName(new QName(namespace, node.getElementName().getLocalPart()));
 		}
 	}
 
@@ -212,13 +226,14 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	}
 
 	/**
-	 * Normally returns a MapXNode. However, JSON primitives can be simulated by two-member object (@type + @value); in these cases we return PrimitiveXNode.
+	 * Normally returns a MapXNode. However, JSON primitives/lists can be simulated by two-member object (@type + @value); in these cases we return respective XNode.
 	 */
 	@NotNull
 	private XNode parseJsonObject(JsonParsingContext ctx) throws SchemaException, IOException {
 		Validate.notNull(ctx.parser.currentToken());
 
 		QName typeName = null;
+		QNameUtil.QNameInfo elementNameInfo = null;
 
 		Object tid = ctx.parser.getTypeId();
 		if (tid != null) {
@@ -226,7 +241,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 
 		final MapXNode map = new MapXNode();
-		PrimitiveXNode<?> primitiveValue = null;
+		XNode explicitValue = null;
 		boolean defaultNamespaceDefined = false;
 		QNameUtil.QNameInfo currentFieldNameInfo = null;
 		for (;;) {
@@ -244,33 +259,29 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 				currentFieldNameInfo = QNameUtil.uriToQNameInfo(newFieldName, true);
 			} else {
 				XNode valueXNode = parseValue(ctx);
+				assert currentFieldNameInfo != null;
 				if (isSpecial(currentFieldNameInfo.name)) {
-					String stringValue;
-					if (!(valueXNode instanceof PrimitiveXNode)) {
-						ctx.prismParsingContext.warnOrThrow(LOGGER, "Value of '" + currentFieldNameInfo + "' attribute must be a primitive one. It is " + valueXNode + " instead. At " + getPositionSuffix(ctx));
-						stringValue = "";
-					} else {
-						stringValue = ((PrimitiveXNode<?>) valueXNode).getStringValue();
-					}
-
 					if (isNamespaceDeclaration(currentFieldNameInfo.name)) {
 						if (defaultNamespaceDefined) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Default namespace defined more than once at " + getPositionSuffix(ctx));
 						}
-						ctx.defaultNamespaces.put(map, stringValue);
+						ctx.defaultNamespaces.put(map, getStringValue(valueXNode, currentFieldNameInfo, ctx));
 						defaultNamespaceDefined = true;
 					} else if (isTypeDeclaration(currentFieldNameInfo.name)) {
 						if (typeName != null) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Value type defined more than once at " + getPositionSuffix(ctx));
 						}
-						typeName = QNameUtil.uriToQName(stringValue, true);
+						typeName = QNameUtil.uriToQName(getStringValue(valueXNode, currentFieldNameInfo, ctx), true);
+					} else if (isElementDeclaration(currentFieldNameInfo.name)) {
+						if (elementNameInfo != null) {
+							ctx.prismParsingContext.warnOrThrow(LOGGER, "Element name defined more than once at " + getPositionSuffix(ctx));
+						}
+						elementNameInfo = QNameUtil.uriToQNameInfo(getStringValue(valueXNode, currentFieldNameInfo, ctx), true);
 					} else if (isValue(currentFieldNameInfo.name)) {
-						if (primitiveValue != null) {
-							ctx.prismParsingContext.warnOrThrow(LOGGER, "Primitive value ('" + PROP_VALUE + "') defined more than once at " + getPositionSuffix(ctx));
+						if (explicitValue != null) {
+							ctx.prismParsingContext.warnOrThrow(LOGGER, "Value ('" + PROP_VALUE + "') defined more than once at " + getPositionSuffix(ctx));
 						}
-						if (valueXNode instanceof PrimitiveXNode) {
-							primitiveValue = (PrimitiveXNode<?>) valueXNode;
-						}
+						explicitValue = valueXNode;
 					}
 				} else {
 					Map.Entry<QName, XNode> entry = map.putReturningEntry(currentFieldNameInfo.name, valueXNode);
@@ -283,29 +294,55 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 		// Return either map or primitive value (in case of @type/@value)
 		XNode rv;
-		if (primitiveValue != null) {
+		if (explicitValue != null) {
 			if (!map.isEmpty()) {
 				ctx.prismParsingContext.warnOrThrow(LOGGER, "Both '" + PROP_VALUE + "' and regular content present at " + getPositionSuffix(ctx));
 				rv = map;
 			} else {
-				rv = primitiveValue;
+				rv = explicitValue;
 			}
 		} else {
 			rv = map;
 		}
+		// TODO beware, explicitValue can have conflicting type/element name info ...
 		if (typeName != null) {
 			rv.setTypeQName(typeName);
 			rv.setExplicitTypeDeclaration(true);
 		}
+		if (elementNameInfo != null) {
+			rv.setElementName(elementNameInfo.name);
+			if (elementNameInfo.explicitEmptyNamespace) {
+				ctx.noNamespaceElementNames.put(rv, null);
+			}
+		}
 		return rv;
 	}
 
+	private String getStringValue(XNode valueXNode, QNameUtil.QNameInfo currentFieldNameInfo,
+			JsonParsingContext ctx) throws SchemaException {
+		String stringValue;
+		if (!(valueXNode instanceof PrimitiveXNode)) {
+			ctx.prismParsingContext.warnOrThrow(LOGGER, "Value of '" + currentFieldNameInfo + "' attribute must be a primitive one. It is " + valueXNode + " instead. At " + getPositionSuffix(ctx));
+			stringValue = "";
+		} else {
+			stringValue = ((PrimitiveXNode<?>) valueXNode).getStringValue();
+		}
+		return stringValue;
+	}
+
 	private boolean isSpecial(QName fieldName) {
-		return isTypeDeclaration(fieldName) || isNamespaceDeclaration(fieldName) || isValue(fieldName);
+		return isTypeDeclaration(fieldName)
+				|| isElementDeclaration(fieldName)
+				|| isNamespaceDeclaration(fieldName)
+				|| isValue(fieldName);
 	}
 
 	private boolean isTypeDeclaration(QName fieldName) {
 		return new QName(PROP_TYPE).equals(fieldName);
+	}
+
+	private boolean isElementDeclaration(QName fieldName) {
+		return new QName(PROP_ELEMENT).equals(fieldName);
 	}
 
 	private boolean isNamespaceDeclaration(QName fieldName) {
@@ -324,6 +361,10 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		Validate.notNull(ctx.parser.currentToken());
 
 		ListXNode list = new ListXNode();
+		Object tid = ctx.parser.getTypeId();
+		if (tid != null) {
+			list.setTypeQName(tagToTypeName(tid, ctx));
+		}
 		for (;;) {
 			JsonToken token = ctx.parser.nextToken();
 			if (token == null) {
@@ -440,32 +481,37 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
 	protected abstract JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException;
 
-	protected abstract void writeExplicitType(QName explicitType, JsonGenerator generator) throws IOException;
-
 	@NotNull
 	@Override
 	public String write(@NotNull RootXNode root, SerializationContext prismSerializationContext) throws SchemaException {
 		StringWriter out = new StringWriter();
 		try ( JsonGenerator generator = createJacksonGenerator(out) ) {
 			JsonSerializationContext ctx = new JsonSerializationContext(generator, prismSerializationContext);
-			serialize(root.toMapXNode(), ctx);				// TODO default namespace
+			serialize(root.toMapXNode(), ctx, false);				// TODO default namespace
 		} catch (IOException ex) {
 			throw new SchemaException("Error during serializing to JSON/YAML: " + ex.getMessage(), ex);
 		}
 		return out.toString();
 	}
 
-	private void serialize(XNode xnode, JsonSerializationContext ctx) throws IOException {
+	private void serialize(XNode xnode, JsonSerializationContext ctx, boolean inValueWrapMode) throws IOException {
 		if (xnode instanceof MapXNode) {
 			serializeFromMap((MapXNode) xnode, ctx);
+		} else if (xnode == null) {
+			serializeFromNull(ctx);
+		} else if (needsValueWrapping(xnode) && !inValueWrapMode) {
+			ctx.generator.writeStartObject();
+			resetInlineTypeIfPossible(ctx);
+			writeAuxiliaryInformation(xnode, ctx);
+			ctx.generator.writeFieldName(PROP_VALUE);
+			serialize(xnode, ctx, true);
+			ctx.generator.writeEndObject();
 		} else if (xnode instanceof ListXNode) {
 			serializeFromList((ListXNode) xnode, ctx);
 		} else if (xnode instanceof PrimitiveXNode) {
 			serializeFromPrimitive((PrimitiveXNode<?>) xnode, ctx);
 		} else if (xnode instanceof SchemaXNode) {
 			serializeFromSchema((SchemaXNode) xnode, ctx);
-		} else if (xnode == null) {
-			serializeFromNull(ctx);
 		} else {
 			throw new UnsupportedOperationException("Cannot serialize from " + xnode);
 		}
@@ -475,12 +521,33 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		ctx.generator.writeNull();
 	}
 
-	private void serializeFromMap(MapXNode map, JsonSerializationContext ctx) throws IOException {
-		ctx.generator.writeStartObject();
-		QName explicitType = getExplicitType(map);
-		if (explicitType != null) {
-			writeExplicitType(explicitType, ctx.generator);
+	private void writeAuxiliaryInformation(XNode xnode, JsonSerializationContext ctx) throws IOException {
+		QName elementName = xnode.getElementName();
+		if (elementName != null) {
+			ctx.generator.writeObjectField(PROP_ELEMENT, elementName);
 		}
+		QName typeName = getExplicitType(xnode);
+		if (typeName != null) {
+			if (!supportsInlineTypes()) {
+				ctx.generator.writeObjectField(PROP_TYPE, typeName);
+			}
+		}
+	}
+
+	private boolean needsValueWrapping(XNode xnode) {
+		return xnode.getElementName() != null
+				|| getExplicitType(xnode) != null && !supportsInlineTypes();
+	}
+
+	protected abstract boolean supportsInlineTypes();
+
+	protected abstract void writeInlineType(QName typeName, JsonSerializationContext ctx) throws IOException;
+
+	private void serializeFromMap(MapXNode map, JsonSerializationContext ctx) throws IOException {
+		writeInlineTypeIfNeeded(map, ctx);
+		ctx.generator.writeStartObject();
+		resetInlineTypeIfPossible(ctx);
+		writeAuxiliaryInformation(map, ctx);
 		String oldDefaultNamespace = ctx.currentNamespace;
 		generateNsDeclarationIfNeeded(map, ctx);
 		for (Entry<QName,XNode> entry : map.entrySet()) {
@@ -488,10 +555,13 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 				continue;
 			}
 			ctx.generator.writeFieldName(createKeyUri(entry, ctx));
-			serialize(entry.getValue(), ctx);
+			serialize(entry.getValue(), ctx, false);
 		}
 		ctx.generator.writeEndObject();
 		ctx.currentNamespace = oldDefaultNamespace;
+	}
+
+	protected void resetInlineTypeIfPossible(JsonSerializationContext ctx) {
 	}
 
 	private void generateNsDeclarationIfNeeded(MapXNode map, JsonSerializationContext ctx) throws IOException {
@@ -554,21 +624,30 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	}
 
 	private void serializeFromList(ListXNode list, JsonSerializationContext ctx) throws IOException {
+		writeInlineTypeIfNeeded(list, ctx);
 		ctx.generator.writeStartArray();
+		resetInlineTypeIfPossible(ctx);
 		for (XNode item : list) {
-			serialize(item, ctx);
+			serialize(item, ctx, false);
 		}
 		ctx.generator.writeEndArray();
 	}
 
-	protected abstract <T> void serializeFromPrimitive(PrimitiveXNode<T> primitive, JsonSerializationContext ctx) throws IOException;
+	private void writeInlineTypeIfNeeded(XNode node, JsonSerializationContext ctx) throws IOException {
+		QName explicitType = getExplicitType(node);
+		if (supportsInlineTypes() && explicitType != null) {
+			writeInlineType(explicitType, ctx);
+		}
+	}
 
 	private void serializeFromSchema(SchemaXNode node, JsonSerializationContext ctx) throws IOException {
+		writeInlineTypeIfNeeded(node, ctx);
 		ctx.generator.writeObject(node.getSchemaElement());
 	}
 
 
-	<T> void serializePrimitiveTypeLessValue(PrimitiveXNode<T> primitive, JsonSerializationContext ctx) throws IOException {
+	private <T> void serializeFromPrimitive(PrimitiveXNode<T> primitive, JsonSerializationContext ctx) throws IOException {
+		writeInlineTypeIfNeeded(primitive, ctx);
 		if (primitive.isParsed()) {
 			ctx.generator.writeObject(primitive.getValue());
 		} else {

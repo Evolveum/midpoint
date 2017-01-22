@@ -207,6 +207,13 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 		return refinedResourceSchema.findTypeDefinitionByType(typeName, definitionClass);
 	}
 
+	@NotNull
+	@Override
+	public <TD extends TypeDefinition> Collection<? extends TD> findTypeDefinitionsByType(@NotNull QName typeName,
+			@NotNull Class<TD> definitionClass) {
+		return refinedResourceSchema.findTypeDefinitionsByType(typeName, definitionClass);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

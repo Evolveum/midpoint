@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,19 +77,23 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	<TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass);
 
+	@NotNull
+	<TD extends TypeDefinition> Collection<? extends TD> findTypeDefinitionsByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass);
+
 	// non-core (derived) methods
 
+	@NotNull
+	default Collection<? extends TypeDefinition> findTypeDefinitionsByType(@NotNull QName typeName) {
+		return findTypeDefinitionsByType(typeName, TypeDefinition.class);
+	}
+
+	@NotNull
+	default List<ItemDefinition> findItemDefinitionsByElementName(@NotNull QName elementName) {
+		return findItemDefinitionsByElementName(elementName, ItemDefinition.class);
+	}
+
 	default <ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass) {
-		List<ID> definitions = findItemDefinitionsByElementName(elementName, definitionClass);
-		if (definitions.isEmpty()) {
-			return null;
-		} else if (definitions.size() == 1) {
-			return definitions.get(0);
-		} else {
-			// TODO or filter out deprecated? Quietly return the first one?
-			throw new IllegalArgumentException("Multiple definitions for " + elementName + " found: " +
-					definitions.stream().map(ItemDefinition::getName).collect(Collectors.toList()));
-		}
+		return DefinitionStoreUtils.getOne(findItemDefinitionsByElementName(elementName, definitionClass));
 	}
 
 	default <ID extends ItemDefinition> ID findItemDefinitionByCompileTimeClass(
