@@ -676,4 +676,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return new CompositeRefinedObjectClassDefinitionImpl(structuralClone, auxiliaryClones);
 	}
 
+	@Override
+	public boolean isListMarker() {
+		return structuralObjectClassDefinition.isListMarker();
+	}
 }

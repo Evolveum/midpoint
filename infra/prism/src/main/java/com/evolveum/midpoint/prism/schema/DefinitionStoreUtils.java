@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.schema;
 
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 
 import java.util.List;
@@ -25,7 +26,25 @@ import java.util.stream.Collectors;
  * @author mederly
  */
 public class DefinitionStoreUtils {
-	public static <ID extends ItemDefinition> ID getOne(List<ID> list) {
+	public static <D extends Definition> D getOne(List<D> list) {
+		if (list.isEmpty()) {
+			return null;
+		} else if (list.size() == 1) {
+			return list.get(0);
+		} else {
+			// consider not deprecated ones
+			List<D> notDeprecated = list.stream()
+					.filter(def -> !def.isDeprecated())
+					.collect(Collectors.toList());
+			if (notDeprecated.size() == 1) {
+				return notDeprecated.get(0);
+			} else {
+				throw new IllegalStateException("More than one definition found: " + list);
+			}
+		}
+	}
+
+	public static <ID extends ItemDefinition> ID getOne(List<ID> list, boolean exceptionIfAmbiguous, String message) {
 		if (list.isEmpty()) {
 			return null;
 		} else if (list.size() == 1) {
@@ -38,7 +57,12 @@ public class DefinitionStoreUtils {
 			if (notDeprecated.size() == 1) {
 				return notDeprecated.get(0);
 			} else {
-				throw new IllegalStateException("More than one definition found: " + list);
+				if (exceptionIfAmbiguous) {
+					throw new IllegalArgumentException(message + ": " +
+							list.stream().map(ItemDefinition::getName).collect(Collectors.toList()));
+				} else {
+					return null;
+				}
 			}
 		}
 	}

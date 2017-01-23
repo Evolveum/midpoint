@@ -46,14 +46,14 @@ public class PrismSchemaImpl implements PrismSchema {
 	//private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
 	
 	@NotNull protected final Collection<Definition> definitions = new ArrayList<>();
-	protected String namespace;
+	protected String namespace;			// may be null if not properly initialized
 	protected PrismContext prismContext;
 
 	protected PrismSchemaImpl(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
 	
-	public PrismSchemaImpl(String namespace, PrismContext prismContext) {
+	public PrismSchemaImpl(@NotNull String namespace, PrismContext prismContext) {
 		if (StringUtils.isEmpty(namespace)) {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
 		}
@@ -67,7 +67,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		return namespace;
 	}
 
-	public void setNamespace(String namespace) {
+	public void setNamespace(@NotNull String namespace) {
 		this.namespace = namespace;
 	}
 
@@ -408,13 +408,18 @@ public class PrismSchemaImpl implements PrismSchema {
 	@Nullable
 	@Override
 	public <TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
-		// TODO: check for multiple definition with the same type
-		for (Definition definition : definitions) {
-			if (definitionClass.isAssignableFrom(definition.getClass()) && QNameUtil.match(typeName, definition.getTypeName())) {
-				return (TD) definition;
-			}
-		}
-		return null;
+		Collection<TD> definitions = findTypeDefinitionsByType(typeName, definitionClass);
+		return !definitions.isEmpty() ?
+				definitions.iterator().next() : null;		// TODO treat multiple results somehow
+	}
+
+	@NotNull
+	@Override
+	@SuppressWarnings("unchecked")
+	public <TD extends TypeDefinition> Collection<TD> findTypeDefinitionsByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
+		return (List) definitions.stream()
+				.filter(def -> definitionClass.isAssignableFrom(def.getClass()) && QNameUtil.match(typeName, def.getTypeName()))
+				.collect(Collectors.toList());
 	}
 
 	@Nullable

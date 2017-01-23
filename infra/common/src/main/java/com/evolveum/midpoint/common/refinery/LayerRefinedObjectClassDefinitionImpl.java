@@ -380,7 +380,12 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.isXsdAnyMarker();
 	}
 
-    @Override
+	@Override
+	public boolean isListMarker() {
+		return refinedObjectClassDefinition.isListMarker();
+	}
+
+	@Override
 	public QName getSuperType() {
 		return refinedObjectClassDefinition.getSuperType();
 	}

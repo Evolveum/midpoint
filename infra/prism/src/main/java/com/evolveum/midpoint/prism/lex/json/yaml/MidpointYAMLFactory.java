@@ -25,12 +25,12 @@ public class MidpointYAMLFactory extends YAMLFactory {
 
 	@SuppressWarnings("resource")
 	@Override
-	protected MidpointYAMLParser _createParser(InputStream in, IOContext ctxt) throws IOException, JsonParseException {
+	protected MidpointYAMLParser _createParser(InputStream in, IOContext ctxt) throws IOException {
 		return _createParser(_createReader(in, null, ctxt), ctxt);
 	}
 
 	@Override
-	protected MidpointYAMLParser _createParser(Reader r, IOContext ctxt) throws IOException, JsonParseException {
+	protected MidpointYAMLParser _createParser(Reader r, IOContext ctxt) throws IOException {
 		MidpointYAMLParser p = new MidpointYAMLParser(ctxt, _getBufferRecycler(), _parserFeatures, _yamlParserFeatures, _objectCodec, r);
 		p.enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
 		return p;

@@ -443,21 +443,4 @@ public final class PrismForJAXBUtil {
         }
     }
 
-    private static DomLexicalProcessor getDomParser(PrismValue pval) {
-		PrismContext prismContext = pval.getPrismContext();
-		if (prismContext != null) {
-			return ((PrismContextImpl) prismContext).getParserDom();
-		} else {
-			DomLexicalProcessor parser = new DomLexicalProcessor(null);
-			return parser;
-		}
-	}
-
-    public static <T extends ObjectType> T createTargetInstance(PrismReferenceValue value) {
-        try {
-            return (T) value.getTargetTypeCompileTimeClass().newInstance();
-        } catch (InstantiationException|IllegalAccessException e) {
-            throw new SystemException("Cannot instantiate item: " + e.getMessage(), e);
-        }
-    }
 }

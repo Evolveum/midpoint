@@ -23,14 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -55,6 +49,7 @@ import com.sun.org.apache.xml.internal.utils.XMLChar;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
@@ -88,6 +83,9 @@ public class DOMUtil {
 	public static final QName XML_ID_ATTRIBUTE = new QName(W3C_XML_XML_URI, "id", W3C_XML_XML_PREFIX);
 
     public static final String HACKED_XSI_TYPE = "xsiType";
+	public static final String IS_LIST_ATTRIBUTE_NAME = "list";
+	private static final List<String> AUXILIARY_ATTRIBUTE_NAMES = Arrays.asList(HACKED_XSI_TYPE, IS_LIST_ATTRIBUTE_NAME);
+	private static final List<String> AUXILIARY_NAMESPACES = Arrays.asList(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_XML_URI, W3C_XML_SCHEMA_INSTANCE_NS_URI);
 
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
@@ -157,7 +155,7 @@ public class DOMUtil {
 			NS_WSDL_SCHEMA_PREFIX);
 	public static final QName WSDL_ATTR_LOCATION = new QName(NS_WSDL, "location",
 			NS_WSDL_SCHEMA_PREFIX);
-	
+
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	private static final int RANDOM_ATTR_PREFIX_MAX_ITERATIONS = 30;
@@ -419,8 +417,9 @@ public class DOMUtil {
 		return elements;
 	}
 
+	@NotNull
 	public static List<Element> listChildElements(Node node) {
-		List<Element> subelements = new ArrayList<Element>();
+		List<Element> subelements = new ArrayList<>();
 		NodeList childNodes = node.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node childNode = childNodes.item(i);
@@ -869,7 +868,7 @@ public class DOMUtil {
 	}
 
 	public static Collection<Attr> listApplicationAttributes(Element element) {
-		Collection<Attr> attrs = new ArrayList<Attr>();
+		Collection<Attr> attrs = new ArrayList<>();
 		NamedNodeMap attributes = element.getAttributes();
 		for(int i=0; i<attributes.getLength(); i++) {
 			Attr attr = (Attr)attributes.item(i);
@@ -894,22 +893,11 @@ public class DOMUtil {
 
 	private static boolean isApplicationAttribute(Attr attr) {
 		String namespaceURI = attr.getNamespaceURI();
-        if (StringUtils.isEmpty(attr.getNamespaceURI()) && HACKED_XSI_TYPE.equals(attr.getName())) {
-            return false;
-        }
-		if (namespaceURI == null) {
-			return true;
+        if (StringUtils.isEmpty(namespaceURI)) {
+			return !AUXILIARY_ATTRIBUTE_NAMES.contains(attr.getName());
+		} else {
+        	return !AUXILIARY_NAMESPACES.contains(namespaceURI);
 		}
-		if (W3C_XML_SCHEMA_XMLNS_URI.equals(namespaceURI)) {
-			return false;
-		}
-		if (W3C_XML_XML_URI.equals(namespaceURI)) {
-			return false;
-		}
-		if (W3C_XML_SCHEMA_INSTANCE_NS_URI.equals(namespaceURI)) {
-			return false;
-		}
-		return true;
 	}
 
 	private static boolean comparePrefix(String prefixA, String prefixB) {
@@ -953,6 +941,16 @@ public class DOMUtil {
 		element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
 		parentElement.insertBefore(element, getFirstChildElement(parentElement));
 		return element;
+	}
+
+	@NotNull
+	public static QName getQName(Element element) {
+		QName name = getQName((Node) element);
+		if (name == null) {
+			throw new IllegalStateException("Element with no name: " + element);
+		} else {
+			return name;
+		}
 	}
 
 	public static QName getQName(Node node) {

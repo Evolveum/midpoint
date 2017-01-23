@@ -1,0 +1,23 @@
+---
+pipeline:
+- '@element': "sequence"
+  '@value':
+  - '@element': "search"
+    type: "RoleType"
+    searchFilter:
+      equal:
+        path: "name"
+        value: "AAAAA"
+  - '@element': "action"
+    type: "log"
+- '@element': "sequence"
+  '@value':
+  - '@element': "action"
+    type: "delete"
+  - '@element': "action"
+    type: "assign"
+    parameter:
+      name: "role"
+      value: "rome555c-7797-11e2-94a6-001e8c717e5b"
+  - '@element': "search"
+    type: "UserType"

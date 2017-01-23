@@ -20,12 +20,12 @@ import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.lex.LexicalUtils;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -56,11 +57,10 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	public static final Trace LOGGER = TraceManager.getTrace(DomLexicalProcessor.class);
 
 	private static final QName SCHEMA_ELEMENT_QNAME = DOMUtil.XSD_SCHEMA_ELEMENT;
-	
-	private SchemaRegistry schemaRegistry;
 
-	public DomLexicalProcessor(SchemaRegistry schemaRegistry) {
-		super();
+	@NotNull private final SchemaRegistry schemaRegistry;
+
+	public DomLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
 		this.schemaRegistry = schemaRegistry;
 	}
 	
@@ -123,7 +123,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	public RootXNode read(Element rootElement) throws SchemaException{
 		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
 		extractCommonMetadata(rootElement, xroot);
-		XNode xnode = parseElementContent(rootElement);
+		XNode xnode = parseElementContent(rootElement, false);
 		xroot.setSubnode(xnode);
 		return xroot;
 	}
@@ -154,50 +154,48 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		if (StringUtils.isNumeric(maxOccursString)) {
 			return Integer.valueOf(maxOccursString);
 		} else {
-			throw new SchemaException("Expecetd numeric value for " + PrismConstants.A_MAX_OCCURS.getLocalPart()
+			throw new SchemaException("Expected numeric value for " + PrismConstants.A_MAX_OCCURS.getLocalPart()
 					+ " attribute on " + DOMUtil.getQName(element) + " but got " + maxOccursString);
 		}
 	}
 
 	/**
-	 * Parses the element into a RootXNode. 
-	 */
-	public RootXNode parseElementAsRoot(Element element) throws SchemaException {
-		RootXNode xroot = new RootXNode(DOMUtil.getQName(element));
-		extractCommonMetadata(element, xroot);
-		xroot.setSubnode(parseElementContent(element));
-		return xroot;
-	}
-	
-	/**
-	 * Parses the element in a single-entry MapXNode. 
-	 */
-	public MapXNode parseElementAsMap(Element element) throws SchemaException {
-		MapXNode xmap = new MapXNode();
-		extractCommonMetadata(element, xmap);
-		xmap.put(DOMUtil.getQName(element), parseElementContent(element));
-		return xmap;
-	}
-	
-	/**
-	 * Parses the content of the element (the name of the provided element is ignored, only the content is parsed).
+	 * Parses the content of the element (the name of the provided element is ignored (unless storeElementName=true),
+	 * only the content is parsed).
 	 */
 	@Nullable
-	public XNode parseElementContent(Element element) throws SchemaException {
-		if (DOMUtil.isNil(element)) {
+	private XNode parseElementContent(Element element, boolean storeElementName) throws SchemaException {
+		if (DOMUtil.isNil(element)) {		// TODO: ok?
 			return null;
 		}
+		XNode node;
 		if (DOMUtil.hasChildElements(element) || DOMUtil.hasApplicationAttributes(element)) {
-			return parseSubElemets(element);
+			if (isList(element)) {
+				node = parseElementContentToList(element);
+			} else {
+				node = parseElementContentToMap(element);
+			}
 		} else {
-			return parsePrimitiveElement(element);
+			node = parsePrimitiveElement(element);
 		}
+		if (storeElementName) {
+			node.setElementName(DOMUtil.getQName(element));
+		}
+		extractCommonMetadata(element, node);
+		return node;
 	}
 
-	private MapXNode parseSubElemets(Element element) throws SchemaException {
+	// all the sub-elements should be compatible (this is not enforced here, however)
+	private ListXNode parseElementContentToList(Element element) throws SchemaException {
+		if (DOMUtil.hasApplicationAttributes(element)) {
+			throw new SchemaException("List should have no application attributes: " + element);
+		}
+		return parseElementList(DOMUtil.listChildElements(element), true);
+	}
+
+	private MapXNode parseElementContentToMap(Element element) throws SchemaException {
 		MapXNode xmap = new MapXNode();
-		extractCommonMetadata(element, xmap);
-		
+
 		// Attributes
 		for (Attr attr: DOMUtil.listApplicationAttributes(element)) {
 			QName attrQName = DOMUtil.getQName(attr);
@@ -205,29 +203,106 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 			xmap.put(attrQName, subnode);
 		}
 
-		// Subelements
+		// Sub-elements
 		QName lastElementQName = null;
 		List<Element> lastElements = null;
 		for (Element childElement: DOMUtil.listChildElements(element)) {
 			QName childQName = DOMUtil.getQName(childElement);
-			if (childQName == null) {
-				throw new IllegalArgumentException("Null qname in element "+childElement+", subelement of "+element);
-			}
-			if (childQName.equals(lastElementQName)) {
+			if (match(childQName, lastElementQName)) {
 				lastElements.add(childElement);
 			} else {
-				parseElementGroup(xmap, lastElementQName, lastElements);
+				parseSubElementsGroupAsMapEntry(xmap, lastElementQName, lastElements);
 				lastElementQName = childQName;
-				lastElements = new ArrayList<Element>();
+				lastElements = new ArrayList<>();
 				lastElements.add(childElement);
 			}
 		}
-		parseElementGroup(xmap, lastElementQName, lastElements);
-				
+		parseSubElementsGroupAsMapEntry(xmap, lastElementQName, lastElements);
 		return xmap;
 	}
-	
-	private void parseElementGroup(MapXNode xmap, QName elementQName, List<Element> elements) throws SchemaException {
+
+	private boolean isList(Element element) throws SchemaException {
+		String isListAttribute = DOMUtil.getAttribute(element, new QName(DOMUtil.IS_LIST_ATTRIBUTE_NAME));
+		if (StringUtils.isNotEmpty(isListAttribute)) {
+			return Boolean.valueOf(isListAttribute);
+		}
+		// enable this after schema registry is optional (now it's mandatory)
+//		if (schemaRegistry == null) {
+//			return false;
+//		}
+
+		// checking parent element fitness
+		QName typeName = DOMUtil.resolveXsiType(element);
+		if (typeName != null) {
+			Collection<? extends ComplexTypeDefinition> definitions = schemaRegistry
+					.findTypeDefinitionsByType(typeName, ComplexTypeDefinition.class);
+			if (definitions.isEmpty()) {
+				return false;	// to be safe (we support this heuristic only for known types)
+			}
+			if (QNameUtil.hasNamespace(typeName)) {
+				assert definitions.size() <= 1;
+				return definitions.iterator().next().isListMarker();
+			} else {
+				if (definitions.stream().allMatch(ComplexTypeDefinition::isListMarker)) {
+					// great -- we are very probably OK -- so let's continue
+				} else {
+					return false;	// sorry, there's a possibility of failure
+				}
+			}
+		} else {	// typeName == null
+			Collection<? extends ComplexTypeDefinition> definitions =
+					schemaRegistry.findTypeDefinitionsByElementName(DOMUtil.getQName(element), ComplexTypeDefinition.class);
+			// TODO - or allMatch here? - allMatch would mean that if there's an extension (or resource item) with a name
+			// of e.g. formItems, pipeline, sequence, ... - it would not be recognizable as list=true anymore. That's why
+			// we will use anyMatch here.
+			if (definitions.stream().anyMatch(ComplexTypeDefinition::isListMarker)) {
+				// we are very hopefully OK -- so let's continue
+			} else {
+				return false;
+			}
+		}
+
+		// checking the content
+		if (DOMUtil.hasApplicationAttributes(element)) {
+			return false;		// TODO - or should we fail in this case?
+		}
+		//System.out.println("Elements are compatible: " + DOMUtil.listChildElements(element) + ": " + rv);
+		return elementsAreCompatible(DOMUtil.listChildElements(element));
+	}
+
+	private boolean elementsAreCompatible(List<Element> elements) {
+		QName unified = null;
+		for (Element element : elements) {
+			QName root = getHierarchyRoot(DOMUtil.getQName(element));
+			if (unified == null) {
+				unified = root;
+			} else if (!QNameUtil.match(unified, root)) {
+				return false;
+			} else if (QNameUtil.noNamespace(unified) && QNameUtil.hasNamespace(root)) {
+				unified = root;
+			}
+		}
+		return true;
+	}
+
+	private QName getHierarchyRoot(QName name) {
+		ItemDefinition def = schemaRegistry.findItemDefinitionByElementName(name);
+		if (def == null || !def.isHeterogeneousListItem()) {
+			return name;
+		} else {
+			return def.getSubstitutionHead();
+		}
+	}
+
+	private boolean match(QName name, QName existing) {
+		if (existing == null) {
+			return false;
+		} else {
+			return QNameUtil.match(name, existing);
+		}
+	}
+
+	private void parseSubElementsGroupAsMapEntry(MapXNode xmap, QName elementQName, List<Element> elements) throws SchemaException {
 		if (elements == null || elements.isEmpty()) {
 			return;
 		}
@@ -241,20 +316,21 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 				throw new SchemaException("Too many schema elements");
 			}
 		} else if (elements.size() == 1) {
-			xsub = parseElementContent(elements.get(0));
+			xsub = parseElementContent(elements.get(0), false);
 		} else {
-			xsub = parseElementList(elements); 
+			xsub = parseElementList(elements, false);
 		}
 		xmap.merge(elementQName, xsub);
 	}
 
 	/**
-	 * Parses elements that all have the same element name. 
+	 * Parses elements that should form the list (either they have the same element name, or they are
+	 * stored as a sub-elements of "list" parent element).
 	 */
-	private ListXNode parseElementList(List<Element> elements) throws SchemaException {
+	private ListXNode parseElementList(List<Element> elements, boolean storeElementNames) throws SchemaException {
 		ListXNode xlist = new ListXNode();
 		for (Element element: elements) {
-			XNode xnode = parseElementContent(element);
+			XNode xnode = parseElementContent(element, storeElementNames);
 			xlist.add(xnode);
 		}
 		return xlist;
@@ -327,7 +403,6 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
 	private <T> PrimitiveXNode<T> parsePrimitiveElement(final Element element) throws SchemaException {
 		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
-		extractCommonMetadata(element, xnode);
 		xnode.setValueParser(new PrimitiveValueParser<T>(element));
 		return xnode;
 	}
@@ -418,7 +493,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	@NotNull
 	@Override
 	public String write(@NotNull XNode xnode, @NotNull QName rootElementName, SerializationContext serializationContext) throws SchemaException {
-		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
+		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		RootXNode xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
 		Element element = serializer.serialize(xroot);
 		return DOMUtil.serializeDOMToString(element);
@@ -427,30 +502,30 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	@NotNull
 	@Override
 	public String write(@NotNull RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
-		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
+		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		Element element = serializer.serialize(xnode);
 		return DOMUtil.serializeDOMToString(element);
 	}
 	
 	public Element serializeUnderElement(XNode xnode, QName rootElementName, Element parentElement) throws SchemaException {
-		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
+		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		RootXNode xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
 		return serializer.serializeUnderElement(xroot, parentElement);
 	}
 
     public Element serializeXMapToElement(MapXNode xmap, QName elementName) throws SchemaException {
-		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
+		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		return serializer.serializeToElement(xmap, elementName);
 	}
 
 	private Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
-		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
+		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		return serializer.serializeXPrimitiveToElement(xprim, elementName);
 	}
 
 	@NotNull
 	public Element writeXRootToElement(@NotNull RootXNode xroot) throws SchemaException {
-		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
+		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		return serializer.serialize(xroot);
 	}
 

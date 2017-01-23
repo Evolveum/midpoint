@@ -3563,7 +3563,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			throws SchemaException, IOException {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(file, QueryType.COMPLEX_TYPE);
 
-		LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType));
+		LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType, prismContext));
 
 		ObjectQuery query = null;
 		try {

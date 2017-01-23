@@ -183,7 +183,7 @@ public class ScriptingExpressionEvaluator {
     }
 
     public Data evaluateExpression(JAXBElement<? extends ScriptingExpressionType> expression, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
-        return evaluateExpression((ScriptingExpressionType) expression.getValue(), input, context, parentResult);
+        return evaluateExpression(expression.getValue(), input, context, parentResult);
     }
 
     public Data evaluateExpression(ScriptingExpressionType value, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
@@ -240,7 +240,7 @@ public class ScriptingExpressionEvaluator {
     }
 
     private Data executePipeline(ExpressionPipelineType pipeline, Data data, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        for (ScriptingExpressionType expressionType : pipeline.getExpression()) {
+        for (JAXBElement<? extends ScriptingExpressionType> expressionType : pipeline.getScriptingExpression()) {
             data = evaluateExpression(expressionType, data, context, result);
         }
         return data;
@@ -248,7 +248,7 @@ public class ScriptingExpressionEvaluator {
 
     private Data executeSequence(ExpressionSequenceType sequence, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         Data lastOutput = null;
-        for (ScriptingExpressionType expressionType : sequence.getExpression()) {
+        for (JAXBElement<? extends ScriptingExpressionType> expressionType : sequence.getScriptingExpression()) {
             lastOutput = evaluateExpression(expressionType, input, context, result);
         }
         return lastOutput;

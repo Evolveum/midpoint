@@ -62,9 +62,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	private String originDescription;
 	private int lineNumber;
 	
-	// These may be detected in parsed file and
-	// are also used for serialization
+	// These may be detected in parsed file and are also used for serialization
 	protected QName typeQName;
+	protected QName elementName;							// Filled if and only if this is a member of heterogeneous list.
 	protected Integer maxOccurs;
 
     // a comment that could be stored into formats that support these (e.g. XML or YAML)
@@ -116,6 +116,14 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 
 	public void setTypeQName(QName typeQName) {
 		this.typeQName = typeQName;
+	}
+
+	public QName getElementName() {
+		return elementName;
+	}
+
+	public void setElementName(QName elementName) {
+		this.elementName = elementName;
 	}
 
 	public Integer getMaxOccurs() {
@@ -196,6 +204,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	
 	protected String dumpSuffix() {
 		StringBuilder sb = new StringBuilder();
+		if (elementName != null) {
+			sb.append(" element=").append(elementName);
+		}
 		if (typeQName != null) {
 			sb.append(" type=").append(typeQName);
 		}
@@ -208,5 +219,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	// overriden in RootXNode
 	public RootXNode toRootXNode() {
 		return new RootXNode(XNode.DUMMY_NAME, this);
+	}
+
+	public boolean isHeterogeneousList() {
+		return false;
 	}
 }

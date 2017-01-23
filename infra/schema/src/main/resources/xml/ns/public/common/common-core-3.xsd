@@ -9368,7 +9368,7 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="CertificationPolicyActionType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -10688,7 +10688,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -13807,7 +13807,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:formItem" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="formItems" type="tns:FormItemsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         List of form items.
@@ -13816,6 +13816,20 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+	<xsd:complexType name="FormItemsType">
+		<xsd:sequence>
+			<xsd:element ref="tns:formItem" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						List of form items.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="list" type="xsd:boolean" use="optional" />
+	</xsd:complexType>
+	<xsd:element name="formItems" type="tns:FormItemsType" />
 
     <xsd:complexType name="AbstractDisplayType" abstract="true">
         <xsd:sequence>
@@ -13903,7 +13917,7 @@
             <!-- TODO: condition -->
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="formItem" type="tns:AbstractFormItemType" />
+    <xsd:element name="formItem" type="tns:AbstractFormItemType" abstract="true" />
 
     <xsd:complexType name="FormItemValidationType">
         <xsd:sequence>
@@ -13959,7 +13973,13 @@
         displayed value to real value -->
 
     </xsd:complexType>
-    <xsd:element name="formField" type="tns:FormFieldType" substitutionGroup="tns:formItem" />
+    <xsd:element name="formField" type="tns:FormFieldType" substitutionGroup="c:formItem">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:heterogeneousListItem/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
 
     <xsd:complexType name="FormFieldGroupType">
         <xsd:annotation>
@@ -13968,7 +13988,7 @@
                     A group of fields. The group is rendered in a such a way that it will be obvious
                     that the fields belong together and form a a logical group (e.g. by using box
                     with a border). This can be used to display value of complex containers.
-                    But it may also be used to visualy group together a set of
+                    But it may also be used to visually group together a set of
                     related properties that are not in the same container.
                 </p>
                 <p>
@@ -13988,7 +14008,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractFormItemType">
                 <xsd:sequence>
-                    <xsd:element ref="tns:formItem" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="formItems" type="tns:FormItemsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 List of group subitems.
@@ -13999,7 +14019,13 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="formFieldGroup" type="tns:FormFieldGroupType" substitutionGroup="tns:formItem" />
+	<xsd:element name="formFieldGroup" type="tns:FormFieldGroupType" substitutionGroup="tns:formItem">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:heterogeneousListItem/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
 
     <xsd:complexType name="ObjectTreeDeltasType">
         <xsd:annotation>
@@ -14493,7 +14519,7 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:complexType name="DeploymentInformationType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -14537,7 +14563,7 @@
 						The color can be used as a form of easy look and feel customization to match the
 						customer corporate identity. But perhaps more often the color will be used to
 						distinguish different midPoint environments in the same organization, e.g.
-						green color for devel environment, blue color for testing, etc. 
+						green color for devel environment, blue color for testing, etc.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -14555,7 +14581,7 @@
 					<xsd:documentation>
 						Short name of the organization that is end user of the midPoint deployment.
 						It is supposed to be a company name, such as "ExAmPLE, Inc."
-						It will be displayed together with subscription information. 
+						It will be displayed together with subscription information.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -14563,7 +14589,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						URL of the customer web site. It will be used as a link target in case
-						that the customer name is displayed as hyperlink. 
+						that the customer name is displayed as hyperlink.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -14573,7 +14599,7 @@
 						Short name of the organization that deployed this midPoint instance.
 						It is usually the name of Evolveum partner.
 						It is supposed to be a company name, such as "ExAmPLE, Inc."
-						It will be displayed together with subscription information. 
+						It will be displayed together with subscription information.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -14581,7 +14607,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						URL of the partner web site. It will be used as a link target in case
-						that the partner name is displayed as hyperlink. 
+						that the partner name is displayed as hyperlink.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

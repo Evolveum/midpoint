@@ -122,6 +122,19 @@ public class QNameUtil {
 		}
 	}
 
+	// returns null if no change is requested
+	public static String qualifyUriIfNeeded(String uri, String namespace) {
+		if (StringUtils.isEmpty(namespace) || StringUtils.isEmpty(uri)) {
+			return null;
+		}
+		QNameInfo info = uriToQNameInfo(uri, true);
+		if (hasNamespace(info.name) || info.explicitEmptyNamespace) {
+			return null;
+		} else {
+			return qNameToUri(new QName(namespace, info.name.getLocalPart()));
+		}
+	}
+
 	public static class QNameInfo {
 		@NotNull public final QName name;
 		public final boolean explicitEmptyNamespace;

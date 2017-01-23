@@ -311,7 +311,7 @@ public class PrismUnmarshaller {
                 itemDefinition.instantiate() :
                 new PrismProperty<>(itemName, prismContext);
 
-        if (node instanceof ListXNode) {
+        if (node instanceof ListXNode && !node.isHeterogeneousList()) {
             ListXNode listNode = (ListXNode) node;
             if (itemDefinition != null && !itemDefinition.isMultiValue() && listNode.size() > 1) {
                 throw new SchemaException("Attempt to store multiple values in single-valued property " + itemName);
@@ -322,7 +322,7 @@ public class PrismUnmarshaller {
                     property.add(pval);
                 }
             }
-        } else if (node instanceof MapXNode || node instanceof PrimitiveXNode) {
+        } else if (node instanceof MapXNode || node instanceof PrimitiveXNode || node.isHeterogeneousList()) {
             PrismPropertyValue<T> pval = parsePropertyValue(node, itemDefinition, pc);
             if (pval != null) {
                 property.add(pval);
