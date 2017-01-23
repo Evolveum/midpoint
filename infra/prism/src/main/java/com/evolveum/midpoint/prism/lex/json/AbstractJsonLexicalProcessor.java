@@ -539,7 +539,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	private void writeAuxiliaryInformation(XNode xnode, JsonSerializationContext ctx) throws IOException {
 		QName elementName = xnode.getElementName();
 		if (elementName != null) {
-			ctx.generator.writeObjectField(PROP_ELEMENT, elementName);
+			ctx.generator.writeObjectField(PROP_ELEMENT, createElementNameUri(elementName, ctx));
 		}
 		QName typeName = getExplicitType(xnode);
 		if (typeName != null) {
@@ -562,9 +562,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		writeInlineTypeIfNeeded(map, ctx);
 		ctx.generator.writeStartObject();
 		resetInlineTypeIfPossible(ctx);
-		writeAuxiliaryInformation(map, ctx);
 		String oldDefaultNamespace = ctx.currentNamespace;
 		generateNsDeclarationIfNeeded(map, ctx);
+		writeAuxiliaryInformation(map, ctx);
 		for (Entry<QName,XNode> entry : map.entrySet()) {
 			if (entry.getValue() == null) {
 				continue;
@@ -602,8 +602,10 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			if (childNs.equals(ctx.currentNamespace)) {
 				return ctx.currentNamespace;					// found existing => continue with it
 			}
-			Integer c = counts.get(childNs);
-			counts.put(childNs, c != null ? c+1 : 1);
+			increaseCounter(counts, childNs);
+		}
+		if (map.getElementName() != null && QNameUtil.hasNamespace(map.getElementName())) {
+			increaseCounter(counts, map.getElementName().getNamespaceURI());
 		}
 		// otherwise, take the URI that occurs the most in the map
 		Entry<String,Integer> max = null;
@@ -615,6 +617,11 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		return max != null ? max.getKey() : null;
 	}
 
+	private void increaseCounter(Map<String, Integer> counts, String childNs) {
+		Integer c = counts.get(childNs);
+		counts.put(childNs, c != null ? c+1 : 1);
+	}
+
 	private String createKeyUri(Entry<QName,XNode> entry, JsonSerializationContext ctx) {
 		QName key = entry.getKey();
 		if (namespaceMatch(ctx.currentNamespace, key.getNamespaceURI())) {
@@ -623,6 +630,14 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			return QNameUtil.qNameToUri(key, true);		// items with no namespace should be written as such (starting with '#')
 		} else {
 			return QNameUtil.qNameToUri(key, false);	// items with no namespace can be written in plain
+		}
+	}
+
+	private String createElementNameUri(QName elementName, JsonSerializationContext ctx) {
+		if (namespaceMatch(ctx.currentNamespace, elementName.getNamespaceURI())) {
+			return elementName.getLocalPart();
+		} else {
+			return QNameUtil.qNameToUri(elementName, StringUtils.isNotEmpty(ctx.currentNamespace));
 		}
 	}
 
