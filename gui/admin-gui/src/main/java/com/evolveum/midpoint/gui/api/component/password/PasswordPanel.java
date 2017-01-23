@@ -68,13 +68,19 @@ public class PasswordPanel extends InputPanel {
     public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean showRemoveButton) {
         super(id);
 
-        initLayout(model, isReadOnly, showRemoveButton);
+        initLayout(model, isReadOnly, model.getObject() == null, showRemoveButton);
+    }
+    
+    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible, boolean showRemoveButton) {
+        super(id);
+
+        initLayout(model, isReadOnly,isInputVisible, showRemoveButton);
     }
 
-    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly, boolean showRemoveButton) {
+    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly, final boolean passwordInputVisble, boolean showRemoveButton) {
     	setOutputMarkupId(true);
 
-    	passwordInputVisble = model.getObject() == null;
+//    	passwordInputVisble = model.getObject() == null;
     	// TODO: remove
 //    	LOGGER.trace("PASSWORD model: {}", model.getObject());
     	

@@ -31,8 +31,10 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -113,11 +115,11 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 		ItemPath path = itemPathType.getItemPath();
 
-		Item item = objectWrapper.getObject().findItem(path);
+		ItemDefinition itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
 		
 		ItemWrapper itemWrapper = null;
 		
-		if (item instanceof PrismContainer) {
+		if (itemDef instanceof PrismContainerDefinition) {
 			itemWrapper = objectWrapper.findContainerWrapper(path);
 		} else {
 			itemWrapper = objectWrapper.findPropertyWrapper(path);
