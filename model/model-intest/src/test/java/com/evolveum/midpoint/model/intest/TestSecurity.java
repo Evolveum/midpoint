@@ -118,6 +118,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 	protected static final File ROLE_READ_JACKS_CAMPAIGNS_FILE = new File(TEST_DIR, "role-read-jacks-campaigns.xml");
 	protected static final String ROLE_READ_JACKS_CAMPAIGNS_OID = "00000000-0000-0000-0000-00000001aa00";
+	
+	protected static final File ROLE_READ_SOME_ROLES_FILE = new File(TEST_DIR, "role-read-some-roles.xml");
+	protected static final String ROLE_READ_SOME_ROLES_OID = "7b4a3880-e167-11e6-b38b-2b6a550a03e7";
 
 	protected static final File ROLE_READONLY_FILE = new File(TEST_DIR, "role-readonly.xml");
 	protected static final String ROLE_READONLY_OID = "00000000-0000-0000-0000-00000000aa01";
@@ -277,6 +280,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_DENY_MODIFY_SOME_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_SOME_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, initResult);
@@ -868,6 +872,44 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
         
         assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-3647
+	 */
+	@Test
+    public void test208AutzJackReadSomeRoles() throws Exception {
+		final String TEST_NAME = "test208AutzJackReadSomeRoles";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READ_SOME_ROLES_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        assertSearch(UserType.class, null, 0);
+        assertSearch(RoleType.class, null, 4);
+        
+        assertGetDeny(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        
+        assertGetDeny(RoleType.class, ROLE_SUPERUSER_OID);
+        assertGetDeny(RoleType.class, ROLE_SELF_OID);
+        assertGetDeny(RoleType.class, ROLE_ASSIGN_APPLICATION_ROLES_OID);
+        
+        assertGetAllow(RoleType.class, ROLE_APPLICATION_1_OID);
+        assertGetAllow(RoleType.class, ROLE_APPLICATION_2_OID);
+        assertGetAllow(RoleType.class, ROLE_BUSINESS_1_OID);
+        assertGetAllow(RoleType.class, ROLE_BUSINESS_2_OID);
         
         assertGlobalStateUntouched();
 	}

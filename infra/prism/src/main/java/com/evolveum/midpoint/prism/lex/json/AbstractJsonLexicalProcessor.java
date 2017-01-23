@@ -241,7 +241,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 
 		final MapXNode map = new MapXNode();
-		XNode explicitValue = null;
+		XNode wrappedValue = null;
 		boolean defaultNamespaceDefined = false;
 		QNameUtil.QNameInfo currentFieldNameInfo = null;
 		for (;;) {
@@ -278,10 +278,10 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 						}
 						elementNameInfo = QNameUtil.uriToQNameInfo(getStringValue(valueXNode, currentFieldNameInfo, ctx), true);
 					} else if (isValue(currentFieldNameInfo.name)) {
-						if (explicitValue != null) {
+						if (wrappedValue != null) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Value ('" + PROP_VALUE + "') defined more than once at " + getPositionSuffix(ctx));
 						}
-						explicitValue = valueXNode;
+						wrappedValue = valueXNode;
 					}
 				} else {
 					Map.Entry<QName, XNode> entry = map.putReturningEntry(currentFieldNameInfo.name, valueXNode);
@@ -294,22 +294,37 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 		// Return either map or primitive value (in case of @type/@value)
 		XNode rv;
-		if (explicitValue != null) {
+		if (wrappedValue != null) {
 			if (!map.isEmpty()) {
 				ctx.prismParsingContext.warnOrThrow(LOGGER, "Both '" + PROP_VALUE + "' and regular content present at " + getPositionSuffix(ctx));
 				rv = map;
 			} else {
-				rv = explicitValue;
+				rv = wrappedValue;
 			}
 		} else {
 			rv = map;
 		}
-		// TODO beware, explicitValue can have conflicting type/element name info ...
 		if (typeName != null) {
+			if (wrappedValue != null && wrappedValue.getTypeQName() != null && !wrappedValue.getTypeQName().equals(typeName)) {
+				ctx.prismParsingContext.warnOrThrow(LOGGER, "Conflicting type names for '" + PROP_VALUE
+						+ "' (" + wrappedValue.getTypeQName() + ") and regular content (" + typeName + ") present at "
+						+ getPositionSuffix(ctx));
+			}
 			rv.setTypeQName(typeName);
 			rv.setExplicitTypeDeclaration(true);
 		}
 		if (elementNameInfo != null) {
+			if (wrappedValue != null && wrappedValue.getElementName() != null) {
+				boolean wrappedValueElementNoNamespace = ctx.noNamespaceElementNames.containsKey(wrappedValue);
+				 if (!wrappedValue.getElementName().equals(elementNameInfo.name)
+						 || wrappedValueElementNoNamespace != elementNameInfo.explicitEmptyNamespace) {
+					 ctx.prismParsingContext.warnOrThrow(LOGGER, "Conflicting element names for '" + PROP_VALUE
+							 + "' (" + wrappedValue.getElementName() + "; no NS=" + wrappedValueElementNoNamespace
+							 + ") and regular content (" + elementNameInfo.name + "; no NS="
+							 + elementNameInfo.explicitEmptyNamespace + ") present at "
+							 + getPositionSuffix(ctx));
+				 }
+			}
 			rv.setElementName(elementNameInfo.name);
 			if (elementNameInfo.explicitEmptyNamespace) {
 				ctx.noNamespaceElementNames.put(rv, null);
@@ -524,7 +539,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	private void writeAuxiliaryInformation(XNode xnode, JsonSerializationContext ctx) throws IOException {
 		QName elementName = xnode.getElementName();
 		if (elementName != null) {
-			ctx.generator.writeObjectField(PROP_ELEMENT, elementName);
+			ctx.generator.writeObjectField(PROP_ELEMENT, createElementNameUri(elementName, ctx));
 		}
 		QName typeName = getExplicitType(xnode);
 		if (typeName != null) {
@@ -547,9 +562,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		writeInlineTypeIfNeeded(map, ctx);
 		ctx.generator.writeStartObject();
 		resetInlineTypeIfPossible(ctx);
-		writeAuxiliaryInformation(map, ctx);
 		String oldDefaultNamespace = ctx.currentNamespace;
 		generateNsDeclarationIfNeeded(map, ctx);
+		writeAuxiliaryInformation(map, ctx);
 		for (Entry<QName,XNode> entry : map.entrySet()) {
 			if (entry.getValue() == null) {
 				continue;
@@ -587,8 +602,10 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			if (childNs.equals(ctx.currentNamespace)) {
 				return ctx.currentNamespace;					// found existing => continue with it
 			}
-			Integer c = counts.get(childNs);
-			counts.put(childNs, c != null ? c+1 : 1);
+			increaseCounter(counts, childNs);
+		}
+		if (map.getElementName() != null && QNameUtil.hasNamespace(map.getElementName())) {
+			increaseCounter(counts, map.getElementName().getNamespaceURI());
 		}
 		// otherwise, take the URI that occurs the most in the map
 		Entry<String,Integer> max = null;
@@ -600,6 +617,11 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		return max != null ? max.getKey() : null;
 	}
 
+	private void increaseCounter(Map<String, Integer> counts, String childNs) {
+		Integer c = counts.get(childNs);
+		counts.put(childNs, c != null ? c+1 : 1);
+	}
+
 	private String createKeyUri(Entry<QName,XNode> entry, JsonSerializationContext ctx) {
 		QName key = entry.getKey();
 		if (namespaceMatch(ctx.currentNamespace, key.getNamespaceURI())) {
@@ -608,6 +630,14 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			return QNameUtil.qNameToUri(key, true);		// items with no namespace should be written as such (starting with '#')
 		} else {
 			return QNameUtil.qNameToUri(key, false);	// items with no namespace can be written in plain
+		}
+	}
+
+	private String createElementNameUri(QName elementName, JsonSerializationContext ctx) {
+		if (namespaceMatch(ctx.currentNamespace, elementName.getNamespaceURI())) {
+			return elementName.getLocalPart();
+		} else {
+			return QNameUtil.qNameToUri(elementName, StringUtils.isNotEmpty(ctx.currentNamespace));
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -627,7 +627,7 @@ public class SchemaHandlingStep extends WizardStep {
 		if (outbound != null) {
 			sb.append(" | ").append(getString("SchemaHandlingStep.out")).append(": ");
 			boolean first = true;
-			for (MappingSourceDeclarationType source : outbound.getSource()) {
+			for (VariableBindingDefinitionType source : outbound.getSource()) {
 				if (source != null) {
 					if (first) first = false; else sb.append(", ");
 					sb.append(formatPath(source.getPath()));
