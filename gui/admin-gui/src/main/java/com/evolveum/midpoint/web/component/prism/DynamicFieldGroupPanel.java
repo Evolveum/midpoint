@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
@@ -37,11 +38,6 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemDisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<ObjectWrapper<O>>{
@@ -66,7 +62,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		if (formDefinition.getDisplay() != null) {
 			groupName = formDefinition.getDisplay().getLabel();
 		}
-		initLayout(groupName, getFormItems(formDefinition.getFormItem()), mainForm);
+		initLayout(groupName, getFormItems(formDefinition.getFormItems()), mainForm);
 	}
 	
 	private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
@@ -81,7 +77,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		for (AbstractFormItemType formItem : formItems) {
 
 			if (formItem instanceof FormFieldGroupType) {
-				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<O>(itemView.newChildId(), formItem.getName(), getModel(), getFormItems(((FormFieldGroupType) formItem).getFormItem()), mainForm, getPageBase());
+				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<O>(itemView.newChildId(), formItem.getName(), getModel(), getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
 				dynamicFieldGroupPanel.setOutputMarkupId(true);
 				itemView.add(dynamicFieldGroupPanel);
 				continue;
@@ -164,11 +160,13 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 	}
 	
-	private List<AbstractFormItemType> getFormItems(List<JAXBElement<? extends AbstractFormItemType>> formItems) {
+	private List<AbstractFormItemType> getFormItems(FormItemsType formItemsProperty) {
 		List<AbstractFormItemType> items = new ArrayList<>();
-		for (JAXBElement<? extends AbstractFormItemType> formItem : formItems) {
-			AbstractFormItemType item = formItem.getValue();
-			items.add(item);
+		if (formItemsProperty != null) {
+			for (JAXBElement<? extends AbstractFormItemType> formItem : formItemsProperty.getFormItem()) {
+				AbstractFormItemType item = formItem.getValue();
+				items.add(item);
+			}
 		}
 		return items;
 	}
