@@ -16,19 +16,14 @@
 
 package com.evolveum.midpoint.prism;
 
-import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +64,8 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     private boolean canRead = true;
     private boolean canModify = true;
 	private boolean inherited;
+	protected QName substitutionHead;
+	protected boolean heterogeneousListItem;
     private PrismReferenceValue valueEnumerationRef;
 
 	// TODO: annotations
@@ -253,7 +250,25 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         return canAdd;
     }
 
-    /**
+	@Override
+	public QName getSubstitutionHead() {
+		return substitutionHead;
+	}
+
+	public void setSubstitutionHead(QName substitutionHead) {
+		this.substitutionHead = substitutionHead;
+	}
+
+	@Override
+	public boolean isHeterogeneousListItem() {
+		return heterogeneousListItem;
+	}
+
+	public void setHeterogeneousListItem(boolean heterogeneousListItem) {
+		this.heterogeneousListItem = heterogeneousListItem;
+	}
+
+	/**
      * Reference to an object that directly or indirectly represents possible values for
      * this item. We do not define here what exactly the object has to be. It can be a lookup
      * table, script that dynamically produces the values or anything similar. 

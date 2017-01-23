@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.DefinitionStoreUtils;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -180,11 +181,12 @@ public class ItemInfo<ID extends ItemDefinition> {
 		if (itemName == null || definition != null && QNameUtil.match(definition.getName(), itemName)) {        // just an optimization to avoid needless lookups
 			return definition;
 		}
-		List<ID> defsFromItemName = schemaRegistry.findItemDefinitionsByElementName(itemName, definitionClass);
-		if (defsFromItemName.size() != 1) {
+		ID defFromItemName = DefinitionStoreUtils.getOne(
+				schemaRegistry.findItemDefinitionsByElementName(itemName, definitionClass),
+				false, null);
+		if (defFromItemName == null) {		// zero or more than one
 			return definition;
 		}
-		ID defFromItemName = defsFromItemName.get(0);
 		if (definition == null) {
 			return defFromItemName;
 		}

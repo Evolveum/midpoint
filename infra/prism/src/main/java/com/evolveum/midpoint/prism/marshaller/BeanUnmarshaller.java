@@ -45,6 +45,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * Analogous to PrismUnmarshaller, this class unmarshals atomic values from XNode tree structures.
@@ -135,11 +136,11 @@ public class BeanUnmarshaller {
 			} else {
 				return unmarshal(subnode, beanClass, pc);
 			}
-		} else if (!(xnode instanceof MapXNode) && !(xnode instanceof PrimitiveXNode)) {
-			throw new IllegalStateException("Couldn't parse " + beanClass + " from non-map/non-primitive node: " + xnode.debugDump());
+		} else if (!(xnode instanceof MapXNode) && !(xnode instanceof PrimitiveXNode) && !xnode.isHeterogeneousList()) {
+			throw new IllegalStateException("Couldn't parse " + beanClass + " from non-map/non-primitive/non-hetero-list node: " + xnode.debugDump());
 		}
 
-		// only maps and primitives after this point
+		// only maps and primitives and heterogeneous lists after this point
 
 		if (xnode instanceof PrimitiveXNode) {
 			PrimitiveXNode<T> prim = (PrimitiveXNode) xnode;
@@ -167,35 +168,41 @@ public class BeanUnmarshaller {
 		} else {
 			@SuppressWarnings("unchecked")
 			MapUnmarshaller<T> unmarshaller = specialMapUnmarshallers.get(beanClass);
-			if (unmarshaller != null) {
+			if (xnode instanceof MapXNode && unmarshaller != null) {		// TODO: what about special unmarshaller + hetero list?
 				return unmarshaller.unmarshal((MapXNode) xnode, beanClass, pc);
 			}
-			return unmarshalFromMap((MapXNode) xnode, beanClass, pc);
+			return unmarshalFromMapOrHeteroList(xnode, beanClass, pc);
 		}
 	}
 
-	public boolean canProcess(QName typeName) {
-		return ((PrismContextImpl) getPrismContext()).getBeanMarshaller().canProcess(typeName);
+	boolean canProcess(QName typeName) {
+		return getBeanMarshaller().canProcess(typeName);
 	}
 
-	public boolean canProcess(Class<?> clazz) {
-		return ((PrismContextImpl) getPrismContext()).getBeanMarshaller().canProcess(clazz);
+	boolean canProcess(Class<?> clazz) {
+		return getBeanMarshaller().canProcess(clazz);
+	}
+
+	@NotNull
+	private BeanMarshaller getBeanMarshaller() {
+		return ((PrismContextImpl) getPrismContext()).getBeanMarshaller();
 	}
 	//endregion
 
 
-	private <T> T unmarshalFromMap(@NotNull MapXNode xmap, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
+	private <T> T unmarshalFromMapOrHeteroList(@NotNull XNode mapOrList, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
 
 		if (Containerable.class.isAssignableFrom(beanClass)) {
 			// This could have come from inside; note we MUST NOT parse this as PrismValue, because for objects we would lose oid/version
-			@SuppressWarnings("unchecked")
-			T value = (T) prismContext.parserFor(xmap.toRootXNode()).type(beanClass).parseRealValue();
-			return value;
-			//throw new IllegalArgumentException("Couldn't process Containerable: " + beanClass + " from " + xmap.debugDump());
+			return prismContext.parserFor(mapOrList.toRootXNode()).type(beanClass).parseRealValue();
 		} else if (SearchFilterType.class.isAssignableFrom(beanClass)) {
-			T bean = (T) unmarshalSearchFilterType(xmap, (Class<? extends SearchFilterType>) beanClass, pc);
-			// TODO fix this BRUTAL HACK - it is here because of c:ConditionalSearchFilterType
-			return unmarshalFromMapToBean(bean, xmap, Collections.singleton("condition"), pc);
+			if (mapOrList instanceof MapXNode) {
+				T bean = (T) unmarshalSearchFilterType((MapXNode) mapOrList, (Class<? extends SearchFilterType>) beanClass, pc);
+				// TODO fix this BRUTAL HACK - it is here because of c:ConditionalSearchFilterType
+				return unmarshalFromMapOrHeteroListToBean(bean, mapOrList, Collections.singleton("condition"), pc);
+			} else {
+				throw new SchemaException("SearchFilterType is not supported in combination of heterogeneous list.");
+			}
 		} else {
 			T bean;
 			try {
@@ -203,26 +210,149 @@ public class BeanUnmarshaller {
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new SystemException("Cannot instantiate bean of type " + beanClass + ": " + e.getMessage(), e);
 			}
-			return unmarshalFromMapToBean(bean, xmap, null, pc);
+			return unmarshalFromMapOrHeteroListToBean(bean, mapOrList, null, pc);
 		}
 	}
 
-	private <T> T unmarshalFromMapToBean(@NotNull T bean, @NotNull MapXNode xmap, @Nullable Collection<String> keysToParse, @NotNull ParsingContext pc) throws SchemaException {
+	private <T> T unmarshalFromMapOrHeteroListToBean(@NotNull T bean, @NotNull XNode mapOrList, @Nullable Collection<String> keysToParse, @NotNull ParsingContext pc) throws SchemaException {
 		@SuppressWarnings("unchecked")
 		Class<T> beanClass = (Class<T>) bean.getClass();
-		for (Entry<QName, XNode> entry : xmap.entrySet()) {
-			QName key = entry.getKey();
-			if (keysToParse != null && !keysToParse.contains(key.getLocalPart())) {
-				continue;
+		if (mapOrList instanceof MapXNode) {
+			MapXNode map = (MapXNode) mapOrList;
+			for (Entry<QName, XNode> entry : map.entrySet()) {
+				QName key = entry.getKey();
+				if (keysToParse != null && !keysToParse.contains(key.getLocalPart())) {
+					continue;
+				}
+				unmarshalEntry(bean, beanClass, entry.getKey(), entry.getValue(), mapOrList, false, pc);
 			}
-			unmarshalMapEntry(bean, beanClass, entry.getKey(), entry.getValue(), xmap, pc);
+		} else if (mapOrList.isHeterogeneousList()) {
+			QName keyQName = getBeanMarshaller().getHeterogeneousListPropertyName(beanClass);
+			unmarshalEntry(bean, beanClass, keyQName, mapOrList, mapOrList, true, pc);
+		} else {
+			throw new IllegalStateException("Not a map nor heterogeneous list: " + mapOrList.debugDump());
 		}
 		return bean;
 	}
 
-	private <T> void unmarshalMapEntry(@NotNull T bean, @NotNull Class<T> beanClass,
-			@NotNull QName key, @NotNull XNode node, @NotNull MapXNode containingMap, @NotNull ParsingContext pc) throws SchemaException {
+	/**
+	 * Parses either a map entry, or a fictitious heterogeneous list property.
+	 *
+	 * It makes sure that a 'key' property is inserted into 'bean' object, being sourced from 'node' structure.
+	 * Node itself can be single-valued or multi-valued, corresponding to single or multi-valued 'key' property.
+	 * ---
+	 * A notable (and quite ugly) exception is processing of fictitious heterogeneous lists.
+	 * In this case we have a ListXNode that should be interpreted as a MapXNode, inserting fictitious property
+	 * named after abstract multivalued property in the parent bean.
+	 *
+	 * For example, when we have (embedded in ExecuteScriptType):
+	 *   {
+	 *     pipeline: *[
+	 *       { element: search, ... },
+	 *       { element: sequence, ... }
+	 *     ]
+	 *   }
+	 *
+	 * ...it should be, in fact, read as if it would be:
+	 *
+	 *   {
+	 *     pipeline: {
+	 *        scriptingExpression: [
+	 *          { type: SearchExpressionType, ... },
+	 *          { type: ExpressionSequenceType, ... }
+	 *        ]
+	 *     }
+	 *   }
+	 *
+	 * (The only difference is in element names, which are missing in the latter snippet, but let's ignore that here.)
+	 *
+	 * Fictitious heterogeneous list entry here is "scriptingExpression", a property of pipeline (ExpressionPipelineType).
+	 *
+ 	 * We have to create the following data structure (corresponding to latter snippet):
+	 *
+	 * instance of ExecuteScriptType:
+	 *   scriptingExpression = instance of JAXBElement(pipeline, ExpressionPipelineType):			[1]
+	 *     scriptingExpression = List of															[2]
+	 *       - JAXBElement(search, SearchExpressionType)
+	 *       - JAXBElement(sequence, ExpressionSequenceType)
+	 *
+	 * We in fact invoke this method twice with the same node (a two-entry list, marked as '*' in the first snippet):
+	 * 1) bean=ExecuteScriptType, key=pipeline, node=HList(*), isHeteroListProperty=false
+	 * 2) bean=ExpressionPipelineType, key=scriptingExpression, node=HList(*), isHeteroListProperty=true		<<<
+	 *
+	 * During the first call we fill in scriptingExpression (single value) in ExecuteScriptType [1]; during the second one
+	 * we fill in scriptingExpression (multivalued) in ExpressionPipelineType [2].
+	 *
+	 * Now let's expand the sample.
+	 *
+	 * This XNode tree:
+	 *   {
+	 *     pipeline: *[
+	 *       { element: search, type: RoleType, searchFilter: {...}, action: log },
+	 *       { element: sequence, value: **[
+	 *           { element: action, type: delete },
+	 *           { element: action, type: assign, parameter: {...} },
+	 *           { element: search, type: UserType }
+	 *       ] }
+	 *     ]
+	 *   }
+	 *
+	 * Should be interpreted as:
+	 *   {
+	 *     pipeline: {
+	 *       scriptingExpression: [
+	 *          { type: SearchExpressionType, type: RoleType, searchFilter: {...}, action: log }
+	 *          { type: ExpressionSequenceType, scriptingExpression: [
+	 *                { type: ActionExpressionType, type: delete },
+	 *                { type: ActionExpressionType, type: assign, parameter: {...} },
+	 *                { type: SearchExpressionType, type: UserType }
+	 *            ] }
+	 *       ]
+	 *     }
+	 *   }
+	 *
+	 * Producing the following data:
+	 *
+	 * instance of ExecuteScriptType:
+	 *   scriptingExpression = instance of JAXBElement(pipeline, ExpressionPipelineType):			[1]
+	 *     scriptingExpression = List of															[2]
+	 *       - JAXBElement(search, instance of SearchExpressionType):
+	 *           type: RoleType,
+	 *           searchFilter: (...),
+	 *           action: log,
+	 *       - JAXBElement(sequence, instance of ExpressionSequenceType):
+	 *           scriptingExpression = List of
+	 *             - JAXBElement(action, instance of ActionExpressionType):
+	 *                 type: delete
+	 *             - JAXBElement(action, instance of ActionExpressionType):
+	 *                 type: assign
+	 *                 parameter: (...),
+	 *             - JAXBElement(search, instance of SearchExpressionType):
+	 *                 type: UserType
+	 *
+	 * Invocations of this method will be:
+	 *  1) bean=ExecuteScriptType, key=pipeline, node=HList(*), isHeteroListProperty=false
+	 *  2) bean=ExpressionPipelineType, key=scriptingExpression, node=HList(*), isHeteroListProperty=true            <<<
+	 *  3) bean=SearchExpressionType, key=type, node='type: c:RoleType', isHeteroListProperty=false
+	 *  4) bean=SearchExpressionType, key=searchFilter, node=XNode(map:1 entries), isHeteroListProperty=false
+	 *  5) bean=SearchExpressionType, key=action, node=XNode(map:1 entries), isHeteroListProperty=false
+	 *  6) bean=ActionExpressionType, key=type, node='type: log', isHeteroListProperty=false
+	 *  7) bean=ExpressionSequenceType, key=scriptingExpression, node=HList(**), isHeteroListProperty=true           <<<
+	 *  8) bean=ActionExpressionType, key=type, node='type: delete', isHeteroListProperty=false
+	 *  9) bean=ActionExpressionType, key=type, node='type: assign', isHeteroListProperty=false
+	 * 10) bean=ActionExpressionType, key=parameter, node=XNode(map:2 entries), isHeteroListProperty=false
+	 * 11) bean=ActionParameterValueType, key=name, node='name: role', isHeteroListProperty=false
+	 * 12) bean=ActionParameterValueType, key=value, node='value: rome555c-7797-11e2-94a6-001e8c717e5b', isHeteroListProperty=false
+	 * 13) bean=SearchExpressionType, key=type, node='type: UserType', isHeteroListProperty=false
+	 *
+	 * Here we have 2 calls with isHeteroListProperty=true; first for pipeline.scriptingExpression, second for
+	 * sequence.scriptingExpression.
+	 */
+	private <T> void unmarshalEntry(@NotNull T bean, @NotNull Class<T> beanClass,
+			@NotNull QName key, @NotNull XNode node, @NotNull XNode containingNode,
+			boolean isHeteroListProperty, @NotNull ParsingContext pc) throws SchemaException {
 
+		//System.out.println("bean=" + bean.getClass().getSimpleName() + ", key=" + key.getLocalPart() + ", node=" + node + ", isHeteroListProperty=" + isHeteroListProperty);
 		final String propName = key.getLocalPart();
 
 		// this code is just to keep this method reasonably short
@@ -243,11 +373,10 @@ public class BeanUnmarshaller {
 			throw new IllegalArgumentException("DOM not supported in field "+actualPropertyName+" in "+beanClass);
 		}
 
-		//check for subclasses???
-		if (!storeAsRawType && node.getTypeQName() != null) {
-			Class explicitParamType = getSchemaRegistry().determineClassForType(node.getTypeQName());
-			if (explicitParamType != null) {
-				paramType = explicitParamType;
+		if (!storeAsRawType && !isHeteroListProperty) {
+			paramType = specializeNodeType(node, paramType, pc);
+			if (paramType == null) {
+				return;
 			}
 		}
 
@@ -255,16 +384,24 @@ public class BeanUnmarshaller {
 			throw new IllegalArgumentException("Object property (without @Raw) not supported in field "+actualPropertyName+" in "+beanClass);
 		}
 
-		String paramNamespace = inspector.determineNamespace(paramType);
+//		String paramNamespace = inspector.determineNamespace(paramType);
 
 		boolean problem = false;
 		Object propValue = null;
 		Collection<Object> propValues = null;
-		if (node instanceof ListXNode) {
-			ListXNode xlist = (ListXNode)node;
+		// For heterogeneous lists we have to create multi-valued fictitious property first. So we have to treat node as a map
+		// (instead of list) and process it as a single value. Only when
+		if (node instanceof ListXNode && (!node.isHeterogeneousList() || isHeteroListProperty)) {
+			ListXNode xlist = (ListXNode) node;
 			if (setter != null) {
 				try {
-					propValue = convertSinglePropValue(node, actualPropertyName, paramType, storeAsRawType, beanClass, paramNamespace, pc);
+					Object value = unmarshalSinglePropValue(node, actualPropertyName, paramType, storeAsRawType, beanClass, pc);
+					if (wrapInJaxbElement) {
+						propValue = wrapInJaxbElement(propValue, mechanism.objectFactory,
+								mechanism.elementFactoryMethod, propName, beanClass, pc);
+					} else {
+						propValue = value;
+					}
 				} catch (SchemaException e) {
 					problem = processSchemaException(e, node, pc);
 				}
@@ -273,7 +410,50 @@ public class BeanUnmarshaller {
 				propValues = new ArrayList<>(xlist.size());
 				for (XNode xsubsubnode: xlist) {
 					try {
-						propValues.add(convertSinglePropValue(xsubsubnode, actualPropertyName, paramType, storeAsRawType, beanClass, paramNamespace, pc));
+						Object valueToAdd;
+						Object value = unmarshalSinglePropValue(xsubsubnode, actualPropertyName, paramType, storeAsRawType, beanClass, pc);
+						if (value != null) {
+							if (isHeteroListProperty) {
+								QName elementName = xsubsubnode.getElementName();
+								if (elementName == null) {
+									// TODO better error handling
+									throw new SchemaException("Heterogeneous list with a no-elementName node: " + xsubsubnode);
+								}
+								Class valueClass = value.getClass();
+								QName jaxbElementName;
+								if (QNameUtil.hasNamespace(elementName)) {
+									jaxbElementName = elementName;
+								} else {
+									// Approximate solution: find element in schema registry - check for type compatibility
+									// in order to exclude accidental name matches (like c:expression/s:expression).
+									Optional<ItemDefinition> itemDefOpt = getSchemaRegistry().findItemDefinitionsByElementName(elementName)
+											.stream()
+											.filter(def ->
+													getSchemaRegistry().findTypeDefinitionsByType(def.getTypeName()).stream()
+															.anyMatch(typeDef -> typeDef.getCompileTimeClass() != null
+																	&& typeDef.getCompileTimeClass()
+																	.isAssignableFrom(valueClass)))
+											.findFirst();
+									if (itemDefOpt.isPresent()) {
+										jaxbElementName = itemDefOpt.get().getName();
+									} else {
+										LOGGER.warn("Heterogeneous list member with unknown element name '" + elementName + "': "  + value);
+										jaxbElementName = elementName;        // unqualified
+									}
+								}
+								@SuppressWarnings("unchecked")
+								JAXBElement jaxbElement = new JAXBElement<>(jaxbElementName, valueClass, value);
+								valueToAdd = jaxbElement;
+							} else {
+								if (wrapInJaxbElement) {
+									valueToAdd = wrapInJaxbElement(value, mechanism.objectFactory,
+											mechanism.elementFactoryMethod, propName, beanClass, pc);
+								} else {
+									valueToAdd = value;
+								}
+							}
+							propValues.add(valueToAdd);
+						}
 					} catch (SchemaException e) {
 						problem = processSchemaException(e, xsubsubnode, pc);
 					}
@@ -281,17 +461,19 @@ public class BeanUnmarshaller {
 			}
 		} else {
 			try {
-				propValue = convertSinglePropValue(node, actualPropertyName, paramType, storeAsRawType, beanClass, paramNamespace, pc);
+				propValue = unmarshalSinglePropValue(node, actualPropertyName, paramType, storeAsRawType, beanClass, pc);
+				if (wrapInJaxbElement) {
+					propValue = wrapInJaxbElement(propValue, mechanism.objectFactory,
+							mechanism.elementFactoryMethod, propName, beanClass, pc);
+				}
 			} catch (SchemaException e) {
 				problem = processSchemaException(e, node, pc);
 			}
 		}
 
 		if (setter != null) {
-			Object value = null;
 			try {
-				value = prepareValueToBeStored(propValue, wrapInJaxbElement, mechanism.objectFactory, mechanism.elementFactoryMethod, propName, beanClass, pc);
-				setter.invoke(bean, value);
+				setter.invoke(bean, propValue);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw new SystemException("Cannot invoke setter "+setter+" on bean of type "+beanClass+": "+e.getMessage(), e);
 			}
@@ -309,17 +491,45 @@ public class BeanUnmarshaller {
 				throw new SystemException("Getter "+getter+" on bean of type "+beanClass+" returned "+getterReturn+" instead of collection");
 			}
 			if (propValue != null) {
-				col.add(prepareValueToBeStored(propValue, wrapInJaxbElement, mechanism.objectFactory, mechanism.elementFactoryMethod, propName, beanClass, pc));
+				col.add(propValue);
 			} else if (propValues != null) {
 				for (Object propVal: propValues) {
-					col.add(prepareValueToBeStored(propVal, wrapInJaxbElement, mechanism.objectFactory, mechanism.elementFactoryMethod, propName, beanClass, pc));
+					col.add(propVal);
 				}
 			} else if (!problem) {
-				throw new IllegalStateException("Strange. Multival property "+propName+" in "+beanClass+" produced null values list, parsed from "+containingMap);
+				throw new IllegalStateException("Strange. Multival property "+propName+" in "+beanClass+" produced null values list, parsed from "+containingNode);
 			}
-			checkJaxbElementConsistence(col, pc);
+			if (!isHeteroListProperty) {
+				checkJaxbElementConsistence(col, pc);
+			}
 		} else {
 			throw new IllegalStateException("Uh? No setter nor getter.");
+		}
+	}
+
+	private Class<?> specializeNodeType(@NotNull XNode node, @NotNull Class<?> expectedType,@NotNull ParsingContext pc)
+			throws SchemaException {
+		if (node.getTypeQName() != null) {
+			Class explicitType = getSchemaRegistry().determineClassForType(node.getTypeQName());
+			return explicitType != null ? explicitType : expectedType;		//check for subclasses???
+		} else if (node.getElementName() != null) {
+			Collection<TypeDefinition> candidateTypes = getSchemaRegistry()
+					.findTypeDefinitionsByElementName(node.getElementName(), TypeDefinition.class);
+			List<TypeDefinition> suitableTypes = candidateTypes.stream()
+					.filter(def -> def.getCompileTimeClass() != null && expectedType.isAssignableFrom(def.getCompileTimeClass()))
+					.collect(Collectors.toList());
+			if (suitableTypes.isEmpty()) {
+				pc.warnOrThrow(LOGGER, "Couldn't derive suitable type based on element name ("
+						+ node.getElementName() + "). Candidate types: " + candidateTypes + "; expected type: " + expectedType);
+				return null;
+			} else if (suitableTypes.size() > 1) {
+				pc.warnOrThrow(LOGGER, "Couldn't derive single suitable type based on element name ("
+						+ node.getElementName() + "). Suitable types: " + suitableTypes);
+				return null;
+			}
+			return suitableTypes.get(0).getCompileTimeClass();
+		} else {
+			return expectedType;
 		}
 	}
 
@@ -363,12 +573,17 @@ public class BeanUnmarshaller {
 				propertyGetter = inspector.findPropertyGetter(beanClass, propName);
 			}
 
+			// Maybe this is not used in this context, because node.elementName is filled-in only for heterogeneous list
+			// members - and they are iterated through elsewhere. Nevertheless, it is more safe to include it also here.
+//			QName realElementName = getRealElementName(node, key, pc);
+//			String realElementLocalName = realElementName.getLocalPart();
+
 			elementFactoryMethod = null;
 			objectFactory = null;
 			if (propertyField == null && propertyGetter == null) {
 				// We have to try to find a more generic field, such as xsd:any or substitution element
 				// check for global element definition first
-				elementFactoryMethod = findElementFactoryMethod(propName);
+				elementFactoryMethod = findElementFactoryMethod(propName);			// realElementLocalName
 				if (elementFactoryMethod != null) {
 					// great - global element found, let's look up the field
 					propertyField = inspector.lookupSubstitution(beanClass, elementFactoryMethod);
@@ -564,6 +779,21 @@ public class BeanUnmarshaller {
 		}
 	}
 
+	private QName getRealElementName(XNode node, QName key, ParsingContext pc) throws SchemaException {
+		if (node.getElementName() == null) {
+			return key;
+		}
+		String elementNS = node.getElementName().getNamespaceURI();
+		String keyNS = key.getNamespaceURI();
+		if (StringUtils.isNotEmpty(elementNS) && StringUtils.isNotEmpty(keyNS) && !elementNS.equals(keyNS)) {
+			pc.warnOrThrow(LOGGER, "Namespaces for actual element (" + node.getElementName()
+					+ ") and it's place in schema (" + key + " are different.");
+			return key;		// fallback
+		} else {
+			return node.getElementName();
+		}
+	}
+
 	private <T> void unmarshalToAnyUsingGetterIfExists(@NotNull T bean, @NotNull QName key, @NotNull XNode node,
 			@NotNull ParsingContext pc, String propName) throws SchemaException {
 		Method elementMethod = inspector.findAnyMethod(bean.getClass());
@@ -582,24 +812,15 @@ public class BeanUnmarshaller {
 //	}
 //
 	// Prepares value to be stored into the bean - e.g. converts PolyString->PolyStringType, wraps a value to JAXB if specified, ...
-	private <T> Object prepareValueToBeStored(Object propVal, boolean wrapInJaxbElement, Object objectFactory, Method factoryMehtod, String propName,
+	private Object wrapInJaxbElement(Object propVal, Object objectFactory, Method factoryMethod, String propName,
 			Class beanClass, ParsingContext pc) {
-
-		if (propVal instanceof PolyString) {
-			propVal = new PolyStringType((PolyString) propVal);
+		if (factoryMethod == null) {
+			throw new IllegalArgumentException("Param type is JAXB element but no factory method found for it, property "+propName+" in "+beanClass);
 		}
-
-		if (wrapInJaxbElement) {
-			if (factoryMehtod == null) {
-				throw new IllegalArgumentException("Param type is JAXB element but no factory method found for it, property "+propName+" in "+beanClass);
-			}
-			try {
-				return factoryMehtod.invoke(objectFactory, propVal);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new SystemException("Unable to invoke factory method "+factoryMehtod+" on "+objectFactory.getClass()+" for property "+propName+" in "+beanClass);
-			}
-		} else {
-			return propVal;
+		try {
+			return factoryMethod.invoke(objectFactory, propVal);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new SystemException("Unable to invoke factory method "+factoryMethod+" on "+objectFactory.getClass()+" for property "+propName+" in "+beanClass);
 		}
 	}
 
@@ -705,11 +926,11 @@ public class BeanUnmarshaller {
         }
     }
 
-	private Object convertSinglePropValue(XNode xsubnode, String fieldName, Class paramType, boolean storeAsRawType,
-			Class classType, String schemaNamespace, ParsingContext pc) throws SchemaException {
+	private Object unmarshalSinglePropValue(XNode xsubnode, String fieldName, Class paramType, boolean storeAsRawType,
+			Class classType, ParsingContext pc) throws SchemaException {
 		Object propValue;
 		if (xsubnode == null) {
-			return null;
+			propValue = null;
 		} else if (paramType.equals(XNode.class)) {
 			propValue = xsubnode;
 		} else if (storeAsRawType || paramType.equals(RawType.class)) {
@@ -725,16 +946,11 @@ public class BeanUnmarshaller {
         } else {
             // paramType is what we expect e.g. based on parent definition
             // but actual type (given by xsi:type/@typeDef) may be different, e.g. more specific
-            if (xsubnode.getTypeQName() != null) {
-                Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
-                if (explicitParamType != null) {
-                    paramType = explicitParamType;
-                } else {
-                    // TODO or throw an exception?
-                    LOGGER.warn("Unknown type name: " + xsubnode.getTypeQName() + ", ignoring it.");
-                }
-            }
-			if (xsubnode instanceof PrimitiveXNode<?> || xsubnode instanceof MapXNode) {
+			paramType = specializeNodeType(xsubnode, paramType, pc);
+            if (paramType == null) {
+            	return null;				// skipping this element
+			}
+			if (xsubnode instanceof PrimitiveXNode<?> || xsubnode instanceof MapXNode || xsubnode.isHeterogeneousList()) {
 				propValue = unmarshal(xsubnode, paramType, pc);
 			} else if (xsubnode instanceof ListXNode) {
 				ListXNode xlist = (ListXNode)xsubnode;
@@ -750,6 +966,9 @@ public class BeanUnmarshaller {
 			} else {
 				throw new IllegalArgumentException("Cannot parse "+xsubnode+" to a bean "+classType);
 			}
+		}
+		if (propValue instanceof PolyString) {
+			propValue = new PolyStringType((PolyString) propValue);
 		}
 		return propValue;
 	}

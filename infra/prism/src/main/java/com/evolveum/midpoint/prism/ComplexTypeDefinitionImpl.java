@@ -45,10 +45,10 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	private boolean containerMarker;
 	private boolean objectMarker;
 	private boolean xsdAnyMarker;
+	private boolean listMarker;
 	private QName extensionForType;
 
 	private String defaultNamespace;
-
 	@NotNull private List<String> ignoredNamespaces = new ArrayList<>();
 
 	public ComplexTypeDefinitionImpl(@NotNull QName typeName, @NotNull PrismContext prismContext) {
@@ -108,6 +108,14 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 
 	public void setXsdAnyMarker(boolean xsdAnyMarker) {
 		this.xsdAnyMarker = xsdAnyMarker;
+	}
+
+	public boolean isListMarker() {
+		return listMarker;
+	}
+
+	public void setListMarker(boolean listMarker) {
+		this.listMarker = listMarker;
 	}
 
 	@Override

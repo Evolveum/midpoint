@@ -530,4 +530,8 @@ public class MiscUtil {
 			return c1.equals(c2);
 		}
 	}
+
+	public static String getObjectName(Object o) {
+		return o != null ? "an instance of " + o.getClass().getName() : "null value";
+	}
 }

@@ -143,12 +143,8 @@ public class PrismUtil {
 		return ((PrismContextImpl) prismContext).getPrismUnmarshaller();
 	}
 
-	public static DomLexicalProcessor getDomParser(PrismContext prismContext) {
-		if (prismContext == null) {
-			return new DomLexicalProcessor(null);
-		} else {
-			return ((PrismContextImpl) prismContext).getParserDom();
-		}
+	public static DomLexicalProcessor getDomParser(@NotNull PrismContext prismContext) {
+		return ((PrismContextImpl) prismContext).getParserDom();
 	}
 
 	public static <T,X> PrismPropertyValue<X> convertPropertyValue(PrismPropertyValue<T> srcVal, PrismPropertyDefinition<T> srcDef, PrismPropertyDefinition<X> targetDef) {

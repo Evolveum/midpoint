@@ -64,16 +64,6 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
         }
     }
 
-    @Override
-	protected com.fasterxml.jackson.core.JsonParser createJacksonParser(String dataString) throws SchemaException {
-		JsonFactory factory = new JsonFactory();
-		try {
-			return factory.createParser(dataString);
-		} catch (IOException e) {
-			throw new SchemaException("Cannot create JSON parser: " + e.getMessage(), e);
-		}
-		
-	}
 	public JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
 		return createJsonGenerator(out);
 	}
@@ -113,25 +103,17 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 	}
 
 	@Override
-	protected <T> void serializeFromPrimitive(PrimitiveXNode<T> primitive, AbstractJsonLexicalProcessor.JsonSerializationContext ctx) throws IOException {
-		QName explicitType = getExplicitType(primitive);
-		if (explicitType != null) {
-			ctx.generator.writeStartObject();
-			ctx.generator.writeStringField(PROP_TYPE, QNameUtil.qNameToUri(primitive.getTypeQName()));
-			ctx.generator.writeObjectField(PROP_VALUE, primitive.getStringValue());
-			ctx.generator.writeEndObject();
-		} else {
-			serializePrimitiveTypeLessValue(primitive, ctx);
-		}
-	}
-
-	@Override
-	protected void writeExplicitType(QName explicitType, JsonGenerator generator) throws JsonProcessingException, IOException {
-		generator.writeObjectField("@type", explicitType);
-	}
-
-	@Override
 	protected QName tagToTypeName(Object tid, AbstractJsonLexicalProcessor.JsonParsingContext ctx) {
 		return null;
+	}
+
+	@Override
+	protected boolean supportsInlineTypes() {
+		return false;
+	}
+
+	@Override
+	protected void writeInlineType(QName typeName, JsonSerializationContext ctx) throws IOException {
+		throw new IllegalStateException("JSON cannot write type information using tags.");
 	}
 }

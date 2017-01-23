@@ -39,7 +39,6 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.io.FileUtils;
-import org.custommonkey.xmlunit.XMLAssert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -127,7 +126,7 @@ public class TestQueryConvertor {
 		ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xequalsList, 2);
 		
-		Element filterClauseElement = convertedFilterType.getFilterClauseAsElement();
+		Element filterClauseElement = convertedFilterType.getFilterClauseAsElement(getPrismContext());
 		System.out.println("Serialized filter (JAXB->DOM)");
 		System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
 		
@@ -169,7 +168,7 @@ public class TestQueryConvertor {
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
 		QueryType convertedQueryType = toQueryType(query);
-		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
+		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
 
 		// TODO: add some asserts
 	}
@@ -197,7 +196,7 @@ public class TestQueryConvertor {
 		//PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
 		QueryType convertedQueryType = toQueryType(query);
-		System.out.println(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
+		System.out.println(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
 
 		// TODO: add some asserts
 	}
@@ -235,7 +234,7 @@ public class TestQueryConvertor {
 		assertRefFilterValue((RefFilter) forth, "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
 		QueryType convertedQueryType = toQueryType(query);
-		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
+		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
 
 		// TODO: add some asserts
 	}
@@ -417,7 +416,7 @@ public class TestQueryConvertor {
 				System.out.println("QUERY Pretty print: " + query.toString());
 
 				QueryType convertedQueryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
-				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
+				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
 			} catch (Exception ex) {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 				throw ex;

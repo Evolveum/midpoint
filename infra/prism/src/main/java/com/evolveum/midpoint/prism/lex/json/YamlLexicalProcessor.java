@@ -21,19 +21,14 @@ import com.evolveum.midpoint.prism.lex.json.yaml.MidpointYAMLGenerator;
 import com.evolveum.midpoint.prism.lex.json.yaml.MidpointYAMLParser;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -79,8 +74,6 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 		} catch (IOException ex){
 			throw new SchemaException("Schema error during serializing to JSON.", ex);
 		}
-
-		
 	}
 	
 	private ObjectMapper configureMapperForSerialization(){
@@ -159,35 +152,19 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	}
 
 	@Override
-	protected MidpointYAMLParser createJacksonParser(String dataString) throws SchemaException {
-		MidpointYAMLFactory factory = new MidpointYAMLFactory();
-		try {
-			return (MidpointYAMLParser) factory.createParser(dataString);
-		} catch (IOException e) {
-			throw new SchemaException("Cannot create JSON parser: " + e.getMessage(), e);
-		}
-		
+	protected boolean supportsInlineTypes() {
+		return true;
 	}
 
 	@Override
-	protected <T> void serializeFromPrimitive(PrimitiveXNode<T> primitive, AbstractJsonLexicalProcessor.JsonSerializationContext ctx) throws IOException {
-		QName explicitType = getExplicitType(primitive);
-		if (explicitType != null) {
-			ctx.generator.writeTypeId(QNameUtil.qNameToUri(explicitType, false, '/'));
-		}
-		serializePrimitiveTypeLessValue(primitive, ctx);
+	protected void writeInlineType(QName typeName, AbstractJsonLexicalProcessor.JsonSerializationContext ctx) throws IOException {
+		ctx.generator.writeTypeId(QNameUtil.qNameToUri(typeName, false, '/'));
 	}
 
 	@Override
-	protected void writeExplicitType(QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
-		generator.writeObjectField("@type", explicitType);
-		//		if (generator.canWriteTypeId()){
-//			String type = QNameUtil.qNameToUri(explicitType);
-//			type = type.replace("#", "//");
-//			generator.writeTypeId(type);
-//		}
+	protected void resetInlineTypeIfPossible(JsonSerializationContext ctx) {
+		((MidpointYAMLGenerator) ctx.generator).resetTypeId();					// brutal hack
 	}
-	
 }
 
 

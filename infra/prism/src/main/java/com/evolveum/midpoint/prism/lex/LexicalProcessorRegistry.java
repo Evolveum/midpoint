@@ -45,7 +45,7 @@ public class LexicalProcessorRegistry {
 	private final DomLexicalProcessor domLexicalProcessor;
 	private final NullLexicalProcessor nullLexicalProcessor;
 
-	public LexicalProcessorRegistry(SchemaRegistry schemaRegistry) {
+	public LexicalProcessorRegistry(@NotNull SchemaRegistry schemaRegistry) {
 		domLexicalProcessor = new DomLexicalProcessor(schemaRegistry);
 		nullLexicalProcessor = new NullLexicalProcessor();
 

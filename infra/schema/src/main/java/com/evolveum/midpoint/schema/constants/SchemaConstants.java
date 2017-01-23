@@ -350,6 +350,12 @@ public abstract class SchemaConstants {
 	public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3";
 	public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");
 
+	public static final String NS_SCRIPTING = "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3";
+	public static final QName S_PIPELINE = new QName(NS_SCRIPTING, "pipeline");
+	public static final QName S_SEARCH = new QName(NS_SCRIPTING, "search");
+	public static final QName S_SEQUENCE = new QName(NS_SCRIPTING, "sequence");
+	public static final QName S_ACTION = new QName(NS_SCRIPTING, "action");
+
 	public static final QName C_EVENT = new QName(NS_C, "event");
 	public static final QName C_EVENT_HANDLER = new QName(NS_C, "eventHandler");			// TODO: no such element in common-3 - is it OK?
 	public static final QName C_TEXT_FORMATTER = new QName(NS_C, "textFormatter");
@@ -386,7 +392,7 @@ public abstract class SchemaConstants {
 
 	public static final QName SAMPLES_SSN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "ssn");
 	public static final QName SAMPLES_DOMAIN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "domain");
-	
+
 	// Misc
 	
 	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/schema";

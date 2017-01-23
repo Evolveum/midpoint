@@ -51,7 +51,7 @@ public class ExpressionHelper {
 			boolean requiredNonNull, String context) throws ScriptExecutionException {
 		for (ActionParameterValueType parameterValue : arguments) {
 			if (parameterName.equals(parameterValue.getName())) {
-				if (parameterValue.getExpression() != null || parameterValue.getValue() != null) {
+				if (parameterValue.getScriptingExpression() != null || parameterValue.getValue() != null) {
 					return parameterValue;
 				} else {
 					if (requiredNonNull) {
@@ -73,8 +73,8 @@ public class ExpressionHelper {
 			String defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
 		ActionParameterValueType parameterValue = getArgument(arguments, argumentName, false, false, contextName);
 		if (parameterValue != null) {
-			if (parameterValue.getExpression() != null) {
-				Data data = scriptingExpressionEvaluator.evaluateExpression(parameterValue.getExpression(), input, context, parentResult);
+			if (parameterValue.getScriptingExpression() != null) {
+				Data data = scriptingExpressionEvaluator.evaluateExpression(parameterValue.getScriptingExpression(), input, context, parentResult);
 				if (data != null) {
 					return data.getDataAsSingleString();
 				}
@@ -107,8 +107,8 @@ public class ExpressionHelper {
 	public Data evaluateParameter(ActionParameterValueType parameter, @Nullable Class<?> expectedClass, Data input, ExecutionContext context, OperationResult result)
 			throws ScriptExecutionException {
 		Validate.notNull(parameter, "parameter");
-		if (parameter.getExpression() != null) {
-			return scriptingExpressionEvaluator.evaluateExpression(parameter.getExpression(), input, context, result);
+		if (parameter.getScriptingExpression() != null) {
+			return scriptingExpressionEvaluator.evaluateExpression(parameter.getScriptingExpression(), input, context, result);
 		} else if (parameter.getValue() != null) {
 			return scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameter.getValue(), expectedClass, context, "evaluating parameter " + parameter.getName(), result);
 		} else {

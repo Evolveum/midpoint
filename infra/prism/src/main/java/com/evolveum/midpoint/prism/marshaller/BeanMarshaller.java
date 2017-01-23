@@ -16,12 +16,12 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
@@ -101,8 +101,49 @@ public class BeanMarshaller {
 
 	private XNode marshalXmlType(Object bean, SerializationContext ctx) throws SchemaException {
 
-        Class<?> beanClass = bean.getClass();
+		Class<?> beanClass = bean.getClass();
+		ComplexTypeDefinition ctd = getSchemaRegistry()
+				.findTypeDefinitionByCompileTimeClass(beanClass, ComplexTypeDefinition.class);
 
+		if (ctd != null && ctd.isListMarker()) {
+			return marshalHeterogeneousList(bean, ctx);
+		} else {
+			return marshalXmlTypeToMap(bean, ctx);
+		}
+	}
+
+	private XNode marshalHeterogeneousList(Object bean, SerializationContext ctx) throws SchemaException {
+		// structurally similar to a specific path through marshalXmlTypeToMap
+		Class<?> beanClass = bean.getClass();
+		QName propertyName = getHeterogeneousListPropertyName(beanClass);
+		Method getter = inspector.findPropertyGetter(beanClass, propertyName.getLocalPart());
+		Object getterResult = getValue(bean, getter, propertyName.getLocalPart());
+		if (!(getterResult instanceof Collection)) {
+			throw new IllegalStateException("Heterogeneous list property " + propertyName
+					+ " does not contain a collection but " + MiscUtil.getObjectName(getterResult));
+		}
+		ListXNode xlist = new ListXNode();
+		for (Object value : (Collection) getterResult) {
+			if (!(value instanceof JAXBElement)) {
+				throw new IllegalStateException("Heterogeneous list contains a value that is not a JAXBElement: " + value);
+			}
+			JAXBElement jaxbElement = (JAXBElement) value;
+			Object realValue = jaxbElement.getValue();
+			if (realValue == null) {
+				throw new IllegalStateException("Heterogeneous list contains a null value");		// TODO
+			}
+			QName typeName = inspector.determineTypeForClass(realValue.getClass());
+			XNode marshaled = marshallValue(realValue, typeName, false, ctx);
+			marshaled.setElementName(jaxbElement.getName());
+			setExplicitTypeDeclarationIfNeededForHeteroList(marshaled, realValue);
+			xlist.add(marshaled);
+		}
+		return xlist;
+	}
+
+	private XNode marshalXmlTypeToMap(Object bean, SerializationContext ctx) throws SchemaException {
+
+		Class<?> beanClass = bean.getClass();
         MapXNode xmap;
         if (bean instanceof SearchFilterType) {
             // this hack is here because of c:ConditionalSearchFilterType - it is analogous to situation when unmarshalling this type (TODO: rework this in a nicer way)
@@ -120,18 +161,13 @@ public class BeanMarshaller {
 		}
 		
 		List<String> propOrder = inspector.getPropOrder(beanClass);
+
 		for (String fieldName: propOrder) {
-			QName elementName = inspector.findFieldElementQName(fieldName, beanClass, namespace);
 			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
 			if (getter == null) {
 				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
 			}
-			Object getterResult;
-			try {
-				getterResult = getter.invoke(bean);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new SystemException("Cannot invoke method for field "+fieldName+" in "+beanClass+": "+e.getMessage(), e);
-			}
+			Object getterResult = getValue(bean, getter, fieldName);
 			
 			if (getterResult == null) {
 				continue;
@@ -139,23 +175,18 @@ public class BeanMarshaller {
 			
 			Field field = inspector.findPropertyField(beanClass, fieldName);
 			boolean isAttribute = inspector.isAttribute(field, getter);
-			
+
+			QName elementName = inspector.findFieldElementQName(fieldName, beanClass, namespace);
 			if (getterResult instanceof Collection<?>) {
-				Collection col = (Collection) getterResult;
-				if (col.isEmpty()) {
+				Collection collection = (Collection) getterResult;
+				if (collection.isEmpty()) {
 					continue;
 				}
-				Iterator i = col.iterator();
-//				if (i == null) {
-//					// huh?!? .. but it really happens
-//					throw new IllegalArgumentException("Iterator of collection returned from "+getter+" is null");
-//				}
+				Iterator i = collection.iterator();
 				Object getterResultValue = i.next();
 				if (getterResultValue == null) {
 					continue;
 				}
-				
-				ListXNode xlist = new ListXNode();
 
                 // elementName will be determined from the first item on the list
                 // TODO make sure it will be correct with respect to other items as well!
@@ -163,54 +194,42 @@ public class BeanMarshaller {
                     elementName = ((JAXBElement) getterResultValue).getName();
                 }
 
-                for (Object element: col) {
-                	if (element == null){
+				ListXNode xlist = new ListXNode();
+				for (Object value: collection) {
+                	if (value == null) {
                 		continue;
                 	}
-                    QName fieldTypeName = inspector.findFieldTypeName(field, element.getClass(), namespace);
-					Object elementToMarshall = element;
-					if (element instanceof JAXBElement){
-						elementToMarshall = ((JAXBElement) element).getValue();
-					} 
-					XNode marshalled = marshallValue(elementToMarshall, fieldTypeName, isAttribute, ctx);
-
-                    // Brutal hack - made here just to make scripts (bulk actions) functional while not breaking anything else
-                    // Fix it in 3.1. [med]
-                    if (fieldTypeName == null && element instanceof JAXBElement && marshalled != null) {
-                        QName typeName = inspector.determineTypeForClass(elementToMarshall.getClass());
-                        if (typeName != null && !getSchemaRegistry().hasImplicitTypeDefinition(elementName, typeName)
-								&& getSchemaRegistry().findTypeDefinitionByType(typeName, TypeDefinition.class) != null) {
-                            marshalled.setExplicitTypeDeclaration(true);
-                            marshalled.setTypeQName(typeName);
-                        }
-                    }
-                    else {
-                    // end of hack
-
-                        setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
-                    }
-					xlist.add(marshalled);
+					Object valueToMarshal = value;
+					if (value instanceof JAXBElement) {
+						valueToMarshal = ((JAXBElement) value).getValue();
+					}
+                    QName typeName = inspector.findTypeName(field, valueToMarshal.getClass(), namespace);
+					// note: fieldTypeName is used only for attribute values here (when constructing PrimitiveXNode)
+					XNode marshaled = marshallValue(valueToMarshal, typeName, isAttribute, ctx);
+					setExplicitTypeDeclarationIfNeeded(marshaled, getter, valueToMarshal, typeName);
+					xlist.add(marshaled);
 				}
                 xmap.put(elementName, xlist);
 			} else {
-				QName fieldTypeName = inspector.findFieldTypeName(field, getterResult.getClass(), namespace);
-				Object valueToMarshall = null;
+				QName fieldTypeName = inspector.findTypeName(field, getterResult.getClass(), namespace);
+				Object valueToMarshall;
 				if (getterResult instanceof JAXBElement){
 					valueToMarshall = ((JAXBElement) getterResult).getValue();
 					elementName = ((JAXBElement) getterResult).getName();
 				} else{
 					valueToMarshall = getterResult;
 				}
-				XNode marshelled = marshallValue(valueToMarshall, fieldTypeName, isAttribute, ctx);
+				XNode marshaled = marshallValue(valueToMarshall, fieldTypeName, isAttribute, ctx);
+				// TODO reconcile with setExplioitTypeDeclarationIfNeeded
 				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass()) && !(valueToMarshall instanceof Enum)) {
 					PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
 					if (def != null){
 						QName type = def.getTypeName();
-						marshelled.setTypeQName(type);
-						marshelled.setExplicitTypeDeclaration(true);
+						marshaled.setTypeQName(type);
+						marshaled.setExplicitTypeDeclaration(true);
 					}
 				}
-				xmap.put(elementName, marshelled);
+				xmap.put(elementName, marshaled);
 				
 //				setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
 			}
@@ -219,14 +238,24 @@ public class BeanMarshaller {
 		return xmap;
 	}
 
-	private XNode marshalEnum(Enum bean, SerializationContext ctx) {
-		Class<? extends Enum> beanClass = bean.getClass();
-		String enumValue = inspector.findEnumFieldValue(beanClass, bean.toString());
-		if (StringUtils.isEmpty(enumValue)){
-			enumValue = bean.toString();
+	private Object getValue(Object bean, Method getter, String fieldOrPropertyName) {
+		Object getterResult;
+		try {
+			getterResult = getter.invoke(bean);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new SystemException("Cannot invoke method for field/property "+fieldOrPropertyName+" in "+bean.getClass()+": "+e.getMessage(), e);
 		}
-		QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_PLACEHOLDER);
-		return createPrimitiveXNode(enumValue, fieldTypeName, false);
+		return getterResult;
+	}
+
+	private XNode marshalEnum(Enum enumValue, SerializationContext ctx) {
+		Class<? extends Enum> enumClass = enumValue.getClass();
+		String enumStringValue = inspector.findEnumFieldValue(enumClass, enumValue.toString());
+		if (StringUtils.isEmpty(enumStringValue)){
+			enumStringValue = enumValue.toString();
+		}
+		QName fieldTypeName = inspector.findTypeName(null, enumClass, DEFAULT_PLACEHOLDER);
+		return createPrimitiveXNode(enumStringValue, fieldTypeName, false);
 
 	}
 
@@ -283,12 +312,7 @@ public class BeanMarshaller {
 			if (getter == null) {
 				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
 			}
-			Object getterResult;
-			try {
-				getterResult = getter.invoke(bean);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new SystemException("Cannot invoke method for field "+fieldName+" in "+beanClass+": "+e.getMessage(), e);
-			}
+			Object getterResult = getValue(bean, getter, fieldName);
 			
 			if (getterResult == null) {
 				continue;
@@ -318,44 +342,80 @@ public class BeanMarshaller {
 		visit(elementToMarshall, handler);
 	}
 
-	private void setExplicitTypeDeclarationIfNeeded(Method getter, Object getterResult, XNode xmap, QName fieldTypeName){
+	private void setExplicitTypeDeclarationIfNeededForHeteroList(XNode node, Object realValue) {
+		QName elementName = node.getElementName();
+		QName typeName = inspector.determineTypeForClass(realValue.getClass());
+		if (typeName != null && !getSchemaRegistry().hasImplicitTypeDefinition(elementName, typeName)
+				&& getSchemaRegistry().findTypeDefinitionByType(typeName, TypeDefinition.class) != null) {
+			node.setExplicitTypeDeclaration(true);
+			node.setTypeQName(typeName);
+		}
+	}
+
+	// TODO shouldn't we use here the same approach as above?
+	private void setExplicitTypeDeclarationIfNeeded(XNode node, Method getter, Object getterResult, QName typeName) {
 		Class getterReturnType = getter.getReturnType();
 		Class getterType = null;
-		if (Collection.class.isAssignableFrom(getterReturnType)){
+		if (Collection.class.isAssignableFrom(getterReturnType)) {
 			Type genericReturnType = getter.getGenericReturnType();
-			if (genericReturnType instanceof ParameterizedType){
+			if (genericReturnType instanceof ParameterizedType) {
 				Type actualType = inspector.getTypeArgument(genericReturnType, "explicit type declaration");
-
-				if (actualType instanceof Class){
+				if (actualType instanceof Class) {
 					getterType = (Class) actualType;
+				} else if (actualType instanceof ParameterizedType) {
+					ParameterizedType parameterizedType = (ParameterizedType) actualType;
+					Type typeArgument = inspector.getTypeArgument(parameterizedType, "JAXBElement return type");
+					getterType = inspector.getUpperBound(typeArgument, "JAXBElement return type");
 				}
 			}
 		}
-		if (getterType == null){
+		if (getterType == null) {
 			getterType = getterReturnType;
 		}
 		Class getterResultReturnType = getterResult.getClass();
 		if (getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)) {
-			xmap.setExplicitTypeDeclaration(true);
-			xmap.setTypeQName(fieldTypeName);
+			node.setExplicitTypeDeclaration(true);
+			node.setTypeQName(typeName);
 		}
 	}
-	
-	private <T> XNode marshallValue(T value, QName fieldTypeName, boolean isAttribute, SerializationContext ctx) throws SchemaException {
+
+	// bean should have only two features: "list" attribute and multivalued property into which we should store the elements
+	@NotNull
+	<T> QName getHeterogeneousListPropertyName(Class<T> beanClass) throws SchemaException {
+		List<String> properties = inspector.getPropOrder(beanClass);
+		if (!properties.contains(DOMUtil.IS_LIST_ATTRIBUTE_NAME)) {
+			throw new SchemaException("Couldn't unmarshal heterogeneous list into class without '"
+					+ DOMUtil.IS_LIST_ATTRIBUTE_NAME + "' attribute. Class: "
+					+ beanClass.getName() + " has the following properties: " + properties);
+		}
+		if (properties.size() > 2) {
+			throw new SchemaException("Couldn't unmarshal heterogeneous list into class with more than one property "
+					+ "other than '" + DOMUtil.IS_LIST_ATTRIBUTE_NAME + "'. Class " + beanClass.getName()
+					+ " has the following properties: " + properties);
+		}
+		String contentProperty = properties.stream()
+				.filter(p -> !DOMUtil.IS_LIST_ATTRIBUTE_NAME.equals(p))
+				.findFirst()
+				.orElseThrow(() -> new SchemaException("Couldn't unmarshal heterogeneous list into class without "
+						+ "content-holding property. Class: " + beanClass.getName() + "."));
+		return new QName(inspector.determineNamespace(beanClass), contentProperty);
+	}
+
+	private <T> XNode marshallValue(T value, QName valueType, boolean isAttribute, SerializationContext ctx) throws SchemaException {
 		if (value == null) {
 			return null;
 		}
 		if (isAttribute) {
 			// hoping the value fits into primitive!
-			return createPrimitiveXNode(value, fieldTypeName, isAttribute);
+			return createPrimitiveXNode(value, valueType, true);
 		} else {
 			return marshall(value, ctx);
 		}
 	}
 	
-	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName fieldTypeName, boolean isAttribute) {
+	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName valueType, boolean isAttribute) {
 		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
-		xprim.setValue(value, fieldTypeName);
+		xprim.setValue(value, valueType);
 		xprim.setAttribute(isAttribute);
 		return xprim;
 	}

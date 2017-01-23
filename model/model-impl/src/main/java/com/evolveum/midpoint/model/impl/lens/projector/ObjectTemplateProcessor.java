@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingTargetDeclarationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
@@ -394,9 +394,9 @@ public class ObjectTemplateProcessor {
 		mappings.addAll(objectTemplateType.getMapping());
 		for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
 			for (ObjectTemplateMappingType mapping: templateItemDefType.getMapping()) {
-				MappingTargetDeclarationType target = mapping.getTarget();
+				VariableBindingDefinitionType target = mapping.getTarget();
 				if (target == null) {
-					target = new MappingTargetDeclarationType();
+					target = new VariableBindingDefinitionType();
 					target.setPath(templateItemDefType.getRef());
 					mapping.setTarget(target);
 				}

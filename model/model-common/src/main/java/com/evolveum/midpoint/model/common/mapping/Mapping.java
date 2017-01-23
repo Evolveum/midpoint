@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -656,7 +656,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return null;
 		}
 		XMLGregorianCalendar time;
-		MappingSourceDeclarationType referenceTimeType = timeType.getReferenceTime();
+		VariableBindingDefinitionType referenceTimeType = timeType.getReferenceTime();
 		if (referenceTimeType == null) {
 			if (defaultReferenceTime == null) {
 				throw new SchemaException("No reference time specified (and there is also no default) in time specification in "+getMappingContextDescription());
@@ -678,7 +678,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return time;
 	}
 
-	private XMLGregorianCalendar parseTimeSource(MappingSourceDeclarationType sourceType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private XMLGregorianCalendar parseTimeSource(VariableBindingDefinitionType sourceType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		ItemPathType itemPathType = sourceType.getPath();
 		if (itemPathType == null) {
 			throw new SchemaException("No path in source definition in "+getMappingContextDescription());
@@ -707,14 +707,14 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 	private Collection<Source<?,?>> parseSources(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		List<MappingSourceDeclarationType> sourceTypes = mappingType.getSource();
+		List<VariableBindingDefinitionType> sourceTypes = mappingType.getSource();
 		if (defaultSource != null) {
 			defaultSource.recompute();
 			sources.add(defaultSource);
 			defaultSource.recompute();
 		}
 		if (sourceTypes != null) {
-			for (MappingSourceDeclarationType sourceType: sourceTypes) {
+			for (VariableBindingDefinitionType sourceType: sourceTypes) {
 				Source<?,?> source = parseSource(sourceType, task, result);
 				source.recompute();
 				
@@ -733,7 +733,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return sources;
 	}
 
-	private <IV extends PrismValue, ID extends ItemDefinition> Source<IV,ID> parseSource(MappingSourceDeclarationType sourceType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private <IV extends PrismValue, ID extends ItemDefinition> Source<IV,ID> parseSource(VariableBindingDefinitionType sourceType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		ItemPathType itemPathType = sourceType.getPath();
 		if (itemPathType == null) {
 			throw new SchemaException("No path in source definition in "+getMappingContextDescription());
@@ -776,7 +776,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 	
 	private void parseTarget() throws SchemaException {
-		MappingTargetDeclarationType targetType = mappingType.getTarget();
+		VariableBindingDefinitionType targetType = mappingType.getTarget();
 		if (targetType == null) {
 			outputDefinition = defaultTargetDefinition;
 			outputPath = defaultTargetPath;

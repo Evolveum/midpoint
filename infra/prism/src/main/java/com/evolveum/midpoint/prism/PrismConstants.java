@@ -78,7 +78,8 @@ public class PrismConstants {
 	public static final QName A_MATCHING_RULE = new QName(NS_ANNOTATION, "matchingRule");
 	public static final QName A_EMPHASIZED = new QName(NS_ANNOTATION, "emphasized");
 	public static final QName A_VALUE_ENUMERATION_REF = new QName(NS_ANNOTATION, "valueEnumerationRef");
-	
+	public static final QName A_HETEROGENEOUS_LIST_ITEM = new QName(NS_ANNOTATION, "heterogeneousListItem");
+
 	public static final QName SCHEMA_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
 	public static final QName SCHEMA_APP_INFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");
 	

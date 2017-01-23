@@ -90,7 +90,7 @@ public class TestQueryConvertors {
 		System.out.println("Re-converted query type");
 		System.out.println(convertedQueryType.debugDump());
 
-		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement();
+		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext());
 
 		System.out.println("Serialized filter (JAXB->DOM)");
 		System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
@@ -141,7 +141,7 @@ public class TestQueryConvertors {
 		ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xequalsList, 2);
 		
-		Element filterClauseElement = convertedFilterType.getFilterClauseAsElement();
+		Element filterClauseElement = convertedFilterType.getFilterClauseAsElement(getPrismContext());
 		System.out.println("Serialized filter (JAXB->DOM)");
 		System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
 		
@@ -181,7 +181,7 @@ public class TestQueryConvertors {
 		System.out.println("Re-converted query type");
 		System.out.println(convertedQueryType.debugDump());
 
-		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement();
+		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext());
 		LOGGER.info(convertedQueryType.getFilter().getFilterClauseXNode().debugDump());
 
 		
@@ -217,7 +217,7 @@ public class TestQueryConvertors {
 		System.out.println("Re-converted query type");
 		System.out.println(convertedQueryType.debugDump());
 
-		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement();
+		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext());
 		LOGGER.info(convertedQueryType.getFilter().getFilterClauseXNode().debugDump());
 
 		System.out.println("Serialized filter (JAXB->DOM)");

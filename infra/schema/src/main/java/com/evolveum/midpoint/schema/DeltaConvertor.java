@@ -400,8 +400,8 @@ public class DeltaConvertor {
     // requires delta.prismContext to be set
     private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values, DeltaConversionOptions options) throws SchemaException {
         if (values == null || values.isEmpty()) {
-            RawType modValue = new RawType(delta.getPrismContext());
-            mod.getValue().add(modValue);
+//            RawType modValue = new RawType(delta.getPrismContext());
+//            mod.getValue().add(modValue);
         } else {
 	        for (PrismValue value : values) {
 	        	XNode xnode = toXNode(delta, value, options);
@@ -413,8 +413,8 @@ public class DeltaConvertor {
     
     private static void addOldValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values, DeltaConversionOptions options) throws SchemaException {
         if (values == null || values.isEmpty()) {
-            RawType modValue = new RawType(delta.getPrismContext());
-            mod.getEstimatedOldValue().add(modValue);
+//            RawType modValue = new RawType(delta.getPrismContext());
+//            mod.getEstimatedOldValue().add(modValue);
         } else {
 	        for (PrismValue value : values) {
 	        	XNode xnode = toXNode(delta, value, options);
@@ -425,18 +425,12 @@ public class DeltaConvertor {
     }
     
     private static XNode toXNode(ItemDelta delta, @NotNull PrismValue value, DeltaConversionOptions options) throws SchemaException{
-		XNode node = delta.getPrismContext().xnodeSerializer()
+		return delta.getPrismContext().xnodeSerializer()
 				.definition(delta.getDefinition())
 				.options(DeltaConversionOptions.isSerializeReferenceNames(options) ?
 						SerializationOptions.createSerializeReferenceNames() : null)
 				.serialize(value)
 				.getSubnode();
-		// TODO solve this within serializer!
-//		if (delta.getDefinition() != null) {
-//			node.setTypeQName(delta.getDefinition().getTypeName());
-//			node.setExplicitTypeDeclaration(true);
-//		}
-		return node;
     }
 
     public static Collection<ObjectDelta> createObjectDeltas(ObjectDeltaListType deltaList, PrismContext prismContext) throws SchemaException {
