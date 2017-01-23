@@ -241,7 +241,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 
 		final MapXNode map = new MapXNode();
-		XNode explicitValue = null;
+		XNode wrappedValue = null;
 		boolean defaultNamespaceDefined = false;
 		QNameUtil.QNameInfo currentFieldNameInfo = null;
 		for (;;) {
@@ -278,10 +278,10 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 						}
 						elementNameInfo = QNameUtil.uriToQNameInfo(getStringValue(valueXNode, currentFieldNameInfo, ctx), true);
 					} else if (isValue(currentFieldNameInfo.name)) {
-						if (explicitValue != null) {
+						if (wrappedValue != null) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Value ('" + PROP_VALUE + "') defined more than once at " + getPositionSuffix(ctx));
 						}
-						explicitValue = valueXNode;
+						wrappedValue = valueXNode;
 					}
 				} else {
 					Map.Entry<QName, XNode> entry = map.putReturningEntry(currentFieldNameInfo.name, valueXNode);
@@ -294,22 +294,37 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 		// Return either map or primitive value (in case of @type/@value)
 		XNode rv;
-		if (explicitValue != null) {
+		if (wrappedValue != null) {
 			if (!map.isEmpty()) {
 				ctx.prismParsingContext.warnOrThrow(LOGGER, "Both '" + PROP_VALUE + "' and regular content present at " + getPositionSuffix(ctx));
 				rv = map;
 			} else {
-				rv = explicitValue;
+				rv = wrappedValue;
 			}
 		} else {
 			rv = map;
 		}
-		// TODO beware, explicitValue can have conflicting type/element name info ...
 		if (typeName != null) {
+			if (wrappedValue != null && wrappedValue.getTypeQName() != null && !wrappedValue.getTypeQName().equals(typeName)) {
+				ctx.prismParsingContext.warnOrThrow(LOGGER, "Conflicting type names for '" + PROP_VALUE
+						+ "' (" + wrappedValue.getTypeQName() + ") and regular content (" + typeName + ") present at "
+						+ getPositionSuffix(ctx));
+			}
 			rv.setTypeQName(typeName);
 			rv.setExplicitTypeDeclaration(true);
 		}
 		if (elementNameInfo != null) {
+			if (wrappedValue != null && wrappedValue.getElementName() != null) {
+				boolean wrappedValueElementNoNamespace = ctx.noNamespaceElementNames.containsKey(wrappedValue);
+				 if (!wrappedValue.getElementName().equals(elementNameInfo.name)
+						 || wrappedValueElementNoNamespace != elementNameInfo.explicitEmptyNamespace) {
+					 ctx.prismParsingContext.warnOrThrow(LOGGER, "Conflicting element names for '" + PROP_VALUE
+							 + "' (" + wrappedValue.getElementName() + "; no NS=" + wrappedValueElementNoNamespace
+							 + ") and regular content (" + elementNameInfo.name + "; no NS="
+							 + elementNameInfo.explicitEmptyNamespace + ") present at "
+							 + getPositionSuffix(ctx));
+				 }
+			}
 			rv.setElementName(elementNameInfo.name);
 			if (elementNameInfo.explicitEmptyNamespace) {
 				ctx.noNamespaceElementNames.put(rv, null);
