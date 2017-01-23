@@ -11772,6 +11772,16 @@
 			</xsd:element>
 			<xsd:element name="additionalAuthenticationName" type="xsd:string" minOccurs="0">
 			</xsd:element>
+			<xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					            Reference to form which is dispalyed for registration
+					        </xsd:documentation>
+					        <xsd:appinfo>
+								<a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+					    </xsd:annotation>
+					</xsd:element>
              <!-- More registration types may come here in the future. -->
 		</xsd:sequence>
 	</xsd:complexType>
