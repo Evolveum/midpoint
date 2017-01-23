@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.model.impl.dataModel;
 
 import com.evolveum.midpoint.common.refinery.*;
@@ -252,7 +267,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 			@Nullable ItemPath defaultTargetItemPath) {
 		LOGGER.debug("Processing inbound mapping: {} for {}", mapping, sourceItem);
 		List<DataItem> sources = new ArrayList<>();
-		for (MappingSourceDeclarationType sourceDecl : mapping.getSource()) {
+		for (VariableBindingDefinitionType sourceDecl : mapping.getSource()) {
 			LOGGER.debug(" - src: {}", sourceDecl.getPath());
 			DataItem explicitSourceItem = resolveSourceItem(ctx, sourceItem, mapping, sourceDecl, null);
 			sources.add(explicitSourceItem);
@@ -261,7 +276,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 			sources.add(sourceItem);
 		}
 		DataItem targetItem = null;
-		MappingTargetDeclarationType targetDecl = mapping.getTarget();
+		VariableBindingDefinitionType targetDecl = mapping.getTarget();
 		if (mapping.getTarget() != null) {
 			LOGGER.debug(" - target: {}", targetDecl.getPath());
 			targetItem = resolveTargetItem(ctx, sourceItem, mapping, targetDecl, ExpressionConstants.VAR_FOCUS);
@@ -272,7 +287,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	}
 
 	private DataItem resolveSourceItem(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem currentItem,
-			@NotNull MappingType mapping, @NotNull MappingSourceDeclarationType sourceDecl, @Nullable QName defaultVariable) {
+			@NotNull MappingType mapping, @NotNull VariableBindingDefinitionType sourceDecl, @Nullable QName defaultVariable) {
 		// todo from the description
 		return resolveSourceItem(ctx, currentItem, mapping, sourceDecl.getPath().getItemPath(), defaultVariable);
 	}
@@ -329,7 +344,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	// currently for inbounds only
 	@NotNull
 	private DataItem resolveTargetItem(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem currentItem,
-			@NotNull MappingType mapping, @NotNull MappingTargetDeclarationType targetDecl, @Nullable QName defaultVariable) {
+			@NotNull MappingType mapping, @NotNull VariableBindingDefinitionType targetDecl, @Nullable QName defaultVariable) {
 		// todo from the description
 		return resolveTargetItem(ctx, currentItem, mapping, targetDecl.getPath().getItemPath(), defaultVariable);
 	}
@@ -397,7 +412,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 			@Nullable ItemPath defaultSourceItemPath) {
 		LOGGER.debug("Processing outbound mapping: {} for {}", mapping, targetItem);
 		List<DataItem> sources = new ArrayList<>();
-		for (MappingSourceDeclarationType sourceDecl : mapping.getSource()) {
+		for (VariableBindingDefinitionType sourceDecl : mapping.getSource()) {
 			LOGGER.debug(" - src: {}", sourceDecl.getPath());
 			DataItem sourceItem = resolveSourceItem(ctx, targetItem, mapping, sourceDecl, ExpressionConstants.VAR_FOCUS);
 			sources.add(sourceItem);
@@ -408,7 +423,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 				sources.add(defaultSource);
 			}
 		}
-		MappingTargetDeclarationType targetDecl = mapping.getTarget();
+		VariableBindingDefinitionType targetDecl = mapping.getTarget();
 		if (targetDecl != null) {
 			LOGGER.warn(" - ignoring target (mapping is outbound): {}; using {} instead", targetDecl.getPath(), targetItem);
 		}
