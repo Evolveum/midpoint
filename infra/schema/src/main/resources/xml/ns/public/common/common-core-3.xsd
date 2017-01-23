@@ -5966,7 +5966,7 @@
             <xsd:element name="name" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
            	<xsd:element name="path" type="t:ItemPathType"/>
-           	<xsd:element name="set" type="tns:ValueSetDefinitionType">
+           	<xsd:element name="set" type="tns:ValueSetDefinitionType" minOccurs="0">
            		<xsd:annotation>
            			<xsd:documentation>
            				Definition of the set of values for this variable. The variable
