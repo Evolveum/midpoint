@@ -149,6 +149,10 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	boolean isContainer(QName typeName);
 
+	// TODO move to GlobalSchemaRegistry
+	@NotNull
+	<TD extends TypeDefinition> Collection<TD> findTypeDefinitionsByElementName(@NotNull QName name, @NotNull Class<TD> clazz);
+
 	enum ComparisonResult {
 		EQUAL,					// types are equal
 		NO_STATIC_CLASS,		// static class cannot be determined

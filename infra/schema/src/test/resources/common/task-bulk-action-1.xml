@@ -25,7 +25,7 @@
             <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
                         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                         >
-                <s:expression xsi:type="s:SearchExpressionType">
+                <s:search>
                     <s:type>c:RoleType</s:type>
                     <s:searchFilter>
                         <q:equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -36,19 +36,25 @@
                     <s:action>
                         <s:type>log</s:type>
                     </s:action>
-                </s:expression>
-                <s:expression xsi:type="s:ExpressionSequenceType">
-                    <s:expression xsi:type="s:ActionExpressionType">
+                </s:search>
+                <s:sequence>
+                    <s:action>
                         <s:type>delete</s:type>
-                    </s:expression>
-                    <s:expression xsi:type="s:ActionExpressionType">
+                    </s:action>
+                    <s:action>
                         <s:type>assign</s:type>
                         <s:parameter>
                             <s:name>role</s:name>
                             <c:value>rome555c-7797-11e2-94a6-001e8c717e5b</c:value>
                         </s:parameter>
-                    </s:expression>
-                </s:expression>
+                    </s:action>
+                    <s:search>
+                        <s:type>UserType</s:type>
+                    </s:search>
+                    <scriptingExpression xmlns="" xsi:type="s:SearchExpressionType">
+                        <s:type>FocusType</s:type>
+                    </scriptingExpression>
+                </s:sequence>
             </s:pipeline>
         </scext:executeScript>
     </extension>

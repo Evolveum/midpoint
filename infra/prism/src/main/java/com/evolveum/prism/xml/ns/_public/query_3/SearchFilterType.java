@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.lang.HashCode;
@@ -163,11 +164,11 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return new RootXNode(singleEntry.getKey(), singleEntry.getValue());
     }
 
-    public Element getFilterClauseAsElement() throws SchemaException {
+    public Element getFilterClauseAsElement(@NotNull PrismContext prismContext) throws SchemaException {
         if (filterClauseXNode == null) {
             return null;
         }
-        DomLexicalProcessor domParser = PrismUtil.getDomParser(null);
+        DomLexicalProcessor domParser = PrismUtil.getDomParser(prismContext);
         return domParser.serializeSingleElementMapToElement(filterClauseXNode);
     }
 

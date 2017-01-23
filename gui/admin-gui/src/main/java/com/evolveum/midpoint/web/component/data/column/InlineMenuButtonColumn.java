@@ -19,7 +19,11 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -34,14 +38,10 @@ import java.util.List;
  * Created by honchar.
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonColumn<T>{
-    private static int numberOfDisplayedButtons = 3;
     private List<InlineMenuItem> menuItems;
 
-    public InlineMenuButtonColumn(List<InlineMenuItem> menuItems){
-        super(null, menuItems.size() < 3 ? menuItems.size() : numberOfDisplayedButtons);
-        if (menuItems.size() < 3){
-            numberOfDisplayedButtons = menuItems.size();
-        }
+    public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, int buttonsNumber){
+        super(null, menuItems.size() < 2 ? menuItems.size() : buttonsNumber);
         this.menuItems = menuItems;
     }
 
@@ -58,7 +58,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     }
 
     private Component getPanel(String componentId, IModel<T> rowModel){
-        panel = new MenuMultiButtonPanel<T>(componentId, rowModel, createMenuModel(rowModel)) {
+        panel = new MenuMultiButtonPanel<T>(componentId, numberOfButtons, rowModel, createMenuModel(rowModel)) {
 
             @Override
             public String getCaption(int id) {
@@ -79,6 +79,12 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
                 }
                 return id;
             }
+
+            @Override
+            public boolean isButtonVisible(int id, IModel<T> model) {
+                return InlineMenuButtonColumn.this.isButtonVisible(id, model);
+            }
+
             @Override
             public String getButtonSizeCssClass(int id) {
                 return InlineMenuButtonColumn.this.getButtonSizeCssClass(id);
@@ -139,6 +145,25 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
                     }
                 }
             }
+    }
+
+    @Override
+    public boolean isButtonVisible(int id, IModel<T> model) {
+        if (model == null){
+            return true;
+        }
+        if (id == InlineMenuItem.INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId() &&
+                model.getObject() instanceof SelectableBean &&
+                ((SelectableBean) model.getObject()).getValue() instanceof FocusType){
+            FocusType focus = (FocusType)((SelectableBean) model.getObject()).getValue();
+            return ActivationStatusType.DISABLED.equals(focus.getActivation().getAdministrativeStatus());
+        } else if (id == InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId() &&
+                model.getObject() instanceof SelectableBean &&
+                ((SelectableBean) model.getObject()).getValue() instanceof FocusType){
+            FocusType focus = (FocusType)((SelectableBean) model.getObject()).getValue();
+            return !ActivationStatusType.DISABLED.equals(focus.getActivation().getAdministrativeStatus());
+        }
+        return true;
     }
 
     @Override

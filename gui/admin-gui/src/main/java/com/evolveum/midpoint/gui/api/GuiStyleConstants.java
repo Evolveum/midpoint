@@ -121,6 +121,7 @@ public class GuiStyleConstants {
 
 	//menu items icons classes
 	public static final String CLASS_THREE_DOTS = "fa fa-ellipsis-h";
+	public static final String CLASS_RECONCILE_MENU_ITEM = "fa fa-exchange";
 
 	public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
 	public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";

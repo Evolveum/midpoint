@@ -578,6 +578,16 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		return new LayerRefinedAttributeDefinitionImpl<T>(refinedAttributeDefinition.deepClone(ctdMap), layer);
 	}
 
+	@Override
+	public QName getSubstitutionHead() {
+		return refinedAttributeDefinition.getSubstitutionHead();
+	}
+
+	@Override
+	public boolean isHeterogeneousListItem() {
+		return refinedAttributeDefinition.isHeterogeneousListItem();
+	}
+
 	//endregion
 	
 }

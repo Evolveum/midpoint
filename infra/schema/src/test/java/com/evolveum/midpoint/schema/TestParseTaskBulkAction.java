@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -60,22 +61,39 @@ public class TestParseTaskBulkAction {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+	@Test
+	public void testParseTaskFileToXNode() throws Exception {
+		System.out.println("===[ testParseTaskFileToXNode ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		// WHEN
+		RootXNode node = prismContext.parserFor(TASK_FILE).xml().parseToXNode();
+		
+		// THEN
+		System.out.println("Parsed task (XNode):");
+		System.out.println(node.debugDump());
+
+		System.out.println("XML -> XNode -> JSON:\n" + prismContext.jsonSerializer().serialize(node));
+		System.out.println("XML -> XNode -> YAML:\n" + prismContext.yamlSerializer().serialize(node));
+	}
+
 	@Test
 	public void testParseTaskFile() throws Exception {
 		System.out.println("===[ testParseTaskFile ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
 		PrismObject<TaskType> task = prismContext.parserFor(TASK_FILE).xml().parse();
-		
+
 		// THEN
 		System.out.println("Parsed task:");
 		System.out.println(task.debugDump());
-		
+
 		assertTask(task);
 	}
 
@@ -102,7 +120,13 @@ public class TestParseTaskBulkAction {
 
         // RE-PARSE
 
-        PrismObject<TaskType> reparsedTask = prismContext.parseObject(serializedTask);
+		RootXNode reparsedToXNode = prismContext.parserFor(serializedTask).xml().parseToXNode();
+		System.out.println("Re-parsed task (to XNode):");
+		System.out.println(reparsedToXNode.debugDump());
+
+		// real reparse
+
+		PrismObject<TaskType> reparsedTask = prismContext.parseObject(serializedTask);
 
         System.out.println("Re-parsed task:");
         System.out.println(reparsedTask.debugDump());

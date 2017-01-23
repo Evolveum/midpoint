@@ -484,11 +484,13 @@ public class ResourceTypeUtil {
 	public static PrismContainer<ConnectorConfigurationType> getConfigurationContainer(PrismObject<ResourceType> resource) {
 		return resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 	}
-	
+
+	@NotNull
 	public static String getResourceNamespace(PrismObject<ResourceType> resource) {
 		return getResourceNamespace(resource.asObjectable());
 	}
-	
+
+	@NotNull
 	public static String getResourceNamespace(ResourceType resourceType) {
 		if (resourceType.getNamespace() != null) {
 			return resourceType.getNamespace();

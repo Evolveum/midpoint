@@ -561,6 +561,13 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		return originalResourceSchema.findItemDefinitionsByElementName(elementName, definitionClass);
 	}
 
+	@NotNull
+	@Override
+	public <TD extends TypeDefinition> Collection<? extends TD> findTypeDefinitionsByType(@NotNull QName typeName,
+			@NotNull Class<TD> definitionClass) {
+		return originalResourceSchema.findTypeDefinitionsByType(typeName, definitionClass);
+	}
+
 	//endregion
 
 }

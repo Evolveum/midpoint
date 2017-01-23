@@ -24,9 +24,9 @@ import com.evolveum.midpoint.util.Handler;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -38,10 +38,7 @@ import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,14 +50,14 @@ import java.util.Map;
  */
 public class PrismBeanInspector {
 
-    private PrismContext prismContext;
+    @NotNull private PrismContext prismContext;
 
-    public PrismBeanInspector(PrismContext prismContext) {
+    public PrismBeanInspector(@NotNull PrismContext prismContext) {
         Validate.notNull(prismContext, "prismContext");
         this.prismContext = prismContext;
     }
 
-    //region Caching mechanism (multiple dimensions)
+	//region Caching mechanism (multiple dimensions)
 
     interface Getter1<V, P1> {
         V get(P1 param1);
@@ -118,12 +115,7 @@ public class PrismBeanInspector {
     private Map<Class<? extends Object>, String> _determineNamespace = Collections.synchronizedMap(new HashMap());
 
     String determineNamespace(Class<? extends Object> paramType) {
-        return find1(_determineNamespace, paramType, new Getter1<String,Class<? extends Object>>() {
-            @Override
-            public String get(Class<? extends Object> paramType) {
-                return determineNamespaceUncached(paramType);
-            }
-        });
+        return find1(_determineNamespace, paramType, this::determineNamespaceUncached);
     }
 
     private Map<Class<?>, QName> _determineTypeForClass = Collections.synchronizedMap(new HashMap());
@@ -135,12 +127,7 @@ public class PrismBeanInspector {
     private Map<Field,Map<Method,Boolean>> _isAttribute = Collections.synchronizedMap(new HashMap());
 
     boolean isAttribute(Field field, Method getter) {
-        return find2(_isAttribute, field, getter, new Getter2<Boolean,Field,Method>() {
-            @Override
-            public Boolean get(Field f, Method m) {
-                return isAttributeUncached(f, m);
-            }
-        });
+        return find2(_isAttribute, field, getter, this::isAttributeUncached);
     }
 
     private Map<Class,Map<String,Method>> _findSetter = Collections.synchronizedMap(new HashMap());
@@ -177,12 +164,7 @@ public class PrismBeanInspector {
     private Map<Class<? extends Object>, List<String>> _getPropOrder = Collections.synchronizedMap(new HashMap());
 
     List<String> getPropOrder(Class<? extends Object> beanClass) {
-        return find1(_getPropOrder, beanClass, new Getter1<List<String>, Class<? extends Object>>() {
-            @Override
-            public List<String> get(Class<? extends Object> c) {
-                return getPropOrderUncached(c);
-            }
-        });
+        return find1(_getPropOrder, beanClass, this::getPropOrderUncached);
     }
 
     private Map<Class,Map<String,Method>> _findElementMethodInObjectFactory = Collections.synchronizedMap(new HashMap());
@@ -195,7 +177,7 @@ public class PrismBeanInspector {
     private Map<Class,Map<Method,Field>> _lookupSubstitution = Collections.synchronizedMap(new HashMap());
 
     <T> Field lookupSubstitution(Class<T> beanClass, Method elementMethod) {
-        return find2(_lookupSubstitution, beanClass, elementMethod, (c, m) -> lookupSubstitutionUncached(c, m));
+        return find2(_lookupSubstitution, beanClass, elementMethod, this::lookupSubstitutionUncached);
     }
 
     private Map<Class,Map<String,String>> _findEnumFieldName = Collections.synchronizedMap(new HashMap());
@@ -215,15 +197,12 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Field,Map<Class<? extends Object>,Map<String,QName>>> _findFieldTypeName = Collections.synchronizedMap(new HashMap());
+    private Map<Field,Map<Class<? extends Object>,Map<String,QName>>> _findTypeName = Collections.synchronizedMap(new HashMap());
 
-    QName findFieldTypeName(Field field, Class<? extends Object> beanClass, String defaultNamespacePlaceholder) {
-        return find3(_findFieldTypeName, field, beanClass, defaultNamespacePlaceholder, new Getter3<QName,Field,Class<? extends Object>,String>() {
-            @Override
-            public QName get(Field field, Class<? extends Object> beanClass, String defaultNamespacePlaceholder) {
-                return findFieldTypeNameUncached(field, beanClass, defaultNamespacePlaceholder);
-            }
-        });
+	// Determines type for field/content combination. Field information is used only for simple XSD types.
+	QName findTypeName(Field field, Class<?> contentClass, String defaultNamespacePlaceholder) {
+        return find3(_findTypeName, field, contentClass, defaultNamespacePlaceholder,
+                this::findTypeNameUncached);
     }
 
     private Map<String,Map<Class<? extends Object>,Map<String,QName>>> _findFieldElementQName = Collections.synchronizedMap(new HashMap());
@@ -240,13 +219,13 @@ public class PrismBeanInspector {
     private Map<Class,Map<String,Method>> _findPropertyGetter = Collections.synchronizedMap(new HashMap());
 
     public <T> Method findPropertyGetter(Class<T> beanClass, String propName) {
-        return find2(_findPropertyGetter, beanClass, propName, (param1, param2) -> findPropertyGetterUncached(param1, param2));
+        return find2(_findPropertyGetter, beanClass, propName, this::findPropertyGetterUncached);
     }
 
     private Map<Class,Map<String,Field>> _findPropertyField = Collections.synchronizedMap(new HashMap());
 
     public <T> Field findPropertyField(Class<T> beanClass, String propName) {
-        return find2(_findPropertyField, beanClass, propName, (param1, param2) -> findPropertyFieldUncached(param1, param2));
+        return find2(_findPropertyField, beanClass, propName, this::findPropertyFieldUncached);
     }
     //endregion
 
@@ -340,7 +319,7 @@ public class PrismBeanInspector {
         }
 
         String namespace = xmlType.namespace();
-        if (namespace == null || BeanMarshaller.DEFAULT_PLACEHOLDER.equals(namespace)) {
+        if (BeanMarshaller.DEFAULT_PLACEHOLDER.equals(namespace)) {
             XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
             namespace = xmlSchema.namespace();
         }
@@ -495,34 +474,27 @@ public class PrismBeanInspector {
         }
 
         String[] myPropOrder = xmlType.propOrder();
-        if (myPropOrder != null) {
-            for (String myProp: myPropOrder) {
-                if (StringUtils.isNotBlank(myProp)) {
-                	// some properties starts with underscore..we don't want to serialize them with underscore, so remove it..
-                	if (myProp.startsWith("_")){
-                		myProp = myProp.replace("_", "");
-                	}
-                    propOrder.add(myProp);
-                }
-            }
-        }
+        for (String myProp: myPropOrder) {
+			if (StringUtils.isNotBlank(myProp)) {
+				// some properties starts with underscore..we don't want to serialize them with underscore, so remove it..
+				if (myProp.startsWith("_")){
+					myProp = myProp.replace("_", "");
+				}
+				propOrder.add(myProp);
+			}
+		}
 
         Field[] fields = beanClass.getDeclaredFields();
-        for (int i = 0; i< fields.length; i++){
-            Field field = fields[i];
-            if (field.isAnnotationPresent(XmlAttribute.class)){
+        for (Field field : fields) {
+            if (field.isAnnotationPresent(XmlAttribute.class)) {
                 propOrder.add(field.getName());
             }
         }
 
         Method[] methods = beanClass.getDeclaredMethods();
-        for (int i = 0; i< methods.length; i++){
-            Method method = methods[i];
-            if (method.isAnnotationPresent(XmlAttribute.class)){
-//				System.out.println("methodName: " + method.getName());
-                String propname = getPropertyNameFromGetter(method.getName());
-                //StringUtils.uncapitalize(StringUtils.removeStart("get", method.getName()))
-                propOrder.add(propname);
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(XmlAttribute.class)) {
+                propOrder.add(getPropertyNameFromGetter(method.getName()));
             }
         }
 
@@ -558,51 +530,35 @@ public class PrismBeanInspector {
         return getterName;
     }
 
-    private QName findFieldTypeNameUncached(Field field, Class fieldType, String schemaNamespace) {
-        QName propTypeQname = null;
-        XmlSchemaType xmlSchemaType = null;
+    private QName findTypeNameUncached(Field field, Class contentClass, String schemaNamespace) {
         if (field != null) {
-            xmlSchemaType = field.getAnnotation(XmlSchemaType.class);
-        }
-        if (xmlSchemaType != null) {
-            String propTypeLocalPart = xmlSchemaType.name();
-            if (propTypeLocalPart != null) {
-                String propTypeNamespace = xmlSchemaType.namespace();
-                if (propTypeNamespace == null) {
-                    propTypeNamespace = XMLConstants.W3C_XML_SCHEMA_NS_URI;
-                }
-                propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);
+			XmlSchemaType xmlSchemaType = field.getAnnotation(XmlSchemaType.class);
+            if (xmlSchemaType != null) {
+                return new QName(xmlSchemaType.namespace(), xmlSchemaType.name());
             }
         }
-        if (propTypeQname == null) {
-            propTypeQname = XsdTypeMapper.getJavaToXsdMapping(fieldType);
-        }
-
-        if (propTypeQname == null) {
-            XmlType xmlType = (XmlType) fieldType.getAnnotation(XmlType.class);
-            if (xmlType != null) {
-                String propTypeLocalPart = xmlType.name();
-                if (propTypeLocalPart != null) {
-                    String propTypeNamespace = xmlType.namespace();
-                    if (propTypeNamespace == null || propTypeNamespace.equals(BeanMarshaller.DEFAULT_PLACEHOLDER)) {
-                        if (prismContext != null) {     // hopefully this is always the case!
-                            PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(fieldType);
-                            if (schema != null && schema.getNamespace() != null) {
-                                propTypeNamespace = schema.getNamespace();
-                            }
-                        }
-                        if (propTypeNamespace == null) {
-                            // schemaNamespace is only a poor indicator of required namespace (consider e.g. having c:UserType in apit:ObjectListType)
-                            // so we use it only if we couldn't find anything else
-                            propTypeNamespace = schemaNamespace;
-                        }
-                    }
-                    propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);
-                }
-            }
-        }
-
-        return propTypeQname;
+        QName typeName = XsdTypeMapper.getJavaToXsdMapping(contentClass);
+        if (typeName != null) {
+        	return typeName;
+		}
+		// TODO the following code is similar to determineTypeForClass
+		XmlType xmlType = (XmlType) contentClass.getAnnotation(XmlType.class);
+		if (xmlType != null) {
+			String propTypeLocalPart = xmlType.name();
+			String propTypeNamespace = xmlType.namespace();
+			if (propTypeNamespace.equals(BeanMarshaller.DEFAULT_PLACEHOLDER)) {
+				PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(contentClass);
+				if (schema != null && schema.getNamespace() != null) {
+					propTypeNamespace = schema.getNamespace();		// should be non-null for properly initialized schemas
+				} else {
+					// schemaNamespace is only a poor indicator of required namespace (consider e.g. having c:UserType in apit:ObjectListType)
+					// so we use it only if we couldn't find anything else
+					propTypeNamespace = schemaNamespace;
+				}
+			}
+			return new QName(propTypeNamespace, propTypeLocalPart);
+		}
+		return null;
     }
 
     private QName findFieldElementQNameUncached(String fieldName, Class beanClass, String defaultNamespace) {
@@ -630,19 +586,15 @@ public class PrismBeanInspector {
     //endregion
     
     public <T> Field findAnyField(Class<T> beanClass) {
-    	return findField(beanClass, new Handler<Field>() {
-			@Override
-			public boolean handle(Field field) {
-				return (field.getAnnotation(XmlAnyElement.class) != null);
-			}
-    	});
+    	return findField(beanClass, field -> field.getAnnotation(XmlAnyElement.class) != null);
     }
     
     public <T> Method findAnyMethod(Class<T> beanClass) {
-    	return findMethod(beanClass, method -> (method.getAnnotation(XmlAnyElement.class) != null));
+    	return findMethod(beanClass, method -> method.getAnnotation(XmlAnyElement.class) != null);
     }
 
     // e.g. Collection<UserType> -> UserType
+	@NotNull
     Type getTypeArgument(Type origType, String desc) {
         if (!(origType instanceof ParameterizedType)) {
             throw new IllegalArgumentException("Not a parametrized type "+desc);
@@ -657,4 +609,27 @@ public class PrismBeanInspector {
         }
         return actualTypeArguments[0];
     }
+
+    @NotNull
+	public Class getUpperBound(Type type, String desc) {
+		if (type instanceof Class) {
+			return (Class) type;
+		} else if (type instanceof WildcardType) {
+			WildcardType wildcard = ((WildcardType) type);
+			if (wildcard.getUpperBounds().length != 1) {
+				throw new IllegalArgumentException("Wrong number of upper bounds for " + type + " ("
+						+ wildcard.getUpperBounds().length + "): " + desc);
+			}
+			Type upper = wildcard.getUpperBounds()[0];
+			if (upper instanceof Class) {
+				return (Class) upper;
+			} else {
+				throw new IllegalArgumentException("Upper bound for " + type + " is not a class, it is " + type + ": " + desc);
+			}
+		} else {
+			throw new IllegalArgumentException(type + "is not a class nor wildcard type: " + type + ": " + desc);
+		}
+	}
+
+
 }

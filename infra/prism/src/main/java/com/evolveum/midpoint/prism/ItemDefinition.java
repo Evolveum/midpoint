@@ -96,6 +96,17 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	 */
 	boolean canAdd();
 
+	/**
+	 * Returns the name of an element this one can be substituted for (e.g. c:user -> c:object,
+	 * s:pipeline -> s:expression, etc). EXPERIMENTAL
+	 */
+	QName getSubstitutionHead();
+
+	/**
+	 * Can be used in heterogeneous lists as a list item. EXPERIMENTAL.
+	 */
+	boolean isHeterogeneousListItem();
+
 	PrismReferenceValue getValueEnumerationRef();
 
 	boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz);
