@@ -185,7 +185,9 @@ public interface ModelInteractionService {
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
     AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-    
+
+	DeploymentInformationType getDeploymentInformationConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
 	AccessCertificationConfigurationType getCertificationConfiguration(OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
     

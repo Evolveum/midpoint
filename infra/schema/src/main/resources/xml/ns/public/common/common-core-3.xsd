@@ -10677,7 +10677,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="deploymentInformation" type="tns:DeploymentInformationType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="deploymentInformation" type="tns:DeploymentInformationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Information about midPoint deployment: subscription information, deployment name,
