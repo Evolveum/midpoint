@@ -81,8 +81,8 @@ public class EvaluatedPolicyRuleTrigger implements DebugDumpable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((constraint == null) ? 0 : constraint.hashCode());
-		result = prime * result + ((constraintKind == null) ? 0 : constraintKind.hashCode());
+		result = prime * result + constraint.hashCode();
+		result = prime * result + constraintKind.hashCode();
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		return result;
 	}
@@ -99,11 +99,7 @@ public class EvaluatedPolicyRuleTrigger implements DebugDumpable {
 			return false;
 		}
 		EvaluatedPolicyRuleTrigger other = (EvaluatedPolicyRuleTrigger) obj;
-		if (constraint == null) {
-			if (other.constraint != null) {
-				return false;
-			}
-		} else if (!constraint.equals(other.constraint)) {
+		if (!constraint.equals(other.constraint)) {
 			return false;
 		}
 		if (constraintKind != other.constraintKind) {
@@ -131,7 +127,10 @@ public class EvaluatedPolicyRuleTrigger implements DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "conflictingAssignment", conflictingAssignment, indent + 1);
+		// cannot debug dump conflicting assignment in detail, as we might go into infinite loop
+		// (the assignment could have evaluated rule that would point to another conflicting assignment, which
+		// could point back to this rule)
+		DebugUtil.debugDumpWithLabel(sb, "conflictingAssignment", String.valueOf(conflictingAssignment), indent + 1);
 		return sb.toString();
 	}
 

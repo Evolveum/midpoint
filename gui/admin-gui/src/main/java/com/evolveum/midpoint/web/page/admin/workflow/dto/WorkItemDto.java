@@ -56,6 +56,8 @@ public class WorkItemDto extends Selectable {
     public static final String F_ASSIGNEE_OR_CANDIDATES = "assigneeOrCandidates";
     public static final String F_ASSIGNEE = "assignee";
     public static final String F_CANDIDATES = "candidates";
+    public static final String F_APPROVAL_LEVEL_INFO = "approvalLevelInfo";
+    public static final String F_APPROVER_INSTRUCTION = "approverInstruction";
 
 	public static final String F_OTHER_WORK_ITEMS = "otherWorkItems";
 	public static final String F_RELATED_WORKFLOW_REQUESTS = "relatedWorkflowRequests";
@@ -114,7 +116,10 @@ public class WorkItemDto extends Selectable {
 
 	@Nullable
 	protected TaskType getTaskType() {
-		return taskType != null ? taskType : WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+    	if (taskType == null) {
+    		taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+		}
+		return taskType;
 	}
 
 	public String getWorkItemId() {
@@ -305,5 +310,43 @@ public class WorkItemDto extends Selectable {
 		}
 		ItemApprovalProcessStateType instanceState = (ItemApprovalProcessStateType) wfc.getProcessSpecificState();
 		return CollectionUtils.isNotEmpty(instanceState.getDecisions());
+	}
+
+	private ItemApprovalProcessStateType getItemApprovalProcessInfo() {
+		if (taskType == null || taskType.getWorkflowContext() == null) {
+			return null;
+		}
+		WfProcessSpecificStateType processSpecificState = taskType.getWorkflowContext().getProcessSpecificState();
+		return processSpecificState instanceof ItemApprovalProcessStateType ?
+				(ItemApprovalProcessStateType) processSpecificState : null;
+	}
+
+	private ItemApprovalWorkItemPartType getItemApprovalWorkItemInfo() {
+    	return workItem.getProcessSpecificPart() instanceof ItemApprovalWorkItemPartType ?
+				(ItemApprovalWorkItemPartType) workItem.getProcessSpecificPart() : null;
+	}
+
+	public String getApprovalLevelInfo() {
+		ItemApprovalProcessStateType processInfo = getItemApprovalProcessInfo();
+		ItemApprovalWorkItemPartType workItemInfo = getItemApprovalWorkItemInfo();
+		if (processInfo == null || workItemInfo == null) {
+			return null;
+		}
+    	ApprovalSchemaType schema = processInfo.getApprovalSchema();
+		int levelNumber = workItemInfo.getLevelIndex();
+		ApprovalLevelType level = schema.getLevel().get(levelNumber);
+		String name = level.getDisplayName() != null ? level.getDisplayName() : level.getName();
+
+		return (name != null ? name+" " : "")
+				+ "(" + (levelNumber+1) + " of " + schema.getLevel().size() + ")";			// TODO i18n
+	}
+
+	public String getApproverInstruction() {
+		ItemApprovalWorkItemPartType workItemInfo = getItemApprovalWorkItemInfo();
+		return workItemInfo != null ? workItemInfo.getApproverInstruction() : null;
+	}
+
+	public boolean isItemApproval() {
+    	return workItem.getProcessSpecificPart() instanceof ItemApprovalWorkItemPartType;
 	}
 }

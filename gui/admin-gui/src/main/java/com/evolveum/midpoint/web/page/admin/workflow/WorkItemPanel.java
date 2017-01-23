@@ -62,6 +62,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_WORK_ITEM_CREATED_ON = "workItemCreatedOn";
     private static final String ID_ASSIGNEE = "assignee";
     private static final String ID_CANDIDATES = "candidates";
+    private static final String ID_APPROVAL_LEVEL_INFO_CONTAINER = "approvalLevelInfoContainer";
+    private static final String ID_APPROVAL_LEVEL_INFO = "approvalLevelInfo";
     private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
     private static final String ID_HISTORY_CONTAINER = "historyContainer";
     private static final String ID_HISTORY = "history";
@@ -72,6 +74,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
     private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
+    private static final String ID_APPROVER_INSTRUCTION_CONTAINER = "approverInstructionContainer";
+    private static final String ID_APPROVER_INSTRUCTION = "approverInstruction";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 	private static final String ID_SHOW_REQUEST = "showRequest";
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
@@ -144,6 +148,17 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		primaryInfoColumn.add(new Label(ID_WORK_ITEM_CREATED_ON, new PropertyModel(getModel(), WorkItemDto.F_CREATED_FORMATTED_FULL)));
 		primaryInfoColumn.add(new Label(ID_ASSIGNEE, new PropertyModel(getModel(), WorkItemDto.F_ASSIGNEE)));
 		primaryInfoColumn.add(new Label(ID_CANDIDATES, new PropertyModel(getModel(), WorkItemDto.F_CANDIDATES)));
+
+		WebMarkupContainer approvalLevelInfoContainer = new WebMarkupContainer(ID_APPROVAL_LEVEL_INFO_CONTAINER);
+		primaryInfoColumn.add(approvalLevelInfoContainer);
+		approvalLevelInfoContainer.add(new Label(ID_APPROVAL_LEVEL_INFO, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVAL_LEVEL_INFO)));
+		approvalLevelInfoContainer.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return getModelObject().isItemApproval();
+			}
+		});
+
 		//primaryInfoColumn.add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<SceneDto>(getModel(), WorkItemDto.F_DELTAS)));
 		primaryInfoColumn.add(new TaskChangesPanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<TaskChangesDto>(getModel(), WorkItemDto.F_CHANGES)));
 		primaryInfoColumn.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
@@ -166,6 +181,16 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			}
 		});
 		add(WebComponentUtil.createHelp(ID_SHOW_REQUEST_HELP));
+
+		WebMarkupContainer approverInstructionContainer = new WebMarkupContainer(ID_APPROVER_INSTRUCTION_CONTAINER);
+		approverInstructionContainer.add(new Label(ID_APPROVER_INSTRUCTION, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_INSTRUCTION)));
+		add(approverInstructionContainer);
+		approverInstructionContainer.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return getModelObject().getApproverInstruction() != null;
+			}
+		});
 
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }

@@ -28,9 +28,12 @@ import java.util.List;
  * @author mederly
  */
 public interface ApprovalLevel extends DebugDumpable {
+
     String getName();
 
-    String getDescription();
+	String getDisplayName();
+
+	String getDescription();
 
     List<? extends LightweightObjectRef> getApproverRefs();
 
@@ -40,7 +43,9 @@ public interface ApprovalLevel extends DebugDumpable {
 
     ExpressionType getAutomaticallyApproved();
 
-    @NotNull
+	ExpressionType getApproverInstruction();
+
+	@NotNull
     ApprovalLevelOutcomeType getOutcomeIfNoApprovers();
 
 	@NotNull

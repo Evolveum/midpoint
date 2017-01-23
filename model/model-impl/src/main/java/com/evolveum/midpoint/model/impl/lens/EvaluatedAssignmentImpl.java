@@ -461,7 +461,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
+		return "EvaluatedAssignment(target=" + target + "; constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
 				.size()+" rules)";
 	}
 	

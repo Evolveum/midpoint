@@ -34,7 +34,6 @@
 				</exclusion>
 			</policyConstraints>
 			<policyActions>
-				<enforcement/>
 				<approval>
 					<approverRef type="UserType">
 						<filter>

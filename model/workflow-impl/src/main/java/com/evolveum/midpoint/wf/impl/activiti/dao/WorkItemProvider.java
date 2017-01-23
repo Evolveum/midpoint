@@ -112,8 +112,9 @@ public class WorkItemProvider {
 		} else {
 			tasks = taskQuery.listPage(defaultIfNull(offset, 0), defaultIfNull(maxSize, Integer.MAX_VALUE));
 		}
+		boolean getAllVariables = true;				// TODO implement based on options
 		// there's no need to fill-in assignee details ; but candidates are necessary to fill-in; TODO implement based on options (resolve)
-		return tasksToWorkItemsNew(tasks, null, false, false, true, result);
+		return tasksToWorkItemsNew(tasks, null, false, false, true, getAllVariables, result);
 	}
 
 	// primitive 'query interpreter'
@@ -217,15 +218,15 @@ public class WorkItemProvider {
                 .includeTaskLocalVariables()
                 .includeProcessVariables()
                 .list();
-        return tasksToWorkItemsNew(tasks, null, false, true, true, result);
+        return tasksToWorkItemsNew(tasks, null, false, true, true, true, result);
     }
 
     private SearchResultList<WorkItemType> tasksToWorkItemsNew(List<Task> tasks, Map<String, Object> processVariables,
-            boolean resolveTask, boolean resolveAssignee, boolean resolveCandidates, OperationResult result) {
+            boolean resolveTask, boolean resolveAssignee, boolean resolveCandidates, boolean fetchAllVariables, OperationResult result) {
         SearchResultList<WorkItemType> retval = new SearchResultList<>(new ArrayList<WorkItemType>());
         for (Task task : tasks) {
             try {
-                retval.add(taskToWorkItemNew(task, processVariables, resolveTask, resolveAssignee, resolveCandidates, result));
+                retval.add(taskToWorkItemNew(task, processVariables, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result));
             } catch (RuntimeException e) {
 				// operation result already contains corresponding error record
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get information on activiti task {}", e, task.getId());
@@ -356,18 +357,19 @@ public class WorkItemProvider {
     }
 
     private WorkItemType taskToWorkItemNew(Task task, Map<String, Object> processVariables, boolean resolveTask, boolean resolveAssignee,
-            boolean resolveCandidates, OperationResult result) {
+            boolean resolveCandidates, boolean fetchAllVariables, OperationResult result) {
 		TaskExtract taskExtract = new TaskExtract(task, processVariables);
-		return taskExtractToWorkItemNew(taskExtract, resolveTask, resolveAssignee, resolveCandidates, result);
+		return taskExtractToWorkItemNew(taskExtract, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result);
     }
 
     public WorkItemType taskEventToWorkItemNew(TaskEvent taskEvent, Map<String, Object> processVariables, boolean resolveTask,
 			boolean resolveAssignee, boolean resolveCandidates, OperationResult result) {
 		TaskExtract taskExtract = new TaskExtract(taskEvent);
-		return taskExtractToWorkItemNew(taskExtract, resolveTask, resolveAssignee, resolveCandidates, result);
+		return taskExtractToWorkItemNew(taskExtract, resolveTask, resolveAssignee, resolveCandidates, false, result);
     }
 
-    public WorkItemType taskExtractToWorkItemNew(TaskExtract task, boolean resolveTask, boolean resolveAssignee, boolean resolveCandidates, OperationResult parentResult) {
+    public WorkItemType taskExtractToWorkItemNew(TaskExtract task, boolean resolveTask, boolean resolveAssignee,
+			boolean resolveCandidates, boolean fetchAllVariables, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
 		result.addParams(new String [] { "activitiTaskId", "resolveTask", "resolveAssignee", "resolveCandidates" },
 				task.getId(), resolveTask, resolveAssignee, resolveCandidates);
@@ -414,6 +416,12 @@ public class WorkItemProvider {
 
 			ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
 			wi.setDecision(pmi.extractDecision(variables));
+
+			// This is just because 'variables' switches in task query DO NOT fetch all required variables...
+			if (fetchAllVariables) {		// TODO can we do this e.g. in the task completion listener?
+				Map<String, Object> allVariables = activitiEngine.getTaskService().getVariables(task.getId());
+				wi.setProcessSpecificPart(pmi.extractProcessSpecificWorkItemPart(allVariables));
+			}
 
 			return wi;
 

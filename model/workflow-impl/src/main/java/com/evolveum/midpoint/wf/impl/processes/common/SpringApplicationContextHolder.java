@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -96,6 +97,14 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
     public static TaskManager getTaskManager() {
         return getBean(TaskManager.class);
     }
+
+    public static WfExpressionEvaluationHelper getExpressionEvaluationHelper() {
+		return getBean(WfExpressionEvaluationHelper.class);
+	}
+
+    public static ExpressionFactory getExpressionFactory() {
+		return getBean(ExpressionFactory.class);
+	}
 }
 
   

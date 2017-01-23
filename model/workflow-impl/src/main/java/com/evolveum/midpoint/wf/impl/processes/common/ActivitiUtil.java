@@ -26,12 +26,12 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.activiti.engine.delegate.DelegateExecution;
 
 import java.io.Serializable;
 
-import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.*;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getMidpointFunctions;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getTaskManager;
 
 /**
  * General utilities that can be used from within processes.
@@ -43,24 +43,6 @@ public class ActivitiUtil implements Serializable {
     private static final long serialVersionUID = 5183098710717369392L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiUtil.class);
-
-    public static String DEFAULT_APPROVER = "00000000-0000-0000-0000-000000000002";
-
-    public String getApprover(RoleType r) {
-        String approver;
-        if (r.getApproverRef().isEmpty()) {
-            LOGGER.warn("No approvers defined for role " + r + ", using default one instead: " + DEFAULT_APPROVER);
-            return DEFAULT_APPROVER;
-        }
-        approver = r.getApproverRef().get(0).getOid();
-        if (r.getApproverRef().size() > 1) {
-            LOGGER.warn("More than one approver defined for role " + r + ", using the first one: " + approver);
-        }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Approver for role " + r + " determined to be " + approver);
-        }
-        return approver;
-    }
 
     public PrismContext getPrismContext() {
         return SpringApplicationContextHolder.getPrismContext();
@@ -85,11 +67,23 @@ public class ActivitiUtil implements Serializable {
         if (oid == null) {
 			throw new IllegalStateException("No task OID in process " + execution.getProcessInstanceId());
 		}
-
 		try {
 			return getTaskManager().getTask(oid, result);
 		} catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
 			throw new SystemException("Couldn't get task " + oid + " corresponding to process " + execution.getProcessInstanceId(), e);
 		}
 	}
+
+	@SuppressWarnings("unchecked")
+    public static <T> T getRequiredVariable(DelegateExecution execution, String name, Class<T> clazz) {
+        Object value = execution.getVariable(name);
+        if (value == null) {
+            throw new IllegalStateException("Required process variable " + name + " is missing in " + execution);
+        } else if (!(clazz.isAssignableFrom(value.getClass()))) {
+            throw new IllegalStateException("Process variable " + name + " should be of " + clazz + " but is of "
+                    + value.getClass() + " instead in " + execution);
+        } else {
+            return (T) value;
+        }
+    }
 }

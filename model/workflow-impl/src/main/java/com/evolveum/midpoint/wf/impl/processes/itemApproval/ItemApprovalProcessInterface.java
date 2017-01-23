@@ -29,7 +29,9 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationIn
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalWorkItemPartType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -78,7 +80,16 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
         return decision;
     }
 
-    @Override
+	@Override
+	public WfProcessSpecificWorkItemPartType extractProcessSpecificWorkItemPart(Map<String, Object> variables) {
+		ItemApprovalWorkItemPartType info = new ItemApprovalWorkItemPartType(prismContext);
+		info.setApproverInstruction((String) variables.get(ProcessVariableNames.APPROVER_INSTRUCTION));
+		Integer index = (Integer) variables.get(ProcessVariableNames.LEVEL_INDEX);
+		info.setLevelIndex(index != null ? index : 0);
+		return info;
+	}
+
+	@Override
     public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event) {
         List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
         if (!ApprovalUtils.isApproved(getAnswer(event.getVariables()))) {

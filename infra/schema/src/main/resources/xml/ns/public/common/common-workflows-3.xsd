@@ -701,19 +701,19 @@
     </xsd:complexType>
     <xsd:element name="wfGeneralChangeProcessorStateType" type="tns:WfGeneralChangeProcessorStateType" />
 
-    <xsd:complexType name="WfProcessSpecificStateType">
+    <xsd:complexType name="WfProcessSpecificWorkItemPartType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
             <xsd:documentation>
-                Describe states that are specific to a given BPMN process.
+                Describe work item parts that are specific to a given BPMN process.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:complexType>
-    <xsd:element name="wfProcessSpecificStateType" type="tns:WfProcessSpecificStateType" />
+    <xsd:element name="wfProcessSpecificWorkItemPart" type="tns:WfProcessSpecificWorkItemPartType" />
 
-    <xsd:complexType name="ItemApprovalProcessStateType">
+    <xsd:complexType name="ItemApprovalWorkItemPartType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
@@ -723,17 +723,49 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:WfProcessSpecificStateType">
+            <xsd:extension base="tns:WfProcessSpecificWorkItemPartType">
                 <xsd:sequence>
-                    <xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
-                    <xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="levelIndex" type="xsd:int" />
+                    <xsd:element name="approverInstruction" type="xsd:string" minOccurs="0" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="itemApprovalProcessStateType" type="tns:ItemApprovalProcessStateType" />
+    <xsd:element name="itemApprovalWorkItemPart" type="tns:ItemApprovalWorkItemPartType" />
 
-    <xsd:complexType name="ItemApprovalRequestType">
+	<xsd:complexType name="WfProcessSpecificStateType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+			<xsd:documentation>
+				Describe states that are specific to a given BPMN process.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	<xsd:element name="wfProcessSpecificState" type="tns:WfProcessSpecificStateType" />
+
+	<xsd:complexType name="ItemApprovalProcessStateType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WfProcessSpecificStateType">
+				<xsd:sequence>
+					<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
+					<xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="itemApprovalProcessState" type="tns:ItemApprovalProcessStateType" />
+
+	<xsd:complexType name="ItemApprovalRequestType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
@@ -747,7 +779,7 @@
             <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="itemApprovalRequestType" type="tns:ItemApprovalRequestType" />
+    <xsd:element name="itemApprovalRequest" type="tns:ItemApprovalRequestType" />
 
     <xsd:complexType name="WorkItemType">
         <xsd:annotation>
@@ -870,6 +902,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
 
             <!--<xsd:element name="contents" type="tns:ObjectType" minOccurs="0" maxOccurs="1">-->
                 <!--<xsd:annotation>-->

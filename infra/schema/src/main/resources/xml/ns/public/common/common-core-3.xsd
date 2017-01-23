@@ -8600,6 +8600,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="displayName" type="xsd:string" minOccurs="0"/>
             <xsd:element name="description" type="xsd:string" minOccurs="0"/>
             <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -8660,7 +8661,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-            <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+			<xsd:element name="approverInstruction" type="c:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Instruction to reviewer. Will be displayed when work item will be worked on.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Condition specifying when this level is automatically approved (e.g. "user is
@@ -10819,7 +10827,7 @@
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                    	Human-readable desciption to display with the link (or a key to the localization file).
+                    	Human-readable description to display with the link (or a key to the localization file).
                     	The description can be longer (several sentences). It is mean to be displayed as a multi-line
                     	description, tooltip, etc. 
                     </xsd:documentation>

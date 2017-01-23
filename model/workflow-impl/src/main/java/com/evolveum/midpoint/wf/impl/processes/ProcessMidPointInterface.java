@@ -19,6 +19,7 @@ package com.evolveum.midpoint.wf.impl.processes;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
 
 import java.util.List;
 import java.util.Map;
@@ -37,4 +38,6 @@ public interface ProcessMidPointInterface {
     String getBeanName();
 
     List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event);
+
+	WfProcessSpecificWorkItemPartType extractProcessSpecificWorkItemPart(Map<String, Object> variables);
 }

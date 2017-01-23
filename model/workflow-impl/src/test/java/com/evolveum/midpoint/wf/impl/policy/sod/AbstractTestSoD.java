@@ -116,7 +116,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 	/**
 	 * Assign Pirate to jack. This should trigger an approval.
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test020AssignRolePirate() throws Exception {
 		final String TEST_NAME = "test020AssignRolePirate";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -126,12 +126,19 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> jack = getUser(userJackOid);
+		String originalDescription = jack.asObjectable().getDescription();
+
 		@SuppressWarnings("unchecked")
 		ObjectDelta<UserType> addPirateDelta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(rolePirateOid, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(userJackOid);
+		@SuppressWarnings("unchecked")
+		ObjectDelta<UserType> changeDescriptionDelta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_DESCRIPTION).replace("Pirate Judge")
 				.asObjectDelta(userJackOid);
+		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addPirateDelta, changeDescriptionDelta);
 
 		// WHEN+THEN
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
@@ -142,7 +149,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 
 			@Override
 			protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
-				return addPirateDelta.clone();
+				return primaryDelta.clone();
 			}
 
 			@Override
@@ -163,7 +170,8 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			@Override
 			protected ObjectDelta<UserType> getExpectedDelta0() {
 				//return ObjectDelta.createEmptyModifyDelta(UserType.class, jack.getOid(), prismContext);
-				return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
+				//return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
+				return changeDescriptionDelta.clone();
 			}
 
 			@Override
@@ -174,19 +182,31 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
 				return Collections.singletonList(
-						new ExpectedTask(null, "Resolving Segregation of Duties conflict in jack"));
+						new ExpectedTask(rolePirateOid, "Assigning Pirate to jack"));
 			}
 
 			@Override
 			protected List<ExpectedWorkItem> getExpectedWorkItems() {
 				List<ExpectedTask> etasks = getExpectedTasks();
 				return Collections.singletonList(
-						new ExpectedWorkItem(userSodApproverOid, null, etasks.get(0)));
+						new ExpectedWorkItem(userSodApproverOid, rolePirateOid, etasks.get(0)));
 			}
 
 			@Override
 			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
 				switch (number) {
+					case 0:
+						if (yes) {
+							assertUserProperty(userJackOid, UserType.F_DESCRIPTION, "Pirate Judge");
+						} else {
+							if (originalDescription != null) {
+								assertUserProperty(userJackOid, UserType.F_DESCRIPTION, originalDescription);
+							} else {
+								assertUserNoProperty(userJackOid, UserType.F_DESCRIPTION);
+							}
+						}
+						break;
+
 					case 1:
 						if (yes) {
 							assertAssignedRole(userJackOid, rolePirateOid, rootTask, result);
@@ -214,7 +234,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 	/**
 	 * Assign Respectable to jack. This should trigger an approval as well (because it implies a Thief).
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test030AssignRoleRespectable() throws Exception {
 		final String TEST_NAME = "test030AssignRoleRespectable";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -276,14 +296,14 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
 				return Collections.singletonList(
-						new ExpectedTask(null, "Resolving Segregation of Duties conflict in jack"));
+						new ExpectedTask(roleRespectableOid, "Assigning Respectable to jack"));
 			}
 
 			@Override
 			protected List<ExpectedWorkItem> getExpectedWorkItems() {
 				List<ExpectedTask> etasks = getExpectedTasks();
 				return Collections.singletonList(
-						new ExpectedWorkItem(userSodApproverOid, null, etasks.get(0)));
+						new ExpectedWorkItem(userSodApproverOid, roleRespectableOid, etasks.get(0)));
 			}
 
 			@Override
