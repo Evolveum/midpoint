@@ -34,16 +34,24 @@ public class ApprovalUtils {
     }
 
     public static Boolean approvalBooleanValue(String decision) {
-        if (DECISION_APPROVED.equals(decision)) {
-            return true;
-        } else if (DECISION_REJECTED.equals(decision)) {
-            return false;
-        } else {
-            return null;
-        }
-    }
+		return parse(decision, DECISION_APPROVED, DECISION_REJECTED);
+	}
 
-    public static boolean isApproved(String decision) {
+	public static Boolean approvalBooleanValueNice(String decision) {
+		return parse(decision, DECISION_APPROVED_NICE, DECISION_REJECTED_NICE);
+	}
+
+	private static Boolean parse(String decision, String approved, String rejected) {
+		if (approved.equals(decision)) {
+			return true;
+		} else if (rejected.equals(decision)) {
+			return false;
+		} else {
+			return null;
+		}
+	}
+
+	public static boolean isApproved(String decision) {
         return DECISION_APPROVED.equals(decision);
     }
 
