@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -395,7 +395,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
                     } else if ("departmentNumber".equals(ItemPathUtil.getOnlySegmentQName(attributeDefinitionType.getRef()).getLocalPart())) {
                         foundDepartmentNumber = true;
                         MappingType outbound = attributeDefinitionType.getOutbound();
-                        MappingSourceDeclarationType source = outbound.getSource().get(0);
+                        VariableBindingDefinitionType source = outbound.getSource().get(0);
                         System.out.println("source for departmentNumber = " + source);
                         assertNotNull("no source for outbound mapping for departmentNumber", source);
                         //<path xmlns:z="http://z/">$user/extension/z:dept</path>

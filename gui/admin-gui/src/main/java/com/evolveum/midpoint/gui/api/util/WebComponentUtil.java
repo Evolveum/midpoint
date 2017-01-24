@@ -45,7 +45,9 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Page;
@@ -1846,6 +1848,35 @@ public final class WebComponentUtil {
 		}
 
 		return value.toInteger();
+	}
+
+	public static boolean checkSubscriptionId(String subscriptionId){
+		if (StringUtils.isEmpty(subscriptionId)) {
+			return false;
+		}
+		if (!NumberUtils.isDigits(subscriptionId)){
+			return false;
+		}
+		if (subscriptionId.length() < 8){
+			return false;
+		}
+		//TODO check subscription type according to type constants
+		String expDateStr = subscriptionId.substring(2, 6);
+		SimpleDateFormat dateFormat = new SimpleDateFormat("MMyy");
+		try {
+			Date expDate =  dateFormat.parse(expDateStr);
+			Date currentDate = new Date(System.currentTimeMillis());;
+			if (expDate.before(currentDate)){
+				return false;
+			}
+		} catch (Exception ex){
+			return false;
+		}
+		VerhoeffCheckDigit checkDigit = new VerhoeffCheckDigit();
+		if (checkDigit.isValid(subscriptionId)){
+			return true;
+		}
+		return false;
 	}
 
 	public static void setSelectedTabFromPageParameters(TabbedPanel tabbed, PageParameters params, String paramName) {

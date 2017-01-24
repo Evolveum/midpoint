@@ -181,9 +181,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_BC_NAME = "bcName";
 	private static final String ID_MAIN_POPUP = "mainPopup";
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
+	private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
 	private static final String ID_LOGO = "logo";
 
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
+    private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
@@ -619,6 +621,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		});
 		add(version);
+
+		Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE, createStringResource("PageBase.subscriptionMessage"));
+		subscriptionMessage.setOutputMarkupId(true);
+        subscriptionMessage.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				String subscriptionId = getSubscriptionId();
+                if (StringUtils.isEmpty(subscriptionId)){
+                    return true;
+                }
+                return !WebComponentUtil.checkSubscriptionId(subscriptionId);
+			}
+		});
+		add(subscriptionMessage);
 
 		WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
 		feedbackContainer.setOutputMarkupId(true);
@@ -1532,6 +1550,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
+    public DeploymentInformationType loadDeploymentInformationType() {
+        DeploymentInformationType deploymentInformationType = null;
+            OperationResult result = new OperationResult(OPERATION_GET_DEPLOYMENT_INFORMATION);
+            try {
+				deploymentInformationType = getModelInteractionService().getDeploymentInformationConfiguration(result);
+                LOGGER.trace("Deployment information : {}", deploymentInformationType);
+                result.recordSuccess();
+            } catch(Exception ex){
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", ex);
+                result.recordFatalError("Couldn't load deployment information.", ex);
+            }
+            return deploymentInformationType;
+    }
+
 	public Breadcrumb redirectBack() {
 		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
 		if (breadcrumbs.size() < 2) {
@@ -1667,5 +1699,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	public void clearBreadcrumbs() {
 		getBreadcrumbs().clear();
+	}
+
+	private String getSubscriptionId(){
+		DeploymentInformationType deploymentInformationType = loadDeploymentInformationType();
+        if (deploymentInformationType == null){
+            return null;
+        }
+		return deploymentInformationType.getSubscriptionIdentifier();
 	}
 }

@@ -988,7 +988,7 @@ public class LensUtil {
 		return mapping;
 	}
 
-	private static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(MappingTargetDeclarationType target,
+	private static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
 			ObjectDeltaObject<F> defaultSource, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (target == null) {

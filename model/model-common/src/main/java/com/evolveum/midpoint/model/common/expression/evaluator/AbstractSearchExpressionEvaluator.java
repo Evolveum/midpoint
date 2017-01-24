@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingTargetDeclarationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PopulateItemType;
@@ -433,7 +433,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			return null;
 		}
 		
-		MappingTargetDeclarationType targetType = populateItem.getTarget();
+		VariableBindingDefinitionType targetType = populateItem.getTarget();
 		if (targetType == null) {
 			LOGGER.warn("No target in populateObject in assignment expression in {}, "
 					+ "skipping. Subsequent operations will most likely fail", contextDescription);
