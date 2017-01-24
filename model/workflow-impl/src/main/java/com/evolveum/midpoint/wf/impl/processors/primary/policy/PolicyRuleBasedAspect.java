@@ -190,7 +190,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private void logApprovalActions(EvaluatedAssignment<?> newAssignment,
 			List<TriggeredApprovalAction> triggeredApprovalActions) {
-		if (LOGGER.isDebugEnabled()) {
+		if (LOGGER.isDebugEnabled() && !triggeredApprovalActions.isEmpty()) {
 			LOGGER.debug("Assignment to be added: {}: {} this target policy rules, {} triggered approval actions:",
 					newAssignment, newAssignment.getThisTargetPolicyRules().size(), triggeredApprovalActions.size());
 			for (TriggeredApprovalAction t : triggeredApprovalActions) {

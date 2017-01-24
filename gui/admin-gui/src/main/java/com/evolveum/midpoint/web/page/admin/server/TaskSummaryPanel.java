@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
@@ -168,6 +169,14 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return "summary-tag-box-wide";
 	}
 
+	private String getStageInfo() {
+		return WfContextUtil.getStageInfo(parentPage.getTaskDto().getWorkflowContext());
+	}
+
+	public String getRequestedOn() {
+		return WebComponentUtil.getLocalizedDate(parentPage.getTaskDto().getRequestedOn(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+	}
+
 	@Override
 	protected IModel<String> getTitleModel() {
 		return new AbstractReadOnlyModel<String>() {
@@ -176,6 +185,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				TaskDto taskDto = parentPage.getTaskDto();
 				if (taskDto.isWorkflow()) {
 					return getString("TaskSummaryPanel.requestedBy", parentPage.getTaskDto().getRequestedBy());
+//						return getString("TaskSummaryPanel.requestedByAndOn",
+//								parentPage.getTaskDto().getRequestedBy(), getRequestedOn());
 				} else {
 					TaskType taskType = getModelObject();
 					String rv;
@@ -206,8 +217,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 			@Override
 			public String getObject() {
 				if (parentPage.getTaskDto().isWorkflow()) {
-					return getString("TaskSummaryPanel.requestedOn",
-							WebComponentUtil.getLocalizedDate(parentPage.getTaskDto().getRequestedOn(), DateLabelComponent.MEDIUM_MEDIUM_STYLE));
+					return getString("TaskSummaryPanel.requestedOn", getRequestedOn());
 				} else {
 					TaskType taskType = getModelObject();
 					if (taskType.getOperationStats() != null && taskType.getOperationStats().getIterativeTaskInformation() != null &&
@@ -228,7 +238,12 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 			@Override
 			public String getObject() {
 				if (parentPage.getTaskDto().isWorkflow()) {
-					return "";
+					String stageInfo = getStageInfo();
+					if (stageInfo != null) {
+						return getString("TaskSummaryPanel.stage", stageInfo);
+					} else {
+						return null;
+					}
 				}
 
 				TaskType taskType = getModel().getObject();

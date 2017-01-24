@@ -63,7 +63,7 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 			LOGGER.debug("About to start approval process instance '{}'", instr.getProcessInstanceName());
 			if (instr.getProcessContent() instanceof ItemApprovalSpecificContent) {
 				ItemApprovalSpecificContent iasc = (ItemApprovalSpecificContent) instr.getProcessContent();
-				LOGGER.debug("Approval schema: {}\n", DebugUtil.debugDump(iasc.getApprovalSchema()));
+				LOGGER.debug("Approval schema:\n{}", DebugUtil.debugDump(iasc.getApprovalSchema()));
 			}
 		}
     }
