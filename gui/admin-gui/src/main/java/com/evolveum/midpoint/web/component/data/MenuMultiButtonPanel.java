@@ -77,28 +77,4 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         });
 
     }
-
-    private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
-        InlineMenuItem item = menuItem.getModelObject();
-
-        if (item.getVisible() != null && item.getVisible().getObject() != null) {
-            menuItem.add(new VisibleEnableBehaviour() {
-                @Override
-                public boolean isVisible() {
-                    return item.getVisible().getObject();
-                }
-            });
-        }
-
-        WebMarkupContainer menuItemBody;
-        if (item.isMenuHeader() || item.isDivider()) {
-            menuItemBody = new MenuDividerPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
-        } else {
-            menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
-        }
-        menuItemBody.setRenderBodyOnly(true);
-        menuItem.add(menuItemBody);
-
-    }
-
 }

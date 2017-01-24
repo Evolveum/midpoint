@@ -172,7 +172,7 @@ public class PageUsers extends PageAdminUsers {
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return createRowActions();
+				return createRowActions(false);
 			}
 
 			@Override
@@ -242,13 +242,23 @@ public class PageUsers extends PageAdminUsers {
 
 		columns.add(column);
 
-		column = new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(), 3);
+		column = new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(false), 3){
+            @Override
+            protected int getHeaderNumberOfButtons() {
+                return 2;
+            }
+
+            @Override
+            protected List<InlineMenuItem> getHeaderMenuItems() {
+                return createRowActions(true);
+            }
+            };
 		columns.add(column);
 
 		return columns;
 	}
 
-	private List<InlineMenuItem> createRowActions() {
+	private List<InlineMenuItem> createRowActions(boolean isHeader) {
 		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
 				new Model<Boolean>(false), new Model<Boolean>(false), false,
@@ -263,12 +273,15 @@ public class PageUsers extends PageAdminUsers {
 							updateActivationPerformed(target, true, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
+				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
+                : InlineMenuItem.INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
+				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
+				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -279,8 +292,9 @@ public class PageUsers extends PageAdminUsers {
 							SelectableBean<UserType> rowDto = getRowModel().getObject();
 							updateActivationPerformed(target, false, rowDto.getValue());
 						}
-					}
-				}, InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
+                    }
+                }, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
+                : InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
@@ -296,9 +310,10 @@ public class PageUsers extends PageAdminUsers {
 							SelectableBean<UserType> rowDto = getRowModel().getObject();
 							reconcilePerformed(target, rowDto.getValue());
 						}
-					}
-				}, InlineMenuItem.INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
-				GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
+                    }
+                }, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
+                : InlineMenuItem.INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
+                GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), false,
@@ -330,7 +345,10 @@ public class PageUsers extends PageAdminUsers {
 						}
 					}
 				}, InlineMenuItem.INLINE_MENU_ITEM_ID.DELETE.getMenuItemId()));
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"), false,
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
+				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -342,7 +360,7 @@ public class PageUsers extends PageAdminUsers {
 							mergePerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.INLINE_MENU_ITEM_ID.MERGE.getMenuItemId()));
+				}, InlineMenuItem.INLINE_MENU_ITEM_ID.MERGE.getMenuItemId(), "", ""));
 		return menu;
 	}
 

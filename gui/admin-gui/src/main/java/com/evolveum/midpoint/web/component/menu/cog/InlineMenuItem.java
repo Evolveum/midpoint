@@ -37,7 +37,9 @@ public class InlineMenuItem implements Serializable {
 
     public static enum INLINE_MENU_ITEM_ID{
         ENABLE(0), DISABLE(1), RECONCILE(2),
-        UNLOCK(3), DELETE(4), MERGE(5);
+        UNLOCK(3), DELETE(4), MERGE(5),
+        HEADER_ENABLE(0), HEADER_RECONCILE(1),
+        HEADER_DISABLE(2);
 
         private int menuItemId = -1;
 
