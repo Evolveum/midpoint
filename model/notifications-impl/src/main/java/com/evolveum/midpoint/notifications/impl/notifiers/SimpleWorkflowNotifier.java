@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.notifications.api.events.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -98,7 +99,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 
         WorkflowEvent workflowEvent = (WorkflowEvent) event;
 
-        boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
+        //boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
 
@@ -109,11 +110,14 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         if (workflowEvent instanceof WorkItemEvent) {
             WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
             body.append("Work item: ").append(workItemEvent.getWorkItemName()).append("\n");
+            appendStageInformation(body, workflowEvent);
             ObjectType assigneeType = notificationsUtil.getObjectType(workItemEvent.getAssignee(), true, result);
             if (assigneeType != null) {
                 body.append("Assignee: ").append(assigneeType.getName()).append("\n");
             }
-        }
+        } else {
+			appendStageInformation(body, workflowEvent);
+		}
         body.append("\n");
         if (event.isDelete() && workflowEvent.isResultKnown()) {
             body.append("Result: ").append(workflowEvent.isApproved() ? "APPROVED" : "REJECTED").append("\n\n");
@@ -129,7 +133,14 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         return body.toString();
     }
 
-    @Override
+	private void appendStageInformation(StringBuilder sb, WorkflowEvent workflowEvent) {
+    	String info = WfContextUtil.getStageInfo(workflowEvent.getWorkflowContext());
+    	if (info != null) {
+    		sb.append("Stage: ").append(info).append("\n");
+		}
+	}
+
+	@Override
     protected Trace getLogger() {
         return LOGGER;
     }

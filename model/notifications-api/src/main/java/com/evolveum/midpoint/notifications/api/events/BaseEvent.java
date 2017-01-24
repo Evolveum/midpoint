@@ -30,6 +30,7 @@ import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -62,11 +63,11 @@ public abstract class BaseEvent implements Event {
 
     private String channel;
 
-    public BaseEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+    public BaseEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator) {
         this(lightweightIdentifierGenerator, null);
     }
 
-	public BaseEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, EventHandlerType adHocHandler) {
+	public BaseEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, EventHandlerType adHocHandler) {
 		id = lightweightIdentifierGenerator.generate();
 		this.adHocHandler = adHocHandler;
 	}
