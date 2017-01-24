@@ -18,6 +18,8 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 
@@ -29,7 +31,9 @@ public class InitializeLoopThroughLevels implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
         LOGGER.trace("Executing the delegate; execution = {}", execution);
-        execution.setVariableLocal(ProcessVariableNames.LOOP_LEVELS_STOP, Boolean.FALSE);
+		ApprovalSchema schema = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.APPROVAL_SCHEMA, ApprovalSchema.class);
+		execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_COUNT, schema.getLevels().size());
+		execution.setVariableLocal(ProcessVariableNames.LOOP_LEVELS_STOP, Boolean.FALSE);
         execution.setVariableLocal(ProcessVariableNames.ALL_DECISIONS, new ArrayList<Decision>());
     }
 

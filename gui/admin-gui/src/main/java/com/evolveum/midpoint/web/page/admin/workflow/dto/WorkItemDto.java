@@ -118,7 +118,7 @@ public class WorkItemDto extends Selectable {
 	@Nullable
 	protected TaskType getTaskType() {
     	if (taskType == null) {
-    		taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+			taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
 		}
 		return taskType;
 	}
@@ -314,7 +314,8 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public String getStageInfo() {
-		return WfContextUtil.getStageInfo(getWorkflowContext());
+    	WfContextType wfc = getWorkflowContext();		// wfc contains also the approval schema
+		return wfc != null ? WfContextUtil.getStageInfo(wfc) : WfContextUtil.getStageInfo(workItem);
 	}
 
 	public String getApproverInstruction() {

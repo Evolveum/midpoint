@@ -28,25 +28,41 @@ public class WfContextUtil {
 
 	@Nullable
 	public static String getStageInfo(WfContextType wfc) {
-		if (wfc == null) {
+		if (wfc == null || hasFinished(wfc)) {
 			return null;
 		}
-		Integer stageNumber = wfc.getStageNumber();
-		String stageName = wfc.getStageDisplayName() != null ? wfc.getStageDisplayName() : wfc.getStageName();
-		if (stageName == null && stageNumber == null) {
+		return getStageInfo(wfc.getStageNumber(), wfc.getStageCount(), wfc.getStageName(), wfc.getStageDisplayName());
+	}
+
+	@Nullable
+	public static String getStageInfo(WorkItemType workItem) {
+		if (workItem == null) {
+			return null;
+		}
+		return getStageInfo(workItem.getStageNumber(), workItem.getStageCount(), workItem.getStageName(), workItem.getStageDisplayName());
+	}
+
+	// wfc is used to retrieve approval schema (if needed)
+	private static String getStageInfo(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
+		String name = stageDisplayName != null ? stageDisplayName : stageName;
+		if (name == null && stageNumber == null) {
 			return null;
 		}
 		StringBuilder sb = new StringBuilder();
-		if (stageName != null) {
-			sb.append(stageName);
+		if (name != null) {
+			sb.append(name);
 		}
-		appendNumber(wfc, stageNumber, sb);
+		appendNumber(stageNumber, stageCount, sb);
 		return sb.toString();
+	}
+
+	public static boolean hasFinished(WfContextType wfc) {
+		return wfc.getEndTimestamp() != null;
 	}
 
 	@Nullable
 	public static String getCompleteStageInfo(WfContextType wfc) {
-		if (wfc == null) {
+		if (wfc == null || hasFinished(wfc)) {
 			return null;
 		}
 		Integer stageNumber = wfc.getStageNumber();
@@ -63,21 +79,19 @@ public class WfContextUtil {
 		} else if (stageDisplayName != null) {
 			sb.append(stageDisplayName);
 		}
-		appendNumber(wfc, stageNumber, sb);
+		appendNumber(stageNumber, wfc.getStageCount(), sb);
 		return sb.toString();
 	}
 
-	private static void appendNumber(WfContextType wfc, Integer stageNumber, StringBuilder sb) {
+	private static void appendNumber(Integer stageNumber, Integer stageCount, StringBuilder sb) {
 		if (stageNumber != null) {
 			boolean parentheses = sb.length() > 0;
 			if (parentheses) {
 				sb.append(" (");
 			}
 			sb.append(stageNumber);
-			ItemApprovalProcessStateType processInfo = getItemApprovalProcessInfo(wfc);
-			ApprovalSchemaType schema = processInfo != null ? processInfo.getApprovalSchema() : null;
-			if (schema != null) {
-				sb.append("/").append(schema.getLevel().size());
+			if (stageCount != null) {
+				sb.append("/").append(stageCount);
 			}
 			if (parentheses) {
 				sb.append(")");

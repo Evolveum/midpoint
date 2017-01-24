@@ -270,7 +270,7 @@ public class WfTaskController {
         if (stateDescription != null) {
             wfTask.setProcessInstanceState(stateDescription);
         }
-        wfTask.setProcessInstanceStageInformation(pmi.getStageNumber(variables),
+        wfTask.setProcessInstanceStageInformation(pmi.getStageNumber(variables), pmi.getStageCount(variables),
 				pmi.getStageName(variables), pmi.getStageDisplayName(variables));
 
 		wfTask.commitChanges(result);

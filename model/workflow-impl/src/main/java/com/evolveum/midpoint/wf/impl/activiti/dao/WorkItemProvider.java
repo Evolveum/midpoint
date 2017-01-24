@@ -417,6 +417,11 @@ public class WorkItemProvider {
 			ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
 			wi.setDecision(pmi.extractDecision(variables));
 
+			wi.setStageNumber(pmi.getStageNumber(variables));
+			wi.setStageCount(pmi.getStageCount(variables));
+			wi.setStageName(pmi.getStageName(variables));
+			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
+
 			// This is just because 'variables' switches in task query DO NOT fetch all required variables...
 			if (fetchAllVariables) {		// TODO can we do this e.g. in the task completion listener?
 				Map<String, Object> allVariables = activitiEngine.getTaskService().getVariables(task.getId());

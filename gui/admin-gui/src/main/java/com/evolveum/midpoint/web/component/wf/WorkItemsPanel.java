@@ -165,9 +165,8 @@ public class WorkItemsPanel extends BasePanel {
 
 	@NotNull
 	private PropertyColumn<WorkItemDto, String> createStageColumn() {
-		return new PropertyColumn<>(createStringResource("WorkItemPanel.stage"), F_STAGE_INFO);
+		return new PropertyColumn<>(createStringResource("WorkItemsPanel.stage"), F_STAGE_INFO);
 	}
-
 
 	private BoxedTablePanel getWorkItemTable() {
         return (BoxedTablePanel) get(ID_WORK_ITEMS_TABLE);

@@ -88,6 +88,10 @@ public class CommonProcessVariableNames {
 	// Null if not applicable. [Integer]
 	public static final String VARIABLE_STAGE_NUMBER = "stageNumber";
 
+	// Total number of stages - if process can be conceptually divided into stages.
+	// Null if not applicable. [Integer]
+	public static final String VARIABLE_STAGE_COUNT = "stageCount";
+
 	// Stage name - if process can be conceptually divided into stages.
 	// Null if unknown or not applicable. [String]
 	public static final String VARIABLE_STAGE_NAME = "stageName";

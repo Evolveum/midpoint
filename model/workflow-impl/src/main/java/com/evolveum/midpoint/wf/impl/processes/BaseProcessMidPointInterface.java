@@ -45,6 +45,11 @@ public abstract class BaseProcessMidPointInterface implements ProcessMidPointInt
 	}
 
 	@Override
+	public Integer getStageCount(Map<String, Object> variables) {
+		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_COUNT, Integer.class);
+	}
+
+	@Override
 	public String getStageName(Map<String, Object> variables) {
 		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NAME, String.class);
 	}

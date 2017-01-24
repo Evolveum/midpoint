@@ -35,6 +35,8 @@ public interface ProcessMidPointInterface {
 
     Integer getStageNumber(Map<String, Object> variables);
 
+    Integer getStageCount(Map<String, Object> variables);
+
     String getStageName(Map<String, Object> variables);
 
     String getStageDisplayName(Map<String, Object> variables);

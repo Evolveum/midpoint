@@ -563,6 +563,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="stageCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Total number of stages - if process can be conceptually divided into stages.
+                        Null if not known or applicable. (Stored in process variable "stageCount".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="stageName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -949,6 +957,11 @@
                 </xsd:annotation>
             </xsd:element>
 			<xsd:element name="approverInstruction" type="xsd:string" minOccurs="0" />
+            <!-- for work items without TaskType information -->
+			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0" />
+			<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="stageName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0" />
 			<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
 
             <!--<xsd:element name="contents" type="tns:ObjectType" minOccurs="0" maxOccurs="1">-->

@@ -229,10 +229,11 @@ public class WfTask {
                 .asItemDeltas());
     }
 
-    public void setProcessInstanceStageInformation(Integer stageNumber, String stageName, String stageDisplayName)
+    public void setProcessInstanceStageInformation(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName)
 			throws SchemaException {
         task.addModifications(DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
 				.item(F_WORKFLOW_CONTEXT, F_STAGE_NUMBER).replace(stageNumber)
+				.item(F_WORKFLOW_CONTEXT, F_STAGE_COUNT).replace(stageCount)
 				.item(F_WORKFLOW_CONTEXT, F_STAGE_NAME).replace(stageName)
 				.item(F_WORKFLOW_CONTEXT, F_STAGE_DISPLAY_NAME).replace(stageDisplayName)
 				.asItemDeltas());
