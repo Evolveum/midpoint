@@ -24,12 +24,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalWorkItemPartType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +74,9 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
         decision.setResultAsString((String) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
         decision.setApproved(ApprovalUtils.approvalBooleanValue(decision.getResultAsString()));
         decision.setComment((String) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
+        decision.setStageNumber(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, Integer.class));
+        decision.setStageName(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NAME, String.class));
+        decision.setStageDisplayName(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, String.class));
 
         // TODO - what with other fields (approver, dateTime)?
 
@@ -82,11 +85,8 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 
 	@Override
 	public WfProcessSpecificWorkItemPartType extractProcessSpecificWorkItemPart(Map<String, Object> variables) {
-		ItemApprovalWorkItemPartType info = new ItemApprovalWorkItemPartType(prismContext);
-		info.setApproverInstruction((String) variables.get(ProcessVariableNames.APPROVER_INSTRUCTION));
-		Integer index = (Integer) variables.get(ProcessVariableNames.LEVEL_INDEX);
-		info.setLevelIndex(index != null ? index : 0);
-		return info;
+		// nothing to do here for now
+		return null;
 	}
 
 	@Override

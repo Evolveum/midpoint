@@ -54,7 +54,10 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         ApprovalLevelImpl level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevelImpl.class);
         level.setPrismContext(getPrismContext());
 
-        List<Decision> decisionList = new ArrayList<>();
+		int levelIndex = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL_INDEX, Integer.class);
+		int stageNumber = levelIndex+1;
+
+		List<Decision> decisionList = new ArrayList<>();
         ApprovalLevelOutcomeType predeterminedOutcome = null;
 
         if (level.getAutomaticallyApproved() != null) {
@@ -65,7 +68,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
 				if (preApproved) {
 					predeterminedOutcome = ApprovalLevelOutcomeType.APPROVE;
-					recordAutoApprovalDecision(wfTask, true, "Approved automatically by the auto-approval condition.");
+					recordAutoApprovalDecision(wfTask, true, "Approved automatically by the auto-approval condition.", stageNumber, level);
 				}
             } catch (Exception e) {     // todo
                 throw new SystemException("Couldn't evaluate auto-approval expression", e);
@@ -101,9 +104,11 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 						execution.getProcessInstanceId(), level.getOutcomeIfNoApprovers());
                 predeterminedOutcome = level.getOutcomeIfNoApprovers();
                 if (predeterminedOutcome == ApprovalLevelOutcomeType.APPROVE) {
-					recordAutoApprovalDecision(wfTask, true, "Approved automatically because there were no approvers found.");
+					recordAutoApprovalDecision(wfTask, true,
+							"Approved automatically because there were no approvers found.", stageNumber, level);
 				} else {
-					recordAutoApprovalDecision(wfTask, false, "Rejected automatically because there were no approvers found.");
+					recordAutoApprovalDecision(wfTask, false,
+							"Rejected automatically because there were no approvers found.", stageNumber, level);
 				}
             }
         }
@@ -116,6 +121,9 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             stop = Boolean.FALSE;
         }
 
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, stageNumber);
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NAME, level.getName());
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, level.getDisplayName());
         execution.setVariableLocal(ProcessVariableNames.DECISIONS_IN_LEVEL, decisionList);
         execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<>(approverRefs));
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
@@ -126,13 +134,17 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 					execution.getProcessInstanceId(),
 					level.getDebugName(), predeterminedOutcome, LightweightObjectRef.toDebugNames(approverRefs));
 		}
+		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);		// store stage information in midPoint task
     }
 
-	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment) {
+	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment, int stageNumber, ApprovalLevel level) {
 		Decision decision = new Decision();
 		decision.setApproved(approved);
 		decision.setComment(comment);
 		decision.setDate(new Date());
+		decision.setStageNumber(stageNumber);
+		decision.setStageName(level.getName());
+		decision.setStageDisplayName(level.getDisplayName());
 		MidpointUtil.recordDecisionInTask(decision, wfTask.getOid());
 	}
 

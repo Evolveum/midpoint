@@ -33,6 +33,7 @@ import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -44,6 +45,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
 import static com.evolveum.midpoint.audit.api.AuditEventType.WORKFLOW_PROCESS_INSTANCE;
 
 /**
@@ -81,7 +83,11 @@ public class BaseAuditHelper {
 
         auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
 
-        return auditEventRecord;
+		if (stage == EXECUTION) {
+			auditEventRecord.setParameter(wfTask.getCompleteStageInfo());
+		}
+
+		return auditEventRecord;
     }
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
@@ -113,16 +119,27 @@ public class BaseAuditHelper {
         targetObject.asObjectable().setOid(workItem.getWorkItemId());
         auditEventRecord.setTarget(targetObject);
 
+		String stageInfo = wfTask.getCompleteStageInfo();
+		auditEventRecord.setParameter(stageInfo);
         auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
         if (stage == AuditEventStage.EXECUTION) {
 			DecisionType decision = workItem.getDecision();
-			if (decision != null) {
-				auditEventRecord.setResult(decision.getResultAsString());
-                String comment = decision.getComment() != null ? ": " + decision.getComment() : "";
-				auditEventRecord.setMessage(decision.getResultAsString() + comment);
+			StringBuilder message = new StringBuilder();
+			if (stageInfo != null) {
+				message.append(stageInfo).append(" : ");
 			}
+			if (decision != null) {
+				String answer = ApprovalUtils.makeNice(decision.getResultAsString());
+				auditEventRecord.setResult(answer);
+				message.append(answer);
+				if (decision.getComment() != null) {
+					message.append(" : ").append(decision.getComment());
+				}
+			} else {
+				message.append("(no decision)");		// TODO
+			}
+			auditEventRecord.setMessage(message.toString());
         }
-
         return auditEventRecord;
     }
 }

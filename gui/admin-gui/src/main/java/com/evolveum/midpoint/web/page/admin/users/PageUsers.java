@@ -242,7 +242,7 @@ public class PageUsers extends PageAdminUsers {
 
 		columns.add(column);
 
-		column = new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(), 3);
+		column = new InlineMenuButtonColumn<>(createRowActions(), 3);
 		columns.add(column);
 
 		return columns;

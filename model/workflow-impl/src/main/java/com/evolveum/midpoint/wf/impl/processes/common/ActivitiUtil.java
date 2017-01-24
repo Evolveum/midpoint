@@ -29,6 +29,7 @@ import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import org.activiti.engine.delegate.DelegateExecution;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getMidpointFunctions;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getTaskManager;
@@ -82,6 +83,17 @@ public class ActivitiUtil implements Serializable {
         } else if (!(clazz.isAssignableFrom(value.getClass()))) {
             throw new IllegalStateException("Process variable " + name + " should be of " + clazz + " but is of "
                     + value.getClass() + " instead in " + execution);
+        } else {
+            return (T) value;
+        }
+    }
+
+	@SuppressWarnings("unchecked")
+    public static <T> T getVariable(Map<String, Object> variables, String name, Class<T> clazz) {
+        Object value = variables.get(name);
+        if (value != null && !(clazz.isAssignableFrom(value.getClass()))) {
+            throw new IllegalStateException("Process variable " + name + " should be of " + clazz + " but is of "
+                    + value.getClass() + " instead.");
         } else {
             return (T) value;
         }

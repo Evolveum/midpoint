@@ -362,7 +362,10 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
 
         if (stage == EXECUTION) {
-            auditEventRecord.setResult(wfTask.getAnswer());
+			String answer = wfTask.getAnswerNice();
+			String stageInfo = wfTask.getCompleteStageInfo();
+			auditEventRecord.setResult(answer);
+            auditEventRecord.setMessage(stageInfo != null ? stageInfo + " : " + answer : answer);
         }
 
         return auditEventRecord;

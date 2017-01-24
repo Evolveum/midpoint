@@ -56,7 +56,7 @@ public class WorkItemDto extends Selectable {
     public static final String F_ASSIGNEE_OR_CANDIDATES = "assigneeOrCandidates";
     public static final String F_ASSIGNEE = "assignee";
     public static final String F_CANDIDATES = "candidates";
-    public static final String F_APPROVAL_LEVEL_INFO = "approvalLevelInfo";
+    public static final String F_STAGE_INFO = "stageInfo";
     public static final String F_APPROVER_INSTRUCTION = "approverInstruction";
 
 	public static final String F_OTHER_WORK_ITEMS = "otherWorkItems";
@@ -326,27 +326,36 @@ public class WorkItemDto extends Selectable {
 				(ItemApprovalWorkItemPartType) workItem.getProcessSpecificPart() : null;
 	}
 
-	public String getApprovalLevelInfo() {
-		ItemApprovalProcessStateType processInfo = getItemApprovalProcessInfo();
-		ItemApprovalWorkItemPartType workItemInfo = getItemApprovalWorkItemInfo();
-		if (processInfo == null || workItemInfo == null) {
+	public String getStageInfo() {
+		WfContextType wfc = getWorkflowContext();
+		Integer levelNumber = wfc.getStageNumber();
+		String levelName = wfc.getStageDisplayName() != null ? wfc.getStageDisplayName() : wfc.getStageName();
+		if (levelName == null && levelNumber == null) {
 			return null;
 		}
-    	ApprovalSchemaType schema = processInfo.getApprovalSchema();
-		int levelNumber = workItemInfo.getLevelIndex();
-		ApprovalLevelType level = schema.getLevel().get(levelNumber);
-		String name = level.getDisplayName() != null ? level.getDisplayName() : level.getName();
-
-		return (name != null ? name+" " : "")
-				+ "(" + (levelNumber+1) + " of " + schema.getLevel().size() + ")";			// TODO i18n
+		StringBuilder sb = new StringBuilder();
+		if (levelName != null) {
+			sb.append(levelName);
+		}
+		if (levelNumber != null) {
+			boolean parentheses = sb.length() > 0;
+			if (parentheses) {
+				sb.append(" (");
+			}
+			sb.append(levelNumber);
+			ItemApprovalProcessStateType processInfo = getItemApprovalProcessInfo();
+			ApprovalSchemaType schema = processInfo != null ? processInfo.getApprovalSchema() : null;
+			if (schema != null) {
+				sb.append("/").append(schema.getLevel().size());
+			}
+			if (parentheses) {
+				sb.append(")");
+			}
+		}
+		return sb.toString();
 	}
 
 	public String getApproverInstruction() {
-		ItemApprovalWorkItemPartType workItemInfo = getItemApprovalWorkItemInfo();
-		return workItemInfo != null ? workItemInfo.getApproverInstruction() : null;
-	}
-
-	public boolean isItemApproval() {
-    	return workItem.getProcessSpecificPart() instanceof ItemApprovalWorkItemPartType;
+		return workItem.getApproverInstruction();
 	}
 }

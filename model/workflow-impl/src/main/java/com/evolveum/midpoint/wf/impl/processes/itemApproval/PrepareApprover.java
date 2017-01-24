@@ -23,10 +23,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
-import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.*;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -76,7 +73,7 @@ public class PrepareApprover implements JavaDelegate {
 			} catch (Throwable t) {
         		throw new SystemException("Couldn't evaluate approver instruction expression in " + execution, t);
 			}
-			execution.setVariableLocal(ProcessVariableNames.APPROVER_INSTRUCTION, instruction);
+			execution.setVariableLocal(CommonProcessVariableNames.APPROVER_INSTRUCTION, instruction);
 		}
 
         LOGGER.debug("Creating work item for assignee={}, candidateGroups={}, approverInstruction='{}'",

@@ -22,6 +22,8 @@ package com.evolveum.midpoint.wf.util;
 public class ApprovalUtils {
     public static final String DECISION_APPROVED = "__APPROVED__";
     public static final String DECISION_REJECTED = "__REJECTED__";
+    public static final String DECISION_APPROVED_NICE = "Approved";
+    public static final String DECISION_REJECTED_NICE = "Rejected";
 
     public static String approvalStringValue(Boolean approved) {
         if (approved == null) {
@@ -44,4 +46,13 @@ public class ApprovalUtils {
     public static boolean isApproved(String decision) {
         return DECISION_APPROVED.equals(decision);
     }
+
+    public static String makeNice(String decision) {
+    	Boolean value = approvalBooleanValue(decision);
+    	if (value != null) {
+    		return value ? DECISION_APPROVED_NICE : DECISION_REJECTED_NICE;
+		} else {
+    		return decision;
+		}
+	}
 }

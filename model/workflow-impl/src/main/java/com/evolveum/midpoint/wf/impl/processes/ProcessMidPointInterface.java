@@ -33,6 +33,14 @@ public interface ProcessMidPointInterface {
 
     String getState(Map<String, Object> variables);
 
+    Integer getStageNumber(Map<String, Object> variables);
+
+    String getStageName(Map<String, Object> variables);
+
+    String getStageDisplayName(Map<String, Object> variables);
+
+    String getApproverInstruction(Map<String, Object> variables);
+
     DecisionType extractDecision(Map<String, Object> variables);
 
     String getBeanName();

@@ -203,6 +203,42 @@ public class WfTask {
 		return task.getWorkflowContext() != null ? task.getWorkflowContext().getAnswer() : null;
 	}
 
+	// replacing __REJECTED__ with Rejected, etc. (TODO reconsider)
+	public String getAnswerNice() {
+    	return ApprovalUtils.makeNice(getAnswer());
+	}
+
+	public String getCompleteStageInfo() {
+    	if (task.getWorkflowContext() == null) {
+    		return null;
+		}
+		Integer number = task.getWorkflowContext().getStageNumber();
+		String name = task.getWorkflowContext().getStageName();
+		String displayName = task.getWorkflowContext().getStageDisplayName();
+		if (number == null && name == null && displayName == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+    	if (name != null && displayName != null) {
+    		sb.append(name).append(" (").append(displayName).append(")");
+		} else if (name != null) {
+    		sb.append(name);
+		} else if (displayName != null) {
+    		sb.append(displayName);
+		}
+		if (number != null) {
+    		boolean parentheses = sb.length() > 0;
+    		if (parentheses) {
+    			sb.append(" (");
+			}
+			sb.append(number);
+    		if (parentheses) {
+    			sb.append(")");
+			}
+		}
+    	return sb.toString();
+	}
+
 	@SuppressWarnings("unchecked")
 	public PrismObject<UserType> getRequesterIfExists(OperationResult result) {
 		if (task.getWorkflowContext() == null || task.getWorkflowContext().getRequesterRef() == null) {
@@ -217,5 +253,14 @@ public class WfTask {
                 .item(F_WORKFLOW_CONTEXT, F_ANSWER).replace(answer)
                 .item(F_WORKFLOW_CONTEXT, F_APPROVED).replace(ApprovalUtils.approvalBooleanValue(answer))
                 .asItemDeltas());
+    }
+
+    public void setProcessInstanceStageInformation(Integer stageNumber, String stageName, String stageDisplayName)
+			throws SchemaException {
+        task.addModifications(DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+				.item(F_WORKFLOW_CONTEXT, F_STAGE_NUMBER).replace(stageNumber)
+				.item(F_WORKFLOW_CONTEXT, F_STAGE_NAME).replace(stageName)
+				.item(F_WORKFLOW_CONTEXT, F_STAGE_DISPLAY_NAME).replace(stageDisplayName)
+				.asItemDeltas());
     }
 }
