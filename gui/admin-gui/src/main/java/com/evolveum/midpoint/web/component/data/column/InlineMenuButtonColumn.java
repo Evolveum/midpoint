@@ -156,12 +156,12 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
                 model.getObject() instanceof SelectableBean &&
                 ((SelectableBean) model.getObject()).getValue() instanceof FocusType){
             FocusType focus = (FocusType)((SelectableBean) model.getObject()).getValue();
-            return ActivationStatusType.DISABLED.equals(focus.getActivation().getAdministrativeStatus());
+            return focus.getActivation() != null && ActivationStatusType.DISABLED.equals(focus.getActivation().getAdministrativeStatus());
         } else if (id == InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId() &&
                 model.getObject() instanceof SelectableBean &&
                 ((SelectableBean) model.getObject()).getValue() instanceof FocusType){
             FocusType focus = (FocusType)((SelectableBean) model.getObject()).getValue();
-            return !ActivationStatusType.DISABLED.equals(focus.getActivation().getAdministrativeStatus());
+            return focus.getActivation() == null || !ActivationStatusType.DISABLED.equals(focus.getActivation().getAdministrativeStatus());
         }
         return true;
     }
