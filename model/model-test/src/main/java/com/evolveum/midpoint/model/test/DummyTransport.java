@@ -84,7 +84,7 @@ public class DummyTransport implements Transport, DebugDumpable {
     }
 
     public void clearMessages() {
-        messages = new HashMap<String,List<Message>>();
+        messages = new HashMap<>();
     }
 
     @Override

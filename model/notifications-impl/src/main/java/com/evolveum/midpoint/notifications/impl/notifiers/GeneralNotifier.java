@@ -135,7 +135,7 @@ public class GeneralNotifier extends BaseHandler {
 
                                 Message message = new Message();
                                 message.setBody(body != null ? body : "");
-                                //message.setContentType("text/plain");           // todo make more flexible
+								message.setContentType(generalNotifierType.getContentType());
                                 message.setSubject(subject);
                                 message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
 
