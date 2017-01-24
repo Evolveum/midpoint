@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
  * @author semancik
  *
  */
-public enum PredefinedPolicySituaion {
+public enum PredefinedPolicySituation {
 	
 	EXCLUSION_VIOLATION(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION, PolicyConstraintKindType.EXCLUSION),
 	
@@ -33,11 +33,11 @@ public enum PredefinedPolicySituaion {
 	MODIFIED(SchemaConstants.MODEL_POLICY_SITUATION_MODIFIED, PolicyConstraintKindType.MODIFICATION),
 	
 	ASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNED, PolicyConstraintKindType.ASSIGNMENT);
-	
+
 	private String url;
 	private PolicyConstraintKindType constraintKind;
 	
-	private PredefinedPolicySituaion(String url, PolicyConstraintKindType constraintKind) {
+	PredefinedPolicySituation(String url, PolicyConstraintKindType constraintKind) {
 		this.url = url;
 		this.constraintKind = constraintKind;
 	}
@@ -50,8 +50,8 @@ public enum PredefinedPolicySituaion {
 		return constraintKind;
 	}
 
-	public static PredefinedPolicySituaion get(PolicyConstraintKindType constraintKind) {
-		for (PredefinedPolicySituaion val: PredefinedPolicySituaion.values()) {
+	public static PredefinedPolicySituation get(PolicyConstraintKindType constraintKind) {
+		for (PredefinedPolicySituation val: PredefinedPolicySituation.values()) {
 			if (val.getConstraintKind() == constraintKind) {
 				return val;
 			}

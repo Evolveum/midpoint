@@ -77,6 +77,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -1313,7 +1314,8 @@ public class LensUtil {
 		return DeputyUtils.isDelegationRelation(relation);
 	}
 
-	public static void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations) throws PolicyViolationException {
+	public static void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger,
+			Collection<String> policySituations) throws PolicyViolationException {
 
 		LOGGER.debug("Policy rule {} triggered: {}", rule==null?null:rule.getName(), trigger);
 		if (LOGGER.isTraceEnabled()) {

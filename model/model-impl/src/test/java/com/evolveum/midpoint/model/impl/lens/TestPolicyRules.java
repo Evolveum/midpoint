@@ -112,7 +112,8 @@ public class TestPolicyRules extends AbstractLensTest {
 		addObject(ROLE_MUTINIER_FILE);
 		addObject(ROLE_JUDGE_FILE);
 		addObject(ROLE_CONSTABLE_FILE);
-		
+		addObject(ROLE_THIEF_FILE);
+
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		
 		InternalMonitor.reset();
@@ -224,7 +225,7 @@ public class TestPolicyRules extends AbstractLensTest {
         dumpPolicyRules(context);
         
         assertEvaluatedRules(context, 1);
-        EvaluatedPolicyRuleTrigger trigger = assertTriggeredRule(context, PolicyConstraintKindType.EXCLUSION);
+        EvaluatedPolicyRuleTrigger trigger = assertTriggeredRule(context, PolicyConstraintKindType.EXCLUSION, false);
         assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in trigger", ROLE_PIRATE_OID, trigger.getConflictingAssignment().getTarget().getOid());
 	}
@@ -318,7 +319,7 @@ public class TestPolicyRules extends AbstractLensTest {
         dumpPolicyRules(context);
         
         assertEvaluatedRules(context, 2);
-        EvaluatedPolicyRuleTrigger trigger = assertTriggeredRule(context, PolicyConstraintKindType.EXCLUSION);
+        EvaluatedPolicyRuleTrigger trigger = assertTriggeredRule(context, PolicyConstraintKindType.EXCLUSION, false);
         assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, trigger.getConflictingAssignment().getTarget().getOid());
         
@@ -338,7 +339,57 @@ public class TestPolicyRules extends AbstractLensTest {
       		  getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
       		  "Honorable Justice");
 	}
-	
+
+	/**
+	 * Thief has got separated constraints and actions.
+	 */
+	@Test
+	public void test150AssignRoleThiefToJack() throws Exception {
+		final String TEST_NAME = "test150AssignRoleThiefToJack";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createUserAccountContext();
+		fillContextWithUser(context, USER_JACK_OID, result);
+		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_THIEF_OID);
+
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+		rememberShadowFetchOperationCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		projector.project(context, "test", task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
+				(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
+		display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+
+		dumpPolicyRules(context);
+
+		assertEvaluatedRules(context, 3);
+		EvaluatedPolicyRuleTrigger triggerExclusion = assertTriggeredRule(context, PolicyConstraintKindType.EXCLUSION, true);
+		assertNotNull("No conflicting assignment in trigger", triggerExclusion.getConflictingAssignment());
+		assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, triggerExclusion.getConflictingAssignment().getTarget().getOid());
+
+		EvaluatedPolicyRuleTrigger triggerSituation = assertTriggeredRule(context, PolicyConstraintKindType.SITUATION, true);
+		assertEquals("Wrong # of source rules", 1, triggerSituation.getSourceRules().size());
+		EvaluatedPolicyRule sourceRule = triggerSituation.getSourceRules().iterator().next();
+		EvaluatedPolicyRuleTrigger sourceTrigger = sourceRule.getTriggers().iterator().next();
+		assertNotNull("No conflicting assignment in source trigger", sourceTrigger.getConflictingAssignment());
+		assertEquals("Wrong conflicting assignment in source trigger", ROLE_JUDGE_OID, sourceTrigger.getConflictingAssignment().getTarget().getOid());
+	}
+
+
 	private List<EvaluatedPolicyRule> assertEvaluatedRules(LensContext<UserType> context, int expected) {
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		forEvaluatedRule(context, rule -> rules.add(rule));
@@ -357,10 +408,14 @@ public class TestPolicyRules extends AbstractLensTest {
 		});
 		assertEquals("Unexpected number of triggered policy rules in the context", expected, triggers.size());
 	}
-	
-	private EvaluatedPolicyRuleTrigger assertTriggeredRule(LensContext<UserType> context, PolicyConstraintKindType expectedConstraintKind) {
+
+	// filter=true : we filter out unwanted triggers instead of reporting them
+	private EvaluatedPolicyRuleTrigger assertTriggeredRule(LensContext<UserType> context, PolicyConstraintKindType expectedConstraintKind, boolean filter) {
 		List<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
 		forTriggeredRule(context, trigger -> {
+			if (filter && trigger.getConstraintKind() != expectedConstraintKind) {
+				return;
+			}
 			display("Triggered rule", trigger);
 			triggers.add(trigger);
 			if (expectedConstraintKind != null) {
@@ -443,5 +498,5 @@ public class TestPolicyRules extends AbstractLensTest {
 
 	}
 
-	
+
 }

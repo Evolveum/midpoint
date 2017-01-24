@@ -16,9 +16,12 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -49,16 +52,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 /**
  * @author semancik
@@ -87,8 +80,9 @@ public class PolicyRuleProcessor {
         checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
         checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
         checkAssigneeConstraints(context, evaluatedAssignmentTriple, result);
+        checkSecondaryConstraints(context, evaluatedAssignmentTriple, result);
 	}
-	
+
 	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
 			OperationResult result) throws PolicyViolationException, SchemaException {
@@ -99,7 +93,7 @@ public class PolicyRuleProcessor {
 	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
 			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
 			OperationResult result) throws PolicyViolationException, SchemaException {
-		for(EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
+		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
 			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getThisTargetPolicyRules();
 			for (EvaluatedPolicyRule policyRule: policyRules) {
 				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
@@ -302,6 +296,54 @@ public class PolicyRuleProcessor {
 		}
 		
 		return needToReevaluateAssignments;
+	}
+
+	private <F extends FocusType> void checkSecondaryConstraints(LensContext<F> context,
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, OperationResult result)
+			throws SchemaException, PolicyViolationException {
+		checkSecondaryConstraints(context, evaluatedAssignmentTriple.getPlusSet(), result);
+		checkSecondaryConstraints(context, evaluatedAssignmentTriple.getMinusSet(), result);
+	}
+
+	private <F extends FocusType> void checkSecondaryConstraints(LensContext<F> context,
+			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
+			OperationResult result) throws PolicyViolationException, SchemaException {
+		for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentSet) {
+			checkSecondaryConstraints(evaluatedAssignment, result);
+		}
+	}
+
+	private <F extends FocusType> void checkSecondaryConstraints(EvaluatedAssignmentImpl<F> evaluatedAssignment,
+			OperationResult result) throws PolicyViolationException, SchemaException {
+
+		// Single pass only (for the time being)
+		for (EvaluatedPolicyRule policyRule: evaluatedAssignment.getThisTargetPolicyRules()) {
+			if (policyRule.getPolicyConstraints() == null) {
+				continue;
+			}
+			for (PolicySituationPolicyConstraintType situationConstraint : policyRule.getPolicyConstraints().getSituation()) {
+				Collection<EvaluatedPolicyRule> sourceRules =
+						selectTriggeredRules(evaluatedAssignment, situationConstraint.getSituation());
+				if (sourceRules.isEmpty()) {
+					continue;
+				}
+				String message =
+						sourceRules.stream()
+								.flatMap(r -> r.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::getMessage))
+								.distinct()
+								.collect(Collectors.joining("; "));
+				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.SITUATION,
+						situationConstraint, message, sourceRules);
+				evaluatedAssignment.triggerConstraint(policyRule, trigger);
+			}
+		}
+	}
+
+	private <F extends FocusType> Collection<EvaluatedPolicyRule> selectTriggeredRules(
+			EvaluatedAssignmentImpl<F> evaluatedAssignment, List<String> situations) {
+		return evaluatedAssignment.getThisTargetPolicyRules().stream()
+				.filter(r -> !r.getTriggers().isEmpty() && situations.contains(r.getPolicySituation()))
+				.collect(Collectors.toList());
 	}
 
 }

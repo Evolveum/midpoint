@@ -88,6 +88,9 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	protected static final File ROLE_CONSTABLE_FILE = new File(TEST_DIR, "role-constable.xml");
 	protected static final String ROLE_CONSTABLE_OID = "16ac2572-de66-11e6-bc86-23e62333976a";
 	
+	protected static final File ROLE_THIEF_FILE = new File(TEST_DIR, "role-thief.xml");
+	protected static final String ROLE_THIEF_OID = "5ad00bd6-c550-466f-b15e-4d5fb195b369";
+
     protected static final File ROLE_CORP_CONTRACTOR_FILE = new File(TEST_DIR, "role-corp-contractor.xml");
     protected static final String ROLE_CORP_CONTRACTOR_OID = "12345678-d34d-b33f-f00d-55555555a004";
 

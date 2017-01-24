@@ -8819,6 +8819,13 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
+			<xsd:element name="situation" type="tns:PolicySituationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Occurrence of the policy situation within an object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
     		<!-- TODO: notifications, recertification, default remediation -->
     	</xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -8999,7 +9006,34 @@
           	</xsd:extension>
        </xsd:complexContent>
     </xsd:complexType>
-    
+
+    <xsd:complexType name="PolicySituationPolicyConstraintType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Constraint that triggers the rule when the object is in a given policy situation(s).
+    		</xsd:documentation>
+    		<xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:AbstractPolicyConstraintType">
+		    	<xsd:sequence>
+		    		<xsd:element name="situation" type="xsd:anyURI"  minOccurs="0" maxOccurs="unbounded">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				Specifies the policy situation URI(s) to look for.
+		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
+					<!-- TODO some more complex expressions (at least "and / or"; or something like this) -->
+	          	</xsd:sequence>
+          	</xsd:extension>
+       </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:simpleType name="PolicyConstraintEnforcementType">
         <xsd:annotation>
             <xsd:documentation>
@@ -11620,6 +11654,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="situation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SITUATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

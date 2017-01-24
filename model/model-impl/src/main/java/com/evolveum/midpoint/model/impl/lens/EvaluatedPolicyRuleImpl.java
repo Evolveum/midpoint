@@ -21,7 +21,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.PredefinedPolicySituaion;
+import com.evolveum.midpoint.model.api.context.PredefinedPolicySituation;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
@@ -108,26 +108,31 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		
 		if (!triggers.isEmpty()) {
 			EvaluatedPolicyRuleTrigger firstTrigger = triggers.iterator().next();
+			if (!firstTrigger.getSourceRules().isEmpty()) {
+				return firstTrigger.getSourceRules().iterator().next().getPolicySituation();
+			}
 			PolicyConstraintKindType constraintKind = firstTrigger.getConstraintKind();
-			PredefinedPolicySituaion predefSituation = PredefinedPolicySituaion.get(constraintKind);
-			return predefSituation.getUrl();
+			PredefinedPolicySituation predefSituation = PredefinedPolicySituation.get(constraintKind);
+			if (predefSituation != null) {
+				return predefSituation.getUrl();
+			}
 		}
 		
 		PolicyConstraintsType policyConstraints = getPolicyConstraints();
 		if (policyConstraints.getExclusion() != null) {
-			return PredefinedPolicySituaion.EXCLUSION_VIOLATION.getUrl();
+			return PredefinedPolicySituation.EXCLUSION_VIOLATION.getUrl();
 		}
 		if (policyConstraints.getMinAssignees() != null) {
-			return PredefinedPolicySituaion.UNDERASSIGNED.getUrl();
+			return PredefinedPolicySituation.UNDERASSIGNED.getUrl();
 		}
 		if (policyConstraints.getMaxAssignees() != null) {
-			return PredefinedPolicySituaion.OVERASSIGNED.getUrl();
+			return PredefinedPolicySituation.OVERASSIGNED.getUrl();
 		}
 		if (policyConstraints.getModification() != null) {
-			return PredefinedPolicySituaion.MODIFIED.getUrl();
+			return PredefinedPolicySituation.MODIFIED.getUrl();
 		}
 		if (policyConstraints.getAssignment() != null) {
-			return PredefinedPolicySituaion.ASSIGNED.getUrl();
+			return PredefinedPolicySituation.ASSIGNED.getUrl();
 		}
 		return null;
 	}
