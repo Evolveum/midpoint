@@ -16,35 +16,34 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-
-import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.event.Broadcast;
-import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.extensions.validation.validator.RfcCompliantEmailAddressValidator;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.RequiredTextField;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.component.IRequestablePage;
-import org.apache.wicket.validation.validator.EmailAddressValidator;
 
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.R_AtomicFilter;
+import com.evolveum.midpoint.prism.query.builder.R_Filter;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -52,7 +51,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -60,23 +58,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto.ResetMethod;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
-import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
-import com.evolveum.midpoint.web.page.login.SelfRegistrationDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsResetMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsResetTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -92,6 +81,11 @@ public class PageForgotPassword extends PageRegistrationBase {
 	private static final String ID_EMAIL = "email";
 	private static final String ID_SUBMIT = "submitButton";
 	private static final String ID_BACK = "back";
+
+	private static final String ID_STATIC_LAYOUT = "staticLayout";
+	private static final String ID_DYNAMIC_LAYOUT = "dynamicLayout";
+
+	private static final String ID_DYNAMIC_FORM = "dynamicForm";
 
 	private static final String DOT_CLASS = PageForgotPassword.class.getName() + ".";
 	protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS
@@ -114,7 +108,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 	}
 
 	private void initLayout() {
-		Form form = new Form(ID_PWDRESETFORM);
+		Form<?> form = new Form(ID_PWDRESETFORM);
 		form.setOutputMarkupId(true);
 		form.add(new VisibleEnableBehaviour() {
 
@@ -127,10 +121,33 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 		});
 
+		initStaticLayout(form);
+
+		initDynamicLayout(form);
+
+		initButtons(form);
+
+	}
+
+	private void initStaticLayout(Form<?> mainForm) {
+		WebMarkupContainer staticLayout = new WebMarkupContainer(ID_STATIC_LAYOUT);
+		staticLayout.setOutputMarkupId(true);
+		mainForm.add(staticLayout);
+
+		staticLayout.add(new VisibleEnableBehaviour() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return getResetPasswordPolicy().getFormRef() == null;
+			}
+		});
+
 		WebMarkupContainer userNameContainer = new WebMarkupContainer(ID_USERNAME_CONTAINER);
 		userNameContainer.setOutputMarkupId(true);
-		form.add(userNameContainer);
-		
+		staticLayout.add(userNameContainer);
+
 		RequiredTextField<String> userName = new RequiredTextField<String>(ID_USERNAME, new Model<String>());
 		userName.setOutputMarkupId(true);
 		userNameContainer.add(userName);
@@ -143,10 +160,9 @@ public class PageForgotPassword extends PageRegistrationBase {
 			};
 		});
 
-		
 		WebMarkupContainer emailContainer = new WebMarkupContainer(ID_EMAIL_CONTAINER);
 		emailContainer.setOutputMarkupId(true);
-		form.add(emailContainer);
+		staticLayout.add(emailContainer);
 		RequiredTextField<String> email = new RequiredTextField<String>(ID_EMAIL, new Model<String>());
 		email.add(RfcCompliantEmailAddressValidator.getInstance());
 		email.setOutputMarkupId(true);
@@ -157,11 +173,52 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 			public boolean isVisible() {
 				ResetMethod resetMethod = getResetPasswordPolicy().getResetMethod();
-				return  resetMethod == ResetMethod.SECURITY_QUESTIONS
-						|| resetMethod == ResetMethod.MAIL;
+				return resetMethod == ResetMethod.SECURITY_QUESTIONS || resetMethod == ResetMethod.MAIL;
 			};
 		});
 
+	}
+
+	private void initDynamicLayout(final Form<?> mainForm) {
+		WebMarkupContainer dynamicLayout = new WebMarkupContainer(ID_DYNAMIC_LAYOUT);
+		dynamicLayout.setOutputMarkupId(true);
+		mainForm.add(dynamicLayout);
+
+		dynamicLayout.add(new VisibleEnableBehaviour() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return getResetPasswordPolicy().getFormRef() != null;
+			}
+		});
+
+		DynamicFormPanel<UserType> searchAttributesForm = runPrivileged(
+				new Producer<DynamicFormPanel<UserType>>() {
+
+					@Override
+					public DynamicFormPanel<UserType> run() {
+						ObjectReferenceType formRef = getResetPasswordPolicy().getFormRef();
+
+						if (formRef == null) {
+							return null;
+						}
+
+						DynamicFormPanel<UserType> dynamicFormPanel = new DynamicFormPanel<UserType>(
+								ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE, formRef.getOid(), mainForm, true,
+								PageForgotPassword.this);
+						return dynamicFormPanel;
+					}
+				});
+
+		if (searchAttributesForm != null) {
+			dynamicLayout.add(searchAttributesForm);
+		}
+
+	}
+
+	private void initButtons(Form<?> form) {
 		AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT) {
 
 			private static final long serialVersionUID = 1L;
@@ -179,11 +236,11 @@ public class PageForgotPassword extends PageRegistrationBase {
 		};
 		submit.setOutputMarkupId(true);
 		form.add(submit);
-		
+
 		AjaxButton backButton = new AjaxButton(ID_BACK) {
-			
+
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				setResponsePage(PageLogin.class);
@@ -193,7 +250,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		form.add(backButton);
 
 		add(form);
-		
+
 		MultiLineLabel label = new MultiLineLabel(ID_PASSWORD_RESET_SUBMITED,
 				createStringResource("PageForgotPassword.form.submited.message"));
 		add(label);
@@ -212,70 +269,66 @@ public class PageForgotPassword extends PageRegistrationBase {
 			}
 
 		});
-
 	}
-	
+
 	private void processResetPassword(AjaxRequestTarget target, Form<?> form) {
-		
-			RequiredTextField<String> username = (RequiredTextField) form.get(createComponentPath(ID_USERNAME_CONTAINER, ID_USERNAME));
-			RequiredTextField<String> email = (RequiredTextField) form.get(createComponentPath(ID_EMAIL_CONTAINER, ID_EMAIL));
-			String usernameValue = username != null ? username.getModelObject() : null;
-			String emailValue = email != null ? email.getModelObject() : null;
-			LOGGER.debug("Reset Password user info form submitted. username={}, email={}",
-					usernameValue, emailValue);
 
-			final UserType user = checkUser(emailValue, usernameValue);
-			LOGGER.trace("Reset Password user: {}", user);
+		RequiredTextField<String> username = (RequiredTextField) form
+				.get(createComponentPath(ID_USERNAME_CONTAINER, ID_USERNAME));
+		RequiredTextField<String> email = (RequiredTextField) form
+				.get(createComponentPath(ID_EMAIL_CONTAINER, ID_EMAIL));
+		String usernameValue = username != null ? username.getModelObject() : null;
+		String emailValue = email != null ? email.getModelObject() : null;
+		LOGGER.debug("Reset Password user info form submitted. username={}, email={}", usernameValue,
+				emailValue);
 
-			
-			if (user == null) {
-				LOGGER.debug("User for username={}, email={} not found", usernameValue,
-						emailValue);
-				getSession().error(getString("pageForgetPassword.message.usernotfound"));
-				throw new RestartResponseException(PageForgotPassword.class);
-			}
-//			try {
-			
-			if (getResetPasswordPolicy() == null) {
-				LOGGER.debug("No policies for reset password defined");
-				getSession().error(getString("pageForgetPassword.message.policy.not.found"));
-				throw new RestartResponseException(PageForgotPassword.class);
-			}
-		
-			switch (getResetPasswordPolicy().getResetMethod()) {
-					case MAIL:
-						OperationResult result = saveUserNonce(user,
-								getResetPasswordPolicy().getNoncePolicy());
-						if (result.getStatus() == OperationResultStatus.SUCCESS) {
-							submited = true;
-							target.add(PageForgotPassword.this);
-						} else {
-							getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-							throw new RestartResponseException(PageForgotPassword.this);
-						}
+		final UserType user = checkUser(emailValue, usernameValue);
+		LOGGER.trace("Reset Password user: {}", user);
 
-						break;
-					case SECURITY_QUESTIONS:
-						getSession().setAttribute("pOid", user.getOid());
-						LOGGER.trace("Forward to PageSecurityQuestions");
-						setResponsePage(PageSecurityQuestions.class);
-						break;
-					default:
-						getSession().error(
-								getString("pageForgetPassword.message.reset.method.not.supported"));
-						throw new RestartResponseException(PageForgotPassword.this);
+		if (user == null) {
+			LOGGER.debug("User for username={}, email={} not found", usernameValue, emailValue);
+			getSession().error(getString("pageForgetPassword.message.usernotfound"));
+			throw new RestartResponseException(PageForgotPassword.class);
+		}
+		// try {
+
+		if (getResetPasswordPolicy() == null) {
+			LOGGER.debug("No policies for reset password defined");
+			getSession().error(getString("pageForgetPassword.message.policy.not.found"));
+			throw new RestartResponseException(PageForgotPassword.class);
+		}
+
+		switch (getResetPasswordPolicy().getResetMethod()) {
+			case MAIL:
+				OperationResult result = saveUserNonce(user, getResetPasswordPolicy().getNoncePolicy());
+				if (result.getStatus() == OperationResultStatus.SUCCESS) {
+					submited = true;
+					target.add(PageForgotPassword.this);
+				} else {
+					getSession().error(getString("PageForgotPassword.send.nonce.failed"));
+					throw new RestartResponseException(PageForgotPassword.this);
 				}
 
+				break;
+			case SECURITY_QUESTIONS:
+				getSession().setAttribute("pOid", user.getOid());
+				LOGGER.trace("Forward to PageSecurityQuestions");
+				setResponsePage(PageSecurityQuestions.class);
+				break;
+			default:
+				getSession().error(getString("pageForgetPassword.message.reset.method.not.supported"));
+				throw new RestartResponseException(PageForgotPassword.this);
+		}
 
-	
-//		} catch (Throwable e) {
-//			LOGGER.error("Error during processing of security questions: {}", e.getMessage(), e);
-//			// Just log the error, but do not display it. We are still
-//			// in unprivileged part of the web
-//			// we do not want to provide any information to the
-//			// attacker.
-//			throw new RestartResponseException(PageError.class);
-//		}
+		// } catch (Throwable e) {
+		// LOGGER.error("Error during processing of security questions: {}",
+		// e.getMessage(), e);
+		// // Just log the error, but do not display it. We are still
+		// // in unprivileged part of the web
+		// // we do not want to provide any information to the
+		// // attacker.
+		// throw new RestartResponseException(PageError.class);
+		// }
 
 	}
 
@@ -347,6 +400,10 @@ public class PageForgotPassword extends PageRegistrationBase {
 			return null;
 		}
 
+		if (getResetPasswordPolicy().getFormRef() != null) {
+			return user;
+		}
+		
 		if (user.getEmailAddress().equalsIgnoreCase(email)) {
 			return user;
 		} else {
@@ -366,19 +423,47 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 			ObjectQuery query = null;
 
-			switch (getResetPasswordPolicy().getResetMethod()) {
-				case MAIL:
-					query = QueryBuilder.queryFor(UserType.class, getPrismContext())
-							.item(UserType.F_EMAIL_ADDRESS).eq(email).matchingCaseIgnore().build();
-					break;
-				case SECURITY_QUESTIONS:
-					query = QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_NAME)
-							.eqPoly(username).matchingNorm().and().item(UserType.F_EMAIL_ADDRESS).eq(email)
-							.matchingCaseIgnore().build();
-					break;
-				default:
-					getSession().error(getString("PageForgotPassword.unsupported.reset.type"));
-					throw new RestartResponseException(PageForgotPassword.this);
+			if (getResetPasswordPolicy().getFormRef() == null) {
+
+				switch (getResetPasswordPolicy().getResetMethod()) {
+					case MAIL:
+						query = QueryBuilder.queryFor(UserType.class, getPrismContext())
+								.item(UserType.F_EMAIL_ADDRESS).eq(email).matchingCaseIgnore().build();
+						break;
+					case SECURITY_QUESTIONS:
+						query = QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_NAME)
+								.eqPoly(username).matchingNorm().and().item(UserType.F_EMAIL_ADDRESS)
+								.eq(email).matchingCaseIgnore().build();
+						break;
+					default:
+						getSession().error(getString("PageForgotPassword.unsupported.reset.type"));
+						throw new RestartResponseException(PageForgotPassword.this);
+				}
+			} else {
+				DynamicFormPanel<UserType> dynamicForm = (DynamicFormPanel<UserType>) get(
+						createComponentPath(ID_PWDRESETFORM, ID_DYNAMIC_LAYOUT, ID_DYNAMIC_FORM));
+				List<ItemPath> changedPaths = dynamicForm.getChangedItems();
+
+				S_FilterEntryOrEmpty filter  = QueryBuilder.queryFor(UserType.class, getPrismContext());
+
+				query = filter.build();
+				
+				Iterator<ItemPath> pathIterator = changedPaths.iterator();
+
+				while (pathIterator.hasNext()) {
+					ItemPath changetPath = pathIterator.next();
+					Item item = dynamicForm.getObject().findItem(changetPath);
+					if (item instanceof PrismProperty) {
+						query.addFilter(filter.item(changetPath).eq((PrismProperty)item).buildFilter());
+						
+					}
+					if (item instanceof PrismReference) {
+						query.addFilter(filter.item(changetPath).ref(item.getValues()).buildFilter());
+					}
+
+				}
+
+			
 			}
 
 			if (LOGGER.isTraceEnabled()) {
@@ -394,6 +479,11 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 			if ((userList == null) || (userList.isEmpty())) {
 				LOGGER.trace("Empty user list in ForgetPassword");
+				return null;
+			}
+
+			if (userList.size() > 1) {
+				LOGGER.trace("Problem while seeking for user");
 				return null;
 			}
 

@@ -20,25 +20,31 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemDisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.schema.util.FormTypeUtil;
 
 public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<ObjectWrapper<O>>{
 
@@ -49,9 +55,12 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 	private static final String ID_PROPERTY = "property";
 	private static final String ID_HEADER = "header";
 	
+	private List<AbstractFormItemType> formItems;
+	
 	public DynamicFieldGroupPanel(String id, String groupName, IModel<ObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
 		super(id,objectWrapper);
 		setParent(parentPage);
+		this.formItems = formItems;
 		initLayout(groupName, formItems, mainForm);
 	}
 	
@@ -62,7 +71,8 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		if (formDefinition.getDisplay() != null) {
 			groupName = formDefinition.getDisplay().getLabel();
 		}
-		initLayout(groupName, getFormItems(formDefinition.getFormItems()), mainForm);
+		this.formItems = FormTypeUtil.getFormItems(formDefinition.getFormItems());
+		initLayout(groupName, formItems, mainForm);
 	}
 	
 	private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
@@ -77,7 +87,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		for (AbstractFormItemType formItem : formItems) {
 
 			if (formItem instanceof FormFieldGroupType) {
-				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<O>(itemView.newChildId(), formItem.getName(), getModel(), getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
+				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<O>(itemView.newChildId(), formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
 				dynamicFieldGroupPanel.setOutputMarkupId(true);
 				itemView.add(dynamicFieldGroupPanel);
 				continue;
@@ -113,11 +123,11 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 		ItemPath path = itemPathType.getItemPath();
 
-		Item item = objectWrapper.getObject().findItem(path);
+		ItemDefinition itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
 		
 		ItemWrapper itemWrapper = null;
 		
-		if (item instanceof PrismContainer) {
+		if (itemDef instanceof PrismContainerDefinition) {
 			itemWrapper = objectWrapper.findContainerWrapper(path);
 		} else {
 			itemWrapper = objectWrapper.findPropertyWrapper(path);
@@ -160,19 +170,12 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 	}
 	
-	private List<AbstractFormItemType> getFormItems(FormItemsType formItemsProperty) {
-		List<AbstractFormItemType> items = new ArrayList<>();
-		if (formItemsProperty != null) {
-			for (JAXBElement<? extends AbstractFormItemType> formItem : formItemsProperty.getFormItem()) {
-				AbstractFormItemType item = formItem.getValue();
-				items.add(item);
-			}
-		}
-		return items;
-	}
-	
 	public ObjectWrapper<O> getObjectWrapper() {
 		return getModelObject();
+	}
+	
+	public List<AbstractFormItemType> getFormItems() {
+		return formItems;
 	}
 
 
