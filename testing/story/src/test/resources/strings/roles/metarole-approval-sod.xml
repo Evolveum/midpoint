@@ -18,12 +18,14 @@
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 	<name>metarole-approval-sod</name>
-	<description>Requests to assign role holding this metarole will be approved by the SoD approvers</description>
+	<description>All assignments of this metarole-bearer that are in exclusion conflicts will have to be approved</description>
 	<displayName>Metarole: approval by the SoD people</displayName>
 	<inducement>
 		<policyRule>
 			<policyConstraints>
-				<assignment/>
+				<situation>
+					<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+				</situation>
 			</policyConstraints>
 			<policyActions>
 				<approval>
@@ -44,6 +46,17 @@
 							</approverRef>
 							<evaluationStrategy>firstDecides</evaluationStrategy>
 							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+							<approverInstruction>
+								<script>
+									<code>
+										def s = ""
+										for (int i = 1; i &lt; 40; i++) {
+											s = s + " " + i
+										}
+										s
+									</code>
+								</script>
+							</approverInstruction>
 						</level>
 					</approvalSchema>
 				</approval>

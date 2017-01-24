@@ -30,7 +30,7 @@
 			<filter>
 				<q:equal>
 					<q:path>name</q:path>
-					<q:value>test-1</q:value>
+					<q:value>a-test-1</q:value>
 				</q:equal>
 			</filter>
 		</targetRef>
