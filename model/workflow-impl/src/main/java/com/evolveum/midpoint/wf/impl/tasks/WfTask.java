@@ -6,6 +6,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -209,34 +210,7 @@ public class WfTask {
 	}
 
 	public String getCompleteStageInfo() {
-    	if (task.getWorkflowContext() == null) {
-    		return null;
-		}
-		Integer number = task.getWorkflowContext().getStageNumber();
-		String name = task.getWorkflowContext().getStageName();
-		String displayName = task.getWorkflowContext().getStageDisplayName();
-		if (number == null && name == null && displayName == null) {
-			return null;
-		}
-		StringBuilder sb = new StringBuilder();
-    	if (name != null && displayName != null) {
-    		sb.append(name).append(" (").append(displayName).append(")");
-		} else if (name != null) {
-    		sb.append(name);
-		} else if (displayName != null) {
-    		sb.append(displayName);
-		}
-		if (number != null) {
-    		boolean parentheses = sb.length() > 0;
-    		if (parentheses) {
-    			sb.append(" (");
-			}
-			sb.append(number);
-    		if (parentheses) {
-    			sb.append(")");
-			}
-		}
-    	return sb.toString();
+    	return WfContextUtil.getCompleteStageInfo(task.getWorkflowContext());
 	}
 
 	@SuppressWarnings("unchecked")

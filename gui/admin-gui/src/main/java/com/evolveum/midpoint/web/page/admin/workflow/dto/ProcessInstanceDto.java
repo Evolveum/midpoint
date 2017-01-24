@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -40,6 +41,7 @@ public class ProcessInstanceDto extends Selectable {
     public static final String F_START_FORMATTED = "startFormatted";
     public static final String F_END_FORMATTED = "endFormatted";
     public static final String F_STATE = "state";
+    public static final String F_STAGE = "stage";
     public static final String F_ANSWER = "answer";
 
     private TaskType task;
@@ -104,6 +106,10 @@ public class ProcessInstanceDto extends Selectable {
 
 	public String getState() {
 		return task.getWorkflowContext().getState();
+	}
+
+	public String getStage() {
+    	return WfContextUtil.getStageInfo(task.getWorkflowContext());
 	}
 
 	public String getProcessInstanceId() {

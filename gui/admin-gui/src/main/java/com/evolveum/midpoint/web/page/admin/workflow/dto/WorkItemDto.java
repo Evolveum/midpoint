@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -312,47 +313,8 @@ public class WorkItemDto extends Selectable {
 		return CollectionUtils.isNotEmpty(instanceState.getDecisions());
 	}
 
-	private ItemApprovalProcessStateType getItemApprovalProcessInfo() {
-		if (taskType == null || taskType.getWorkflowContext() == null) {
-			return null;
-		}
-		WfProcessSpecificStateType processSpecificState = taskType.getWorkflowContext().getProcessSpecificState();
-		return processSpecificState instanceof ItemApprovalProcessStateType ?
-				(ItemApprovalProcessStateType) processSpecificState : null;
-	}
-
-	private ItemApprovalWorkItemPartType getItemApprovalWorkItemInfo() {
-    	return workItem.getProcessSpecificPart() instanceof ItemApprovalWorkItemPartType ?
-				(ItemApprovalWorkItemPartType) workItem.getProcessSpecificPart() : null;
-	}
-
 	public String getStageInfo() {
-		WfContextType wfc = getWorkflowContext();
-		Integer levelNumber = wfc.getStageNumber();
-		String levelName = wfc.getStageDisplayName() != null ? wfc.getStageDisplayName() : wfc.getStageName();
-		if (levelName == null && levelNumber == null) {
-			return null;
-		}
-		StringBuilder sb = new StringBuilder();
-		if (levelName != null) {
-			sb.append(levelName);
-		}
-		if (levelNumber != null) {
-			boolean parentheses = sb.length() > 0;
-			if (parentheses) {
-				sb.append(" (");
-			}
-			sb.append(levelNumber);
-			ItemApprovalProcessStateType processInfo = getItemApprovalProcessInfo();
-			ApprovalSchemaType schema = processInfo != null ? processInfo.getApprovalSchema() : null;
-			if (schema != null) {
-				sb.append("/").append(schema.getLevel().size());
-			}
-			if (parentheses) {
-				sb.append(")");
-			}
-		}
-		return sb.toString();
+		return WfContextUtil.getStageInfo(getWorkflowContext());
 	}
 
 	public String getApproverInstruction() {
