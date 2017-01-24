@@ -537,7 +537,6 @@
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
-            <version>1.5.1</version>
         </dependency>
 
         <dependency>
@@ -606,8 +605,12 @@
 		</dependency>
         <dependency>
             <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils-core</artifactId>
+            <artifactId>commons-beanutils</artifactId>
         </dependency>
+        <!--<dependency>-->
+            <!--<groupId>commons-beanutils</groupId>-->
+            <!--<artifactId>commons-beanutils-core</artifactId>-->
+        <!--</dependency>-->
 		<dependency>
 			<groupId>commons-javaflow</groupId>
 			<artifactId>commons-javaflow</artifactId>
