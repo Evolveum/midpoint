@@ -99,17 +99,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 						exclusions.add(exclusionType);
 					}
 				}
-				
-//				for (AssignmentType assignmentInTarget: target.asObjectable().getAssignment()) {
-//					PolicyRuleType policyRule = assignmentInTarget.getPolicyRule();
-//					if (policyRule != null && policyRule.getPolicyConstraints() != null) {
-//						for (ExclusionPolicyConstraintType exclusionType: policyRule.getPolicyConstraints().getExclusion()) {
-//							exclusions.add(new ExclusionConstraintAndPolicyRule(exclusionType, policyRule));
-//						}
-//					}
-//				}
 			}
-		
 		}
 		return exclusions; 
 	}

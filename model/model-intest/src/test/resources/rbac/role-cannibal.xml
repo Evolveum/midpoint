@@ -30,6 +30,9 @@
 		    		<multiplicity>3</multiplicity>
 		    	</maxAssignees>
     		</policyConstraints>
+			<policyActions>
+				<enforcement/>
+			</policyActions>
     	</policyRule>
     </assignment>
     <inducement id="1111">
