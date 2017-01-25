@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -80,7 +82,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return listInlineMenuHelper.createRowActions();
+				return listInlineMenuHelper.createRowActions(false);
 			}
 
 			@Override
@@ -115,7 +117,17 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
         column = new PropertyColumn(createStringResource("ObjectType.description"), "value.description");
         columns.add(column);
 
-        column = new InlineMenuHeaderColumn(listInlineMenuHelper.initInlineMenu());
+        column = new InlineMenuButtonColumn<SelectableBean<UserType>>(listInlineMenuHelper.createRowActions(false), 3){
+            @Override
+            protected int getHeaderNumberOfButtons() {
+                return 2;
+            }
+
+            @Override
+            protected List<InlineMenuItem> getHeaderMenuItems() {
+                return listInlineMenuHelper.createRowActions(true);
+            }
+        };
         columns.add(column);
 
         return columns;

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -29,16 +30,19 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -81,87 +85,76 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 		this.focusListComponent = focusListComponent;
 	}
 
-	public List<InlineMenuItem> initInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable"), true,
-				new HeaderMenuAction(parentPage) {
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateActivationPerformed(target, true, null);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable"), true,
-				new HeaderMenuAction(parentPage) {
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateActivationPerformed(target, false, null);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile"), true,
-				new HeaderMenuAction(parentPage) {
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						reconcilePerformed(target, null);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem());
-
-		headerMenuItems.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.delete"), true,
-				new HeaderMenuAction(parentPage) {
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						deletePerformed(target, null);
-					}
-				}));
-
-		return headerMenuItems;
-	}
-
-	public List<InlineMenuItem> createRowActions() {
+	public List<InlineMenuItem> createRowActions(boolean isHeader) {
 		List<InlineMenuItem> menu = new ArrayList<>();
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable"),
+				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<F> rowDto = getRowModel().getObject();
-						updateActivationPerformed(target, true, rowDto.getValue());
+						if (getRowModel() == null){
+							updateActivationPerformed(target, true, null);
+						} else {
+							SelectableBean<F> rowDto = getRowModel().getObject();
+							updateActivationPerformed(target, true, rowDto.getValue());
+						}
 					}
-				}));
+				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
+				: InlineMenuItem.INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
+				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
 
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable"),
+				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
+				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
+				false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<F> rowDto = getRowModel().getObject();
-						updateActivationPerformed(target, false, rowDto.getValue());
+						if (getRowModel() == null){
+							updateActivationPerformed(target, false, null);
+						} else {
+							SelectableBean<F> rowDto = getRowModel().getObject();
+							updateActivationPerformed(target, false, rowDto.getValue());
+						}
 					}
-				}));
-
+				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
+				: InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
+				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile"),
+				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<F> rowDto = getRowModel().getObject();
-						reconcilePerformed(target, rowDto.getValue());
+						if (getRowModel() == null){
+							reconcilePerformed(target, null);
+						} else {
+							SelectableBean<F> rowDto = getRowModel().getObject();
+							reconcilePerformed(target, rowDto.getValue());
+						}
 					}
-				}));
+				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
+				: InlineMenuItem.INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
+				GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
-		menu.add(new InlineMenuItem());
+
 
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.delete"),
 				new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<F> rowDto = getRowModel().getObject();
-						deletePerformed(target, rowDto.getValue());
+						if (getRowModel() == null){
+							deletePerformed(target, null);
+						} else {
+							SelectableBean<F> rowDto = getRowModel().getObject();
+							deletePerformed(target, rowDto.getValue());
+						}
 					}
 				}));
 		return menu;

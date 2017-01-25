@@ -39,7 +39,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
     private static final String ID_BUTTONS = "buttons";
 
     protected IModel<List<InlineMenuItem>> menuItemsModel = null;
-    int numberOfButtons;
+    protected int numberOfButtons;
 
     public MultiButtonPanel(String id, int numberOfButtons, IModel<T> model, IModel<List<InlineMenuItem>> menuItemsModel){
         super(id, model);

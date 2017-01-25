@@ -39,7 +39,10 @@ public class InlineMenuItem implements Serializable {
         ENABLE(0), DISABLE(1), RECONCILE(2),
         UNLOCK(3), DELETE(4), MERGE(5),
         HEADER_ENABLE(0), HEADER_RECONCILE(1),
-        HEADER_DISABLE(2);
+        HEADER_DISABLE(2), TEST_CONNECTION(0),
+        HEADER_TEST_CONNECTION(1),
+        EDIT_XML(1), HEADER_DELETE(0), DELETE_RESOURCE(2),
+        DELETE_SYNC_TOKEN(3), EDIT_USING_WIZARD(4);
 
         private int menuItemId = -1;
 
