@@ -49,7 +49,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
     protected void initLayout() {
         super.initLayout();
 
-        add(new InlineMenu(ID_INLINE_MENU_PANEL, menuItemsModel){
+        InlineMenu inlineMenu = new InlineMenu(ID_INLINE_MENU_PANEL, menuItemsModel){
             @Override
             protected String getIconClass(){
                 return "fa fa-ellipsis-h";
@@ -74,31 +74,14 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
                return "margin-left: -37px; margin-bottom: -3px; list-style: none;";
             }
 
+        };
+        inlineMenu.add(new VisibleEnableBehaviour(){
+           @Override
+            public boolean isVisible(){
+               return !(numberOfButtons < 2);
+           }
         });
+        add(inlineMenu);
 
     }
-
-    private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
-        InlineMenuItem item = menuItem.getModelObject();
-
-        if (item.getVisible() != null && item.getVisible().getObject() != null) {
-            menuItem.add(new VisibleEnableBehaviour() {
-                @Override
-                public boolean isVisible() {
-                    return item.getVisible().getObject();
-                }
-            });
-        }
-
-        WebMarkupContainer menuItemBody;
-        if (item.isMenuHeader() || item.isDivider()) {
-            menuItemBody = new MenuDividerPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
-        } else {
-            menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
-        }
-        menuItemBody.setRenderBodyOnly(true);
-        menuItem.add(menuItemBody);
-
-    }
-
 }

@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -33,6 +35,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -152,7 +155,7 @@ public class PageResources extends PageAdminResources {
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return PageResources.this.createRowMenuItems();
+				return PageResources.this.createRowMenuItems(false);
 			}
 
 			@Override
@@ -178,31 +181,46 @@ public class PageResources extends PageAdminResources {
 
 	}
 
-	private List<InlineMenuItem> createRowMenuItems() {
+	private List<InlineMenuItem> createRowMenuItems(boolean isHeader) {
 
 		List<InlineMenuItem> menuItems = new ArrayList<>();
 
 		menuItems.add(new InlineMenuItem(createStringResource("PageResources.inlineMenuItem.test"),
+				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
-						testResourcePerformed(target, rowDto.getValue());
+							SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+							testResourcePerformed(target, rowDto.getValue());
 					}
-				}));
+				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_TEST_CONNECTION.getMenuItemId()
+				: InlineMenuItem.INLINE_MENU_ITEM_ID.TEST_CONNECTION.getMenuItemId(),
+				GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
 		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
+				new Model<Boolean>(true), new Model<Boolean>(true), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
-						deleteResourcePerformed(target, rowDto.getValue());
+						if (getRowModel() == null){
+							deleteResourcePerformed(target, null);
+						} else {
+							SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+							deleteResourcePerformed(target, rowDto.getValue());
+						}
 					}
-				}));
+				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_DELETE.getMenuItemId()
+				: InlineMenuItem.INLINE_MENU_ITEM_ID.DELETE_RESOURCE.getMenuItemId(),
+				GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.deleteSyncToken"),
+				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
@@ -214,6 +232,9 @@ public class PageResources extends PageAdminResources {
 				}));
 
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.editResource"),
+				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
@@ -223,6 +244,7 @@ public class PageResources extends PageAdminResources {
 					}
 				}));
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.button.editAsXml"),
+				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
@@ -230,7 +252,9 @@ public class PageResources extends PageAdminResources {
 						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
 						editAsXmlPerformed(rowDto.getValue());
 					}
-				}));
+				}, InlineMenuItem.INLINE_MENU_ITEM_ID.EDIT_XML.getMenuItemId(),
+				GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
 		return menuItems;
 	}
@@ -243,24 +267,19 @@ public class PageResources extends PageAdminResources {
 		columns.add(new PropertyColumn(createStringResource("pageResources.version"),
 				SelectableBean.F_VALUE + ".connector.connectorVersion"));
 
-		InlineMenuHeaderColumn menu = new InlineMenuHeaderColumn(initInlineMenu());
-		columns.add(menu);
+		columns.add(new InlineMenuButtonColumn<SelectableBean<ResourceType>>(createRowMenuItems(false), 2){
+			@Override
+			protected int getHeaderNumberOfButtons() {
+				return 1;
+			}
+
+			@Override
+			protected List<InlineMenuItem> getHeaderMenuItems() {
+				return createRowMenuItems(true);
+			}
+		});
 
 		return columns;
-	}
-
-	private List<InlineMenuItem> initInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteResourcePerformed(target, null);
-					}
-				}));
-
-		return headerMenuItems;
 	}
 
 	private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {

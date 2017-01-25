@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -90,7 +92,17 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 			protected List<IColumn<SelectableBean<ServiceType>, String>> createColumns() {
 				List<IColumn<SelectableBean<ServiceType>, String>> columns = ColumnUtils.getDefaultServiceColumns();
 
-				IColumn column = new InlineMenuHeaderColumn(listInlineMenuHelper.initInlineMenu());
+				IColumn column = new InlineMenuButtonColumn<SelectableBean<UserType>>(listInlineMenuHelper.createRowActions(false), 3){
+					@Override
+					protected int getHeaderNumberOfButtons() {
+						return 2;
+					}
+
+					@Override
+					protected List<InlineMenuItem> getHeaderMenuItems() {
+						return listInlineMenuHelper.createRowActions(true);
+					}
+				};
 				columns.add(column);
 
 				return columns;
@@ -98,7 +110,7 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return listInlineMenuHelper.createRowActions();
+				return listInlineMenuHelper.createRowActions(false);
 			}
 
 			@Override

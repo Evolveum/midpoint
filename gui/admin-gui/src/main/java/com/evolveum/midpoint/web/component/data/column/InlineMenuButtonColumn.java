@@ -38,7 +38,7 @@ import java.util.List;
  * Created by honchar.
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonColumn<T>{
-    private List<InlineMenuItem> menuItems;
+    protected List<InlineMenuItem> menuItems;
 
     public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, int buttonsNumber){
         super(null, menuItems.size() < 2 ? menuItems.size() : buttonsNumber);
@@ -49,16 +49,18 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     public void populateItem(final Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel) {
         this.rowModel = rowModel;
-        cellItem.add(getPanel(componentId, rowModel));
+        cellItem.add(getPanel(componentId, rowModel, this.numberOfButtons, this.menuItems));
     }
 
     @Override
     public Component getHeader(String componentId) {
-        return getPanel(componentId, null);
+
+        return getPanel(componentId, null, getHeaderNumberOfButtons(), getHeaderMenuItems());
     }
 
-    private Component getPanel(String componentId, IModel<T> rowModel){
-        panel = new MenuMultiButtonPanel<T>(componentId, numberOfButtons, rowModel, createMenuModel(rowModel)) {
+    private Component getPanel(String componentId, IModel<T> rowModel,
+                               int numberOfButtons, List<InlineMenuItem> menuItems){
+        panel = new MenuMultiButtonPanel<T>(componentId, numberOfButtons, rowModel, createMenuModel(rowModel, menuItems)) {
 
             @Override
             public String getCaption(int id) {
@@ -66,17 +68,17 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
             }
 
             @Override
+            public String getButtonTitle(int id) {
+                return InlineMenuButtonColumn.this.getButtonTitle(id, menuItems);
+            }
+
+            @Override
             protected String getButtonCssClass(int id) {
-                return InlineMenuButtonColumn.this.getButtonCssClass(id);
+                return InlineMenuButtonColumn.this.getButtonCssClass(id, menuItems);
             }
 
             @Override
             protected int getButtonId(int id){
-                for (InlineMenuItem menuItem : menuItems){
-                    if (menuItem.getId() == id){
-                        return menuItem.getId();
-                    }
-                }
                 return id;
             }
 
@@ -92,19 +94,19 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
 
             @Override
             public String getButtonColorCssClass(int id) {
-                return InlineMenuButtonColumn.this.getButtonColorCssClass(id);
+                return InlineMenuButtonColumn.this.getButtonColorCssClass(id, menuItems);
             }
 
             @Override
             public void clickPerformed(int id, AjaxRequestTarget target, IModel<T> model) {
-                setRowModelToAction(rowModel);
-                InlineMenuButtonColumn.this.menuItemClickPerformed(id, target, model);
+                setRowModelToAction(rowModel, menuItems);
+                InlineMenuButtonColumn.this.menuItemClickPerformed(id, target, model, menuItems);
             }
         };
         return panel;
     }
 
-    private void setRowModelToAction(IModel<T> rowModel){
+    private void setRowModelToAction(IModel<T> rowModel, List<InlineMenuItem> menuItems){
         for (InlineMenuItem menuItem : menuItems){
             if (menuItem.getAction() != null) {
                 ((ColumnMenuAction) menuItem.getAction()).setRowModel(rowModel);
@@ -112,7 +114,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
         }
     }
 
-    private IModel<List<InlineMenuItem>> createMenuModel(final IModel<T> rowModel) {
+    private IModel<List<InlineMenuItem>> createMenuModel(final IModel<T> rowModel, List<InlineMenuItem> menuItems) {
         return new LoadableModel<List<InlineMenuItem>>(false) {
 
             @Override
@@ -137,7 +139,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
         };
     }
 
-    private void menuItemClickPerformed(int id, AjaxRequestTarget target, IModel<T> model){
+    private void menuItemClickPerformed(int id, AjaxRequestTarget target, IModel<T> model, List<InlineMenuItem> menuItems){
             for (InlineMenuItem menuItem : menuItems) {
                 if (menuItem.getId() == id) {
                     if (menuItem.getAction() != null) {
@@ -156,18 +158,17 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
                 model.getObject() instanceof SelectableBean &&
                 ((SelectableBean) model.getObject()).getValue() instanceof FocusType){
             FocusType focus = (FocusType)((SelectableBean) model.getObject()).getValue();
-            return focus.getActivation() != null && ActivationStatusType.DISABLED.equals(focus.getActivation().getAdministrativeStatus());
+            return ActivationStatusType.DISABLED.equals(focus.getActivation().getEffectiveStatus());
         } else if (id == InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId() &&
                 model.getObject() instanceof SelectableBean &&
                 ((SelectableBean) model.getObject()).getValue() instanceof FocusType){
             FocusType focus = (FocusType)((SelectableBean) model.getObject()).getValue();
-            return focus.getActivation() == null || !ActivationStatusType.DISABLED.equals(focus.getActivation().getAdministrativeStatus());
+            return !ActivationStatusType.DISABLED.equals(focus.getActivation().getEffectiveStatus());
         }
         return true;
     }
 
-    @Override
-    public String getButtonColorCssClass(int id) {
+    public String getButtonColorCssClass(int id, List<InlineMenuItem> menuItems) {
         for (InlineMenuItem menuItem : menuItems){
             if (menuItem.getId() == id){
                 return menuItem.getButtonColorCssClass();
@@ -181,11 +182,10 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
         return DoubleButtonColumn.BUTTON_SIZE_CLASS.EXTRA_SMALL.toString();
     }
 
-    @Override
-    protected String getButtonCssClass(int id) {
+    protected String getButtonCssClass(int id, List<InlineMenuItem> menuItems) {
         StringBuilder sb = new StringBuilder();
         sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
-        sb.append(getButtonColorCssClass(id)).append(" ");
+        sb.append(getButtonColorCssClass(id, menuItems)).append(" ");
         sb.append(getButtonSizeCssClass(id)).append(" ");
         for (InlineMenuItem menuItem : menuItems){
             if (menuItem.getId() == id){
@@ -195,4 +195,21 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
         return sb.toString();
     }
 
+    public String getButtonTitle(int id, List<InlineMenuItem> menuItems) {
+        for (InlineMenuItem menuItem : menuItems){
+            if (menuItem.getId() == id){
+                return menuItem.getLabel() != null && menuItem.getLabel().getObject() != null ?
+                        menuItem.getLabel().getObject() : "";
+            }
+        }
+        return "";
+    }
+
+    protected int getHeaderNumberOfButtons(){
+        return this.numberOfButtons;
+    }
+
+    protected List<InlineMenuItem> getHeaderMenuItems(){
+        return menuItems;
+    }
 }
