@@ -910,6 +910,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         
@@ -2416,7 +2417,147 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		// TODO check real state of the account and shadow
 	}
+	
+	/**
+	 * MID-3695
+	 */
+	@Test
+    public void test700ModifyJackRemoveAdministrativeStatus() throws Exception {
+		final String TEST_NAME = "test700ModifyJackRemoveAdministrativeStatus";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, result);
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        
+        assertNoAssignments(userBefore);
+        
+        // Disabled RED account. RED resource has disable instead delete
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
+        
+        assertAdministrativeStatusEnabled(userBefore);
+        assertEffectiveActivation(userBefore, ActivationStatusType.ENABLED);
+        assertValidityStatus(userBefore, null);
+        PrismAsserts.assertNoItem(userBefore, SchemaConstants.PATH_ACTIVATION_VALID_FROM);
+        PrismAsserts.assertNoItem(userBefore, SchemaConstants.PATH_ACTIVATION_VALID_TO);
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, "Jack Sparrow");
+		
+		assertAdministrativeStatus(userAfter, null);
+        assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
+        assertValidityStatus(userAfter, null);
+        PrismAsserts.assertNoItem(userAfter, SchemaConstants.PATH_ACTIVATION_VALID_FROM);
+        PrismAsserts.assertNoItem(userAfter, SchemaConstants.PATH_ACTIVATION_VALID_TO);
+     
+        // Unconditional automatic assignment of Blue Dummy resource in user-template-complex-include
+        assertAssignments(userAfter, 1);
+	}
+
+	/**
+	 * MID-3695
+	 */
+	@Test
+    public void test702ModifyJackFuneralTimestampBeforeNow() throws Exception {
+		final String TEST_NAME = "test702ModifyJackFuneralTimestampBeforeNow";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, result);
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        
+        assertAssignments(userBefore, 1);
+        
+        XMLGregorianCalendar hourAgo = XmlTypeConverter.createXMLGregorianCalendar(clock.currentTimeMillis() - 60 * 60 * 1000);
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, hourAgo);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, "Jack Sparrow");
+		
+		PrismAsserts.assertNoItem(userAfter, SchemaConstants.PATH_ACTIVATION_VALID_FROM);
+		assertEquals("Wrong validTo in user", hourAgo, getActivation(userAfter).getValidTo());
+		
+		assertAdministrativeStatus(userAfter, null);
+        assertValidityStatus(userAfter, TimeIntervalStatusType.AFTER);
+        assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
+	}
+	
+	/**
+	 * This is where MID-3695 is really reproduced.
+	 * MID-3695
+	 */
+	@Test
+    public void test704ModifyJackFuneralTimestampAfterNow() throws Exception {
+		final String TEST_NAME = "test704ModifyJackFuneralTimestampAfterNow";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, result);
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        
+        assertAssignments(userBefore, 1);
+        
+        XMLGregorianCalendar hourAhead = XmlTypeConverter.createXMLGregorianCalendar(clock.currentTimeMillis() + 60 * 60 * 1000);
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, hourAhead);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, "Jack Sparrow");
+		
+		PrismAsserts.assertNoItem(userAfter, SchemaConstants.PATH_ACTIVATION_VALID_FROM);
+		assertEquals("Wrong validTo in user", hourAhead, getActivation(userAfter).getValidTo());
+		
+		assertAdministrativeStatus(userAfter, null);
+		assertValidityStatus(userAfter, TimeIntervalStatusType.IN);
+        assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
+	}
+
+	
 	private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}

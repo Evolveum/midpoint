@@ -2634,7 +2634,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				getActivation(obj).getValidTo());
 	}
 	
-	private ActivationType getActivation(PrismObject<? extends ObjectType> obj) {
+	protected ActivationType getActivation(PrismObject<? extends ObjectType> obj) {
 		ObjectType objectType = obj.asObjectable();
 		ActivationType activation;
 		if (objectType instanceof ShadowType) {
