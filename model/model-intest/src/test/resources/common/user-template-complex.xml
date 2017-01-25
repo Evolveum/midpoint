@@ -377,5 +377,16 @@
     		<path>additionalName</path>
     	</target>
     </mapping>
+    
+    <!-- MID-3695 -->
+    <mapping>
+      <strength>strong</strength>
+      <source>
+         <c:path>$user/extension/funeralTimestamp</c:path>
+      </source>
+      <target>
+         <c:path>$user/activation/validTo</c:path>
+      </target>
+   </mapping>
 
 </objectTemplate>
