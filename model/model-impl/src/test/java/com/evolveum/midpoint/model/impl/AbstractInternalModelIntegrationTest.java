@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,11 +131,6 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 	protected UserType userTypeGuybrush;
 	protected UserType userTypeElaine;
 		
-	protected ResourceType resourceDummyType;
-	protected PrismObject<ResourceType> resourceDummy;
-	protected static DummyResource dummyResource;
-	protected static DummyResourceContoller dummyResourceCtl;
-	
 	protected MockClockworkHook mockClockworkHook;
 			
 	@Override
@@ -168,13 +163,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 
 		// Resources
 		
-		dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
-		dummyResourceCtl.extendSchemaPirate();
-		dummyResource = dummyResourceCtl.getDummyResource();
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
-		resourceDummyType = resourceDummy.asObjectable();
-		dummyResourceCtl.setResource(resourceDummy);
-		
+		initDummyResourcePirate(null, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
+				
 		// We need to create Barbossa's account in exactly the shape that is given by his existing assignments
 		// otherwise any substantial change will trigger reconciliation and the recon changes will interfere with
 		// the tests
@@ -186,10 +176,10 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Undead Monkey");
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!");
-		dummyResource.addAccount(account);
+		getDummyResource().addAccount(account);
 		
-		dummyResourceCtl.addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
-		dummyResourceCtl.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Melee Island");
+		getDummyResourceController().addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
+		getDummyResourceController().addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Melee Island");
 				
 		// Accounts
 		repoAddObjectFromFile(ACCOUNT_HBARBOSSA_DUMMY_FILE, initResult);

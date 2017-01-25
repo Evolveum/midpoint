@@ -37,6 +37,9 @@ public class Decision implements Serializable {
     private boolean approved;
     private String comment;
     private Date date;
+    private Integer stageNumber;
+    private String stageName;
+    private String stageDisplayName;
 
     public String getComment() {
         return comment;
@@ -78,9 +81,34 @@ public class Decision implements Serializable {
         this.date = date;
     }
 
-    @Override
+	public Integer getStageNumber() {
+		return stageNumber;
+	}
+
+	public void setStageNumber(Integer stageNumber) {
+		this.stageNumber = stageNumber;
+	}
+
+	public String getStageName() {
+		return stageName;
+	}
+
+	public void setStageName(String stageName) {
+		this.stageName = stageName;
+	}
+
+	public String getStageDisplayName() {
+		return stageDisplayName;
+	}
+
+	public void setStageDisplayName(String stageDisplayName) {
+		this.stageDisplayName = stageDisplayName;
+	}
+
+	@Override
     public String toString() {
-        return "Decision: approved=" + isApproved() + ", comment=" + getComment() + ", approver=" + getApproverName() + "/" + getApproverOid() + ", date=" + getDate();
+        return "Decision: approved=" + isApproved() + ", comment=" + getComment() + ", approver=" + getApproverName()
+				+ "/" + getApproverOid() + ", date=" + getDate() + ", stage=" + stageNumber + ":" + stageName;
     }
 
     public DecisionType toDecisionType() {
@@ -95,6 +123,9 @@ public class Decision implements Serializable {
             ort.setTargetName(new PolyStringType(approverName));
             decisionType.setApproverRef(ort);
         }
+        decisionType.setStageNumber(stageNumber);
+        decisionType.setStageName(stageName);
+        decisionType.setStageDisplayName(stageDisplayName);
         return decisionType;
     }
 }

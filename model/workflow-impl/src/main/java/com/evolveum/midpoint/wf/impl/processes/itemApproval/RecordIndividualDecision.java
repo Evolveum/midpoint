@@ -22,7 +22,7 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -60,6 +60,8 @@ public class RecordIndividualDecision implements JavaDelegate {
         Validate.notNull(level, "level is null");
         level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
 
+        Integer stageNumber = ActivitiUtil.getRequiredVariable(execution, CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, Integer.class);
+
         boolean approved = ApprovalUtils.isApproved((String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION));
         String comment = (String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_COMMENT);
 
@@ -82,6 +84,9 @@ public class RecordIndividualDecision implements JavaDelegate {
         decision.setApproved(approved);
         decision.setComment(comment == null ? "" : comment);
         decision.setDate(new Date());
+		decision.setStageNumber(stageNumber);
+		decision.setStageName(level.getName());
+		decision.setStageDisplayName(level.getDisplayName());
 
         decisionList.add(decision);
         allDecisions.add(decision);
@@ -114,7 +119,8 @@ public class RecordIndividualDecision implements JavaDelegate {
         if (setLoopApprovesInLevelStop != null) {
             execution.setVariable(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);
         }
-        execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
+        execution.setVariable(
+                CommonProcessVariableNames.VARIABLE_WF_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",

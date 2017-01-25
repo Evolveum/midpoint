@@ -44,6 +44,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import static org.testng.AssertJUnit.*;
 
@@ -227,7 +228,32 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		return accountDelta;
 	}
 	
+	protected ObjectDelta<UserType> addModificationToContextAssignRole(
+			LensContext<UserType> context, String userOid, String roleOid)
+			throws SchemaException {
+		return addModificationToContextAssignRole(context, userOid, roleOid, null);
+	}
 	
+	protected ObjectDelta<UserType> addModificationToContextAssignRole(
+			LensContext<UserType> context, String userOid, String roleOid, Consumer<AssignmentType> modificationBlock)
+			throws SchemaException {
+		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, 
+				roleOid, RoleType.COMPLEX_TYPE, null, modificationBlock, true);
+		focusContext.addPrimaryDelta(userDelta);
+		return userDelta;
+	}
+
+	protected ObjectDelta<UserType> addModificationToContextUnassignRole(
+			LensContext<UserType> context, String userOid, String roleOid)
+			throws SchemaException {
+		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, 
+				roleOid, RoleType.COMPLEX_TYPE, null, null, null, false);
+		focusContext.addPrimaryDelta(userDelta);
+		return userDelta;
+	}
+
 	protected <T> ObjectDelta<ShadowType> createAccountDelta(LensProjectionContext accCtx, String accountOid, 
 			String attributeLocalName, T... propertyValues) throws SchemaException {
 		ResourceType resourceType = accCtx.getResource();

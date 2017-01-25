@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable {
 
@@ -84,5 +85,5 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 
 	public Collection<String> getPolicySituations();
 	
-	void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;
+	void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;
 }

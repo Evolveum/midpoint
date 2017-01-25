@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,17 +131,17 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         PrismProperty<Object> intentProperty = accountToAddPrimary.findProperty(ShadowType.F_INTENT);
         assertNotNull("No intent type in projection primary add delta", intentProperty);
         assertEquals("group", intentProperty.getRealValue());
-        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "GroupObjectClass"),
+        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(getDummyResourceType()), "GroupObjectClass"),
                 accountToAddPrimary.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = accountToAddPrimary.findReference(ShadowType.F_RESOURCE_REF);
-        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
+        assertEquals(getDummyResourceType().getOid(), resourceRef.getOid());
         accountToAddPrimary.checkConsistence();
 
         ObjectDelta<ShadowType> projSecondaryDelta = projContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, projSecondaryDelta.getChangeType());
         
         PropertyDelta<String> groupDescriptionDelta = projSecondaryDelta.findPropertyDelta(
-        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        		getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNotNull("No group description delta", groupDescriptionDelta);
         PrismAsserts.assertReplace(groupDescriptionDelta, "Bloody pirates");
         PrismAsserts.assertOrigin(groupDescriptionDelta, OriginType.OUTBOUND);
@@ -149,7 +149,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         PrismObject<ShadowType> projectionNew = projContext.getObjectNew();
         IntegrationTestTools.assertIcfsNameAttribute(projectionNew, "pirate");
         IntegrationTestTools.assertAttribute(projectionNew, 
-        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
+        		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
         		"Bloody pirates");
 	}
 	
@@ -233,327 +233,11 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         
         PrismAsserts.assertPropertyReplace(projSecondaryDelta, getIcfsNameAttributePath() , "Pirate");
         PrismAsserts.assertPropertyReplace(projSecondaryDelta, 
-        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
+        		getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
         		"Bloody pirates");        
         PrismAsserts.assertOrigin(projSecondaryDelta, OriginType.OUTBOUND);
 
 	}
 
-//	@Test
-//    public void test400ImportHermanDummy() throws Exception {
-//		final String TEST_NAME = "test400ImportHermanDummy";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
-//
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-//
-//        LensContext<UserType> context = createUserAccountContext();
-//        context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
-//        fillContextWithEmtptyAddUserDelta(context, result);
-//        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
-//        makeImportSyncDelta(context.getProjectionContexts().iterator().next());
-//        context.recompute();
-//
-//        display("Input context", context);
-//
-//        assertFocusModificationSanity(context);
-//
-//        // WHEN
-//        projector.project(context, "test", result);
-//        
-//        // THEN
-//        display("Output context", context);
-//        
-//        // TODO
-//        
-//        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
-//        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
-//        assertNotNull("No user secondary delta", userSecondaryDelta);
-//        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_DESCRIPTION, "Came from Monkey Island");
-//        
-//        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
-//
-//        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
-//        assertEquals(1, accountContexts.size());
-//        LensProjectionContext accContext = accountContexts.iterator().next();
-//        assertNull(accContext.getPrimaryDelta());
-//        
-//        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-//        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
-//
-//        // Activation is created in user policy. Therefore assert the origin of that as special case
-//        // and remove it from the delta so the next assert passes
-//        Iterator<? extends ItemDelta> iterator = userSecondaryDelta.getModifications().iterator();
-//        while (iterator.hasNext()) {
-//        	ItemDelta modification = iterator.next();
-//        	if (ItemPath.getName(modification.getPath().first()).equals(UserType.F_ACTIVATION)) {
-//        		PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
-//        		iterator.remove();
-//        	}
-//        }
-//        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
-//    }
-//
-//	@Test
-//    public void test401ImportHermanDummy() throws Exception {
-//		final String TEST_NAME = "test401ImportHermanDummy";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
-//
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-//
-//        LensContext<UserType> context = createUserAccountContext();
-//        context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
-//        fillContextWithEmtptyAddUserDelta(context, result);
-//        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
-//        makeImportSyncDelta(context.getProjectionContexts().iterator().next());
-//        context.recompute();
-//
-//        display("Input context", context);
-//
-//        assertFocusModificationSanity(context);
-//
-//        // WHEN
-//        projector.project(context, "test", result);
-//        
-//        // THEN
-//        display("Output context", context);
-//        
-//        // TODO
-//        
-//        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
-//        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
-//        assertNotNull("No user secondary delta", userSecondaryDelta);
-//        
-//        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
-//
-//        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
-//        assertEquals(1, accountContexts.size());
-//        LensProjectionContext accContext = accountContexts.iterator().next();
-//        assertNull(accContext.getPrimaryDelta());
-//
-//        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-//        assertEquals("Unexpected number of account secondary changes", 2, accountSecondaryDelta.getModifications().size());
-//
-//        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
-//    }
-//	
-//	@Test
-//    public void test450GuybrushInboundFromDelta() throws Exception {
-//		final String TEST_NAME = "test450GuybrushInboundFromDelta";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//
-//        LensContext<UserType> context = createUserAccountContext();
-//        fillContextWithUser(context, USER_GUYBRUSH_OID, result);
-//        fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, result);
-//        addSyncModificationToContextReplaceAccountAttribute(context, ACCOUNT_SHADOW_GUYBRUSH_OID, "ship", "Black Pearl");
-//        context.recompute();
-//
-//        display("Input context", context);
-//
-//        assertFocusModificationSanity(context);
-//
-//        // WHEN
-//        projector.project(context, "test", result);
-//        
-//        // THEN
-//        display("Output context", context);
-//        
-//        assertNoUserPrimaryDelta(context);
-//        assertUserSecondaryDelta(context);
-//        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
-//        assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-//        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , 
-//        		PrismTestUtil.createPolyString("The crew of Black Pearl"));
-//        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
-//    }
-//
-//	@Test
-//    public void test451GuybrushInboundFromAbsolute() throws Exception {
-//		final String TEST_NAME = "test451GuybrushInboundFromAbsolute";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        
-//    	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
-//    	ObjectDelta delta = ObjectDelta.createAddDelta(passPolicy);
-//    	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//    	deltas.add(delta);
-//    	modelService.executeChanges(deltas, null, task, result);
-//
-//    	deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//    	ObjectDelta refDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, passPolicy);
-//    	Collection<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
-//    	deltas.add(refDelta);
-//    	modelService.executeChanges(deltas, null, task, result);
-//    	
-//    	PrismObject<ValuePolicyType> passPol = modelService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
-//    	assertNotNull(passPol);
-//    	PrismObject<SystemConfigurationType> sysConfig = modelService.getObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, null, task, result);
-//    	assertNotNull(sysConfig.asObjectable().getGlobalPasswordPolicyRef());
-//    	assertEquals(PASSWORD_POLICY_GLOBAL_OID, sysConfig.asObjectable().getGlobalPasswordPolicyRef().getOid());
-//
-//        // GIVEN
-//        LensContext<UserType> context = createUserAccountContext();
-//        fillContextWithUser(context, USER_GUYBRUSH_OID, result);
-//        fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILENAME, result);
-//        LensProjectionContext guybrushAccountContext = context.findProjectionContextByOid(ACCOUNT_SHADOW_GUYBRUSH_OID);
-//        guybrushAccountContext.setFullShadow(true);
-//        guybrushAccountContext.setDoReconciliation(true);
-//        context.recompute();
-//
-//        display("Input context", context);
-//
-//        assertFocusModificationSanity(context);
-//
-//        // WHEN
-//        projector.project(context, "test", result);
-//        
-//        // THEN
-//        display("Output context", context);
-//        
-//        assertNoUserPrimaryDelta(context);
-//        assertUserSecondaryDelta(context);
-//        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
-//        assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-//        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATIONAL_UNIT , 
-//        		PrismTestUtil.createPolyString("The crew of The Sea Monkey"));
-//        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
-//    }
-//
-//	
-//	@Test
-//    public void test500ReconcileGuybrushDummy() throws Exception {
-//		final String TEST_NAME = "test500ReconcileGuybrushDummy";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
-//
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        
-//        // Change the guybrush account on dummy resource directly. This creates inconsistency.
-//        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-//        dummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Fuycrush Greepdood");
-//        dummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
-//        
-//        LensContext<UserType> context = createUserAccountContext();
-//        context.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
-//        fillContextWithUser(context, USER_GUYBRUSH_OID, result);
-//        context.setDoReconciliationForAllProjections(true);
-//        
-//        display("Guybrush account before: ", dummyAccount);
-//
-//        display("Input context", context);
-//
-//        assertFocusModificationSanity(context);
-//
-//        // WHEN
-//        projector.project(context, "test", result);
-//        
-//        // THEN
-//        display("Output context", context);
-//        
-//        assertNull("User primary delta sneaked in", context.getFocusContext().getPrimaryDelta());
-//        
-//        // There is an inbound mapping for password that generates it if not present. it is triggered in this case.
-//        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
-//        assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-//        assertEquals("Unexpected number of modifications in user secondary delta", 3, userSecondaryDelta.getModifications().size());
-//        ItemDelta modification = userSecondaryDelta.getModifications().iterator().next();
-//        assertEquals("Unexpected modification", PasswordType.F_VALUE, modification.getName());
-//        assertOriginWithActivation(userSecondaryDelta, OriginType.INBOUND);
-//
-//        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
-//
-//        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
-//        assertEquals(1, accountContexts.size());
-//        LensProjectionContext accContext = accountContexts.iterator().next();
-//        assertNull(accContext.getPrimaryDelta());
-//        
-//        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-//        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
-//        // Full name is not changed, it has normal mapping strength
-//        // Location is changed back, it has strong mapping
-//        PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(
-//        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-//        PrismAsserts.assertReplace(locationDelta, "Melee Island");
-//        PrismAsserts.assertOrigin(locationDelta, OriginType.RECONCILIATION);
-//        
-//    }
-//	
-//	/**
-//	 * Let's add user without a fullname. The expression in user template should compute it.
-//	 */
-//	@Test
-//    public void test600AddLargo() throws Exception {
-//		final String TEST_NAME = "test600AddLargo";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
-//
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-//
-//        LensContext<UserType> context = createUserAccountContext();
-//        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_LARGO_FILENAME));
-//        fillContextWithAddUserDelta(context, user);
-//
-//        display("Input context", context);
-//
-//        assertFocusModificationSanity(context);
-//
-//        // WHEN
-//        projector.project(context, "test", result);
-//        
-//        // THEN
-//        display("Output context", context);
-//        
-//        // TODO
-//        
-//        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
-//        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
-//        assertNotNull("No user secondary delta", userSecondaryDelta);
-//        assertFalse("Empty user secondary delta", userSecondaryDelta.isEmpty());
-//        PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, 
-//        		PrismTestUtil.createPolyString("Largo LaGrande"));
-//        
-//    }
-//	
-//	private void assertNoJackShadow() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-//		PrismObject<ShadowType> jackAccount = findAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME, resourceDummy);
-//        assertNull("Found jack's shadow!", jackAccount);
-//	}
-//
-//	private void assertOriginWithActivation(ObjectDelta<UserType> delta, OriginType expectedOrigi) {
-//		// Activation is created in user policy. Therefore assert the origin of that as special case
-//        // and remove it from the delta so the next assert passes
-//        Iterator<? extends ItemDelta> iterator = delta.getModifications().iterator();
-//        while (iterator.hasNext()) {
-//        	ItemDelta modification = iterator.next();
-//        	if (ItemPath.getName(modification.getPath().first()).equals(UserType.F_ACTIVATION)) {
-//        		PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
-//        		iterator.remove();
-//        	}
-//        }
-//        PrismAsserts.assertOrigin(delta,expectedOrigi);
-//	}
-//
 	
 }

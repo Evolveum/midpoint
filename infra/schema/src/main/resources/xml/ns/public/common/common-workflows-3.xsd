@@ -546,12 +546,44 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="state" type="xsd:string">
+            <xsd:element name="state" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Value of process variable "wfState" that should describe current state of
                         the process instance (e.g. "Request was approved by Engineering, passed now to
                         the Management Group").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stage number - if process can be conceptually divided into stages. Starts at 1.
+                        Null if not applicable. (Stored in process variable "stageNumber".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stageCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Total number of stages - if process can be conceptually divided into stages.
+                        Null if not known or applicable. (Stored in process variable "stageCount".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stageName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stage name - if process can be conceptually divided into stages.
+						(Stored in process variable "stageName".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stage display name - if process can be conceptually divided into stages.
+						(Stored in process variable "stageDisplayName".)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -645,7 +677,30 @@
             </xsd:element>
             <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
             <xsd:element name="dateTime" type="xsd:dateTime" />
-        </xsd:sequence>
+			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of the stage at which this decision was made (if process can be conceptually divided into stages).
+						Starts at 1. Null if not applicable.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="stageName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the stage at which this decision was made (if process can be conceptually divided into stages).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Display name of the stage at which this decision was made (if process can be conceptually divided into stages).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+
+		</xsd:sequence>
     </xsd:complexType>
     <xsd:element name="decisionType" type="tns:DecisionType" />
 
@@ -701,19 +756,19 @@
     </xsd:complexType>
     <xsd:element name="wfGeneralChangeProcessorStateType" type="tns:WfGeneralChangeProcessorStateType" />
 
-    <xsd:complexType name="WfProcessSpecificStateType">
+    <xsd:complexType name="WfProcessSpecificWorkItemPartType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
             <xsd:documentation>
-                Describe states that are specific to a given BPMN process.
+                Describe work item parts that are specific to a given BPMN process.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:complexType>
-    <xsd:element name="wfProcessSpecificStateType" type="tns:WfProcessSpecificStateType" />
+    <xsd:element name="wfProcessSpecificWorkItemPart" type="tns:WfProcessSpecificWorkItemPartType" />
 
-    <xsd:complexType name="ItemApprovalProcessStateType">
+    <xsd:complexType name="ItemApprovalWorkItemPartType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
@@ -723,17 +778,48 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:WfProcessSpecificStateType">
+            <xsd:extension base="tns:WfProcessSpecificWorkItemPartType">
                 <xsd:sequence>
-                    <xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
-                    <xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
+                    <!-- TODO -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="itemApprovalProcessStateType" type="tns:ItemApprovalProcessStateType" />
+    <xsd:element name="itemApprovalWorkItemPart" type="tns:ItemApprovalWorkItemPartType" />
 
-    <xsd:complexType name="ItemApprovalRequestType">
+	<xsd:complexType name="WfProcessSpecificStateType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+			<xsd:documentation>
+				Describe states that are specific to a given BPMN process.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	<xsd:element name="wfProcessSpecificState" type="tns:WfProcessSpecificStateType" />
+
+	<xsd:complexType name="ItemApprovalProcessStateType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WfProcessSpecificStateType">
+				<xsd:sequence>
+					<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
+					<xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="itemApprovalProcessState" type="tns:ItemApprovalProcessStateType" />
+
+	<xsd:complexType name="ItemApprovalRequestType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
@@ -747,7 +833,7 @@
             <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="itemApprovalRequestType" type="tns:ItemApprovalRequestType" />
+    <xsd:element name="itemApprovalRequest" type="tns:ItemApprovalRequestType" />
 
     <xsd:complexType name="WorkItemType">
         <xsd:annotation>
@@ -870,6 +956,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="approverInstruction" type="xsd:string" minOccurs="0" />
+            <!-- for work items without TaskType information -->
+			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0" />
+			<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="stageName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
 
             <!--<xsd:element name="contents" type="tns:ObjectType" minOccurs="0" maxOccurs="1">-->
                 <!--<xsd:annotation>-->

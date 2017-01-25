@@ -253,9 +253,11 @@ public class WfTaskController {
 			wfTask.setWfProcessId(event.getPid());
 		}
 
+		Map<String, Object> variables = event.getVariables();
+
 		// update state description
-		ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(event.getVariables());
-		String stateDescription = pmi.getState(event.getVariables());
+		ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
+		String stateDescription = pmi.getState(variables);
 		if (stateDescription == null || stateDescription.isEmpty()) {
 			if (event instanceof ProcessStartedEvent) {
 				stateDescription = "Approval process has been started";
@@ -268,6 +270,8 @@ public class WfTaskController {
         if (stateDescription != null) {
             wfTask.setProcessInstanceState(stateDescription);
         }
+        wfTask.setProcessInstanceStageInformation(pmi.getStageNumber(variables), pmi.getStageCount(variables),
+				pmi.getStageName(variables), pmi.getStageDisplayName(variables));
 
 		wfTask.commitChanges(result);
 

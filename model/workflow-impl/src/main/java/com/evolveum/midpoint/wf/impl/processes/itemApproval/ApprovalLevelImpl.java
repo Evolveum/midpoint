@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -45,11 +46,13 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
 	private final int order;
     private String name;
+    private String displayName;
     private String description;
     private List<LightweightObjectRefImpl> approverRefs = new ArrayList<>();
     private List<SerializationSafeContainer<ExpressionType>> approverExpressions = new ArrayList<>();
     private LevelEvaluationStrategyType evaluationStrategy;
     private SerializationSafeContainer<ExpressionType> automaticallyApproved;
+    private SerializationSafeContainer<ExpressionType> approverInstruction;
 	@NotNull private final ApprovalLevelOutcomeType outcomeIfNoApprovers;
 	@NotNull private final GroupExpansionType groupExpansion;
 
@@ -62,6 +65,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
 		this.order = levelType.getOrder() != null ? levelType.getOrder() : 0;
         this.name = levelType.getName();
+        this.displayName = levelType.getDisplayName();
         this.description = levelType.getDescription();
 
         setPrismContext(prismContext);
@@ -70,6 +74,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 	    relationResolver.getApprovers(levelType.getApproverRelation()).forEach(this::addResolvedApproverRef);
 	    levelType.getApproverExpression().forEach(this::addApproverExpression);
         this.evaluationStrategy = levelType.getEvaluationStrategy();
+        setApproverInstruction(levelType.getApproverInstruction());
         setAutomaticallyApproved(levelType.getAutomaticallyApproved());
         outcomeIfNoApprovers = resolveDefaultOutcomeIfNoApprovers(levelType.getOutcomeIfNoApprovers());
         groupExpansion = resolveDefaultGroupExpansion(levelType.getGroupExpansion());
@@ -115,7 +120,16 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
         this.name = name;
     }
 
-    @Override
+	@Override
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	@Override
     public String getDescription() {
         return description;
     }
@@ -152,18 +166,37 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
     @Override
     public ExpressionType getAutomaticallyApproved() {
-        if (automaticallyApproved == null) {
-            return null;
-        }
-        if (prismContext != null && automaticallyApproved.getPrismContext() == null) {
-            automaticallyApproved.setPrismContext(prismContext);
-        }
-        return automaticallyApproved.getValue();
+		return unwrap(automaticallyApproved);
     }
 
-    public void setAutomaticallyApproved(ExpressionType automaticallyApproved) {
-        this.automaticallyApproved = new SingleItemSerializationSafeContainerImpl<>(automaticallyApproved, prismContext);
+	public void setAutomaticallyApproved(ExpressionType automaticallyApproved) {
+		this.automaticallyApproved = wrap(automaticallyApproved);
+	}
+
+    @Override
+    public ExpressionType getApproverInstruction() {
+		return unwrap(approverInstruction);
     }
+
+	public void setApproverInstruction(ExpressionType approverInstruction) {
+		this.approverInstruction = wrap(approverInstruction);
+	}
+
+	@NotNull
+	private SingleItemSerializationSafeContainerImpl<ExpressionType> wrap(ExpressionType expression) {
+		return new SingleItemSerializationSafeContainerImpl<>(expression, prismContext);
+	}
+
+	@Nullable
+	private ExpressionType unwrap(SerializationSafeContainer<ExpressionType> wrappedExpression) {
+		if (wrappedExpression == null) {
+			return null;
+		}
+		if (prismContext != null && wrappedExpression.getPrismContext() == null) {
+			wrappedExpression.setPrismContext(prismContext);
+		}
+		return wrappedExpression.getValue();
+	}
 
 	@NotNull
 	@Override
@@ -196,8 +229,10 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
         ApprovalLevelType levelType = new ApprovalLevelType();          // is this ok?
 		levelType.setOrder(getOrder());
         levelType.setName(getName());
+        levelType.setDisplayName(getDisplayName());
         levelType.setDescription(getDescription());
         levelType.setAutomaticallyApproved(getAutomaticallyApproved());
+        levelType.setApproverInstruction(getApproverInstruction());
         levelType.setEvaluationStrategy(getEvaluationStrategy());
         for (LightweightObjectRef approverRef : approverRefs) {
             levelType.getApproverRef().add(approverRef.toObjectReferenceType());
@@ -222,7 +257,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     }
 
     private void addApproverExpression(ExpressionType expressionType) {
-        approverExpressions.add(new SingleItemSerializationSafeContainerImpl<>(expressionType, prismContext));
+        approverExpressions.add(wrap(expressionType));
     }
 
     @Override
@@ -248,6 +283,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 		DebugUtil.debugDumpWithLabelLn(sb, "Group expansion", String.valueOf(groupExpansion), indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "Approver refs", approverRefs, indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "Approver expressions", approverExpressions, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Approver instruction", approverInstruction, indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "Automatically approved", automaticallyApproved, indent);
 		return sb.toString();
 	}

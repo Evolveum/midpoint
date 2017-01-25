@@ -6,6 +6,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -203,6 +204,15 @@ public class WfTask {
 		return task.getWorkflowContext() != null ? task.getWorkflowContext().getAnswer() : null;
 	}
 
+	// replacing __REJECTED__ with Rejected, etc. (TODO reconsider)
+	public String getAnswerNice() {
+    	return ApprovalUtils.makeNice(getAnswer());
+	}
+
+	public String getCompleteStageInfo() {
+    	return WfContextUtil.getCompleteStageInfo(task.getWorkflowContext());
+	}
+
 	@SuppressWarnings("unchecked")
 	public PrismObject<UserType> getRequesterIfExists(OperationResult result) {
 		if (task.getWorkflowContext() == null || task.getWorkflowContext().getRequesterRef() == null) {
@@ -217,5 +227,15 @@ public class WfTask {
                 .item(F_WORKFLOW_CONTEXT, F_ANSWER).replace(answer)
                 .item(F_WORKFLOW_CONTEXT, F_APPROVED).replace(ApprovalUtils.approvalBooleanValue(answer))
                 .asItemDeltas());
+    }
+
+    public void setProcessInstanceStageInformation(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName)
+			throws SchemaException {
+        task.addModifications(DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+				.item(F_WORKFLOW_CONTEXT, F_STAGE_NUMBER).replace(stageNumber)
+				.item(F_WORKFLOW_CONTEXT, F_STAGE_COUNT).replace(stageCount)
+				.item(F_WORKFLOW_CONTEXT, F_STAGE_NAME).replace(stageName)
+				.item(F_WORKFLOW_CONTEXT, F_STAGE_DISPLAY_NAME).replace(stageDisplayName)
+				.asItemDeltas());
     }
 }

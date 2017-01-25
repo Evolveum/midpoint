@@ -559,7 +559,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected ObjectQuery createMemberQuery() {
+	protected ObjectQuery createContentQuery() {
 		String oid = getModelObject().getOid();
 
 		DropDownChoice<String> searchScopeChoice = (DropDownChoice<String>) get(

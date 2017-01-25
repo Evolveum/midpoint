@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,12 @@ import java.util.Collection;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.PredefinedPolicySituaion;
+import com.evolveum.midpoint.model.api.context.PredefinedPolicySituation;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,12 +40,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private PolicyRuleType policyRuleType;
 	private AssignmentPath assignmentPath;
 	private Collection<EvaluatedPolicyRuleTrigger> triggers;
+	private Collection<PolicyExceptionType> policyExceptions;
 
 	public EvaluatedPolicyRuleImpl(PolicyRuleType policyRuleType, AssignmentPath assignmentPath) {
 		super();
 		this.policyRuleType = policyRuleType;
 		this.assignmentPath = assignmentPath;
 		this.triggers = new ArrayList<>();
+		this.policyExceptions = new ArrayList<>();
 	}
 
 	@Override
@@ -80,6 +83,17 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		triggers.add(trigger);
 	}
 
+	@NotNull
+	@Override
+	public Collection<PolicyExceptionType> getPolicyExceptions() {
+		return policyExceptions;
+	}
+	
+	public void addPolicyException(PolicyExceptionType exception) {
+		policyExceptions.add(exception);
+	}
+
+
 	@Override
 	public PolicyActionsType getActions() {
 		return policyRuleType.getPolicyActions();
@@ -94,26 +108,31 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		
 		if (!triggers.isEmpty()) {
 			EvaluatedPolicyRuleTrigger firstTrigger = triggers.iterator().next();
+			if (!firstTrigger.getSourceRules().isEmpty()) {
+				return firstTrigger.getSourceRules().iterator().next().getPolicySituation();
+			}
 			PolicyConstraintKindType constraintKind = firstTrigger.getConstraintKind();
-			PredefinedPolicySituaion predefSituation = PredefinedPolicySituaion.get(constraintKind);
-			return predefSituation.getUrl();
+			PredefinedPolicySituation predefSituation = PredefinedPolicySituation.get(constraintKind);
+			if (predefSituation != null) {
+				return predefSituation.getUrl();
+			}
 		}
 		
 		PolicyConstraintsType policyConstraints = getPolicyConstraints();
 		if (policyConstraints.getExclusion() != null) {
-			return PredefinedPolicySituaion.EXCLUSION_VIOLATION.getUrl();
+			return PredefinedPolicySituation.EXCLUSION_VIOLATION.getUrl();
 		}
 		if (policyConstraints.getMinAssignees() != null) {
-			return PredefinedPolicySituaion.UNDERASSIGNED.getUrl();
+			return PredefinedPolicySituation.UNDERASSIGNED.getUrl();
 		}
 		if (policyConstraints.getMaxAssignees() != null) {
-			return PredefinedPolicySituaion.OVERASSIGNED.getUrl();
+			return PredefinedPolicySituation.OVERASSIGNED.getUrl();
 		}
 		if (policyConstraints.getModification() != null) {
-			return PredefinedPolicySituaion.MODIFIED.getUrl();
+			return PredefinedPolicySituation.MODIFIED.getUrl();
 		}
 		if (policyConstraints.getAssignment() != null) {
-			return PredefinedPolicySituaion.ASSIGNED.getUrl();
+			return PredefinedPolicySituation.ASSIGNED.getUrl();
 		}
 		return null;
 	}

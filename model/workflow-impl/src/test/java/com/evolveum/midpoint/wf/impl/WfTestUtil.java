@@ -63,8 +63,8 @@ public class WfTestUtil {
 				continue;
 			}
 			assertNotNull("Unexpected target to approve: " + oid, expectedResults.containsKey(oid));
-			assertEquals("Unexpected result for " + oid, expectedResults.get(oid),
-					WorkflowResult.fromStandardWfAnswer(record.getResult()));
+			assertEquals("Unexpected result for " + oid + ": " + record.getResult(), expectedResults.get(oid),
+					WorkflowResult.fromNiceWfAnswer(record.getResult()));
 		}
 	}
 
@@ -81,8 +81,8 @@ public class WfTestUtil {
 						.getValuesToAdd().iterator().next()).asContainerable();
 				String oid = assignmentType.getTargetRef().getOid();
 				assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
-				assertEquals("Unexpected result for " + oid, expectedResults.get(oid),
-						WorkflowResult.fromStandardWfAnswer(record.getResult()));
+				assertEquals("Unexpected result for " + oid + ": " + record.getResult(), expectedResults.get(oid),
+						WorkflowResult.fromNiceWfAnswer(record.getResult()));
 			}
 		}
 	}

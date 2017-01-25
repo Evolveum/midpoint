@@ -15,41 +15,21 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -62,16 +42,29 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMemberPanel<T> {
 
@@ -79,14 +72,15 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 	private static final Trace LOGGER = TraceManager.getTrace(RoleMemberPanel.class);
 
-	private static String ID_OBJECT_TYPE = "type";
-	private static String ID_TENANT = "tenant";
-	private static String ID_PROJECT = "project";
-	private static String ID_INDIRECT_MEMBERS = "indirectMembers";
-	
+	private static final String ID_OBJECT_TYPE = "type";
+	private static final String ID_TENANT = "tenant";
+	private static final String ID_PROJECT = "project";
+	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
+	private static final String ID_ALL_RELATIONS_CONTAINER = "allRelationsContainer";
+	private static final String ID_ALL_RELATIONS = "allRelations";
+
 	public RoleMemberPanel(String id, IModel<T> model, PageBase pageBase) {
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
-		
 	}
 	
 	protected boolean isRole() {
@@ -177,13 +171,13 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return assignmentToModify;
 	}
 
-	
+	// actions are executed on members only (not on owners, approvers, etc)
 	private ObjectQuery getActionQuery(QueryScope scope) {
 		switch (scope) {
 			case ALL:
-				return createAllMemberQuery();
+				return createAllMemberQuery(false);
 			case ALL_DIRECT:
-				return createDirectMemberQuery();
+				return createDirectMemberQuery(false);
 			case SELECTED:
 				return createRecomputeQuery();
 		}
@@ -191,10 +185,18 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return null;
 	}
 
-	private ObjectQuery createAllMemberQuery() {
+	private ObjectQuery createAllMemberQuery(boolean allRelations) {
 		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(getModelObject().getOid())
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(createReferenceValue(allRelations))
 				.build();
+	}
+
+	private PrismReferenceValue createReferenceValue(boolean allRelations) {
+		PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
+		if (allRelations) {
+			rv.setRelation(PrismConstants.Q_ANY);
+		}
+		return rv;
 	}
 
 	private ObjectQuery createRecomputeQuery() {
@@ -253,18 +255,22 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 			public void onUpdate(AjaxRequestTarget target) {
 				refreshTable(target);
-			};
+			}
 		};
 		add(includeIndirectMembers);
-		
-		includeIndirectMembers.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return isRole();
-			}
-		});
-		
+		includeIndirectMembers.add(new VisibleBehaviour(this::isRole));		// TODO shouldn't we hide also the label?
 
+		WebMarkupContainer showAllRelationsContainer = new WebMarkupContainer(ID_ALL_RELATIONS_CONTAINER);
+		add(showAllRelationsContainer);
+		CheckBoxPanel showAllRelations = new CheckBoxPanel(ID_ALL_RELATIONS, new Model<>(false)) {
+			private static final long serialVersionUID = 1L;
+
+			public void onUpdate(AjaxRequestTarget target) {
+				refreshTable(target);
+			}
+		};
+		showAllRelationsContainer.add(showAllRelations);
+		showAllRelationsContainer.add(new VisibleBehaviour(() -> SystemConfigurationHolder.isExperimentalCodeEnabled() && isRole()));
 	}
 
 	@Override
@@ -318,20 +324,22 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected ObjectQuery createMemberQuery() {
-		CheckBoxPanel indirectMembers = (CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS));
-		boolean indirect = indirectMembers.getValue();
-		return indirect ? createAllMemberQuery() : createDirectMemberQuery();  
+	protected ObjectQuery createContentQuery() {
+		boolean indirect = ((CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS))).getValue();
+		boolean allRelations = ((CheckBoxPanel) get(createComponentPath(ID_ALL_RELATIONS_CONTAINER, ID_ALL_RELATIONS))).getValue();
+
+		return indirect ? createAllMemberQuery(allRelations) : createDirectMemberQuery(allRelations);
 		
 	}
 
-	private ObjectQuery createDirectMemberQuery() {
-		ObjectQuery query = null;
+	private ObjectQuery createDirectMemberQuery(boolean allRelations) {
+		ObjectQuery query;
 
 		String oid = getModelObject().getOid();
 
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, getPrismContext())
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(createReference().asReferenceValue());
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+						.ref(createReference(allRelations ? PrismConstants.Q_ANY : null).asReferenceValue());
 		DropDownChoice<OrgType> tenantChoice = (DropDownChoice) get(createComponentPath(ID_TENANT));
 		OrgType tenant = tenantChoice.getModelObject();
 		if (tenant != null) {

@@ -54,7 +54,9 @@
 
         <subProcess id="loopLevels">
             <multiInstanceLoopCharacteristics isSequential="true"
-                    activiti:collection="${approvalSchema.levels}" activiti:elementVariable="level">
+                    activiti:collection="${approvalSchema.levels}"
+					activiti:elementVariable="level"
+            		activiti:elementIndexVariable="levelIndex">
                 <completionCondition>${loopLevels_stop}</completionCondition>
             </multiInstanceLoopCharacteristics>
 

@@ -16,7 +16,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -34,7 +33,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -62,11 +60,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	private static final long serialVersionUID = 1L;
 
 	protected enum QueryScope {
-		SELECTED, ALL, ALL_DIRECT;
+		SELECTED, ALL, ALL_DIRECT
 	}
 
 	protected enum MemberOperation {
-		ADD, REMOVE, RECOMPUTE;
+		ADD, REMOVE, RECOMPUTE
 	}
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
@@ -145,7 +143,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			protected ObjectQuery createContentQuery() {
 				ObjectQuery q = super.createContentQuery();
 
-				ObjectQuery members = createMemberQuery();
+				ObjectQuery members = AbstractRoleMemberPanel.this.createContentQuery();
 
 				List<ObjectFilter> filters = new ArrayList<>();
 
@@ -447,7 +445,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return columns;
 	}
 
-	protected abstract ObjectQuery createMemberQuery();
+	protected abstract ObjectQuery createContentQuery();
 
 	protected String getTaskName(String operation, QueryScope scope, boolean managers) {
 		StringBuilder nameBuilder = new StringBuilder(operation);

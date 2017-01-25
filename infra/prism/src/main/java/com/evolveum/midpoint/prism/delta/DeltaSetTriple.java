@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 /**
  * The triple of values (added, unchanged, deleted) that represents difference between two collections of values.
@@ -430,25 +431,31 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-        sb.append("DeltaSetTriple:\n");
-        debugDumpSet(sb, "zero", zeroSet, indent + 1);
-        sb.append("\n");
-        debugDumpSet(sb, "plus", plusSet, indent + 1);
-        sb.append("\n");
-        debugDumpSet(sb, "minus", minusSet, indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, "DeltaSetTriple", indent);
+		
+        debugDumpSets(sb, 
+        		val -> sb.append(DebugUtil.debugDump(val, indent + 3)),
+        		indent + 1);
+
         return sb.toString();
 	}
 
-	private void debugDumpSet(StringBuilder sb, String label, Collection<T> set, int indent) {
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append(label).append(":");
+	public void debugDumpSets(StringBuilder sb, Consumer<T> dumper, int indent) {
+        debugDumpSet(sb, "zero", dumper, zeroSet, indent + 1);
+        sb.append("\n");
+        debugDumpSet(sb, "plus", dumper, plusSet, indent + 1);
+        sb.append("\n");
+        debugDumpSet(sb, "minus", dumper, minusSet, indent + 1);		
+	}
+	
+	private void debugDumpSet(StringBuilder sb, String label, Consumer<T> dumper, Collection<T> set, int indent) {
+		DebugUtil.debugDumpLabel(sb, label, indent);
 		if (set == null) {
 			sb.append(" null");
 		} else {
 			for (T val: set) {
 				sb.append("\n");
-				sb.append(DebugUtil.debugDump(val, indent +1));
+				dumper.accept(val);
 			}
 		}
 	}

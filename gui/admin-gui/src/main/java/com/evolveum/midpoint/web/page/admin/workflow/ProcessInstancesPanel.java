@@ -105,19 +105,21 @@ public class ProcessInstancesPanel extends BasePanel {
 
 		if (view != TASKS_FOR_PROCESS) {
 			if (view == FULL_LIST) {
-				columns.add(new CheckBoxHeaderColumn<ProcessInstanceDto>());
+				columns.add(new CheckBoxHeaderColumn<>());
 			}
 			columns.add(createNameColumn());
 			columns.add(createTypeIconColumn(true));
 			columns.add(createObjectNameColumn("pageProcessInstances.item.object"));
 			columns.add(createTypeIconColumn(false));
 			columns.add(createTargetNameColumn("pageProcessInstances.item.target"));
+			columns.add(createStageColumn());
 			columns.add(createStateColumn());
 			columns.add(new PropertyColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started"), F_START_FORMATTED));
 			columns.add(createOutcomeColumn());
 			columns.add(createFinishedColumn());
 		} else {
 			columns.add(createNameColumn());
+			columns.add(createStageColumn());
 			columns.add(createStateColumn());
 			columns.add(createOutcomeColumn());
 			columns.add(createFinishedColumn());
@@ -133,6 +135,11 @@ public class ProcessInstancesPanel extends BasePanel {
 	@NotNull
 	private PropertyColumn<ProcessInstanceDto, String> createStateColumn() {
 		return new PropertyColumn<>(createStringResource("pageProcessInstances.item.state"), F_STATE);
+	}
+
+	@NotNull
+	private PropertyColumn<ProcessInstanceDto, String> createStageColumn() {
+		return new PropertyColumn<>(createStringResource("pageProcessInstances.item.stage"), F_STAGE);
 	}
 
 	@NotNull

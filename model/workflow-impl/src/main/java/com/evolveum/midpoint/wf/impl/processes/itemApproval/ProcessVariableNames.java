@@ -36,6 +36,9 @@ public class ProcessVariableNames {
     // Information about currently active level of approval.
     public static final String LEVEL = "level";                                 // ApprovalLevel
 
+    // Index of current approval level (starting at 0)
+    public static final String LEVEL_INDEX = "levelIndex";                      // Integer
+
     // Approvers that should be consulted within this level.
     public static final String APPROVERS_IN_LEVEL = "approversInLevel";         // List<LightweightObjectRef>
 

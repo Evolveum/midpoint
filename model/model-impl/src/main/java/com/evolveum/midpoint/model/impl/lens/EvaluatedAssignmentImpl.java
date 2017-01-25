@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -46,15 +47,9 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Evaluated assignment that contains all constructions and authorizations from the assignment 
@@ -360,6 +355,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
+		PolicyActionsType policyActionsType = new PolicyActionsType();
+		policyActionsType.setEnforcement(new EnforcementPolicyActionType());
+		policyRuleType.setPolicyActions(policyActionsType);
 		return new EvaluatedPolicyRuleImpl(policyRuleType, null);
 	}
 
@@ -369,10 +367,31 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@Override
-	public void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-		LensUtil.triggerConstraint(rule, trigger, policySituations);
+	public void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
+		boolean hasException = processRuleExceptions(this, rule, trigger);
+		
+		if (trigger.getConflictingAssignment() != null) {
+			hasException = hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) trigger.getConflictingAssignment(), rule, trigger);
+		}
+		
+		if (!hasException) {
+			LensUtil.triggerConstraint(rule, trigger, policySituations);
+		}
 	}
 
+	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
+		boolean hasException = false; 
+		for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
+			if (policyException.getRuleName().equals(rule.getName())) {
+				LensUtil.procesRuleWithException(rule, trigger, policySituations, policyException);
+				hasException = true;
+//			} else {
+//				LOGGER.trace("Skipped exception because it does not match rule name, exception: {}, rule: {}", policyException.getRuleName(), rule.getName());
+			}
+		}
+		return hasException;
+	}
+	
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -438,7 +457,17 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
+		return "EvaluatedAssignment(target=" + target + "; constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
 				.size()+" rules)";
+	}
+	
+	public String toHumanReadableString() {
+		if (target != null) {
+			return "EvaluatedAssignment(" + target + ")";
+		} else if (constructions != null && !constructions.isEmpty()) {
+			return "EvaluatedAssignment(" + constructions + ")";
+		} else {
+			return toString();
+		}
 	}
 }

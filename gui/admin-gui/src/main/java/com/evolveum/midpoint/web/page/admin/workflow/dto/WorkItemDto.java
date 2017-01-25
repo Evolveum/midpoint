@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -56,6 +57,8 @@ public class WorkItemDto extends Selectable {
     public static final String F_ASSIGNEE_OR_CANDIDATES = "assigneeOrCandidates";
     public static final String F_ASSIGNEE = "assignee";
     public static final String F_CANDIDATES = "candidates";
+    public static final String F_STAGE_INFO = "stageInfo";
+    public static final String F_APPROVER_INSTRUCTION = "approverInstruction";
 
 	public static final String F_OTHER_WORK_ITEMS = "otherWorkItems";
 	public static final String F_RELATED_WORKFLOW_REQUESTS = "relatedWorkflowRequests";
@@ -114,7 +117,10 @@ public class WorkItemDto extends Selectable {
 
 	@Nullable
 	protected TaskType getTaskType() {
-		return taskType != null ? taskType : WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+    	if (taskType == null) {
+			taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+		}
+		return taskType;
 	}
 
 	public String getWorkItemId() {
@@ -305,5 +311,14 @@ public class WorkItemDto extends Selectable {
 		}
 		ItemApprovalProcessStateType instanceState = (ItemApprovalProcessStateType) wfc.getProcessSpecificState();
 		return CollectionUtils.isNotEmpty(instanceState.getDecisions());
+	}
+
+	public String getStageInfo() {
+    	WfContextType wfc = getWorkflowContext();		// wfc contains also the approval schema
+		return wfc != null ? WfContextUtil.getStageInfo(wfc) : WfContextUtil.getStageInfo(workItem);
+	}
+
+	public String getApproverInstruction() {
+		return workItem.getApproverInstruction();
 	}
 }

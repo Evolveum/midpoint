@@ -150,8 +150,8 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		PolicyActionsType actions = policyRule.getActions();
 		
 		if (actions == null) {
-			// enforce is the default (this also covers legacy configuration)
-			return true;
+			// enforce is NO LONGER the default
+			return false;
 		}
 		
 		EnforcementPolicyActionType enforcement = actions.getEnforcement();

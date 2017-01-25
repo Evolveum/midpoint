@@ -23,21 +23,20 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly
  */
 abstract public class WorkflowEvent extends BaseEvent {
 
-    protected final WfContextType workflowContext;
-    private final ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
+    @NotNull protected final WfContextType workflowContext;
+    @NotNull private final ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
 
-    public WorkflowEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, WfContextType workflowContext) {
+    public WorkflowEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
+            @NotNull WfContextType workflowContext) {
         super(lightweightIdentifierGenerator);
-
-        Validate.notNull(changeType, "changeType is null");
         this.changeType = changeType;
-		Validate.notNull(workflowContext, "workflowContext is null");
 		this.workflowContext = workflowContext;
     }
 
@@ -106,6 +105,7 @@ abstract public class WorkflowEvent extends BaseEvent {
 		return workflowContext.getProcessSpecificState();
     }
 
+	@NotNull
 	public WfContextType getWorkflowContext() {
 		return workflowContext;
 	}

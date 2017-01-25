@@ -52,6 +52,7 @@ import java.util.List;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 import static com.evolveum.midpoint.web.component.wf.WorkItemsPanel.View.FULL_LIST;
 import static com.evolveum.midpoint.web.component.wf.WorkItemsPanel.View.ITEMS_FOR_PROCESS;
+import static com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto.F_STAGE_INFO;
 
 /**
  * @author lazyman
@@ -85,6 +86,7 @@ public class WorkItemsPanel extends BasePanel {
 				columns.add(new CheckBoxHeaderColumn<WorkItemDto>());
 			}
 			columns.add(createNameColumn());
+			columns.add(createStageColumn());
 			columns.add(createTypeIconColumn(true));
 			columns.add(createObjectNameColumn("WorkItemsPanel.object"));
 			columns.add(createTypeIconColumn(false));
@@ -120,6 +122,7 @@ public class WorkItemsPanel extends BasePanel {
 			}
 		} else {
 			columns.add(createNameColumn());
+			columns.add(createStageColumn());
 			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
             columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED_FORMATTED));
 		}
@@ -158,6 +161,11 @@ public class WorkItemsPanel extends BasePanel {
 			};
         }
 		return nameColumn;
+	}
+
+	@NotNull
+	private PropertyColumn<WorkItemDto, String> createStageColumn() {
+		return new PropertyColumn<>(createStringResource("WorkItemsPanel.stage"), F_STAGE_INFO);
 	}
 
 	private BoxedTablePanel getWorkItemTable() {

@@ -14,42 +14,10 @@
   ~ limitations under the License.
   -->
 <role oid="4838ce2c-5250-4d9c-b5cc-b6b946852806"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<!-- This is a hidden thief; not directly listed in criminal-exclusion participants. But should be excluded nevertheless. -->
     <name>Respectable</name>
-	<!--<assignment>-->
-	<!--<targetRef oid="34d73991-8cbc-46e5-b8c2-b8b62029e711" type="RoleType"/> 		&lt;!&ndash; metarole-criminal-exclusion &ndash;&gt;-->
-	<!--</assignment>-->
 	<assignment>
-		<policyRule>
-			<name>criminal exclusion</name>
-			<policyConstraints>
-				<!-- For the time being let's assume that pirate and thief are also mutually exclusive. -->
-				<exclusion>
-					<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
-				</exclusion>
-				<exclusion>
-					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
-				</exclusion>
-				<exclusion>
-					<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
-				</exclusion>
-			</policyConstraints>
-			<policyActions>
-				<!--<enforcement/>-->
-				<approval>
-					<approverRef type="UserType">
-						<filter>
-							<q:equal>
-								<q:path>name</q:path>
-								<q:value>sod-approver</q:value>
-							</q:equal>
-						</filter>
-						<resolutionTime>run</resolutionTime>
-					</approverRef>
-				</approval>
-			</policyActions>
-		</policyRule>
+		<targetRef oid="34d73991-8cbc-46e5-b8c2-b8b62029e711" type="RoleType"/> 		<!-- metarole-criminal-exclusion -->
 	</assignment>
 </role>

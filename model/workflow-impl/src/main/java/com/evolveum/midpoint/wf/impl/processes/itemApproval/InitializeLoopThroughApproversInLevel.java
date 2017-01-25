@@ -16,41 +16,20 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.*;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_OBJECT;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_REQUESTER;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_TARGET;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.*;
 
 /**
@@ -60,9 +39,9 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughApproversInLevel.class);
 
-    private ExpressionFactory expressionFactory;
-
     public void execute(DelegateExecution execution) {
+
+    	WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
 
         LOGGER.trace("Executing the delegate; execution = {}", execution);
 
@@ -72,37 +51,42 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         ExpressionVariables expressionVariables = null;
 
-        ApprovalLevelImpl level = (ApprovalLevelImpl) execution.getVariable(ProcessVariableNames.LEVEL);
-        Validate.notNull(level, "Variable " + ProcessVariableNames.LEVEL + " is undefined");
+        ApprovalLevelImpl level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevelImpl.class);
         level.setPrismContext(getPrismContext());
 
-        List<Decision> decisionList = new ArrayList<Decision>();
+		int levelIndex = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL_INDEX, Integer.class);
+		int stageNumber = levelIndex+1;
+
+		List<Decision> decisionList = new ArrayList<>();
         ApprovalLevelOutcomeType predeterminedOutcome = null;
 
         if (level.getAutomaticallyApproved() != null) {
             try {
                 opTask.setChannel(wfTask.getChannel());
-                expressionVariables = getDefaultVariables(execution, wfTask, result);
-                boolean preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, opTask, result);
+                expressionVariables = evaluator.getDefaultVariables(execution, wfTask, result);
+                boolean preApproved = evaluator.evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, "automatic approval expression", opTask, result);
 				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
 				if (preApproved) {
 					predeterminedOutcome = ApprovalLevelOutcomeType.APPROVE;
-					recordAutoApprovalDecision(wfTask, true, "Approved automatically by the auto-approval condition.");
+					recordAutoApprovalDecision(wfTask, true, "Approved automatically by the auto-approval condition.", stageNumber, level);
 				}
             } catch (Exception e) {     // todo
                 throw new SystemException("Couldn't evaluate auto-approval expression", e);
             }
         }
 
-        Set<LightweightObjectRef> approverRefs = new HashSet<LightweightObjectRef>();
+        Set<LightweightObjectRef> approverRefs = new HashSet<>();
 
         if (predeterminedOutcome == null) {
             approverRefs.addAll(level.getApproverRefs());
 
             if (!level.getApproverExpressions().isEmpty()) {
                 try {
-                    expressionVariables = getDefaultVariablesIfNeeded(expressionVariables, execution, wfTask, result);
-                    approverRefs.addAll(evaluateExpressions(level.getApproverExpressions(), expressionVariables, execution, opTask, result));
+                	if (expressionVariables == null) {
+						expressionVariables = evaluator.getDefaultVariables(execution, wfTask, result);
+					}
+                    approverRefs.addAll(evaluator.evaluateRefExpressions(level.getApproverExpressions(), expressionVariables,
+							execution, "resolving approver expression", opTask, result));
                 } catch (Exception e) {     // todo
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
@@ -120,9 +104,11 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 						execution.getProcessInstanceId(), level.getOutcomeIfNoApprovers());
                 predeterminedOutcome = level.getOutcomeIfNoApprovers();
                 if (predeterminedOutcome == ApprovalLevelOutcomeType.APPROVE) {
-					recordAutoApprovalDecision(wfTask, true, "Approved automatically because there were no approvers found.");
+					recordAutoApprovalDecision(wfTask, true,
+							"Approved automatically because there were no approvers found.", stageNumber, level);
 				} else {
-					recordAutoApprovalDecision(wfTask, false, "Rejected automatically because there were no approvers found.");
+					recordAutoApprovalDecision(wfTask, false,
+							"Rejected automatically because there were no approvers found.", stageNumber, level);
 				}
             }
         }
@@ -135,6 +121,9 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             stop = Boolean.FALSE;
         }
 
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, stageNumber);
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NAME, level.getName());
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, level.getDisplayName());
         execution.setVariableLocal(ProcessVariableNames.DECISIONS_IN_LEVEL, decisionList);
         execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<>(approverRefs));
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
@@ -145,121 +134,20 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 					execution.getProcessInstanceId(),
 					level.getDebugName(), predeterminedOutcome, LightweightObjectRef.toDebugNames(approverRefs));
 		}
+		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);		// store stage information in midPoint task
     }
 
-	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment) {
+	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment, int stageNumber, ApprovalLevel level) {
 		Decision decision = new Decision();
 		decision.setApproved(approved);
 		decision.setComment(comment);
 		decision.setDate(new Date());
+		decision.setStageNumber(stageNumber);
+		decision.setStageName(level.getName());
+		decision.setStageDisplayName(level.getDisplayName());
 		MidpointUtil.recordDecisionInTask(decision, wfTask.getOid());
 	}
 
-	private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList,
-    		ExpressionVariables expressionVariables, DelegateExecution execution, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-        List<LightweightObjectRef> retval = new ArrayList<>();
-        for (ExpressionType approverExpression : approverExpressionList) {
-            retval.addAll(evaluateExpression(approverExpression, expressionVariables, execution, task, result));
-        }
-        return retval;
-    }
-
-    private Collection<LightweightObjectRef> evaluateExpression(ExpressionType approverExpression, ExpressionVariables expressionVariables, 
-    		DelegateExecution execution, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-
-        if (expressionFactory == null) {
-            expressionFactory = getExpressionFactory();
-        }
-
-        PrismContext prismContext = expressionFactory.getPrismContext();
-        QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
-        PrismPropertyDefinition<String> approverOidDef = new PrismPropertyDefinitionImpl(approverOidName, DOMUtil.XSD_STRING, prismContext);
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", task, result);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
-
-        List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
-        for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
-            LightweightObjectRef ort = new LightweightObjectRefImpl(item.getValue());
-            retval.add(ort);
-        }
-        return retval;
-
-    }
-
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
-    		DelegateExecution execution, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-
-        if (expressionFactory == null) {
-            expressionFactory = getExpressionFactory();
-        }
-
-        PrismContext prismContext = expressionFactory.getPrismContext();
-        QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinitionImpl(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, 
-        		"automatic approval expression", task, result);
-
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple =
-				ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
-
-        Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
-        if (exprResult.size() == 0) {
-            return false;
-        } else if (exprResult.size() > 1) {
-            throw new IllegalStateException("Auto-approval expression should return exactly one boolean value; it returned " + exprResult.size() + " ones");
-        }
-        Boolean boolResult = exprResult.iterator().next().getValue();
-        return boolResult != null ? boolResult : false;
-    }
-
-	private ExpressionFactory getExpressionFactory() {
-        LOGGER.trace("Getting expressionFactory");
-        ExpressionFactory ef = getApplicationContext().getBean("expressionFactory", ExpressionFactory.class);
-        if (ef == null) {
-            throw new IllegalStateException("expressionFactory bean cannot be found");
-        }
-        return ef;
-    }
-
-
-    private ExpressionVariables getDefaultVariablesIfNeeded(ExpressionVariables variables, DelegateExecution execution, Task wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (variables != null) {
-            return variables;
-        } else {
-            return getDefaultVariables(execution, wfTask, result);
-        }
-    }
-
-    private ExpressionVariables getDefaultVariables(DelegateExecution execution, Task wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-        RepositoryService repositoryService = getCacheRepositoryService();
-        MiscDataUtil miscDataUtil = getMiscDataUtil();
-
-        ExpressionVariables variables = new ExpressionVariables();
-
-		ObjectReferenceType requesterRef = wfTask.getWorkflowContext().getRequesterRef();
-		variables.addVariableDefinition(C_REQUESTER, miscDataUtil.resolveObjectReference(requesterRef, result));
-
-		ObjectReferenceType objectRef = wfTask.getWorkflowContext().getObjectRef();
-		variables.addVariableDefinition(C_OBJECT, miscDataUtil.resolveObjectReference(objectRef, result));
-
-		ObjectReferenceType targetRef = wfTask.getWorkflowContext().getTargetRef();		// might be null
-		variables.addVariableDefinition(C_TARGET, miscDataUtil.resolveObjectReference(targetRef, result));
-
-		ObjectDelta objectDelta = null;
-        try {
-            objectDelta = miscDataUtil.getFocusPrimaryDelta(wfTask.getWorkflowContext(), true);
-        } catch (JAXBException e) {
-            throw new SchemaException("Couldn't get object delta: " + e.getMessage(), e);
-        }
-        variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, objectDelta);
-
-        // todo other variables?
-
-        return variables;
-    }
 
 
 }

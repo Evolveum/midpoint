@@ -80,7 +80,7 @@ public class SimpleSmsTransport implements Transport {
     @Autowired
     protected ExpressionFactory expressionFactory;
 
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 

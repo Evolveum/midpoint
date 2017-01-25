@@ -62,7 +62,7 @@ public class MailTransport implements Transport {
 
     private static final String DOT_CLASS = MailTransport.class.getName() + ".";
 
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 

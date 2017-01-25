@@ -16,17 +16,23 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
+import com.evolveum.midpoint.wf.impl.processes.common.*;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
-import org.apache.commons.lang.Validate;
+
+import static com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil.getRequiredVariable;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getTaskManager;
 
 public class PrepareApprover implements JavaDelegate {
 
@@ -34,8 +40,8 @@ public class PrepareApprover implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        LightweightObjectRef approverRef = (LightweightObjectRef) execution.getVariable(ProcessVariableNames.APPROVER_REF);
-        Validate.notNull(approverRef, "approverRef is undefined");
+        LightweightObjectRef approverRef = getRequiredVariable(execution, ProcessVariableNames.APPROVER_REF, LightweightObjectRef.class);
+		ApprovalLevelImpl level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevelImpl.class);
 
         String assignee = null;
         String candidateGroups = null;
@@ -49,7 +55,28 @@ public class PrepareApprover implements JavaDelegate {
             throw new IllegalStateException("Unsupported type of the approver: " + approverRef.getType());
         }
 
-        execution.setVariableLocal(ProcessVariableNames.ASSIGNEE, assignee);
-        execution.setVariableLocal(ProcessVariableNames.CANDIDATE_GROUPS, candidateGroups);
+		execution.setVariableLocal(ProcessVariableNames.ASSIGNEE, assignee);
+		execution.setVariableLocal(ProcessVariableNames.CANDIDATE_GROUPS, candidateGroups);
+
+		String instruction = null;
+        if (level.getApproverInstruction() != null) {
+			try {
+				WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
+				OperationResult result = new OperationResult(PrepareApprover.class.getName() + ".prepareApproverInstruction");
+				Task wfTask = ActivitiUtil.getTask(execution, result);
+				Task opTask = getTaskManager().createTaskInstance();
+				ExpressionVariables variables = evaluator.getDefaultVariables(execution, wfTask, result);
+				instruction = evaluator.getSingleValue(
+						evaluator.evaluateExpression(level.getApproverInstruction(), variables, execution,
+								"approver instruction expression", String.class, DOMUtil.XSD_STRING, opTask, result),
+						"", "approver instruction expression");
+			} catch (Throwable t) {
+        		throw new SystemException("Couldn't evaluate approver instruction expression in " + execution, t);
+			}
+			execution.setVariableLocal(CommonProcessVariableNames.APPROVER_INSTRUCTION, instruction);
+		}
+
+        LOGGER.debug("Creating work item for assignee={}, candidateGroups={}, approverInstruction='{}'",
+				assignee, candidateGroups, instruction);
     }
 }

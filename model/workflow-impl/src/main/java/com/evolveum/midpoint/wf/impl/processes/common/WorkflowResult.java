@@ -26,18 +26,28 @@ public enum WorkflowResult {
     REJECTED, APPROVED, UNKNOWN, OTHER;
 
     public static WorkflowResult fromStandardWfAnswer(String answer) {
-
-        if (answer == null) {
-            return UNKNOWN;
-        } else {
-            Boolean booleanValue = ApprovalUtils.approvalBooleanValue(answer);
-            if (booleanValue == null) {
-                return OTHER;
-            } else if (booleanValue) {
-                return APPROVED;
-            } else {
-                return REJECTED;
-            }
-        }
+        return fromWfAnswer(answer, false);
     }
+
+    public static WorkflowResult fromNiceWfAnswer(String answer) {
+		return fromWfAnswer(answer, true);
+    }
+
+	public static WorkflowResult fromWfAnswer(String answer, boolean nice) {
+		if (answer == null) {
+			return UNKNOWN;
+		} else {
+			Boolean booleanValue = nice ?
+					ApprovalUtils.approvalBooleanValueNice(answer) :
+					ApprovalUtils.approvalBooleanValue(answer);
+			if (booleanValue == null) {
+				return OTHER;
+			} else if (booleanValue) {
+				return APPROVED;
+			} else {
+				return REJECTED;
+			}
+		}
+	}
+
 }

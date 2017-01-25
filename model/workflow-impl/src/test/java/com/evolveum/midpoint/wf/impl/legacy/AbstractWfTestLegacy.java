@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -185,8 +186,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         importObjectFromFile(GROUP_TESTERS_FILE, initResult);
         importObjectFromFile(GROUP_GUESTS_FILE, initResult);
 
-        dummyResourceCtl.addGroup(GROUP_TESTERS_NAME);
-        dummyResourceCtl.addGroup(GROUP_GUESTS_NAME);
+        getDummyResourceController().addGroup(GROUP_TESTERS_NAME);
+        getDummyResourceController().addGroup(GROUP_GUESTS_NAME);
 
         display("setting policyRuleBasedAspect.enabled to", enablePolicyRuleBasedAspect);
         List<ItemDelta<?, ?>> deltas =
@@ -204,8 +205,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     @BeforeClass
     @Parameters({ "enablePolicyRuleBasedAspect" })
     public void temp(@org.testng.annotations.Optional Boolean enablePolicyRuleBasedAspect) {
-        this.enablePolicyRuleBasedAspect = enablePolicyRuleBasedAspect;
-        System.out.println("Testing with policy rule based aspect = " + enablePolicyRuleBasedAspect);
+        this.enablePolicyRuleBasedAspect = BooleanUtils.isNotFalse(enablePolicyRuleBasedAspect);
+        System.out.println("Testing with policy rule based aspect = " + this.enablePolicyRuleBasedAspect);
     }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {

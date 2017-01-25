@@ -1025,8 +1025,14 @@ public class Clockwork {
 							// No explicit decision for assignment modification yet
 							// process each assignment individually
 							DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-							authorizeAssignmentRequest(ModelAuthorizationAction.ASSIGN.getUrl(), object, ownerResolver, evaluatedAssignmentTriple.getPlusSet(), result);
-							authorizeAssignmentRequest(ModelAuthorizationAction.UNASSIGN.getUrl(), object, ownerResolver, evaluatedAssignmentTriple.getMinusSet(), result);
+							
+							authorizeAssignmentRequest(ModelAuthorizationAction.ASSIGN.getUrl(), 
+									object, ownerResolver, evaluatedAssignmentTriple.getPlusSet(), true, result);
+							
+							// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
+							// rid of that assignment
+							authorizeAssignmentRequest(ModelAuthorizationAction.UNASSIGN.getUrl(), 
+									object, ownerResolver, evaluatedAssignmentTriple.getMinusSet(), false, result);
 						}
 					}
 					// assignments were authorized explicitly. Therefore we need to remove them from primary delta to avoid another
@@ -1097,12 +1103,18 @@ public class Clockwork {
 	}
 
 	private <F extends FocusType> void authorizeAssignmentRequest(String assignActionUrl, PrismObject object,
-			OwnerResolver ownerResolver, Collection<EvaluatedAssignmentImpl> evaluatedAssignments, OperationResult result) throws SecurityViolationException, SchemaException {
+			OwnerResolver ownerResolver, Collection<EvaluatedAssignmentImpl> evaluatedAssignments, boolean prohibitPolicies, OperationResult result) throws SecurityViolationException, SchemaException {
 		if (evaluatedAssignments == null) {
 			return;
 		}
 		for (EvaluatedAssignment<F> evaluatedAssignment: evaluatedAssignments) {
 			PrismObject target = evaluatedAssignment.getTarget();
+			if (prohibitPolicies) {
+				AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();
+				if (assignmentType.getPolicyRule() != null || !assignmentType.getPolicyException().isEmpty() || !assignmentType.getPolicySituation().isEmpty()) {
+					securityEnforcer.failAuthorization("with assignment because of policies in the assignment", AuthorizationPhaseType.REQUEST, object, null, target, result);
+				}
+			}
 			if (securityEnforcer.isAuthorized(assignActionUrl, AuthorizationPhaseType.REQUEST, object, null, target, ownerResolver)) {
 				LOGGER.trace("Operation authorized with {} authorization", assignActionUrl);
 				continue;

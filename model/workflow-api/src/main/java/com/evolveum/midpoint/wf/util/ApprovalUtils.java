@@ -22,6 +22,8 @@ package com.evolveum.midpoint.wf.util;
 public class ApprovalUtils {
     public static final String DECISION_APPROVED = "__APPROVED__";
     public static final String DECISION_REJECTED = "__REJECTED__";
+    public static final String DECISION_APPROVED_NICE = "Approved";
+    public static final String DECISION_REJECTED_NICE = "Rejected";
 
     public static String approvalStringValue(Boolean approved) {
         if (approved == null) {
@@ -32,16 +34,33 @@ public class ApprovalUtils {
     }
 
     public static Boolean approvalBooleanValue(String decision) {
-        if (DECISION_APPROVED.equals(decision)) {
-            return true;
-        } else if (DECISION_REJECTED.equals(decision)) {
-            return false;
-        } else {
-            return null;
-        }
-    }
+		return parse(decision, DECISION_APPROVED, DECISION_REJECTED);
+	}
 
-    public static boolean isApproved(String decision) {
+	public static Boolean approvalBooleanValueNice(String decision) {
+		return parse(decision, DECISION_APPROVED_NICE, DECISION_REJECTED_NICE);
+	}
+
+	private static Boolean parse(String decision, String approved, String rejected) {
+		if (approved.equals(decision)) {
+			return true;
+		} else if (rejected.equals(decision)) {
+			return false;
+		} else {
+			return null;
+		}
+	}
+
+	public static boolean isApproved(String decision) {
         return DECISION_APPROVED.equals(decision);
     }
+
+    public static String makeNice(String decision) {
+    	Boolean value = approvalBooleanValue(decision);
+    	if (value != null) {
+    		return value ? DECISION_APPROVED_NICE : DECISION_REJECTED_NICE;
+		} else {
+    		return decision;
+		}
+	}
 }

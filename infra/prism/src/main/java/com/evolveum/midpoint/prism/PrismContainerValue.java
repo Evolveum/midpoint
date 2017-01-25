@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -476,6 +476,16 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
     public boolean contains(QName itemName) {
         return findItem(itemName) != null;
+    }
+    
+    public static <C extends Containerable> boolean containsRealValue(Collection<PrismContainerValue<C>> cvalCollection,
+    		PrismContainerValue<C> cval) {
+    	for (PrismContainerValue<C> colVal: cvalCollection) {
+    		if (colVal.equalsRealValue(cval)) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
     
     @Override
