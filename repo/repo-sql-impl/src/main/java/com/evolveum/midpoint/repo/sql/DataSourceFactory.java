@@ -57,7 +57,7 @@ public class DataSourceFactory {
                 return createJNDIDataSource();
             }
 
-            LOGGER.info("Constructing default C3P0 datasource with connection pooling.");
+            LOGGER.info("Constructing default C3P0 datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
             dataSource = createC3P0DataSource();
             return dataSource;
         } catch (Exception ex) {

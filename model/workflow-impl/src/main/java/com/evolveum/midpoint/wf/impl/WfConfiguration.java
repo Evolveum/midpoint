@@ -135,7 +135,7 @@ public class WfConfiguration implements BeanFactoryAware {
         String explicitJdbcUrl = c.getString(KEY_JDBC_URL, null);
         if (explicitJdbcUrl == null) {
             if (sqlConfig == null || sqlConfig.isEmbedded()) {
-                jdbcUrl = defaultJdbcUrlPrefix + "-activiti;DB_CLOSE_ON_EXIT=FALSE";
+                jdbcUrl = defaultJdbcUrlPrefix + "-activiti;DB_CLOSE_ON_EXIT=FALSE;MVCC=FALSE";
             } else {
                 jdbcUrl = sqlConfig.getJdbcUrl();
             }
