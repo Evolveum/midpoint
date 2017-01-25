@@ -916,7 +916,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			} else {
 				sb.append("; ");
 			}
-			if (directPolicyRules.stream().anyMatch(d -> d==rule)) {
+			if (directPolicyRules != null && directPolicyRules.stream().anyMatch(d -> d==rule)) {
 				sb.append("!");
 			}
 			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
