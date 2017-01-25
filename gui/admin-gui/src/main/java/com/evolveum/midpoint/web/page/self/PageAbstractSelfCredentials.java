@@ -15,11 +15,25 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -43,19 +57,6 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -67,8 +68,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
-    private static final String ID_PANEL = "panel";
-
+    
     private static final Trace LOGGER = TraceManager.getTrace(PageAbstractSelfCredentials.class);
     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
     private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";
@@ -76,7 +76,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
     private static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
-    private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
     private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
 
 
@@ -195,7 +194,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
 
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form<?> mainForm = new Form<>(ID_MAIN_FORM);
 
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {
@@ -206,34 +205,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 return new ChangePasswordPanel(panelId, isCheckOldPassword(), model, model.getObject());
             }
         });
-
-        TabbedPanel<ITab> credentialsTabPanel = new TabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
-        	private static final long serialVersionUID = 1L;
-        	
-            @Override
-            protected WebMarkupContainer newLink(String linkId, final int index) {
-                return new AjaxSubmitLink(linkId) {
-                	private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onError(AjaxRequestTarget target, Form<?> form) {
-                        super.onError(target, form);
-
-                        target.add(getFeedbackPanel());
-                    }
-
-                    @Override
-                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        super.onSubmit(target, form);
-
-                        setSelectedTab(index);
-                        if (target != null) {
-                            target.add(findParent(TabbedPanel.class));
-                        }
-                    }
-                };
-            }
-        };
+        
+        TabbedPanel<ITab> credentialsTabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
         credentialsTabPanel.setOutputMarkupId(true);
 
         mainForm.add(credentialsTabPanel);
@@ -243,9 +216,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     }
 
-    private void initButtons(Form mainForm) {
+    private void initButtons(Form<?> mainForm) {
         AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 target.add(getFeedbackPanel());
@@ -261,6 +236,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
         AjaxSubmitButton cancel = new AjaxSubmitButton(ID_CANCEL_BUTTON, createStringResource("PageBase.button.back")) {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 target.add(getFeedbackPanel());
@@ -397,32 +374,32 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         redirectBack();
     }
 
-    private List<ShadowType> loadShadowTypeList() {
-        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
-        Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
-        List<ShadowType> shadowTypeList = new ArrayList<>();
-
-        for (ObjectReferenceType reference : references) {
-            OperationResult subResult = new OperationResult(OPERATION_LOAD_SHADOW);
-            try {
-                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
-                        GetOperationOptions.createResolve());
-
-                if (reference.getOid() == null) {
-                    continue;
-                }
-                PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
-                shadowTypeList.add(shadow.asObjectable());
-            } catch (Exception ex) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
-                subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
-            } finally {
-                subResult.computeStatus();
-            }
-        }
-        return shadowTypeList;
-
-    }
+//    private List<ShadowType> loadShadowTypeList() {
+//        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
+//        Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
+//        List<ShadowType> shadowTypeList = new ArrayList<>();
+//
+//        for (ObjectReferenceType reference : references) {
+//            OperationResult subResult = new OperationResult(OPERATION_LOAD_SHADOW);
+//            try {
+//                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
+//                        GetOperationOptions.createResolve());
+//
+//                if (reference.getOid() == null) {
+//                    continue;
+//                }
+//                PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
+//                shadowTypeList.add(shadow.asObjectable());
+//            } catch (Exception ex) {
+//                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
+//                subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
+//            } finally {
+//                subResult.computeStatus();
+//            }
+//        }
+//        return shadowTypeList;
+//
+//    }
 
     private boolean getPasswordOutbound(PrismObject<ShadowType> shadow) {
         try {

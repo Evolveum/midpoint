@@ -173,30 +173,7 @@ public class PageReport extends PageAdminReports {
 //            }
 //        });
 
-        TabbedPanel reportTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs){
-            @Override
-            protected WebMarkupContainer newLink(String linkId, final int index) {
-                return new AjaxSubmitLink(linkId) {
-
-                    @Override
-                    protected void onError(AjaxRequestTarget target, Form<?> form) {
-                        super.onError(target, form);
-
-                        target.add(getFeedbackPanel());
-                    }
-
-                    @Override
-                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        super.onSubmit(target, form);
-
-                        setSelectedTab(index);
-                        if (target != null) {
-                            target.add(findParent(TabbedPanel.class));
-                        }
-                    }
-                };
-            }
-        };
+        TabbedPanel<ITab> reportTabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
         reportTabPanel.setOutputMarkupId(true);
 
         mainForm.add(reportTabPanel);
