@@ -531,6 +531,11 @@
         </dependency>
 
         <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.ocpsoft.prettytime</groupId>
             <artifactId>prettytime</artifactId>
             <version>4.0.0.Final</version>
@@ -596,7 +601,7 @@
 		</dependency>
         <dependency>
             <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils-core</artifactId>
+            <artifactId>commons-beanutils</artifactId>
         </dependency>
 		<dependency>
 			<groupId>commons-javaflow</groupId>

@@ -631,8 +631,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				if (StringUtils.isEmpty(subscriptionId)) {
 					return true;
 				}
-				//TODO temporary condition is to check if subscriptionId contains any number
-				return !subscriptionId.matches(".*\\d.*");
+				return !WebComponentUtil.checkSubscriptionId(subscriptionId);
 			}
 		});
 		add(subscriptionMessage);

@@ -310,8 +310,24 @@
                 <version>20110809</version>
             </dependency>
             <dependency>
+                <groupId>commons-validator</groupId>
+                <artifactId>commons-validator</artifactId>
+                <version>1.5.1</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-digester</groupId>
+                        <artifactId>commons-digester</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
+                <version>1.8.3</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils-core</artifactId>
                 <version>1.8.3</version>
             </dependency>
             <dependency>
@@ -324,12 +340,7 @@
                 <artifactId>commons-collections</artifactId>
                 <version>3.2.2</version>
             </dependency>
-            <dependency>
-                <groupId>commons-beanutils</groupId>
-                <artifactId>commons-beanutils-core</artifactId>
-                <version>1.8.0</version>
-            </dependency>
-            <dependency>
+             <dependency>
                 <groupId>commons-configuration</groupId>
                 <artifactId>commons-configuration</artifactId>
                 <version>1.6</version>
@@ -341,6 +352,10 @@
                     <exclusion> <!-- Conflicting version with Jasper Reports -->
                         <groupId>commons-digester</groupId>
                         <artifactId>commons-digester</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-beanutils</groupId>
+                        <artifactId>commons-beanutils</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1462,7 +1477,10 @@
 								<!-- The xjc-plugin does not compile without dependency on this -->
 								<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
 
-							</ignoredUnusedDeclaredDependencies>
+                                <!-- Cannot help myself with this one (commons-configuration 1.6 causes this) TODO: revisit -->
+                                <ignoredUnusedDeclaredDependency>commons-beanutils:commons-beanutils-core</ignoredUnusedDeclaredDependency>
+
+                            </ignoredUnusedDeclaredDependencies>
 							<ignoredUsedUndeclaredDependencies>
 								<!-- There is some kind of conflict between these. TODO: clean up -->
 								<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
