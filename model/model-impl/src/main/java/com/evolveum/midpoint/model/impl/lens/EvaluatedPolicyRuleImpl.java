@@ -18,10 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.PredefinedPolicySituation;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
@@ -108,8 +105,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		
 		if (!triggers.isEmpty()) {
 			EvaluatedPolicyRuleTrigger firstTrigger = triggers.iterator().next();
-			if (!firstTrigger.getSourceRules().isEmpty()) {
-				return firstTrigger.getSourceRules().iterator().next().getPolicySituation();
+			if (firstTrigger instanceof EvaluatedSituationTrigger) {
+				Collection<EvaluatedPolicyRule> sourceRules = ((EvaluatedSituationTrigger) firstTrigger).getSourceRules();
+				if (!sourceRules.isEmpty()) {	// should be always the case
+					return sourceRules.iterator().next().getPolicySituation();
+				}
 			}
 			PolicyConstraintKindType constraintKind = firstTrigger.getConstraintKind();
 			PredefinedPolicySituation predefSituation = PredefinedPolicySituation.get(constraintKind);

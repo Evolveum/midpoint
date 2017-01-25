@@ -21,14 +21,12 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -163,7 +161,7 @@ public class PolicyRuleProcessor {
 
 	private <F extends FocusType> void checkExclusionOneWayRuleBased(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
 			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		for (EvaluatedPolicyRule policyRule : assignmentA.getThisTargetPolicyRules()) {	// or getTargetPolicyRules?
+		for (EvaluatedPolicyRule policyRule : assignmentA.getThisTargetPolicyRules()) {	// TODO This vs All
 			if (policyRule.getPolicyConstraints() != null) {
 				for (ExclusionPolicyConstraintType exclusionConstraint : policyRule.getPolicyConstraints().getExclusion()) {
 					checkAndTriggerExclusionConstraintViolation(assignmentA, assignmentB, roleA, roleB, exclusionConstraint, policyRule);
@@ -178,7 +176,7 @@ public class PolicyRuleProcessor {
 			throws PolicyViolationException {
 		ObjectReferenceType targetRef = constraint.getTargetRef();
 		if (roleB.getOid().equals(targetRef.getOid())) {
-			EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.EXCLUSION,
+			EvaluatedExclusionTrigger trigger = new EvaluatedExclusionTrigger(
 					constraint, "Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
 					", they cannot be assigned at the same time", assignmentB);
 			assignmentA.triggerConstraint(policyRule, trigger);
@@ -270,14 +268,15 @@ public class PolicyRuleProcessor {
 		for (EvaluatedAssignmentImpl<F> plusAssignment: plusSet) {
 			for (EvaluatedPolicyRule targetPolicyRule: plusAssignment.getTargetPolicyRules()) {
 				for (EvaluatedPolicyRuleTrigger trigger: targetPolicyRule.getTriggers()) {
-					if (trigger.getConstraintKind() != PolicyConstraintKindType.EXCLUSION) {
+					if (!(trigger instanceof EvaluatedExclusionTrigger)) {
 						continue;
 					}
+					EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
 					PolicyActionsType actions = targetPolicyRule.getActions();
 					if (actions == null || actions.getPrune() == null) {
 						continue;
 					}
-					EvaluatedAssignment<FocusType> conflictingAssignment = trigger.getConflictingAssignment();
+					EvaluatedAssignment<FocusType> conflictingAssignment = exclTrigger.getConflictingAssignment();
 					if (conflictingAssignment == null) {
 						throw new SystemException("Added assignment "+plusAssignment
 								+", the exclusion prune rule was triggered but there is no conflicting assignment in the trigger");
@@ -317,7 +316,7 @@ public class PolicyRuleProcessor {
 			OperationResult result) throws PolicyViolationException, SchemaException {
 
 		// Single pass only (for the time being)
-		for (EvaluatedPolicyRule policyRule: evaluatedAssignment.getThisTargetPolicyRules()) {
+		for (EvaluatedPolicyRule policyRule: evaluatedAssignment.getThisTargetPolicyRules()) {		// TODO This vs. All
 			if (policyRule.getPolicyConstraints() == null) {
 				continue;
 			}
@@ -332,8 +331,7 @@ public class PolicyRuleProcessor {
 								.flatMap(r -> r.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::getMessage))
 								.distinct()
 								.collect(Collectors.joining("; "));
-				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.SITUATION,
-						situationConstraint, message, sourceRules);
+				EvaluatedSituationTrigger trigger = new EvaluatedSituationTrigger(situationConstraint, message, sourceRules);
 				evaluatedAssignment.triggerConstraint(policyRule, trigger);
 			}
 		}
@@ -341,7 +339,7 @@ public class PolicyRuleProcessor {
 
 	private <F extends FocusType> Collection<EvaluatedPolicyRule> selectTriggeredRules(
 			EvaluatedAssignmentImpl<F> evaluatedAssignment, List<String> situations) {
-		return evaluatedAssignment.getThisTargetPolicyRules().stream()
+		return evaluatedAssignment.getThisTargetPolicyRules().stream()			// TODO This vs. All
 				.filter(r -> !r.getTriggers().isEmpty() && situations.contains(r.getPolicySituation()))
 				.collect(Collectors.toList());
 	}

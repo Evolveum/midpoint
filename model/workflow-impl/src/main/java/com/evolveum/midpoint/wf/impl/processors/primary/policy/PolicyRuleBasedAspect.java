@@ -129,7 +129,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			List<PcpChildWfTaskCreationInstruction> instructions, WfConfigurationType wfConfigurationType,
 			@NotNull ModelContext<?> modelContext, Task taskFromModel, OperationResult result)
 			throws SchemaException {
-		List<TriggeredApprovalAction> triggeredApprovalActions = newAssignment.getThisTargetPolicyRules().stream()
+		List<TriggeredApprovalAction> triggeredApprovalActions = newAssignment.getThisTargetPolicyRules().stream()			// TODO This vs. All
 				.filter(r -> !r.getTriggers().isEmpty() && r.getActions() != null && r.getActions().getApproval() != null)
 				.map(r -> new TriggeredApprovalAction(r.getActions().getApproval(), r.getTriggers(),
 						r.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::getConstraint).collect(Collectors.toList())))
