@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processes;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApproverInstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;

@@ -20,11 +20,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -34,17 +30,14 @@ import org.jetbrains.annotations.NotNull;
 public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final long serialVersionUID = 1L;
 
-	private PolicyRuleType policyRuleType;
-	private AssignmentPath assignmentPath;
-	private Collection<EvaluatedPolicyRuleTrigger> triggers;
-	private Collection<PolicyExceptionType> policyExceptions;
+	private final PolicyRuleType policyRuleType;
+	private final AssignmentPath assignmentPath;
+	private final Collection<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
+	private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
 
 	public EvaluatedPolicyRuleImpl(PolicyRuleType policyRuleType, AssignmentPath assignmentPath) {
-		super();
 		this.policyRuleType = policyRuleType;
 		this.assignmentPath = assignmentPath;
-		this.triggers = new ArrayList<>();
-		this.policyExceptions = new ArrayList<>();
 	}
 
 	@Override
@@ -149,6 +142,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	}
 
 	@Override
+	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType() {
+		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
+		rv.setPolicyRule(policyRuleType);
+		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType()));
+		return rv;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -190,7 +191,5 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public String toString() {
 		return "EvaluatedPolicyRuleImpl(" + getName() + ")";
 	}
-	
-	
 
 }

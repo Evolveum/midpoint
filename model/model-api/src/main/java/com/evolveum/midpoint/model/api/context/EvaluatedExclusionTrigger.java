@@ -17,9 +17,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -64,5 +62,15 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 		// (the assignment could have evaluated rule that would point to another conflicting assignment, which
 		// could point back to this rule)
 		DebugUtil.debugDumpWithLabelToString(sb, "conflictingAssignment", conflictingAssignment, indent);
+	}
+
+	@Override
+	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType() {
+		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
+		fillCommonContent(rv);
+		if (conflictingAssignment != null) {
+			rv.setConflictingAssignment(conflictingAssignment.getAssignmentType());
+		}
+		return rv;
 	}
 }

@@ -131,7 +131,7 @@ class ApprovalSchemaBuilder {
 		fragmentLevels.sort(Comparator.comparing(ApprovalLevelType::getOrder, Comparator.nullsLast(naturalOrder())));
 		RelationResolver relationResolver = primaryChangeAspect.createRelationResolver(fragment.target, result);
 		ReferenceResolver referenceResolver = primaryChangeAspect.createReferenceResolver(ctx.modelContext, ctx.taskFromModel, result);
-		int from = resultingSchemaType.getLevel().size();
+		int from = resultingSchemaType.getLevel().size() + 1;
 		int i = from;
 		for (ApprovalLevelType level : fragmentLevels) {
 			level.setOrder(i++);
@@ -142,7 +142,7 @@ class ApprovalSchemaBuilder {
 			SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
 			attachedRule.setLevelMin(from);
 			attachedRule.setLevelMax(i - 1);
-			//attachedRule.setRule(fragment.policyRule.toEvaluatedPolicyRuleType());
+			attachedRule.setRule(fragment.policyRule.toEvaluatedPolicyRuleType());
 			attachedRules.getEntry().add(attachedRule);
 		}
 	}

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
@@ -74,5 +75,13 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	protected void debugDumpSpecific(StringBuilder sb, int indent) {
 		// cannot debug dump in details, as we might go into infinite loop
 		DebugUtil.debugDumpWithLabel(sb, "sourceRules", sourceRules.stream().map(Object::toString).collect(Collectors.toList()), indent + 1);
+	}
+
+	@Override
+	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType() {
+		EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
+		fillCommonContent(rv);
+		sourceRules.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType()));
+		return rv;
 	}
 }

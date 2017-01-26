@@ -335,7 +335,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		String approvalTaskName = "Approve adding " + targetName + " to " + objectName;				// TODO adding?
 
 		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
-				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, builderResult.schema);
+				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, builderResult.schema,
+						builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 
@@ -381,7 +382,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		String approvalTaskName = "Approve " + opName + " of " + objectName;
 
 		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
-				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, builderResult.schema);
+				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName,
+						builderResult.schema, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 

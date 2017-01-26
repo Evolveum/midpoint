@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,4 +108,17 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	public String toDiagShortcut() {
 		return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
 	}
+
+	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType() {
+		EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
+		fillCommonContent(rv);
+		return rv;
+	}
+
+	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt) {
+		tt.setConstraintKind(constraintKind);
+		tt.setConstraint(constraint);
+		tt.setMessage(message);
+	}
+
 }

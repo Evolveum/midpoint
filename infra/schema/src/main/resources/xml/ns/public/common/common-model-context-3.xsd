@@ -476,7 +476,8 @@
     
     <xsd:complexType name="EvaluatedPolicyRuleTriggerType">
         <xsd:sequence>
-            <xsd:element ref="tns:abstractPolicyConstraint" minOccurs="0" />
+            <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
+            <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0" />
             <xsd:element name="message" type="xsd:string" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
@@ -497,7 +498,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
 				<xsd:sequence>
-					<xsd:element name="sourceTriggers" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" />	 <!-- TODO -->
+					<xsd:element name="sourceRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded" />	 <!-- TODO -->
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>

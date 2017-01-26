@@ -16,19 +16,26 @@
 
 package com.evolveum.midpoint.wf.impl.processes;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApproverInstructionType;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 /**
  * @author mederly
  */
-public abstract class BaseProcessMidPointInterface implements ProcessMidPointInterface, BeanNameAware{
+@Component
+public abstract class BaseProcessMidPointInterface implements ProcessMidPointInterface, BeanNameAware {
 
-    private String beanName;
+	@Autowired
+	protected PrismContext prismContext;
+
+	private String beanName;
 
     @Override
     public String getAnswer(Map<String, Object> variables) {
@@ -62,7 +69,8 @@ public abstract class BaseProcessMidPointInterface implements ProcessMidPointInt
 
 	@Override
 	public ApproverInstructionType getApproverInstruction(Map<String, Object> variables) {
-		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.APPROVER_INSTRUCTION, ApproverInstructionType.class);
+		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.APPROVER_INSTRUCTION,
+				ApproverInstructionType.class, prismContext);
 	}
 
 	@Override

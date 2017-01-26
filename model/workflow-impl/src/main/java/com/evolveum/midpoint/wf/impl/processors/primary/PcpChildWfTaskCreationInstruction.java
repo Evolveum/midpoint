@@ -27,7 +27,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchema;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
@@ -35,7 +34,9 @@ import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspe
 import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaAttachedPolicyRulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly
@@ -48,17 +49,11 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         super(changeProcessor, new PrimaryChangeProcessorSpecificContent(changeProcessor.getPrismContext()), processInstruction);
     }
 
-	// useful shortcut
-	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(ChangeProcessor changeProcessor, String approvalTaskName,
-			ApprovalRequest<?> approvalRequest) {
-		return createItemApprovalInstruction(changeProcessor, approvalTaskName, approvalRequest.getApprovalSchema());
-	}
-
-	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(ChangeProcessor changeProcessor, String approvalTaskName,
-			ApprovalSchema approvalSchema) {
-		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent(changeProcessor.getPrismContext());
-		itemApprovalInstruction.setTaskName(approvalTaskName);
-		itemApprovalInstruction.setApprovalSchema(approvalSchema);
+	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(
+			ChangeProcessor changeProcessor, String approvalTaskName, @NotNull ApprovalSchema approvalSchema,
+			SchemaAttachedPolicyRulesType attachedPolicyRules) {
+		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent(
+				changeProcessor.getPrismContext(), approvalTaskName, approvalSchema, attachedPolicyRules);
 		return new PcpChildWfTaskCreationInstruction<>(changeProcessor, itemApprovalInstruction);
 	}
 

@@ -522,11 +522,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	}
 
     @Override
+	@NotNull
     public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
         return createTaskInstance(taskPrism, null, parentResult);
     }
 
     @Override
+	@NotNull
 	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "createTaskInstance");
@@ -541,6 +543,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	}
 
 	@Override
+	@NotNull
 	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getTask");          // todo ... or .createSubresult (without 'minor')?
 		result.addParam(OperationResult.PARAM_OID, taskOid);

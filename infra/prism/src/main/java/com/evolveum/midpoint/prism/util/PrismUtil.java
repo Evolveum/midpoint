@@ -34,6 +34,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -200,5 +201,34 @@ public class PrismUtil {
 			return matchingRule.match(a, b);
 		}
 	}
-	
+
+	// for diagnostic purposes
+	public static String serializeQuietly(PrismContext prismContext, Object object) {
+		if (object == null) {
+			return null;
+		}
+		try {
+			PrismSerializer<String> serializer = prismContext.xmlSerializer();
+			if (object instanceof Item) {
+				return serializer.serialize((Item) object);
+			} else {
+				return serializer.serializeRealValue(object, new QName("value"));
+			}
+		} catch (Throwable t) {
+			return "Couldn't serialize (" + t.getMessage() + "): " + object;
+		}
+	}
+
+	// for diagnostic purposes
+	public static Object serializeQuietlyLazily(PrismContext prismContext, Object object) {
+		if (object == null) {
+			return null;
+		}
+		return new Object() {
+			@Override
+			public String toString() {
+				return serializeQuietly(prismContext, object);
+			}
+		};
+	}
 }

@@ -117,7 +117,8 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
 
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpChildWfTaskCreationInstruction instruction =
-                    PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
+                    PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(
+                            getChangeProcessor(), approvalTaskName, approvalRequest.getApprovalSchema(), null);
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, modelContext, requester);

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import org.activiti.engine.delegate.DelegateExecution;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -63,6 +64,7 @@ public class ActivitiUtil implements Serializable {
         return this.getClass().getName() + " object.";
     }
 
+    @NotNull
     public static Task getTask(DelegateExecution execution, OperationResult result) {
         String oid = execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class);
         if (oid == null) {
@@ -89,16 +91,24 @@ public class ActivitiUtil implements Serializable {
     }
 
 	@SuppressWarnings("unchecked")
-    public static <T> T getVariable(Map<String, Object> variables, String name, Class<T> clazz) {
-        Object value = variables.get(name);
-        if (value instanceof SerializationSafeContainer && !SerializationSafeContainer.class.isAssignableFrom(clazz)) {
-        	value = ((SerializationSafeContainer) value).getValue();
+    public static <T> T getVariable(Map<String, Object> variables, String name, Class<T> clazz, PrismContext prismContext) {
+		Object value = variables.get(name);
+		if (value instanceof SerializationSafeContainer && !SerializationSafeContainer.class.isAssignableFrom(clazz)) {
+			SerializationSafeContainer container = (SerializationSafeContainer) value;
+			if (container.getPrismContext() == null && prismContext != null) {
+				container.setPrismContext(prismContext);
+			}
+			value = container.getValue();
 		}
-        if (value != null && !(clazz.isAssignableFrom(value.getClass()))) {
-            throw new IllegalStateException("Process variable " + name + " should be of " + clazz + " but is of "
-                    + value.getClass() + " instead.");
-        } else {
-            return (T) value;
-        }
+		if (value != null && !(clazz.isAssignableFrom(value.getClass()))) {
+			throw new IllegalStateException("Process variable " + name + " should be of " + clazz + " but is of "
+					+ value.getClass() + " instead.");
+		} else {
+			return (T) value;
+		}
+	}
+
+    public static <T> T getVariable(Map<String, Object> variables, String name, Class<T> clazz) {
+        return getVariable(variables, name, clazz, null);
     }
 }
