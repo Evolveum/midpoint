@@ -25,6 +25,9 @@
 			</policyConstraints>
 			<policyActions>
 				<approval>
+					<compositionStrategy>
+						<order>1</order>
+					</compositionStrategy>
 					<approverRelation>special-approver</approverRelation>
 				</approval>
 			</policyActions>

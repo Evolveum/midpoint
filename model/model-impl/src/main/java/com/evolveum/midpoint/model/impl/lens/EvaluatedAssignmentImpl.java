@@ -21,10 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
@@ -369,9 +366,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@Override
 	public void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
 		boolean hasException = processRuleExceptions(this, rule, trigger);
-		
-		if (trigger.getConflictingAssignment() != null) {
-			hasException = hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) trigger.getConflictingAssignment(), rule, trigger);
+
+		if (trigger instanceof EvaluatedExclusionTrigger) {
+			EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
+			if (exclTrigger.getConflictingAssignment() != null) {
+				hasException =
+						hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) exclTrigger.getConflictingAssignment(),
+								rule, trigger);
+			}
 		}
 		
 		if (!hasException) {

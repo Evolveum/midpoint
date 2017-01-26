@@ -46,17 +46,17 @@
 							</approverRef>
 							<evaluationStrategy>firstDecides</evaluationStrategy>
 							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
-							<approverInstruction>
+							<!-- <approverInstruction>
 								<script>
 									<code>
 										def s = ""
-										for (int i = 1; i &lt; 40; i++) {
+										for (int i = 1; i &lt; 4000; i++) {
 											s = s + " " + i
 										}
 										s
 									</code>
 								</script>
-							</approverInstruction>
+							</approverInstruction>  -->
 						</level>
 					</approvalSchema>
 				</approval>

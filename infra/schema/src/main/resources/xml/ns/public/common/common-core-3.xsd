@@ -8897,6 +8897,7 @@
     	</xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+	<xsd:element name="abstractPolicyConstraint" type="tns:AbstractPolicyConstraintType" />
 
     <xsd:complexType name="ExclusionPolicyConstraintType">
     	<xsd:annotation>
@@ -8930,6 +8931,7 @@
 		    </xsd:extension>
 		</xsd:complexContent>
     </xsd:complexType>
+	<xsd:element name="exclusionPolicyConstraint" type="tns:ExclusionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
     
     <xsd:complexType name="MultiplicityPolicyConstraintType">
     	<xsd:annotation>
@@ -8955,7 +8957,9 @@
 		    </xsd:extension>
 		</xsd:complexContent>
     </xsd:complexType>
-    
+	<xsd:element name="minAssigneesPolicyConstraint" type="tns:MultiplicityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+	<xsd:element name="maxAssigneesPolicyConstraint" type="tns:MultiplicityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
     <xsd:complexType name="ModificationPolicyConstraintType">
     	<xsd:annotation>
     		<xsd:documentation>
@@ -8992,8 +8996,9 @@
           </xsd:extension>
        </xsd:complexContent>
     </xsd:complexType>
-    
-    <xsd:complexType name="AssignmentPolicyConstraintType">
+	<xsd:element name="modificationPolicyConstraint" type="tns:ModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+	<xsd:complexType name="AssignmentPolicyConstraintType">
     	<xsd:annotation>
     		<xsd:documentation>
     			Constraint that triggers the rule when the object is assigned.
@@ -9034,6 +9039,7 @@
           	</xsd:extension>
        </xsd:complexContent>
     </xsd:complexType>
+	<xsd:element name="assignmentPolicyConstraint" type="tns:AssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
     <xsd:complexType name="PolicySituationPolicyConstraintType">
     	<xsd:annotation>
@@ -9061,8 +9067,9 @@
           	</xsd:extension>
        </xsd:complexContent>
     </xsd:complexType>
+	<xsd:element name="situationPolicyConstraint" type="tns:PolicySituationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
-    <xsd:simpleType name="PolicyConstraintEnforcementType">
+	<xsd:simpleType name="PolicyConstraintEnforcementType">
         <xsd:annotation>
             <xsd:documentation>
                 Enumeration of exclustion policy enforcement types.

@@ -473,5 +473,44 @@
     		<xsd:element name="requestTimestamp" type="xsd:dateTime" minOccurs="0"/>
     	</xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="EvaluatedPolicyRuleTriggerType">
+        <xsd:sequence>
+            <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
+            <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0" />
+            <xsd:element name="message" type="xsd:string" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
+
+	<xsd:complexType name="EvaluatedExclusionTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+					<xsd:element name="conflictingAssignment" type="tns:AssignmentType" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedExclusionTrigger" type="tns:EvaluatedExclusionTriggerType" />
+
+	<xsd:complexType name="EvaluatedSituationTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+					<xsd:element name="sourceRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded" />	 <!-- TODO -->
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedSituationTrigger" type="tns:EvaluatedSituationTriggerType" />
+
+	<xsd:complexType name="EvaluatedPolicyRuleType">
+		<xsd:sequence>
+			<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0" />
+			<xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="evaluatedPolicyRule" type="tns:EvaluatedPolicyRuleType" />
 
 </xsd:schema>

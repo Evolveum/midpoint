@@ -90,7 +90,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 		roleRespectableOid = repoAddObjectFromFile(ROLE_RESPECTABLE_FILE, initResult).getOid();
 		userSodApproverOid = addAndRecomputeUser(USER_SOD_APPROVER_FILE, initTask, initResult);
 
-		DebugUtil.setDetailedDebugDump(true);
+		//DebugUtil.setDetailedDebugDump(true);
 	}
 
 	/**

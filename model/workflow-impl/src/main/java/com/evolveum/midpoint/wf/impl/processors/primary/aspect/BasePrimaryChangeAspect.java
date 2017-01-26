@@ -205,7 +205,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 		return focus != null ? (FocusType) focus.asObjectable() : null;
 	}
 
-	protected ReferenceResolver createReferenceResolver(ModelContext modelContext, Task taskFromModel, OperationResult result) {
+	public ReferenceResolver createReferenceResolver(ModelContext modelContext, Task taskFromModel, OperationResult result) {
 		return (ref, sourceDescription) -> {
 			if (ref == null) {
 				return Collections.emptyList();
@@ -226,7 +226,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 		};
 	}
 
-    protected RelationResolver createRelationResolver(PrismObject<?> object, OperationResult result) {
+    public RelationResolver createRelationResolver(PrismObject<?> object, OperationResult result) {
         return relations -> {
             if (object == null || object.getOid() == null || relations.isEmpty()) {
                 return Collections.emptyList();

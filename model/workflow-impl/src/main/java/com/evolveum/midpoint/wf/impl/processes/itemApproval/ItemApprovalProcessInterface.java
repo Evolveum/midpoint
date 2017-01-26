@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -49,9 +50,6 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 
 	public static final String PROCESS_DEFINITION_KEY = "ItemApproval";
 
-    @Autowired
-    private PrismContext prismContext;
-
     public void prepareStartInstruction(WfTaskCreationInstruction instruction) {
         instruction.setProcessName(PROCESS_DEFINITION_KEY);
         instruction.setSimple(false);
@@ -63,7 +61,8 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 			LOGGER.debug("About to start approval process instance '{}'", instr.getProcessInstanceName());
 			if (instr.getProcessContent() instanceof ItemApprovalSpecificContent) {
 				ItemApprovalSpecificContent iasc = (ItemApprovalSpecificContent) instr.getProcessContent();
-				LOGGER.debug("Approval schema:\n{}", DebugUtil.debugDump(iasc.getApprovalSchema()));
+				LOGGER.debug("Approval schema:\n{}", DebugUtil.debugDump(iasc.approvalSchema));
+				LOGGER.debug("Attached rules:\n{}", PrismUtil.serializeQuietlyLazily(prismContext, iasc.policyRules));
 			}
 		}
     }

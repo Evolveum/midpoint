@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,60 +15,35 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Description of a situation that caused a trigger of the policy rule.
  * 
  * @author semancik
  */
-public class EvaluatedPolicyRuleTrigger implements DebugDumpable {
+public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType> implements DebugDumpable {
 	
 	@NotNull private final PolicyConstraintKindType constraintKind;
-	@NotNull private final AbstractPolicyConstraintType constraint;
+	@NotNull private final CT constraint;
 	private final String message;
-	private final EvaluatedAssignment conflictingAssignment;
-	@NotNull private final Collection<EvaluatedPolicyRule> sourceRules;
-	
-	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull AbstractPolicyConstraintType constraint, String message) {
-		this.constraintKind = constraintKind;
-		this.constraint = constraint;
-		this.message = message;
-		this.conflictingAssignment = null;
-		this.sourceRules = Collections.emptyList();
-	}
-	
-	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull AbstractPolicyConstraintType constraint, 
-			String message, EvaluatedAssignment conflictingAssignment) {
-		this.constraintKind = constraintKind;
-		this.constraint = constraint;
-		this.message = message;
-		this.conflictingAssignment = conflictingAssignment;
-		this.sourceRules = Collections.emptyList();
-	}
 
-	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull AbstractPolicyConstraintType constraint,
-			String message, @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
+	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint, String message) {
 		this.constraintKind = constraintKind;
 		this.constraint = constraint;
 		this.message = message;
-		this.conflictingAssignment = null;
-		this.sourceRules = sourceRules;
 	}
 
 	/**
 	 * The kind of constraint that caused the trigger.
-	 * @return
 	 */
 	@NotNull
 	public PolicyConstraintKindType getConstraintKind() {
@@ -90,15 +65,6 @@ public class EvaluatedPolicyRuleTrigger implements DebugDumpable {
 		return message;
 	}
 
-	public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
-		return conflictingAssignment;
-	}
-
-	@NotNull
-	public Collection<EvaluatedPolicyRule> getSourceRules() {
-		return sourceRules;
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -108,14 +74,12 @@ public class EvaluatedPolicyRuleTrigger implements DebugDumpable {
 		EvaluatedPolicyRuleTrigger that = (EvaluatedPolicyRuleTrigger) o;
 		return constraintKind == that.constraintKind &&
 				Objects.equals(constraint, that.constraint) &&
-				Objects.equals(message, that.message) &&
-				Objects.equals(conflictingAssignment, that.conflictingAssignment) &&
-				Objects.equals(sourceRules, that.sourceRules);
+				Objects.equals(message, that.message);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(constraintKind, constraint, message, conflictingAssignment, sourceRules);
+		return Objects.hash(constraintKind, constraint, message);
 	}
 
 	@Override
@@ -126,17 +90,35 @@ public class EvaluatedPolicyRuleTrigger implements DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRuleTrigger", indent);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent + 1);
-		// cannot debug dump conflicting assignment in detail, as we might go into infinite loop
-		// (the assignment could have evaluated rule that would point to another conflicting assignment, which
-		// could point back to this rule)
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingAssignment", conflictingAssignment, indent + 1);
-		// the same here
-		DebugUtil.debugDumpWithLabel(sb, "sourceRules", sourceRules.stream().map(Object::toString).collect(Collectors.toList()), indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
+		debugDumpCommon(sb, indent + 1);
+		debugDumpSpecific(sb, indent + 1);
 		return sb.toString();
+	}
+
+	private void debugDumpCommon(StringBuilder sb, int indent) {
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent);
+	}
+
+	protected void debugDumpSpecific(StringBuilder sb, int indent) {
+	}
+
+	public String toDiagShortcut() {
+		return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
+	}
+
+	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType() {
+		EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
+		fillCommonContent(rv);
+		return rv;
+	}
+
+	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt) {
+		tt.setConstraintKind(constraintKind);
+		tt.setConstraint(constraint);
+		tt.setMessage(message);
 	}
 
 }

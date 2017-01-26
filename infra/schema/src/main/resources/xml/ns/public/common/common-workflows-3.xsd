@@ -812,6 +812,7 @@
 			<xsd:extension base="tns:WfProcessSpecificStateType">
 				<xsd:sequence>
 					<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
+					<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType"/>
 					<xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
 				</xsd:sequence>
 			</xsd:extension>
@@ -956,7 +957,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="approverInstruction" type="xsd:string" minOccurs="0" />
+			<xsd:element name="approverInstruction" type="tns:ApproverInstructionType" minOccurs="0" />
             <!-- for work items without TaskType information -->
 			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0" />
 			<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
@@ -1008,5 +1009,48 @@
 
     <xsd:element name="workItem" type="tns:WorkItemType" />
 
+    <xsd:complexType name="ApproverInstructionType">
+    </xsd:complexType>
+	<xsd:element name="approverInstruction" type="tns:ApproverInstructionType"/>
+
+    <xsd:complexType name="PlainApproverInstructionType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:ApproverInstructionType">
+				<xsd:sequence>
+					<xsd:element name="text" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+    </xsd:complexType>
+	<xsd:element name="plainApproverInstruction" type="tns:PlainApproverInstructionType" substitutionGroup="tns:approverInstruction"/>
+
+	<xsd:complexType name="SchemaAttachedPolicyRulesType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Why was this process started? For processes based on policy rules we define it via relevant policy rules.
+				(For legacy processes we don't provide this kind of information.)
+
+				EXPERIMENTAL
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="entry" type="tns:SchemaAttachedPolicyRuleType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="SchemaAttachedPolicyRuleType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+
+				Note that the rule should be triggered. All irrelevant (non-approval) action types should be removed.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="levelMin" type="xsd:int" minOccurs="0"/>
+			<xsd:element name="levelMax" type="xsd:int" minOccurs="0"/>
+			<xsd:element name="rule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
 
 </xsd:schema>

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -230,7 +231,8 @@ public interface TaskManager {
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
-	public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException;
+	@NotNull
+	Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException;
 
 	/**
 	 * Creates new transient, running task instance.
@@ -260,6 +262,7 @@ public interface TaskManager {
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
 	 */
+	@NotNull
 	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException;
 	
 	/**
@@ -274,7 +277,8 @@ public interface TaskManager {
 	 * @throws SchemaException error dealing with resource schema
 	 * @throws ObjectNotFoundException wrong OID format, etc.
 	 */
-	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	@NotNull
+	Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns a task with a given identifier.

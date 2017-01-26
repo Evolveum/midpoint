@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -244,6 +244,10 @@ public class FocusProcessor {
 		        		now, task, result);
 		        
 		        
+		        // process activation again. Object template might have changed it.
+		        context.recomputeFocus();
+		        processActivation(context, now, result);
+		        
 		        // ASSIGNMENTS
 		        
 		        assignmentProcessor.processAssignmentsProjections(context, now, task, result);
@@ -258,6 +262,10 @@ public class FocusProcessor {
 		        objectTemplateProcessor.processTemplate(context, ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS,
 		        		now, task, result);
 		        context.recompute();
+
+		        // process activation again. Second pass through object template might have changed it.
+		        context.recomputeFocus();
+		        processActivation(context, now, result);
 		        
 		        // CREDENTIALS (including PASSWORD POLICY)
 				

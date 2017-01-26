@@ -16,14 +16,29 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author mederly
  */
 public class PolicyRuleTypeUtil {
+
+	private static Map<String, String> CONSTRAINT_NAMES = new HashMap<>();
+	static {
+		CONSTRAINT_NAMES.put(ExclusionPolicyConstraintType.class.getName(), "exc");
+		CONSTRAINT_NAMES.put(MultiplicityPolicyConstraintType.class.getName(), "multi");
+		CONSTRAINT_NAMES.put(ModificationPolicyConstraintType.class.getName(), "mod");
+		CONSTRAINT_NAMES.put(AssignmentPolicyConstraintType.class.getName(), "assign");
+		CONSTRAINT_NAMES.put(PolicySituationPolicyConstraintType.class.getName(), "sit");
+	}
+
+	public static String getConstraintClassShortcut(Class<?> clazz) {
+		String shortcut = CONSTRAINT_NAMES.get(clazz.getName());
+		return shortcut != null ? shortcut : clazz.getSimpleName();
+	}
 
 	public static String toShortString(PolicyConstraintsType constraints) {
 		if (constraints == null) {
@@ -35,6 +50,7 @@ public class PolicyRuleTypeUtil {
 		constraints.getMaxAssignees().forEach(max -> sb.append("max "));
 		constraints.getModification().forEach(mod -> sb.append("mod "));
 		constraints.getAssignment().forEach(assign -> sb.append("assign "));
+		constraints.getSituation().forEach(assign -> sb.append("sit "));
 		return sb.toString().trim();
 	}
 
@@ -66,10 +82,25 @@ public class PolicyRuleTypeUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append(constraint.getClass().getSimpleName());
+		sb.append(getConstraintClassShortcut(constraint.getClass()));
 		if (constraint.getName() != null) {
 			sb.append(":").append(constraint.getName());
 		}
 		return sb.toString();
+	}
+
+	public static String toDiagShortcut(PolicyConstraintKindType constraintKind) {
+		if (constraintKind == null) {
+			return "null";
+		}
+		switch (constraintKind) {
+			case ASSIGNMENT: return "assign";
+			case EXCLUSION: return "exc";
+			case MAX_ASSIGNEES: return "max";
+			case MIN_ASSIGNEES: return "min";
+			case MODIFICATION: return "mod";
+			case SITUATION: return "sit";
+			default: return constraintKind.toString();
+		}
 	}
 }

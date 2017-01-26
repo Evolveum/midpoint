@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.*;
@@ -41,6 +42,7 @@ import javax.xml.namespace.QName;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * @author semancik
@@ -899,12 +901,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append(" -> " + assignment.getTarget());
-			dumpRules(sb, "focus rules", assignment.getFocusPolicyRules());
-			dumpRules(sb, "target rules", assignment.getTargetPolicyRules());
+			dumpRules(sb, "focus rules", assignment.getFocusPolicyRules(), null);
+			dumpRules(sb, "target rules", assignment.getTargetPolicyRules(), assignment.getThisTargetPolicyRules());
 		}
 	}
 
-	private <F extends FocusType> void dumpRules(StringBuilder sb, String label, Collection<EvaluatedPolicyRule> policyRules) {
+	private <F extends FocusType> void dumpRules(StringBuilder sb, String label, Collection<EvaluatedPolicyRule> policyRules,
+			Collection<EvaluatedPolicyRule> directPolicyRules) {
 		sb.append(" [").append(label).append("(").append(policyRules.size()).append("): ");
 		boolean first = true;
 		for (EvaluatedPolicyRule rule : policyRules) {
@@ -913,13 +916,18 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			} else {
 				sb.append("; ");
 			}
-			sb.append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints()));
-			sb.append(" -> ");
-			sb.append(PolicyRuleTypeUtil.toShortString(rule.getActions()));
+			if (directPolicyRules != null && directPolicyRules.stream().anyMatch(d -> d==rule)) {
+				sb.append("!");
+			}
+			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
+			sb.append("->");
+			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getActions())).append(")");
 			if (!rule.getTriggers().isEmpty()) {
-				sb.append(", T:");
-				rule.getTriggers()
-						.forEach(trigger -> sb.append(" ").append(PolicyRuleTypeUtil.toShortString(trigger.getConstraint())));
+				sb.append(" T:(");
+				sb.append(rule.getTriggers().stream()
+						.map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+						.collect(Collectors.joining(", ")));
+				sb.append(")");
 			}
 		}
 		sb.append("]");

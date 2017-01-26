@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -57,23 +58,21 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
 
     @NotNull
 	@Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
-                                                                               WfConfigurationType wfConfigurationType,
-                                                                               @NotNull ObjectTreeDeltas objectTreeDeltas,
-                                                                               @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
-        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(wfConfigurationType, this);
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ObjectTreeDeltas objectTreeDeltas,
+			ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException {
+        PcpAspectConfigurationType config = primaryChangeAspectHelper.getPcpAspectConfigurationType(ctx.wfConfiguration, this);
         if (config == null) {
             return Collections.emptyList();            // this should not occur (because this aspect is not enabled by default), but check it just to be sure
         }
-        if (!primaryChangeAspectHelper.isRelatedToType(modelContext, getObjectClass()) || objectTreeDeltas.getFocusChange() == null) {
+        if (!primaryChangeAspectHelper.isRelatedToType(ctx.modelContext, getObjectClass()) || objectTreeDeltas.getFocusChange() == null) {
             return Collections.emptyList();
         }
-        List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(modelContext, config,
-				objectTreeDeltas.getFocusChange(), taskFromModel, result);
+        List<ApprovalRequest<T>> approvalRequestList = getApprovalRequests(ctx.modelContext, config,
+				objectTreeDeltas.getFocusChange(), ctx.taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }
-        return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
+        return prepareJobCreateInstructions(ctx.modelContext, ctx.taskFromModel, result, approvalRequestList);
     }
 
     private List<ApprovalRequest<T>> getApprovalRequests(ModelContext<?> modelContext, PcpAspectConfigurationType config,
@@ -118,7 +117,8 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
 
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpChildWfTaskCreationInstruction instruction =
-                    PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, approvalRequest);
+                    PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(
+                            getChangeProcessor(), approvalTaskName, approvalRequest.getApprovalSchema(), null);
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, modelContext, requester);

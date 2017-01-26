@@ -19,10 +19,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -48,4 +45,5 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	
 	Collection<PolicyExceptionType> getPolicyExceptions();
 
+	EvaluatedPolicyRuleType toEvaluatedPolicyRuleType();
 }

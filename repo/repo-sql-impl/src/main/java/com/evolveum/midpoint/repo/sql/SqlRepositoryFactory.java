@@ -173,7 +173,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         StringBuilder jdbcUrl = new StringBuilder(prepareJdbcUrlPrefix(config));
 
-		jdbcUrl.append(";MVCC=FALSE");			// turn off MVCC, revert to table locking
+		jdbcUrl.append(";MVCC=FALSE");	    		// turn off MVCC, revert to table locking
+		//jdbcUrl.append(";MV_STORE=FALSE");			// use old page store
         //disable database closing on exit. By default, a database is closed when the last connection is closed.
         jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE");
         //Both read locks and write locks are kept until the transaction commits.

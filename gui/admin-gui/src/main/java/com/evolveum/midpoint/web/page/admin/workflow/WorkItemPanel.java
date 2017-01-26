@@ -31,6 +31,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApproverInstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PlainApproverInstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,11 +41,14 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,7 +80,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
     private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
     private static final String ID_APPROVER_INSTRUCTION_CONTAINER = "approverInstructionContainer";
-    private static final String ID_APPROVER_INSTRUCTION = "approverInstruction";
+    private static final String ID_APPROVER_INSTRUCTION_LINES = "approverInstructionLines";
+    private static final String ID_APPROVER_INSTRUCTION_LINE = "approverInstructionLine";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 	private static final String ID_SHOW_REQUEST = "showRequest";
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
@@ -177,8 +183,29 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		});
 		add(WebComponentUtil.createHelp(ID_SHOW_REQUEST_HELP));
 
+		IModel<List<String>> instructionsModel = new AbstractReadOnlyModel<List<String>>() {
+			@Override
+			public List<String> getObject() {
+				ApproverInstructionType instruction = getModelObject().getApproverInstruction();
+				if (instruction == null) {
+					return Collections.emptyList();
+				} else if (instruction instanceof PlainApproverInstructionType) {
+					return ((PlainApproverInstructionType) instruction).getText();
+				} else {
+					// TODO
+					return Collections.singletonList(instruction.toString());
+				}
+			}
+		};
+
 		WebMarkupContainer approverInstructionContainer = new WebMarkupContainer(ID_APPROVER_INSTRUCTION_CONTAINER);
-		approverInstructionContainer.add(new Label(ID_APPROVER_INSTRUCTION, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_INSTRUCTION)));
+		ListView<String> approverInstructionList = new ListView<String>(ID_APPROVER_INSTRUCTION_LINES, instructionsModel) {
+			@Override
+			protected void populateItem(ListItem<String> item) {
+				item.add(new Label(ID_APPROVER_INSTRUCTION_LINE, item.getModelObject()));
+			}
+		};
+		approverInstructionContainer.add(approverInstructionList);
 		add(approverInstructionContainer);
 		approverInstructionContainer.add(new VisibleEnableBehaviour() {
 			@Override

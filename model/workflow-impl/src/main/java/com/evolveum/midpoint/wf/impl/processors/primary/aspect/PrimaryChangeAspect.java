@@ -16,19 +16,16 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -61,17 +58,14 @@ public interface PrimaryChangeAspect {
      *
      * If yes, it takes these deltas out of the original change and prepares instruction(s) to start wf process(es).
      *
-     * @param modelContext Original model context (e.g. to be able to get information about whole context of the operation)
-     * @param wfConfigurationType
      * @param objectTreeDeltas Change to be examined and modified by implementation of this method
-     * @param taskFromModel General context of the operation - the method should not modify the task.
-     * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)    @return list of start process instructions
-     * @see WfTaskCreationInstruction
+     * @param ctx
+     * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)
+     * @return list of start process instructions  @see WfTaskCreationInstruction
      */
     @NotNull
-    List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
-            WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
-			@NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
+    List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ObjectTreeDeltas objectTreeDeltas,
+            ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.

@@ -18,16 +18,9 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.PredefinedPolicySituation;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -37,17 +30,14 @@ import org.jetbrains.annotations.NotNull;
 public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final long serialVersionUID = 1L;
 
-	private PolicyRuleType policyRuleType;
-	private AssignmentPath assignmentPath;
-	private Collection<EvaluatedPolicyRuleTrigger> triggers;
-	private Collection<PolicyExceptionType> policyExceptions;
+	private final PolicyRuleType policyRuleType;
+	private final AssignmentPath assignmentPath;
+	private final Collection<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
+	private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
 
 	public EvaluatedPolicyRuleImpl(PolicyRuleType policyRuleType, AssignmentPath assignmentPath) {
-		super();
 		this.policyRuleType = policyRuleType;
 		this.assignmentPath = assignmentPath;
-		this.triggers = new ArrayList<>();
-		this.policyExceptions = new ArrayList<>();
 	}
 
 	@Override
@@ -108,8 +98,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		
 		if (!triggers.isEmpty()) {
 			EvaluatedPolicyRuleTrigger firstTrigger = triggers.iterator().next();
-			if (!firstTrigger.getSourceRules().isEmpty()) {
-				return firstTrigger.getSourceRules().iterator().next().getPolicySituation();
+			if (firstTrigger instanceof EvaluatedSituationTrigger) {
+				Collection<EvaluatedPolicyRule> sourceRules = ((EvaluatedSituationTrigger) firstTrigger).getSourceRules();
+				if (!sourceRules.isEmpty()) {	// should be always the case
+					return sourceRules.iterator().next().getPolicySituation();
+				}
 			}
 			PolicyConstraintKindType constraintKind = firstTrigger.getConstraintKind();
 			PredefinedPolicySituation predefSituation = PredefinedPolicySituation.get(constraintKind);
@@ -146,6 +139,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "triggers", triggers, indent + 1);
 		return sb.toString();
+	}
+
+	@Override
+	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType() {
+		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
+		rv.setPolicyRule(policyRuleType);
+		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType()));
+		return rv;
 	}
 
 	@Override
@@ -190,7 +191,5 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public String toString() {
 		return "EvaluatedPolicyRuleImpl(" + getName() + ")";
 	}
-	
-	
 
 }

@@ -318,7 +318,7 @@ public class WorkItemDto extends Selectable {
 		return wfc != null ? WfContextUtil.getStageInfo(wfc) : WfContextUtil.getStageInfo(workItem);
 	}
 
-	public String getApproverInstruction() {
+	public ApproverInstructionType getApproverInstruction() {
 		return workItem.getApproverInstruction();
 	}
 }
