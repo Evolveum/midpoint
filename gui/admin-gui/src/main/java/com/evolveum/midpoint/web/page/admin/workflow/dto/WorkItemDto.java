@@ -319,6 +319,6 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public String getApproverInstruction() {
-		return workItem.getApproverInstruction();
+		return String.valueOf(workItem.getApproverInstruction());		// TODO
 	}
 }

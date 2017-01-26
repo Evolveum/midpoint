@@ -35,6 +35,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -78,16 +79,17 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
 
     @NotNull
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
-        if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ObjectTreeDeltas objectTreeDeltas,
+			ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException {
+        if (!isFocusRelevant(ctx.modelContext) || objectTreeDeltas.getFocusChange() == null) {
             return Collections.emptyList();
         }
-        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(modelContext,
-                baseConfigurationHelper.getPcpConfiguration(wfConfigurationType), objectTreeDeltas.getFocusChange(), taskFromModel, result);
+        List<ApprovalRequest<AssignmentType>> approvalRequestList = getApprovalRequests(ctx.modelContext,
+                baseConfigurationHelper.getPcpConfiguration(ctx.wfConfiguration), objectTreeDeltas.getFocusChange(), ctx.taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }
-        return prepareTaskInstructions(modelContext, taskFromModel, result, approvalRequestList);
+        return prepareTaskInstructions(ctx.modelContext, ctx.taskFromModel, result, approvalRequestList);
     }
 
     private List<ApprovalRequest<AssignmentType>> getApprovalRequests(ModelContext<?> modelContext,

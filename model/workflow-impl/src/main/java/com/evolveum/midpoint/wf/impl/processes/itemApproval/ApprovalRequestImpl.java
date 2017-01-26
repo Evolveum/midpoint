@@ -28,13 +28,14 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
+@Deprecated
 public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequest<I> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ApprovalRequestImpl.class);
 
     private static final long serialVersionUID = 5111362449970050179L;
 
-    SerializationSafeContainer<Serializable> itemToApprove;
+    private SerializationSafeContainer<Serializable> itemToApprove;
 
     // used for value serialization/deserialization of SerializationSafeContainer'ed items
     // set by using SpringApplicationContextHolder when unknown

@@ -45,8 +45,8 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	}
 
 	@Override
-	public String toShortString() {
-		return super.toShortString()
+	public String toDiagShortcut() {
+		return super.toDiagShortcut()
 			+ sourceRules.stream()
 					.map(sr -> PolicyRuleTypeUtil.toShortString(sr.getPolicyConstraints()))
 					.distinct()

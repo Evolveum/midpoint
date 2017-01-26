@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -37,17 +36,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
-import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
-import com.evolveum.midpoint.wf.impl.processors.primary.assignments.AssignmentHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -66,35 +62,22 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddAssociationAspect.class);
 
-    @Autowired
-    protected PrismContext prismContext;
-
-    @Autowired
-    protected ItemApprovalProcessInterface itemApprovalProcessInterface;
-
-    @Autowired
-    protected AssignmentHelper assignmentHelper;
-
-    @Autowired
-    protected PrimaryChangeAspectHelper primaryChangeAspectHelper;
-
 	//region ------------------------------------------------------------ Things that execute on request arrival
 
     @NotNull
 	@Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext,
-            WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas,
-            @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (!isFocusRelevant(modelContext)) {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ObjectTreeDeltas objectTreeDeltas,
+			ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (!isFocusRelevant(ctx.modelContext)) {
             return Collections.emptyList();
         }
         List<ApprovalRequest<AssociationAdditionType>> approvalRequestList =
-                getApprovalRequests(modelContext, baseConfigurationHelper.getPcpConfiguration(wfConfigurationType),
-                        objectTreeDeltas, taskFromModel, result);
+                getApprovalRequests(ctx.modelContext, baseConfigurationHelper.getPcpConfiguration(ctx.wfConfiguration),
+                        objectTreeDeltas, ctx.taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }
-        return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
+        return prepareJobCreateInstructions(ctx.modelContext, ctx.taskFromModel, result, approvalRequestList);
     }
 
     protected boolean isFocusRelevant(ModelContext modelContext) {
@@ -306,8 +289,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     //endregion
 
-    protected boolean isAssociationRelevant(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove,
-                                            ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task task, OperationResult result) {
+    private boolean isAssociationRelevant(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove,
+            ResourceShadowDiscriminator rsd, ModelContext<?> modelContext, Task task, OperationResult result) {
         LOGGER.trace(" - considering: {}", itemToApprove);
         ExpressionVariables variables = new ExpressionVariables();
         variables.addVariableDefinition(SchemaConstants.C_ASSOCIATION, itemToApprove.getAssociation());
@@ -318,7 +301,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         return applicable;
     }
 
-    protected ShadowAssociationType cloneAndCanonicalizeAssociation(ShadowAssociationType a) {
+    private ShadowAssociationType cloneAndCanonicalizeAssociation(ShadowAssociationType a) {
         return a.clone();       // TODO - should we canonicalize?
     }
 
@@ -332,16 +315,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource
-    protected ShadowType getAssociationApprovalTarget(ShadowAssociationType association, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private ShadowType getAssociationApprovalTarget(ShadowAssociationType association, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return primaryChangeAspectHelper.resolveTargetUnchecked(association, result);
     }
 
-    // creates name to be displayed in the question form (may be overriden by child objects)
-    protected String getTargetDisplayName(ShadowType target) {
-        if (target.getName() != null) {
-            return target.getName().getOrig();
-        } else {
-            return target.getOid();
-        }
-    }
 }

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessI
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
+import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -79,16 +80,17 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
 
     @NotNull
     @Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
-        if (!isFocusRelevant(modelContext) || objectTreeDeltas.getFocusChange() == null) {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ObjectTreeDeltas objectTreeDeltas,
+			ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException {
+        if (!isFocusRelevant(ctx.modelContext) || objectTreeDeltas.getFocusChange() == null) {
             return Collections.emptyList();
         }
-        List<ApprovalRequest<AssignmentModification>> approvalRequestList = getApprovalRequests(modelContext,
-                wfConfigurationType, objectTreeDeltas.getFocusChange(), taskFromModel, result);
+        List<ApprovalRequest<AssignmentModification>> approvalRequestList = getApprovalRequests(ctx.modelContext,
+                ctx.wfConfiguration, objectTreeDeltas.getFocusChange(), ctx.taskFromModel, result);
         if (approvalRequestList == null || approvalRequestList.isEmpty()) {
             return Collections.emptyList();
         }
-        return prepareJobCreateInstructions(modelContext, taskFromModel, result, approvalRequestList);
+        return prepareJobCreateInstructions(ctx.modelContext, ctx.taskFromModel, result, approvalRequestList);
     }
 
     private List<ApprovalRequest<AssignmentModification>> getApprovalRequests(ModelContext<?> modelContext,

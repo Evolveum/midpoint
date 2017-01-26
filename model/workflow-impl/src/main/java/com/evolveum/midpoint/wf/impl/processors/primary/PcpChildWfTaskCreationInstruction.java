@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchema;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
@@ -50,9 +51,14 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
 	// useful shortcut
 	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(ChangeProcessor changeProcessor, String approvalTaskName,
 			ApprovalRequest<?> approvalRequest) {
+		return createItemApprovalInstruction(changeProcessor, approvalTaskName, approvalRequest.getApprovalSchema());
+	}
+
+	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(ChangeProcessor changeProcessor, String approvalTaskName,
+			ApprovalSchema approvalSchema) {
 		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent(changeProcessor.getPrismContext());
 		itemApprovalInstruction.setTaskName(approvalTaskName);
-		itemApprovalInstruction.setApprovalSchema(approvalRequest.getApprovalSchema());
+		itemApprovalInstruction.setApprovalSchema(approvalSchema);
 		return new PcpChildWfTaskCreationInstruction<>(changeProcessor, itemApprovalInstruction);
 	}
 

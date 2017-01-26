@@ -26,15 +26,16 @@ import java.io.Serializable;
  *
  * @param <I>
  */
+@Deprecated
 public interface ApprovalRequest<I extends Serializable> extends Serializable {
 
-    static final long serialVersionUID = 5111362449970050179L;
+    long serialVersionUID = 5111362449970050179L;
 
-    public ApprovalSchema getApprovalSchema();
+    ApprovalSchema getApprovalSchema();
 
-    public I getItemToApprove();
+    I getItemToApprove();
 
-    public void setPrismContext(PrismContext prismContext);
+    void setPrismContext(PrismContext prismContext);
 
-    public PrismContext getPrismContext();
+    PrismContext getPrismContext();
 }

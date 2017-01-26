@@ -46,9 +46,9 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 /**
  * A special test dealing with assigning roles that have different metarole-induced approval policies.
  *
- * Role20 - uses default approval (org:approver)
- * Role21 - uses metarole 1 'default' induced approval (org:special-approver)
- * Role22 - uses both metarole 'default' and 'security' induced approval (org:special-approver and org:security-approver)
+ * Role21 - uses default approval (org:approver)
+ * Role22 - uses metarole 1 'default' induced approval (org:special-approver)
+ * Role23 - uses both metarole 'default' and 'security' induced approval (org:special-approver and org:security-approver)
  *
  * @author mederly
  */

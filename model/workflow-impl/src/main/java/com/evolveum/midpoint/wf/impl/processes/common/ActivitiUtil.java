@@ -91,6 +91,9 @@ public class ActivitiUtil implements Serializable {
 	@SuppressWarnings("unchecked")
     public static <T> T getVariable(Map<String, Object> variables, String name, Class<T> clazz) {
         Object value = variables.get(name);
+        if (value instanceof SerializationSafeContainer && !SerializationSafeContainer.class.isAssignableFrom(clazz)) {
+        	value = ((SerializationSafeContainer) value).getValue();
+		}
         if (value != null && !(clazz.isAssignableFrom(value.getClass()))) {
             throw new IllegalStateException("Process variable " + name + " should be of " + clazz + " but is of "
                     + value.getClass() + " instead.");

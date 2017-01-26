@@ -925,7 +925,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			if (!rule.getTriggers().isEmpty()) {
 				sb.append(" T:(");
 				sb.append(rule.getTriggers().stream()
-						.map(EvaluatedPolicyRuleTrigger::toShortString)
+						.map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
 						.collect(Collectors.joining(", ")));
 				sb.append(")");
 			}

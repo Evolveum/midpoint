@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes;
 
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApproverInstructionType;
 import org.springframework.beans.factory.BeanNameAware;
 
 import java.util.Map;
@@ -60,8 +61,8 @@ public abstract class BaseProcessMidPointInterface implements ProcessMidPointInt
 	}
 
 	@Override
-	public String getApproverInstruction(Map<String, Object> variables) {
-		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.APPROVER_INSTRUCTION, String.class);
+	public ApproverInstructionType getApproverInstruction(Map<String, Object> variables) {
+		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.APPROVER_INSTRUCTION, ApproverInstructionType.class);
 	}
 
 	@Override

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -71,7 +72,8 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
 
     @NotNull
 	@Override
-    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ModelContext<?> modelContext, WfConfigurationType wfConfigurationType, @NotNull ObjectTreeDeltas objectTreeDeltas, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException {
+    public List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ObjectTreeDeltas objectTreeDeltas,
+			ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<>();
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
@@ -94,9 +96,9 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Found password-changing delta, moving it into approval request. Delta = " + delta.debugDump());
                 }
-                ApprovalRequest<String> approvalRequest = createApprovalRequest(delta, modelContext, taskFromModel, result);
+                ApprovalRequest<String> approvalRequest = createApprovalRequest(delta, ctx.modelContext, ctx.taskFromModel, result);
                 approvalRequestList.add(approvalRequest);
-                instructions.add(createStartProcessInstruction(modelContext, delta, approvalRequest, taskFromModel, result));
+                instructions.add(createStartProcessInstruction(ctx.modelContext, delta, approvalRequest, ctx.taskFromModel, result));
                 deltaIterator.remove();
             }
         }

@@ -41,6 +41,10 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
 
     private transient PrismContext prismContext;
 
+    public ApprovalSchemaImpl(@NotNull PrismContext prismContext) {
+        setPrismContext(prismContext);
+    }
+
     ApprovalSchemaImpl(ApprovalSchemaType approvalSchemaType, @NotNull PrismContext prismContext,
             RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         setPrismContext(prismContext);
@@ -128,7 +132,7 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
         levels.add(level);
     }
 
-    private void addLevel(ApprovalLevelType levelType, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
+    public void addLevel(ApprovalLevelType levelType, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         addLevel(new ApprovalLevelImpl(levelType, prismContext, relationResolver, referenceResolver));
     }
 

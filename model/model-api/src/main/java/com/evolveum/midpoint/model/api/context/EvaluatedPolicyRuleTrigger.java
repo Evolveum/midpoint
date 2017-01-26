@@ -104,7 +104,7 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	protected void debugDumpSpecific(StringBuilder sb, int indent) {
 	}
 
-	public String toShortString() {
-		return PolicyRuleTypeUtil.toShortString(constraintKind);
+	public String toDiagShortcut() {
+		return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
 	}
 }

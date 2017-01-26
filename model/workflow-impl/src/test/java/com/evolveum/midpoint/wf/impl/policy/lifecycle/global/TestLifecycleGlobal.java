@@ -55,7 +55,12 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 				</policyConstraints>
 				<policyActions>
 					<approval>
-						<approverRelation>owner</approverRelation>
+					    <approvalSchema>
+					    	<level>
+								<approverRelation>owner</approverRelation>
+								<outcomeIfNoApprovers>approve</outcomeIfNoApprovers>
+							</level>
+					    </approvalSchema>
 					</approval>
 				</policyActions>
 				<focusSelector>
@@ -91,7 +96,12 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		ruleAll.setPolicyConstraints(constraintsAll);
 		PolicyActionsType actionsAll = new PolicyActionsType(prismContext);
 		ApprovalPolicyActionType approvalActionAll = new ApprovalPolicyActionType(prismContext);
-		approvalActionAll.getApproverRelation().add(new QName("owner"));		// intentionally no namespace
+		ApprovalSchemaType approvalSchema = new ApprovalSchemaType(prismContext);
+		ApprovalLevelType level = new ApprovalLevelType(prismContext);
+		level.getApproverRelation().add(new QName("owner"));		// intentionally no namespace
+		level.setOutcomeIfNoApprovers(ApprovalLevelOutcomeType.APPROVE);
+		approvalSchema.getLevel().add(level);
+		approvalActionAll.setApprovalSchema(approvalSchema);
 		actionsAll.setApproval(approvalActionAll);
 		ruleAll.setFocusSelector(focusSelector.clone());
 		ruleAll.setPolicyActions(actionsAll);

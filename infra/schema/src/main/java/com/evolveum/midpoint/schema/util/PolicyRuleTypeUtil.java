@@ -89,7 +89,7 @@ public class PolicyRuleTypeUtil {
 		return sb.toString();
 	}
 
-	public static String toShortString(PolicyConstraintKindType constraintKind) {
+	public static String toDiagShortcut(PolicyConstraintKindType constraintKind) {
 		if (constraintKind == null) {
 			return "null";
 		}
