@@ -51,6 +51,10 @@
 			<groupId>stax</groupId>
 			<artifactId>stax-api</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations-java5</artifactId>
+		</dependency>
 		
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
