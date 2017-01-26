@@ -1,0 +1,110 @@
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- This is a meta-role. A Role indented to be assigned to other roles.
+     I really mean assigned, not included or induced. -->
+
+<role oid="10000000-ent0-0000-0000-000000006601"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Metarole: Org Struct</name>
+    
+    <inducement>
+    	<construction>
+    		<!-- OpenDJ resource -->
+    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+    		<kind>entitlement</kind>
+            <intent>group-org-local</intent>
+    	</construction>
+    </inducement>
+    
+    <inducement>
+    	<construction>
+    		<!-- OpenDJ resource -->
+    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+    		<kind>entitlement</kind>
+            <intent>group-org-global</intent>
+    	
+    	<association>
+				<ref>ri:ldapGroup</ref>
+				<outbound>
+					<source>
+						<path>name</path>
+					</source>
+					<source>
+						<path>parentOrgRef</path>
+					</source>
+					<strength>strong</strength>
+					<expression>
+						<associationTargetSearch>
+							<filter>
+								<q:equal>
+									<q:path>
+											declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+	                                        declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+											attributes/ri:dn
+									</q:path>
+									<expression>
+										<script>
+											<code>
+	import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+	
+	log.info("ZXZXZXZX Metarole, parent association in AD for organization name = {}", name)
+	
+	
+		upstreamOrgOid = parentOrgRef?.getOid() // take first parent
+	
+		if (upstreamOrgOid) {
+			org = midpoint.getObject(OrgType, upstreamOrgOid)
+			
+			if (org != null &amp;&amp; org.getParentOrgRef() != null) {
+				log.info("ZXZXZXZXZXZX this org = {}, parent org oid = {}, will search in AD samAccountName={}, updated to={}", name, upstreamOrgOid, org.getName().toString())
+				return "cn=" + org?.getName()?.toString() + ",ou=groups,dc=example,dc=com"
+			}
+			log.info("ZXZXZX upstreamOrgOid is null or empty!!! for name = {}, thisOrg={}", name, focus)
+		} else {
+			log.info("ZXZXZX upstreamOrgOid is null or empty!!! for name = {}, thisOrg={}", name, focus)
+		}
+	
+											</code>
+										</script>
+									</expression>
+								</q:equal>
+							</filter>
+							<searchStrategy>onResourceIfNeeded</searchStrategy>
+						</associationTargetSearch>
+					</expression>
+					<condition>
+				<script>
+					<code>
+						parentOrgRef != null
+					</code>
+				</script>
+			
+		</condition>
+				</outbound>
+				
+			</association>
+		</construction>
+    </inducement>
+    
+  
+    
+</role>

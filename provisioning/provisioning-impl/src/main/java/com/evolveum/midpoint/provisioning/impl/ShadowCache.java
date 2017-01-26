@@ -229,6 +229,10 @@ public abstract class ShadowCache {
 			// the original repo shadow. Make sure we have
 			// the definition that applies to resource shadow. We will fix repo
 			// shadow later.
+			// BUT we need also information about kind/intent and these information is only
+			// in repo shadow, therefore the following 2 lines..
+			resourceShadow.asObjectable().setKind(repositoryShadow.asObjectable().getKind());
+			resourceShadow.asObjectable().setIntent(repositoryShadow.asObjectable().getIntent());
 			ProvisioningContext shadowCtx = ctx.spawn(resourceShadow);
 
 			resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(),
@@ -1852,9 +1856,10 @@ public abstract class ShadowCache {
 							LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
 									new Object[]{ associationName, ctx.getObjectClassDefinition(), ctx.getDesc(), 
 											resourceShadow.debugDump(1), repoShadow==null?null:repoShadow.debugDump(1)});
+							LOGGER.trace("Full refined definition: {}", ctx.getObjectClassDefinition().debugDump());
 						}
 						throw new SchemaException("Entitlement association with name " + associationName
-								+ " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc());
+								+ " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc() + ", with using shadow coordinates " + ctx.isUseRefinedDefinition());
 					}
 					for (String intent : rEntitlementAssociation.getIntents()) {
 						ProvisioningContext ctxEntitlement = ctx.spawn(ShadowKindType.ENTITLEMENT, intent);
