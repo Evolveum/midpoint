@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -163,9 +163,8 @@ public abstract class ShadowCache {
 		// We want to hide the existence of shadow cache from the user.
 
 		// Get the shadow from repository. There are identifiers that we need
-		// for accessing the object by UCF.
-		// Later, the repository object may have a fully cached object from the
-		// resource.
+		// for accessing the object by UCF.Later, the repository object may 
+		// have a fully cached object from the resource.
 		if (repositoryShadow == null) {
 			repositoryShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
 			if (LOGGER.isTraceEnabled()) {
@@ -226,9 +225,8 @@ public abstract class ShadowCache {
 			resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
 
 			// Resource shadow may have different auxiliary object classes than
-			// the original repo shadow. Make sure we have
-			// the definition that applies to resource shadow. We will fix repo
-			// shadow later.
+			// the original repo shadow. Make sure we have the definition that 
+			// applies to resource shadow. We will fix repo shadow later.
 			// BUT we need also information about kind/intent and these information is only
 			// in repo shadow, therefore the following 2 lines..
 			resourceShadow.asObjectable().setKind(repositoryShadow.asObjectable().getKind());
@@ -983,22 +981,9 @@ public abstract class ShadowCache {
 			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
 				try {
 					applyAttributesDefinition(ctx, object);
-					ProvisioningUtil.setProtectedFlag(ctx, object, matchingRuleRegistry); // fixing
-																							// MID-1640;
-																							// hoping
-																							// that
-																							// the
-																							// protected
-																							// object
-																							// filter
-																							// uses
-																							// only
-																							// identifiers
-																							// (that
-																							// are
-																							// stored
-																							// in
-																							// repo)
+					// fixing MID-1640; hoping that the protected object filter uses only identifiers
+					// (that are stored in repo)
+					ProvisioningUtil.setProtectedFlag(ctx, object, matchingRuleRegistry); 
 					boolean cont = shadowHandler.handle(object.asObjectable());
 					parentResult.recordSuccess();
 					return cont;
