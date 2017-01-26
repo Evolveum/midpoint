@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,6 +87,18 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
 	protected static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
 	
+	protected static final File ROLE_AUTOMATIC_FILE = new File(TEST_DIR, "role-automatic.xml");
+	protected static final String ROLE_AUTOMATIC_OID = "8fdb56d8-e3f3-11e6-8be9-cb9862ab7c04";
+	
+	protected static final File ROLE_AUTOCRATIC_FILE = new File(TEST_DIR, "role-autocratic.xml");
+	protected static final String ROLE_AUTOCRATIC_OID = "4a678382-e3f4-11e6-8c3d-cfd3dba8168f";
+	
+	protected static final File ROLE_AUTODIDACTIC_FILE = new File(TEST_DIR, "role-autodidactic.xml");
+	protected static final String ROLE_AUTODIDACTIC_OID = "a4f941dc-e3f4-11e6-8eba-9fe432784017";
+	
+	protected static final File ROLE_AUTOGRAPHIC_FILE = new File(TEST_DIR, "role-autographic.xml");
+	protected static final String ROLE_AUTOGRAPHIC_OID = "be835a70-e3f4-11e6-82cb-9b47ebe57b11";
+	
 	protected static final File USER_TEMPLATE_MAROONED_FILE = new File(TEST_DIR, "user-template-marooned.xml");
 	protected static final String USER_TEMPLATE_MAROONED_OID = "766215e8-5f1e-11e6-94bb-c3b21af53235";
 
@@ -96,6 +108,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 	private static final String EMPLOYEE_TYPE_MAROONED = "marooned";
 
+	private static final int NUMBER_OF_ROLES = 18;
+
 	private static String jackEmployeeNumber;
 	
 	@Override
@@ -104,6 +118,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         repoAddObjectFromFile(ROLE_RASTAMAN_FILE, initResult);
+        repoAddObjectFromFile(ROLE_AUTOMATIC_FILE, initResult);
+        repoAddObjectFromFile(ROLE_AUTOCRATIC_FILE, initResult);
+        repoAddObjectFromFile(ROLE_AUTODIDACTIC_FILE, initResult);
+        repoAddObjectFromFile(ROLE_AUTOGRAPHIC_FILE, initResult);
         
         repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
@@ -134,6 +152,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong object policy size", 2, defaultObjectPolicyConfiguration.size());
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, null, USER_TEMPLATE_COMPLEX_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID);
+        
+        assertRoles(NUMBER_OF_ROLES);
 	}
 		
 	private void assertObjectTemplate(List<ObjectPolicyConfigurationType> defaultObjectPolicyConfigurations,
@@ -1225,6 +1245,598 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Wrong costCenter", "NOCOST", userAfter.asObjectable().getCostCenter());
 		
 		assertAssignedNoRole(userAfter);
+	}
+	
+	@Test
+    public void test189ModifyUserGuybrushEmployeeTypeNone() throws Exception {
+		final String TEST_NAME = "test189ModifyUserGuybrushEmployeeTypeNone";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertEquals("Wrong costCenter", "NOCOST", userAfter.asObjectable().getCostCenter());
+		
+		assertAssignedNoRole(userAfter);
+	}
+	
+	/**
+	 * Assignment mapping with domain. Control: nothing should happen.
+	 * MID-3692
+	 */
+	@Test
+    public void test190ModifyUserGuybrushOrganizationWhateveric() throws Exception {
+		final String TEST_NAME = "test190ModifyUserGuybrushOrganizationWhateveric";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+        assertAssignments(userBefore, 1);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("Whateveric"));
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, createPolyString("Whateveric"));
+        
+		assertAssignedNoRole(userAfter);
+		assertAssignments(userAfter, 1);
+	}
+	
+	/**
+	 * MID-3692
+	 */
+	@Test
+    public void test191ModifyUserGuybrushOrganizationAutomatic() throws Exception {
+		final String TEST_NAME = "test191ModifyUserGuybrushOrganizationAutomatic";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("AUTO-matic"));
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+				createPolyString("Whateveric"), 
+				createPolyString("AUTO-matic"));
+        
+		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		assertAssignments(userAfter, 2);
+		
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * MID-3692
+	 */
+	@Test
+    public void test192ModifyUserGuybrushOrganizationAddMixed() throws Exception {
+		final String TEST_NAME = "test192ModifyUserGuybrushOrganizationAddMixed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 2);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
+        		createPolyString("DEMO-cratic"),
+        		createPolyString("AUTO-cratic"),
+        		createPolyString("plutocratic"),
+        		createPolyString("AUTO-didactic")
+        	);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+				createPolyString("Whateveric"), 
+				createPolyString("AUTO-matic"),
+				createPolyString("DEMO-cratic"),
+        		createPolyString("AUTO-cratic"),
+        		createPolyString("plutocratic"),
+        		createPolyString("AUTO-didactic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
+		assertAssignments(userAfter, 4);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * MID-3692
+	 */
+	@Test
+    public void test193ModifyUserGuybrushOrganizationAddOutOfDomain() throws Exception {
+		final String TEST_NAME = "test193ModifyUserGuybrushOrganizationAddOutOfDomain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 4);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
+        		createPolyString("meritocratic"),
+        		createPolyString("piratocratic")
+        	);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+				createPolyString("Whateveric"), 
+				createPolyString("AUTO-matic"),
+				createPolyString("DEMO-cratic"),
+        		createPolyString("AUTO-cratic"),
+        		createPolyString("plutocratic"),
+        		createPolyString("AUTO-didactic"),
+        		createPolyString("meritocratic"),
+        		createPolyString("piratocratic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
+		assertAssignments(userAfter, 4);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * MID-3692
+	 */
+	@Test
+    public void test194ModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
+		final String TEST_NAME = "test194ModifyUserGuybrushOrganizationDeleteMixed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 4);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
+        		createPolyString("AUTO-matic"),
+        		createPolyString("plutocratic"),
+        		createPolyString("meritocratic"),
+        		createPolyString("AUTO-didactic")
+        	);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+				createPolyString("Whateveric"), 
+				createPolyString("DEMO-cratic"),
+        		createPolyString("AUTO-cratic"),
+        		createPolyString("piratocratic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+		assertAssignments(userAfter, 2);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * MID-3692
+	 */
+	@Test
+    public void test195ModifyUserGuybrushOrganizationDeleteOutOfDomain() throws Exception {
+		final String TEST_NAME = "test195ModifyUserGuybrushOrganizationDeleteOutOfDomain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 2);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
+        		createPolyString("piratocratic"),
+        		createPolyString("DEMO-cratic")
+        	);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+				createPolyString("Whateveric"),
+        		createPolyString("AUTO-cratic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+		assertAssignments(userAfter, 2);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * Make sure that the manually assigned roles will not mess with the mapping.
+	 * MID-3692
+	 */
+	@Test
+    public void test196GuybrushAssignCaptain() throws Exception {
+		final String TEST_NAME = "test196GuybrushAssignCaptain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 2);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+				createPolyString("Whateveric"),
+        		createPolyString("AUTO-cratic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+		assertAssignments(userAfter, 3);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * Make sure that a role automatically assigned by a different mapping will not mess with this mapping.
+	 * MID-3692
+	 */
+	@Test
+    public void test197ModifyGuybrushEmployeeTypePirate() throws Exception {
+		final String TEST_NAME = "test197ModifyGuybrushEmployeeTypePirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID,  UserType.F_EMPLOYEE_TYPE, task, result, "PIRATE");
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+				createPolyString("Whateveric"),
+        		createPolyString("AUTO-cratic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+		assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+		assertAssignments(userAfter, 4);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * Make sure that changes in this mapping will not influence other assigned roles.
+	 * MID-3692
+	 */
+	@Test
+    public void test198AModifyUserGuybrushOrganizationAddInDomain() throws Exception {
+		final String TEST_NAME = "test198AModifyUserGuybrushOrganizationAddInDomain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 4);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
+        		createPolyString("AUTO-graphic"),
+        		createPolyString("AUTO-matic")
+        	);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+				createPolyString("Whateveric"),
+        		createPolyString("AUTO-cratic"),
+        		createPolyString("AUTO-graphic"),
+        		createPolyString("AUTO-matic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+		assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+		assertAssignments(userAfter, 6);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * Make sure that changes in this mapping will not influence other assigned roles.
+	 * MID-3692
+	 */
+	@Test
+    public void test198BModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
+		final String TEST_NAME = "test198BModifyUserGuybrushOrganizationDeleteMixed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 6);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
+        		createPolyString("AUTO-cratic"),
+        		createPolyString("Whateveric")
+        	);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+        		createPolyString("AUTO-graphic"),
+        		createPolyString("AUTO-matic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+		assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+		assertAssignments(userAfter, 5);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * MID-3692
+	 */
+	@Test
+    public void test199AGuyBrushModifyEmployeeTypeWannabe() throws Exception {
+		final String TEST_NAME = "test199AGuyBrushModifyEmployeeTypeWannabe";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 5);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID,  UserType.F_EMPLOYEE_TYPE, task, result, "wannabe");
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+        		createPolyString("AUTO-graphic"),
+        		createPolyString("AUTO-matic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+		assertAssignments(userAfter, 4);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * MID-3692
+	 */
+	@Test
+    public void test199BGuyBrushUnassignCaptain() throws Exception {
+		final String TEST_NAME = "test199BGuyBrushUnassignCaptain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 4);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, 
+        		createPolyString("AUTO-graphic"),
+        		createPolyString("AUTO-matic")
+			);
+        
+		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+		assertAssignments(userAfter, 3);
+		
+		// Make sure nothing was created on demand
+		assertRoles(NUMBER_OF_ROLES);
+	}
+	
+	/**
+	 * MID-3692
+	 */
+	@Test(enabled=false) // MID-3700
+    public void test199CModifyUserGuybrushOrganizationCleanup() throws Exception {
+		final String TEST_NAME = "test199ModifyUserGuybrushOrganizationCleanup";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+		
+		PrismAsserts.assertNoItem(userAfter, UserType.F_ORGANIZATION);
+        
+		assertAssignedNoRole(userAfter);
+		
+		assertRoles(NUMBER_OF_ROLES);
 	}
 	
 	@Test

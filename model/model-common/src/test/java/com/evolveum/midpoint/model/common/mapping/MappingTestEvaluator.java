@@ -90,7 +90,7 @@ public class MappingTestEvaluator {
 		return prismContext;
 	}
 
-	public void init() throws SAXException, IOException, SchemaException {
+	public void init() throws SchemaException, SAXException, IOException {
     	PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 		
