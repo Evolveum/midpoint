@@ -634,6 +634,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		evalAssignmentTarget.setEvaluateConstructions(assignmentPathSegment.isMatchingOrder());
 		evalAssignmentTarget.setAssignment(assignmentPath.last().getAssignment());
 		evalAssignmentTarget.setDirectlyAssigned(assignmentPath.size() == 1);
+		evalAssignmentTarget.setAssignmentPath(assignmentPath.clone());
 		assignment.addRole(evalAssignmentTarget, mode);
 		
 		if (mode != PlusMinusZero.MINUS && assignmentPathSegment.isProcessMembership()) {
@@ -769,7 +770,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			
 			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
 			if (policyConstraints != null) {
-				assignment.addLegacyPolicyConstraints(policyConstraints);
+				assignment.addLegacyPolicyConstraints(policyConstraints, assignmentPath.clone(), targetType);
 			}
 		}
 	}

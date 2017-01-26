@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -27,12 +28,21 @@ import java.util.Objects;
  */
 public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<ExclusionPolicyConstraintType> {
 
-	private final EvaluatedAssignment conflictingAssignment;
+	@NotNull private final EvaluatedAssignment conflictingAssignment;
+	private final ObjectType thisTarget;
+	private final ObjectType conflictingTarget;
+	private final AssignmentPath thisPath;
+	private final AssignmentPath conflictingPath;
 
 	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-			String message, EvaluatedAssignment conflictingAssignment) {
+			String message, @NotNull EvaluatedAssignment conflictingAssignment,
+			ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
 		super(PolicyConstraintKindType.EXCLUSION, constraint, message);
 		this.conflictingAssignment = conflictingAssignment;
+		this.thisTarget = thisTarget;
+		this.conflictingTarget = conflictingTarget;
+		this.thisPath = thisPath;
+		this.conflictingPath = conflictingPath;
 	}
 
 	public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
@@ -61,16 +71,26 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 		// cannot debug dump conflicting assignment in detail, as we might go into infinite loop
 		// (the assignment could have evaluated rule that would point to another conflicting assignment, which
 		// could point back to this rule)
-		DebugUtil.debugDumpWithLabelToString(sb, "conflictingAssignment", conflictingAssignment, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingAssignment", conflictingAssignment, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "thisPath", thisPath, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingPath", conflictingPath, indent);
 	}
 
 	@Override
 	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType() {
 		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
 		fillCommonContent(rv);
-		if (conflictingAssignment != null) {
-			rv.setConflictingAssignment(conflictingAssignment.getAssignmentType());
+		rv.setThisRef(ObjectTypeUtil.createObjectRef(thisTarget));
+		rv.setThisDisplayName(ObjectTypeUtil.getDisplayName(thisTarget));
+		if (thisPath != null) {
+			rv.setThisPath(thisPath.toAssignmentPathType());
 		}
+		rv.setConflictingRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
+		rv.setConflictingDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
+		if (conflictingPath != null) {
+			rv.setConflictingPath(conflictingPath.toAssignmentPathType());
+		}
+		rv.setConflictingAssignment(conflictingAssignment.getAssignmentType());
 		return rv;
 	}
 }

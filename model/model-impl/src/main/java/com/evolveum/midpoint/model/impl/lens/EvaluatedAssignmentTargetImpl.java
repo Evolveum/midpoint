@@ -36,6 +36,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	PrismObject<? extends FocusType> target;
 	private boolean directlyAssigned;
 	private boolean evaluateConstructions;
+	private AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
 	private AssignmentType assignment;
 	private Collection<ExclusionPolicyConstraintType> exclusions = null;
 
@@ -58,6 +59,11 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	}
 
 	@Override
+	public boolean appliesToFocus() {
+		return assignmentPath.last().isMatchingOrder();
+	}
+
+	@Override
 	public boolean isEvaluateConstructions() {
 		return evaluateConstructions;
 	}
@@ -74,7 +80,16 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	public void setAssignment(AssignmentType assignment) {
 		this.assignment = assignment;
 	}
-	
+
+	@Override
+	public AssignmentPathImpl getAssignmentPath() {
+		return assignmentPath;
+	}
+
+	public void setAssignmentPath(AssignmentPathImpl assignmentPath) {
+		this.assignmentPath = assignmentPath;
+	}
+
 	public String getOid() {
 		return target.getOid();
 	}

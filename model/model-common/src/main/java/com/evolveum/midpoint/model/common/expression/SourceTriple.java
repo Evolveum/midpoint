@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -37,11 +38,11 @@ public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends
 		this.source = source;
 	}
 
-	public SourceTriple(Source<V,D> source, Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
+	public SourceTriple(Source<V,D> source, @NotNull Collection<V> zeroSet, @NotNull Collection<V> plusSet, @NotNull Collection<V> minusSet) {
 		super(zeroSet, plusSet, minusSet);
 		this.source = source;
 	}
-	
+
 	public Source<V,D> getSource() {
 		return source;
 	}

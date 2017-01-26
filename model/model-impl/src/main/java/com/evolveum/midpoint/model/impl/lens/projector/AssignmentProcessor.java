@@ -16,21 +16,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -541,11 +533,11 @@ public class AssignmentProcessor {
                 throw new IllegalStateException("Projection " + desc + " went looney");
             }
 
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple = 
-            		new PrismValueDeltaSetTriple<PrismPropertyValue<Construction>>(
-            				getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
-            				getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
-            				getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
+            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
+					new PrismValueDeltaSetTriple<>(
+							getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
+							getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
+							getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
             LensProjectionContext projectionContext = context.findProjectionContext(rat);
             if (projectionContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
@@ -749,12 +741,13 @@ public class AssignmentProcessor {
 		}
 	}
 
+	@NotNull
 	private Collection<PrismPropertyValue<Construction>> getConstructions(ConstructionPack accountConstructionPack, boolean validOnly) {
 		if (accountConstructionPack == null) {
-			return null;
+			return Collections.emptySet();
 		}
 		if (validOnly && !accountConstructionPack.hasValidAssignment()) {
-			return null;
+			return Collections.emptySet();
 		}
 		return accountConstructionPack.getConstructions();
 	}

@@ -18,10 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -894,6 +891,47 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         return sb.toString();
     }
 
+    @Override
+	public String dumpPolicyRules(int indent) {
+		if (evaluatedAssignmentTriple == null) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		evaluatedAssignmentTriple.debugDumpSets(sb, assignment -> {
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append(assignment.toHumanReadableString());
+			@SuppressWarnings({"unchecked", "raw"})
+			Collection<EvaluatedPolicyRule> targetPolicyRules = assignment.getTargetPolicyRules();
+			@SuppressWarnings("unchecked")
+			Collection<EvaluatedPolicyRule> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
+			for (EvaluatedPolicyRule rule: targetPolicyRules) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent+1);
+				if (thisTargetPolicyRules.stream().anyMatch(d -> d == rule)) {
+					sb.append("local ");
+				}
+				sb.append("rule: ").append(rule.getName());
+				for (EvaluatedPolicyRuleTrigger trigger: rule.getTriggers()) {
+					sb.append("\n");
+					DebugUtil.indentDebugDump(sb, indent+2);
+					sb.append("trigger: ").append(trigger);
+					if (trigger instanceof EvaluatedExclusionTrigger
+							&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
+						sb.append("\n");
+						DebugUtil.indentDebugDump(sb, indent+3);
+						sb.append("conflict: ").append(((EvaluatedAssignmentImpl)((EvaluatedExclusionTrigger) trigger).getConflictingAssignment()).toHumanReadableString());
+					}
+				}
+				for (PolicyExceptionType exc: rule.getPolicyExceptions()) {
+					sb.append("\n");
+					DebugUtil.indentDebugDump(sb, indent+2);
+					sb.append("exception: ").append(exc);
+				}
+			}
+		}, 1);
+		return sb.toString();
+	}
+
 	private <F extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label, Collection<EvaluatedAssignmentImpl<F>> set, int indent) {
 		sb.append("\n");
 		DebugUtil.debugDumpLabel(sb, label, indent);
@@ -917,7 +955,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 				sb.append("; ");
 			}
 			if (directPolicyRules != null && directPolicyRules.stream().anyMatch(d -> d==rule)) {
-				sb.append("!");
+				sb.append("L");		// L for Local
 			}
 			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
 			sb.append("->");

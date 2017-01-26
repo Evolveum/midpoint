@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -31,6 +30,9 @@ public interface EvaluatedAssignmentTarget extends DebugDumpable {
 
 	boolean isDirectlyAssigned();
 
+	// if this target applies to focus (by direct assignment or by some inducement)
+	boolean appliesToFocus();
+
 	/**
 	 * True for roles whose constructions are evaluated - i.e. those roles that are considered to be applied
 	 * to the focal object (e.g. to the user).
@@ -43,4 +45,6 @@ public interface EvaluatedAssignmentTarget extends DebugDumpable {
 	 * (https://wiki.evolveum.com/display/midPoint/Assignment+Configuration#AssignmentConfiguration-ConstructionVariables)
 	 */
 	AssignmentType getAssignment();
+
+	AssignmentPath getAssignmentPath();
 }

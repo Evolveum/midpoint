@@ -59,6 +59,7 @@ metaroles:
     </inducement>
     <inducement id="2">
         <policyRule>
+            <name>approve-any-corp-role</name>
             <policyConstraints>
                 <!-- applies to all assignment operations of this metarole-bearer as the target -->
                 <assignment/>
@@ -70,8 +71,12 @@ metaroles:
             </policyActions>
         </policyRule>
     </inducement>
-    <inducement id="3">
+	<inducement id="3">
         <targetRef oid="12345678-d34d-b33f-f00d-55555555aaaa" type="RoleType"/>
         <order>2</order>
     </inducement>
+	<inducement id="4">
+		<targetRef oid="f8f217f2-b864-416b-bce6-90c85385e43e" type="RoleType"/>		<!-- metarole-sod-notification -->
+	</inducement>
+
 </role>

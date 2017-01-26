@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.api.context;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -42,4 +43,6 @@ public interface AssignmentPathSegment extends DebugDumpable {
 	ObjectType getOrderOneObject();
 	
 	boolean isDelegation();
+
+	AssignmentPathSegmentType toAssignmentPathSegmentType();
 }
