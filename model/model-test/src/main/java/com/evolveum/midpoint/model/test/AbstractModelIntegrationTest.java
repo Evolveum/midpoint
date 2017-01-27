@@ -392,12 +392,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     	IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
     }
     
+    
     protected void assertUsers(int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-    	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertUsers");
+    	assertObjects(UserType.class, expectedNumberOfUsers);
+    }
+    
+    protected void assertRoles(int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	assertObjects(RoleType.class, expectedNumberOfUsers);
+    }
+    
+    protected <O extends ObjectType> void assertObjects(Class<O> type, int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertObjects");
         OperationResult result = task.getResult();
-    	List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-        if (verbose) display("Users", users);
-        assertEquals("Unexpected number of users", expectedNumberOfUsers, users.size());
+    	List<PrismObject<O>> users = modelService.searchObjects(type, null, null, task, result);
+        if (verbose) display(type.getSimpleName()+"s", users);
+        assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfUsers, users.size());
     }
 
 	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {

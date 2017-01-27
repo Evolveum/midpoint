@@ -36,33 +36,9 @@ public class PageRegistrationBase extends PageBase {
 	}
 
 	private void initSelfRegistrationConfiguration() {
-		SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
-
-			@Override
-			public SecurityPolicyType run() {
-
-				Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
-				task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
-				OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
-
-				try {
-					return getModelInteractionService().getSecurityPolicy(null, task, result);
-				} catch (ObjectNotFoundException | SchemaException e) {
-					LOGGER.error("Could not retrieve security policy");
-
-				}
-				return null;
-			}
-
-		});
-
-		if (securityPolicy == null) {
-			LOGGER.error("No security policy defined.");
-			getSession()
-					.error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
-			throw new RestartResponseException(PageLogin.class);
-		}
-
+		
+		SecurityPolicyType securityPolicy = resolveSecurityPolicy();
+		
 		this.selfRegistrationDto = new SelfRegistrationDto();
 		try {
 			this.selfRegistrationDto.initSelfRegistrationDto(securityPolicy);
@@ -79,32 +55,7 @@ public class PageRegistrationBase extends PageBase {
 	private void initResetCredentialsConfiguration() {
 
 		// TODO: cleanup, the same as in the PageRegistrationBase
-		SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
-
-			@Override
-			public SecurityPolicyType run() {
-
-				Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
-				task.setChannel(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
-				OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
-
-				try {
-					return getModelInteractionService().getSecurityPolicy(null, task, result);
-				} catch (ObjectNotFoundException | SchemaException e) {
-					LOGGER.error("Could not retrieve security policy");
-
-				}
-				return null;
-			}
-
-		});
-
-		if (securityPolicy == null) {
-			LOGGER.error("No security policy defined.");
-			getSession()
-					.error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
-			throw new RestartResponseException(PageLogin.class);
-		}
+		SecurityPolicyType securityPolicy = resolveSecurityPolicy();
 
 		this.resetPasswordPolicy = new ResetPolicyDto();
 		try {
@@ -116,6 +67,38 @@ public class PageRegistrationBase extends PageBase {
 							.getString());
 			throw new RestartResponseException(PageLogin.class);
 		}
+
+	}
+	
+	private SecurityPolicyType resolveSecurityPolicy() {
+		SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
+
+			@Override
+			public SecurityPolicyType run() {
+
+				Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
+				task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+				OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
+
+				try {
+					return getModelInteractionService().getSecurityPolicy(null, task, result);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error("Could not retrieve security policy");
+					return null;
+				}
+		
+			}
+
+		});
+
+		if (securityPolicy == null) {
+			LOGGER.error("No security policy defined.");
+			getSession()
+					.error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
+			throw new RestartResponseException(PageLogin.class);
+		}
+		
+		return securityPolicy;
 
 	}
 

@@ -244,6 +244,58 @@
             </script>
 		</condition>
     </mapping>
+    
+    <!-- mapping with domain specification -->
+    <mapping>
+    	<name>automappic</name>
+    	<trace>true</trace>
+    	<authoritative>true</authoritative>
+    	<source>
+    		<path>organization</path>
+    		<set>
+    			<condition>
+			    	<trace>true</trace>
+	    			<script>
+	    				<code>basic.stringify(organization)?.startsWith("AUTO-")</code>
+	    			</script>
+	    		</condition>
+    		</set>
+    	</source>
+    	<expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+						<expression>
+					    	<trace>true</trace>
+							<script>
+								<code>'Auto' + organization.substring(5,organization.length())</code>
+							</script>
+						</expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+					<populateItem>
+						<expression>
+							<script>
+								<code>
+									'AUTO'+organization
+								</code>
+							</script>
+						</expression>
+						<target>
+							<path>name</path>
+						</target>
+					</populateItem>
+				</populateObject>
+            </assignmentTargetSearch>
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    </mapping>
 
     <mapping>
     	<name>Org mapping</name>
