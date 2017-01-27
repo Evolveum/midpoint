@@ -87,7 +87,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		for (AbstractFormItemType formItem : formItems) {
 
 			if (formItem instanceof FormFieldGroupType) {
-				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<O>(itemView.newChildId(), formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
+				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<O>(itemView.newChildId(), formItem.getName().getLocalPart(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
 				dynamicFieldGroupPanel.setOutputMarkupId(true);
 				itemView.add(dynamicFieldGroupPanel);
 				continue;
@@ -113,7 +113,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 	}
 	
 	private ItemWrapper createItemWrapper(AbstractFormItemType formField, ObjectWrapper objectWrapper) {
-		ItemPathType itemPathType = formField.getRef();
+		ItemPathType itemPathType = formField.getPath();
 
 		if (itemPathType == null) {
 			getSession().error("Bad form item definition. It has to contain reference to the real attribute");
