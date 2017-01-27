@@ -29,9 +29,7 @@ import java.util.Objects;
 public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<ExclusionPolicyConstraintType> {
 
 	@NotNull private final EvaluatedAssignment conflictingAssignment;
-	private final ObjectType thisTarget;
 	private final ObjectType conflictingTarget;
-	private final AssignmentPath thisPath;
 	private final AssignmentPath conflictingPath;
 
 	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
@@ -39,9 +37,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 			ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
 		super(PolicyConstraintKindType.EXCLUSION, constraint, message);
 		this.conflictingAssignment = conflictingAssignment;
-		this.thisTarget = thisTarget;
 		this.conflictingTarget = conflictingTarget;
-		this.thisPath = thisPath;
 		this.conflictingPath = conflictingPath;
 	}
 
@@ -72,23 +68,17 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 		// (the assignment could have evaluated rule that would point to another conflicting assignment, which
 		// could point back to this rule)
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingAssignment", conflictingAssignment, indent);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "thisPath", thisPath, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingPath", conflictingPath, indent);
 	}
 
 	@Override
-	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType() {
+	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
 		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
-		fillCommonContent(rv);
-		rv.setThisRef(ObjectTypeUtil.createObjectRef(thisTarget));
-		rv.setThisDisplayName(ObjectTypeUtil.getDisplayName(thisTarget));
-		if (thisPath != null) {
-			rv.setThisPath(thisPath.toAssignmentPathType());
-		}
-		rv.setConflictingRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
-		rv.setConflictingDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
+		fillCommonContent(rv, owningRule);
+		rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
+		rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
 		if (conflictingPath != null) {
-			rv.setConflictingPath(conflictingPath.toAssignmentPathType());
+			rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType());
 		}
 		rv.setConflictingAssignment(conflictingAssignment.getAssignmentType());
 		return rv;

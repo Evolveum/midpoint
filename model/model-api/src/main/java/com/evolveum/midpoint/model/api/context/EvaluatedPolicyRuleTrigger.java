@@ -15,11 +15,13 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import org.jetbrains.annotations.NotNull;
 
@@ -109,16 +111,23 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 		return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
 	}
 
-	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType() {
+	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
 		EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
-		fillCommonContent(rv);
+		fillCommonContent(rv, owningRule);
 		return rv;
 	}
 
-	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt) {
+	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt, EvaluatedPolicyRule owningRule) {
 		tt.setConstraintKind(constraintKind);
 		tt.setConstraint(constraint);
 		tt.setMessage(message);
+		if (owningRule.getAssignmentPath() != null) {
+			tt.setAssignmentPath(owningRule.getAssignmentPath().toAssignmentPathType());
+		}
+		ObjectType directOwner = owningRule.getDirectOwner();
+		if (directOwner != null) {
+			tt.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
+			tt.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
+		}
 	}
-
 }

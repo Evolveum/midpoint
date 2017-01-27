@@ -33,9 +33,19 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final PolicyRuleType policyRuleType;
-	@Nullable private final AssignmentPath assignmentPath;
 	private final Collection<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
 	private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
+
+	/**
+	 * Information about exact place where the rule was found. This can be important for rules that are
+	 * indirectly attached to an assignment.
+	 *
+	 * An example: Let Engineer induce Employee which conflicts with Contractor. The SoD rule is attached
+	 * to Employee. But let the user have assignments for Engineer and Contractor only. When evaluating
+	 * Engineer assignment, we find a (indirectly attached) SoD rule. But we need to know it came from Employee.
+	 * This is what assignmentPath (Engineer->Employee->(maybe some metarole)->rule) and directOwner (Employee) are for.
+	 */
+	@Nullable private final AssignmentPath assignmentPath;
 	@Nullable private final ObjectType directOwner;
 
 	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath) {
@@ -163,7 +173,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType() {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
 		rv.setPolicyRule(policyRuleType);
-		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType()));
+		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this)));
 		return rv;
 	}
 

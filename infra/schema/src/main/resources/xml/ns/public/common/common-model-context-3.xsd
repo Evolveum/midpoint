@@ -479,7 +479,10 @@
             <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
             <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0" />
             <xsd:element name="message" type="xsd:string" minOccurs="0" />
-        </xsd:sequence>
+			<xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0" />
+			<xsd:element name="directOwnerRef" type="c:ObjectReferenceType" minOccurs="0" />
+			<xsd:element name="directOwnerDisplayName" type="t:PolyStringType" minOccurs="0" />
+		</xsd:sequence>
     </xsd:complexType>
 	<xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
 
@@ -487,12 +490,9 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
 				<xsd:sequence>
-					<xsd:element name="thisRef" type="c:ObjectReferenceType" minOccurs="0" />
-					<xsd:element name="thisDisplayName" type="t:PolyStringType" minOccurs="0" />
-					<xsd:element name="thisPath" type="tns:AssignmentPathType" minOccurs="0" />
-					<xsd:element name="conflictingRef" type="c:ObjectReferenceType" minOccurs="0" />
-					<xsd:element name="conflictingDisplayName" type="t:PolyStringType" minOccurs="0" />
-					<xsd:element name="conflictingPath" type="tns:AssignmentPathType" minOccurs="0" />
+					<xsd:element name="conflictingObjectRef" type="c:ObjectReferenceType" minOccurs="0" />
+					<xsd:element name="conflictingObjectDisplayName" type="t:PolyStringType" minOccurs="0" />
+					<xsd:element name="conflictingObjectPath" type="tns:AssignmentPathType" minOccurs="0" />
 					<xsd:element name="conflictingAssignment" type="tns:AssignmentType" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:extension>
