@@ -30,13 +30,43 @@ public class ExpressionConstants {
 	public static final QName VAR_PROJECTION = new QName(SchemaConstants.NS_C, "projection");
 	public static final QName VAR_SHADOW = new QName(SchemaConstants.NS_C, "shadow");
 	public static final QName VAR_SOURCE = new QName(SchemaConstants.NS_C, "source");
+	
+	/**
+	 * The magic assignment variable. It will be always set to a value. Its value is basically the assignment that is the source of the assignment/incudement chain (usually user assignment). However, it is enriched by the values from the other inducements and roles along the chain. Extension part of this magic data structure contains values compiled from the whole chain. The value that is closer to focus (e.g. closer to user) overrides all the values that are further away along the chain.
+	 */
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+	
+	/**
+	 * The assignment or inducement that is right in front of thisAssignment in the assignment/inducement chain.
+	 */
 	public static final QName VAR_IMMEDIATE_ASSIGNMENT = new QName(SchemaConstants.NS_C, "immediateAssignment");
+	
+	/**
+	 * The assignment or inducement that contains the construction.
+	 * TODO: is this correct?
+	 */
 	public static final QName VAR_THIS_ASSIGNMENT = new QName(SchemaConstants.NS_C, "thisAssignment");
+	
+	/**
+	 * The assignment contained in the focus object (e.g. in a user). This is the "primary" assignment, the source of the whole assignment/inducement chain.
+	 */
 	public static final QName VAR_FOCUS_ASSIGNMENT = new QName(SchemaConstants.NS_C, "focusAssignment");
+	
+	/**
+	 * The role that is right in front of thisAssignment in the assignment/inducement chain.
+	 */
 	public static final QName VAR_IMMEDIATE_ROLE = new QName(SchemaConstants.NS_C, "immediateRole");
+	
+	/**
+	 * The role that contains the expression.
+	 */
 	public static final QName VAR_CONTAINING_OBJECT = new QName(SchemaConstants.NS_C, "containingObject");
-	public static final QName VAR_ORDER_ONE_OBJECT = new QName(SchemaConstants.NS_C, "thisObject");
+	
+	/**
+	 * TODO: ????
+	 */
+	public static final QName VAR_THIS_OBJECT = new QName(SchemaConstants.NS_C, "thisObject");
+	
 	public static final QName VAR_OPERATION = new QName(SchemaConstants.NS_C, "operation");
 	public static final QName VAR_RESOURCE = new QName(SchemaConstants.NS_C, "resource");
 	public static final QName VAR_MODEL_CONTEXT = new QName(SchemaConstants.NS_C, "modelContext");
