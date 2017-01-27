@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.Foreachable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.Transformer;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -47,17 +48,20 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     /**
      * Collection of values that were not changed.
      */
-    protected Collection<T> zeroSet;
+    @NotNull
+    protected final Collection<T> zeroSet;
 
     /**
      * Collection of values that were added.
      */
-    protected Collection<T> plusSet;
+	@NotNull
+	protected final Collection<T> plusSet;
 
     /**
      * Collection of values that were deleted.
      */
-    protected Collection<T> minusSet;
+	@NotNull
+	protected final Collection<T> minusSet;
 
     public DeltaSetTriple() {
         zeroSet = createSet();
@@ -65,7 +69,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
         minusSet = createSet();
     }
 
-    public DeltaSetTriple(Collection<T> zeroSet, Collection<T> plusSet, Collection<T> minusSet) {
+    public DeltaSetTriple(@NotNull Collection<T> zeroSet, @NotNull Collection<T> plusSet, @NotNull Collection<T> minusSet) {
         this.zeroSet = zeroSet;
         this.plusSet = plusSet;
         this.minusSet = minusSet;
@@ -108,7 +112,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     }
 
     protected Collection<T> createSet() {
-        return new ArrayList<T>();
+        return new ArrayList<>();
     }
 
     public Collection<T> getZeroSet() {
@@ -319,15 +323,16 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	}
 
 	protected void copyValues(DeltaSetTriple<T> clone, Cloner<T> cloner) {
-		clone.zeroSet = cloneSet(this.zeroSet, cloner);
-		clone.plusSet = cloneSet(this.plusSet, cloner);
-		clone.minusSet = cloneSet(this.minusSet, cloner);
+    	clone.zeroSet.clear();
+		clone.zeroSet.addAll(cloneSet(this.zeroSet, cloner));
+		clone.plusSet.clear();
+		clone.plusSet.addAll(cloneSet(this.plusSet, cloner));
+		clone.minusSet.clear();
+		clone.minusSet.addAll(cloneSet(this.minusSet, cloner));
 	}
 
-	private Collection<T> cloneSet(Collection<T> origSet, Cloner<T> cloner) {
-		if (origSet == null) {
-			return null;
-		}
+	@NotNull
+	private Collection<T> cloneSet(@NotNull Collection<T> origSet, Cloner<T> cloner) {
 		Collection<T> clonedSet = createSet();
 		for (T origVal: origSet) {
 			clonedSet.add(cloner.clone(origVal));

@@ -25,9 +25,9 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
@@ -274,12 +274,28 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrder", isMatchingOrder, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "processMembership", processMembership, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "validityOverride", validityOverride, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", (DebugDumpable)evaluationOrder, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", evaluationOrder, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment", assignmentIdi.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "target", target==null?"null":target.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "source", source==null?"null":source.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
 		return sb.toString();
+	}
+
+	@Override
+	public AssignmentPathSegmentType toAssignmentPathSegmentType() {
+		AssignmentPathSegmentType rv = new AssignmentPathSegmentType();
+		rv.setAssignment(getAssignment());
+		if (source != null) {
+			rv.setSourceRef(ObjectTypeUtil.createObjectRef(source));
+			rv.setSourceDisplayName(ObjectTypeUtil.getDisplayName(source));
+		}
+		if (target != null) {
+			rv.setTargetRef(ObjectTypeUtil.createObjectRef(target));
+			rv.setTargetDisplayName(ObjectTypeUtil.getDisplayName(target));
+		}
+		rv.setMatchingOrder(isMatchingOrder());
+		return rv;
 	}
 }

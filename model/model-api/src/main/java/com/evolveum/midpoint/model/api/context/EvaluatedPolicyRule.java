@@ -21,6 +21,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -36,6 +37,13 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	PolicyRuleType getPolicyRule();
 
 	AssignmentPath getAssignmentPath();
+
+	/**
+	 * Object that "directly owns" the rule. TODO. [consider if really needed]
+	 * @return
+	 */
+	@Nullable
+	ObjectType getDirectOwner();
 
 	PolicyConstraintsType getPolicyConstraints();
 	

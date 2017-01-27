@@ -59,40 +59,26 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
-	private DeltaSetTriple<Construction<F>> constructions;
-	private DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles;
-	private Collection<PrismReferenceValue> orgRefVals;
-	private Collection<PrismReferenceValue> membershipRefVals;
-	private Collection<PrismReferenceValue> delegationRefVals;
-	private Collection<Authorization> authorizations;
-	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
-	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
-	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules;	// rules related to the focus itself
-	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules;	// rules related to the target of this assignment
+	@NotNull private final DeltaSetTriple<Construction<F>> constructions = new DeltaSetTriple<>();
+	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
+	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
+	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
+	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
+	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
+	@NotNull private final Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings = new ArrayList<>();
+	@NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
+	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();	// rules related to the focus itself
+	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules = new ArrayList<>();	// rules related to the target of this assignment
 	// rules directly related to the target of this assignment - should be a subset of targetPolicyRules
 	// (this means that if a reference is in thisTargetPolicyRules, then the same reference should
 	// be in targetPolicyRules)
-	@NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules;
+	@NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules = new ArrayList<>();
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
 	private boolean presentInCurrentObject;
 	private boolean presentInOldObject;
 	private Collection<String> policySituations = new ArrayList<>();
-
-	public EvaluatedAssignmentImpl() {
-		constructions = new DeltaSetTriple<>();
-		roles = new DeltaSetTriple<>();
-		orgRefVals = new ArrayList<>();
-		membershipRefVals = new ArrayList<>();
-		delegationRefVals = new ArrayList<>();
-		authorizations = new ArrayList<>();
-		focusMappings = new ArrayList<>();
-		adminGuiConfigurations = new ArrayList<>(); 
-		focusPolicyRules = new ArrayList<>();
-		targetPolicyRules = new ArrayList<>();
-		thisTargetPolicyRules = new ArrayList<>();
-	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
 		return assignmentIdi;
@@ -123,6 +109,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return targetRef.getRelation();
 	}
 
+	@NotNull
 	public DeltaSetTriple<Construction<F>> getConstructions() {
 		return constructions;
 	}
@@ -169,6 +156,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		constructions.addToMinusSet(contruction);
 	}
 	
+	@NotNull
 	@Override
 	public DeltaSetTriple<EvaluatedAssignmentTargetImpl> getRoles() {
 		return roles;
@@ -178,6 +166,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		roles.addToSet(mode, role);
 	}
 
+	@NotNull
 	public Collection<PrismReferenceValue> getOrgRefVals() {
 		return orgRefVals;
 	}
@@ -186,6 +175,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		orgRefVals.add(org);
 	}
 	
+	@NotNull
 	public Collection<PrismReferenceValue> getMembershipRefVals() {
 		return membershipRefVals;
 	}
@@ -194,6 +184,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		membershipRefVals.add(org);
 	}
 
+	@NotNull
 	public Collection<PrismReferenceValue> getDelegationRefVals() {
 		return delegationRefVals;
 	}
@@ -205,6 +196,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAuthorizations()
 	 */
+	@NotNull
 	@Override
 	public Collection<Authorization> getAuthorizations() {
 		return authorizations;
@@ -214,6 +206,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations.add(authorization);
 	}
 	
+	@NotNull
 	public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
 		return adminGuiConfigurations;
 	}
@@ -222,6 +215,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		adminGuiConfigurations.add(adminGuiConfiguration);
 	}
 
+	@NotNull
 	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getFocusMappings() {
 		return focusMappings;
 	}
@@ -329,33 +323,33 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		thisTargetPolicyRules.add(policyRule);
 	}
 
-	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
+	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
 		if (!constraints.getModification().isEmpty()) {
 			PolicyConstraintsType focusConstraints = constraints.clone();
 			focusConstraints.getAssignment().clear();
 			focusConstraints.getMaxAssignees().clear();
 			focusConstraints.getMinAssignees().clear();
 			focusConstraints.getExclusion().clear();
-			focusPolicyRules.add(toEvaluatedPolicyRule(focusConstraints));
+			focusPolicyRules.add(toEvaluatedPolicyRule(focusConstraints, assignmentPath, directOwner));
 		}
 		if (!constraints.getMinAssignees().isEmpty() || !constraints.getMaxAssignees().isEmpty()
 				|| !constraints.getAssignment().isEmpty() || !constraints.getExclusion().isEmpty()) {
 			PolicyConstraintsType targetConstraints = constraints.clone();
 			targetConstraints.getModification().clear();
-			EvaluatedPolicyRule evaluatedPolicyRule = toEvaluatedPolicyRule(targetConstraints);
+			EvaluatedPolicyRule evaluatedPolicyRule = toEvaluatedPolicyRule(targetConstraints, assignmentPath, directOwner);
 			targetPolicyRules.add(evaluatedPolicyRule);
 			thisTargetPolicyRules.add(evaluatedPolicyRule);
 		}
 	}
 
 	@NotNull
-	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints) {
+	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
 		PolicyActionsType policyActionsType = new PolicyActionsType();
 		policyActionsType.setEnforcement(new EnforcementPolicyActionType());
 		policyRuleType.setPolicyActions(policyActionsType);
-		return new EvaluatedPolicyRuleImpl(policyRuleType, null);
+		return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath);
 	}
 
 	@Override
@@ -381,11 +375,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		}
 	}
 
-	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
+	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) {
 		boolean hasException = false; 
 		for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
 			if (policyException.getRuleName().equals(rule.getName())) {
-				LensUtil.procesRuleWithException(rule, trigger, policySituations, policyException);
+				LensUtil.processRuleWithException(rule, trigger, policySituations, policyException);
 				hasException = true;
 //			} else {
 //				LOGGER.trace("Skipped exception because it does not match rule name, exception: {}, rule: {}", policyException.getRuleName(), rule.getName());
@@ -471,5 +465,12 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		} else {
 			return toString();
 		}
+	}
+
+	public List<EvaluatedAssignmentTargetImpl> getNonNegativeTargets() {
+		List<EvaluatedAssignmentTargetImpl> rv = new ArrayList<>();
+		rv.addAll(roles.getZeroSet());
+		rv.addAll(roles.getPlusSet());
+		return rv;
 	}
 }

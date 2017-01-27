@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
@@ -25,8 +26,10 @@ import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -34,19 +37,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class AssignmentPathImpl implements AssignmentPath {
 	
-	private List<AssignmentPathSegmentImpl> segments;
+	private final List<AssignmentPathSegmentImpl> segments = new ArrayList<>();
 
 	public AssignmentPathImpl() {
-		segments = createNewSegments();
 	}
 	
 	AssignmentPathImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
-		this.segments = createNewSegments();
 		segments.add(new AssignmentPathSegmentImpl(assignmentIdi, true));
-	}
-
-	private List<AssignmentPathSegmentImpl> createNewSegments() {
-		return new ArrayList<>();
 	}
 
 	@Override
@@ -81,12 +78,12 @@ public class AssignmentPathImpl implements AssignmentPath {
 		if (isEmpty()) {
 			return EvaluationOrderImpl.ZERO;
 		} else {
-			return segments.get(segments.size()-1).getEvaluationOrder();
+			return last().getEvaluationOrder();
 		}
 	}
 	
 	@Override
-	public AssignmentPathSegment last() {
+	public AssignmentPathSegmentImpl last() {
 		if (isEmpty()) {
 			return null;
 		} else {
@@ -115,7 +112,15 @@ public class AssignmentPathImpl implements AssignmentPath {
 		return false;
 	}
 
-	
+	@NotNull
+	@Override
+	public List<ObjectType> getFirstOrderChain() {
+		return segments.stream()
+				.filter(seg -> seg.isMatchingOrder() && seg.getTarget() != null)
+				.map(seg -> seg.getTarget())
+				.collect(Collectors.toList());
+	}
+
 	/**
 	 * Shallow clone.
 	 */
@@ -157,4 +162,10 @@ public class AssignmentPathImpl implements AssignmentPath {
 		return sb.toString();
 	}
 
+	@Override
+	public AssignmentPathType toAssignmentPathType() {
+		AssignmentPathType rv = new AssignmentPathType();
+		segments.forEach(seg -> rv.getSegment().add(seg.toAssignmentPathSegmentType()));
+		return rv;
+	}
 }

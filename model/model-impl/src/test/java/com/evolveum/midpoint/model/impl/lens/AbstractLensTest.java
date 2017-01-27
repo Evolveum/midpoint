@@ -91,7 +91,10 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	protected static final File ROLE_THIEF_FILE = new File(TEST_DIR, "role-thief.xml");
 	protected static final String ROLE_THIEF_OID = "5ad00bd6-c550-466f-b15e-4d5fb195b369";
 
-    protected static final File ROLE_CORP_CONTRACTOR_FILE = new File(TEST_DIR, "role-corp-contractor.xml");
+	protected static final File ROLE_METAROLE_SOD_NOTIFICATION_FILE = new File(TEST_DIR, "role-metarole-sod-notification.xml");
+	protected static final String ROLE_METAROLE_SOD_NOTIFICATION_OID = "f8f217f2-b864-416b-bce6-90c85385e43e";
+
+	protected static final File ROLE_CORP_CONTRACTOR_FILE = new File(TEST_DIR, "role-corp-contractor.xml");
     protected static final String ROLE_CORP_CONTRACTOR_OID = "12345678-d34d-b33f-f00d-55555555a004";
 
     protected static final File ROLE_CORP_CUSTOMER_FILE = new File(TEST_DIR, "role-corp-customer.xml");
@@ -119,6 +122,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	protected static final String ROLE_CORP_AUTH_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
 
 	protected static final File[] ROLE_CORP_FILES = {
+			ROLE_METAROLE_SOD_NOTIFICATION_FILE,
 			ROLE_CORP_AUTH_FILE,
             ROLE_CORP_GENERIC_METAROLE_FILE,
             ROLE_CORP_JOB_METAROLE_FILE,

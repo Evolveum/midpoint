@@ -33,6 +33,7 @@ public class TestAssignmentEvaluator extends TestAbstractAssignmentEvaluator {
 
 	
 	 protected static final File[] ROLE_CORP_FILES = {
+	 			ROLE_METAROLE_SOD_NOTIFICATION_FILE,
 	            ROLE_CORP_AUTH_FILE,
 	            ROLE_CORP_GENERIC_METAROLE_FILE,
 	            ROLE_CORP_JOB_METAROLE_FILE,

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
@@ -13,11 +14,23 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="4838ce2c-5250-4d9c-b5cc-b6b946852806"
+
+<role oid="f8f217f2-b864-416b-bce6-90c85385e43e"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<!-- This is a hidden thief; not directly listed in criminal-exclusion participants. But should be excluded nevertheless. -->
-    <name>Respectable</name>
+	<name>metarole-sod-notification</name>
 	<inducement>
-		<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> 		<!-- Thief -->
+		<policyRule>
+			<name>notify-exclusion-violations</name>
+			<policyConstraints>
+				<situation>
+					<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+				</situation>
+			</policyConstraints>
+			<policyActions>
+				<notification>
+					<name>dummy</name>
+				</notification>
+			</policyActions>
+		</policyRule>
 	</inducement>
 </role>
