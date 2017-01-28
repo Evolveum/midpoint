@@ -24,7 +24,7 @@
 		</display>
 		<formItems>
 			<formField>
-				<name>Family name</name>
+				<name>FamilyName</name>
 			</formField>
 			<formFieldGroup>
 				<name>Address</name>

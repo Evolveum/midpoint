@@ -9,7 +9,7 @@
       },
       "formItems" : [ {
         "@element" : "formField",
-        "name" : "Family name"
+        "name" : "FamilyName"
       }, {
         "@element" : "formFieldGroup",
         "name" : "Address",
