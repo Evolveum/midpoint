@@ -183,7 +183,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 	private Collection<? extends ItemPath> collectItemPaths(List<AbstractFormItemType> items, List<ItemPath> paths) {
 		for (AbstractFormItemType aItem : items) {
-			ItemPathType itemPathType = aItem.getRef();
+			ItemPathType itemPathType = aItem.getPath();
 			if (itemPathType != null) {
 				paths.add(itemPathType.getItemPath());
 			}

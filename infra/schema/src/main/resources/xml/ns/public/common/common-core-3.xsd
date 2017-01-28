@@ -5978,6 +5978,16 @@
            			</xsd:documentation>
            		</xsd:annotation>
            	</xsd:element>
+			<xsd:element name="type" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type override. Normally the field type will be determined
+                        by the type of backing item. This field can be used as type
+                        override if a different presenation is required.
+                        NOT IMPLEMENTED YET
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>           	
         </xsd:sequence>
     </xsd:complexType>
     
@@ -13974,42 +13984,28 @@
                 Abstract supertype for all form items.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0"></xsd:element>
-            <xsd:element ref="tns:description" minOccurs="0" />
-            <xsd:element name="ref" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to an item of the backing object that is behind the form.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="type" type="xsd:QName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Type override. Normally the field type will be determined
-                        by the type of backing item. This field can be used as type
-                        override if a different presenation is required.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
-            <xsd:element name="widget" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the UI widget that should be used to display this item.
-                        Normally, the widget will be chosen automatically based on the type
-                        of the backing item (see "ref" element). The "widget" element can be
-                        used to override this default behavior. It is used for default included
-                        types like text, label, combo, password, checkbox, etc. or class name for
-                        custom implementation.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="availableValues" type="c:ExpressionType" minOccurs="0" />
-            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0" />
-            <!-- TODO: condition -->
-        </xsd:sequence>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:VariableBindingDefinitionType">
+		        <xsd:sequence>
+		            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
+		            <xsd:element name="widget" type="xsd:string" minOccurs="0">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        Name of the UI widget that should be used to display this item.
+		                        Normally, the widget will be chosen automatically based on the type
+		                        of the backing item (see "ref" element). The "widget" element can be
+		                        used to override this default behavior. It is used for default included
+		                        types like text, label, combo, password, checkbox, etc. or class name for
+		                        custom implementation.
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+		            <!-- Note: available values are defined by the "set" in the supertype. -->
+		            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0" />
+		            <!-- TODO: condition -->
+		        </xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="formItem" type="tns:AbstractFormItemType" abstract="true" />
 
