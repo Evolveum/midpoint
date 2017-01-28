@@ -43,7 +43,7 @@ public interface ApprovalLevel extends DebugDumpable {
 
     ExpressionType getAutomaticallyApproved();
 
-	ExpressionType getApproverInstruction();
+	ExpressionType getAdditionalInformation();
 
 	@NotNull
     ApprovalLevelOutcomeType getOutcomeIfNoApprovers();

@@ -16,9 +16,8 @@
 
 package com.evolveum.midpoint.wf.impl.processes;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApproverInstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
@@ -43,7 +42,7 @@ public interface ProcessMidPointInterface {
 
     String getStageDisplayName(Map<String, Object> variables);
 
-    ApproverInstructionType getApproverInstruction(Map<String, Object> variables);
+    List<InformationType> getAdditionalInformation(Map<String, Object> variables);
 
     DecisionType extractDecision(Map<String, Object> variables);
 

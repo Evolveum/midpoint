@@ -19,11 +19,13 @@ package com.evolveum.midpoint.wf.impl.processes;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApproverInstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -68,9 +70,11 @@ public abstract class BaseProcessMidPointInterface implements ProcessMidPointInt
 	}
 
 	@Override
-	public ApproverInstructionType getApproverInstruction(Map<String, Object> variables) {
-		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.APPROVER_INSTRUCTION,
-				ApproverInstructionType.class, prismContext);
+	@SuppressWarnings("unchecked")
+	public List<InformationType> getAdditionalInformation(Map<String, Object> variables) {
+		List<InformationType> info = ActivitiUtil.getVariable(variables, CommonProcessVariableNames.ADDITIONAL_INFORMATION,
+				List.class, prismContext);
+		return info != null ? info : Collections.emptyList();
 	}
 
 	@Override

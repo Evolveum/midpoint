@@ -58,7 +58,7 @@ public class WorkItemDto extends Selectable {
     public static final String F_ASSIGNEE = "assignee";
     public static final String F_CANDIDATES = "candidates";
     public static final String F_STAGE_INFO = "stageInfo";
-    public static final String F_APPROVER_INSTRUCTION = "approverInstruction";
+    public static final String F_ADDITIONAL_INFORMATION = "additionalInformation";
 
 	public static final String F_OTHER_WORK_ITEMS = "otherWorkItems";
 	public static final String F_RELATED_WORKFLOW_REQUESTS = "relatedWorkflowRequests";
@@ -318,7 +318,7 @@ public class WorkItemDto extends Selectable {
 		return wfc != null ? WfContextUtil.getStageInfo(wfc) : WfContextUtil.getStageInfo(workItem);
 	}
 
-	public ApproverInstructionType getApproverInstruction() {
-		return workItem.getApproverInstruction();
+	public List<InformationType> getAdditionalInformation() {
+		return workItem.getAdditionalInformation();
 	}
 }

@@ -31,9 +31,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApproverInstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PlainApproverInstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -41,14 +38,11 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,9 +73,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
     private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
-    private static final String ID_APPROVER_INSTRUCTION_CONTAINER = "approverInstructionContainer";
-    private static final String ID_APPROVER_INSTRUCTION_LINES = "approverInstructionLines";
-    private static final String ID_APPROVER_INSTRUCTION_LINE = "approverInstructionLine";
+    private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 	private static final String ID_SHOW_REQUEST = "showRequest";
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
@@ -95,7 +87,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		WebMarkupContainer additionalInfoColumn = new WebMarkupContainer(ID_ADDITIONAL_INFO_COLUMN);
 
 		WebMarkupContainer historyContainer = new WebMarkupContainer(ID_HISTORY_CONTAINER);
-        historyContainer.add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel<WfContextType>(getModel(), WorkItemDto.F_WORKFLOW_CONTEXT),
+        historyContainer.add(new ItemApprovalHistoryPanel(ID_HISTORY,
+				new PropertyModel<>(getModel(), WorkItemDto.F_WORKFLOW_CONTEXT),
 				UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL, (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL)));
 		final VisibleEnableBehaviour historyContainerVisible = new VisibleEnableBehaviour() {
 			@Override
@@ -126,7 +119,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		final ISortableDataProvider<ProcessInstanceDto, String> relatedWorkflowRequestsProvider = new ListDataProvider<>(this, relatedWorkflowRequestsModel);
 		relatedWorkflowRequestsContainer.add(
 				new ProcessInstancesPanel(ID_RELATED_REQUESTS, relatedWorkflowRequestsProvider, null, 10,
-						ProcessInstancesPanel.View.TASKS_FOR_PROCESS, new PropertyModel<String>(getModel(), WorkItemDto.F_PROCESS_INSTANCE_ID)));
+						ProcessInstancesPanel.View.TASKS_FOR_PROCESS,
+						new PropertyModel<>(getModel(), WorkItemDto.F_PROCESS_INSTANCE_ID)));
 		final VisibleEnableBehaviour relatedWorkflowRequestsContainerVisible = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -183,36 +177,9 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		});
 		add(WebComponentUtil.createHelp(ID_SHOW_REQUEST_HELP));
 
-		IModel<List<String>> instructionsModel = new AbstractReadOnlyModel<List<String>>() {
-			@Override
-			public List<String> getObject() {
-				ApproverInstructionType instruction = getModelObject().getApproverInstruction();
-				if (instruction == null) {
-					return Collections.emptyList();
-				} else if (instruction instanceof PlainApproverInstructionType) {
-					return ((PlainApproverInstructionType) instruction).getText();
-				} else {
-					// TODO
-					return Collections.singletonList(instruction.toString());
-				}
-			}
-		};
-
-		WebMarkupContainer approverInstructionContainer = new WebMarkupContainer(ID_APPROVER_INSTRUCTION_CONTAINER);
-		ListView<String> approverInstructionList = new ListView<String>(ID_APPROVER_INSTRUCTION_LINES, instructionsModel) {
-			@Override
-			protected void populateItem(ListItem<String> item) {
-				item.add(new Label(ID_APPROVER_INSTRUCTION_LINE, item.getModelObject()));
-			}
-		};
-		approverInstructionContainer.add(approverInstructionList);
-		add(approverInstructionContainer);
-		approverInstructionContainer.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return getModelObject().getApproverInstruction() != null;
-			}
-		});
+		WebMarkupContainer additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
+				new PropertyModel<>(getModel(), WorkItemDto.F_ADDITIONAL_INFORMATION));
+		add(additionalInformation);
 
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }

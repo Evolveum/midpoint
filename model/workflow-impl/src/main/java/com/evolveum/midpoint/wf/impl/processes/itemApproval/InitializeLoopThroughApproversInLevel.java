@@ -51,10 +51,11 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         ExpressionVariables expressionVariables = null;
 
-        ApprovalLevelImpl level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevelImpl.class);
+        ApprovalLevelImpl level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevelImpl.class,
+				null);
         level.setPrismContext(getPrismContext());
 
-		int levelIndex = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL_INDEX, Integer.class);
+		int levelIndex = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL_INDEX, Integer.class, null);
 		int stageNumber = levelIndex+1;
 
 		List<Decision> decisionList = new ArrayList<>();

@@ -60,7 +60,8 @@ public class RecordIndividualDecision implements JavaDelegate {
         Validate.notNull(level, "level is null");
         level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
 
-        Integer stageNumber = ActivitiUtil.getRequiredVariable(execution, CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, Integer.class);
+        Integer stageNumber = ActivitiUtil.getRequiredVariable(execution, CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, Integer.class,
+				null);
 
         boolean approved = ApprovalUtils.isApproved((String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION));
         String comment = (String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_COMMENT);

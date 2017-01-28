@@ -31,7 +31,8 @@ public class InitializeLoopThroughLevels implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
         LOGGER.trace("Executing the delegate; execution = {}", execution);
-		ApprovalSchema schema = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.APPROVAL_SCHEMA, ApprovalSchema.class);
+		ApprovalSchema schema = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.APPROVAL_SCHEMA, ApprovalSchema.class,
+				null);
 		execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_COUNT, schema.getLevels().size());
 		execution.setVariableLocal(ProcessVariableNames.LOOP_LEVELS_STOP, Boolean.FALSE);
         execution.setVariableLocal(ProcessVariableNames.ALL_DECISIONS, new ArrayList<Decision>());

@@ -20,10 +20,13 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * @author lazyman
@@ -303,5 +306,21 @@ public enum ObjectTypes {
 
         return list;
     }
+
+    // TODO move somewhere else?
+    public static String getDisplayNameForTypeName(@Nullable QName name, @Nullable Locale locale) {
+    	if (name == null) {
+    		return null;
+		}
+		ResourceBundle bundle = ResourceBundle.getBundle(
+				SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH,
+				locale != null ? locale : Locale.getDefault());
+		String key = "ObjectType." + name.getLocalPart();
+		if (bundle.containsKey(key)) {
+			return bundle.getString(key);
+		} else {
+			return null;
+		}
+	}
 }
 

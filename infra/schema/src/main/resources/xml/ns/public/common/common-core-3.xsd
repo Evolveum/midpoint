@@ -8689,10 +8689,10 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="approverInstruction" type="c:ExpressionType" minOccurs="0">
+			<xsd:element name="additionalInformation" type="c:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Instruction to reviewer. Will be displayed when work item will be worked on.
+						Additional information for approver. Will be displayed when work item will be worked on.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
