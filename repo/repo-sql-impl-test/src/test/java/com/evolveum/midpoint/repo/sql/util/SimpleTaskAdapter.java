@@ -593,6 +593,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public Task getParentForLightweightAsynchronousTask() {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public TaskWaitingReason getWaitingReason() {
         throw new UnsupportedOperationException("not implemented yet.");
     }

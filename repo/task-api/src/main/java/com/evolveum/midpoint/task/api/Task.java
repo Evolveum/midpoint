@@ -805,7 +805,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     Task getParentTask(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    /**
+	/**
+	 * Returns the in-memory version of the parent task. Applicable only to lightweight subtasks.
+	 * EXPERIMENTAL (use with care)
+	 */
+	Task getParentForLightweightAsynchronousTask();
+
+	/**
      * Lists the (direct) subtasks of a given task.
      *
      * @param parentResult
