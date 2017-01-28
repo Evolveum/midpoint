@@ -30,6 +30,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -87,7 +88,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		for (AbstractFormItemType formItem : formItems) {
 
 			if (formItem instanceof FormFieldGroupType) {
-				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<O>(itemView.newChildId(), formItem.getName().getLocalPart(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
+				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<O>(itemView.newChildId(), formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
 				dynamicFieldGroupPanel.setOutputMarkupId(true);
 				itemView.add(dynamicFieldGroupPanel);
 				continue;
@@ -113,7 +114,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 	}
 	
 	private ItemWrapper createItemWrapper(AbstractFormItemType formField, ObjectWrapper objectWrapper) {
-		ItemPathType itemPathType = formField.getPath();
+		ItemPathType itemPathType = GuiImplUtil.getPathType(formField);
 
 		if (itemPathType == null) {
 			getSession().error("Bad form item definition. It has to contain reference to the real attribute");

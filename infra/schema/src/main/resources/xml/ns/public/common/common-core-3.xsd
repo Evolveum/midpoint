@@ -13984,28 +13984,27 @@
                 Abstract supertype for all form items.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexContent>
-        	<xsd:extension base="tns:VariableBindingDefinitionType">
-		        <xsd:sequence>
-		            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
-		            <xsd:element name="widget" type="xsd:string" minOccurs="0">
-		                <xsd:annotation>
-		                    <xsd:documentation>
-		                        Name of the UI widget that should be used to display this item.
-		                        Normally, the widget will be chosen automatically based on the type
-		                        of the backing item (see "ref" element). The "widget" element can be
-		                        used to override this default behavior. It is used for default included
-		                        types like text, label, combo, password, checkbox, etc. or class name for
-		                        custom implementation.
-		                    </xsd:documentation>
-		                </xsd:annotation>
-		            </xsd:element>
-		            <!-- Note: available values are defined by the "set" in the supertype. -->
-		            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0" />
-		            <!-- TODO: condition -->
-		        </xsd:sequence>
-        	</xsd:extension>
-        </xsd:complexContent>
+        <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+        	<xsd:element name="binding" type="tns:VariableBindingDefinitionType" minOccurs="0" />
+            <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
+            <xsd:element name="widget" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the UI widget that should be used to display this item.
+                        Normally, the widget will be chosen automatically based on the type
+                        of the backing item (see "ref" element). The "widget" element can be
+                        used to override this default behavior. It is used for default included
+                        types like text, label, combo, password, checkbox, etc. or class name for
+                        custom implementation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Note: available values are defined by the "set" in the binding. -->
+            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0" />
+            <!-- TODO: condition -->
+        </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="formItem" type="tns:AbstractFormItemType" abstract="true" />
 
