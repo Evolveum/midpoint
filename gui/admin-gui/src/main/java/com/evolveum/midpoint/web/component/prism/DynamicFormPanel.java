@@ -43,12 +43,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
 
 public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrapper<O>> {

@@ -16,10 +16,13 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
@@ -40,6 +43,7 @@ public class Decision implements Serializable {
     private Integer stageNumber;
     private String stageName;
     private String stageDisplayName;
+    private String additionalDelta;
 
     public String getComment() {
         return comment;
@@ -108,10 +112,19 @@ public class Decision implements Serializable {
 	@Override
     public String toString() {
         return "Decision: approved=" + isApproved() + ", comment=" + getComment() + ", approver=" + getApproverName()
-				+ "/" + getApproverOid() + ", date=" + getDate() + ", stage=" + stageNumber + ":" + stageName;
+				+ "/" + getApproverOid() + ", date=" + getDate() + ", stage=" + stageNumber + ":" + stageName
+				+ ", additionalDelta = " + additionalDelta;
     }
 
-    public DecisionType toDecisionType() {
+	public String getAdditionalDelta() {
+		return additionalDelta;
+	}
+
+	public void setAdditionalDelta(String additionalDelta) {
+		this.additionalDelta = additionalDelta;
+	}
+
+	public DecisionType toDecisionType(PrismContext prismContext) throws SchemaException {
         DecisionType decisionType = new DecisionType();
         decisionType.setApproved(isApproved());
         decisionType.setComment(getComment());
@@ -126,6 +139,9 @@ public class Decision implements Serializable {
         decisionType.setStageNumber(stageNumber);
         decisionType.setStageName(stageName);
         decisionType.setStageDisplayName(stageDisplayName);
+        if (additionalDelta != null) {
+        	decisionType.setAdditionalDelta(prismContext.parserFor(additionalDelta).parseRealValue(ObjectDeltaType.class));
+		}
         return decisionType;
     }
 }

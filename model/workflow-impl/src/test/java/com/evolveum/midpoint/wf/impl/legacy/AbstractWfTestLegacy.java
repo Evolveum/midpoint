@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.legacy;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -28,8 +25,6 @@ import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -386,7 +381,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
                 boolean approve = testDetails.decideOnApproval(executionId);
 
-                workflowManager.approveOrRejectWorkItem(t.getId(), approve, null, result);
+                workflowManager.approveOrRejectWorkItem(t.getId(), approve, null, null, result);
                 login(userAdministrator);
             }
         }

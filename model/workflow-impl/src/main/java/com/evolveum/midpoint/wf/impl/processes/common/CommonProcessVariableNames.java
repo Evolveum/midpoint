@@ -73,6 +73,10 @@ public class CommonProcessVariableNames {
 	// this value is put into audit record, so its advisable to use this particular name
 	public static final String FORM_FIELD_COMMENT = "comment";
 
+	// [String]
+	// EXPERIMENTAL
+	public static final String FORM_FIELD_ADDITIONAL_DELTA = "objectDelta";
+
 	public static final String FORM_BUTTON_PREFIX = "[B]";
 
 	// Variable reflecting the process status, like "your request was approved by

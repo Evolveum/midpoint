@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -82,8 +83,9 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final String ID_WORK_ITEM_PANEL = "workItemPanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
+	private static final String ID_MAIN_FORM = "mainForm";
 
-    private LoadableModel<WorkItemDto> workItemDtoModel;
+	private LoadableModel<WorkItemDto> workItemDtoModel;
 	private String taskId;
 
     public PageWorkItem(PageParameters parameters) {
@@ -171,7 +173,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 new PropertyModel<>(workItemDtoModel, WorkItemDto.F_WORK_ITEM), workItemDtoModel);
         add(summaryPanel);
 
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         mainForm.setMultiPart(true);
         add(mainForm);
 
@@ -179,6 +181,10 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         initButtons(mainForm);
     }
+
+    public WorkItemPanel getWorkItemPanel() {
+    	return (WorkItemPanel) get(ID_MAIN_FORM).get(ID_WORK_ITEM_PANEL);
+	}
 
     private void initButtons(Form mainForm) {
 
@@ -298,7 +304,8 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         try {
 			WorkItemDto dto = workItemDtoModel.getObject();
-            getWorkflowService().approveOrRejectWorkItem(dto.getWorkItemId(), decision, dto.getApproverComment(), result);
+			ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
+            getWorkflowService().approveOrRejectWorkItem(dto.getWorkItemId(), decision, dto.getApproverComment(), delta, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);

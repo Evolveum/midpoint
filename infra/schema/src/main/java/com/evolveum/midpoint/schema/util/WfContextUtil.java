@@ -108,6 +108,15 @@ public class WfContextUtil {
 				(ItemApprovalProcessStateType) processSpecificState : null;
 	}
 
+	public static WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState(WfContextType wfc) {
+		if (wfc == null) {
+			return null;
+		}
+		WfProcessorSpecificStateType state = wfc.getProcessorSpecificState();
+		return state instanceof WfPrimaryChangeProcessorStateType ?
+				(WfPrimaryChangeProcessorStateType) state : null;
+	}
+
 	public static ItemApprovalWorkItemPartType getItemApprovalWorkItemInfo(WorkItemType workItem) {
 		return workItem.getProcessSpecificPart() instanceof ItemApprovalWorkItemPartType ?
 				(ItemApprovalWorkItemPartType) workItem.getProcessSpecificPart() : null;

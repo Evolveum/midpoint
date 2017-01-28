@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -46,6 +47,7 @@ public class RecordIndividualDecision implements JavaDelegate {
     // TODO concurrent execution of this routine might cause corruption of decisionList and allDecisions process variables
 
     public void execute(DelegateExecution execution) {
+		PrismContext prismContext = SpringApplicationContextHolder.getPrismContext();
 
 		String taskOid = execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class);
 		Validate.notNull(taskOid, CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID + " is null");
@@ -58,13 +60,15 @@ public class RecordIndividualDecision implements JavaDelegate {
 
         ApprovalLevelImpl level = (ApprovalLevelImpl) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "level is null");
-        level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
+		level.setPrismContext(prismContext);
 
         Integer stageNumber = ActivitiUtil.getRequiredVariable(execution, CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, Integer.class,
 				null);
 
         boolean approved = ApprovalUtils.isApproved((String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION));
         String comment = (String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_COMMENT);
+        String additionalDelta = ActivitiUtil.getVariable(execution.getVariables(),
+				CommonProcessVariableNames.FORM_FIELD_ADDITIONAL_DELTA, String.class, prismContext);
 
         Decision decision = new Decision();
 
@@ -88,6 +92,10 @@ public class RecordIndividualDecision implements JavaDelegate {
 		decision.setStageNumber(stageNumber);
 		decision.setStageName(level.getName());
 		decision.setStageDisplayName(level.getDisplayName());
+
+		if (approved) {
+			decision.setAdditionalDelta(additionalDelta);
+		}
 
         decisionList.add(decision);
         allDecisions.add(decision);
@@ -130,7 +138,7 @@ public class RecordIndividualDecision implements JavaDelegate {
                     level.getDebugName(), decision, setLoopApprovesInLevelStop);
         }
 
-        MidpointUtil.recordDecisionInTask(decision, taskOid);
+        MidpointUtil.recordDecisionInTask(decision, taskOid, prismContext);
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 

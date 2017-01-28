@@ -42,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemDisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;

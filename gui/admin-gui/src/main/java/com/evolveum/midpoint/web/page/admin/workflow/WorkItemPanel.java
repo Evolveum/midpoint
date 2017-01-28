@@ -19,7 +19,9 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
@@ -35,8 +37,10 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -192,8 +196,12 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(dto.getWorkflowContext());
 		if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {
 			String formOid = level.getFormRef().getOid();
+			ObjectType focus = dto.getFocus(pageBase);
+			if (focus == null) {
+				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME
+			}
 			DynamicFormPanel<UserType> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
-					(PrismObject<UserType>) new UserType(pageBase.getPrismContext()).asPrismObject(),
+					(PrismObject<UserType>) focus.asPrismObject(),
 					formOid, mainForm, false, pageBase);
 			add(customForm);
 		} else {
@@ -203,4 +211,12 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }
 
+	public ObjectDelta getDeltaFromForm() throws SchemaException {
+		Component formPanel = get(ID_CUSTOM_FORM);
+		if (formPanel instanceof DynamicFormPanel) {
+			return ((DynamicFormPanel) formPanel).getObjectDelta();
+		} else {
+			return null;
+		}
+	}
 }

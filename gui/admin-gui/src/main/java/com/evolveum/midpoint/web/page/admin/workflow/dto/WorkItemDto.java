@@ -16,17 +16,25 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
@@ -34,6 +42,8 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -80,12 +90,14 @@ public class WorkItemDto extends Selectable {
     //
     // Depending on expected use (work item list vs. work item details)
 
-    protected WorkItemType workItem;
-	protected TaskType taskType;
-	protected List<TaskType> relatedTasks;
-	@Deprecated protected SceneDto deltas;
-	protected TaskChangesDto changes;
-    protected String approverComment;
+    private WorkItemType workItem;
+	private TaskType taskType;
+	private List<TaskType> relatedTasks;
+	@Deprecated private SceneDto deltas;
+	private TaskChangesDto changes;
+	private String approverComment;
+
+    private ObjectType focus;
 
     public WorkItemDto(WorkItemType workItem) {
         this(workItem, null, null);
@@ -116,7 +128,7 @@ public class WorkItemDto extends Selectable {
 	}
 
 	@Nullable
-	protected TaskType getTaskType() {
+	private TaskType getTaskType() {
     	if (taskType == null) {
 			taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
 		}
@@ -320,5 +332,45 @@ public class WorkItemDto extends Selectable {
 
 	public List<InformationType> getAdditionalInformation() {
 		return workItem.getAdditionalInformation();
+	}
+
+	// Expects that we deal with primary changes of the focus (i.e. not of projections)
+	public ObjectType getFocus(PageBase pageBase) {
+    	if (focus != null) {
+    		return focus;
+		}
+		WfContextType wfc = getWorkflowContext();
+		WfPrimaryChangeProcessorStateType state = WfContextUtil.getPrimaryChangeProcessorState(wfc);
+		if (state == null || state.getDeltasToProcess() == null || state.getDeltasToProcess().getFocusPrimaryDelta() == null) {
+			return null;
+		}
+		ObjectDeltaType delta = state.getDeltasToProcess().getFocusPrimaryDelta();
+		if (delta.getChangeType() == ChangeTypeType.ADD) {
+			focus = (ObjectType) delta.getObjectToAdd();
+		} else if (delta.getChangeType() != ChangeTypeType.MODIFY) {
+		} else {
+			String oid = delta.getOid();
+			if (oid == null) {
+				throw new IllegalStateException("No OID in object modify delta: " + delta);
+			}
+			if (delta.getObjectType() == null) {
+				throw new IllegalStateException("No object type in object modify delta: " + delta);
+			}
+			Class<? extends ObjectType> clazz = ObjectTypes.getObjectTypeFromTypeQName(delta.getObjectType())
+					.getClassDefinition();
+			Task task = pageBase.createSimpleTask("getObject");
+			PrismObject<?> object = WebModelServiceUtils.loadObject(clazz, oid, pageBase, task, task.getResult());
+			if (object != null) {
+				focus = (ObjectType) object.asObjectable();
+				try {
+					ObjectDelta<Objectable> objectDelta = DeltaConvertor.createObjectDelta(delta, pageBase.getPrismContext());
+					objectDelta.applyTo(focus.asPrismObject());
+				} catch (SchemaException e) {
+					throw new SystemException("Cannot apply delta to focus object: " + e.getMessage(), e);
+				}
+				focus = (ObjectType) object.asObjectable();
+			}
+		}
+		return focus;
 	}
 }

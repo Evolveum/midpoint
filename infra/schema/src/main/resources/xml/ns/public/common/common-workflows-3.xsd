@@ -927,7 +927,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-
+			<xsd:element name="additionalDelta" type="t:ObjectDeltaType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
     <xsd:element name="decisionType" type="tns:DecisionType" />
