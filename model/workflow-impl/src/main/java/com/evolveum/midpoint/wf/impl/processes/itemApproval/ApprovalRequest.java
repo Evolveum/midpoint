@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 
 import java.io.Serializable;
 
@@ -38,4 +39,6 @@ public interface ApprovalRequest<I extends Serializable> extends Serializable {
     void setPrismContext(PrismContext prismContext);
 
     PrismContext getPrismContext();
+
+	ApprovalSchemaType getApprovalSchemaType();
 }

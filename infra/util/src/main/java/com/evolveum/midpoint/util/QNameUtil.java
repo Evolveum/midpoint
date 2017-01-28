@@ -307,15 +307,11 @@ public class QNameUtil {
     }
 
 	public static boolean contains(Collection<QName> col, QName qname) {
-		if (col == null) {
-			return false;
-		}
-		for (QName element: col) {
-			if (match(element, qname)) {
-				return true;
-			}
-		}
-		return false;
+		return col != null && col.stream().anyMatch(e -> match(e, qname));
+	}
+
+	public static boolean remove(Collection<QName> col, QName qname) {
+		return col != null && col.removeIf(e -> match(e, qname));
 	}
 
 	public static String escapeElementName(String name) {

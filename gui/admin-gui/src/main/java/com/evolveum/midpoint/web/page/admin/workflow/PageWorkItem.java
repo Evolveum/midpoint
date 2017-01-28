@@ -175,7 +175,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.setMultiPart(true);
         add(mainForm);
 
-        mainForm.add(new WorkItemPanel(ID_WORK_ITEM_PANEL, workItemDtoModel, this));
+        mainForm.add(new WorkItemPanel(ID_WORK_ITEM_PANEL, workItemDtoModel, mainForm, this));
 
         initButtons(mainForm);
     }

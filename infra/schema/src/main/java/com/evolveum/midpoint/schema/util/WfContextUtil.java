@@ -123,4 +123,19 @@ public class WfContextUtil {
 						&& order >= e.getLevelMin() && order <= e.getLevelMax())
 				.findFirst().orElse(null);
 	}
+
+	public static ApprovalLevelType getCurrentApprovalLevel(WfContextType wfc) {
+		if (wfc == null || wfc.getStageNumber() == null) {
+			return null;
+		}
+		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
+		if (info == null || info.getApprovalSchema() == null) {
+			return null;
+		}
+		int level = wfc.getStageNumber()-1;
+		if (level < 0 || level >= info.getApprovalSchema().getLevel().size()) {
+			return null;		// TODO log something here? or leave it to the caller?
+		}
+		return info.getApprovalSchema().getLevel().get(level);
+	}
 }

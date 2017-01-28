@@ -18,8 +18,11 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -31,12 +34,15 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -74,16 +80,17 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
     private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
     private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
+    private static final String ID_CUSTOM_FORM = "customForm";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 	private static final String ID_SHOW_REQUEST = "showRequest";
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
 
-	public WorkItemPanel(String id, IModel<WorkItemDto> model, PageBase pageBase) {
+	public WorkItemPanel(String id, IModel<WorkItemDto> model, Form mainForm, PageBase pageBase) {
         super(id, model);
-        initLayout(pageBase);
+        initLayout(mainForm, pageBase);
     }
 
-    protected void initLayout(PageBase pageBase) {
+    protected void initLayout(Form mainForm, PageBase pageBase) {
 		WebMarkupContainer additionalInfoColumn = new WebMarkupContainer(ID_ADDITIONAL_INFO_COLUMN);
 
 		WebMarkupContainer historyContainer = new WebMarkupContainer(ID_HISTORY_CONTAINER);
@@ -180,6 +187,18 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		WebMarkupContainer additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
 				new PropertyModel<>(getModel(), WorkItemDto.F_ADDITIONAL_INFORMATION));
 		add(additionalInformation);
+
+		WorkItemDto dto = getModelObject();
+		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(dto.getWorkflowContext());
+		if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {
+			String formOid = level.getFormRef().getOid();
+			DynamicFormPanel<UserType> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
+					(PrismObject<UserType>) new UserType(pageBase.getPrismContext()).asPrismObject(),
+					formOid, mainForm, false, pageBase);
+			add(customForm);
+		} else {
+			add(new Label(ID_CUSTOM_FORM));
+		}
 
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }

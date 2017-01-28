@@ -1270,7 +1270,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 
 	public PrismContainerValue<C> clone() {	// TODO resolve also the definition?
-    	PrismContainerValue<C> clone = new PrismContainerValue<C>(getOriginType(), getOriginObject(), getParent(), getId(), this.complexTypeDefinition, this.prismContext);
+    	PrismContainerValue<C> clone = new PrismContainerValue<>(getOriginType(), getOriginObject(), getParent(), getId(),
+				this.complexTypeDefinition, this.prismContext);
     	copyValues(clone);
         return clone;
     }
@@ -1577,5 +1578,23 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		PrismContainer<C> pc = definition.instantiate();
 		pc.add(clone());
 		return pc;
+	}
+
+	// EXPERIMENTAL. TODO write some tests
+	// BEWARE, it expects that definitions for items are present. Otherwise definition-less single valued items will get overwritten.
+	@SuppressWarnings("unchecked")
+	public void mergeContent(PrismContainerValue<?> other, List<QName> overwrite) throws SchemaException {
+		List<QName> remainingToOverwrite = new ArrayList<>(overwrite);
+		if (other.getItems() != null) {
+			for (Item<?, ?> otherItem : other.getItems()) {
+				Item<?, ?> existingItem = findItem(otherItem.elementName);
+				if (QNameUtil.remove(remainingToOverwrite, otherItem.getElementName())
+						|| existingItem != null && existingItem.isSingleValue()) {
+					remove(existingItem);
+				}
+				merge(otherItem.clone());
+			}
+		}
+		remainingToOverwrite.forEach(name -> removeItem(new ItemPath(name), Item.class));
 	}
 }

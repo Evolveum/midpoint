@@ -534,4 +534,17 @@ public class MiscUtil {
 	public static String getObjectName(Object o) {
 		return o != null ? "an instance of " + o.getClass().getName() : "null value";
 	}
+
+	// @pre: at least of o1, o2 is null
+	public static Integer compareNullLast(Object o1, Object o2) {
+		if (o1 == null && o2 == null) {
+			return 0;
+		} else if (o1 == null) {
+			return 1;
+		} else if (o2 == null) {
+			return -1;
+		} else {
+			throw new IllegalArgumentException("Both objects are non-null");
+		}
+	}
 }

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaAttachedPolicyRulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificStateType;
@@ -34,13 +35,15 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 	@NotNull private final PrismContext prismContext;
 	final String taskName;
 	@NotNull final ApprovalSchema approvalSchema;
+	@NotNull final ApprovalSchemaType approvalSchemaType;
 	@Nullable final SchemaAttachedPolicyRulesType policyRules;
 
 	public ItemApprovalSpecificContent(@NotNull PrismContext prismContext, String taskName, @NotNull ApprovalSchema approvalSchema,
-			@Nullable SchemaAttachedPolicyRulesType policyRules) {
+			@NotNull ApprovalSchemaType approvalSchemaType, @Nullable SchemaAttachedPolicyRulesType policyRules) {
 		this.prismContext = prismContext;
 		this.taskName = taskName;
 		this.approvalSchema = approvalSchema;
+		this.approvalSchemaType = approvalSchemaType;
 		this.policyRules = policyRules;
 	}
 
@@ -52,7 +55,7 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 	@Override
 	public WfProcessSpecificStateType createProcessSpecificState() {
 		ItemApprovalProcessStateType state = new ItemApprovalProcessStateType(prismContext);
-		state.setApprovalSchema(approvalSchema.toApprovalSchemaType());
+		state.setApprovalSchema(approvalSchemaType);
 		state.setPolicyRules(policyRules);
 		return state;
 	}

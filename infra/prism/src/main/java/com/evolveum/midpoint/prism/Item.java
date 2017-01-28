@@ -273,10 +273,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     			return false;
     		}
     	}
-		if (values == null || values.size() < 2) {
-        	return true;
-        }
-		return false;
+		return values.size() <= 1;
 	}
     
     /**

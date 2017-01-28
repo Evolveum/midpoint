@@ -91,7 +91,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		try {
 			prismObject = objectDef.instantiate();
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Could not initalize model for forgot password", e);
+			LoggingUtils.logException(LOGGER, "Could not initialize model for forgot password", e);
 			throw new RestartResponseException(getPageBase());
 		}
 		return prismObject;
@@ -143,7 +143,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 				getPageBase(), task, result);
 
 		if (prismForm == null) {
-			LOGGER.trace("No form defined, skipping denerating GUI form");
+			LOGGER.trace("No form defined, skipping generating GUI form");
 			return;
 		}
 
