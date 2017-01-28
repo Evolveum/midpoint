@@ -29,6 +29,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
@@ -183,7 +185,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 	private Collection<? extends ItemPath> collectItemPaths(List<AbstractFormItemType> items, List<ItemPath> paths) {
 		for (AbstractFormItemType aItem : items) {
-			ItemPathType itemPathType = aItem.getPath();
+			ItemPathType itemPathType = GuiImplUtil.getPathType(aItem);
 			if (itemPathType != null) {
 				paths.add(itemPathType.getItemPath());
 			}

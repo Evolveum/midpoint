@@ -166,7 +166,7 @@ public class TestParseForm extends AbstractObjectParserTest<FormType> {
 		JAXBElement<? extends AbstractFormItemType> itemElement = formItems.getFormItem().get(index);
 		assertTrue(ctx+"Unexpected item name: "+itemElement.getName()+", expected: "+elementName, elementName.equals(itemElement.getName()));
 		assertEquals(ctx+"Wrong class", clazz, itemElement.getValue().getClass());
-		assertEquals(ctx+"Wrong name", new QName(name), itemElement.getValue().getName());
+		assertEquals(ctx+"Wrong name", name, itemElement.getValue().getName());
 	}
 
 }
