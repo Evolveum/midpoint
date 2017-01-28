@@ -180,6 +180,11 @@
 		    </exclusions> 
 		</dependency>
 		<dependency>
+            <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-csvfile</artifactId>
+            <scope>test</scope>
+        </dependency>
+		<dependency>
 			<groupId>com.evolveum.polygon</groupId>
 			<artifactId>connector-ldap-legacy</artifactId>
 			<scope>test</scope>

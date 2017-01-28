@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -392,12 +392,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     	IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
     }
     
+    
     protected void assertUsers(int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-    	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertUsers");
+    	assertObjects(UserType.class, expectedNumberOfUsers);
+    }
+    
+    protected void assertRoles(int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	assertObjects(RoleType.class, expectedNumberOfUsers);
+    }
+    
+    protected <O extends ObjectType> void assertObjects(Class<O> type, int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertObjects");
         OperationResult result = task.getResult();
-    	List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-        if (verbose) display("Users", users);
-        assertEquals("Unexpected number of users", expectedNumberOfUsers, users.size());
+    	List<PrismObject<O>> users = modelService.searchObjects(type, null, null, task, result);
+        if (verbose) display(type.getSimpleName()+"s", users);
+        assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfUsers, users.size());
     }
 
 	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {
@@ -3631,15 +3640,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void reconcileUser(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		ObjectDelta<UserType> emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, oid, prismContext);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
 	}
 	
 	protected void reconcileOrg(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		ObjectDelta<OrgType> emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, oid, prismContext);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
 	}
 
 	protected void assertRefEquals(String message, ObjectReferenceType expected, ObjectReferenceType actual) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         } else {
             for(MappingType mapping: activation.getExistence().getInbound()){
                 if(mapping.equals(new MappingType())){
-                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                	VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(new ItemPathType(EXISTENCE_DEFAULT_SOURCE));
                     mapping.getSource().add(source);
                 }
@@ -129,11 +129,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         } else {
             for(MappingType outbound: activation.getAdministrativeStatus().getOutbound()){
                 if(outbound.equals(new MappingType())){
-                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                	VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(new ItemPathType(ADM_STATUS_OUT_SOURCE_DEFAULT));
                     outbound.getSource().add(source);
 
-                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    VariableBindingDefinitionType target = new VariableBindingDefinitionType();
                     target.setPath(new ItemPathType(ADM_STATUS_OUT_TARGET_DEFAULT));
                     outbound.setTarget(target);
                 }
@@ -141,11 +141,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
 
             for(MappingType inbound: activation.getAdministrativeStatus().getInbound()){
                 if(inbound.equals(new MappingType())){
-                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(new ItemPathType(ADM_STATUS_IN_SOURCE_DEFAULT));
                     inbound.getSource().add(source);
 
-                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    VariableBindingDefinitionType target = new VariableBindingDefinitionType();
                     target.setPath(new ItemPathType(ADM_STATUS_IN_TARGET_DEFAULT));
                     inbound.setTarget(target);
                 }
@@ -157,11 +157,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         } else {
             for(MappingType outbound: activation.getValidFrom().getOutbound()){
                 if(outbound.equals(new MappingType())){
-                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(new ItemPathType(VALID_FROM_OUT_SOURCE_DEFAULT));
                     outbound.getSource().add(source);
 
-                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    VariableBindingDefinitionType target = new VariableBindingDefinitionType();
                     target.setPath(new ItemPathType(VALID_FROM_OUT_TARGET_DEFAULT));
                     outbound.setTarget(target);
                 }
@@ -169,11 +169,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
 
             for(MappingType inbound: activation.getValidFrom().getInbound()){
                 if(inbound.equals(new MappingType())){
-                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(new ItemPathType(VALID_FROM_IN_SOURCE_DEFAULT));
                     inbound.getSource().add(source);
 
-                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    VariableBindingDefinitionType target = new VariableBindingDefinitionType();
                     target.setPath(new ItemPathType(VALID_FROM_IN_TARGET_DEFAULT));
                     inbound.setTarget(target);
                 }
@@ -185,11 +185,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         } else {
             for(MappingType outbound: activation.getValidTo().getOutbound()){
                 if(outbound.equals(new MappingType())){
-                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(new ItemPathType(VALID_TO_OUT_SOURCE_DEFAULT));
                     outbound.getSource().add(source);
 
-                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    VariableBindingDefinitionType target = new VariableBindingDefinitionType();
                     target.setPath(new ItemPathType(VALID_TO_OUT_TARGET_DEFAULT));
                     outbound.setTarget(target);
                 }
@@ -197,11 +197,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
 
             for(MappingType inbound: activation.getValidTo().getInbound()){
                 if(inbound.equals(new MappingType())){
-                    MappingSourceDeclarationType source = new MappingSourceDeclarationType();
+                    VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(new ItemPathType(VALID_TO_IN_SOURCE_DEFAULT));
                     inbound.getSource().add(source);
 
-                    MappingTargetDeclarationType target = new MappingTargetDeclarationType();
+                    VariableBindingDefinitionType target = new VariableBindingDefinitionType();
                     target.setPath(new ItemPathType(VALID_TO_IN_TARGET_DEFAULT));
                     inbound.setTarget(target);
                 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -5861,9 +5861,9 @@
             </xsd:element>
             <xsd:element name="timeFrom" type="tns:MappingTimeDeclarationType" minOccurs="0"/>
             <xsd:element name="timeTo" type="tns:MappingTimeDeclarationType" minOccurs="0"/>
-            <xsd:element name="source" type="tns:MappingSourceDeclarationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="source" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="target" type="tns:MappingTargetDeclarationType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0"/>
             <xsd:element name="outputFilter" type="tns:ValueFilterType" minOccurs="0"/>
@@ -5949,36 +5949,64 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="referenceTime" type="tns:MappingSourceDeclarationType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="referenceTime" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
            	<xsd:element name="offset" type="xsd:duration" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     
-	<xsd:complexType name="MappingSourceDeclarationType">
+    <xsd:complexType name="VariableBindingDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Definition of variable wich is bound to the property. This is used
+                for mapping sources and targets or similar definitions that can work
+                on properties of objects. It is designed to handle relativistic behavior.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
            	<xsd:element name="path" type="t:ItemPathType"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-	<xsd:complexType name="MappingTargetDeclarationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-           	<xsd:element name="path" type="t:ItemPathType"/>
+           	<xsd:element name="set" type="tns:ValueSetDefinitionType" minOccurs="0">
+           		<xsd:annotation>
+           			<xsd:documentation>
+           				Definition of the set of values for this variable. The variable
+           				definition will be valid only for those variable. The evaluation
+           				of the set depends on the context that the definition is used.
+           				E.g. if the set is used in mapping source then it defines the
+           				domain of the expression. If it used in the mapping target
+           				definition then it defines range of the expression. Etc.
+           			</xsd:documentation>
+           		</xsd:annotation>
+           	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
+    <xsd:complexType name="ValueSetDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of value set. It can define a set of values by several
+                methods. E.g. it can define set by a condition, enumaration of the values
+                and so on.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="condition" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    	  Expression that is evaluated to check whether the value belongs to the set.
+                    	  If the condition returns true then the value belongs to the set. Otherwise
+                    	  it does not.
+                    	</p> 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: other set definition types:
+                       * reference to lookup table
+                       * reference to schema enumeration -->
+        </xsd:sequence>
+    </xsd:complexType>
+        
     <xsd:complexType name="ValueFilterType">
         <xsd:annotation>
             <xsd:documentation>
@@ -6552,10 +6580,18 @@
                     </xsd:element>
 		        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        	</xsd:element>
-		        	<xsd:element name="populateObject" type="tns:PopulateObjectType" minOccurs="0">
+		        	<xsd:element name="populateObject" type="tns:PopulateType" minOccurs="0">
 		            	<xsd:annotation>
 		            		<xsd:documentation>
 		            			TODO
+		            		</xsd:documentation>
+		            	</xsd:annotation>
+		            </xsd:element>
+		            <xsd:element name="populate" type="tns:PopulateType" minOccurs="0">
+		            	<xsd:annotation>
+		            		<xsd:documentation>
+		            			Populate assignment, association,... (any container) specific attributes, e.g activation status, validTo, validFrom 
+		            			and can be also used for setting assignmnet parameters
 		            		</xsd:documentation>
 		            	</xsd:annotation>
 		            </xsd:element>
@@ -6617,6 +6653,8 @@
 		        <xsd:sequence>
 		        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
+		        	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
+		        	</xsd:element>
 		        </xsd:sequence>
 	        </xsd:extension>
         </xsd:complexContent>
@@ -6664,7 +6702,7 @@
     </xsd:complexType>
     <xsd:element name="associationFromLink" type="tns:AssociationFromLinkExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
-	<xsd:complexType name="PopulateObjectType">
+	<xsd:complexType name="PopulateType">
 		<xsd:annotation>
 			<xsd:documentation>TODO</xsd:documentation>
 		</xsd:annotation>
@@ -6679,7 +6717,7 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element ref="tns:expression"/>
-			<xsd:element name="target" type="tns:MappingTargetDeclarationType"/>
+			<xsd:element name="target" type="tns:VariableBindingDefinitionType"/>
 		</xsd:sequence>
 	</xsd:complexType>
 	
@@ -10553,6 +10591,18 @@
                         </xsd:annotation>
                     </xsd:element>
                     
+                    <xsd:element name="deploymentInformation" type="tns:DeploymentInformationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information about midPoint deployment: subscription information, deployment name,
+                                description, color and so on.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.5.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -14356,6 +14406,107 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<xsd:complexType name="DeploymentInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about midPoint deployment: subscription information, deployment name,
+                description, color and so on.
+                These information are not critical for midPoint operation. However they may influence
+                the look and feel of this midPoint instance.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.5.1</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Short name of this midPoint deployment. The name will be displayed
+						on a prominent place in the user interface, most likely displayed as
+						a part of the header (on every page). The name is usually used
+						to distinguish between midPoint deployments in the same organization.
+						Strings such as "DEVEL", "TEST", "UAT" are often used.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Free form description that specifies the details of this deployment.
+						It may be significantly long (few paragraps). It has no special purpose
+						other then a form of "on-line" documentation for the deployment. It will
+						NOT be displayed on every page. It will most likely be displayed on a system
+						configuration pages or in configuration summaries.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="headerColor" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of a color that will be used as a background for a page header.
+						The color can be used as a form of easy look and feel customization to match the
+						customer corporate identity. But perhaps more often the color will be used to
+						distinguish different midPoint environments in the same organization, e.g.
+						green color for devel environment, blue color for testing, etc. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="logo" type="tns:IconType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of a logo that will be used in the title bar on every screen.
+						This can be used as an easy customization and point to a customer logo. Or
+						it may be used as an icon to indicate the environment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="customerName" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Short name of the organization that is end user of the midPoint deployment.
+						It is supposed to be a company name, such as "ExAmPLE, Inc."
+						It will be displayed together with subscription information. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="customerUrl" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						URL of the customer web site. It will be used as a link target in case
+						that the customer name is displayed as hyperlink. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="partnerName" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Short name of the organization that deployed this midPoint instance.
+						It is usually the name of Evolveum partner.
+						It is supposed to be a company name, such as "ExAmPLE, Inc."
+						It will be displayed together with subscription information. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="partnerUrl" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						URL of the partner web site. It will be used as a link target in case
+						that the partner name is displayed as hyperlink. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="subscriptionIdentifier" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identifier of Evolveum subscription contract that applies to this deployment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:complexType name="CachingPolicyType">
 		<xsd:annotation>

@@ -78,7 +78,7 @@ public class AssociationFromLinkExpressionEvaluator
 			ExpressionEvaluationException, ObjectNotFoundException {
 				            
 		String desc = params.getContextDescription();
-		Object orderOneObject = params.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
+		Object orderOneObject = params.getVariables().get(ExpressionConstants.VAR_THIS_OBJECT);
 		if (orderOneObject == null) {
 			throw new ExpressionEvaluationException("No order one object variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
 		}

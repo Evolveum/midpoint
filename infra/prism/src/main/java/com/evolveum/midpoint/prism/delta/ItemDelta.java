@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -1142,6 +1143,13 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		}
 	}
 	
+	public static void applyTo(Collection<? extends ItemDelta> deltas, PrismContainerValue propertyContainerValue)
+			throws SchemaException {
+		for (ItemDelta delta : deltas) {
+			delta.applyTo(propertyContainerValue);
+		}
+	}
+	
 	public static void applyToMatchingPath(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer)
 			throws SchemaException {
 		for (ItemDelta delta : deltas) {
@@ -1322,6 +1330,25 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			return false;
 		}
 		return true;
+	}
+	
+	public void filterValues(Function<V, Boolean> function) {
+		filterValuesSet(this.valuesToAdd, function);
+		filterValuesSet(this.valuesToDelete, function);
+		filterValuesSet(this.valuesToReplace, function);
+	}
+
+	private void filterValuesSet(Collection<V> set, Function<V, Boolean> function) {
+		if (set == null) {
+			return;
+		}
+		Iterator<V> iterator = set.iterator();
+		while (iterator.hasNext()) {
+			Boolean keep = function.apply(iterator.next());
+			if (keep == null || !keep) {
+				iterator.remove();
+			}
+		}
 	}
 
 	public abstract ItemDelta<V,D> clone();

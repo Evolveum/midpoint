@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -351,7 +351,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 						ctx.resourceRef, path);
 			}
 		}
-		for (MappingSourceDeclarationType source : mapping.getSource()) {
+		for (VariableBindingDefinitionType source : mapping.getSource()) {
 			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, itemNameText, true, index, source.getPath());
 		}
 		if (mapping.getTarget() != null) {
@@ -395,7 +395,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 	}
 
-	private String format(MappingTargetDeclarationType target) {
+	private String format(VariableBindingDefinitionType target) {
 		return target != null ? format(target.getPath()) : "";
 	}
 

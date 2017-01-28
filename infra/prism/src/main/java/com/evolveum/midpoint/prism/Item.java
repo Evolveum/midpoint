@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Item is a common abstraction of Property and PropertyContainer.
@@ -581,6 +582,16 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			accept(visitor);
 		} else {
 			visitor.visit(this);
+		}
+	}
+	
+	public void filterValues(Function<V, Boolean> function) {
+		Iterator<V> iterator = values.iterator();
+		while (iterator.hasNext()) {
+			Boolean keep = function.apply(iterator.next());
+			if (keep == null || !keep) {
+				iterator.remove();
+			}
 		}
 	}
 

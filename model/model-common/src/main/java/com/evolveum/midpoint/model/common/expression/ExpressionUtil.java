@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -77,6 +78,8 @@ import org.jetbrains.annotations.Nullable;
 public class ExpressionUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
+	
+	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
 	public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(
 			PrismValueDeltaSetTriple<V> resultTriple, ItemDefinition outputDefinition,
@@ -350,7 +353,7 @@ public class ExpressionUtil {
 	}
 
 	public static <ID extends ItemDefinition> ID resolveDefinitionPath(ItemPath path,
-			ExpressionVariables variables, PrismObjectDefinition<?> defaultContext, String shortDesc)
+			ExpressionVariables variables, PrismContainerDefinition<?> defaultContext, String shortDesc)
 					throws SchemaException {
 		while (path != null && !path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
 			path = path.rest();
@@ -950,5 +953,10 @@ public class ExpressionUtil {
 		} else {
 			return (V) new PrismPropertyValue<>(value);
 		}
+	}
+	
+	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(ExpressionType conditionExpressionType, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		PrismPropertyDefinition<Boolean> conditionOutputDef = new PrismPropertyDefinitionImpl<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
+		return expressionFactory.makeExpression(conditionExpressionType, conditionOutputDef, shortDesc, task, result);	
 	}
 }

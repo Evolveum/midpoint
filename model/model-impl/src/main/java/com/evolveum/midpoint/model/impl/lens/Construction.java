@@ -658,7 +658,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source)
 				.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, source)
-				.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject);
+				.addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, orderOneObject);
 
 		if (assocTargetObjectClassDefinition != null) {
 			builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,

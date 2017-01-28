@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public class MappingTypeDto implements Serializable {
 
         oldMappingObject = mappingObject.clone();
 
-        for(MappingSourceDeclarationType mappingSource: mappingObject.getSource()){
+        for(VariableBindingDefinitionType mappingSource: mappingObject.getSource()){
             if(mappingSource.getPath() != null && mappingSource.getPath().getItemPath() != null){
                 source.add(mappingSource.getPath().getItemPath().toString());
             }
@@ -139,7 +139,7 @@ public class MappingTypeDto implements Serializable {
         }
 
         if(target != null){
-            MappingTargetDeclarationType mappingTarget = new MappingTargetDeclarationType();
+        	VariableBindingDefinitionType mappingTarget = new VariableBindingDefinitionType();
             mappingTarget.setPath(new ItemPathType(target));
             mappingObject.setTarget(mappingTarget);
         } else {
@@ -147,13 +147,13 @@ public class MappingTypeDto implements Serializable {
         }
 
         mappingObject.getSource().clear();
-        List<MappingSourceDeclarationType> mappingSourceList = new ArrayList<>();
+        List<VariableBindingDefinitionType> mappingSourceList = new ArrayList<>();
         for(String s: source){
             if(s == null){
                 continue;
             }
 
-            MappingSourceDeclarationType mappingSource = new MappingSourceDeclarationType();
+            VariableBindingDefinitionType mappingSource = new VariableBindingDefinitionType();
             mappingSource.setPath(new ItemPathType(s));
             mappingSourceList.add(mappingSource);
         }
@@ -346,7 +346,7 @@ public class MappingTypeDto implements Serializable {
         }
 
         if(!mapping.getSource().isEmpty()){
-            for(MappingSourceDeclarationType source: mapping.getSource()){
+            for(VariableBindingDefinitionType source: mapping.getSource()){
                 if(source.getPath() != null && source.getPath().getItemPath() != null
                         && source.getPath().getItemPath().getSegments() != null){
 
@@ -367,7 +367,7 @@ public class MappingTypeDto implements Serializable {
         sb.append("->");
 
         if (mapping.getTarget() != null) {
-            MappingTargetDeclarationType target = mapping.getTarget();
+        	VariableBindingDefinitionType target = mapping.getTarget();
             if (target.getPath() != null && !ItemPath.isNullOrEmpty(target.getPath().getItemPath())) {
                 List<ItemPathSegment> segments = target.getPath().getItemPath().getSegments();
                 sb.append(segments.get(segments.size() - 1));
