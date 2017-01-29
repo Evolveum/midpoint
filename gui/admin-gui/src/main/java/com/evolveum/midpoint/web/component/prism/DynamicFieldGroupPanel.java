@@ -21,6 +21,7 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -104,6 +105,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 				PrismPropertyPanel propertyPanel = new PrismPropertyPanel(itemView.newChildId(),
 						Model.of(itemWrapper), mainForm, getPageBase());
 				propertyPanel.setOutputMarkupId(true);
+				propertyPanel.add(AttributeModifier.append("class", ((i % 2) == 0) ? "" : "stripe"));
 				itemView.add(propertyPanel);
 			}
 
