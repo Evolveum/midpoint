@@ -52,7 +52,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     private List<SerializationSafeContainer<ExpressionType>> approverExpressions = new ArrayList<>();
     private LevelEvaluationStrategyType evaluationStrategy;
     private SerializationSafeContainer<ExpressionType> automaticallyApproved;
-    private SerializationSafeContainer<ExpressionType> approverInstruction;
+    private SerializationSafeContainer<ExpressionType> additionalInformation;
 	@NotNull private final ApprovalLevelOutcomeType outcomeIfNoApprovers;
 	@NotNull private final GroupExpansionType groupExpansion;
 
@@ -74,7 +74,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 	    relationResolver.getApprovers(levelType.getApproverRelation()).forEach(this::addResolvedApproverRef);
 	    levelType.getApproverExpression().forEach(this::addApproverExpression);
         this.evaluationStrategy = levelType.getEvaluationStrategy();
-        setApproverInstruction(levelType.getApproverInstruction());
+        setAdditionalInformation(levelType.getAdditionalInformation());
         setAutomaticallyApproved(levelType.getAutomaticallyApproved());
         outcomeIfNoApprovers = resolveDefaultOutcomeIfNoApprovers(levelType.getOutcomeIfNoApprovers());
         groupExpansion = resolveDefaultGroupExpansion(levelType.getGroupExpansion());
@@ -174,12 +174,12 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 	}
 
     @Override
-    public ExpressionType getApproverInstruction() {
-		return unwrap(approverInstruction);
+    public ExpressionType getAdditionalInformation() {
+		return unwrap(additionalInformation);
     }
 
-	public void setApproverInstruction(ExpressionType approverInstruction) {
-		this.approverInstruction = wrap(approverInstruction);
+	public void setAdditionalInformation(ExpressionType additionalInformation) {
+		this.additionalInformation = wrap(additionalInformation);
 	}
 
 	@NotNull
@@ -232,7 +232,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
         levelType.setDisplayName(getDisplayName());
         levelType.setDescription(getDescription());
         levelType.setAutomaticallyApproved(getAutomaticallyApproved());
-        levelType.setApproverInstruction(getApproverInstruction());
+        levelType.setAdditionalInformation(getAdditionalInformation());
         levelType.setEvaluationStrategy(getEvaluationStrategy());
         for (LightweightObjectRef approverRef : approverRefs) {
             levelType.getApproverRef().add(approverRef.toObjectReferenceType());
@@ -283,7 +283,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 		DebugUtil.debugDumpWithLabelLn(sb, "Group expansion", String.valueOf(groupExpansion), indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "Approver refs", approverRefs, indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "Approver expressions", approverExpressions, indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "Approver instruction", approverInstruction, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "Additional information", additionalInformation, indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "Automatically approved", automaticallyApproved, indent);
 		return sb.toString();
 	}

@@ -170,7 +170,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	}
 
 	private ApprovalSchemaBuilder.Result createSchemaWithRules(List<EvaluatedPolicyRule> triggeredApprovalRules,
-			@NotNull PrismObject<?> targetObject, ModelInvocationContext ctx, OperationResult result) {
+			@NotNull PrismObject<?> targetObject, ModelInvocationContext ctx, OperationResult result) throws SchemaException {
 
 		ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(this);
 		// (1) legacy approvers
@@ -335,8 +335,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		String approvalTaskName = "Approve adding " + targetName + " to " + objectName;				// TODO adding?
 
 		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
-				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName, builderResult.schema,
-						builderResult.attachedRules);
+				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName,
+						builderResult.schema, builderResult.schemaType, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 
@@ -383,7 +383,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
 				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName,
-						builderResult.schema, builderResult.attachedRules);
+						builderResult.schema, builderResult.schemaType, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 

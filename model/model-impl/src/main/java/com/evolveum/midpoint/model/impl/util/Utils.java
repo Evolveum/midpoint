@@ -457,29 +457,26 @@ public final class Utils {
     }
     
     public static boolean isDryRun(Task task) throws SchemaException{
-    	
-    	Validate.notNull(task, "Task must not be null.");
-    	
-    	if (task.getExtension() == null){
-    		return false;
-    	}
-		
-    	PrismProperty<Boolean> item = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		if (item == null || item.isEmpty()){
-			return false;
+		Boolean dryRun = isDryRunInternal(task);
+		if (dryRun == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
+			dryRun = isDryRunInternal(task.getParentForLightweightAsynchronousTask());
 		}
-		
-		if (item.getValues().size() > 1){
+		return dryRun != null ? dryRun : Boolean.FALSE;
+	}
+
+    private static Boolean isDryRunInternal(Task task) throws SchemaException{
+    	Validate.notNull(task, "Task must not be null.");
+    	if (task.getExtension() == null) {
+    		return null;
+    	}
+    	PrismProperty<Boolean> item = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+		if (item == null || item.isEmpty()) {
+			return null;
+		}
+		if (item.getValues().size() > 1) {
 			throw new SchemaException("Unexpected number of values for option 'dry run'.");
 		}
-				
-		Boolean dryRun = item.getValues().iterator().next().getValue();
-		
-		if (dryRun == null){
-			return false;
-		}
-    	
-		return dryRun.booleanValue(); 
+		return item.getValues().iterator().next().getValue();
     }
 
 	public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context, @Nullable LensProjectionContext projCtx) throws SchemaException {

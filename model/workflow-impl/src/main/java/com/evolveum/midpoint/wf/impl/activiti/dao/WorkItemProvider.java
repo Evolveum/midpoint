@@ -426,7 +426,7 @@ public class WorkItemProvider {
 			if (fetchAllVariables) {		// TODO can we do this e.g. in the task completion listener?
 				Map<String, Object> allVariables = activitiEngine.getTaskService().getVariables(task.getId());
 				wi.setProcessSpecificPart(pmi.extractProcessSpecificWorkItemPart(allVariables));
-				wi.setApproverInstruction(pmi.getApproverInstruction(allVariables));
+				wi.getAdditionalInformation().addAll(pmi.getAdditionalInformation(allVariables));
 			}
 
 			return wi;

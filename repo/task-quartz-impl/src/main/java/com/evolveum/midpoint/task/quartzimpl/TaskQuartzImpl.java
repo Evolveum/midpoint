@@ -38,8 +38,6 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -129,6 +127,7 @@ public class TaskQuartzImpl implements Task {
 	 * This must be synchronized, because interrupt() method uses it.
 	 */
     private Set<TaskQuartzImpl> lightweightAsynchronousSubtasks = Collections.synchronizedSet(new HashSet<TaskQuartzImpl>());
+    private Task parentForLightweightAsynchronousTask;			// EXPERIMENTAL
 
     /*
      * Task result is stored here as well as in task prism.
@@ -1649,8 +1648,12 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
+	@Override
+	public Task getParentForLightweightAsynchronousTask() {
+		return parentForLightweightAsynchronousTask;
+	}
 
-    public void setParent(String value) {
+	public void setParent(String value) {
         processModificationBatched(setParentAndPrepareDelta(value));
     }
 
@@ -2496,6 +2499,7 @@ public class TaskQuartzImpl implements Task {
 		TaskQuartzImpl sub = ((TaskQuartzImpl) createSubtask());
         sub.setLightweightTaskHandler(handler);
 		lightweightAsynchronousSubtasks.add(sub);
+		parentForLightweightAsynchronousTask = this;
         return sub;
     }
 

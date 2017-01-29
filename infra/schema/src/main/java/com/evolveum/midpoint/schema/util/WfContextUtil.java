@@ -108,6 +108,15 @@ public class WfContextUtil {
 				(ItemApprovalProcessStateType) processSpecificState : null;
 	}
 
+	public static WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState(WfContextType wfc) {
+		if (wfc == null) {
+			return null;
+		}
+		WfProcessorSpecificStateType state = wfc.getProcessorSpecificState();
+		return state instanceof WfPrimaryChangeProcessorStateType ?
+				(WfPrimaryChangeProcessorStateType) state : null;
+	}
+
 	public static ItemApprovalWorkItemPartType getItemApprovalWorkItemInfo(WorkItemType workItem) {
 		return workItem.getProcessSpecificPart() instanceof ItemApprovalWorkItemPartType ?
 				(ItemApprovalWorkItemPartType) workItem.getProcessSpecificPart() : null;
@@ -122,5 +131,20 @@ public class WfContextUtil {
 				.filter(e -> e.getLevelMax() != null && e.getLevelMax() != null
 						&& order >= e.getLevelMin() && order <= e.getLevelMax())
 				.findFirst().orElse(null);
+	}
+
+	public static ApprovalLevelType getCurrentApprovalLevel(WfContextType wfc) {
+		if (wfc == null || wfc.getStageNumber() == null) {
+			return null;
+		}
+		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
+		if (info == null || info.getApprovalSchema() == null) {
+			return null;
+		}
+		int level = wfc.getStageNumber()-1;
+		if (level < 0 || level >= info.getApprovalSchema().getLevel().size()) {
+			return null;		// TODO log something here? or leave it to the caller?
+		}
+		return info.getApprovalSchema().getLevel().get(level);
 	}
 }

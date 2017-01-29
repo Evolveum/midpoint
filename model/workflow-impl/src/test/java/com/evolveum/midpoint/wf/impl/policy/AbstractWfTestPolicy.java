@@ -568,7 +568,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				display("Execution id = " + executionId);
 				Boolean approve = testDetails.decideOnApproval(executionId, task);
 				if (approve != null) {
-					workflowManager.approveOrRejectWorkItem(task.getId(), approve, null, result);
+					workflowManager.approveOrRejectWorkItem(task.getId(), approve, null, null, result);
 					login(userAdministrator);
 					break;
 				}
@@ -588,7 +588,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 						if (approvalInstruction.matches(workItem)) {
 							login(getUser(approvalInstruction.approverOid));
 							workflowManager.approveOrRejectWorkItem(workItem.getWorkItemId(), approvalInstruction.approval, null,
-									result);
+									null, result);
 							login(userAdministrator);
 							matched = true;
 							instructions.remove(approvalInstruction);

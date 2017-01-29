@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -343,12 +344,8 @@ public class Visualizer {
 				if (a != 0) {
 					return a;
 				}
-				if (def1 == null && def2 == null) {
-					return 0;
-				} else if (def1 == null) {
-					return 1;
-				} else if (def2 == null) {
-					return -1;
+				if (def1 == null || def2 == null) {
+					return MiscUtil.compareNullLast(def1, def2);
 				}
 				if (s1.isContainerValue() && s2.isContainerValue()) {
 					Long id1 = s1.getSourceContainerValueId();

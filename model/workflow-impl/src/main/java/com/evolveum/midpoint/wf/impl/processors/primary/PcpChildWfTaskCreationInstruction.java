@@ -33,6 +33,7 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaAttachedPolicyRulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -51,9 +52,9 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
 
 	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(
 			ChangeProcessor changeProcessor, String approvalTaskName, @NotNull ApprovalSchema approvalSchema,
-			SchemaAttachedPolicyRulesType attachedPolicyRules) {
+			@NotNull ApprovalSchemaType approvalSchemaType, SchemaAttachedPolicyRulesType attachedPolicyRules) {
 		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent(
-				changeProcessor.getPrismContext(), approvalTaskName, approvalSchema, attachedPolicyRules);
+				changeProcessor.getPrismContext(), approvalTaskName, approvalSchema, approvalSchemaType, attachedPolicyRules);
 		return new PcpChildWfTaskCreationInstruction<>(changeProcessor, itemApprovalInstruction);
 	}
 

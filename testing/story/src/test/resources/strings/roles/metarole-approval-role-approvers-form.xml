@@ -14,10 +14,10 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="2dadd243-687d-4b4c-80cd-09ddfe4cbf59">
-	<name>metarole-approval-role-approvers-all</name>
-	<description>Requests to assign role holding this metarole will be approved by the role approver(s) using "all must approve" method</description>
-	<displayName>Metarole: approval by the role approver(s) - all must approve</displayName>
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="df092a19-68f0-4056-adf8-482f8fd26410">
+	<name>metarole-approval-role-approvers-form</name>
+	<description>Always use along with approvers-all or approvers-first metarole!</description>
+	<displayName>Metarole: approval by the role approver(s) with custom form</displayName>
 	<inducement>
 		<policyRule>
 			<policyConstraints>
@@ -28,14 +28,11 @@
 					<compositionStrategy>
 						<order>40</order>
 						<mergeable>true</mergeable>
-						<mergeOrder>1</mergeOrder>
+						<mergeOrder>2</mergeOrder>
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
-                            <name>Role approvers (all)</name>
-                            <approverRelation>approver</approverRelation>
-							<evaluationStrategy>allMustApprove</evaluationStrategy>
-							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+							<formRef oid="6a1874a7-1e60-43b3-8d67-7f76484dead5" type="FormType"/>
 						</level>
 					</approvalSchema>
 				</approval>
