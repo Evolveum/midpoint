@@ -35,7 +35,9 @@
             <name>Login information</name>
             <formItems list="true">
                <formField>
-                  <c:ref>name</c:ref>
+                  <binding>
+                  	<c:path>name</c:path>
+                  </binding>
                   <display>
                      <label>Login</label>
                      <help>Your login</help>
@@ -43,7 +45,9 @@
                   </display>
                </formField>
                <formField>
-                  <c:ref>c:emailAddress</c:ref>
+                  <binding>
+                  	<c:path>c:emailAddress</c:path>
+                  </binding>
                   <display>
                      <label>Email Address</label>
                      <help>Is used to finish registration process</help>
@@ -51,7 +55,9 @@
                   </display>
                </formField>
                <formField>
-                  <c:ref>c:credentials/password</c:ref>
+                  <binding>
+                  	<c:path>c:credentials/password</c:path>
+                  </binding>
                   <display>
                      <label> </label>
                      <help>minimal length 5, use of minimal unique characters 3,...</help>
@@ -64,14 +70,18 @@
             <name>Personal information</name>
             <formItems list="true">
                <formField>
-                  <c:ref>givenName</c:ref>
+                  <binding>
+                  	<c:path>givenName</c:path>
+                  </binding>
                   <display>
                      <label>First Name</label>
                      <minOccurs>1</minOccurs>
                   </display>
                </formField>
                <formField>
-                  <c:ref>familyName</c:ref>
+                  <binding>
+                  	<c:path>familyName</c:path>
+                  </binding>
                   <display>
                      <label>Last Name</label>
                      <minOccurs>1</minOccurs>
@@ -83,13 +93,17 @@
             <name>Additional information</name>
             <formItems list="true">
                <formField>
-                  <c:ref>c:organization</c:ref>
+                  <binding>
+                  	<c:path>c:organization</c:path>
+                  </binding>
                   <display>
                      <label>Company/University</label>
                   </display>
                </formField>
                <formField>
-                  <c:ref>c:organizationalUnit</c:ref>
+                  <binding>
+                  	<c:path>c:organizationalUnit</c:path>
+                  </binding>
                   <display>
                      <maxOccurs>1</maxOccurs>
                   </display>
