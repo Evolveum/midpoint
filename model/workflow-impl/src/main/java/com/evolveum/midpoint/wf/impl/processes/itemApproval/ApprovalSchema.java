@@ -41,5 +41,5 @@ public interface ApprovalSchema extends DebugDumpable {
 
     ApprovalSchemaType toApprovalSchemaType();
 
-	boolean isEmpty();
+	boolean shouldBeSkipped();
 }

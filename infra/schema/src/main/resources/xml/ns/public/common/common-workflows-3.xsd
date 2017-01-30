@@ -200,6 +200,20 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="skip">
+				<xsd:annotation>
+					<xsd:documentation>
+						This level is silently skipped. This is useful for situations where we don't even want to start
+						an approval process if there are no approvers in it.
+
+						Skipping whole approval process is currently supported only partly: when using approver relations.
+						For approver expressions, these are always evaluated within context of a workflow process.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SKIP"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
 
