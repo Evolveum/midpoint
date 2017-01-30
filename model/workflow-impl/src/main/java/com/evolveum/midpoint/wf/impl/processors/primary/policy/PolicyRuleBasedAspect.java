@@ -141,7 +141,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		// Let's construct the approval schema plus supporting triggered approval policy rule information
 		ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules, targetObject, ctx, result);
-		if (approvalSchemaResult.schema.isEmpty()) {
+		if (approvalSchemaResult.schema.shouldBeSkipped()) {
 			return null;
 		}
 
@@ -190,7 +190,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverRef()));
 				level.getApproverExpression().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverExpression()));
 				level.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
-				// consider default (if expression returns no approvers) -- currently it is "reject"
+				// consider default (if expression returns no approvers) -- currently it is "reject"; it is probably correct
 				builder.addPredefined(targetObject, level);
 				LOGGER.trace("Added legacy approval schema");
 			}
@@ -286,7 +286,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		Set<ItemPath> itemsProcessed = null;
 		for (Map.Entry<Set<ItemPath>, ApprovalSchemaBuilder> entry : schemaBuilders.entrySet()) {
 			ApprovalSchemaBuilder.Result builderResult = entry.getValue().buildSchema(ctx, result);
-			if (builderResult.schema.isEmpty()) {
+			if (builderResult.schema.shouldBeSkipped()) {
 				continue;
 			}
 			Set<ItemPath> items = entry.getKey();

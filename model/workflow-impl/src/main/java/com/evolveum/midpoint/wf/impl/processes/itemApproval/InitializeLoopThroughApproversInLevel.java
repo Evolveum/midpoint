@@ -106,14 +106,22 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 						execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
 						execution.getProcessInstanceId(), level.getOutcomeIfNoApprovers());
                 predeterminedOutcome = level.getOutcomeIfNoApprovers();
-                if (predeterminedOutcome == ApprovalLevelOutcomeType.APPROVE) {
-					recordAutoApprovalDecision(wfTask, true,
-							"Approved automatically because there were no approvers found.", stageNumber, level,
-							prismContext);
-				} else {
-					recordAutoApprovalDecision(wfTask, false,
-							"Rejected automatically because there were no approvers found.", stageNumber, level,
-							prismContext);
+                switch (predeterminedOutcome) {
+					case APPROVE:
+						recordAutoApprovalDecision(wfTask, true,
+								"Approved automatically because there were no approvers found.", stageNumber, level,
+								prismContext);
+						break;
+					case REJECT:
+						recordAutoApprovalDecision(wfTask, false,
+								"Rejected automatically because there were no approvers found.", stageNumber, level,
+								prismContext);
+						break;
+					case SKIP:
+						// do nothing, just silently skip the level
+						break;
+					default:
+						throw new IllegalStateException("Unexpected outcome: " + level.getOutcomeIfNoApprovers() + " in " + level);
 				}
             }
         }

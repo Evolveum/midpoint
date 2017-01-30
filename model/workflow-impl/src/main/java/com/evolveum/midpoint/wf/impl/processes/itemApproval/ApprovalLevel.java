@@ -57,7 +57,7 @@ public interface ApprovalLevel extends DebugDumpable {
 
     ApprovalLevelType toApprovalLevelType(PrismContext prismContext);
 
-    boolean isEmpty();
+    boolean shouldBeSkipped();
 
 	String getDebugName();
 }
