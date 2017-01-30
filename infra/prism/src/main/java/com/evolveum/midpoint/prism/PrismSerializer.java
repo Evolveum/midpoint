@@ -51,7 +51,7 @@ public interface PrismSerializer<T> {
 	 * Sets the item definition to be used during serialization.
 	 * (Not much used.)
 	 * @param itemDefinition
-	 * @return
+	 * @return Serializer with the definition set.
 	 */
 	@NotNull
 	PrismSerializer<T> definition(ItemDefinition itemDefinition);
