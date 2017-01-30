@@ -836,7 +836,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					ObjectDelta expectedDelta0 = testDetails2.getExpectedDelta0();
 					ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
 					assertDeltasEqual("Wrong delta left as primary focus delta. ", expectedDelta0, realDelta0);
-					for (int i = 0; i < testDetails2.getNumberOfDeltasToApprove(); i++) {
+					for (int i = 0; i <= testDetails2.getNumberOfDeltasToApprove(); i++) {
 						testDetails2.assertDeltaExecuted(i, false, rootTask, result);
 					}
 					testDetails2.sortSubtasks(subtasks);
@@ -852,7 +852,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				if (!immediate) {
 					return;
 				}
-				for (int i = 1; i < testDetails2.getNumberOfDeltasToApprove(); i++) {
+				for (int i = 1; i <= testDetails2.getNumberOfDeltasToApprove(); i++) {
 					testDetails2.assertDeltaExecuted(i, false, task, result);
 				}
 				testDetails2.assertDeltaExecuted(0, true, task, result);
@@ -860,7 +860,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 			@Override
 			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-				for (int i = 0; i < testDetails2.getNumberOfDeltasToApprove(); i++) {
+				for (int i = 0; i <= testDetails2.getNumberOfDeltasToApprove(); i++) {
 					testDetails2.assertDeltaExecuted(i, i == 0 || testDetails2.getApprovals().get(i-1), task, result);
 				}
 			}

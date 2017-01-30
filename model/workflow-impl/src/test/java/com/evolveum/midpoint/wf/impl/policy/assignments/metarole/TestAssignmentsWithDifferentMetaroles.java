@@ -481,7 +481,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
 				return Arrays.asList(
-						new ExpectedTask(roleRole23Oid, "Assigning Role23 to jack"));
+						new ExpectedTask(roleRole23Oid, "Unassigning Role23 from jack"));
 			}
 
 			// after first step
@@ -513,16 +513,16 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 							assertAssignedRole(userJackOid, roleRole21Oid, rootTask, result);
 							assertAssignedRole(userJackOid, roleRole22Oid, rootTask, result);
 						}
-
 						break;
 					case 1:
 						if (yes) {
-							assertAssignedRole(userJackOid, roleRole23Oid, rootTask, result);
-						} else {
 							assertNotAssignedRole(userJackOid, roleRole23Oid, rootTask, result);
+						} else {
+							assertAssignedRole(userJackOid, roleRole23Oid, rootTask, result);
 						}
 						break;
-
+					default:
+						throw new IllegalArgumentException("Unexpected delta number: " + number);
 				}
 			}
 
