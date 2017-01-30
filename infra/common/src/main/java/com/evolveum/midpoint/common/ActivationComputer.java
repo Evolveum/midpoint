@@ -170,4 +170,15 @@ public class ActivationComputer {
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
 	
+	public boolean lifecycleHasActiveAssignments(String lifecycleStatus) {
+		return lifecycleIsActive(lifecycleStatus);
+	}
+
+
+	public boolean lifecycleIsActive(String lifecycleStatus) {
+		if (lifecycleStatus == null) {
+			return true;
+		}
+		return lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED);
+	}
 }
