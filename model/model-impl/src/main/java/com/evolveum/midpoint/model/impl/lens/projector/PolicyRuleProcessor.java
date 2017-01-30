@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -91,12 +93,12 @@ public class PolicyRuleProcessor {
 	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
 			OperationResult result) throws PolicyViolationException, SchemaException {
-		checkAssignmentRules(context, evaluatedAssignmentTriple.getPlusSet(), result);
-		checkAssignmentRules(context, evaluatedAssignmentTriple.getMinusSet(), result);
+		checkAssignmentRules(context, evaluatedAssignmentTriple.getPlusSet(), PlusMinusZero.PLUS, result);
+		checkAssignmentRules(context, evaluatedAssignmentTriple.getMinusSet(), PlusMinusZero.MINUS, result);
 	}
-	
+
 	private <F extends FocusType> void checkAssignmentRules(LensContext<F> context,
-			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet,
+			Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmentSet, PlusMinusZero whichSet,
 			OperationResult result) throws PolicyViolationException, SchemaException {
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentSet) {
 			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getThisTargetPolicyRules();
@@ -106,17 +108,14 @@ public class PolicyRuleProcessor {
 					continue;
 				}
 				for (AssignmentPolicyConstraintType assignmentConstraint: policyConstraints.getAssignment()) {
-					if (assignmentConstraint.getRelation().isEmpty()) {
-						if (MiscSchemaUtil.compareRelation(null, evaluatedAssignment.getRelation())) {
-							EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.ASSIGNMENT,
-									assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
-							evaluatedAssignment.triggerConstraint(policyRule, trigger);
-						}
-					} else {
-						for (QName constraintRelation: assignmentConstraint.getRelation()) {
+					if (matchesOperation(assignmentConstraint, whichSet)) {
+						List<QName> relationsToCheck = assignmentConstraint.getRelation().isEmpty() ?
+								Collections.singletonList(null) : assignmentConstraint.getRelation();
+						for (QName constraintRelation : relationsToCheck) {
 							if (MiscSchemaUtil.compareRelation(constraintRelation, evaluatedAssignment.getRelation())) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.ASSIGNMENT,
-										assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger<>(
+										PolicyConstraintKindType.ASSIGNMENT,
+										assignmentConstraint, "Assignment of " + evaluatedAssignment.getTarget());
 								evaluatedAssignment.triggerConstraint(policyRule, trigger);
 							}
 						}
@@ -125,7 +124,20 @@ public class PolicyRuleProcessor {
 			}
 		}
 	}
-	
+
+	private boolean matchesOperation(AssignmentPolicyConstraintType constraint, PlusMinusZero whichSet) {
+		List<ModificationTypeType> operations = constraint.getOperation();
+		if (operations.isEmpty()) {
+			return true;
+		}
+		switch (whichSet) {
+			case PLUS: return operations.contains(ModificationTypeType.ADD);
+			case MINUS: return operations.contains(ModificationTypeType.DELETE);
+			case ZERO: return operations.contains(ModificationTypeType.REPLACE);
+			default: throw new IllegalArgumentException("whichSet: " + whichSet);
+		}
+	}
+
 	private <F extends FocusType> void checkExclusionsLegacy(LensContext<F> context, Collection<EvaluatedAssignmentImpl<F>> assignmentsA,
 			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
 		for (EvaluatedAssignmentImpl<F> assignmentA: assignmentsA) {

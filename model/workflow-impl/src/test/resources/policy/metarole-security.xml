@@ -22,7 +22,7 @@
 	<inducement>
 		<policyRule>
 			<policyConstraints>
-				<assignment/>				<!-- applies to all assignment operations of this metarole-bearer as the target -->
+				<assignment/>				<!-- applies to all add/delete assignment operations of this metarole-bearer as the target -->
 			</policyConstraints>
 			<policyActions>
 				<approval>

@@ -335,26 +335,27 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 	
 	public boolean removeValueToAdd(PrismValue valueToRemove) {
-		return removeValue(valueToRemove, valuesToAdd);
+		return removeValue(valueToRemove, valuesToAdd, false);
 	}
 	
 	public boolean removeValueToDelete(PrismValue valueToRemove) {
-		return removeValue(valueToRemove, valuesToDelete);
+		return removeValue(valueToRemove, valuesToDelete, true);
 	}
 	
 	public boolean removeValueToReplace(PrismValue valueToRemove) {
-		return removeValue(valueToRemove, valuesToReplace);
+		return removeValue(valueToRemove, valuesToReplace, false);
 	}
 	
-	private boolean removeValue(PrismValue valueToRemove, Collection<V> set) {
+	private boolean removeValue(PrismValue valueToRemove, Collection<V> set, boolean toDelete) {
 		boolean removed = false;
 		if (set == null) {
-			return removed;
+			return false;
 		}
 		Iterator<V> valuesIterator = set.iterator();
 		while (valuesIterator.hasNext()) {
-			V valueToReplace = valuesIterator.next();
-			if (valueToReplace.equalsRealValue(valueToRemove)) {
+			V existingValue = valuesIterator.next();
+			if (existingValue.equalsRealValue(valueToRemove)
+					|| toDelete && existingValue.representsSameValue(valueToRemove, false)) {		// the same algorithm as when deleting the item value
 				valuesIterator.remove();
 				removed = true;
 			}
@@ -1574,11 +1575,11 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				return false;
 		} else if (!parentPath.equivalent(other.parentPath))
 			return false;
-		if (!equivalentSetRealValue(this.valuesToAdd, other.valuesToAdd))
+		if (!equivalentSetRealValue(this.valuesToAdd, other.valuesToAdd, false))
 			return false;
-		if (!equivalentSetRealValue(this.valuesToDelete, other.valuesToDelete))
+		if (!equivalentSetRealValue(this.valuesToDelete, other.valuesToDelete, true))
 			return false;
-		if (!equivalentSetRealValue(this.valuesToReplace, other.valuesToReplace))
+		if (!equivalentSetRealValue(this.valuesToReplace, other.valuesToReplace, false))
 			return false;
 		return true;
 	}
@@ -1616,28 +1617,44 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				return false;
 		} else if (!parentPath.equivalent(other.parentPath))                    // or "equals" ?
 			return false;
-		if (!equivalentSetRealValue(this.valuesToAdd, other.valuesToAdd))
+		if (!equivalentSetRealValue(this.valuesToAdd, other.valuesToAdd, false))
 			return false;
-		if (!equivalentSetRealValue(this.valuesToDelete, other.valuesToDelete))
+		if (!equivalentSetRealValue(this.valuesToDelete, other.valuesToDelete, true))		// TODO ok?
 			return false;
-		if (!equivalentSetRealValue(this.valuesToReplace, other.valuesToReplace))
+		if (!equivalentSetRealValue(this.valuesToReplace, other.valuesToReplace, false))
 			return false;
-		if (!equivalentSetRealValue(this.estimatedOldValues, other.estimatedOldValues))
+		if (!equivalentSetRealValue(this.estimatedOldValues, other.estimatedOldValues, false))
 			return false;
 		return true;
 	}
 
-	private boolean equivalentSetRealValue(Collection<V> thisValue, Collection<V> otherValues) {
+	private boolean equivalentSetRealValue(Collection<V> thisValue, Collection<V> otherValues, boolean isDelete) {
 		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, 
-				(o1,o2) -> {
-					if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
-						PrismValue v1 = (PrismValue)o1;
-						PrismValue v2 = (PrismValue)o2;
-						return v1.equalsRealValue(v2);
+				(v1, v2) -> {
+					if (v1 != null && v2 != null) {
+						if (!isDelete || !(v1 instanceof PrismContainerValue) || !(v2 instanceof PrismContainerValue)) {
+							// Here it is questionable if we should consider adding "assignment id=1 (A)" and "assignment id=2 (A)"
+							// - i.e. assignments with the same real value but different identifiers - the same delta.
+							// Historically, we considered it as such. But the question is if it's correct.
+							return v1.equalsRealValue(v2);
+						} else {
+							// But for container values to be deleted, they can be referred to either using IDs or values.
+							// If content is used - but no IDs - the content must be equal.
+							// If IDs are used - and are the same - the content is irrelevant.
+							// The problem is if one side has content with ID, and the other has the same content without ID.
+							// This might have the same or different effect, depending on the content it is applied to.
+							return (v1.equalsRealValue(v2) && !differentIds(v1, v2)) || v1.representsSameValue(v2, false);
+						}
 					} else {
 						return false;
 					}
 				});
+	}
+
+	private boolean differentIds(PrismValue v1, PrismValue v2) {
+		Long id1 = v1 instanceof PrismContainerValue ? ((PrismContainerValue) v1).getId() : null;
+		Long id2 = v2 instanceof PrismContainerValue ? ((PrismContainerValue) v2).getId() : null;
+		return id1 != null && id2 != null && id1.longValue() != id2.longValue();
 	}
 
 	@Override
