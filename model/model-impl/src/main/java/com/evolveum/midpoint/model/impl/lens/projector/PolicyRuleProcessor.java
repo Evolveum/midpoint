@@ -17,12 +17,16 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -60,10 +64,10 @@ public class PolicyRuleProcessor {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleProcessor.class);
 	
-	@Autowired(required = true)
+	@Autowired
     private PrismContext prismContext;
 	
-	@Autowired(required = true)
+	@Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 	
@@ -75,8 +79,11 @@ public class PolicyRuleProcessor {
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
 			OperationResult result) throws PolicyViolationException, SchemaException {
 		checkAssignmentRules(context, evaluatedAssignmentTriple, result);
-        checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
-        checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
+        checkExclusionsLegacy(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getNonNegativeValues());
+        // in policy based situations, the comparison is not symmetric
+        checkExclusionsRuleBased(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
+        checkExclusionsRuleBased(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getZeroSet());
+        checkExclusionsRuleBased(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
         checkAssigneeConstraints(context, evaluatedAssignmentTriple, result);
         checkSecondaryConstraints(context, evaluatedAssignmentTriple, result);
 	}
@@ -101,14 +108,14 @@ public class PolicyRuleProcessor {
 				for (AssignmentPolicyConstraintType assignmentConstraint: policyConstraints.getAssignment()) {
 					if (assignmentConstraint.getRelation().isEmpty()) {
 						if (MiscSchemaUtil.compareRelation(null, evaluatedAssignment.getRelation())) {
-							EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.ASSIGNMENT, 
+							EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.ASSIGNMENT,
 									assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
 							evaluatedAssignment.triggerConstraint(policyRule, trigger);
 						}
 					} else {
 						for (QName constraintRelation: assignmentConstraint.getRelation()) {
 							if (MiscSchemaUtil.compareRelation(constraintRelation, evaluatedAssignment.getRelation())) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.ASSIGNMENT, 
+								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.ASSIGNMENT,
 										assignmentConstraint, "Assignment of "+evaluatedAssignment.getTarget());
 								evaluatedAssignment.triggerConstraint(policyRule, trigger);
 							}
@@ -119,68 +126,146 @@ public class PolicyRuleProcessor {
 		}
 	}
 	
-	private <F extends FocusType> void checkExclusions(LensContext<F> context, Collection<EvaluatedAssignmentImpl<F>> assignmentsA,
+	private <F extends FocusType> void checkExclusionsLegacy(LensContext<F> context, Collection<EvaluatedAssignmentImpl<F>> assignmentsA,
 			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
 		for (EvaluatedAssignmentImpl<F> assignmentA: assignmentsA) {
-			checkExclusion(context, assignmentA, assignmentsB);
-		}
-	}
-
-	private <F extends FocusType> void checkExclusion(LensContext<F> context, EvaluatedAssignmentImpl<F> assignmentA,
-			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
-		for (EvaluatedAssignmentImpl<F> assignmentB: assignmentsB) {
-			checkExclusion(context, assignmentA, assignmentB);
-		}
-	}
-
-	private <F extends FocusType> void checkExclusion(LensContext<F> context, EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB) throws PolicyViolationException {
-		if (assignmentA == assignmentB) {
-			// Same thing, this cannot exclude itself
-			return;
-		}
-		for (EvaluatedAssignmentTargetImpl eRoleA: assignmentA.getRoles().getAllValues()) {
-			for (EvaluatedAssignmentTargetImpl eRoleB: assignmentB.getRoles().getAllValues()) {
-				checkExclusion(assignmentA, assignmentB, eRoleA, eRoleB);
-			}
-		}
-	}
-
-	private <F extends FocusType> void checkExclusion(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleA, roleB);
-		checkExclusionOneWayLegacy(assignmentB, assignmentA, roleB, roleA);
-		checkExclusionOneWayRuleBased(assignmentA, assignmentB, roleA, roleB);
-		checkExclusionOneWayRuleBased(assignmentB, assignmentA, roleB, roleA);
-	}
-
-	private <F extends FocusType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB, 
-			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
-			checkAndTriggerExclusionConstraintViolation(assignmentA, assignmentB, roleA, roleB, exclusionA, null);
-		}
-	}
-
-	private <F extends FocusType> void checkExclusionOneWayRuleBased(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
-			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		for (EvaluatedPolicyRule policyRule : assignmentA.getThisTargetPolicyRules()) {	// TODO This vs All
-			if (policyRule.getPolicyConstraints() != null) {
-				for (ExclusionPolicyConstraintType exclusionConstraint : policyRule.getPolicyConstraints().getExclusion()) {
-					checkAndTriggerExclusionConstraintViolation(assignmentA, assignmentB, roleA, roleB, exclusionConstraint, policyRule);
+			for (EvaluatedAssignmentImpl<F> assignmentB: assignmentsB) {
+				if (assignmentA == assignmentB) {
+					continue;	// Same thing, this cannot exclude itself
+				}
+				for (EvaluatedAssignmentTargetImpl eRoleA : assignmentA.getRoles().getAllValues()) {
+					if (eRoleA.appliesToFocus()) {
+						for (EvaluatedAssignmentTargetImpl eRoleB : assignmentB.getRoles().getAllValues()) {
+							if (eRoleB.appliesToFocus()) {
+								checkExclusionLegacy(assignmentA, assignmentB, eRoleA, eRoleB);
+							}
+						}
+					}
 				}
 			}
 		}
 	}
 
-	private <F extends FocusType> void checkAndTriggerExclusionConstraintViolation(EvaluatedAssignmentImpl<F> assignmentA,
-			EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB,
-			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule)
+	private <F extends FocusType> void checkExclusionLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
+			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleA, roleB);
+		checkExclusionOneWayLegacy(assignmentB, assignmentA, roleB, roleA);
+	}
+
+	private <F extends FocusType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
+			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
+			checkAndTriggerExclusionConstraintViolationLegacy(assignmentA, assignmentB, roleA, roleB, exclusionA);
+		}
+	}
+
+	private <F extends FocusType> void checkAndTriggerExclusionConstraintViolationLegacy(EvaluatedAssignmentImpl<F> assignmentA,
+			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB,
+			ExclusionPolicyConstraintType constraint)
 			throws PolicyViolationException {
 		ObjectReferenceType targetRef = constraint.getTargetRef();
 		if (roleB.getOid().equals(targetRef.getOid())) {
 			EvaluatedExclusionTrigger trigger = new EvaluatedExclusionTrigger(
 					constraint, "Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
-					", they cannot be assigned at the same time", assignmentB);
-			assignmentA.triggerConstraint(policyRule, trigger);
+					", they cannot be assigned at the same time", assignmentB,
+					roleA.getTarget() != null ? roleA.getTarget().asObjectable() : null,
+					roleB.getTarget() != null ? roleB.getTarget().asObjectable() : null,
+					roleA.getAssignmentPath(), roleB.getAssignmentPath());
+			assignmentA.triggerConstraint(null, trigger);
 		}
+	}
+
+	private <F extends FocusType> void checkExclusionsRuleBased(LensContext<F> context,
+			Collection<EvaluatedAssignmentImpl<F>> assignmentsA, Collection<EvaluatedAssignmentImpl<F>> assignmentsB)
+			throws PolicyViolationException {
+		for (EvaluatedAssignmentImpl<F> assignmentA : assignmentsA) {
+			checkExclusionsRuleBased(context, assignmentA, assignmentsB);
+		}
+	}
+
+	private <F extends FocusType> void checkExclusionsRuleBased(LensContext<F> context, EvaluatedAssignmentImpl<F> assignmentA,
+			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
+
+		// We consider all policy rules, i.e. also from induced targets. (It is not possible to collect local
+		// rules for individual targets in the chain - rules are computed only for directly evaluated assignments.)
+		for (EvaluatedPolicyRule policyRule : assignmentA.getTargetPolicyRules()) {
+			if (policyRule.getPolicyConstraints() == null || policyRule.getPolicyConstraints().getExclusion().isEmpty()) {
+				continue;
+			}
+			// In order to avoid false positives, we consider all targets from the current assignment as "allowed"
+			Set<String> allowedTargetOids = assignmentA.getNonNegativeTargets().stream()
+					.filter(t -> t.appliesToFocus())
+					.map(t -> t.getOid())
+					.collect(Collectors.toSet());
+
+			for (EvaluatedAssignmentImpl<F> assignmentB : assignmentsB) {
+				for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegativeTargets()) {
+					if (!targetB.appliesToFocus() || allowedTargetOids.contains(targetB.getOid())) {
+						continue;
+					}
+					for (ExclusionPolicyConstraintType exclusionConstraint : policyRule.getPolicyConstraints().getExclusion()) {
+						if (excludes(exclusionConstraint, targetB)) {
+							triggerExclusionConstraintViolation(assignmentA, assignmentB, targetB, exclusionConstraint, policyRule);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private boolean excludes(ExclusionPolicyConstraintType constraint, EvaluatedAssignmentTargetImpl target) {
+		if (constraint.getTargetRef() == null || target.getOid() == null) {
+			return false;		// shouldn't occur
+		} else {
+			return target.getOid().equals(constraint.getTargetRef().getOid());
+		}
+		// We could speculate about resolving targets at runtime, but that's inefficient. More appropriate is
+		// to specify an expression, and evaluate (already resolved) target with regards to this expression.
+	}
+
+	private <F extends FocusType> void triggerExclusionConstraintViolation(EvaluatedAssignmentImpl<F> assignmentA,
+			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl targetB,
+			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule)
+			throws PolicyViolationException {
+
+		AssignmentPath pathA = policyRule.getAssignmentPath();
+		AssignmentPath pathB = targetB.getAssignmentPath();
+		String infoA = computeAssignmentInfo(pathA, assignmentA.getTarget());
+		String infoB = computeAssignmentInfo(pathB, targetB.getTarget());
+		ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
+		ObjectType objectB = getConflictingObject(pathB, targetB.getTarget());
+		EvaluatedExclusionTrigger trigger = new EvaluatedExclusionTrigger(
+				constraint, "Violation of SoD policy: " + infoA + " excludes " + infoB +
+				", they cannot be assigned at the same time", assignmentB, objectA, objectB, pathA, pathB);
+		assignmentA.triggerConstraint(policyRule, trigger);
+	}
+
+	private ObjectType getConflictingObject(AssignmentPath path, PrismObject<?> defaultObject) {
+		if (path == null) {
+			return ObjectTypeUtil.toObjectable(defaultObject);
+		}
+		List<ObjectType> objects = path.getFirstOrderChain();
+		return objects.isEmpty() ?
+				ObjectTypeUtil.toObjectable(defaultObject) : objects.get(objects.size()-1);
+	}
+
+	private String computeAssignmentInfo(AssignmentPath path, PrismObject<?> defaultObject) {
+		if (path == null) {
+			return String.valueOf(defaultObject);	// shouldn't occur
+		}
+		List<ObjectType> objects = path.getFirstOrderChain();
+		if (objects.isEmpty()) {		// shouldn't occur
+			return String.valueOf(defaultObject);
+		}
+		ObjectType last = objects.get(objects.size()-1);
+		StringBuilder sb = new StringBuilder();
+		sb.append(last);
+		if (objects.size() > 1) {
+			sb.append(objects.stream()
+					.map(o -> PolyString.getOrig(o.getName()))
+					.collect(Collectors.joining("->", " (", ")")));
+		}
+		return sb.toString();
 	}
 
 	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context,
@@ -301,6 +386,7 @@ public class PolicyRuleProcessor {
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, OperationResult result)
 			throws SchemaException, PolicyViolationException {
 		checkSecondaryConstraints(context, evaluatedAssignmentTriple.getPlusSet(), result);
+		checkSecondaryConstraints(context, evaluatedAssignmentTriple.getZeroSet(), result);
 		checkSecondaryConstraints(context, evaluatedAssignmentTriple.getMinusSet(), result);
 	}
 
@@ -316,7 +402,10 @@ public class PolicyRuleProcessor {
 			OperationResult result) throws PolicyViolationException, SchemaException {
 
 		// Single pass only (for the time being)
-		for (EvaluatedPolicyRule policyRule: evaluatedAssignment.getThisTargetPolicyRules()) {		// TODO This vs. All
+		// We consider only directly attached "situation" policy rules. In the future, we might configure this.
+		// So, if someone wants to report (forward) triggers from a target, he must ensure that a particular
+		// "situation" constraint is present directly on it.
+		for (EvaluatedPolicyRule policyRule: evaluatedAssignment.getThisTargetPolicyRules()) {
 			if (policyRule.getPolicyConstraints() == null) {
 				continue;
 			}
@@ -339,7 +428,11 @@ public class PolicyRuleProcessor {
 
 	private <F extends FocusType> Collection<EvaluatedPolicyRule> selectTriggeredRules(
 			EvaluatedAssignmentImpl<F> evaluatedAssignment, List<String> situations) {
-		return evaluatedAssignment.getThisTargetPolicyRules().stream()			// TODO This vs. All
+		// We consider all rules here, i.e. also those that are triggered on targets induced by this one.
+		// Decision whether to trigger such rules lies on "primary" policy constraints. (E.g. approvals would
+		// not trigger, whereas exclusions probably yes.) Overall, our responsibility is simply to collect
+		// all triggered rules.
+		return evaluatedAssignment.getTargetPolicyRules().stream()
 				.filter(r -> !r.getTriggers().isEmpty() && situations.contains(r.getPolicySituation()))
 				.collect(Collectors.toList());
 	}

@@ -29,7 +29,17 @@
     <assignment id="2">
         <targetRef oid="12345678-d34d-b33f-f00d-55555555a020" type="RoleType"/>     <!-- generic metarole (see comment in that role) -->
     </assignment>
-    <authorization>
+	<assignment id="4">
+		<policyRule>
+			<name>employee-excludes-contractor</name>
+			<policyConstraints>
+				<exclusion>
+					<targetRef oid="12345678-d34d-b33f-f00d-55555555a004" type="RoleType"/>	<!-- contractor -->
+				</exclusion>
+			</policyConstraints>
+		</policyRule>
+	</assignment>
+	<authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#work</action>
     </authorization>
     <requestable>true</requestable>

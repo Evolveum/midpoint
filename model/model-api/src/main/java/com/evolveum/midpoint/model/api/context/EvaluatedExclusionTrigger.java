@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -27,12 +28,17 @@ import java.util.Objects;
  */
 public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<ExclusionPolicyConstraintType> {
 
-	private final EvaluatedAssignment conflictingAssignment;
+	@NotNull private final EvaluatedAssignment conflictingAssignment;
+	private final ObjectType conflictingTarget;
+	private final AssignmentPath conflictingPath;
 
 	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-			String message, EvaluatedAssignment conflictingAssignment) {
+			String message, @NotNull EvaluatedAssignment conflictingAssignment,
+			ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
 		super(PolicyConstraintKindType.EXCLUSION, constraint, message);
 		this.conflictingAssignment = conflictingAssignment;
+		this.conflictingTarget = conflictingTarget;
+		this.conflictingPath = conflictingPath;
 	}
 
 	public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
@@ -61,16 +67,20 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 		// cannot debug dump conflicting assignment in detail, as we might go into infinite loop
 		// (the assignment could have evaluated rule that would point to another conflicting assignment, which
 		// could point back to this rule)
-		DebugUtil.debugDumpWithLabelToString(sb, "conflictingAssignment", conflictingAssignment, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingAssignment", conflictingAssignment, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingPath", conflictingPath, indent);
 	}
 
 	@Override
-	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType() {
+	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
 		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
-		fillCommonContent(rv);
-		if (conflictingAssignment != null) {
-			rv.setConflictingAssignment(conflictingAssignment.getAssignmentType());
+		fillCommonContent(rv, owningRule);
+		rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
+		rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
+		if (conflictingPath != null) {
+			rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType());
 		}
+		rv.setConflictingAssignment(conflictingAssignment.getAssignmentType());
 		return rv;
 	}
 }

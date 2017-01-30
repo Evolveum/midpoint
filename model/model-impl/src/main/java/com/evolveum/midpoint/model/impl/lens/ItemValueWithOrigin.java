@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -109,11 +110,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = new DeltaSetTriple<>(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
 		return ivwoTriple;
 	}
-	
-	private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> convertSet(Collection<V> valueSet, PrismValueDeltaSetTripleProducer<V, D> mapping) {
-		if (valueSet == null) {
-			return null;
-		}
+
+	@NotNull
+	private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> convertSet(
+			@NotNull Collection<V> valueSet, PrismValueDeltaSetTripleProducer<V, D> mapping) {
 		Collection<ItemValueWithOrigin<V,D>> ivwoSet = new ArrayList<>(valueSet.size());
 		for (V value: valueSet) {
 			ItemValueWithOrigin<V,D> ivwo = new ItemValueWithOrigin<>(value, mapping, null);

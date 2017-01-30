@@ -62,6 +62,7 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 			if (instr.getProcessContent() instanceof ItemApprovalSpecificContent) {
 				ItemApprovalSpecificContent iasc = (ItemApprovalSpecificContent) instr.getProcessContent();
 				LOGGER.debug("Approval schema:\n{}", DebugUtil.debugDump(iasc.approvalSchema));
+				LOGGER.debug("Approval schema XML:\n{}", PrismUtil.serializeQuietlyLazily(prismContext, iasc.approvalSchemaType));
 				LOGGER.debug("Attached rules:\n{}", PrismUtil.serializeQuietlyLazily(prismContext, iasc.policyRules));
 			}
 		}

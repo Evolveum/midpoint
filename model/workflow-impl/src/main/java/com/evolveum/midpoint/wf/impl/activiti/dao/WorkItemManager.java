@@ -17,10 +17,15 @@
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,6 +34,7 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.FormService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
@@ -53,17 +59,20 @@ public class WorkItemManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemManager.class);
 
-    @Autowired(required = true)
+    @Autowired
     private ActivitiEngine activitiEngine;
 
-    @Autowired(required = true)
+    @Autowired
     private MiscDataUtil miscDataUtil;
     
-    @Autowired(required = true)
+    @Autowired
     private SecurityEnforcer securityEnforcer;
     
-    @Autowired(required = true)
+    @Autowired
 	private SystemObjectCache systemObjectCache;
+
+    @Autowired
+	private PrismContext prismContext;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -71,7 +80,8 @@ public class WorkItemManager {
     private static final String OPERATION_CLAIM_WORK_ITEM = DOT_INTERFACE + "claimWorkItem";
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_INTERFACE + "releaseWorkItem";
 
-    public void completeWorkItem(String workItemId, String decision, String comment, OperationResult parentResult) throws SecurityViolationException {
+    public void completeWorkItem(String workItemId, String decision, String comment, ObjectDelta additionalDelta,
+			OperationResult parentResult) throws SecurityViolationException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParams(new String[] { "workItemId", "decision", "comment" }, workItemId, decision, comment);
@@ -93,6 +103,12 @@ public class WorkItemManager {
 			final Map<String, String> propertiesToSubmit = new HashMap<>();
 			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
 			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_COMMENT, comment);
+			if (additionalDelta != null) {
+				ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(additionalDelta);
+				String xmlDelta = prismContext.xmlSerializer()
+						.serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
+				propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_ADDITIONAL_DELTA, xmlDelta);
+			}
 
 			// we also fill-in the corresponding 'button' property (if there's one that corresponds to the decision)
 			for (FormProperty formProperty : data.getFormProperties()) {
@@ -104,7 +120,7 @@ public class WorkItemManager {
 			}
 			LOGGER.trace("Submitting {} properties", propertiesToSubmit.size());
 			formService.submitTaskFormData(workItemId, propertiesToSubmit);
-		} catch (SecurityViolationException|RuntimeException e) {
+		} catch (SecurityViolationException|SchemaException|RuntimeException e) {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {

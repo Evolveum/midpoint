@@ -33,17 +33,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  */
 public interface ModelContext<F extends ObjectType> extends Serializable, DebugDumpable {
 
-	public ModelState getState();
+	ModelState getState();
 	
-	public ModelElementContext<F> getFocusContext();
+	ModelElementContext<F> getFocusContext();
 	
-	public Collection<? extends ModelProjectionContext> getProjectionContexts();
+	Collection<? extends ModelProjectionContext> getProjectionContexts();
 	
-	public ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
+	ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
 
     Class<F> getFocusClass();
 
-    void reportProgress(ProgressInformation progress);
+	void reportProgress(ProgressInformation progress);
     
     DeltaSetTriple<? extends EvaluatedAssignment> getEvaluatedAssignmentTriple();
 
@@ -52,4 +52,8 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     PrismObject<SystemConfigurationType> getSystemConfiguration();  // beware, may be null - use only as a performance optimization
 
     String getChannel();
+
+	// For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
+	// while less detailed than that part of detailed LensContext debugDump).
+	String dumpPolicyRules(int indent);
 }

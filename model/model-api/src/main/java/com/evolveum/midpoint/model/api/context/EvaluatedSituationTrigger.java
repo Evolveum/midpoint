@@ -78,9 +78,9 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	}
 
 	@Override
-	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType() {
+	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
 		EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
-		fillCommonContent(rv);
+		fillCommonContent(rv, owningRule);
 		sourceRules.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType()));
 		return rv;
 	}

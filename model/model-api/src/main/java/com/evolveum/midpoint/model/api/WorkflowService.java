@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.model.api;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -12,12 +13,14 @@ public interface WorkflowService {
 
     /**
      * Approves or rejects a work item (without supplying any further information).
-     *  @param taskId identifier of activiti task backing the work item
-     * @param decision true = approve, false = reject
-     * @param parentResult
-     * @param comment
-     */
-    void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, OperationResult parentResult) throws SecurityViolationException;
+	 * @param taskId identifier of activiti task backing the work item
+	 * @param decision true = approve, false = reject
+	 * @param comment
+	 * @param additionalDelta
+	 * @param parentResult
+	 */
+    void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
+			OperationResult parentResult) throws SecurityViolationException, SchemaException;
 
     void stopProcessInstance(String instanceId, String username, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException;

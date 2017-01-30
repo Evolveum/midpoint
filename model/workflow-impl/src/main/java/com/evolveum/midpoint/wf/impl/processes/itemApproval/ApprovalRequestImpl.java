@@ -113,7 +113,12 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
         return approvalSchema;
     }
 
-    public void setApprovalSchema(ApprovalSchemaImpl approvalSchema) {
+	@Override
+	public ApprovalSchemaType getApprovalSchemaType() {
+		return approvalSchema != null ? approvalSchema.toApprovalSchemaType() : null;			// TODO TEMPORARY (...this class is deprecated, anyway)
+	}
+
+	public void setApprovalSchema(ApprovalSchemaImpl approvalSchema) {
         this.approvalSchema = approvalSchema;
     }
 

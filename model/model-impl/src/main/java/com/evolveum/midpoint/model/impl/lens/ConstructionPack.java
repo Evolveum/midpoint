@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  */
 public class ConstructionPack implements DebugDumpable {
 	
-	private Collection<PrismPropertyValue<Construction>> constructions = new ArrayList<PrismPropertyValue<Construction>>();
+	private final Collection<PrismPropertyValue<Construction>> constructions = new ArrayList<>();
 	private boolean forceRecon;
 	private boolean hasValidAssignment = false;
 	

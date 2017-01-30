@@ -78,13 +78,19 @@ public class ActivitiUtil implements Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-    public static <T> T getRequiredVariable(DelegateExecution execution, String name, Class<T> clazz) {
-        Object value = execution.getVariable(name);
+    public static <T> T getRequiredVariable(DelegateExecution execution, String name, Class<T> clazz, PrismContext prismContext) {
+		Object value = getVariable(execution.getVariables(), name, clazz, prismContext);
+		if (value == null) {
+			throw new IllegalStateException("Required process variable " + name + " is missing in " + execution);
+		} else {
+			return (T) value;
+		}
+	}
+
+    public static <T> T getRequiredVariable(Map<String, Object> variables, String name, Class<T> clazz, PrismContext prismContext) {
+        Object value = getVariable(variables, name, clazz, prismContext);
         if (value == null) {
-            throw new IllegalStateException("Required process variable " + name + " is missing in " + execution);
-        } else if (!(clazz.isAssignableFrom(value.getClass()))) {
-            throw new IllegalStateException("Process variable " + name + " should be of " + clazz + " but is of "
-                    + value.getClass() + " instead in " + execution);
+            throw new IllegalStateException("Required process variable " + name + " is missing");
         } else {
             return (T) value;
         }

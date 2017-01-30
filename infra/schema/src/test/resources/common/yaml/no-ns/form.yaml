@@ -8,7 +8,7 @@ form:
       tooltip: "some tooltip"
     formItems:
     - '@element': "formField"
-      name: "Family name"
+      name: "FamilyName"
     - '@element': "formFieldGroup"
       name: "Address"
       formItems:

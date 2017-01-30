@@ -41,7 +41,235 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
-    <xsd:complexType name="WfConfigurationType">
+	<xsd:complexType name="ApprovalSchemaType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Rules for approving something (e.g. assignment of a role to a user).
+				Specifies the structure of approvers and their relations.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="level" type="c:ApprovalLevelType" minOccurs="1" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Levels, or steps, of the approval process.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ApprovalLevelType">
+		<xsd:annotation>
+			<xsd:documentation>
+				One "level" (or stage) in the approval process.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="order" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Order of this approval level. (Marked as optional only to ensure backward compatibility. Will change to 'required' eventually.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Instruction to approve something, by a user (if this points to a User object) or
+						by someone from a group of users (if this points to a Org object; representing
+						all users that belong to that organization).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.5</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							What relation(s) to use when determining approvers? E.g. "approver", "owner",
+							"securityApprover", and so on.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Dynamically specifies approver(s). If specified, the expression(s) are evaluated and the result
+						is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
+						May be used with approverRef element(s).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="evaluationStrategy" type="c:LevelEvaluationStrategyType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Must all approvers at this level approve the thing (allMustApprove),
+						or first decision is taken as authoritative (firstDecides)?
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="outcomeIfNoApprovers" type="c:ApprovalLevelOutcomeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						What is the outcome (of this level) if there are no approvers? E.g. there are no users that have
+						been assigned a role as an approver; or a user has no managers, etc.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="groupExpansion" type="c:GroupExpansionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How should be "groups" (orgs, roles) expanded? Default is "byClaimingWorkItem", i.e. they are not
+						expanded at all - their members can claim corresponding work items.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Form to be displayed e.g. to present or request additional information.
+						HIGHLY EXPERIMENTAL
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="additionalInformation" type="c:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Additional information for approver. Will be displayed when work item will be worked on.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO some hooks to allow ad-hoc customizations like making a form field obligatory or optional depending on the stage etc. -->
+			<xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Condition specifying when this level is automatically approved (e.g. "user is
+						from Board of Directors"). This is an expression that should yield a boolean value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="ApprovalLevelOutcomeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Result (outcome) of an approval process level.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="approve">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation was approved at this level. The approval process will continue at the next level.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="APPROVE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="reject">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation was rejected at this level. The approval process will stop.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="REJECT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="GroupExpansionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How should be "groups" (orgs, roles) expanded?
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="byClaimingWorkItem">
+				<xsd:annotation>
+					<xsd:documentation>
+						Groups are not expanded at all - their members can claim corresponding work items.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="BY_CLAIMING_WORK_ITEMS"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="onWorkItemCreation">
+				<xsd:annotation>
+					<xsd:documentation>
+						Groups are expanded on work item creation. One work item is created for each member of given org/role.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ON_WORK_ITEM_CREATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="LevelEvaluationStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Enumeration of approval strategies at a particular level.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="allMustApprove">
+				<xsd:annotation>
+					<xsd:documentation>
+						All approvers at a particular level must approve the operation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ALL_MUST_AGREE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="firstDecides">
+				<xsd:annotation>
+					<xsd:documentation>
+						First approver that votes will decide the whole level (either by approving or by rejecting).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FIRST_DECIDES"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="WfConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Configuration for workflows - for those parts not stored in the system config file.
@@ -699,7 +927,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-
+			<xsd:element name="additionalDelta" type="t:ObjectDeltaType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
     <xsd:element name="decisionType" type="tns:DecisionType" />
@@ -957,7 +1191,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="approverInstruction" type="tns:ApproverInstructionType" minOccurs="0" />
+			<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded" />
             <!-- for work items without TaskType information -->
 			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0" />
 			<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
@@ -1009,20 +1243,32 @@
 
     <xsd:element name="workItem" type="tns:WorkItemType" />
 
-    <xsd:complexType name="ApproverInstructionType">
+    <xsd:complexType name="InformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO Replace by forms before 3.6 release.
+				TEMPORARY
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="order" type="xsd:int" minOccurs="0" />
+			<xsd:element name="title" type="xsd:string" minOccurs="0" />
+			<xsd:element name="part" type="tns:InformationPartType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
     </xsd:complexType>
-	<xsd:element name="approverInstruction" type="tns:ApproverInstructionType"/>
 
-    <xsd:complexType name="PlainApproverInstructionType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:ApproverInstructionType">
-				<xsd:sequence>
-					<xsd:element name="text" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-    </xsd:complexType>
-	<xsd:element name="plainApproverInstruction" type="tns:PlainApproverInstructionType" substitutionGroup="tns:approverInstruction"/>
+	<xsd:complexType name="InformationPartType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO Replace by forms before 3.6 release.
+				TEMPORARY
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="text" type="xsd:string" minOccurs="0" />
+			<xsd:element name="hasMarkup" type="xsd:boolean" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:complexType name="SchemaAttachedPolicyRulesType">
 		<xsd:annotation>

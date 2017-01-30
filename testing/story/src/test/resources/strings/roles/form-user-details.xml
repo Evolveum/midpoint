@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="FormType" oid="6a1874a7-1e60-43b3-8d67-7f76484dead5" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<name>FullName and description</name>
+	<formDefinition>
+		<display>
+			<label>Please fill in required fields</label>
+		</display>
+		<formItems list="true">
+			<formField>
+				<binding><path>fullName</path></binding>
+				<display>
+					<label>Full name</label>
+					<minOccurs>1</minOccurs>
+				</display>
+			</formField>
+			<formField>
+				<binding><path>description</path></binding>
+				<display>
+					<label>Description</label>
+					<minOccurs>0</minOccurs>
+				</display>
+			</formField>
+		</formItems>
+	</formDefinition>
+</object>

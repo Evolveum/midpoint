@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -63,13 +64,14 @@ public interface WorkflowManager {
 
 	/**
 	 * Approves or rejects a work item (without supplying any further information).
-	 *
-	 * @param taskId       identifier of activiti task backing the work item
+	 *  @param taskId       identifier of activiti task backing the work item
 	 * @param decision     true = approve, false = reject
 	 * @param comment
+	 * @param additionalDelta
 	 * @param parentResult
 	 */
-	void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult) throws SecurityViolationException;
+	void approveOrRejectWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
+			OperationResult parentResult) throws SecurityViolationException, SchemaException;
 
 	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
 

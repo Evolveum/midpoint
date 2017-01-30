@@ -24,6 +24,7 @@ public class TestAssignmentEvaluatorDynamic extends TestAbstractAssignmentEvalua
 	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 	
 	protected static final File[] ROLE_CORP_FILES = {
+			ROLE_METAROLE_SOD_NOTIFICATION_FILE,
             ROLE_CORP_AUTH_FILE,			// TODO prepare a dynamic version of this file
             ROLE_CORP_GENERIC_METAROLE_DYNAMIC_FILE,
             ROLE_CORP_JOB_METAROLE_DYNAMIC_FILE,

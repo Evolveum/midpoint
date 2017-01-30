@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -26,6 +28,7 @@ import java.util.List;
  * @author mederly
  */
 public interface AssignmentPath extends DebugDumpable {
+
 	List<? extends AssignmentPathSegment> getSegments();
 
 	AssignmentPathSegment getFirstAssignmentSegment();
@@ -39,4 +42,21 @@ public interface AssignmentPath extends DebugDumpable {
 	AssignmentPathSegment last();
 
 	boolean containsTarget(ObjectType target);
+
+	/**
+	 * Returns a "user understandable" part of this path. I.e. only those objects that are of "order 1" above the focal object.
+	 * E.g. from chain of
+	 *
+	 * jack =(a)=> Engineer =(i)=> Employee =(a)=> PersonMetarole =(i2)=> Person =(i)=> Entity
+	 *
+	 * the result would be
+	 *
+	 * Engineer -> Employee -> Person -> Entity
+	 *
+	 * TODO find a better name
+	 */
+	@NotNull
+	List<ObjectType> getFirstOrderChain();
+
+	AssignmentPathType toAssignmentPathType();
 }

@@ -479,7 +479,10 @@
             <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
             <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0" />
             <xsd:element name="message" type="xsd:string" minOccurs="0" />
-        </xsd:sequence>
+			<xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0" />
+			<xsd:element name="directOwnerRef" type="c:ObjectReferenceType" minOccurs="0" />
+			<xsd:element name="directOwnerDisplayName" type="t:PolyStringType" minOccurs="0" />
+		</xsd:sequence>
     </xsd:complexType>
 	<xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
 
@@ -487,6 +490,9 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
 				<xsd:sequence>
+					<xsd:element name="conflictingObjectRef" type="c:ObjectReferenceType" minOccurs="0" />
+					<xsd:element name="conflictingObjectDisplayName" type="t:PolyStringType" minOccurs="0" />
+					<xsd:element name="conflictingObjectPath" type="tns:AssignmentPathType" minOccurs="0" />
 					<xsd:element name="conflictingAssignment" type="tns:AssignmentType" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:extension>
@@ -512,5 +518,23 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="evaluatedPolicyRule" type="tns:EvaluatedPolicyRuleType" />
+
+    <xsd:complexType name="AssignmentPathType">
+        <xsd:sequence>
+			<xsd:element name="segment" type="tns:AssignmentPathSegmentType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="AssignmentPathSegmentType">
+		<xsd:sequence>
+			<xsd:element name="sourceRef" type="c:ObjectReferenceType" minOccurs="0" />
+			<xsd:element name="sourceDisplayName" type="t:PolyStringType" minOccurs="0" />
+			<xsd:element name="assignment" type="c:AssignmentType" minOccurs="0" />
+			<xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" />
+			<xsd:element name="targetDisplayName" type="t:PolyStringType" minOccurs="0" />
+			<xsd:element name="matchingOrder" type="xsd:boolean" minOccurs="0" />
+			<!-- TODO maybe also evaluation order -->
+		</xsd:sequence>
+	</xsd:complexType>
 
 </xsd:schema>

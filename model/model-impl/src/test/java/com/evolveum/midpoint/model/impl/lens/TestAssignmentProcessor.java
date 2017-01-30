@@ -649,8 +649,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     }
 
     /**
+	 * NOTE - these two tests are legacy. They should be placed in TestPolicyRules. Please do not add
+	 * any similar tests here; use TestPolicyRules instead. It contains better 'assume' methods for policies.
+	 * TODO move these ones as well
+	 * ===============================================================================================
+	 *
      * Checking approval policy rules.
-	 * Visitor has a generic metarole that has associated policy rule.
+	 * Visitor has a generic metarole that has associated policy rule (approve-any-corp-role).
+	 * Generic metarole also induces metarole-sod-notifications that has "notify-exclusion-violations" rule.
      */
     @Test
     public void test200AssignVisitor() throws Exception {
@@ -691,27 +697,21 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         assertEquals("Wrong # of added assignments", 1, evaluatedAssignmentTriple.getPlusSet().size());
 
+        display("Policy rules", context.dumpPolicyRules(3));
+
 		EvaluatedAssignmentImpl evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
 		assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getFocusPolicyRules().size());
 		Collection<EvaluatedPolicyRule> targetPolicyRules = evaluatedAssignment.getTargetPolicyRules();
-		assertEquals("Wrong # of target policy rules", 1, targetPolicyRules.size());
-		EvaluatedPolicyRule policyRule = targetPolicyRules.iterator().next();
-		assertNotNull("Not an approval action: " + policyRule.getActions().asPrismContainerValue().debugDump(),
-				policyRule.getActions().getApproval());
-
-		Collection<EvaluatedPolicyRuleTrigger> triggers = policyRule.getTriggers();
-		assertEquals("Wrong # of policy rule triggers", 1, triggers.size());
-		EvaluatedPolicyRuleTrigger trigger = triggers.iterator().next();
-		assertTrue("Wrong type of policy rule trigger constraint: " + trigger.getConstraint().getClass(),
-				trigger.getConstraint() instanceof AssignmentPolicyConstraintType);
+		assertEquals("Wrong # of target policy rules", 2, targetPolicyRules.size());
     }
 
 	/**
-	 * Checking approval policy rules.
-	 * Engineer has a generic metarole that has associated policy rule.
-	 * However, it induces an Employee role that has also this generic metarole.
+	 * Checking approval policy rules. (See note above.)
+	 * Engineer has a generic metarole that provides these policy rules: approve-any-corp-rule, notify-exclusion-violations.
+	 * However, it induces an Employee role that has also this generic metarole. Moreover, it has "employee-excludes-contractor"
+	 * rule.
 	 *
-	 * First occurrence of the rule should have a trigger. Second one should be without a trigger.
+	 * First occurrence of the approval rule should have a trigger. Second one should be without a trigger.
 	 */
 	@Test
 	public void test210AssignEngineer() throws Exception {
@@ -752,25 +752,13 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		assertEquals("Wrong # of added assignments", 1, evaluatedAssignmentTriple.getPlusSet().size());
 
+		display("Policy rules", context.dumpPolicyRules(3));
+
 		EvaluatedAssignmentImpl evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
 		assertEquals("Wrong # of focus policy rules", 0, evaluatedAssignment.getFocusPolicyRules().size());
-		assertEquals("Wrong # of this target policy rules", 1, evaluatedAssignment.getThisTargetPolicyRules().size());
+		assertEquals("Wrong # of this target policy rules", 2, evaluatedAssignment.getThisTargetPolicyRules().size());
 		Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getTargetPolicyRules();
-		assertEquals("Wrong # of target policy rules", 2, policyRules.size());
-		Iterator<EvaluatedPolicyRule> iterator = policyRules.iterator();
-		EvaluatedPolicyRule policyRule1 = iterator.next();
-		EvaluatedPolicyRule policyRule2 = iterator.next();
-		assertNotNull("Not an approval action (rule1): " + policyRule1.getActions().asPrismContainerValue().debugDump(),
-				policyRule1.getActions().getApproval());
-		assertNotNull("Not an approval action (rule2): " + policyRule2.getActions().asPrismContainerValue().debugDump(),
-				policyRule2.getActions().getApproval());
-
-		List<EvaluatedPolicyRuleTrigger> allTriggers = new ArrayList<>(policyRule1.getTriggers());
-		allTriggers.addAll(policyRule2.getTriggers());
-		assertEquals("Wrong # of policy rule triggers", 1, allTriggers.size());
-		EvaluatedPolicyRuleTrigger trigger = allTriggers.get(0);
-		assertTrue("Wrong type of policy rule trigger constraint: " + trigger.getConstraint().getClass(),
-				trigger.getConstraint() instanceof AssignmentPolicyConstraintType);
+		assertEquals("Wrong # of target policy rules", 5, policyRules.size());
 	}
 
 	private <T> void assertAttributeValues(Collection<PrismPropertyValue<Construction>> accountConstructions, QName attrName, PlusMinusZero attrSet, T... expectedValue) {

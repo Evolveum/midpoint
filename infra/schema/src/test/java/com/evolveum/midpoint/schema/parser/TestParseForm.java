@@ -152,7 +152,7 @@ public class TestParseForm extends AbstractObjectParserTest<FormType> {
 		FormItemsType formItems = formDefinition.getFormItems();
 		assertNotNull("no formItems", formItems);
 		assertEquals("wrong # of form items", 3, formItems.getFormItem().size());
-		assertFormItem(formItems, "main list", 0, SchemaConstantsGenerated.C_FORM_FIELD, FormFieldType.class, "Family name");
+		assertFormItem(formItems, "main list", 0, SchemaConstantsGenerated.C_FORM_FIELD, FormFieldType.class, "FamilyName");
 		assertFormItem(formItems, "main list", 1, SchemaConstantsGenerated.C_FORM_FIELD_GROUP, FormFieldGroupType.class, "Address");
 		assertFormItem(formItems, "main list", 2, SchemaConstantsGenerated.C_FORM_FIELD, FormFieldType.class, "Email");
 		FormItemsType itemsInGroup1 = ((FormFieldGroupType) formItems.getFormItem().get(1).getValue()).getFormItems();

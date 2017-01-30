@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -150,9 +151,10 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public void approveOrRejectWorkItem(String taskId, boolean decision, String comment, OperationResult parentResult)
-			throws SecurityViolationException {
-        workItemManager.completeWorkItem(taskId, ApprovalUtils.approvalStringValue(decision), comment, parentResult);
+    public void approveOrRejectWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
+			OperationResult parentResult)
+			throws SecurityViolationException, SchemaException {
+        workItemManager.completeWorkItem(taskId, ApprovalUtils.approvalStringValue(decision), comment, additionalDelta, parentResult);
     }
 
     @Override

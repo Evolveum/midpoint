@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionObjectDeltaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -241,5 +242,21 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
 				projectionChangeMap.put(rsd, newDelta);
 			}
 		}
+	}
+
+	public static ObjectTreeDeltasType mergeDeltas(ObjectTreeDeltasType deltaTree, ObjectDeltaType deltaToMerge,
+			PrismContext prismContext) throws SchemaException {
+    	if (deltaToMerge == null) {
+    		return deltaTree;
+		}
+		ObjectTreeDeltasType deltaTreeToMerge = new ObjectTreeDeltasType();
+		deltaTreeToMerge.setFocusPrimaryDelta(deltaToMerge);
+		if (deltaTree == null) {
+			return deltaTreeToMerge;
+		}
+		ObjectTreeDeltas tree = fromObjectTreeDeltasType(deltaTree, prismContext);
+		ObjectTreeDeltas treeToMerge = fromObjectTreeDeltasType(deltaTreeToMerge, prismContext);
+		tree.merge(treeToMerge);
+		return tree.toObjectTreeDeltasType();
 	}
 }

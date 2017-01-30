@@ -503,4 +503,17 @@ public class ObjectTypeUtil {
 		return deltas1;
 	}
 
+	public static PolyStringType getDisplayName(ObjectType object) {
+    	if (object instanceof AbstractRoleType) {
+    		return ((AbstractRoleType) object).getDisplayName();
+		} else if (object instanceof UserType) {
+    		return ((UserType) object).getFullName();
+		} else {
+    		return null;
+		}
+	}
+
+	public static ObjectType toObjectable(PrismObject object) {
+    	return object != null ? (ObjectType) object.asObjectable() : null;
+	}
 }

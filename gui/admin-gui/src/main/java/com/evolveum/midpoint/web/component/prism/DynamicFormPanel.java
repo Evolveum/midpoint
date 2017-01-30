@@ -29,6 +29,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -42,11 +43,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
 
 public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrapper<O>> {
@@ -91,7 +90,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		try {
 			prismObject = objectDef.instantiate();
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Could not initalize model for forgot password", e);
+			LoggingUtils.logException(LOGGER, "Could not initialize model for forgot password", e);
 			throw new RestartResponseException(getPageBase());
 		}
 		return prismObject;
@@ -143,7 +142,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 				getPageBase(), task, result);
 
 		if (prismForm == null) {
-			LOGGER.trace("No form defined, skipping denerating GUI form");
+			LOGGER.trace("No form defined, skipping generating GUI form");
 			return;
 		}
 
@@ -183,7 +182,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 	private Collection<? extends ItemPath> collectItemPaths(List<AbstractFormItemType> items, List<ItemPath> paths) {
 		for (AbstractFormItemType aItem : items) {
-			ItemPathType itemPathType = aItem.getRef();
+			ItemPathType itemPathType = GuiImplUtil.getPathType(aItem);
 			if (itemPathType != null) {
 				paths.add(itemPathType.getItemPath());
 			}

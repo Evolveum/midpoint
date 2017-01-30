@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,15 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
+import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -30,21 +32,38 @@ import org.jetbrains.annotations.NotNull;
 public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final long serialVersionUID = 1L;
 
-	private final PolicyRuleType policyRuleType;
-	private final AssignmentPath assignmentPath;
+	@NotNull private final PolicyRuleType policyRuleType;
 	private final Collection<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
 	private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
 
-	public EvaluatedPolicyRuleImpl(PolicyRuleType policyRuleType, AssignmentPath assignmentPath) {
+	/**
+	 * Information about exact place where the rule was found. This can be important for rules that are
+	 * indirectly attached to an assignment.
+	 *
+	 * An example: Let Engineer induce Employee which conflicts with Contractor. The SoD rule is attached
+	 * to Employee. But let the user have assignments for Engineer and Contractor only. When evaluating
+	 * Engineer assignment, we find a (indirectly attached) SoD rule. But we need to know it came from Employee.
+	 * This is what assignmentPath (Engineer->Employee->(maybe some metarole)->rule) and directOwner (Employee) are for.
+	 */
+	@Nullable private final AssignmentPath assignmentPath;
+	@Nullable private final ObjectType directOwner;
+
+	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath) {
 		this.policyRuleType = policyRuleType;
 		this.assignmentPath = assignmentPath;
+		this.directOwner = computeDirectOwner();
+	}
+
+	private ObjectType computeDirectOwner() {
+		if (assignmentPath == null) {
+			return null;
+		}
+		List<ObjectType> roots = assignmentPath.getFirstOrderChain();
+		return roots.isEmpty() ? null : roots.get(roots.size()-1);
 	}
 
 	@Override
 	public String getName() {
-		if (policyRuleType == null) {
-			return null;
-		}
 		return policyRuleType.getName();
 	}
 	
@@ -53,9 +72,16 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyRuleType;
 	}
 
+	@Nullable
 	@Override
 	public AssignmentPath getAssignmentPath() {
 		return assignmentPath;
+	}
+
+	@Nullable
+	@Override
+	public ObjectType getDirectOwner() {
+		return directOwner;
 	}
 
 	@Override
@@ -137,7 +163,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		DebugUtil.debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "policyRuleType", policyRuleType.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "triggers", triggers, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "directOwner", ObjectTypeUtil.toShortString(directOwner), indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "rootObjects", assignmentPath != null ? String.valueOf(assignmentPath.getFirstOrderChain()) : null, indent + 1);
 		return sb.toString();
 	}
 
@@ -145,46 +173,27 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType() {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
 		rv.setPolicyRule(policyRuleType);
-		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType()));
+		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this)));
 		return rv;
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((policyRuleType == null) ? 0 : policyRuleType.hashCode());
-		result = prime * result + ((triggers == null) ? 0 : triggers.hashCode());
-		return result;
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof EvaluatedPolicyRuleImpl))
+			return false;
+		EvaluatedPolicyRuleImpl that = (EvaluatedPolicyRuleImpl) o;
+		return java.util.Objects.equals(policyRuleType, that.policyRuleType) &&
+				Objects.equals(assignmentPath, that.assignmentPath) &&
+				Objects.equals(triggers, that.triggers) &&
+				Objects.equals(policyExceptions, that.policyExceptions) &&
+				Objects.equals(directOwner, that.directOwner);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		EvaluatedPolicyRuleImpl other = (EvaluatedPolicyRuleImpl) obj;
-		if (policyRuleType == null) {
-			if (other.policyRuleType != null) {
-				return false;
-			}
-		} else if (!policyRuleType.equals(other.policyRuleType)) {
-			return false;
-		}
-		if (triggers == null) {
-			if (other.triggers != null) {
-				return false;
-			}
-		} else if (!triggers.equals(other.triggers)) {
-			return false;
-		}
-		return true;
+	public int hashCode() {
+		return Objects.hash(policyRuleType, assignmentPath, triggers, policyExceptions, directOwner);
 	}
 
 	@Override

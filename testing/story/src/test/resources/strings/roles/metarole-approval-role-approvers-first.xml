@@ -27,11 +27,13 @@
 				<approval>
 					<compositionStrategy>
 						<order>40</order>
+						<mergeable>true</mergeable>
+						<mergeOrder>1</mergeOrder>
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
                             <name>Role approvers (first)</name>
-							<approverRelation>approver</approverRelation>
+                            <approverRelation>approver</approverRelation>
 							<evaluationStrategy>firstDecides</evaluationStrategy>
 							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
 						</level>

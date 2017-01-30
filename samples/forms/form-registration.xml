@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Jack's account on a resource with identified by resourceRef.  -->
+
+<form xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="6818a918-109a-4b82-876b-f72dec9d561a"
+      version="18">
+   <name>Registration form</name>
+   <formDefinition>
+      <display>
+         <label>Please fill in required fields</label>
+      </display>
+      <formItems list="true">
+         <formFieldGroup>
+            <name>Login information</name>
+            <formItems list="true">
+               <formField>
+                  <binding>
+                  	<c:path>name</c:path>
+                  </binding>
+                  <display>
+                     <label>Login</label>
+                     <help>Your login</help>
+                     <minOccurs>1</minOccurs>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                  	<c:path>c:emailAddress</c:path>
+                  </binding>
+                  <display>
+                     <label>Email Address</label>
+                     <help>Is used to finish registration process</help>
+                     <minOccurs>1</minOccurs>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                  	<c:path>c:credentials/password</c:path>
+                  </binding>
+                  <display>
+                     <label> </label>
+                     <help>minimal length 5, use of minimal unique characters 3,...</help>
+                     <minOccurs>1</minOccurs>
+                  </display>
+               </formField>
+            </formItems>
+         </formFieldGroup>
+         <formFieldGroup>
+            <name>Personal information</name>
+            <formItems list="true">
+               <formField>
+                  <binding>
+                  	<c:path>givenName</c:path>
+                  </binding>
+                  <display>
+                     <label>First Name</label>
+                     <minOccurs>1</minOccurs>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                  	<c:path>familyName</c:path>
+                  </binding>
+                  <display>
+                     <label>Last Name</label>
+                     <minOccurs>1</minOccurs>
+                  </display>
+               </formField>
+            </formItems>
+         </formFieldGroup>
+         <formFieldGroup>
+            <name>Additional information</name>
+            <formItems list="true">
+               <formField>
+                  <binding>
+                  	<c:path>c:organization</c:path>
+                  </binding>
+                  <display>
+                     <label>Company/University</label>
+                  </display>
+               </formField>
+               <formField>
+                  <binding>
+                  	<c:path>c:organizationalUnit</c:path>
+                  </binding>
+                  <display>
+                     <maxOccurs>1</maxOccurs>
+                  </display>
+               </formField>
+            </formItems>
+         </formFieldGroup>
+      </formItems>
+   </formDefinition>
+</form>

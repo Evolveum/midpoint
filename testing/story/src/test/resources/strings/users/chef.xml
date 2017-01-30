@@ -35,6 +35,16 @@
 			</filter>
 		</targetRef>
 	</assignment>
+	<assignment id="3">
+		<targetRef type="RoleType" relation="org:approver">
+			<filter>
+				<q:equal>
+					<q:path>name</q:path>
+					<q:value>a-test-4</q:value>
+				</q:equal>
+			</filter>
+		</targetRef>
+	</assignment>
 	<assignment id="1000">
 		<targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType"/>    <!-- End user -->
 	</assignment>

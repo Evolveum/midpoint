@@ -18,8 +18,13 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -31,24 +36,23 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApproverInstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PlainApproverInstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,23 +83,23 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
     private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
-    private static final String ID_APPROVER_INSTRUCTION_CONTAINER = "approverInstructionContainer";
-    private static final String ID_APPROVER_INSTRUCTION_LINES = "approverInstructionLines";
-    private static final String ID_APPROVER_INSTRUCTION_LINE = "approverInstructionLine";
+    private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
+    private static final String ID_CUSTOM_FORM = "customForm";
     private static final String ID_APPROVER_COMMENT = "approverComment";
 	private static final String ID_SHOW_REQUEST = "showRequest";
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
 
-	public WorkItemPanel(String id, IModel<WorkItemDto> model, PageBase pageBase) {
+	public WorkItemPanel(String id, IModel<WorkItemDto> model, Form mainForm, PageBase pageBase) {
         super(id, model);
-        initLayout(pageBase);
+        initLayout(mainForm, pageBase);
     }
 
-    protected void initLayout(PageBase pageBase) {
+    protected void initLayout(Form mainForm, PageBase pageBase) {
 		WebMarkupContainer additionalInfoColumn = new WebMarkupContainer(ID_ADDITIONAL_INFO_COLUMN);
 
 		WebMarkupContainer historyContainer = new WebMarkupContainer(ID_HISTORY_CONTAINER);
-        historyContainer.add(new ItemApprovalHistoryPanel(ID_HISTORY, new PropertyModel<WfContextType>(getModel(), WorkItemDto.F_WORKFLOW_CONTEXT),
+        historyContainer.add(new ItemApprovalHistoryPanel(ID_HISTORY,
+				new PropertyModel<>(getModel(), WorkItemDto.F_WORKFLOW_CONTEXT),
 				UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL, (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL)));
 		final VisibleEnableBehaviour historyContainerVisible = new VisibleEnableBehaviour() {
 			@Override
@@ -126,7 +130,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		final ISortableDataProvider<ProcessInstanceDto, String> relatedWorkflowRequestsProvider = new ListDataProvider<>(this, relatedWorkflowRequestsModel);
 		relatedWorkflowRequestsContainer.add(
 				new ProcessInstancesPanel(ID_RELATED_REQUESTS, relatedWorkflowRequestsProvider, null, 10,
-						ProcessInstancesPanel.View.TASKS_FOR_PROCESS, new PropertyModel<String>(getModel(), WorkItemDto.F_PROCESS_INSTANCE_ID)));
+						ProcessInstancesPanel.View.TASKS_FOR_PROCESS,
+						new PropertyModel<>(getModel(), WorkItemDto.F_PROCESS_INSTANCE_ID)));
 		final VisibleEnableBehaviour relatedWorkflowRequestsContainerVisible = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -183,38 +188,35 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		});
 		add(WebComponentUtil.createHelp(ID_SHOW_REQUEST_HELP));
 
-		IModel<List<String>> instructionsModel = new AbstractReadOnlyModel<List<String>>() {
-			@Override
-			public List<String> getObject() {
-				ApproverInstructionType instruction = getModelObject().getApproverInstruction();
-				if (instruction == null) {
-					return Collections.emptyList();
-				} else if (instruction instanceof PlainApproverInstructionType) {
-					return ((PlainApproverInstructionType) instruction).getText();
-				} else {
-					// TODO
-					return Collections.singletonList(instruction.toString());
-				}
-			}
-		};
+		WebMarkupContainer additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
+				new PropertyModel<>(getModel(), WorkItemDto.F_ADDITIONAL_INFORMATION));
+		add(additionalInformation);
 
-		WebMarkupContainer approverInstructionContainer = new WebMarkupContainer(ID_APPROVER_INSTRUCTION_CONTAINER);
-		ListView<String> approverInstructionList = new ListView<String>(ID_APPROVER_INSTRUCTION_LINES, instructionsModel) {
-			@Override
-			protected void populateItem(ListItem<String> item) {
-				item.add(new Label(ID_APPROVER_INSTRUCTION_LINE, item.getModelObject()));
+		WorkItemDto dto = getModelObject();
+		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(dto.getWorkflowContext());
+		if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {
+			String formOid = level.getFormRef().getOid();
+			ObjectType focus = dto.getFocus(pageBase);
+			if (focus == null) {
+				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME
 			}
-		};
-		approverInstructionContainer.add(approverInstructionList);
-		add(approverInstructionContainer);
-		approverInstructionContainer.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return getModelObject().getApproverInstruction() != null;
-			}
-		});
+			DynamicFormPanel<UserType> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
+					(PrismObject<UserType>) focus.asPrismObject(),
+					formOid, mainForm, false, pageBase);
+			add(customForm);
+		} else {
+			add(new Label(ID_CUSTOM_FORM));
+		}
 
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }
 
+	public ObjectDelta getDeltaFromForm() throws SchemaException {
+		Component formPanel = get(ID_CUSTOM_FORM);
+		if (formPanel instanceof DynamicFormPanel) {
+			return ((DynamicFormPanel) formPanel).getObjectDelta();
+		} else {
+			return null;
+		}
+	}
 }

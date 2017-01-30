@@ -52,7 +52,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
      * Compares two (unordered) collections and creates a triple describing the differences.
      */
     public static <V extends PrismValue> PrismValueDeltaSetTriple<V> diffPrismValueDeltaSetTriple(Collection<V> valuesOld, Collection<V> valuesNew) {
-    	PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTriple<V>();
+    	PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTriple<>();
         diff(valuesOld, valuesNew, triple);
         return triple;
     }
@@ -202,40 +202,28 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 	}
 
 	public PrismValueDeltaSetTriple<V> clone() {
-		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<V>();
+		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<>();
 		copyValues(clone);
 		return clone;
 	}
 
 	protected void copyValues(PrismValueDeltaSetTriple<V> clone) {
-		Cloner<V> cloner = new Cloner<V>() {
-			@Override
-			public V clone(V original) {
-				return (V) original.clone();
-			}
-		};
-		super.copyValues(clone, cloner);
+		super.copyValues(clone, original -> (V) original.clone());
 	}
 	
 	public void checkConsistence() {
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				if (visitable instanceof PrismValue) {
-					if (((PrismValue)visitable).isEmpty()) {
-						throw new IllegalStateException("Empty value "+visitable+" in triple "+PrismValueDeltaSetTriple.this);
-					}
+		Visitor visitor = visitable -> {
+			if (visitable instanceof PrismValue) {
+				if (((PrismValue)visitable).isEmpty()) {
+					throw new IllegalStateException("Empty value "+visitable+" in triple "+PrismValueDeltaSetTriple.this);
 				}
 			}
 		};
 		accept(visitor);
 		
-		Processor<V> processor = new Processor<V>() {
-			@Override
-			public void process(V pval) {
-				if (pval.getParent() != null) {
-					throw new IllegalStateException("Value "+pval+" in triple "+PrismValueDeltaSetTriple.this+" has parent, looks like it was not cloned properly");
-				}
+		Processor<V> processor = pval -> {
+			if (pval.getParent() != null) {
+				throw new IllegalStateException("Value "+pval+" in triple "+PrismValueDeltaSetTriple.this+" has parent, looks like it was not cloned properly");
 			}
 		};
 		foreach(processor);

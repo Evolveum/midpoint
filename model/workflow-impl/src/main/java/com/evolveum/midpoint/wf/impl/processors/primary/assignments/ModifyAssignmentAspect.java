@@ -219,7 +219,8 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpChildWfTaskCreationInstruction instruction =
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(
-                            getChangeProcessor(), approvalTaskName, approvalRequest.getApprovalSchema(), null);
+                            getChangeProcessor(), approvalTaskName, approvalRequest.getApprovalSchema(),
+                            approvalRequest.getApprovalSchemaType(), null);
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, modelContext, requester);
