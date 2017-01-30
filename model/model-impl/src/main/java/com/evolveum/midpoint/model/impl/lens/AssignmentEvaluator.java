@@ -344,7 +344,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", condOld, condNew, origMode, condMode, mode);
 		}
 		
-		boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
+		boolean isValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), 
+				assignmentType, now, activationComputer);
 		if (isValid || assignmentPathSegment.isValidityOverride()) {
 		
 			if (assignmentType.getConstruction() != null) {
@@ -600,7 +601,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throw new SchemaException("Unknown assignment target type " + targetType + " in " + sourceDescription);
 		}
 		
-		if (!LensUtil.isValid(targetType, now, activationComputer)) {
+		if (!LensUtil.isFocusValid(targetType, now, activationComputer)) {
 			LOGGER.trace("Skipping evaluation of " + targetType + " because it is not valid");
 			return;
 		}
