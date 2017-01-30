@@ -21,7 +21,9 @@
 	<inducement>
 		<policyRule>
 			<policyConstraints>
-				<assignment/>
+				<assignment>
+					<operation>add</operation>
+				</assignment>
 			</policyConstraints>
 			<policyActions>
 				<approval>
