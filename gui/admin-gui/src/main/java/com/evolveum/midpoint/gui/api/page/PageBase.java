@@ -38,6 +38,7 @@ import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxNewWindowNotifyingBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -161,6 +162,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
 
 	private static final String ID_TITLE = "title";
+	private static final String ID_MAIN_HEADER = "mainHeader";
 	private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
 	private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
 	private static final String ID_PAGE_TITLE = "pageTitle";
@@ -183,6 +185,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
 	private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
 	private static final String ID_LOGO = "logo";
+	private static final String ID_CUSTOM_LOGO = "customLogo";
+	private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
+	private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
+	private static final String ID_NAVIGATION = "navigation";
 
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
     private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
@@ -251,7 +257,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private boolean initialized = false;
 
 	private LoadableModel<Integer> workItemCountModel;
-	
+	private LoadableModel<DeploymentInformationType> deploymentInfoModel;
+
 	public PageBase(PageParameters parameters) {
 		super(parameters);
 
@@ -307,7 +314,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					return null;
 				}
 			}
-		}; 
+		};
+		deploymentInfoModel = new LoadableModel<DeploymentInformationType>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected DeploymentInformationType load() {
+				return loadDeploymentInformationType();
+			}
+		};
 	}
 
 	public void resetWorkItemCountModel() {
@@ -494,28 +509,39 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		getSession().getFeedbackMessages().clear();
 	}
 
-	private void initHeaderLayout() {
+	private void initHeaderLayout(WebMarkupContainer container) {
 		WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
 		menuToggle.add(createUserStatusBehaviour(true));
-		add(menuToggle);
+		container.add(menuToggle);
 
 		UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
 		rightMenu.add(createUserStatusBehaviour(true));
-		add(rightMenu);
+		container.add(rightMenu);
 
 		LocalePanel locale = new LocalePanel(ID_LOCALE);
 		locale.add(createUserStatusBehaviour(false));
-		add(locale);
+		container.add(locale);
 	}
 
-	private void initTitleLayout() {
+	private void initTitleLayout(WebMarkupContainer mainHeader) {
 		WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
 		pageTitleContainer.add(createUserStatusBehaviour(true));
-		add(pageTitleContainer);
+		mainHeader.add(pageTitleContainer);
 
 		WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
 		pageTitleContainer.add(pageTitle);
-		Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
+
+		String environmentName = "";
+		IModel<String> titleModel = createPageTitleModel();
+		IModel<String> fullTitleModel = null;
+		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+				StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
+			environmentName = deploymentInfoModel.getObject().getName();
+		}
+		if (StringUtils.isNotEmpty(environmentName)){
+			fullTitleModel = new Model<String>(environmentName + ": " + titleModel.getObject());
+		}
+		Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, fullTitleModel != null ? fullTitleModel : titleModel);
 		pageTitleReal.setRenderBodyOnly(true);
 		pageTitle.add(pageTitleReal);
 
@@ -576,10 +602,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				});
 			}
 		};
-        add(breadcrumbs);
+		mainHeader.add(breadcrumbs);
 	}
 
 	private void initLayout() {
+		WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
+		mainHeader.setOutputMarkupId(true);
+		add(mainHeader);
+
 		AjaxLink logo = new AjaxLink(ID_LOGO) {
 			private static final long serialVersionUID = 1L;
 
@@ -589,14 +619,65 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				setResponsePage(page);
 			}
 		};
-		add(logo);
+		logo.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible(){
+				return !isCustomLogoVisible();
+			}
+		});
+		mainHeader.add(logo);
+
+		AjaxLink customLogo = new AjaxLink(ID_CUSTOM_LOGO) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				//TODO may be this should lead to customerUrl ?
+				Class<? extends Page> page = MidPointApplication.get().getHomePage();
+				setResponsePage(page);
+			}
+		};
+		customLogo.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible(){
+				return isCustomLogoVisible();
+			}
+		});
+		mainHeader.add(customLogo);
+
+		WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
+		WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
+		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+				deploymentInfoModel.getObject().getLogo() != null){
+			if (StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getCssClass())) {
+				customLogoImgCss.add(new AttributeAppender("class", deploymentInfoModel.getObject().getLogo().getCssClass()));
+				customLogoImgSrc.setVisible(false);
+			} else {
+				customLogoImgSrc.add(new AttributeAppender("src",
+						deploymentInfoModel.getObject().getLogo().getImageUrl()));
+				customLogoImgCss.setVisible(false);
+			}
+		}
+		customLogo.add(customLogoImgSrc);
+		customLogo.add(customLogoImgCss);
 
 		Label title = new Label(ID_TITLE, createPageTitleModel());
 		title.setRenderBodyOnly(true);
 		add(title);
 
-		initHeaderLayout();
-		initTitleLayout();
+		WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
+		mainHeader.add(navigation);
+
+		initHeaderLayout(navigation);
+		initTitleLayout(navigation);
+
+		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+				StringUtils.isNotEmpty(deploymentInfoModel.getObject().getHeaderColor())){
+			mainHeader.add(new AttributeAppender("style",
+							"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+					navigation.add(new AttributeAppender("style",
+							"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+		}
 		initDebugBarLayout();
 
 		List<SideBarMenuItem> menuItems = createMenuItems();
@@ -1701,11 +1782,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		getBreadcrumbs().clear();
 	}
 
+	private boolean isCustomLogoVisible(){
+		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null
+				&& deploymentInfoModel.getObject().getLogo() != null
+				&& (StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getImageUrl())
+				|| StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getCssClass()))) {
+			return true;
+		}
+		return false;
+	}
+
 	private String getSubscriptionId(){
-		DeploymentInformationType deploymentInformationType = loadDeploymentInformationType();
-        if (deploymentInformationType == null){
+        if (deploymentInfoModel == null || deploymentInfoModel.getObject() == null){
             return null;
         }
-		return deploymentInformationType.getSubscriptionIdentifier();
+		return deploymentInfoModel.getObject().getSubscriptionIdentifier();
 	}
 }
