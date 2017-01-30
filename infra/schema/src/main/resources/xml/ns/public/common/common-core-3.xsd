@@ -5878,7 +5878,13 @@
                         	It will look for values that are there and that are also in the range of the mapping. If such
                         	values are not in the expression results, then such values will be removed (placed in the minus set).
                         </p>
+                        <p>
+                        	DEPRECATED. Do not use. Use the set definition in mapping target instead.
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -5966,7 +5972,19 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-           	<xsd:element name="path" type="t:ItemPathType"/>
+           	<xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+           		<xsd:annotation>
+           			<xsd:documentation>
+           				Path of the item (property) that is the target of the binding.
+           				This is the item which is source/target of the mapping or which
+           				is used for the form field. The path may not be specified if it
+           				can be inferred by other means (e.g. using default source or 
+           				target definitions). But even in a case that the path is default
+           				we may still want to define other aspects of the binding, e.g.
+           				the value set or type override.
+           			</xsd:documentation>
+           		</xsd:annotation>
+           	</xsd:element>
            	<xsd:element name="set" type="tns:ValueSetDefinitionType" minOccurs="0">
            		<xsd:annotation>
            			<xsd:documentation>
@@ -6065,7 +6083,12 @@
                 Specifies set of prism item values. E.g. specifies a set of string values,
                 container values (e.g. assignments) and so on. It is used at places where
                 we need to select particular values based on a flexible set of criteria.
+                
+                DEPRECATED. Do not use. Use ValueSetDefinitionType.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:deprecated>true</a:deprecated>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
