@@ -29,7 +29,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -1597,16 +1596,20 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	 * @param value
 	 * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
 	 */
-    public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value) {
+    public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet) {
 		if (isAdd()) {
-			return subtractFromObject(objectToAdd, itemPath, value);
+			if (!fromMinusSet) {
+				return subtractFromObject(objectToAdd, itemPath, value);
+			} else {
+				return false;
+			}
 		} else {
-			return subtractFromModifications(modifications, itemPath, value);
+			return subtractFromModifications(modifications, itemPath, value, fromMinusSet);
 		}
 	}
 
-	public static boolean subtractFromModifications(Collection<? extends ItemDelta<?, ?>> modifications, @NotNull ItemPath itemPath,
-			@NotNull PrismValue value) {
+	public static boolean subtractFromModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+			@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet) {
 		if (modifications == null) {
 			return false;
 		}
@@ -1615,9 +1618,16 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 		while (itemDeltaIterator.hasNext()) {
 			ItemDelta<?, ?> itemDelta = itemDeltaIterator.next();
 			if (itemPath.equivalent(itemDelta.getPath())) {
-				boolean removed1 = itemDelta.removeValueToAdd(value);
-				boolean removed2 = itemDelta.removeValueToReplace(value);
-				removed = removed || removed1 || removed2;
+				if (!fromMinusSet) {
+					boolean removed1 = itemDelta.removeValueToAdd(value);
+					boolean removed2 = itemDelta.removeValueToReplace(value);
+					removed = removed || removed1 || removed2;
+				} else {
+					if (itemDelta.getValuesToReplace() != null) {
+						throw new UnsupportedOperationException("Couldn't subtract 'value to be deleted' from REPLACE itemDelta: " + itemDelta);
+					}
+					removed = removed || itemDelta.removeValueToDelete(value);
+				}
 				if (itemDelta.isInFactEmpty()) {
 					itemDeltaIterator.remove();
 				}

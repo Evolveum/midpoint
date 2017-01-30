@@ -255,6 +255,9 @@
                                 This defines the object modification operation (add/replace/delete of the specific assignment).
                                 In case that new object is added then all assignments in the object are considered to
                                 be added. The case of object deletion does not make sense here.
+
+                                Currently supported are ADD and DELETE operations.
+								REPLACE (meaning MODIFY?) is not supported yet.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
