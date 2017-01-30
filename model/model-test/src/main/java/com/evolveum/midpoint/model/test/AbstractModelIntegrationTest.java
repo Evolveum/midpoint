@@ -2882,9 +2882,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return account;
 	}
 	
-	protected void assertDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
+	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy(" + dummyInstanceName + ") account for username " + username, account);
+		return account;
 	}
 	
 	protected void assertDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException {

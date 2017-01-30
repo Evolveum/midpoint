@@ -352,8 +352,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                	// The only thing that we need to worry about is assignment validity change. That is a cause
 	                	// of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
 	                	// not significant, i.e. reconciliation can handle them.
-	                	boolean isValidOld = LensUtil.isValid(assignmentCValOld.asContainerable(), now, activationComputer);
-	                	boolean isValid = LensUtil.isValid(assignmentCValNew.asContainerable(), now, activationComputer);
+	                	boolean isValidOld = LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(), 
+	                			assignmentCValOld.asContainerable(), now, activationComputer);
+	                	boolean isValid = LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
+	                			assignmentCValNew.asContainerable(), now, activationComputer);
 	                	if (isValid == isValidOld) {
 	                		// No change in validity -> right to the zero set
 		                	// The change is not significant for assignment applicability. Recon will sort out the details.
@@ -402,7 +404,6 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	            	if (LOGGER.isTraceEnabled()) {
 	            		LOGGER.trace("Processing unchanged assignment {}", new Object[]{SchemaDebugUtil.prettyPrint(assignmentCVal)});
 	            	}
-	            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);   // TODO unused: why? [med]
 	            	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                if (evaluatedAssignment == null) {
 	                	return;
