@@ -149,6 +149,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 
+import static com.evolveum.midpoint.gui.api.GuiStyleConstants.DEFAULT_BG_COLOR;
+
 /**
  * @author lazyman
  * @author semancik
@@ -645,6 +647,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		});
 		mainHeader.add(customLogo);
 
+		WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
+		mainHeader.add(navigation);
+
 		WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
 		WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
 		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
@@ -657,6 +662,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 						deploymentInfoModel.getObject().getLogo().getImageUrl()));
 				customLogoImgCss.setVisible(false);
 			}
+			mainHeader.add(new AttributeAppender("style",
+					"background-color: " + GuiStyleConstants.DEFAULT_BG_COLOR + "; !important;"));
 		}
 		customLogo.add(customLogoImgSrc);
 		customLogo.add(customLogoImgCss);
@@ -665,20 +672,21 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		title.setRenderBodyOnly(true);
 		add(title);
 
-		WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
-		mainHeader.add(navigation);
-
 		initHeaderLayout(navigation);
 		initTitleLayout(navigation);
 
-		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-				StringUtils.isNotEmpty(deploymentInfoModel.getObject().getHeaderColor())){
-			mainHeader.add(new AttributeAppender("style",
-							"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-					navigation.add(new AttributeAppender("style",
-							"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-		}
-		initDebugBarLayout();
+        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getHeaderColor())) {
+            logo.add(new AttributeAppender("style",
+                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+            customLogo.add(new AttributeAppender("style",
+                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+            mainHeader.add(new AttributeAppender("style",
+                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+            navigation.add(new AttributeAppender("style",
+                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+        }
+        initDebugBarLayout();
 
 		List<SideBarMenuItem> menuItems = createMenuItems();
 		SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
