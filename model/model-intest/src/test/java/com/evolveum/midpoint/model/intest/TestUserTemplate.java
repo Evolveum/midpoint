@@ -1805,11 +1805,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * MID-3692
+	 * MID-3692, MID-3700
 	 */
-	@Test(enabled=false) // MID-3700
+	@Test
     public void test199CModifyUserGuybrushOrganizationCleanup() throws Exception {
-		final String TEST_NAME = "test199ModifyUserGuybrushOrganizationCleanup";
+		final String TEST_NAME = "test199CModifyUserGuybrushOrganizationCleanup";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1818,7 +1818,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
-        assertAssignedNoRole(userBefore);
     
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
