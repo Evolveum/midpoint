@@ -184,7 +184,7 @@ public class PageResourceWizard extends PageAdminResources {
 			wizardModel.add(new CapabilityStep(modelFull, this));
 		}
 
-        Wizard wizard = new Wizard(ID_WIZARD, new Model<IWizardModel>(wizardModel), issuesModel);
+        Wizard wizard = new Wizard(ID_WIZARD, new Model<>(wizardModel), issuesModel);
         wizard.setOutputMarkupId(true);
         add(wizard);
     }
