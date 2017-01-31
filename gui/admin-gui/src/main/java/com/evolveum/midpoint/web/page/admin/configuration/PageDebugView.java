@@ -112,7 +112,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public String getObject() {
-            	if (!model.isLoaded()){
+            	if (model == null || model.getObject() == null || !model.isLoaded()){
             		return "";
             	}
                 return createStringResource("PageDebugView.title", model.getObject().getName()).getString();

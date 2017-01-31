@@ -188,6 +188,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
 	private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
 	private static final String ID_NAVIGATION = "navigation";
+	private static final String ID_DEPLOYMENT_NAME = "deploymentName";
 
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 	private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
@@ -520,16 +521,21 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		pageTitleContainer.add(pageTitle);
 
 		String environmentName = "";
-		IModel<String> titleModel = createPageTitleModel();
-		IModel<String> fullTitleModel = null;
 		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
 				StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
 			environmentName = deploymentInfoModel.getObject().getName();
 		}
-		if (StringUtils.isNotEmpty(environmentName)){
-			fullTitleModel = new Model<String>(environmentName + ": " + titleModel.getObject());
-		}
-		Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, fullTitleModel != null ? fullTitleModel : titleModel);
+		Model<String> deploymentNameModel = new Model<String>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
+		Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
+		deploymentName.add(new VisibleEnableBehaviour(){
+			public boolean isVisible(){
+				return StringUtils.isNotEmpty(deploymentNameModel.getObject());
+			}
+		});
+		deploymentName.setRenderBodyOnly(true);
+		pageTitle.add(deploymentName);
+
+		Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
 		pageTitleReal.setRenderBodyOnly(true);
 		pageTitle.add(pageTitleReal);
 
@@ -636,6 +642,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		});
 		mainHeader.add(customLogo);
 
+		WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
+		mainHeader.add(navigation);
+
 		WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
 		WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
 		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
@@ -648,6 +657,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 						deploymentInfoModel.getObject().getLogo().getImageUrl()));
 				customLogoImgCss.setVisible(false);
 			}
+			mainHeader.add(new AttributeAppender("style",
+							"background-color: " + GuiStyleConstants.DEFAULT_BG_COLOR + "; !important;"));
 		}
 		customLogo.add(customLogoImgSrc);
 		customLogo.add(customLogoImgCss);
@@ -656,18 +667,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		title.setRenderBodyOnly(true);
 		add(title);
 
-		WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
-		mainHeader.add(navigation);
-
 		initHeaderLayout(navigation);
 		initTitleLayout(navigation);
 
 		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-				StringUtils.isNotEmpty(deploymentInfoModel.getObject().getHeaderColor())){
+				StringUtils.isNotEmpty(deploymentInfoModel.getObject().getHeaderColor())) {
+			logo.add(new AttributeAppender("style",
+					"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+			customLogo.add(new AttributeAppender("style",
+					"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
 			mainHeader.add(new AttributeAppender("style",
-							"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-					navigation.add(new AttributeAppender("style",
-							"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+					"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+			navigation.add(new AttributeAppender("style",
+					"background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
 		}
 		initDebugBarLayout();
 
