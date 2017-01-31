@@ -62,7 +62,7 @@ import java.util.List;
 public class PageUserHistory extends PageAdminFocus<UserType> {
 
     private static final String DOT_CLASS = PageUserHistory.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageUserHistory.class);
     private String date = "";
 
     public PageUserHistory(final PrismObject<UserType> user, String date) {
