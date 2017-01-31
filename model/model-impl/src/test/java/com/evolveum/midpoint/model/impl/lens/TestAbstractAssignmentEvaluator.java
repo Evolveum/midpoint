@@ -921,7 +921,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
 	protected AssignmentEvaluator<UserType> createAssignmentEvaluator() throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> userJack = userTypeJack.asPrismObject();
-		return createAssignmentEvaluator(new ObjectDeltaObject<UserType>(userJack, null, null));
+		ObjectDeltaObject<UserType> focusOdo = new ObjectDeltaObject<>(userJack, null, null);
+		focusOdo.recompute();
+		return createAssignmentEvaluator(focusOdo);
 	}
 	
 	protected AssignmentEvaluator<UserType> createAssignmentEvaluator(ObjectDeltaObject<UserType> focusOdo) throws ObjectNotFoundException, SchemaException {
