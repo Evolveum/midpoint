@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -45,6 +45,18 @@
 					<relation>org:manager</relation>
 				</assignmentTargetSearch>
 			</expression>
+			<target>
+				<set>
+					<condition>
+						<script>
+							<code>
+								import com.evolveum.midpoint.schema.constants.*
+								input.targetRef != null &amp;&amp; input.targetRef.relation == SchemaConstants.ORG_MANAGER
+							</code>
+						</script>
+					</condition>
+				</set>
+			</target>
 			<condition>
 				<script>
 					<code>
@@ -52,16 +64,6 @@
 					</code>
 				</script>
 			</condition>
-			<range>
-				<isInSetExpression>
-					<script>
-						<code>
-							import com.evolveum.midpoint.schema.constants.*
-							value.targetRef != null &amp;&amp; value.targetRef.relation == SchemaConstants.ORG_MANAGER
-						</code>
-					</script>
-				</isInSetExpression>
-			</range>
 		</mapping>
     </item>
 
@@ -82,6 +84,17 @@
 					</code>
 				</script>
 			</expression>
+			<target>
+				<set>
+					<condition>
+						<script>
+							<code>
+								basic.stringify(input).startsWith('OU: ')
+							</code>
+						</script>
+					</condition>
+				</set>
+			</target>
 			<condition>
 				<script>
 					<code>
@@ -89,15 +102,6 @@
 					</code>
 				</script>
 			</condition>
-			<range>
-				<isInSetExpression>
-					<script>
-						<code>
-							basic.stringify(value).startsWith('OU: ')
-						</code>
-					</script>
-				</isInSetExpression>
-			</range>
 		</mapping>
 	</item>
 

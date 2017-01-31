@@ -184,11 +184,11 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         return rv;
     }
 
-    public boolean subtractFromFocusDelta(@NotNull ItemPath itemPath, @NotNull PrismValue value) {
+    public boolean subtractFromFocusDelta(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinus) {
 		if (focusChange == null) {
 			return false;
 		} else {
-			return focusChange.subtract(itemPath, value);
+			return focusChange.subtract(itemPath, value, fromMinus);
 		}
 	}
 

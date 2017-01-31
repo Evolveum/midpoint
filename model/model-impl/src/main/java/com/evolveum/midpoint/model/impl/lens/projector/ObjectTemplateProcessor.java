@@ -399,6 +399,10 @@ public class ObjectTemplateProcessor {
 					target = new VariableBindingDefinitionType();
 					target.setPath(templateItemDefType.getRef());
 					mapping.setTarget(target);
+				} else if (target.getPath() == null) {
+					target = target.clone();
+					target.setPath(templateItemDefType.getRef());
+					mapping.setTarget(target);
 				}
 				mappings.add(mapping);
 			}

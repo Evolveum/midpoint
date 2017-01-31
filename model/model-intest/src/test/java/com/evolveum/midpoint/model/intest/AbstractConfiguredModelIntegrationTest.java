@@ -104,6 +104,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_DRINK = "rum";
+	protected static final String RESOURCE_DUMMY_QUOTE = "Arr!";
 	
 	// RED resource has STRONG mappings
 	protected static final File RESOURCE_DUMMY_RED_FILE = new File(COMMON_DIR, "resource-dummy-red.xml");
@@ -187,6 +188,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
     protected static final String ROLE_PIRATE_NAME = "Pirate";
     protected static final String ROLE_PIRATE_DESCRIPTION = "Scurvy Pirates";
+    protected static final String ROLE_PIRATE_TITLE = "Bloody Pirate";
+    protected static final String ROLE_PIRATE_WEAPON = "cutlass";
     
     protected static final File ROLE_PIRATE_GREEN_FILE = new File(COMMON_DIR, "role-pirate-green.xml");
 	protected static final String ROLE_PIRATE_GREEN_OID = "12345678-d34d-b33f-f00d-555555557777";

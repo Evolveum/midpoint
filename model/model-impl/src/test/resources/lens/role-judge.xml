@@ -33,6 +33,30 @@
 		    </policyActions>
     	</policyRule>
     </assignment>
+	<assignment>
+		<policyRule>
+			<name>unassignment</name>
+			<policyConstraints>
+				<assignment>
+					<operation>delete</operation>
+				</assignment>
+			</policyConstraints>
+			<policyActions>
+				<notification/>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<name>all-assignment-operations</name>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval/>
+			</policyActions>
+		</policyRule>
+	</assignment>
     <inducement>
     	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>

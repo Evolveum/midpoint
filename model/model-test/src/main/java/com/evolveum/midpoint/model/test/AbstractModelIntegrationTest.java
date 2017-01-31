@@ -880,6 +880,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void unassignAllRoles(String userOid) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
+    	unassignAllRoles(userOid, false);
+	}
+
+	protected void unassignAllRoles(String userOid, boolean useRawPlusRecompute) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignAllRoles");
 		OperationResult result = task.getResult();
 		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
@@ -901,9 +907,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		modelService.executeChanges(deltas, null, task, result);
+		modelService.executeChanges(deltas, useRawPlusRecompute ? ModelExecuteOptions.createRaw() : null, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+
+		if (useRawPlusRecompute) {
+			recomputeUser(userOid, task, result);
+			result.computeStatus();
+			TestUtil.assertSuccess(result);
+		}
 	}
 	
 	protected void assignOrg(String userOid, String orgOid, Task task, OperationResult result)
@@ -2882,9 +2894,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return account;
 	}
 	
-	protected void assertDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
+	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy(" + dummyInstanceName + ") account for username " + username, account);
+		return account;
 	}
 	
 	protected void assertDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException {
@@ -3370,7 +3383,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             TestUtil.assertSuccess(result);
         }
 	}
-	
+
+	protected Optional<AssignmentType> findAssignmentByTarget(PrismObject<? extends FocusType> focus, String targetOid) {
+		return focus.asObjectable().getAssignment().stream()
+				.filter(a -> a.getTargetRef() != null && targetOid.equals(a.getTargetRef().getOid()))
+				.findFirst();
+	}
+
+	protected AssignmentType findAssignmentByTargetRequired(PrismObject<? extends FocusType> focus, String targetOid) {
+		return findAssignmentByTarget(focus, targetOid)
+				.orElseThrow(() -> new IllegalStateException("No assignment to " + targetOid + " in " + focus));
+	}
+
+
 	protected AssignmentType findInducementByTarget(String roleOid, String targetOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".findInducementByTarget");
         OperationResult result = task.getResult();

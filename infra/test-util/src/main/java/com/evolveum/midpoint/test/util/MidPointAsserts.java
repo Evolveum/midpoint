@@ -86,7 +86,7 @@ public class MidPointAsserts {
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
 			if (targetRef != null) {
-				if (refType.equals(targetRef.getType())) {
+				if (QNameUtil.match(refType, targetRef.getType())) {
 					if (targetOid.equals(targetRef.getOid())) {
 						AssertJUnit.fail(user + " does have assigned "+refType.getLocalPart()+" "+targetOid+" while not expecting it");
 					}
