@@ -59,7 +59,7 @@ public class PrismContainerPanel extends Panel {
             public boolean isVisible() {
                 ContainerWrapper<? extends PrismContainer> containerWrapper = model.getObject();
                 PrismContainer prismContainer = containerWrapper.getItem();
-                if (prismContainer.getDefinition().isOperational()) {
+                if (containerWrapper.getItemDefinition().isOperational()) {
                     return false;
                 }
 

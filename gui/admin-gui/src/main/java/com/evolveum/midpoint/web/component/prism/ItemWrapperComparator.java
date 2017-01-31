@@ -29,8 +29,8 @@ public class ItemWrapperComparator implements Comparator<ItemWrapper>, Serializa
 
     @Override
     public int compare(ItemWrapper p1, ItemWrapper p2) {
-        ItemDefinition def1 = p1.getItem().getDefinition();
-        ItemDefinition def2 = p2.getItem().getDefinition();
+        ItemDefinition def1 = p1.getItemDefinition();
+        ItemDefinition def2 = p2.getItemDefinition();
 
         if (isMainContainer(p1)) {
             return -1;

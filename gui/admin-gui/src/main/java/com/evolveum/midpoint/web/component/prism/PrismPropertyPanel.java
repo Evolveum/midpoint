@@ -134,8 +134,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             public boolean isVisible() {
                 IW wrapper = model.getObject();
-                Item property = wrapper.getItem();
-                ItemDefinition def = property.getDefinition();
+                ItemDefinition def = wrapper.getItemDefinition();
 
                 if (ObjectType.F_NAME.equals(def.getName())) {
                     //fix for "name as required" MID-789
@@ -207,8 +206,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     }
 
     private String loadHelpText(IModel<IW> model) {
-        Item property = (Item) model.getObject().getItem();
-        ItemDefinition def = property.getDefinition();
+        IW property = (IW) model.getObject();
+        ItemDefinition def = property.getItemDefinition();
         String doc = def.getHelp();
         if (StringUtils.isEmpty(doc)) {
             return null;
@@ -247,8 +246,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private boolean hasOutbound(IModel<IW> model) {
         ItemWrapper wrapper = model.getObject();
-        Item property = wrapper.getItem();
-        ItemDefinition def = property.getDefinition();
+//        Item property = wrapper.getItem();
+        ItemDefinition def = wrapper.getItemDefinition();
         if (!(def instanceof RefinedAttributeDefinition)) {
             return false;
         }
