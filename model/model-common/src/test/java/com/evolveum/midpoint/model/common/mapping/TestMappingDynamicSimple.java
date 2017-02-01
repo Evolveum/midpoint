@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertTripleNoMinus;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertTripleZero;
 import static org.testng.AssertJUnit.assertEquals;
@@ -1085,11 +1086,12 @@ public class TestMappingDynamicSimple {
 		assertNull("Unexpected value in outputTriple", outputTriple);
     }
     
-    public void testScriptTransformMulti() throws Exception {
-    	// GIVEN
-    	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToTrueXPath";
+    @Test
+    public void testScriptTransformMultiAddDelete() throws Exception {
+    	final String TEST_NAME = "testScriptTransformMultiAddDelete";
     	TestUtil.displayTestTile(TEST_NAME);
     	
+    	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
     	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
     	propDelta.addValueToAdd(new PrismPropertyValue<String>("CAPTAIN"));
@@ -1103,20 +1105,63 @@ public class TestMappingDynamicSimple {
 		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
 		user.asObjectable().getEmployeeType().add("LANDLUBER");
 		mapping.getSourceContext().recompute();
+		display("user before", user);
+		display("delta", delta);
     	        
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
+    	TestUtil.displayWhen(TEST_NAME);
 		mapping.evaluate(null, opResult);
     	
     	// THEN
+		TestUtil.displayThen(TEST_NAME);
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		outputTriple.checkConsistence();
 		PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("The pirate deck"));
 	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The captain deck"));
 	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("The landluber deck"));
     }
-    
+
+    /**
+     * MID-3700
+     */
+    @Test
+    public void testScriptTransformMultiReplace() throws Exception {
+    	final String TEST_NAME = "testScriptTransformMultiReplace";
+    	TestUtil.displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+    	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
+    	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
+    	propDelta.addValueToReplace(new PrismPropertyValue<String>("CAPTAIN"));
+    	delta.addModification(propDelta);
+    	
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+				"mapping-script-transform.xml", 
+    			TEST_NAME, "organizationalUnit", delta);
+		
+		PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+		
+		display("user before", user);
+		display("delta", delta);
+    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+    	TestUtil.displayWhen(TEST_NAME);
+		mapping.evaluate(null, opResult);
+    	
+    	// THEN
+		TestUtil.displayThen(TEST_NAME);
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		display("output triple", outputTriple);
+		outputTriple.checkConsistence();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The captain deck"));
+	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("The pirate deck"));
+    }
+
     @Test
     public void testInboundMapping() throws Exception{
     	final String TEST_NAME = "testInboundMapping";

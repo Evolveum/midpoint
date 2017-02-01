@@ -50,6 +50,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
 import com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -70,8 +71,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -731,9 +734,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -759,22 +764,22 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test120ModifyUserJackAssignAccountDummyRed() throws Exception {
-        TestUtil.displayTestTile(this, "test120ModifyUserJackAssignAccountDummyRed");
+		final String TEST_NAME = "test120ModifyUserJackAssignAccountDummyRed";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test120ModifyUserJackAssignAccountDummyRed");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, true);
-        deltas.add(accountAssignmentUserDelta);
+
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        TestUtil.displayWhen(TEST_NAME);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 		
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -829,9 +834,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -897,14 +904,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-
-        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
-        
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -933,12 +936,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
-        deltas.add(accountAssignmentUserDelta);
-                
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1135,25 +1134,23 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, true);
-        deltas.add(accountAssignmentUserDelta);
-        
         dummyAuditService.clear();
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        TestUtil.displayWhen(TEST_NAME);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
 		
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack);
-		String accountOid = getLinkRefOid(userJack, RESOURCE_DUMMY_KHAKI_OID);
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+		String accountOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_KHAKI_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -1174,7 +1171,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         assertDummyEnabled(RESOURCE_DUMMY_KHAKI_NAME, "jack");
         
-        TestUtil.assertModifyTimestamp(userJack, start, end);
+        TestUtil.assertModifyTimestamp(userAfter, start, end);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1688,6 +1685,226 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * Add draft user with a role assignment.
+	 * Even though Pirate role gives dummy account the user is in the draft
+	 * state. No account should be created.
+	 * MID-3689
+	 */
+	@Test
+    public void test240AddUserRappDraft() throws Exception {
+		final String TEST_NAME = "test240AddUserRappDraft";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_RAPP_FILE);
+        UserType userTypeBefore = userBefore.asObjectable();
+        userTypeBefore.setLifecycleState(SchemaConstants.LIFECYCLE_DRAFT);
+        AssignmentType assignmentType = new AssignmentType();
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(ROLE_PIRATE_OID);
+        targetRef.setType(RoleType.COMPLEX_TYPE);
+		assignmentType.setTargetRef(targetRef);
+		userTypeBefore.getAssignment().add(assignmentType);
+        display("User before", userBefore);
+
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(userBefore, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+        display("user after", userAfter);
+        
+        display("Dummy", getDummyResource());
+        
+        assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
+        
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignments(userAfter, 1);
+        
+        assertLinks(userAfter, 0);
+        
+        assertNoDummyAccount(USER_RAPP_USERNAME);
+        
+	}
+	
+	/**
+	 * Still draft. Still no accounts.
+	 * MID-3689
+	 */
+	@Test
+    public void test241RecomputeRappDraft() throws Exception {
+		final String TEST_NAME = "test240AddUserRappDraft";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_RAPP_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+        display("user after", userAfter);
+        
+        display("Dummy", getDummyResource());
+        
+        assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
+        
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignments(userAfter, 1);
+        
+        assertLinks(userAfter, 0);
+        
+        assertNoDummyAccount(USER_RAPP_USERNAME);
+        
+	}
+	
+	/**
+	 * Even though Captain role gives dummy account the user is in the draft
+	 * state. No account should be created.
+	 * MID-3689
+	 */
+	@Test
+    public void test242RappAssignCaptain() throws Exception {
+		final String TEST_NAME = "test242RappAssignCaptain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+        display("user after", userAfter);
+        assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
+        
+        assertAssignedRoles(userAfter, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 2);
+        assertLinks(userAfter, 0);
+        
+        assertNoDummyAccount(USER_RAPP_USERNAME);
+	}
+	
+	/**
+	 * Switch Rapp to active state. The assignments should be
+	 * activated as well.
+	 * MID-3689
+	 */
+	@Test
+    public void test245ActivateRapp() throws Exception {
+		final String TEST_NAME = "test245ActivateRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result, 
+        		SchemaConstants.LIFECYCLE_ACTIVE);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+        display("user after", userAfter);
+        assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
+        
+        assertAssignedRoles(userAfter, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 2);
+        assertLinks(userAfter, 1);
+        
+        DummyAccount dummyAccount = assertDummyAccount(null, USER_RAPP_USERNAME);
+        display("dummy account", dummyAccount);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, RESOURCE_DUMMY_QUOTE);
+        assertDummyAccountAttribute(null, USER_RAPP_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_PIRATE_TITLE);
+	}
+	
+	/**
+	 * Switch Rapp to archived state. The assignments should be
+	 * deactivated as well.
+	 * MID-3689
+	 */
+	@Test
+    public void test248DeactivateRapp() throws Exception {
+		final String TEST_NAME = "test248DeactivateRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result, 
+        		SchemaConstants.LIFECYCLE_ARCHIVED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+        display("user after", userAfter);
+        assertEffectiveActivation(userAfter, ActivationStatusType.ARCHIVED);
+        
+        assertAssignedRoles(userAfter, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 2);
+        assertLinks(userAfter, 0);
+        
+        assertNoDummyAccount(USER_RAPP_USERNAME);
+	}
+	
+	/**
+	 * MID-3689
+	 */
+	@Test
+    public void test249DeleteUserRapp() throws Exception {
+		final String TEST_NAME = "test249DeleteUserRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteObject(UserType.class, USER_RAPP_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoObject(UserType.class, USER_RAPP_OID);
+        assertNoDummyAccount(USER_RAPP_USERNAME);
+	}
+	
+	
+	/**
 	 * Test reading of validity data through shadow
 	 */
 	@Test
@@ -1696,7 +1913,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);

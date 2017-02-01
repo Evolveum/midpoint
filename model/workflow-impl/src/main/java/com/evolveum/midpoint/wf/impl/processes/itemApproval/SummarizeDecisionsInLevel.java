@@ -69,7 +69,8 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 				throw new IllegalStateException("Unknown level evaluation strategy: " + level.getEvaluationStrategy());
 			}
 		} else {
-			approved = predeterminedOutcome == ApprovalLevelOutcomeType.APPROVE;
+			approved = predeterminedOutcome == ApprovalLevelOutcomeType.APPROVE
+					|| predeterminedOutcome == ApprovalLevelOutcomeType.SKIP;
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Approval process instance {} (id {}), level {}: result of this level: {}",

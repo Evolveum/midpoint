@@ -269,6 +269,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
                 ", automaticallyApproved=" + automaticallyApproved +
                 ", approverRefs=" + approverRefs +
                 ", approverExpressions=" + approverExpressions +
+                ", outcomeIfNoApprovers=" + outcomeIfNoApprovers +
                 '}';
     }
 
@@ -293,7 +294,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 		return order + "/" + name;
 	}
 
-	public boolean isEmpty() {
-        return approverRefs.isEmpty() && approverExpressions.isEmpty();
+	public boolean shouldBeSkipped() {
+        return outcomeIfNoApprovers == ApprovalLevelOutcomeType.SKIP && approverRefs.isEmpty() && approverExpressions.isEmpty();
 	}
 }

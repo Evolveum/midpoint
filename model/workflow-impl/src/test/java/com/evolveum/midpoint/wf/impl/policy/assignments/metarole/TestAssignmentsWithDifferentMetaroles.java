@@ -29,6 +29,7 @@ import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -89,26 +90,13 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		userLead23Oid = addAndRecomputeUser(USER_LEAD23_FILE, initTask, initResult);
 	}
 
-	/**
-	 * Attempt to assign roles 21-23 along with changing description.
-	 */
-	@Test
-	public void test100AddRoles123AssignmentYYYY() throws Exception {
-		final String TEST_NAME = "test100AddRoles012AssignmentYYYY";
-		TestUtil.displayTestTile(this, TEST_NAME);
-		login(userAdministrator);
-
-		unassignAllRoles(userJackOid);
-		executeAssignRoles123ToJack(TEST_NAME, false, true, true, true, true, false);
-	}
-
 	@Test
 	public void test102AddRoles123AssignmentYYYYDeputy() throws Exception {
 		final String TEST_NAME = "test102AddRoles123AssignmentYYYYDeputy";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, false, true, true, true, true, true);
 	}
 
@@ -118,7 +106,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, true, true, true, true, true, false);
 	}
 
@@ -128,7 +116,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, true, false, false, false, false, false);
 	}
 
@@ -138,7 +126,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, true, false, false, false, false, false);
 	}
 
@@ -148,7 +136,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, true, true, false, false, false, false);
 	}
 
@@ -158,7 +146,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, true, true, false, false, false, false);
 	}
 
@@ -168,7 +156,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, false, true, true, true, false, false);
 	}
 
@@ -178,7 +166,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, false, true, true, true, false, true);
 	}
 
@@ -188,12 +176,70 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
-		unassignAllRoles(userJackOid);
+		unassignAllRoles(userJackOid, true);
 		executeAssignRoles123ToJack(TEST_NAME, true, true, true, true, false, false);
 	}
 
+	/**
+	 * Attempt to assign roles 21-23 along with changing description.
+	 */
+	@Test
+	public void test200AddRoles123AssignmentYYYY() throws Exception {
+		final String TEST_NAME = "test200AddRoles012AssignmentYYYY";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
 
-//	/**
+		unassignAllRoles(userJackOid);
+		executeAssignRoles123ToJack(TEST_NAME, false, true, true, true, true, false);
+	}
+
+	@Test
+	public void test210DeleteRoles123AssignmentN() throws Exception {
+		final String TEST_NAME = "test210DeleteRoles123AssignmentN";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		executeUnassignRoles123ToJack(TEST_NAME, false, false, false, true);
+	}
+
+	@Test
+	public void test212DeleteRoles123AssignmentNById() throws Exception {
+		final String TEST_NAME = "test212DeleteRoles123AssignmentNById";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		executeUnassignRoles123ToJack(TEST_NAME, false, false, true, false);
+	}
+
+	@Test
+	public void test218DeleteRoles123AssignmentY() throws Exception {
+		final String TEST_NAME = "test218DeleteRoles123AssignmentY";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		executeUnassignRoles123ToJack(TEST_NAME, false, true, false, false);
+	}
+
+	@Test
+	public void test220AddRoles123AssignmentYYYY() throws Exception {
+		final String TEST_NAME = "test220AddRoles012AssignmentYYYY";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(userJackOid, true);
+		executeAssignRoles123ToJack(TEST_NAME, false, true, true, true, true, false);
+	}
+
+	@Test
+	public void test230DeleteRoles123AssignmentYById() throws Exception {
+		final String TEST_NAME = "test230DeleteRoles123AssignmentYById";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		executeUnassignRoles123ToJack(TEST_NAME, false, true, true, true);
+	}
+
+	//	/**
 //	 * Assigning Role1 with two deputies present. (Approved by one of the deputies.)
 //	 */
 //	@Test
@@ -363,6 +409,151 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				return instructions;
 			}
 		}, 3, immediate);
+	}
+
+	private void executeUnassignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve, boolean byId, boolean has1and2) throws Exception {
+		PrismObject<UserType> jack = getUser(userJackOid);
+		AssignmentType a1 = has1and2 ? findAssignmentByTargetRequired(jack, roleRole21Oid) : null;
+		AssignmentType a2 = has1and2 ? findAssignmentByTargetRequired(jack, roleRole22Oid) : null;
+		AssignmentType a3 = findAssignmentByTargetRequired(jack, roleRole23Oid);
+		AssignmentType del1 = toDelete(a1, byId);
+		AssignmentType del2 = toDelete(a2, byId);
+		AssignmentType del3 = toDelete(a3, byId);
+		@SuppressWarnings("unchecked")
+		ObjectDelta<UserType> deleteRole1Delta = has1and2 ? (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).delete(del1)
+				.asObjectDelta(userJackOid) : null;
+		@SuppressWarnings("unchecked")
+		ObjectDelta<UserType> deleteRole2Delta = has1and2 ? (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).delete(del2)
+				.asObjectDelta(userJackOid) : null;
+		@SuppressWarnings("unchecked")
+		ObjectDelta<UserType> deleteRole3Delta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).delete(del3)
+				.asObjectDelta(userJackOid);
+		@SuppressWarnings("unchecked")
+		ObjectDelta<UserType> changeDescriptionDelta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
+				.asObjectDelta(userJackOid);
+		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(changeDescriptionDelta, deleteRole1Delta, deleteRole2Delta, deleteRole3Delta);
+		ObjectDelta<UserType> delta0 = ObjectDelta.summarize(changeDescriptionDelta, deleteRole1Delta, deleteRole2Delta);
+		String originalDescription = getUser(userJackOid).asObjectable().getDescription();
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jack.clone();
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
+				return primaryDelta.clone();
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 1;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return Arrays.asList(approve);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return Arrays.asList(deleteRole3Delta.clone());
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return delta0.clone();
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return jack.getOid();
+			}
+
+			@Override
+			protected List<ExpectedTask> getExpectedTasks() {
+				return Arrays.asList(
+						new ExpectedTask(roleRole23Oid, "Unassigning Role23 from jack"));
+			}
+
+			// after first step
+			@Override
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				List<ExpectedTask> tasks = getExpectedTasks();
+				return Arrays.asList(
+						new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(0))
+				);
+			}
+
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				switch (number) {
+					case 0:
+						if (yes) {
+							assertUserProperty(userJackOid, UserType.F_DESCRIPTION, TEST_NAME);
+						} else {
+							if (originalDescription != null) {
+								assertUserProperty(userJackOid, UserType.F_DESCRIPTION, originalDescription);
+							} else {
+								assertUserNoProperty(userJackOid, UserType.F_DESCRIPTION);
+							}
+						}
+						if (yes || !has1and2) {
+							assertNotAssignedRole(userJackOid, roleRole21Oid, rootTask, result);
+							assertNotAssignedRole(userJackOid, roleRole22Oid, rootTask, result);
+						} else {
+							assertAssignedRole(userJackOid, roleRole21Oid, rootTask, result);
+							assertAssignedRole(userJackOid, roleRole22Oid, rootTask, result);
+						}
+						break;
+					case 1:
+						if (yes) {
+							assertNotAssignedRole(userJackOid, roleRole23Oid, rootTask, result);
+						} else {
+							assertAssignedRole(userJackOid, roleRole23Oid, rootTask, result);
+						}
+						break;
+					default:
+						throw new IllegalArgumentException("Unexpected delta number: " + number);
+				}
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+				return null;            // ignore this way of approving
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				List<ExpectedTask> tasks = getExpectedTasks();
+				List<ApprovalInstruction> instructions = new ArrayList<>();
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(0)), approve,
+						userSecurityApproverOid));
+				return instructions;
+			}
+		}, 1, immediate);
+	}
+
+	private AssignmentType toDelete(AssignmentType assignment, boolean byId) {
+		if (assignment == null) {
+			return null;
+		}
+		if (!byId) {
+			return assignment.clone();
+		} else {
+			AssignmentType rv = new AssignmentType(prismContext);
+			rv.setId(assignment.getId());
+			return rv;
+		}
 	}
 
 	@Test

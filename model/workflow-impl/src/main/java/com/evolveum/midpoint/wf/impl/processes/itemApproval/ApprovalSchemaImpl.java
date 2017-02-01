@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -43,12 +42,6 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
 
     public ApprovalSchemaImpl(@NotNull PrismContext prismContext) {
         setPrismContext(prismContext);
-    }
-
-    ApprovalSchemaImpl(ApprovalSchemaType approvalSchemaType, @NotNull PrismContext prismContext,
-            RelationResolver relationResolver, ReferenceResolver referenceResolver) {
-        setPrismContext(prismContext);
-        initFromApprovalSchemaType(approvalSchemaType, relationResolver, referenceResolver);
     }
 
     ApprovalSchemaImpl(ApprovalSchemaType approvalSchema, List<ObjectReferenceType> approverRefList,
@@ -155,7 +148,7 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
 	}
 
 	@Override
-    public boolean isEmpty() {
-        return levels.stream().allMatch(ApprovalLevelImpl::isEmpty);
+    public boolean shouldBeSkipped() {
+        return levels.stream().allMatch(ApprovalLevelImpl::shouldBeSkipped);
     }
 }

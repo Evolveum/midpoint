@@ -21,14 +21,21 @@
 	<inducement>
 		<policyRule>
 			<policyConstraints>
-				<assignment/>				<!-- applies to all assignment operations of this metarole-bearer as the target -->
+				<assignment>
+					<operation>add</operation>		<!-- applies to all "add assignment" operations of this metarole-bearer as the target -->
+				</assignment>
 			</policyConstraints>
 			<policyActions>
 				<approval>
 					<compositionStrategy>
 						<order>1</order>
 					</compositionStrategy>
-					<approverRelation>special-approver</approverRelation>
+					<approvalSchema>
+						<level>
+							<approverRelation>special-approver</approverRelation>
+							<outcomeIfNoApprovers>skip</outcomeIfNoApprovers>		<!-- so e.g. for role4b no approval process is started -->
+						</level>
+					</approvalSchema>
 				</approval>
 			</policyActions>
 		</policyRule>

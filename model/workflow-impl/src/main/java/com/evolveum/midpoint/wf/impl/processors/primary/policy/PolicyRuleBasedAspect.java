@@ -29,7 +29,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
@@ -106,33 +109,38 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext).getEvaluatedAssignmentTriple();
 		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
-		if (evaluatedAssignmentTriple == null || !evaluatedAssignmentTriple.hasPlusSet()) {
+		if (evaluatedAssignmentTriple == null) {
 			return;
 		}
 
 		for (EvaluatedAssignment<?> newAssignment : evaluatedAssignmentTriple.getPlusSet()) {
 			CollectionUtils.addIgnoreNull(instructions,
-					createInstructionFromAssignment(newAssignment, objectTreeDeltas, requester, ctx, result));
+					createInstructionFromAssignment(newAssignment, PlusMinusZero.PLUS, objectTreeDeltas, requester, ctx, result));
 		}
-		// TODO approving assignments in minus set
+		for (EvaluatedAssignment<?> newAssignment : evaluatedAssignmentTriple.getMinusSet()) {
+			CollectionUtils.addIgnoreNull(instructions,
+					createInstructionFromAssignment(newAssignment, PlusMinusZero.MINUS, objectTreeDeltas, requester, ctx, result));
+		}
+		// Note: to implement assignment modifications we would need to fix subtractFromModification method below
 	}
 
 	private PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createInstructionFromAssignment(
-			EvaluatedAssignment<?> newAssignment, @NotNull ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<UserType> requester,
+			EvaluatedAssignment<?> evaluatedAssignment, PlusMinusZero plusMinusZero, @NotNull ObjectTreeDeltas<?> objectTreeDeltas,
+			PrismObject<UserType> requester,
 			ModelInvocationContext ctx, OperationResult result) throws SchemaException {
 
 		// We collect all target rules; hoping that only relevant ones are triggered.
 		// For example, if we have assignment policy rule on induced role, it will get here.
 		// But projector will take care not to trigger it unless the rule is capable (e.g. configured)
 		// to be triggered in such a situation/
-		List<EvaluatedPolicyRule> triggeredApprovalActionRules = getApprovalActionRules(newAssignment.getTargetPolicyRules());
-		logApprovalActions(newAssignment, triggeredApprovalActionRules);
+		List<EvaluatedPolicyRule> triggeredApprovalActionRules = getApprovalActionRules(evaluatedAssignment.getTargetPolicyRules());
+		logApprovalActions(evaluatedAssignment, triggeredApprovalActionRules);
 
 		// Currently we can deal only with assignments that have a specific target
-		PrismObject<?> targetObject = newAssignment.getTarget();
+		PrismObject<?> targetObject = evaluatedAssignment.getTarget();
 		if (targetObject == null) {
 			if (!triggeredApprovalActionRules.isEmpty()) {
-				throw new IllegalStateException("No target in " + newAssignment + ", but with "
+				throw new IllegalStateException("No target in " + evaluatedAssignment + ", but with "
 						+ triggeredApprovalActionRules.size() + " triggered approval action rule(s)");
 			} else {
 				return null;
@@ -140,27 +148,33 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		}
 
 		// Let's construct the approval schema plus supporting triggered approval policy rule information
-		ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules, targetObject, ctx, result);
-		if (approvalSchemaResult.schema.isEmpty()) {
+		ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules, plusMinusZero,
+				targetObject, ctx, result);
+		if (approvalSchemaResult.schema.shouldBeSkipped()) {
 			return null;
 		}
 
 		// Cut assignment from delta, prepare task instruction
 		@SuppressWarnings("unchecked")
-		PrismContainerValue<AssignmentType> assignmentValue = newAssignment.getAssignmentType().asPrismContainerValue();
-		boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue);
+		PrismContainerValue<AssignmentType> assignmentValue = evaluatedAssignment.getAssignmentType().asPrismContainerValue();
+		boolean assignmentRemoved;
+		switch (plusMinusZero) {
+			case PLUS: assignmentRemoved = false; break;
+			case MINUS: assignmentRemoved = true; break;
+			default: throw new UnsupportedOperationException("Processing assignment zero set is not yet supported.");
+		}
+		boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue, assignmentRemoved);
 		if (!removed) {
-			String message = "Assignment with a value of " + assignmentValue.debugDump() + " was not found in deltas: "
-					+ objectTreeDeltas.debugDump();
-			assert false : message;				// fail in test mode; just log an error otherwise
-			LOGGER.error("{}", message);
-			return null;
+			String message = "Assignment to be added/deleted was not found in primary delta."
+					+ "\nAssignment:\n" + assignmentValue.debugDump()
+					+ "\nPrimary delta:\n" + objectTreeDeltas.debugDump();
+			throw new IllegalStateException(message);
 		}
 		ObjectDelta<? extends ObjectType> focusDelta = objectTreeDeltas.getFocusChange();
 		if (focusDelta.isAdd()) {
 			miscDataUtil.generateFocusOidIfNeeded(ctx.modelContext, focusDelta);
 		}
-		return prepareAssignmentRelatedTaskInstruction(approvalSchemaResult, newAssignment, ctx.modelContext, requester, result);
+		return prepareAssignmentRelatedTaskInstruction(approvalSchemaResult, evaluatedAssignment, assignmentRemoved, ctx.modelContext, requester, result);
 	}
 
 	private List<EvaluatedPolicyRule> getApprovalActionRules(Collection<EvaluatedPolicyRule> rules) {
@@ -170,17 +184,18 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	}
 
 	private ApprovalSchemaBuilder.Result createSchemaWithRules(List<EvaluatedPolicyRule> triggeredApprovalRules,
-			@NotNull PrismObject<?> targetObject, ModelInvocationContext ctx, OperationResult result) throws SchemaException {
+			PlusMinusZero plusMinusZero, @NotNull PrismObject<?> targetObject, ModelInvocationContext ctx, OperationResult result) throws SchemaException {
 
 		ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(this);
-		// (1) legacy approvers
+
+		// (1) legacy approvers (only if adding)
 		LegacyApproversSpecificationUsageType configuredUseLegacyApprovers =
 				baseConfigurationHelper.getUseLegacyApproversSpecification(ctx.wfConfiguration);
 		boolean useLegacyApprovers = configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.ALWAYS
 				|| configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION
 				&& triggeredApprovalRules.isEmpty();
 
-		if (useLegacyApprovers && targetObject.asObjectable() instanceof AbstractRoleType) {
+		if (plusMinusZero == PlusMinusZero.PLUS && useLegacyApprovers && targetObject.asObjectable() instanceof AbstractRoleType) {
 			AbstractRoleType abstractRole = (AbstractRoleType) targetObject.asObjectable();
 			if (abstractRole.getApprovalSchema() != null) {
 				builder.addPredefined(targetObject, abstractRole.getApprovalSchema().clone());
@@ -190,21 +205,21 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverRef()));
 				level.getApproverExpression().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverExpression()));
 				level.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
-				// consider default (if expression returns no approvers) -- currently it is "reject"
+				// consider default (if expression returns no approvers) -- currently it is "reject"; it is probably correct
 				builder.addPredefined(targetObject, level);
 				LOGGER.trace("Added legacy approval schema");
 			}
 		}
 
-		// (2) default policy action
-		if (triggeredApprovalRules.isEmpty()
+		// (2) default policy action (only if adding)
+		if (triggeredApprovalRules.isEmpty() && plusMinusZero == PlusMinusZero.PLUS
 				&& baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 			if (builder.addPredefined(targetObject, SchemaConstants.ORG_APPROVER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found");
 			}
 		}
 
-		// (3) explicit
+		// (3) actions from triggered rules
 		for (EvaluatedPolicyRule approvalRule : triggeredApprovalRules) {
 			ApprovalPolicyActionType approvalAction = approvalRule.getActions().getApproval();
 			builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), targetObject, approvalRule);
@@ -286,7 +301,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		Set<ItemPath> itemsProcessed = null;
 		for (Map.Entry<Set<ItemPath>, ApprovalSchemaBuilder> entry : schemaBuilders.entrySet()) {
 			ApprovalSchemaBuilder.Result builderResult = entry.getValue().buildSchema(ctx, result);
-			if (builderResult.schema.isEmpty()) {
+			if (builderResult.schema.shouldBeSkipped()) {
 				continue;
 			}
 			Set<ItemPath> items = entry.getKey();
@@ -320,8 +335,9 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		return rv;
 	}
 
-	private PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> prepareAssignmentRelatedTaskInstruction(ApprovalSchemaBuilder.Result builderResult,
-			EvaluatedAssignment<?> evaluatedAssignment, ModelContext<?> modelContext,
+	private PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> prepareAssignmentRelatedTaskInstruction(
+			ApprovalSchemaBuilder.Result builderResult,
+			EvaluatedAssignment<?> evaluatedAssignment, boolean assignmentRemoved, ModelContext<?> modelContext,
 			PrismObject<UserType> requester, OperationResult result) throws SchemaException {
 
 		String objectOid = getFocusObjectOid(modelContext);
@@ -332,7 +348,11 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		Validate.notNull(target, "assignment target is null");
 
 		String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
-		String approvalTaskName = "Approve adding " + targetName + " to " + objectName;				// TODO adding?
+		String operation = (assignmentRemoved
+				? "unassigning " + targetName + " from " :
+				"assigning " + targetName + " to ")
+				+ objectName;
+		String approvalTaskName = "Approve " + operation;
 
 		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
 				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName,
@@ -340,15 +360,16 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 
-		ObjectDelta<? extends FocusType> delta = assignmentToDelta(modelContext.getFocusClass(), evaluatedAssignment.getAssignmentType(), objectOid);
+		ObjectDelta<? extends FocusType> delta = assignmentToDelta(modelContext.getFocusClass(),
+				evaluatedAssignment.getAssignmentType(), assignmentRemoved, objectOid);
 		instruction.setDeltasToProcess(delta);
 
 		instruction.setObjectRef(modelContext, result);
 		instruction.setTargetRef(createObjectRef(target), result);
 
 		String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-		instruction.setTaskName("Approval " + andExecuting + "of assigning " + targetName + " to " + objectName);
-		instruction.setProcessInstanceName("Assigning " + targetName + " to " + objectName);
+		instruction.setTaskName("Approval " + andExecuting + "of " + operation);
+		instruction.setProcessInstanceName(StringUtils.capitalizeFirstLetter(operation));
 
 		itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
@@ -427,11 +448,13 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	// creates an ObjectDelta that will be executed after successful approval of the given assignment
 	@SuppressWarnings("unchecked")
-    private ObjectDelta<? extends FocusType> assignmentToDelta(Class<? extends Objectable> focusClass, AssignmentType assignmentType,
-			String objectOid) throws SchemaException {
-		return (ObjectDelta<? extends FocusType>) DeltaBuilder.deltaFor(focusClass, prismContext)
-				.item(FocusType.F_ASSIGNMENT).add(assignmentType.clone().asPrismContainerValue())
-				.asObjectDelta(objectOid);
+    private ObjectDelta<? extends FocusType> assignmentToDelta(Class<? extends Objectable> focusClass,
+			AssignmentType assignmentType, boolean assignmentRemoved, String objectOid) throws SchemaException {
+		PrismContainerValue value = assignmentType.clone().asPrismContainerValue();
+		S_ValuesEntry item = DeltaBuilder.deltaFor(focusClass, prismContext)
+				.item(FocusType.F_ASSIGNMENT);
+		S_ItemEntry op = assignmentRemoved ? item.delete(value) : item.add(value);
+		return (ObjectDelta<? extends FocusType>) op.asObjectDelta(objectOid);
     }
 
     //endregion

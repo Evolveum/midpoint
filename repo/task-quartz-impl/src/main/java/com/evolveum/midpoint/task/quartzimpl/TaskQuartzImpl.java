@@ -2499,7 +2499,7 @@ public class TaskQuartzImpl implements Task {
 		TaskQuartzImpl sub = ((TaskQuartzImpl) createSubtask());
         sub.setLightweightTaskHandler(handler);
 		lightweightAsynchronousSubtasks.add(sub);
-		parentForLightweightAsynchronousTask = this;
+		sub.parentForLightweightAsynchronousTask = this;
         return sub;
     }
 

@@ -402,9 +402,42 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 	private void checkRange(Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		if (mappingType.getRange() == null) {
-			return;
+		VariableBindingDefinitionType target = mappingType.getTarget();
+		if (target != null && target.getSet() != null) {
+			checkRangeTarget(task, result);
 		}
+		if (mappingType.getRange() != null) {
+			checkRangeLegacy(task, result);
+		}
+	}
+
+	private void checkRangeTarget(Task task, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		if (originalTargetValues == null) {
+			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+		}
+		ValueSetDefinitionType rangetSetDefType = mappingType.getTarget().getSet();
+		QName name = outputPath.lastNamed().getName();
+		ValueSetDefinition setDef = new ValueSetDefinition(rangetSetDefType, name, "range of "+name.getLocalPart()+" in "+getMappingContextDescription(), task, result);
+		setDef.init(expressionFactory);
+		for (V originalValue : originalTargetValues) {
+			if (!setDef.contains(originalValue)) {
+				continue;
+			}
+			if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
+				continue;
+			}
+			// remove it!
+			if (outputTriple == null) {
+				outputTriple = new PrismValueDeltaSetTriple<>();
+			}
+			LOGGER.trace("Original value is not in the mapping range, adding it to minus set: {}", originalValue);
+			outputTriple.addToMinusSet(originalValue);
+		}
+	}
+	
+	private void checkRangeLegacy(Task task, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
@@ -818,20 +851,22 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		} else {
 			ItemPathType itemPathType = targetType.getPath();
 			if (itemPathType == null) {
-				throw new SchemaException("No path in target definition in "+getMappingContextDescription());
-			}
-			ItemPath path = itemPathType.getItemPath();
-			outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in "+getMappingContextDescription());
-			if (outputDefinition == null) {
-				throw new SchemaException("No target item that would conform to the path "+path+" in "+getMappingContextDescription());
-			}
-
-			// Make the path relative if needed
-			if (!path.isEmpty() && (path.first() instanceof NameItemPathSegment) && 
-					((NameItemPathSegment)path.first()).isVariable()) {
-				outputPath = path.rest();
+				outputDefinition = defaultTargetDefinition;
+				outputPath = defaultTargetPath;
 			} else {
-				outputPath = path;
+				ItemPath path = itemPathType.getItemPath();
+				outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in "+getMappingContextDescription());
+				if (outputDefinition == null) {
+					throw new SchemaException("No target item that would conform to the path "+path+" in "+getMappingContextDescription());
+				}
+	
+				// Make the path relative if needed
+				if (!path.isEmpty() && (path.first() instanceof NameItemPathSegment) && 
+						((NameItemPathSegment)path.first()).isVariable()) {
+					outputPath = path.rest();
+				} else {
+					outputPath = path;
+				}
 			}
 		}
 		if (stringPolicyResolver != null) {

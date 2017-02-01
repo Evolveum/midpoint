@@ -426,6 +426,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	Iterator<V> iterator = values.iterator();
     	while (iterator.hasNext()) {
     		V val = iterator.next();
+			// the same algorithm as when deleting the item value from delete delta
     		if (val.representsSameValue(newValue, false) || val.equalsRealValue(newValue)) {
     			iterator.remove();
     			changed = true;
