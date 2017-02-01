@@ -249,7 +249,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, OperationResult result) {
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
         return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE);
     }
 
@@ -259,7 +259,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem, OperationResult result) {
+    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem) {
         return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE);
     }
 
