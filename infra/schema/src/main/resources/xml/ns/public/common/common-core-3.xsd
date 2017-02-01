@@ -6689,6 +6689,13 @@
 		        	</xsd:element>
 		        	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
+		        	<xsd:element name="defaultTargetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				Reference that will be used if no target is found.
+		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
 		        </xsd:sequence>
 	        </xsd:extension>
         </xsd:complexContent>
