@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1203,6 +1203,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected PolyStringType createPolyStringType(String string) {
 		return PrismTestUtil.createPolyStringType(string);
+	}
+	
+	protected ItemPath getExtensionPath(QName propName) {
+		return new ItemPath(ObjectType.F_EXTENSION, propName);
 	}
 
 	protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, Integer expectedNumberOfAttributes) {
