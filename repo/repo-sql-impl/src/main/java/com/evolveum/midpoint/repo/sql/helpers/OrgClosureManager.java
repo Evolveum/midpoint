@@ -661,12 +661,12 @@ public class OrgClosureManager {
         try {
             int count;
 
-            if (isMySQL() || isOracle() || isSQLServer()) {
+            if (isMySQL() || isMariaDb() || isOracle() || isSQLServer()) {
 
                 long startUpsert = System.currentTimeMillis();
                 String upsertQueryText;
 
-                if (isMySQL()) {
+                if (isMySQL() || isMariaDb()) {
                     upsertQueryText = "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
                             "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta " +
                             "on duplicate key update " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val + values(val)";
@@ -707,7 +707,7 @@ public class OrgClosureManager {
                             "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
                             "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
                 } else {
-                    throw new UnsupportedOperationException("implement other databases");
+                    throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
                 }
                 Query updateInClosureQuery = session.createSQLQuery(updateInClosureQueryText);
                 int countUpdate = updateInClosureQuery.executeUpdate();
@@ -726,7 +726,7 @@ public class OrgClosureManager {
                     } else if (isPostgreSQL()) {
                         addQuery += " where not exists (select 1 from " + CLOSURE_TABLE_NAME + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
                     } else {
-                        throw new UnsupportedOperationException("implement other databases");
+                        throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
                     }
                 }
                 Query addToClosureQuery = session.createSQLQuery(addQuery);
@@ -806,7 +806,7 @@ public class OrgClosureManager {
     private void dropDeltaTableIfNecessary(Session session, String deltaTempTableName) {
         // postgresql deletes the table automatically on commit
         // in H2 we delete the table after whole closure operation (after commit)
-        if (isMySQL()) {
+        if (isMySQL() || isMariaDb()) {
             Query dropQuery = session.createSQLQuery("drop temporary table " + deltaTempTableName);
             dropQuery.executeUpdate();
         } else if (isSQLServer()) {
@@ -927,7 +927,7 @@ public class OrgClosureManager {
                         "inner join " + deltaTempTableName + " td " +
                         "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and " +
                         "td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid";
-            } else if (isMySQL()) {
+            } else if (isMySQL() || isMariaDb()) {
                 // http://stackoverflow.com/questions/652770/delete-with-join-in-mysql
                 // TODO consider this for other databases as well
                 deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
@@ -941,7 +941,7 @@ public class OrgClosureManager {
                         "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid " +
                         "set "+ CLOSURE_TABLE_NAME +".val = "+ CLOSURE_TABLE_NAME +".val - td.val";
             } else {
-                throw new UnsupportedOperationException("implement other databases");
+                throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
             }
             long startDelete = System.currentTimeMillis();
             Query deleteFromClosureQuery = session.createSQLQuery(deleteFromClosureQueryText);
@@ -1071,7 +1071,7 @@ public class OrgClosureManager {
                 int c = q.executeUpdate();
                 LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
                 createTablePrefix = "insert into " + deltaTempTableName + " ";
-            } else if (isMySQL()) {
+            } else if (isMySQL() || isMariaDb()) {
                 createTablePrefix = "create temporary table " + deltaTempTableName + " engine=memory as ";            // engine=memory is questionable because of missing tansactionality (but the transactionality is needed in the main table, not the delta table...)
             } else if (isOracle()) {
                 // todo skip if this is first in this transaction
@@ -1080,7 +1080,7 @@ public class OrgClosureManager {
                 LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
                 createTablePrefix = "insert into " + deltaTempTableName + " ";
             } else {
-                throw new UnsupportedOperationException("define other databases");
+                throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
             }
             Query query1 = session.createSQLQuery(createTablePrefix + selectClause);
             start = System.currentTimeMillis();
@@ -1317,6 +1317,10 @@ public class OrgClosureManager {
         } else {
             return new ArrayList<String>();
         }
+    }
+
+    private boolean isMariaDb() {
+        return baseHelper.getConfiguration().isUsingMariaDB();
     }
 
     private boolean isMySQL() {

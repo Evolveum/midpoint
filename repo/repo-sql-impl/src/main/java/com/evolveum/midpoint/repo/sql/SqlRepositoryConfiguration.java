@@ -240,7 +240,7 @@ public class SqlRepositoryConfiguration {
         if (isUsingH2()) {
             iterativeSearchByPaging = true;
             iterativeSearchByPagingBatchSize = 50;
-        } else if (isUsingMySQL()) {
+        } else if (isUsingMySQL() || isUsingMariaDB()) {
             iterativeSearchByPaging = true;
             iterativeSearchByPagingBatchSize = 50;
         } else {
