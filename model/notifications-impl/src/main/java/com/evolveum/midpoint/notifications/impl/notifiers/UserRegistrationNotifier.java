@@ -87,11 +87,11 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 			LOGGER.trace("No user deltas in event, exiting.");
 			return false;
 		}
-		if (modelEvent.getChannel().equals(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI)) {
-			LOGGER.trace("Found cfhange from registration channel.");
+		if (SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI.equals(modelEvent.getChannel())) {
+			LOGGER.trace("Found change from registration channel.");
 			return true;
 		} else {
-			LOGGER.trace("No registration present in delta. Skip sending notifications");
+			LOGGER.trace("No registration present in delta. Skip sending notifications.");
 			return false;
 		}
 	}
