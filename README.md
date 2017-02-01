@@ -16,6 +16,7 @@ The most important features of midPoint are:
 - Entitlement Management 
 
 Read more about these features at https://evolveum.com/midpoint/about-midpoint/
+
 Other features: 
 
 - User provisioning and deprovisioning
@@ -48,7 +49,8 @@ https://github.com/Evolveum/midpoint
 Latest source code can be obtained from our Git repository using one of the 
 following repository locations:
 https://github.com/Evolveum/midpoint.git
-  git@github.com:Evolveum/midpoint.git
+
+git@github.com:Evolveum/midpoint.git
 
 This project is developed under Apache license (version 2.0) You may get copy
 of licence in LICENSE file. Please also see NOTICE file for addtional
