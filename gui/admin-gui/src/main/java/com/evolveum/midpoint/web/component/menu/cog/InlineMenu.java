@@ -125,7 +125,6 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
             }
         }));
 
-        if (item.getEnabled() != null || item.getVisible() != null) {
             menuItem.add(new VisibleEnableBehaviour() {
 
                 @Override
@@ -138,7 +137,6 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
                     return getBoolean(item.getVisible(), true);
                 }
             });
-        }
 
         WebMarkupContainer menuItemBody;
         if (item.isMenuHeader() || item.isDivider()) {

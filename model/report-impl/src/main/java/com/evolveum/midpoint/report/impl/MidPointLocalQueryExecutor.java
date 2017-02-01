@@ -49,8 +49,8 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor{
 			Map<String, ? extends JRValueParameter> parametersMap) {
 		super(jasperReportsContext, dataset, parametersMap);
 		
-		JRFillParameter fillparam = (JRFillParameter) parametersMap.get(JRParameter.REPORT_PARAMETERS_MAP);
-		Map reportParams = (Map) fillparam.getValue();
+		//JRFillParameter fillparam = (JRFillParameter) parametersMap.get(JRParameter.REPORT_PARAMETERS_MAP);
+		//Map reportParams = (Map) fillparam.getValue();
 		reportService = (ReportService) parametersMap.get(ReportService.PARAMETER_REPORT_SERVICE).getValue();
 
 		parseQuery();
