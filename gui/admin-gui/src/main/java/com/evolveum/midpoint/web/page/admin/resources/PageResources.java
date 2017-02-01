@@ -194,8 +194,8 @@ public class PageResources extends PageAdminResources {
 							SelectableBean<ResourceType> rowDto = getRowModel().getObject();
 							testResourcePerformed(target, rowDto.getValue());
 					}
-				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_TEST_CONNECTION.getMenuItemId()
-				: InlineMenuItem.INLINE_MENU_ITEM_ID.TEST_CONNECTION.getMenuItemId(),
+				}, isHeader ? InlineMenuItem.RESOURCE_INLINE_MENU_ITEM_ID.HEADER_TEST_CONNECTION.getMenuItemId()
+				: InlineMenuItem.RESOURCE_INLINE_MENU_ITEM_ID.TEST_CONNECTION.getMenuItemId(),
 				GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
@@ -212,8 +212,8 @@ public class PageResources extends PageAdminResources {
 							deleteResourcePerformed(target, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_DELETE.getMenuItemId()
-				: InlineMenuItem.INLINE_MENU_ITEM_ID.DELETE_RESOURCE.getMenuItemId(),
+				}, isHeader ? InlineMenuItem.RESOURCE_INLINE_MENU_ITEM_ID.HEADER_DELETE.getMenuItemId()
+				: InlineMenuItem.RESOURCE_INLINE_MENU_ITEM_ID.DELETE_RESOURCE.getMenuItemId(),
 				GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
@@ -252,7 +252,7 @@ public class PageResources extends PageAdminResources {
 						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
 						editAsXmlPerformed(rowDto.getValue());
 					}
-				}, InlineMenuItem.INLINE_MENU_ITEM_ID.EDIT_XML.getMenuItemId(),
+				}, InlineMenuItem.RESOURCE_INLINE_MENU_ITEM_ID.EDIT_XML.getMenuItemId(),
 				GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 

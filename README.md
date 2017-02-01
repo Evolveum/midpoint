@@ -5,53 +5,52 @@ midPoint 3.5 "Einstein"
 
 General information:
 
-MidPoint is a comprehensive identity management and governance system.
-MidPoint can synchronize several identity repositories, manage and
-transform data in these repostories to keep them synchronized. MidPoint can
-make the data available in unified form, apply and manage policies,
-manage object lifecycle, maitain audit trails and many other things.
-
+MidPoint is a comprehensive Identity Governance and Administration (IGA) platform. It is used by the organizations around the world to deal with Identity Provisioning, Identity Governance & Compliance and also Access Management. As for the identity being a security perimeter, midPoint keeps safe both organization’s internal network and external resources.
 The most important features of midPoint are:
-   - User provisioning and deprovisioning
-   - Identity governance
-   - Administration GUI
-   - Identity repository implemention (SQL)
-   - Custom schema extensibility
-   - Identity synchronization (liveSync, reconciliation, discovery, import)
-   - Support for expressions in synchronization mappings (Groovy, JavaScript, Python)
-   - Advanced RBAC support with temporal constraints
-   - Identity management process automation (workflow, notifications)
-   - Password policies
-   - Password reset
-   - Organizational structure management
-   - Entitlements
-   - Support for ConnId and OpenICF connectors
-   - Provisioning consistency and error handling
-   - Support for security auditing and reporting
-   - Workflow
-   - Reporting
-   - Notifications
-   - Local Java APIs, Remote web service interface (SOAP), REST API
-   - High availablity (HA) support
 
-For more information please go to:
+- Identity Governance
+- Security auditing and reporting
+- Organizational structure management
+- Credential Management
+- Workflow
+- Entitlement Management 
 
-  http://midpoint.evolveum.com/
+Read more about these features at https://evolveum.com/midpoint/about-midpoint/
+
+Other features: 
+
+- User provisioning and deprovisioning
+- Administration GUI
+- Identity repository implemention (SQL)
+- Custom schema extensibility
+- Identity synchronization (liveSync, reconciliation, discovery, import)
+- Support for expressions in synchronization mappings (Groovy, JavaScript, Python)
+- Advanced RBAC support with temporal constraints
+- Identity management process automation (workflow, notifications)
+- Password policies
+- Password reset
+- Entitlements
+- Support for ConnId and OpenICF connectors
+- Provisioning consistency and error handling
+- Reporting
+- Notifications
+- Local Java APIs, Remote web service interface (SOAP), REST API
+- High availablity (HA) support
+
+For more information bout midPoint identity manager please go to:
+http://midpoint.evolveum.com/
 
 For bugtracking system please go to:
-
-  http://jira.evolveum.com/
+http://jira.evolveum.com/
 
 MidPoint source code is maintained on github:
-
-  https://github.com/Evolveum/midpoint 
+https://github.com/Evolveum/midpoint 
 
 Latest source code can be obtained from our Git repository using one of the 
 following repository locations:
+https://github.com/Evolveum/midpoint.git
 
-  https://github.com/Evolveum/midpoint.git
-  
-  git@github.com:Evolveum/midpoint.git
+git@github.com:Evolveum/midpoint.git
 
 This project is developed under Apache license (version 2.0) You may get copy
 of licence in LICENSE file. Please also see NOTICE file for addtional

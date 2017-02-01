@@ -100,8 +100,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 							updateActivationPerformed(target, true, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
-				: InlineMenuItem.INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
+				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
+				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
 
@@ -120,8 +120,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 							updateActivationPerformed(target, false, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
-				: InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
+				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
+				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile"),
@@ -137,8 +137,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 							reconcilePerformed(target, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
-				: InlineMenuItem.INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
+				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
+				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
 				GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 

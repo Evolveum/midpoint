@@ -47,7 +47,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 			values.add(new ValueWrapper(this, prismValue, prismValue, ValueStatus.NOT_CHANGED));
 		}
 
-		int minOccurs = getDefinition().getMinOccurs();
+		int minOccurs = getItemDefinition().getMinOccurs();
 		while (values.size() < minOccurs) {
 			values.add(createAddedValue());
 		}

@@ -154,7 +154,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
         if (model == null || model.getObject() == null){
             return true;
         }
-        if (id == InlineMenuItem.INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId() &&
+        if (id == InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId() &&
                 model.getObject() instanceof SelectableBean &&
                 ((SelectableBean) model.getObject()).getValue() instanceof FocusType){
             FocusType focus = (FocusType)((SelectableBean) model.getObject()).getValue();
@@ -162,7 +162,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
                 return false;
             }
             return ActivationStatusType.DISABLED.equals(focus.getActivation().getEffectiveStatus());
-        } else if (id == InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId() &&
+        } else if (id == InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId() &&
                 model.getObject() instanceof SelectableBean &&
                 ((SelectableBean) model.getObject()).getValue() instanceof FocusType){
             FocusType focus = (FocusType)((SelectableBean) model.getObject()).getValue();

@@ -140,9 +140,9 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return item;
 	}
 
-	public ItemDefinition getDefinition() {
-		return item.getDefinition();
-	}
+//	public ItemDefinition getDefinition() {
+//		return item.getDefinition();
+//	}
 
 	public boolean hasChanged() {
 		for (ValueWrapper value : getValues()) {

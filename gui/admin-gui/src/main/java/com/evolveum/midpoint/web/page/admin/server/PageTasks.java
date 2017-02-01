@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.session.TasksStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -328,44 +328,82 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         columns.add(check);
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "statusMessage"));
 
-        columns.add(new InlineMenuHeaderColumn(createNodesInlineMenu()));
+        IColumn<NodeDto, String> menuColumn = new InlineMenuButtonColumn<NodeDto>(createNodesInlineMenu(false), 2){
+            @Override
+            protected int getHeaderNumberOfButtons() {
+                return 2;
+            }
+
+            @Override
+            protected List<InlineMenuItem> getHeaderMenuItems() {
+                return createNodesInlineMenu(true);
+            }
+        };
+        columns.add(menuColumn);
 
         return columns;
     }
 
-    private List<InlineMenuItem> createNodesInlineMenu() {
+    private List<InlineMenuItem> createNodesInlineMenu(boolean isHeader) {
         List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"), false,
-                new HeaderMenuAction(this) {
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"),
+                new Model<Boolean>(false),
+                new Model<Boolean>(false),
+                false,
+                new ColumnMenuAction<NodeDto>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        stopSchedulersPerformed(target);
+                        if (getRowModel() == null){
+                            stopSchedulersPerformed(target);
+                        } else {
+                            NodeDto rowDto = getRowModel().getObject();
+                            stopSchedulersPerformed(target, rowDto);
+                        }
                     }
-                }));
+                }, InlineMenuItem.TASKS_INLINE_MENU_ITEM_ID.NODE_STOP_SCHEDULER.getMenuItemId(),
+                GuiStyleConstants.CLASS_STOP_MENU_ITEM,
+                DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
+
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopSchedulerAndTasks"), false,
-                new HeaderMenuAction(this) {
+                new ColumnMenuAction<NodeDto>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         stopSchedulersAndTasksPerformed(target);
                     }
                 }));
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.startScheduler"), false,
-                new HeaderMenuAction(this) {
+
+
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.startScheduler"),
+                new Model<Boolean>(false),
+                new Model<Boolean>(false),
+                false,
+                new ColumnMenuAction<NodeDto>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        startSchedulersPerformed(target);
+                        if (getRowModel() == null){
+                            startSchedulersPerformed(target);
+                        } else {
+                            NodeDto rowDto = getRowModel().getObject();
+                            startSchedulersPerformed(target, rowDto);
+                        }
                     }
-                }));
-        items.add(new InlineMenuItem());
+                }, InlineMenuItem.TASKS_INLINE_MENU_ITEM_ID.NODE_START.getMenuItemId(),
+                GuiStyleConstants.CLASS_START_MENU_ITEM,
+                DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteNode"), false,
-                new HeaderMenuAction(this) {
+                new ColumnMenuAction<NodeDto>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        deleteNodesPerformed(target);
+                        if (getRowModel() == null){
+                            deleteNodesPerformed(target);
+                        } else {
+                            NodeDto rowDto = getRowModel().getObject();
+                            deleteNodesPerformed(target, rowDto);
+                        }
                     }
                 }));
 
@@ -507,54 +545,96 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             }
         });
 
-        columns.add(new InlineMenuHeaderColumn(createTasksInlineMenu()));
+        IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<TaskDto>(createTasksInlineMenu(false), 2){
+            @Override
+            protected int getHeaderNumberOfButtons() {
+                return 2;
+            }
+
+            @Override
+            protected List<InlineMenuItem> getHeaderMenuItems() {
+                return createTasksInlineMenu(true);
+            }
+        };
+        columns.add(menuColumn);
 
         return columns;
     }
 
-    private List<InlineMenuItem> createTasksInlineMenu() {
+    private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader) {
         List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"), false,
-                new HeaderMenuAction(this) {
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"),
+                new Model<Boolean>(false),
+                new Model<Boolean>(false),
+                false,
+                new ColumnMenuAction<TaskDto>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        suspendTasksPerformed(target);
+                        if (getRowModel() == null){
+                            suspendTasksPerformed(target);
+                        } else {
+                            TaskDto rowDto = getRowModel().getObject();
+                            suspendTaskPerformed(target, rowDto);
+                        }
                     }
-                }));
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.resumeTask"), false,
-                new HeaderMenuAction(this) {
+                }, InlineMenuItem.TASKS_INLINE_MENU_ITEM_ID.SUSPEND.getMenuItemId(),
+                GuiStyleConstants.CLASS_SUSPEND_MENU_ITEM,
+                DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.resumeTask"),
+                new Model<Boolean>(false),
+                new Model<Boolean>(false),
+                false,
+                new ColumnMenuAction<TaskDto>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        resumeTasksPerformed(target);
+                        if (getRowModel() == null){
+                            resumeTasksPerformed(target);
+                        } else {
+                            TaskDto rowDto = getRowModel().getObject();
+                            resumeTaskPerformed(target, rowDto);
+                        }
                     }
-                }));
+                }, InlineMenuItem.TASKS_INLINE_MENU_ITEM_ID.RESUME.getMenuItemId(),
+                GuiStyleConstants.CLASS_RESUME_MENU_ITEM,
+                DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.scheduleTask"), false,
-                new HeaderMenuAction(this) {
+                new ColumnMenuAction<TaskDto>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        scheduleTasksPerformed(target);
+                        if (getRowModel() == null){
+                            scheduleTasksPerformed(target);
+                        } else {
+                            TaskDto rowDto = getRowModel().getObject();
+                            scheduleTaskPerformed(target, rowDto);
+                        }
                     }
                 }));
-        items.add(new InlineMenuItem());
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteTask"), false,
-                new HeaderMenuAction(this) {
+                new ColumnMenuAction<TaskDto>() {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        deleteTasksPerformed(target);
+                        if (getRowModel() == null){
+                            deleteTasksPerformed(target);
+                        } else {
+                            TaskDto rowDto = getRowModel().getObject();
+                            deleteTaskPerformed(target, rowDto);
+                        }
                     }
                 }));
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks"), false,
-                new HeaderMenuAction(this) {
+        if (isHeader) {
+            items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks"), false,
+                    new ColumnMenuAction<TaskDto>() {
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        deleteAllClosedTasksPerformed(target);
-                    }
-                }));
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            deleteAllClosedTasksPerformed(target);
+                        }
+                    }));
+        }
         return items;
     }
 
@@ -1463,39 +1543,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             return;
         }
 
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        suspendTaskPerformed(target, dto);
-                    }
-                }));
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.resumeTask"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        resumeTaskPerformed(target, dto);
-                    }
-                }));
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.scheduleTask"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        scheduleTaskPerformed(target, dto);
-                    }
-                }));
-        items.add(new InlineMenuItem());
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteTask"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        deleteTaskPerformed(target, dto);
-                    }
-                }));
+        items.addAll(createTasksInlineMenu(false));
     }
 
     private void addInlineMenuToNodeRow(final NodeDto dto) {
@@ -1505,39 +1553,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             return;
         }
 
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        stopSchedulersPerformed(target, dto);
-                    }
-                }));
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopSchedulerAndTasks"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        stopSchedulersAndTasksPerformed(target, dto);
-                    }
-                }));
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.startScheduler"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        startSchedulersPerformed(target, dto);
-                    }
-                }));
-        items.add(new InlineMenuItem());
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteNode"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        deleteNodesPerformed(target, dto);
-                    }
-                }));
+        items.addAll(createNodesInlineMenu(false));
     }
 
     private Popupable getDeleteTaskPopupContent() {

@@ -528,14 +528,14 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 	}
 
 	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath containerPath) {
-		ItemDefinition itemDef = propertyWrapper.getItem().getDefinition();
+		ItemDefinition itemDef = propertyWrapper.getItemDefinition();
 		ItemDelta pDelta = itemDef.createEmptyDelta(containerPath.subPath(itemDef.getName()));
 		addItemDelta(propertyWrapper, pDelta, itemDef, containerPath);
 		return pDelta;
 	}
 
 	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
-		PrismReferenceDefinition propertyDef = referenceWrapper.getItem().getDefinition();
+		PrismReferenceDefinition propertyDef = referenceWrapper.getItemDefinition();
 		ReferenceDelta pDelta = new ReferenceDelta(containerPath, propertyDef.getName(), propertyDef,
 				propertyDef.getPrismContext());
 		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));

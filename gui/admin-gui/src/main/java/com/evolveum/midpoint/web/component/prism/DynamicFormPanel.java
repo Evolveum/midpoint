@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -97,7 +98,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	}
 
 	private void initialize(final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			boolean runPrivileged, final PageBase parentPage) {
+			final boolean runPrivileged, final PageBase parentPage) {
 
 		if (prismObject == null) {
 			getSession().error(getString("DynamicFormPanel.object.must.not.be.null"));
@@ -110,18 +111,23 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 			@Override
 			protected ObjectWrapper<O> load() {
-				ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
-				ObjectWrapper<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
-						prismObject,
-						(prismObject.getOid() == null) ? ContainerStatus.ADDING : ContainerStatus.MODIFYING);
-				objectWrapper.setShowEmpty(true);
-				return objectWrapper;
+				
+				final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
+				return createObjectWrapper(owf, prismObject);
 			}
 		};
 
 		setParent(parentPage);
 
 		initLayout(formOid, runPrivileged, mainForm);
+	}
+	
+	private ObjectWrapper<O> createObjectWrapper(ObjectWrapperFactory owf, PrismObject<O> prismObject){
+		ObjectWrapper<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
+				prismObject,
+				(prismObject.getOid() == null) ? ContainerStatus.ADDING : ContainerStatus.MODIFYING);
+		objectWrapper.setShowEmpty(true);
+		return objectWrapper;
 	}
 
 	@Override

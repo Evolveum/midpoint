@@ -191,6 +191,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
 	private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
 	private static final String ID_NAVIGATION = "navigation";
+	private static final String ID_DEPLOYMENT_NAME = "deploymentName";
 
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
     private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
@@ -534,16 +535,21 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		pageTitleContainer.add(pageTitle);
 
 		String environmentName = "";
-		IModel<String> titleModel = createPageTitleModel();
-		IModel<String> fullTitleModel = null;
 		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
 				StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
 			environmentName = deploymentInfoModel.getObject().getName();
 		}
-		if (StringUtils.isNotEmpty(environmentName)){
-			fullTitleModel = new Model<String>(environmentName + ": " + titleModel.getObject());
-		}
-		Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, fullTitleModel != null ? fullTitleModel : titleModel);
+		Model<String> deploymentNameModel = new Model<String>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
+		Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
+		deploymentName.add(new VisibleEnableBehaviour(){
+			public boolean isVisible(){
+				return StringUtils.isNotEmpty(deploymentNameModel.getObject());
+			}
+		});
+		deploymentName.setRenderBodyOnly(true);
+		pageTitle.add(deploymentName);
+
+		Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
 		pageTitleReal.setRenderBodyOnly(true);
 		pageTitle.add(pageTitleReal);
 
