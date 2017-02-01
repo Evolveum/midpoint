@@ -339,7 +339,7 @@
 						(1) More than one delegate could be added. (2) Original assignee can still complete the work item.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="DEPUTY"/>
+						<jaxb:typesafeEnumMember name="ADD_DELEGATES"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.security.api;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,7 +35,7 @@ public class SecurityUtil {
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
 
 	/**
-	 * Returns principal representing currently logged-in user. Returns null if the user is anonynous.
+	 * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
 	 */
 	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -49,7 +50,7 @@ public class SecurityUtil {
 				return null;
 			} else {
 				throw new IllegalArgumentException("Expected that spring security principal will be of type "+
-					MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
+					MidPointPrincipal.class.getName()+" but it was "+ MiscUtil.getObjectName(principalObject));
 			}
 		}
 		return (MidPointPrincipal) principalObject;

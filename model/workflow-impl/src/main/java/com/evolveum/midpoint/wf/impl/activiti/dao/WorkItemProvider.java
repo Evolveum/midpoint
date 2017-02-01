@@ -268,6 +268,16 @@ public class WorkItemProvider {
         return tasksToWorkItems(tasks, null, false, true, true, true, result);
     }
 
+    public WorkItemType getWorkItem(String workItemId, OperationResult result) {
+        TaskService ts = activitiEngine.getTaskService();
+        Task task = ts.createTaskQuery()
+                .taskId(workItemId)
+                .includeTaskLocalVariables()
+                .includeProcessVariables()
+                .singleResult();
+        return taskToWorkItem(task, null, false, false, false, false, result);
+    }
+
     private SearchResultList<WorkItemType> tasksToWorkItems(List<Task> tasks, Map<String, Object> processVariables,
             boolean resolveTask, boolean resolveAssignee, boolean resolveCandidates, boolean fetchAllVariables, OperationResult result) {
         SearchResultList<WorkItemType> retval = new SearchResultList<>(new ArrayList<WorkItemType>());

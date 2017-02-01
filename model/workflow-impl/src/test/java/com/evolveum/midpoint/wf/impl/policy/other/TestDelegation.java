@@ -42,8 +42,9 @@ import org.testng.annotations.Test;
 import java.util.Collections;
 
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.DEPUTY;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.ADD_DELEGATES;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author mederly
@@ -63,13 +64,17 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Autowired
 	private WorkflowService workflowService;
 
-	String workItemId;
+	private PrismObject<UserType> userLead1, userLead3;
+	private String workItemId;
 
 	@Test
 	public void test100CreateTask() throws Exception {
 		final String TEST_NAME = "test100CreateTask";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
+
+		userLead1 = getUser(userLead1Oid);
+		userLead3 = getUser(userLead3Oid);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -84,23 +89,37 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertEquals("Wrong # of delegates", 0, workItem.getDelegateRef().size());
 	}
 
-	private WorkItemType getWorkItem(Task task, OperationResult result)
-			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
-		assertEquals("Wrong # of total work items", 1, itemsAll.size());
-		return itemsAll.get(0);
-	}
-
 	@Test
-	public void test110DelegateToUser2() throws Exception {
-		final String TEST_NAME = "test110DelegateToUser2";
+	public void test110DelegateToUser2Unauthorized() throws Exception {
+		final String TEST_NAME = "test110DelegateToUser2Unauthorized";
 		TestUtil.displayTestTile(this, TEST_NAME);
-		login(userAdministrator);
+		login(userLead3);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		workflowService.delegateWorkItem(workItemId, Collections.singletonList(prv(userLead2Oid)), DEPUTY, result);
+		try {
+			workflowService.delegateWorkItem(workItemId, Collections.singletonList(ort(userLead2Oid)), ADD_DELEGATES, result);
+			fail("delegate succeeded even if it shouldn't");
+		} catch (SecurityViolationException e) {
+			// ok
+		}
+
+		WorkItemType workItem = getWorkItem(task, result);
+		assertRefEquals("Wrong assigneeRef", ort(userLead1Oid), workItem.getAssigneeRef());
+		assertEquals("Wrong # of delegates", 0, workItem.getDelegateRef().size());
+	}
+
+	@Test
+	public void test120DelegateToUser2() throws Exception {
+		final String TEST_NAME = "test120DelegateToUser2";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userLead1);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		workflowService.delegateWorkItem(workItemId, Collections.singletonList(ort(userLead2Oid)), ADD_DELEGATES, result);
 
 		result.computeStatus();
 		assertSuccess(result);
@@ -110,6 +129,13 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertEquals("Wrong # of delegates", 1, workItem.getDelegateRef().size());
 		assertRefEquals("Wrong delegateRef", ort(userLead2Oid), workItem.getDelegateRef().get(0));
 
+	}
+
+	private WorkItemType getWorkItem(Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		assertEquals("Wrong # of total work items", 1, itemsAll.size());
+		return itemsAll.get(0);
 	}
 
 	private ObjectReferenceType ort(String oid) {

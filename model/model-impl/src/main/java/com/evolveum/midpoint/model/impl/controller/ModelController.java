@@ -2027,9 +2027,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         getWorkflowManagerChecked().releaseWorkItem(workItemId, parentResult);
     }
 
-	// TODO check authority in wf manager
     @Override
-    public void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, WorkItemDelegationMethodType method,
+    public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
         getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, parentResult);
     }

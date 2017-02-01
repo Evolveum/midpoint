@@ -78,8 +78,7 @@ public interface WorkflowManager {
 
 	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
-	// TODO check authority
-	void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, WorkItemDelegationMethodType method,
+	void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
 
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
@@ -103,6 +102,8 @@ public interface WorkflowManager {
 	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, OperationResult result);
 
 	boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
+
+	boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem, OperationResult result);
 
 	// doesn't throw any exceptions - these are logged and stored into the operation result
 	<T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,

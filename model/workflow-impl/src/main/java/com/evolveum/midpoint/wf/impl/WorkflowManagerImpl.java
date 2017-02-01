@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -168,9 +167,8 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
         workItemManager.releaseWorkItem(workItemId, result);
     }
 
-	// TODO check authority
     @Override
-    public void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, WorkItemDelegationMethodType method,
+    public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
         workItemManager.delegateWorkItem(workItemId, delegates, method, parentResult);
     }
@@ -252,12 +250,17 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     @Override
     public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, OperationResult result) {
-        return miscDataUtil.isAuthorizedToSubmit(workItem, systemObjectCache, result);
+        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE);
     }
 
     @Override
     public boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem) {
         return miscDataUtil.isAuthorizedToClaim(workItem);
+    }
+
+    @Override
+    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem, OperationResult result) {
+        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE);
     }
 
 	@Override
