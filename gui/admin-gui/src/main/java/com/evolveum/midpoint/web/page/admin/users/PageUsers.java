@@ -273,8 +273,8 @@ public class PageUsers extends PageAdminUsers {
 							updateActivationPerformed(target, true, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
-                : InlineMenuItem.INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
+				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
+                : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
 
@@ -293,8 +293,8 @@ public class PageUsers extends PageAdminUsers {
 							updateActivationPerformed(target, false, rowDto.getValue());
 						}
                     }
-                }, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
-                : InlineMenuItem.INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
+                }, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
+                : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
@@ -311,8 +311,8 @@ public class PageUsers extends PageAdminUsers {
 							reconcilePerformed(target, rowDto.getValue());
 						}
                     }
-                }, isHeader ? InlineMenuItem.INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
-                : InlineMenuItem.INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
+                }, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
+                : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
                 GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
@@ -328,7 +328,7 @@ public class PageUsers extends PageAdminUsers {
 							unlockPerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.INLINE_MENU_ITEM_ID.UNLOCK.getMenuItemId()));
+				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.UNLOCK.getMenuItemId()));
 
 		menu.add(new InlineMenuItem());
 
@@ -344,7 +344,7 @@ public class PageUsers extends PageAdminUsers {
 							deletePerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.INLINE_MENU_ITEM_ID.DELETE.getMenuItemId()));
+				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DELETE.getMenuItemId()));
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
 				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
 				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
@@ -360,7 +360,7 @@ public class PageUsers extends PageAdminUsers {
 							mergePerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.INLINE_MENU_ITEM_ID.MERGE.getMenuItemId(), "", ""));
+				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.MERGE.getMenuItemId(), "", ""));
 		return menu;
 	}
 

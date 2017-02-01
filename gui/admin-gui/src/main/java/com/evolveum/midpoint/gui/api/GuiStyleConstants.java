@@ -125,6 +125,10 @@ public class GuiStyleConstants {
 	public static final String CLASS_TEST_CONNECTION_MENU_ITEM = "fa fa-question";
 	public static final String CLASS_DELETE_MENU_ITEM = "fa fa-minus";
 	public static final String CLASS_EDIT_MENU_ITEM = "fa fa-edit";
+	public static final String CLASS_SUSPEND_MENU_ITEM = "fa fa-pause";
+	public static final String CLASS_RESUME_MENU_ITEM = "fa fa-check-square";
+	public static final String CLASS_STOP_MENU_ITEM = "fa fa-stop";
+	public static final String CLASS_START_MENU_ITEM = "fa fa-play";
 
 	public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
 	public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
