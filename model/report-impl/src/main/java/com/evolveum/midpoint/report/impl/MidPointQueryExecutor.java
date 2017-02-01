@@ -15,7 +15,6 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRValueParameter;
 import net.sf.jasperreports.engine.JasperReportsContext;
-import net.sf.jasperreports.engine.base.JRBaseParameter;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 
@@ -64,7 +63,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 			if (param.isSystemDefined()){
 				continue;
 			}
-			LOGGER.trace(((JRBaseParameter)param).getName());
+			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{ 
 			expressionParameters.put(new QName(param.getName()), new PrismPropertyValue(v));
@@ -87,7 +86,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter{
 			if (!param.isForPrompting()){
 				continue;
 			}
-			LOGGER.trace(((JRBaseParameter)param).getName());
+			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{ 
 			expressionParameters.put(new QName(param.getName()), new PrismPropertyValue(v));

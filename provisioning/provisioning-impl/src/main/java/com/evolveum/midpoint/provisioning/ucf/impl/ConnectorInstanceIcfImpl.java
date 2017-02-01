@@ -2638,7 +2638,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				uidValue = ((ResourceAttribute<String>) attr).getValue().getValue();
 			}
 			if (objectClass.isSecondaryIdentifier(attr.getElementName())) {
-				nameValue = ((ResourceAttribute<String>) attr).getValue().getValue();
+				ResourceAttributeDefinition<?> attrDef = objectClass.findAttributeDefinition(attr.getElementName());
+				String frameworkAttributeName = attrDef.getFrameworkAttributeName();
+				if (Name.NAME.equals(frameworkAttributeName)) {
+					nameValue = ((ResourceAttribute<String>) attr).getValue().getValue();
+				}
 			}
 		}
 		if (uidValue != null) {

@@ -58,7 +58,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
             values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
         }
 
-        int minOccurs = getDefinition().getMinOccurs();
+        int minOccurs = getItemDefinition().getMinOccurs();
         while (values.size() < minOccurs) {
             values.add(createAddedValue());
         }
