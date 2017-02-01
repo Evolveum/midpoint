@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Objects;
 
 import javax.xml.namespace.QName;
@@ -38,6 +39,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -647,5 +649,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	@Override
 	public Referencable getRealValue() {
 		return asReferencable();
+	}
+
+	public static boolean containsOid(Collection<PrismReferenceValue> values, @NotNull String oid) {
+		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
 	}
 }

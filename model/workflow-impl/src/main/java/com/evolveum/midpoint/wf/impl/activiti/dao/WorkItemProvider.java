@@ -21,13 +21,17 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,6 +63,7 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.USER;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.FilterComponents;
+import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutOrFilter;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutQuery;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
@@ -77,7 +82,10 @@ public class WorkItemProvider {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemProvider.class);
 
-    @Autowired
+	public static final String DELEGATE_VARIABLE_NAME = "delegate";
+	public static final String DELEGATE_SEPARATOR = ";";
+
+	@Autowired
     private ActivitiEngine activitiEngine;
 
     @Autowired
@@ -121,18 +129,29 @@ public class WorkItemProvider {
 	// returns null if no results should be returned
     private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
         FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_ROLES_REF, F_WORK_ITEM_ID);
-        if (components.hasRemainder()) {
-            throw new SchemaException("Unsupported clause(s) in search filter: " + components.getRemainderClauses());
+		FilterComponents orComponents = null;
+		List<ObjectFilter> remainingClauses = components.getRemainderClauses();
+		if (remainingClauses.size() == 1 && remainingClauses.get(0) instanceof OrFilter) {
+			orComponents = factorOutOrFilter(remainingClauses.get(0), new ItemPath(F_ASSIGNEE_REF), new ItemPath(F_DELEGATE_REF));
+			remainingClauses = orComponents.getRemainderClauses();
+		}
+		if (!remainingClauses.isEmpty()) {
+            throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);
         }
 
         final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_WORK_ITEM_ID);
         final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
+        final ItemPath DELEGATE_PATH = new ItemPath(F_DELEGATE_REF);
         final ItemPath CANDIDATE_ROLES_PATH = new ItemPath(F_CANDIDATE_ROLES_REF);
         final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP);
 
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> candidateRolesFilter = components.getKnownComponent(CANDIDATE_ROLES_PATH);
+		final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeOrFilter =
+				orComponents != null ? orComponents.getKnownComponent(ASSIGNEE_PATH) : null;
+		final Map.Entry<ItemPath, Collection<? extends PrismValue>> delegateOrFilter =
+				orComponents != null ? orComponents.getKnownComponent(DELEGATE_PATH) : null;
 
         TaskQuery taskQuery = activitiEngine.getTaskService().createTaskQuery();
 
@@ -141,17 +160,13 @@ public class WorkItemProvider {
 		}
 
 		if (assigneeFilter != null) {
-			@SuppressWarnings("unchecked")
-			Collection<PrismReferenceValue> assigneeRefs = (Collection<PrismReferenceValue>) assigneeFilter.getValue();
-			if (isNotEmpty(assigneeRefs)) {
-				List<String> oids = assigneeRefs.stream()
-						.map(PrismReferenceValue::getOid)
-						.collect(Collectors.toList());
-				taskQuery = taskQuery.taskAssignee(StringUtils.join(oids, ';'));
-            } else {
-                taskQuery = taskQuery.taskUnassigned();
-            }
-        }
+			taskQuery = addAssignee(taskQuery, assigneeFilter);
+			if (assigneeOrFilter != null || delegateOrFilter != null) {
+				throw new SchemaException("Couldn't search for both assignee and assignee-or-delegate: " + query);
+			}
+		} else if (assigneeOrFilter != null || delegateOrFilter != null) {
+			taskQuery = addAssigneeOrDelegate(taskQuery, assigneeOrFilter, delegateOrFilter);
+		}
 
         if (candidateRolesFilter != null) {
 			List<String> candidateGroups = prismReferenceValueListToGroupNames(
@@ -191,6 +206,38 @@ public class WorkItemProvider {
 			return taskQuery;
 		}
     }
+
+	private TaskQuery addAssignee(TaskQuery taskQuery, Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter) {
+		@SuppressWarnings("unchecked")
+		Collection<PrismReferenceValue> assigneeRefs = (Collection<PrismReferenceValue>) assigneeFilter.getValue();
+		if (isNotEmpty(assigneeRefs)) {
+			List<String> oids = assigneeRefs.stream()
+					.map(PrismReferenceValue::getOid)
+					.collect(Collectors.toList());
+			taskQuery = taskQuery.taskAssignee(StringUtils.join(oids, ';'));
+		} else {
+			taskQuery = taskQuery.taskUnassigned();
+		}
+		return taskQuery;
+	}
+
+	private TaskQuery addAssigneeOrDelegate(TaskQuery taskQuery, Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter,
+			Map.Entry<ItemPath, Collection<? extends PrismValue>> delegateFilter) throws SchemaException {
+		taskQuery = taskQuery.or();
+		if (assigneeFilter != null) {
+			taskQuery = addAssignee(taskQuery, assigneeFilter);
+		}
+		if (delegateFilter != null) {
+			for (PrismValue value : delegateFilter.getValue()) {
+				PrismReferenceValue refVal = (PrismReferenceValue) value;
+				if (StringUtils.isEmpty(refVal.getOid())) {
+					throw new SchemaException("Empty OID of delegate to be found");
+				}
+				taskQuery = taskQuery.taskVariableValueLike(DELEGATE_VARIABLE_NAME, "%[" + refVal.getOid() + "]%");
+			}
+		}
+		return taskQuery.endOr();
+	}
 
 	private List<String> prismReferenceValueListToGroupNames(Collection<PrismReferenceValue> refs) {
 		List<String> rv = new ArrayList<>();
@@ -235,7 +282,19 @@ public class WorkItemProvider {
         return retval;
     }
 
-    /**
+	public List<PrismReferenceValue> getDelegates(Task task) {
+		List<PrismReferenceValue> rv = new ArrayList<>();
+		Object o = task.getTaskLocalVariables().get(DELEGATE_VARIABLE_NAME);
+		if (o instanceof String) {
+			String s = (String) o;
+			for (String oid : s.split(DELEGATE_SEPARATOR)) {
+				rv.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue());
+			}
+		}
+		return rv;
+	}
+
+	/**
      * Helper class to carry relevant data from both Task and DelegateTask (to avoid code duplication)
      */
     private class TaskExtract {

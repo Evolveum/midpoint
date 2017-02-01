@@ -1388,6 +1388,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="delegateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						User to which this work item was delegated, if the delegation was done without changing the assignee.
+						(If the delegation was done by changing the assignee, then this item is empty.)
+						EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

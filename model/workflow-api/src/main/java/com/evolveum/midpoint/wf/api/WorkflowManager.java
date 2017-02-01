@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -76,6 +77,9 @@ public interface WorkflowManager {
 	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
 
 	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
+
+	// TODO check authority
+	void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
 
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
