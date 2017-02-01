@@ -170,8 +170,9 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
 	// TODO check authority
     @Override
-    public void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
-        workItemManager.delegateWorkItem(workItemId, delegates, parentResult);
+    public void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, WorkItemDelegationMethodType method,
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
+        workItemManager.delegateWorkItem(workItemId, delegates, method, parentResult);
     }
 
     /*

@@ -122,7 +122,7 @@ public class WorkItemProvider {
 		}
 		boolean getAllVariables = true;				// TODO implement based on options
 		// there's no need to fill-in assignee details ; but candidates are necessary to fill-in; TODO implement based on options (resolve)
-		return tasksToWorkItemsNew(tasks, null, false, false, true, getAllVariables, result);
+		return tasksToWorkItems(tasks, null, false, false, true, getAllVariables, result);
 	}
 
 	// primitive 'query interpreter'
@@ -265,15 +265,15 @@ public class WorkItemProvider {
                 .includeTaskLocalVariables()
                 .includeProcessVariables()
                 .list();
-        return tasksToWorkItemsNew(tasks, null, false, true, true, true, result);
+        return tasksToWorkItems(tasks, null, false, true, true, true, result);
     }
 
-    private SearchResultList<WorkItemType> tasksToWorkItemsNew(List<Task> tasks, Map<String, Object> processVariables,
+    private SearchResultList<WorkItemType> tasksToWorkItems(List<Task> tasks, Map<String, Object> processVariables,
             boolean resolveTask, boolean resolveAssignee, boolean resolveCandidates, boolean fetchAllVariables, OperationResult result) {
         SearchResultList<WorkItemType> retval = new SearchResultList<>(new ArrayList<WorkItemType>());
         for (Task task : tasks) {
             try {
-                retval.add(taskToWorkItemNew(task, processVariables, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result));
+                retval.add(taskToWorkItem(task, processVariables, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result));
             } catch (RuntimeException e) {
 				// operation result already contains corresponding error record
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get information on activiti task {}", e, task.getId());
@@ -282,13 +282,18 @@ public class WorkItemProvider {
         return retval;
     }
 
-	public List<PrismReferenceValue> getDelegates(Task task) {
+	public List<PrismReferenceValue> getDelegates(Map<String, Object> variables, String contextDescription) {
 		List<PrismReferenceValue> rv = new ArrayList<>();
-		Object o = task.getTaskLocalVariables().get(DELEGATE_VARIABLE_NAME);
+		Object o = variables.get(DELEGATE_VARIABLE_NAME);
 		if (o instanceof String) {
 			String s = (String) o;
-			for (String oid : s.split(DELEGATE_SEPARATOR)) {
-				rv.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue());
+			for (String wrappedOid : s.split(DELEGATE_SEPARATOR)) {
+				if (!wrappedOid.startsWith("[") || !wrappedOid.endsWith("]")) {
+					LOGGER.warn("Wrongly-formatted '"+DELEGATE_VARIABLE_NAME+"' variable contents: '{}' in {}", o, contextDescription);
+				} else {
+					String oid = wrappedOid.substring(1, wrappedOid.length()-1);
+					rv.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue());
+				}
 			}
 		}
 		return rv;
@@ -415,19 +420,19 @@ public class WorkItemProvider {
         }
     }
 
-    private WorkItemType taskToWorkItemNew(Task task, Map<String, Object> processVariables, boolean resolveTask, boolean resolveAssignee,
+    private WorkItemType taskToWorkItem(Task task, Map<String, Object> processVariables, boolean resolveTask, boolean resolveAssignee,
             boolean resolveCandidates, boolean fetchAllVariables, OperationResult result) {
 		TaskExtract taskExtract = new TaskExtract(task, processVariables);
-		return taskExtractToWorkItemNew(taskExtract, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result);
+		return taskExtractToWorkItem(taskExtract, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result);
     }
 
     public WorkItemType taskEventToWorkItemNew(TaskEvent taskEvent, Map<String, Object> processVariables, boolean resolveTask,
 			boolean resolveAssignee, boolean resolveCandidates, OperationResult result) {
 		TaskExtract taskExtract = new TaskExtract(taskEvent);
-		return taskExtractToWorkItemNew(taskExtract, resolveTask, resolveAssignee, resolveCandidates, false, result);
+		return taskExtractToWorkItem(taskExtract, resolveTask, resolveAssignee, resolveCandidates, false, result);
     }
 
-    public WorkItemType taskExtractToWorkItemNew(TaskExtract task, boolean resolveTask, boolean resolveAssignee,
+    public WorkItemType taskExtractToWorkItem(TaskExtract task, boolean resolveTask, boolean resolveAssignee,
 			boolean resolveCandidates, boolean fetchAllVariables, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
 		result.addParams(new String [] { "activitiTaskId", "resolveTask", "resolveAssignee", "resolveCandidates" },
@@ -470,6 +475,7 @@ public class WorkItemProvider {
 					}
 				}
 			}
+			getDelegates(variables, "task " + task.getId()).forEach(prv -> wi.getDelegateRef().add(ObjectTypeUtil.createObjectRef(prv)));
 			wi.setObjectRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_OBJECT_REF)));
 			wi.setTargetRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_TARGET_REF)));
 

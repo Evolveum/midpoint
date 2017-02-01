@@ -79,7 +79,8 @@ public interface WorkflowManager {
 	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
 	// TODO check authority
-	void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
+	void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, WorkItemDelegationMethodType method,
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
 
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 

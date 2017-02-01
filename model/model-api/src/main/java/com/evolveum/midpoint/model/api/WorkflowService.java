@@ -6,6 +6,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
 
 import java.util.List;
 
@@ -33,5 +34,6 @@ public interface WorkflowService {
     void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
 
 	// TODO check authority in wf manager
-    void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
+    void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, WorkItemDelegationMethodType method,
+			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
 }

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.FormService;
 import org.activiti.engine.TaskService;
@@ -211,7 +212,8 @@ public class WorkItemManager {
 		}
     }
 
-	public void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, OperationResult parentResult)
+	public void delegateWorkItem(String workItemId, List<PrismReferenceValue> delegates, WorkItemDelegationMethodType method,
+			OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
 		result.addParam("workItemId", workItemId);
@@ -228,7 +230,8 @@ public class WorkItemManager {
 			Task task = taskService.createTaskQuery().taskId(workItemId).singleResult();
 			// TODO check authority
 
-			List<PrismReferenceValue> currentDelegates = new ArrayList<>(workItemProvider.getDelegates(task));
+			List<PrismReferenceValue> currentDelegates = new ArrayList<>(workItemProvider.getDelegates(task.getTaskLocalVariables(),
+					"task " + task.getId()));
 			for (PrismReferenceValue delegate : delegates) {
 				if (delegate.getTargetType() != null && !QNameUtil.match(UserType.COMPLEX_TYPE, delegate.getTargetType())) {
 					throw new IllegalArgumentException("Couldn't add non-user reference as a delegate: " + delegate);
