@@ -26,9 +26,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
+import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import org.activiti.engine.TaskService;
+import org.activiti.engine.task.TaskQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -37,6 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 /**
  * @author mederly
@@ -49,6 +56,9 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	protected PrismObject<UserType> getDefaultActor() {
 		return userAdministrator;
 	}
+
+	@Autowired
+	private ActivitiEngine activitiEngine;
 
 	@Test
 	public void test100SearchByMoreAssignees() throws Exception {
@@ -87,6 +97,45 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 					.searchContainers(WorkItemType.class, query3, null, task, result);
 			assertEquals("Wrong # of work items found using multi-assignee query", 1, items3.size());
 		}
+	}
+
+	@Test
+	public void test200TestQueryByTaskVariable() throws Exception {
+		final String TEST_NAME = "test200TestQueryByTaskVariable";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		TaskService taskService = activitiEngine.getTaskService();
+		TaskQuery tq = taskService.createTaskQuery();
+		org.activiti.engine.task.Task task = tq.singleResult();
+		System.out.println("Task = " + task);
+		assertNotNull("No task", task);
+
+		final String TASK_NAME = "Approve assigning Role1a to jack";
+		final String VAR = "delegatedTo";
+		taskService.setVariableLocal(task.getId(), VAR, "[abc][def][ghi]");
+		TaskQuery tq1 = taskService.createTaskQuery().includeTaskLocalVariables()
+				.taskVariableValueLike(VAR, "%[def]%")
+				.taskName(TASK_NAME);
+		org.activiti.engine.task.Task task1 = tq1.singleResult();
+		System.out.println("Task1 = " + task1);
+		assertNotNull("No task1", task1);
+
+		TaskQuery tq2 = taskService.createTaskQuery().includeTaskLocalVariables().taskVariableValueLike(VAR, "%[xyz]%");
+		org.activiti.engine.task.Task task2 = tq2.singleResult();
+		System.out.println("Task2 = " + task2);
+		assertNull("Found task2 even if it shouldn't", task2);
+
+		TaskQuery tq3 = taskService.createTaskQuery().includeTaskLocalVariables()
+				.taskName(TASK_NAME)
+				.or()
+					.taskVariableValueLike(VAR, "%[ghi]%")
+					.taskVariableValueLike(VAR, "%[xxx]%")
+					.taskVariableValueLike(VAR, "%[ab8c]%")
+				.endOr();
+		org.activiti.engine.task.Task task3 = tq3.singleResult();
+		System.out.println("Task3 = " + task3);
+		assertNotNull("No task3", task3);
 	}
 
 }

@@ -309,22 +309,22 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						What actions are to be applied to work items when given timer(s) occur; they are relative
-						to the moment of delegation (positive ones) and to the new deadline (zero or negative ones).
-						EXPERIMENTAL
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
+			<!--<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--What actions are to be applied to work items when given timer(s) occur; they are relative-->
+						<!--to the moment of delegation (positive ones) and to the new deadline (zero or negative ones).-->
+						<!--EXPERIMENTAL-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
 		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:simpleType name="WorkItemDelegationMethodType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				How the delegation should be realized.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
@@ -332,10 +332,11 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="deputy">
+			<xsd:enumeration value="addDelegates">
 				<xsd:annotation>
 					<xsd:documentation>
-						Delegation is done using the deputy relation.
+						Delegate(s) should be added to a dedicated process variable. This has two consequences:
+						(1) More than one delegate could be added. (2) Original assignee can still complete the work item.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="DEPUTY"/>
@@ -346,6 +347,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Assignee of the work item is changed. This method is limited to exactly one new assignee.
+						Also, the original assignee is no longer able to complete the work item.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="REASSIGN"/>
