@@ -82,6 +82,20 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="finishOperationsOnly" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+               TODO. EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <!--<a:displayName>Dry run</a:displayName>-->
+                <!--<a:displayOrder>800</a:displayOrder>-->
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="lastScanTimestamp" type="xsd:dateTime">
         <xsd:annotation>
             <xsd:documentation>
