@@ -58,12 +58,12 @@ import org.activiti.engine.ActivitiException;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.task.IdentityLink;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -261,51 +261,57 @@ public class MiscDataUtil {
         }
     }
 
-    public boolean isAuthorizedToSubmit(WorkItemType workItem, SystemObjectCache systemObjectCache, OperationResult result) {
-        return isAuthorizedToSubmit(workItem.getWorkItemId(),
-                workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null,
-                		systemObjectCache, result);
-    }
+    public enum RequestedOperation {
+    	COMPLETE(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS, null),
+		DELEGATE(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS, ModelAuthorizationAction.DELEGATE_OWN_WORK_ITEMS);
 
-    public boolean isAuthorizedToSubmit(String taskId, @Nullable String assigneeOid, SystemObjectCache systemObjectCache, OperationResult result) {
+    	ModelAuthorizationAction actionAll, actionOwn;
+		RequestedOperation(ModelAuthorizationAction actionAll, ModelAuthorizationAction actionOwn) {
+			this.actionAll = actionAll;
+			this.actionOwn = actionOwn;
+		}
+	}
+
+    public boolean isAuthorized(WorkItemType workItem, RequestedOperation operation) {
         MidPointPrincipal principal;
 		try {
 			principal = securityEnforcer.getPrincipal();
 		} catch (SecurityViolationException e) {
 			return false;
 		}
-        String currentUserOid = principal.getOid();
-        if (currentUserOid == null) {
+        if (principal.getOid() == null) {
             return false;
         }
-        LOGGER.trace("isAuthorizedToSubmit: principal = {}, assignee = {}", principal, assigneeOid);
-        // 1) is this the task assignee?
-        if (currentUserOid.equals(assigneeOid)) {       // assigneeOid may be null here
-            return true;
-        }
-        // 2) is the current user a deputy of task assignee?
-		if (assigneeOid != null && DeputyUtils.isDelegationPresent(principal.getUser(), assigneeOid)) {
-			return true;
-		}
-        // 3) is the current user allowed to approve any item?
-        try {
-			WfConfigurationType wfConfig = getWorkflowConfiguration(systemObjectCache, result);
-			boolean allowedOthersItemsApproval = wfConfig != null && wfConfig.isAllowCompleteOthersItems() != null ? wfConfig.isAllowCompleteOthersItems() : true;
-			if (!allowedOthersItemsApproval) {
-				LOGGER.warn("AllowOthersItemsApproval is set to false. This parameter is now deprecated and will be ignored in midPoint future releases.");
+		try {
+			if (securityEnforcer.isAuthorized(operation.actionAll.getUrl(), null, null, null, null, null)) {
+				return true;
 			}
-			if (allowedOthersItemsApproval
-					&& securityEnforcer.isAuthorized(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS.getUrl(), null, null, null, null, null)) {
-                return true;
-            }
+			if (operation.actionOwn != null && !securityEnforcer.isAuthorized(operation.actionOwn.getUrl(), null, null, null, null, null)) {
+				return false;
+			}
 		} catch (SchemaException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
-        // 3) is the current user in one of candidate users or groups?
-        return isAmongCandidates(principal, taskId);
+		List<String> eligibleUsers = new ArrayList<>();
+		if (workItem.getAssigneeRef() != null) {
+			eligibleUsers.add(workItem.getAssigneeRef().getOid());
+		}
+		workItem.getDelegateRef().forEach(ref -> eligibleUsers.add(ref.getOid()));
+
+		for (String eligibleUser : eligibleUsers) {
+			if (isEqualOrDeputyOf(principal, eligibleUser)) {
+				return true;
+			}
+		}
+		return isAmongCandidates(principal, workItem.getWorkItemId());
     }
-    
-    public WfConfigurationType getWorkflowConfiguration(SystemObjectCache systemObjectCache, OperationResult result) throws SchemaException {
+
+	public boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid) {
+		return principal.getOid().equals(eligibleUserOid)
+				|| DeputyUtils.isDelegationPresent(principal.getUser(), eligibleUserOid);
+	}
+
+	public WfConfigurationType getWorkflowConfiguration(SystemObjectCache systemObjectCache, OperationResult result) throws SchemaException {
     	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
     	if (systemConfiguration == null) {
     		return null;

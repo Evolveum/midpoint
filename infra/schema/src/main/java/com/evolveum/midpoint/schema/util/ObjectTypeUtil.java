@@ -516,4 +516,8 @@ public class ObjectTypeUtil {
 	public static ObjectType toObjectable(PrismObject object) {
     	return object != null ? (ObjectType) object.asObjectable() : null;
 	}
+
+	public static boolean containsOid(Collection<ObjectReferenceType> values, @NotNull String oid) {
+		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
+	}
 }

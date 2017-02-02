@@ -167,6 +167,12 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
         workItemManager.releaseWorkItem(workItemId, result);
     }
 
+    @Override
+    public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
+        workItemManager.delegateWorkItem(workItemId, delegates, method, parentResult);
+    }
+
     /*
      * Process instances
      * =================
@@ -243,13 +249,18 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, OperationResult result) {
-        return miscDataUtil.isAuthorizedToSubmit(workItem, systemObjectCache, result);
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
+        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE);
     }
 
     @Override
     public boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem) {
         return miscDataUtil.isAuthorizedToClaim(workItem);
+    }
+
+    @Override
+    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem) {
+        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE);
     }
 
 	@Override

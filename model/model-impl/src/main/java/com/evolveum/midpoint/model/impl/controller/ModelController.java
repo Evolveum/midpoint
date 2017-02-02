@@ -2026,6 +2026,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
         getWorkflowManagerChecked().releaseWorkItem(workItemId, parentResult);
     }
+
+    @Override
+    public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
+        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, parentResult);
+    }
     //endregion
 
     //region Scripting (bulk actions)

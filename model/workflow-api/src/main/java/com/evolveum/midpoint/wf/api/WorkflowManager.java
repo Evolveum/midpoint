@@ -77,6 +77,9 @@ public interface WorkflowManager {
 
 	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
+	void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
+
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
     /*
@@ -95,9 +98,11 @@ public interface WorkflowManager {
 
 	List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
-	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, OperationResult result);
+	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
 	boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
+
+	boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem);
 
 	// doesn't throw any exceptions - these are logged and stored into the operation result
 	<T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,

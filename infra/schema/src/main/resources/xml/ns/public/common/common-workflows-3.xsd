@@ -91,10 +91,6 @@
 						by someone from a group of users (if this points to a Org object; representing
 						all users that belong to that organization).
 					</xsd:documentation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.5</a:deprecatedSince>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -141,6 +137,9 @@
 						How should be "groups" (orgs, roles) expanded? Default is "byClaimingWorkItem", i.e. they are not
 						expanded at all - their members can claim corresponding work items.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -149,6 +148,9 @@
 						Form to be displayed e.g. to present or request additional information.
 						HIGHLY EXPERIMENTAL
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="additionalInformation" type="c:ExpressionType" minOccurs="0">
@@ -156,6 +158,9 @@
 					<xsd:documentation>
 						Additional information for approver. Will be displayed when work item will be worked on.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<!-- TODO some hooks to allow ad-hoc customizations like making a form field obligatory or optional depending on the stage etc. -->
@@ -167,8 +172,190 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="duration" type="xsd:duration" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Duration of work items created at this level.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						What actions are to be applied to work items when given timer(s) occur.
+						EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemTimedActionsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="time" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Time(s) at which these actions are to be executed. No time or zero time means
+						at the work item deadline. Positive time intervals are meant "after work item start".
+						Negative time intervals are meant "before work item deadline".
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="actions" type="tns:WorkItemActionsType" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						What actions to execute.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemActionsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="complete" type="tns:WorkItemOutcomeType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Complete this work item with a given result.
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO maybe also completeLevel -->
+			<!-- TODO something like notify -->
+			<xsd:element name="delegate" type="tns:WorkItemDelegationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Delegate (escalate) this work item.
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemDelegationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specific approver to replace the current one.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Expression giving an approver to replace the current one.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							What relation(s) to use when determining approvers? E.g. "approver", "owner",
+							"securityApprover", and so on.
+						</p>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="outcomeIfNoApprovers" type="c:WorkItemOutcomeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						What is the outcome (of this work item) if there is no approver to delegate/escalate to?
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="duration" type="xsd:duration" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Duration of the work item after delegation. If not specified, the deadline of the work item
+						is not changed (this is meaningful only if the delegation occurred before the original deadline).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--What actions are to be applied to work items when given timer(s) occur; they are relative-->
+						<!--to the moment of delegation (positive ones) and to the new deadline (zero or negative ones).-->
+						<!--EXPERIMENTAL-->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="WorkItemDelegationMethodType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How the delegation should be realized.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="addDelegates">
+				<xsd:annotation>
+					<xsd:documentation>
+						Delegate(s) should be added to a dedicated process variable. This has two consequences:
+						(1) More than one delegate could be added. (2) Original assignee can still complete the work item.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ADD_DELEGATES"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="reassign">
+				<xsd:annotation>
+					<xsd:documentation>
+						Assignee of the work item is changed. This method is limited to exactly one new assignee.
+						Also, the original assignee is no longer able to complete the work item.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="REASSIGN"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:simpleType name="ApprovalLevelOutcomeType">
 		<xsd:annotation>
@@ -211,6 +398,39 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="SKIP"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="WorkItemOutcomeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Result (outcome) of a work item.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="approve">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="APPROVE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="reject">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="REJECT"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1168,6 +1388,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="delegateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						User to which this work item was delegated, if the delegation was done without changing the assignee.
+						(If the delegation was done by changing the assignee, then this item is empty.)
+						EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

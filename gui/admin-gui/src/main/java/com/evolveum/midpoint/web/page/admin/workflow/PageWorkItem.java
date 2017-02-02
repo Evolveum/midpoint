@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -36,12 +38,13 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.DefaultAjaxButton;
+import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.PropertyModel;
@@ -50,6 +53,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
@@ -73,9 +77,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.
                 description = "PageWorkItem.auth.workItem.description")})
 public class PageWorkItem extends PageAdminWorkItems {
 
-    private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";
+	private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEM = DOT_CLASS + "loadWorkItem";
     private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
+    private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_CLASS + "delegateWorkItem";
     private static final String OPERATION_CLAIM_WORK_ITEM = DOT_CLASS + "claimWorkItem";
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_CLASS + "releaseWorkItem";
 
@@ -84,6 +89,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
 	private static final String ID_MAIN_FORM = "mainForm";
+	private static final String ID_CLAIM = "claim";
+	private static final String ID_RELEASE = "release";
+	private static final String ID_APPROVE = "approve";
+	private static final String ID_REJECT = "reject";
+	private static final String ID_DELEGATE = "delegate";
+	private static final String ID_CANCEL = "cancel";
 
 	private LoadableModel<WorkItemDto> workItemDtoModel;
 	private String taskId;
@@ -188,107 +199,56 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private void initButtons(Form mainForm) {
 
-        VisibleEnableBehaviour isAllowedToSubmit = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-            	OperationResult result = new OperationResult("initButtons");
-                return getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem(), result);
-            }
-        };
+        VisibleBehaviour isAllowedToSubmit = new VisibleBehaviour(() ->
+				getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem()));
 
-        VisibleEnableBehaviour isAllowedToClaim = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return workItemDtoModel.getObject().getWorkItem().getAssigneeRef() == null &&
-                        getWorkflowManager().isCurrentUserAuthorizedToClaim(workItemDtoModel.getObject().getWorkItem());
-            }
-        };
+		VisibleBehaviour isAllowedToDelegate = new VisibleBehaviour(() ->
+				getWorkflowManager().isCurrentUserAuthorizedToDelegate(workItemDtoModel.getObject().getWorkItem()));
 
-        VisibleEnableBehaviour isAllowedToRelease = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                WorkItemType workItem = workItemDtoModel.getObject().getWorkItem();
-                MidPointPrincipal principal;
-                try {
-                    principal = (MidPointPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                } catch (ClassCastException e) {
-                    return false;
-                }
-                String principalOid = principal.getOid();
-                if (workItem.getAssigneeRef() == null || !workItem.getAssigneeRef().getOid().equals(principalOid)) {
-                    return false;
-                }
-                return !workItem.getCandidateUsersRef().isEmpty() || !workItem.getCandidateRolesRef().isEmpty();
-            }
-        };
+		VisibleBehaviour isAllowedToClaim = new VisibleBehaviour(() ->
+				workItemDtoModel.getObject().getWorkItem().getAssigneeRef() == null &&
+                        getWorkflowManager().isCurrentUserAuthorizedToClaim(workItemDtoModel.getObject().getWorkItem()));
 
-        AjaxSubmitButton claim = new AjaxSubmitButton("claim", createStringResource("pageWorkItem.button.claim")) {
+        VisibleBehaviour isAllowedToRelease = new VisibleBehaviour(() -> {
+			WorkItemType workItem = workItemDtoModel.getObject().getWorkItem();
+			MidPointPrincipal principal;
+			try {
+				principal = (MidPointPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			} catch (ClassCastException e) {
+				return false;
+			}
+			String principalOid = principal.getOid();
+			return workItem.getAssigneeRef() != null
+					&& workItem.getAssigneeRef().getOid().equals(principalOid)
+					&& (!workItem.getCandidateUsersRef().isEmpty() || !workItem.getCandidateRolesRef().isEmpty());
+		});
 
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                claimPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
+        AjaxSubmitButton claim = new DefaultAjaxSubmitButton(ID_CLAIM, createStringResource("pageWorkItem.button.claim"),
+				this, (target, form) -> claimPerformed(target));
         claim.add(isAllowedToClaim);
         mainForm.add(claim);
 
-        AjaxSubmitButton release = new AjaxSubmitButton("release", createStringResource("pageWorkItem.button.release")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                releasePerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
+        AjaxSubmitButton release = new DefaultAjaxSubmitButton(ID_RELEASE, createStringResource("pageWorkItem.button.release"),
+				this, (target, form) -> releasePerformed(target));
         release.add(isAllowedToRelease);
         mainForm.add(release);
 
-        AjaxSubmitButton approve = new AjaxSubmitButton("approve", createStringResource("pageWorkItem.button.approve")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                savePerformed(target, true);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
+        AjaxSubmitButton approve = new DefaultAjaxSubmitButton(ID_APPROVE, createStringResource("pageWorkItem.button.approve"),
+				this, (target, form) -> savePerformed(target, true));
         approve.add(isAllowedToSubmit);
         mainForm.add(approve);
 
-        AjaxSubmitButton reject = new AjaxSubmitButton("reject", createStringResource("pageWorkItem.button.reject")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                savePerformed(target, false);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
+		AjaxSubmitButton reject = new DefaultAjaxSubmitButton(ID_REJECT, createStringResource("pageWorkItem.button.reject"),
+				this, (target, form) -> savePerformed(target, false));
         reject.add(isAllowedToSubmit);
         mainForm.add(reject);
 
-        AjaxButton cancel = new AjaxButton("cancel", createStringResource("pageWorkItem.button.cancel")) {
+		AjaxSubmitButton delegate = new DefaultAjaxSubmitButton(ID_DELEGATE, createStringResource("pageWorkItem.button.delegate"),
+				this, (target, form) -> delegatePerformed(target));
+        delegate.add(isAllowedToDelegate);
+        mainForm.add(delegate);
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed(target);
-            }
-        };
+        AjaxButton cancel = new DefaultAjaxButton(ID_CANCEL, createStringResource("pageWorkItem.button.cancel"), this::cancelPerformed);
         mainForm.add(cancel);
     }
 
@@ -298,10 +258,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private void savePerformed(AjaxRequestTarget target, boolean decision) {
-        LOGGER.debug("Saving work item changes.");
-
         OperationResult result = new OperationResult(OPERATION_SAVE_WORK_ITEM);
-
         try {
 			WorkItemDto dto = workItemDtoModel.getObject();
 			ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
@@ -310,20 +267,40 @@ public class PageWorkItem extends PageAdminWorkItems {
             result.recordFatalError("Couldn't save work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
         }
+		processResult(target, result, false);
+	}
 
-        result.computeStatusIfUnknown();
+    private void delegatePerformed(AjaxRequestTarget target) {
+		ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
+				getMainPopupBodyId(), UserType.class,
+				Collections.singletonList(UserType.COMPLEX_TYPE), false, this, null) {
+			private static final long serialVersionUID = 1L;
 
-        if (!result.isSuccess()) {
-            showResult(result, false);
-            target.add(getFeedbackPanel());
-        } else {
-        	showResult(result);
-            redirectBack();
-        }
+			@Override
+			protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
+				hideMainPopup(target);
+				delegateConfirmedPerformed(target, user);
+			}
+
+		};
+		panel.setOutputMarkupId(true);
+		showMainPopup(panel, target);
     }
 
-    private void claimPerformed(AjaxRequestTarget target) {
+	private void delegateConfirmedPerformed(AjaxRequestTarget target, UserType delegate) {
+		OperationResult result = new OperationResult(OPERATION_DELEGATE_WORK_ITEM);
+		try {
+			WorkItemDto dto = workItemDtoModel.getObject();
+			List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate));
+			getWorkflowService().delegateWorkItem(dto.getWorkItemId(), delegates, WorkItemDelegationMethodType.ADD_DELEGATES, result);
+		} catch (Exception ex) {
+			result.recordFatalError("Couldn't delegate work item.", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delegate work item", ex);
+		}
+		processResult(target, result, false);
+	}
 
+	private void claimPerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_CLAIM_WORK_ITEM);
         WorkflowService workflowService = getWorkflowService();
         try {
@@ -331,19 +308,10 @@ public class PageWorkItem extends PageAdminWorkItems {
         } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
             result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
         }
-        result.computeStatusIfUnknown();
-
-        if (!result.isSuccess()) {
-            showResult(result);
-            target.add(getFeedbackPanel());
-        } else {
-        	showResult(result);
-            redirectBack();
-        }
-    }
+		processResult(target, result, true);
+	}
 
     private void releasePerformed(AjaxRequestTarget target) {
-
         OperationResult result = new OperationResult(OPERATION_RELEASE_WORK_ITEM);
         WorkflowService workflowService = getWorkflowService();
         try {
@@ -351,15 +319,6 @@ public class PageWorkItem extends PageAdminWorkItems {
         } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
             result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
         }
-        result.computeStatusIfUnknown();
-
-        if (!result.isSuccess()) {
-            showResult(result);
-            target.add(getFeedbackPanel());
-        } else {
-        	showResult(result);
-            redirectBack();
-        }
+        processResult(target, result, true);
     }
-
 }
