@@ -26,7 +26,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
  */
 public class TestOpenDjDumber extends TestOpenDj {
 	
-	private static final int INITIAL_SYNC_TOKEN = 19;
+	private static final int INITIAL_SYNC_TOKEN = 21;
 	
 	@Override
 	protected File getBaseDir() {
