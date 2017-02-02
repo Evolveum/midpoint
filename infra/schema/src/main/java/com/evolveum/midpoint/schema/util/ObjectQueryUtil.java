@@ -517,11 +517,18 @@ public class ObjectQueryUtil {
 
 	public static FilterComponents factorOutFilter(ObjectFilter filter, ItemPath... paths) {
 		FilterComponents components = new FilterComponents();
-		factorOutFilter(components, simplify(filter), Arrays.asList(paths));
+		factorOutFilter(components, simplify(filter), Arrays.asList(paths), true);
 		return components;
 	}
 
-	private static void factorOutFilter(FilterComponents filterComponents, ObjectFilter filter, List<ItemPath> paths) {
+	// TODO better API
+	public static FilterComponents factorOutOrFilter(ObjectFilter filter, ItemPath... paths) {
+		FilterComponents components = new FilterComponents();
+		factorOutFilter(components, simplify(filter), Arrays.asList(paths), false);
+		return components;
+	}
+
+	private static void factorOutFilter(FilterComponents filterComponents, ObjectFilter filter, List<ItemPath> paths, boolean connectedByAnd) {
 		if (filter instanceof EqualFilter) {
 			EqualFilter equalFilter = (EqualFilter) filter;
 			if (ItemPath.containsEquivalent(paths, equalFilter.getPath())) {
@@ -536,12 +543,17 @@ public class ObjectQueryUtil {
 			} else {
 				filterComponents.addToRemainder(refFilter);
 			}
-		} else if (filter instanceof AndFilter) {
+		} else if (connectedByAnd && filter instanceof AndFilter) {
 			for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
-				factorOutFilter(filterComponents, condition, paths);
+				factorOutFilter(filterComponents, condition, paths, true);
+			}
+		} else if (!connectedByAnd && filter instanceof OrFilter) {
+			for (ObjectFilter condition : ((OrFilter) filter).getConditions()) {
+				factorOutFilter(filterComponents, condition, paths, false);
 			}
 		} else if (filter instanceof TypeFilter) {
-			factorOutFilter(filterComponents, ((TypeFilter) filter).getFilter(), paths);
+			// this is a bit questionable...
+			factorOutFilter(filterComponents, ((TypeFilter) filter).getFilter(), paths, connectedByAnd);
 		} else if (filter != null) {
 			filterComponents.addToRemainder(filter);
 		} else {

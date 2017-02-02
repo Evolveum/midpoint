@@ -917,7 +917,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return opResult;
     }
 
-   
+    // common result processing
+	protected void processResult(AjaxRequestTarget target, OperationResult result, boolean showSuccess) {
+		result.computeStatusIfUnknown();
+		if (!result.isSuccess()) {
+			showResult(result, showSuccess);
+			target.add(getFeedbackPanel());
+		} else {
+			showResult(result);
+			redirectBack();
+		}
+	}
+
 	public String createComponentPath(String... components) {
 		return StringUtils.join(components, ":");
 	}

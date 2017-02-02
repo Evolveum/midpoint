@@ -48,4 +48,42 @@
         </target>
     </mapping>
     
+    <!-- MID-3545 -->
+    <mapping>
+        <name>autorole</name>
+        <authoritative>true</authoritative>
+        <trace>true</trace>
+        <source>
+            <c:path>$user/employeeType</c:path>
+        </source>
+        <expression>
+        	<trace>true</trace>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                        	<trace>true</trace>
+                            <script>
+                            	<trace>true</trace>
+                            	<code>employeeType.substring(5,employeeType.length())</code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <defaultTargetRef oid="12345111-1111-2222-1111-121212111112" type="RoleType"/> <!-- Empty Role -->
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <c:path>assignment</c:path>
+        </target>
+        <condition>
+        	<trace>true</trace>
+        	<script>
+        		<code>employeeType?.startsWith('ROLE:')</code>
+        	</script>
+        </condition>
+    </mapping>
+    
 </objectTemplate>

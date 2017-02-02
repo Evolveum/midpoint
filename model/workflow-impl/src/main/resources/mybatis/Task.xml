@@ -761,8 +761,14 @@
             <if test="orQueryObject.maxPriority != null">
               or RES.PRIORITY_ &lt;= #{orQueryObject.maxPriority}
             </if> 
-            <if test="orQueryObject.assignee != null">
+            <if test='orQueryObject.assignee != null &amp;&amp; !orQueryObject.assignee.contains(";")'>
               or RES.ASSIGNEE_ = #{orQueryObject.assignee}
+            </if>
+            <if test='orQueryObject.assignee != null &amp;&amp; orQueryObject.assignee.contains(";")'>
+              or RES.ASSIGNEE_ in
+              <foreach item="item" index="index" collection='orQueryObject.assignee.split(";")' open="(" separator="," close=")">
+                #{item}
+              </foreach>
             </if>
             <if test="orQueryObject.assigneeLike != null">
               or RES.ASSIGNEE_ like #{orQueryObject.assigneeLike}${wildcardEscapeClause}

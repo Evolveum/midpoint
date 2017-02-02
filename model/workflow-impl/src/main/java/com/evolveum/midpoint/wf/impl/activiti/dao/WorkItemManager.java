@@ -22,8 +22,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -34,6 +36,10 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.FormService;
 import org.activiti.engine.TaskService;
@@ -46,7 +52,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 
@@ -74,11 +82,15 @@ public class WorkItemManager {
     @Autowired
 	private PrismContext prismContext;
 
+    @Autowired
+	private WorkItemProvider workItemProvider;
+
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_INTERFACE + "completeWorkItem";
     private static final String OPERATION_CLAIM_WORK_ITEM = DOT_INTERFACE + "claimWorkItem";
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_INTERFACE + "releaseWorkItem";
+    private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_INTERFACE + "delegateWorkItem";
 
     public void completeWorkItem(String workItemId, String decision, String comment, ObjectDelta additionalDelta,
 			OperationResult parentResult) throws SecurityViolationException, SchemaException {
@@ -95,8 +107,9 @@ public class WorkItemManager {
 			FormService formService = activitiEngine.getFormService();
 			TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
 
-			String assigneeOid = data.getTask().getAssignee();
-			if (!miscDataUtil.isAuthorizedToSubmit(workItemId, assigneeOid, systemObjectCache, result)) {
+			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
+
+			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE)) {
 				throw new SecurityViolationException("You are not authorized to complete this work item.");
 			}
 
@@ -200,4 +213,51 @@ public class WorkItemManager {
 			result.computeStatusIfUnknown();
 		}
     }
+
+	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+			OperationResult parentResult)
+			throws ObjectNotFoundException, SecurityViolationException {
+		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
+		result.addParam("workItemId", workItemId);
+		result.addCollectionOfSerializablesAsParam("delegates", delegates);
+		try {
+			MidPointPrincipal principal = securityEnforcer.getPrincipal();
+			result.addContext("user", toShortString(principal.getUser()));
+
+			LOGGER.trace("Delegating work item {} to {}", workItemId, delegates);
+
+			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
+			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE)) {
+				throw new SecurityViolationException("You are not authorized to delegate this work item.");
+			}
+
+			if (method != WorkItemDelegationMethodType.ADD_DELEGATES) {
+				throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
+			}
+
+			List<ObjectReferenceType> currentDelegates = workItem.getDelegateRef();
+			for (ObjectReferenceType delegate : delegates) {
+				if (delegate.getType() != null && !QNameUtil.match(UserType.COMPLEX_TYPE, delegate.getType())) {
+					throw new IllegalArgumentException("Couldn't add non-user reference as a delegate: " + delegate);
+				}
+				if (delegate.getOid() == null) {
+					throw new IllegalArgumentException("Couldn't add no-OID reference as a delegate: " + delegate);
+				}
+				if (!ObjectTypeUtil.containsOid(currentDelegates, delegate.getOid())) {
+					currentDelegates.add(delegate);
+				}
+			}
+			String delegatesAsString = currentDelegates.stream()
+					.map(d -> "[" + d.getOid() + "]")
+					.collect(Collectors.joining(WorkItemProvider.DELEGATE_SEPARATOR));
+			TaskService taskService = activitiEngine.getTaskService();
+			taskService.setVariableLocal(workItemId, WorkItemProvider.DELEGATE_VARIABLE_NAME, delegatesAsString);
+		} catch (SecurityViolationException|RuntimeException e) {
+			result.recordFatalError("Couldn't delegate work item " + workItemId + ": " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
 }
