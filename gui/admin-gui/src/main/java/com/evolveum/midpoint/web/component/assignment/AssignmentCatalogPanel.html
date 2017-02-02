@@ -24,7 +24,14 @@
             <select class="form-control input-sm col-md-2" wicket:id="viewTypeSelect"/>
         </div>
 
-        <form class="col-md-8 search-form" wicket:id="searchForm">
+        <div class="col-md-2" wicket:id="targetUserContainer">
+            <a wicket:id="targetUserButton" class="btn btn-sm btn-default">
+                <span wicket:id="targetUserLabel"/>
+                <i wicket:id="deleteTargetUserButton" class="fa fa-times-circle fa-lg text-danger" style="margin-left: 10px;"/>
+            </a>
+        </div>
+
+        <form class="col-md-7 search-form" wicket:id="searchForm">
             <div wicket:id="search"/>
         </form>
 
