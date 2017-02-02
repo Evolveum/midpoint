@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +61,7 @@ public class AccessCertificationCloseStageTriggerHandler implements TriggerHandl
 	}
 	
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> prismObject, Task task, OperationResult result) {
+	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, Task task, OperationResult result) {
 		try {
 			ObjectType object = prismObject.asObjectable();
 			if (!(object instanceof AccessCertificationCampaignType)) {

@@ -18,7 +18,10 @@ package com.evolveum.midpoint.model.impl.trigger;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -37,7 +40,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -67,7 +69,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
         	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
 	
-	@Autowired(required=true)
+	@Autowired
 	private TriggerHandlerRegistry triggerHandlerRegistry;
 	
 	public TriggerScannerTaskHandler() {
@@ -80,7 +82,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	private synchronized void initProcessedOids(Task coordinatorTask) {
 		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
-		processedOidsMap.put(coordinatorTask.getOid(), new HashMap<String, Set<String>>());
+		processedOidsMap.put(coordinatorTask.getOid(), new HashMap<>());
 	}
 
 	// TODO fix possible (although very small) memory leak occurring when task finishes unsuccessfully
@@ -123,9 +125,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
-		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-		PrismContainerDefinition<TriggerType> triggerContainerDef = focusObjectDef.findContainerDefinition(F_TRIGGER);
-		
+
 		if (handler.getLastScanTimestamp() == null) {
 			filter = QueryBuilder.queryFor(ObjectType.class, prismContext)
 					.item(F_TRIGGER, F_TIMESTAMP).le(handler.getThisScanTimestamp())
@@ -176,7 +176,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 			LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have trigger container", object);
 		} else {
 			List<PrismContainerValue<TriggerType>> triggerCVals = triggerContainer.getValues();
-			if (triggerCVals == null || triggerCVals.isEmpty()) {
+			if (triggerCVals.isEmpty()) {
 				LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have any triggers in trigger container", object);
 			} else {
 				LOGGER.trace("Firing triggers for {} ({} triggers)", object, triggerCVals.size());
@@ -187,17 +187,12 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 						LOGGER.warn("Trigger without a timestamp in {}", object);
 					} else {
 						if (isHot(handler, timestamp)) {
-							String handlerUri = triggerType.getHandlerUri();
-							if (handlerUri == null) {
-								LOGGER.warn("Trigger without handler URI in {}", object);
-							} else {
-								fireTrigger(handlerUri, object, workerTask, coordinatorTask, result);
-								removeTrigger(object, triggerCVal, workerTask);
-							}
+							fireTrigger(triggerType, object, workerTask, coordinatorTask, result);
+							removeTrigger(object, triggerCVal, workerTask);
 						} else {
-							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})", 
-									new Object[]{triggerType, timestamp, 
-									handler.getThisScanTimestamp(), handler.getLastScanTimestamp()});
+							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})",
+									triggerType, timestamp,
+									handler.getThisScanTimestamp(), handler.getLastScanTimestamp());
 						}
 					}
 				}
@@ -215,20 +210,25 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		return handler.getLastScanTimestamp() == null || handler.getLastScanTimestamp().compare(timestamp) == DatatypeConstants.LESSER;
 	}
 
-	private void fireTrigger(String handlerUri, PrismObject<ObjectType> object, Task workerTask, Task coordinatorTask, OperationResult result) {
+	private void fireTrigger(TriggerType trigger, PrismObject<ObjectType> object, Task workerTask, Task coordinatorTask, OperationResult result) {
+		String handlerUri = trigger.getHandlerUri();
+		if (handlerUri == null) {
+			LOGGER.warn("Trigger without handler URI in {}", object);
+			return;
+		}
 		LOGGER.debug("Firing trigger {} in {}", handlerUri, object);
 		TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
 		if (handler == null) {
-			LOGGER.warn("No registered trigger handler for URI {}", handlerUri);
+			LOGGER.warn("No registered trigger handler for URI {}", trigger);
 		} else if (oidAlreadySeen(coordinatorTask, handlerUri, object.getOid())) {
-			LOGGER.trace("Handler {} already executed for {}", handlerUri, ObjectTypeUtil.toShortString(object));
+			LOGGER.trace("Handler {} already executed for {}", trigger, ObjectTypeUtil.toShortString(object));
 		} else {
 			try {
-				handler.handle(object, workerTask, result);
+				handler.handle(object, trigger, workerTask, result);
 				// Properly handle everything that the handler spits out. We do not want this task to die.
 				// Looks like the impossible happens and checked exceptions can somehow get here. Hence the heavy artillery below.
 			} catch (Throwable e) {
-				LOGGER.error("Trigger handler {} executed on {} thrown an error: {}", new Object[] { handler, object, e.getMessage(), e });
+				LOGGER.error("Trigger handler {} executed on {} thrown an error: {}", handler, object, e.getMessage(), e);
 				result.recordPartialError(e);
 			}
 		}
@@ -236,7 +236,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task) {
 		PrismContainerDefinition<TriggerType> triggerContainerDef = triggerCVal.getParent().getDefinition();
-		ContainerDelta<TriggerType> triggerDelta = (ContainerDelta<TriggerType>) triggerContainerDef.createEmptyDelta(new ItemPath(F_TRIGGER));
+		ContainerDelta<TriggerType> triggerDelta = triggerContainerDef.createEmptyDelta(new ItemPath(F_TRIGGER));
 		triggerDelta.addValuesToDelete(triggerCVal.clone());
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(triggerDelta);
 		// This is detached result. It will not take part of the task result. We do not really care.
@@ -249,13 +249,10 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 			// Object is gone. Ergo there are no triggers left. Ergo the trigger was removed.
 			// Ergo this is not really an error.
 			task.recordObjectActionExecuted(object, ChangeType.MODIFY, e);
-			LOGGER.trace("Unable to remove trigger from {}: {} (but this is probably OK)", new Object[]{object, e.getMessage(), e});
-		} catch (SchemaException e) {
+			LOGGER.trace("Unable to remove trigger from {}: {} (but this is probably OK)", object, e.getMessage(), e);
+		} catch (SchemaException | ObjectAlreadyExistsException e) {
 			task.recordObjectActionExecuted(object, ChangeType.MODIFY, e);
-			LOGGER.error("Unable to remove trigger from {}: {}", new Object[]{object, e.getMessage(), e});
-		} catch (ObjectAlreadyExistsException e) {
-			task.recordObjectActionExecuted(object, ChangeType.MODIFY, e);
-			LOGGER.error("Unable to remove trigger from {}: {}", new Object[]{object, e.getMessage(), e});
+			LOGGER.error("Unable to remove trigger from {}: {}", object, e.getMessage(), e);
 		} catch (Throwable t) {
 			task.recordObjectActionExecuted(object, ChangeType.MODIFY, t);
 			throw t;
