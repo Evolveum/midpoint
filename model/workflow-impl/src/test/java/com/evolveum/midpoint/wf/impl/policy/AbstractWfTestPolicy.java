@@ -24,13 +24,14 @@ import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTe
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -59,6 +60,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
@@ -446,6 +448,33 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				return approve;
 			}
 		}, 1);
+	}
+
+	protected WorkItemType getWorkItem(Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		if (itemsAll.size() != 1) {
+			System.out.println("Unexpected # of work items: " + itemsAll.size());
+			for (WorkItemType workItem : itemsAll) {
+				System.out.println(PrismUtil.serializeQuietly(prismContext, workItem));
+			}
+		}
+		assertEquals("Wrong # of total work items", 1, itemsAll.size());
+		return itemsAll.get(0);
+	}
+
+	protected ObjectReferenceType ort(String oid) {
+		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER);
+	}
+
+	protected PrismReferenceValue prv(String oid) {
+		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue();
+	}
+
+	protected PrismReference ref(List<ObjectReferenceType> orts) {
+		PrismReference rv = new PrismReference(new QName("dummy"));
+		orts.forEach(ort -> rv.add(ort.asReferenceValue().clone()));
+		return rv;
 	}
 
 	protected abstract class TestDetails {

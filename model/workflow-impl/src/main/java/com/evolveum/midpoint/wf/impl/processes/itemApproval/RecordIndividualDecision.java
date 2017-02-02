@@ -138,7 +138,7 @@ public class RecordIndividualDecision implements JavaDelegate {
                     level.getDebugName(), decision, setLoopApprovesInLevelStop);
         }
 
-        MidpointUtil.recordDecisionInTask(decision, taskOid, prismContext);
+        MidpointUtil.recordDecisionInTask(decision, taskOid);
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 

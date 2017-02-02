@@ -87,9 +87,9 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 
 		{
 			List<PrismReferenceValue> refs = new ArrayList<>();
-			refs.add(ObjectTypeUtil.createObjectRef("oid-number-1", ObjectTypes.USER).asReferenceValue());
-			refs.add(ObjectTypeUtil.createObjectRef(userLead1Oid, ObjectTypes.USER).asReferenceValue());
-			refs.add(ObjectTypeUtil.createObjectRef("oid-number-3", ObjectTypes.USER).asReferenceValue());
+			refs.add(prv("oid-number-1"));
+			refs.add(prv(userLead1Oid));
+			refs.add(prv("oid-number-3"));
 			ObjectQuery query3 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
 					.item(WorkItemType.F_ASSIGNEE_REF).ref(refs)
 					.build();
@@ -193,12 +193,12 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		List<PrismReferenceValue> assigneeRefs = new ArrayList<>();
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-1", ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef(userLead1Oid, ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-3", ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-4", ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-5", ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-6", ObjectTypes.USER).asReferenceValue());
+		assigneeRefs.add(prv("oid-number-1"));
+		assigneeRefs.add(prv(userLead1Oid));
+		assigneeRefs.add(prv("oid-number-3"));
+		assigneeRefs.add(prv("oid-number-4"));
+		assigneeRefs.add(prv("oid-number-5"));
+		assigneeRefs.add(prv("oid-number-6"));
 
 		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
 				.item(WorkItemType.F_ASSIGNEE_REF).ref(assigneeRefs)

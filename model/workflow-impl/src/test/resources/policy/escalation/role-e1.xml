@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="7b959192-8c0c-4499-a51e-266b3b4dd8c4">
+	<name>role-e1</name>
+	<assignment>
+		<targetRef oid="009516c6-98a3-469d-80b0-fbc059fad4bb" type="RoleType" />		<!-- metarole-escalated -->
+	</assignment>
+</role>

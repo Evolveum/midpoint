@@ -39,14 +39,14 @@ import static com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil.getReq
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getTaskManager;
 
-public class PrepareApprover implements JavaDelegate {
+public class PrepareForTaskCreation implements JavaDelegate {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrepareApprover.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrepareForTaskCreation.class);
 
     public void execute(DelegateExecution execution) {
 
     	PrismContext prismContext = getPrismContext();
-		OperationResult result = new OperationResult(PrepareApprover.class.getName() + ".execute");
+		OperationResult result = new OperationResult(PrepareForTaskCreation.class.getName() + ".execute");
 		Task wfTask = ActivitiUtil.getTask(execution, result);
 		Task opTask = getTaskManager().createTaskInstance();
 

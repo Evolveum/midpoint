@@ -63,7 +63,7 @@ public class TestAssignmentApprovalPlainExplicit extends AbstractTestAssignmentA
 		super.importLead10(task, result);
 		executeChangesAssertSuccess((ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_APPROVER_REF)
-						.add(ObjectTypeUtil.createObjectRef(userLead10Oid, ObjectTypes.USER).asReferenceValue())
+						.add(prv(userLead10Oid))
 				.asObjectDelta(getRoleOid(10)), null, task, result);
 	}
 }

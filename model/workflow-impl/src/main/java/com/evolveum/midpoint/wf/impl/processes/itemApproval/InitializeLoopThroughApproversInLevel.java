@@ -159,7 +159,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 		decision.setStageNumber(stageNumber);
 		decision.setStageName(level.getName());
 		decision.setStageDisplayName(level.getDisplayName());
-		MidpointUtil.recordDecisionInTask(decision, wfTask.getOid(), prismContext);
+		MidpointUtil.recordDecisionInTask(decision, wfTask.getOid());
 	}
 
 

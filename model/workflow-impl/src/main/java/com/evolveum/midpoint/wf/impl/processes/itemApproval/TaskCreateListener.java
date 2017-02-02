@@ -16,8 +16,13 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 
@@ -28,6 +33,17 @@ public class TaskCreateListener implements TaskListener {
 
 	@Override
 	public void notify(DelegateTask delegateTask) {
+		OperationResult result = new OperationResult(TaskCreateListener.class.getName() + ".notify");
+		Task wfTask = ActivitiUtil.getTask(delegateTask.getExecution(), result);
+		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
+		if (level == null) {
+			throw new IllegalStateException("No approval level information in " + delegateTask);
+		}
+		if (level.getDuration() != null) {
+			MidpointUtil.setTaskDeadline(delegateTask, level.getDuration(), result);
+		}
+		MidpointUtil.createTriggersForTimedActions(delegateTask, wfTask, level.getTimedActions(), result);
+
 		String assignee = delegateTask.getAssignee();
 		if (assignee != null) {
 			delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, assignee);

@@ -257,6 +257,8 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	<xsd:element name="workItemActions" type="tns:WorkItemActionsType" />
+	<xsd:element name="workItemId" type="xsd:string" />
 
 	<xsd:complexType name="WorkItemDelegationType">
 		<xsd:annotation>
@@ -1330,7 +1332,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="workItemId" type="xsd:string">
+            <xsd:element ref="tns:workItemId">
                 <xsd:annotation>
                     <xsd:documentation>
                         Internal identifier of a work item, assigned by the underlying workflow engine
