@@ -83,8 +83,9 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
     }
 
     private WorkItemEvent createWorkItemEvent(WorkItemType workItemType, Task wfTask, ChangeType changeType) {
-		SimpleObjectRefImpl assignee = workItemType.getAssigneeRef() != null ?
-				new SimpleObjectRefImpl(notificationsUtil, workItemType.getAssigneeRef()) : null;
+        // TODO!!!
+		SimpleObjectRefImpl assignee = workItemType.getOriginalAssigneeRef() != null ?
+				new SimpleObjectRefImpl(notificationsUtil, workItemType.getOriginalAssigneeRef()) : null;
         WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator, changeType, workItemType, assignee, wfTask.getWorkflowContext());
         fillInEvent(event, wfTask);
         return event;

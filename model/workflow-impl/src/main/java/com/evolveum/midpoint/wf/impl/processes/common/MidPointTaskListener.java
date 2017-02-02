@@ -32,9 +32,7 @@ public class MidPointTaskListener implements TaskListener {
 
     @Override
     public void notify(DelegateTask delegateTask) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("notify called; event name = {}, name = {}", delegateTask.getEventName(), delegateTask.getName());
-        }
+        LOGGER.trace("notify called; event name = {}, name = {}", delegateTask.getEventName(), delegateTask.getName());
         getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);
     }
 }

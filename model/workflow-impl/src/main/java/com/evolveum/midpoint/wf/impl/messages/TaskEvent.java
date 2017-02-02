@@ -64,6 +64,8 @@ public class TaskEvent {
      */
     private Date createTime;
 
+    private Date dueDate;
+
     private List<String> candidateUsers = new ArrayList<>();
     private List<String> candidateGroups = new ArrayList<>();
 
@@ -75,7 +77,11 @@ public class TaskEvent {
         this.createTime = createTime;
     }
 
-    private String owner;
+	public void setDueDate(Date dueDate) {
+		this.dueDate = dueDate;
+	}
+
+	private String owner;
     private String executionId;
 
 
@@ -127,7 +133,11 @@ public class TaskEvent {
         return createTime;
     }
 
-    public String getOwner() {
+	public Date getDueDate() {
+		return dueDate;
+	}
+
+	public String getOwner() {
         return owner;
     }
 

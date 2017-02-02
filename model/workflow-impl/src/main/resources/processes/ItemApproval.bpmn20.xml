@@ -127,7 +127,7 @@
                     <extensionElements>
                         <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
-                        <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener" />
+                        <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCreateListener" />
                         <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener" />
                     </extensionElements>
                 </userTask>
@@ -137,7 +137,7 @@
                     <extensionElements>
                         <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
-                        <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener" />
+                        <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCreateListener" />
                         <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener" />
                     </extensionElements>
                 </userTask>

@@ -58,15 +58,15 @@ import org.activiti.engine.ActivitiException;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.task.IdentityLink;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.xml.namespace.QName;
+import java.util.*;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 import static com.evolveum.midpoint.schema.ObjectTreeDeltas.fromObjectTreeDeltasType;
@@ -261,7 +261,33 @@ public class MiscDataUtil {
         }
     }
 
-    public enum RequestedOperation {
+    @NotNull
+	public static String refToString(@NotNull ObjectReferenceType ref) {
+    	return
+				(ref.getType() != null ? ref.getType().getLocalPart() : "")
+				+ CommonProcessVariableNames.TYPE_NAME_SEPARATOR
+				+ ref.getOid();
+	}
+
+	@NotNull
+	public static ObjectReferenceType stringToRef(@NotNull String s) {
+    	String[] parts = s.split(CommonProcessVariableNames.TYPE_NAME_SEPARATOR);
+		ObjectReferenceType ref = new ObjectReferenceType();
+    	if (parts.length == 0 || parts.length > 2) {
+    		throw new IllegalArgumentException("Incorrect reference string representation: " + s);
+		} else if (parts.length == 1) {
+    		ref.setOid(parts[0]);
+    		ref.setType(UserType.COMPLEX_TYPE);
+		} else {
+    		ref.setOid(parts[1]);
+			// TODO support namespaces other than c:
+    		QName type = StringUtils.isEmpty(parts[0]) ? UserType.COMPLEX_TYPE : new QName(SchemaConstants.NS_C, parts[0]);
+    		ref.setType(type);
+		}
+    	return ref;
+	}
+
+	public enum RequestedOperation {
     	COMPLETE(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS, null),
 		DELEGATE(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS, ModelAuthorizationAction.DELEGATE_OWN_WORK_ITEMS);
 
@@ -292,14 +318,8 @@ public class MiscDataUtil {
 		} catch (SchemaException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
-		List<String> eligibleUsers = new ArrayList<>();
-		if (workItem.getAssigneeRef() != null) {
-			eligibleUsers.add(workItem.getAssigneeRef().getOid());
-		}
-		workItem.getDelegateRef().forEach(ref -> eligibleUsers.add(ref.getOid()));
-
-		for (String eligibleUser : eligibleUsers) {
-			if (isEqualOrDeputyOf(principal, eligibleUser)) {
+		for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
+			if (isEqualOrDeputyOf(principal, assignee.getOid())) {
 				return true;
 			}
 		}
@@ -388,6 +408,10 @@ public class MiscDataUtil {
 
 	public PrismObject resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {
 		return resolveObjectReference(ref, true, result);
+	}
+
+	public void resolveAndStoreObjectReferences(@NotNull Collection<ObjectReferenceType> references, OperationResult result) {
+    	references.forEach(ref -> resolveObjectReference(ref, true, result));
 	}
 
     private PrismObject resolveObjectReference(ObjectReferenceType ref, boolean storeBack, OperationResult result) {

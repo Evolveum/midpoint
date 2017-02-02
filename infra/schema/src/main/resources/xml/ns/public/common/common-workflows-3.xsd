@@ -332,28 +332,27 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="addDelegates">
+			<xsd:enumeration value="addAssignees">
 				<xsd:annotation>
 					<xsd:documentation>
-						Delegate(s) should be added to a dedicated process variable. This has two consequences:
-						(1) More than one delegate could be added. (2) Original assignee can still complete the work item.
+						Delegate(s) should be added as new assignees, keeping original assignees and original candidates.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ADD_DELEGATES"/>
+						<jaxb:typesafeEnumMember name="ADD_ASSIGNEES"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="reassign">
+			<xsd:enumeration value="replaceAssignees">
 				<xsd:annotation>
 					<xsd:documentation>
-						Assignee of the work item is changed. This method is limited to exactly one new assignee.
-						Also, the original assignee is no longer able to complete the work item.
+						Delegate(s) should replace existing assignee(s). Candidates are removed.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="REASSIGN"/>
+						<jaxb:typesafeEnumMember name="REPLACE_ASSIGNEES"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<!-- TODO something like "replaceCurrentAssignee" ? -->
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -434,6 +433,8 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<!-- TODO something like CANCEL i.e. canceled work item without providing any answer
+				 (e.g. when replacing it with a set of other work items) -->
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -1117,8 +1118,22 @@
         <xsd:sequence>
             <xsd:element name="approverRef" type="c:ObjectReferenceType">
                 <xsd:annotation>
+					<xsd:documentation>
+						User who actually decided on this work item.
+					</xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="originalAssigneeRef" type="c:ObjectReferenceType">
+                <xsd:annotation>
+					<xsd:documentation>
+						User to which this work item was originally assigned.
+					</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.6</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1164,7 +1179,8 @@
 			<xsd:element name="additionalDelta" type="t:ObjectDeltaType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO
+						Additional delta resulting from this action. Typically if the user filled-in some information into
+						custom form.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -1348,6 +1364,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="deadline" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When is this work to be done? May be moved via escalation(s).
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+            </xsd:element>
+			<!-- TODO original deadline? -->
             <xsd:element name="taskRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1358,49 +1385,40 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        User to which the work item is assigned. Other users do not see such a work item in their work lists.
+                        Users to which the work item is assigned. Other users do not see such a work item in their work lists.
+						Normally the work item is assigned to a single user. However, when delegating (directly or via escalation)
+						more assignees could be added.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="candidateUsersRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="originalAssigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Users to which the work item MAY BE assigned.
+                        Users to which the work item was originally assigned.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="candidateRolesRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Organizations/roles to users of which the work item MAY BE assigned.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="delegateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						User to which this work item was delegated, if the delegation was done without changing the assignee.
-						(If the delegation was done by changing the assignee, then this item is empty.)
-						EXPERIMENTAL
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
 						<a:since>3.6</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="candidateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Users and abstract roles to which the work item MAY BE assigned.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+						<a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1438,53 +1456,22 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Information to be shown to the approver.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <!-- for work items without TaskType information -->
 			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0" />
 			<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
 			<xsd:element name="stageName" type="xsd:string" minOccurs="0" />
 			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0" />
 			<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
-
-            <!--<xsd:element name="contents" type="tns:ObjectType" minOccurs="0" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--Work item contents - i.e. the actual work that the user has-->
-                        <!--to do, along with all the necessary information.-->
-                        <!--It is stored as PrismObject, although, actually, it is always a-->
-                        <!--subtype of WorkItemContents, but this structure is defined in separate XSD file.-->
-                        <!--TODO consider moving all wf-related structures to that file-->
-                        <!--in order to allow correct references among them.-->
-                    <!--</xsd:documentation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReference>tns:contentsRef</a:objectReference>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
-            <!--<xsd:element name="contentsRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
-            <!--<xsd:element name="trackingData" type="tns:TrackingDataType" minOccurs="0" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--Various implementation-level (activiti) data useful for diagnostics.-->
-                    <!--</xsd:documentation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReference>tns:trackingDataRef</a:objectReference>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
-            <!--<xsd:element name="trackingDataRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReferenceTargetType>tns:TrackingDataType</a:objectReferenceTargetType>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
         </xsd:sequence>
     </xsd:complexType>
 

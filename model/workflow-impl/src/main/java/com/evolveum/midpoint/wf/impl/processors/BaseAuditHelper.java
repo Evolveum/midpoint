@@ -100,7 +100,7 @@ public class BaseAuditHelper {
 
         if (stage == AuditEventStage.REQUEST) {
             auditEventRecord.setInitiator(wfTask.getRequesterIfExists(result));
-            auditEventRecord.setTargetOwner((PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getAssigneeRef()));
+            auditEventRecord.setTargetOwner((PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getOriginalAssigneeRef()));
         } else {
             try {
                 @SuppressWarnings("unchecked")

@@ -57,6 +57,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_PREFIX;
+import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SUFFIX;
 
 /**
  * @author mederly
@@ -231,11 +233,11 @@ public class WorkItemManager {
 				throw new SecurityViolationException("You are not authorized to delegate this work item.");
 			}
 
-			if (method != WorkItemDelegationMethodType.ADD_DELEGATES) {
+			if (method != WorkItemDelegationMethodType.ADD_ASSIGNEES) {
 				throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
 			}
 
-			List<ObjectReferenceType> currentDelegates = workItem.getDelegateRef();
+			List<ObjectReferenceType> currentAssignees = workItem.getAssigneeRef();
 			for (ObjectReferenceType delegate : delegates) {
 				if (delegate.getType() != null && !QNameUtil.match(UserType.COMPLEX_TYPE, delegate.getType())) {
 					throw new IllegalArgumentException("Couldn't add non-user reference as a delegate: " + delegate);
@@ -243,15 +245,16 @@ public class WorkItemManager {
 				if (delegate.getOid() == null) {
 					throw new IllegalArgumentException("Couldn't add no-OID reference as a delegate: " + delegate);
 				}
-				if (!ObjectTypeUtil.containsOid(currentDelegates, delegate.getOid())) {
-					currentDelegates.add(delegate);
+				if (!ObjectTypeUtil.containsOid(currentAssignees, delegate.getOid())) {
+					currentAssignees.add(delegate);
 				}
 			}
-			String delegatesAsString = currentDelegates.stream()
-					.map(d -> "[" + d.getOid() + "]")
-					.collect(Collectors.joining(WorkItemProvider.DELEGATE_SEPARATOR));
+			// TODO
+			String additionalAssigneesAsString = currentAssignees.stream()
+					.map(d -> ADDITIONAL_ASSIGNEES_PREFIX + MiscDataUtil.refToString(d) + ADDITIONAL_ASSIGNEES_SUFFIX)
+					.collect(Collectors.joining(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR));
 			TaskService taskService = activitiEngine.getTaskService();
-			taskService.setVariableLocal(workItemId, WorkItemProvider.DELEGATE_VARIABLE_NAME, delegatesAsString);
+			taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES, additionalAssigneesAsString);
 		} catch (SecurityViolationException|RuntimeException e) {
 			result.recordFatalError("Couldn't delegate work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;

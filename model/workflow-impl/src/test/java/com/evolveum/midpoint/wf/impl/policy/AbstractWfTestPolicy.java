@@ -536,6 +536,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				F_OBJECT_REF,
 				F_TARGET_REF,
 				F_ASSIGNEE_REF,
+				F_ORIGINAL_ASSIGNEE_REF,
 				new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
 
 		List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, modelTask, result);
@@ -720,7 +721,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				WfTestUtil.assertRef("target reference", workItem.getTargetRef(), targetOid, true, true);
 			}
 			WfTestUtil
-					.assertRef("assignee reference", workItem.getAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
+					.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
 			// name is not known, as it is not stored in activiti (only OID is)
 			WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
 			final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
@@ -801,7 +802,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 
 		protected String getCompareKey(WorkItemType workItem) {
-			return workItem.getAssigneeRef().getOid();
+			return workItem.getOriginalAssigneeRef().getOid();
 		}
 
 		public List<ApprovalInstruction> getApprovalSequence() {

@@ -211,6 +211,7 @@ public class ActivitiInterface {
         taskEvent.setProcessInstanceName((String) delegateTask.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
         taskEvent.setProcessInstanceId(delegateTask.getProcessInstanceId());
         taskEvent.setCreateTime(delegateTask.getCreateTime());
+        taskEvent.setDueDate(delegateTask.getDueDate());
         taskEvent.setExecutionId(delegateTask.getExecutionId());
         taskEvent.setOwner(delegateTask.getOwner());
         for (IdentityLink identityLink : delegateTask.getCandidates()) {
