@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.session;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,7 @@ public class RoleCatalogStorage implements PageStorage{
     private SelectableBean<OrgType> collapsedItem = null;                 //collapsed tree item
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
     private AssignmentViewType viewType = AssignmentViewType.ROLE_CATALOG_VIEW;      //the current view type
+    private PrismObject<UserType> targetUser = null;
 
     private ObjectPaging roleCatalogPaging;
 
@@ -141,5 +144,13 @@ public class RoleCatalogStorage implements PageStorage{
 
     public void setSelectedOid(String selectedOid) {
         this.selectedOid = selectedOid;
+    }
+
+    public PrismObject<UserType> getTargetUser() {
+        return targetUser;
+    }
+
+    public void setTargetUser(PrismObject<UserType> targetUser) {
+        this.targetUser = targetUser;
     }
 }
