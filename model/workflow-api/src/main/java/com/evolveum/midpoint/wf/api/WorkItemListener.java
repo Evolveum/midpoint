@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 /**
@@ -38,19 +39,19 @@ public interface WorkItemListener {
     /**
      * This method is called by wf module when a work item is created.
      *
-     * @param workItemName name of the work item
-     * @param assigneeOid OID of the user to which the work item is assigned
-     * @param instanceState externalized process instance state
+     * @param workItem the work item
      */
-    public void onWorkItemCreation(WorkItemType workItem, Task wfTask, OperationResult result);
+    void onWorkItemCreation(WorkItemType workItem, Task wfTask, OperationResult result);
 
     /**
      * This method is called by wf module when a work item is completed.
      *
-     * @param workItemName name of the work item
-     * @param assigneeOid OID of the user to which the work item is assigned
-     * @param instanceState externalized process instance state
-     * @param decision decision of the user
+     * @param workItem the work item
      */
-    public void onWorkItemCompletion(WorkItemType workItem, Task wfTask, OperationResult result);
+    void onWorkItemCompletion(WorkItemType workItem, Task wfTask, OperationResult result);
+
+	/**
+	 * EXPERIMENTAL
+	 */
+	void onWorkItemNotificationAction(WorkItemType workItem, WorkItemNotificationActionType notificationAction, Task wfTask, OperationResult result);
 }

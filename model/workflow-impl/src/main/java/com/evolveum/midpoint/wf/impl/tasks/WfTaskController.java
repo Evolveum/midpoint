@@ -46,6 +46,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -374,6 +375,13 @@ public class WfTaskController {
     private void notifyWorkItemCreated(WorkItemType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
             workItemListener.onWorkItemCreation(workItem, wfTask.getTask(), result);
+        }
+    }
+
+    public void executeWorkItemNotificationAction(WorkItemType workItem, WorkItemNotificationActionType notificationAction,
+			WfTask wfTask, OperationResult result) throws SchemaException {
+        for (WorkItemListener workItemListener : workItemListeners) {
+            workItemListener.onWorkItemNotificationAction(workItem, notificationAction, wfTask.getTask(), result);
         }
     }
 

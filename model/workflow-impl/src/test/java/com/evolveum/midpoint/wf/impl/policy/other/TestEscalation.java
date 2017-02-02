@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.policy.other;
 
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -33,6 +34,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author mederly
@@ -52,14 +55,18 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	@Autowired
 	private WorkflowService workflowService;
 
+	protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner.xml");
+	protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
+
 	protected static final File TEST_ESCALATION_RESOURCE_DIR = new File("src/test/resources/policy/escalation");
 	protected static final File METAROLE_ESCALATED_FILE = new File(TEST_ESCALATION_RESOURCE_DIR, "metarole-escalated.xml");
 	protected static final File ROLE_E1_FILE = new File(TEST_ESCALATION_RESOURCE_DIR, "role-e1.xml");
 
 	protected String metaroleEscalatedOid;
 	protected String roleE1Oid;
-	private PrismObject<UserType> userLead1, userLead3;
+	private PrismObject<UserType> userLead1, userLead2;
 	private String workItemId;
+	private String approvalTaskOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -67,8 +74,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		metaroleEscalatedOid = repoAddObjectFromFile(METAROLE_ESCALATED_FILE, initResult).getOid();
 		roleE1Oid = repoAddObjectFromFile(ROLE_E1_FILE, initResult).getOid();
 
+		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
+
 		userLead1 = getUser(userLead1Oid);
-		userLead3 = getUser(userLead3Oid);
+		userLead2 = getUser(userLead2Oid);
 	}
 
 	@Test
@@ -86,13 +95,87 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		WorkItemType workItem = getWorkItem(task, result);
 		workItemId = workItem.getWorkItemId();
 
-		String wfTaskOid = workItem.getTaskRef().getOid();
-		PrismObject<TaskType> wfTask = getTask(wfTaskOid);
+		approvalTaskOid = workItem.getTaskRef().getOid();
+		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
 
 		IntegrationTestTools.display("work item", workItem);
 		IntegrationTestTools.display("workflow task", wfTask);
 
-		//PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid);
+		assertEquals("Wrong # of triggers", 3, wfTask.asObjectable().getTrigger().size());
+
+		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid);
+		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
+	}
+
+	@Test
+	public void test110Notify() throws Exception {
+		final String TEST_NAME = "test110Notify";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clock.overrideDuration("P6D");			// at P5D there's a notify action
+		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+
+		// TODO assert notifications
+
+		WorkItemType workItem = getWorkItem(task, result);
+		String wfTaskOid = workItem.getTaskRef().getOid();
+		PrismObject<TaskType> wfTask = getTask(wfTaskOid);
+		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
+
+		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid);
+		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
+	}
+
+	@Test
+	public void test120Delegate() throws Exception {
+		final String TEST_NAME = "test120Delegate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clock.resetOverride();
+		clock.overrideDuration("P13D");		// at -P2D (i.e. P12D) there is a delegate action
+		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+
+		WorkItemType workItem = getWorkItem(task, result);
+
+		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		assertEquals("Wrong # of triggers", 1, wfTask.asObjectable().getTrigger().size());
+
+		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
+		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
+
+	}
+
+	@Test
+	public void test130Complete() throws Exception {
+		final String TEST_NAME = "test130Complete";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clock.resetOverride();
+		clock.overrideDuration("P15D");		// at 0 (i.e. P14D) there is a delegate action
+		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+
+//		WorkItemType workItem = getWorkItem(task, result);
+
+		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
+		assertEquals("Wrong # of triggers", 0, wfTask.asObjectable().getTrigger().size());
+
+		assertAssignedRole(userJackOid, roleE1Oid, task, result);
+
+//		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
+//		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
+
 	}
 
 }

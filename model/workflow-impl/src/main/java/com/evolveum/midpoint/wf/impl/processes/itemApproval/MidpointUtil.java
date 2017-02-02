@@ -177,7 +177,7 @@ public class MidpointUtil {
 					workItemIdProp.addRealValue(delegateTask.getId());
 					extension.asPrismContainerValue().add(workItemIdProp);
 					PrismContainer<WorkItemActionsType> workItemActionsCont = workItemActionsDef.instantiate();
-					workItemActionsCont.add(timedAction.asPrismContainerValue().clone());
+					workItemActionsCont.add(timedAction.getActions().asPrismContainerValue().clone());
 					extension.asPrismContainerValue().add(workItemActionsCont);
 					triggers.add(trigger);
 				}

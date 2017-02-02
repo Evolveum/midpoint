@@ -520,4 +520,13 @@ public class ObjectTypeUtil {
 	public static boolean containsOid(Collection<ObjectReferenceType> values, @NotNull String oid) {
 		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
 	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> T getExtensionItemRealValue(@Nullable ExtensionType extension, @NotNull QName itemName) {
+    	if (extension == null) {
+    		return null;
+		}
+		Item item = extension.asPrismContainerValue().findItem(itemName);
+    	return item != null ? (T) item.getRealValue() : null;
+	}
 }

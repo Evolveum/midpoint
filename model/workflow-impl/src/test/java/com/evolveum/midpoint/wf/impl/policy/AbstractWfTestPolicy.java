@@ -477,6 +477,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		return rv;
 	}
 
+	protected PrismReference ref(ObjectReferenceType ort) {
+		return ref(Collections.singletonList(ort));
+	}
+
 	protected abstract class TestDetails {
 		protected LensContext createModelContext(OperationResult result) throws Exception {
 			return null;

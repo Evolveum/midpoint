@@ -246,7 +246,7 @@ public class WorkItemManager {
 					throw new IllegalArgumentException("Couldn't add no-OID reference as a delegate: " + delegate);
 				}
 				if (!ObjectTypeUtil.containsOid(currentAssignees, delegate.getOid())) {
-					currentAssignees.add(delegate);
+					currentAssignees.add(delegate.clone());
 				}
 			}
 			// TODO

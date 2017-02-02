@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.wf.util;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
+
 /**
  * @author mederly
  */
@@ -61,6 +63,17 @@ public class ApprovalUtils {
     		return value ? DECISION_APPROVED_NICE : DECISION_REJECTED_NICE;
 		} else {
     		return decision;
+		}
+	}
+
+	public static String approvalStringValue(WorkItemOutcomeType outcome) {
+		if (outcome == null) {
+			return null;
+		}
+		switch (outcome) {
+			case APPROVE: return DECISION_APPROVED;
+			case REJECT: return DECISION_REJECTED;
+			default: throw new IllegalArgumentException("outcome: " + outcome);
 		}
 	}
 }

@@ -415,6 +415,9 @@ public class WorkItemProvider {
 
     private WorkItemType taskToWorkItem(Task task, Map<String, Object> processVariables, boolean resolveTask, boolean resolveAssignee,
             boolean resolveCandidates, boolean fetchAllVariables, OperationResult result) {
+    	if (task == null) {
+    		return null;
+		}
 		TaskExtract taskExtract = new TaskExtract(task, processVariables);
 		return taskExtractToWorkItem(taskExtract, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result);
     }

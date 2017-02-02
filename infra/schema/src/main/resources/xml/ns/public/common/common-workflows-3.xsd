@@ -207,6 +207,8 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="time" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -237,7 +239,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="complete" type="tns:WorkItemOutcomeType" minOccurs="0" maxOccurs="1">
+			<xsd:element name="complete" type="tns:CompleteWorkItemActionType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						Complete this work item with a given result.
@@ -246,8 +248,8 @@
 				</xsd:annotation>
 			</xsd:element>
 			<!-- TODO maybe also completeLevel -->
-			<!-- TODO something like notify -->
-			<xsd:element name="delegate" type="tns:WorkItemDelegationType" minOccurs="0">
+			<xsd:element name="notify" type="tns:WorkItemNotificationActionType" minOccurs="0"/>
+			<xsd:element name="delegate" type="tns:DelegateWorkItemActionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Delegate (escalate) this work item.
@@ -257,10 +259,26 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
-	<xsd:element name="workItemActions" type="tns:WorkItemActionsType" />
-	<xsd:element name="workItemId" type="xsd:string" />
 
-	<xsd:complexType name="WorkItemDelegationType">
+	<!-- TODO is this ok? -->
+	<xsd:element name="workItemActions" type="tns:WorkItemActionsType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:element name="workItemId" type="xsd:string">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="AbstractWorkItemActionType">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO
@@ -272,55 +290,115 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specific approver to replace the current one.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Expression giving an approver to replace the current one.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						<p>
-							What relation(s) to use when determining approvers? E.g. "approver", "owner",
-							"securityApprover", and so on.
-						</p>
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="outcomeIfNoApprovers" type="c:WorkItemOutcomeType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						What is the outcome (of this work item) if there is no approver to delegate/escalate to?
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="duration" type="xsd:duration" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Duration of the work item after delegation. If not specified, the deadline of the work item
-						is not changed (this is meaningful only if the delegation occurred before the original deadline).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<!--<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">-->
-				<!--<xsd:annotation>-->
-					<!--<xsd:documentation>-->
-						<!--What actions are to be applied to work items when given timer(s) occur; they are relative-->
-						<!--to the moment of delegation (positive ones) and to the new deadline (zero or negative ones).-->
-						<!--EXPERIMENTAL-->
-					<!--</xsd:documentation>-->
-				<!--</xsd:annotation>-->
-			<!--</xsd:element>-->
+			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
 		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="CompleteWorkItemActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkItemActionType">
+				<xsd:sequence>
+					<xsd:element name="outcome" type="tns:WorkItemOutcomeType" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemNotificationActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkItemActionType">
+				<!-- TODO some parameters could come here, like which notification to invoke. -->
+				<!-- Currently standard WorkItemEvent is produced -->
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="DelegateWorkItemActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkItemActionType">
+				<xsd:sequence>
+					<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specific approver to replace the current one.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Expression giving an approver to replace the current one.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									What relation(s) to use when determining approvers? E.g. "approver", "owner",
+									"securityApprover", and so on.
+								</p>
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="outcomeIfNoApprovers" type="c:WorkItemOutcomeType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								What is the outcome (of this work item) if there is no approver to delegate/escalate to?
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="duration" type="xsd:duration" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Duration of the work item after delegation. If not specified, the deadline of the work item
+								is not changed (this is meaningful only if the delegation occurred before the original deadline).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<!--<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">-->
+					<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+					<!--What actions are to be applied to work items when given timer(s) occur; they are relative-->
+					<!--to the moment of delegation (positive ones) and to the new deadline (zero or negative ones).-->
+					<!--EXPERIMENTAL-->
+					<!--</xsd:documentation>-->
+					<!--</xsd:annotation>-->
+					<!--</xsd:element>-->
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:simpleType name="WorkItemDelegationMethodType">

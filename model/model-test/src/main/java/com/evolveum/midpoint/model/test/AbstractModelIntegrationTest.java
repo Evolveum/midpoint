@@ -2420,19 +2420,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+		return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
+	}
+
+	protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
 		Task origTask = taskManager.getTask(taskOid, waitResult);
-		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult);
+		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult, kickTheTask);
 	}
 	
 	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout) throws Exception {
+		return waitForTaskNextRun(origTask, checkSubresult, timeout, false);
+	}
+
+	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
-		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult);
+		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult, kickTheTask);
 	}
 	
-	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult) throws Exception {
+	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult, boolean kickTheTask) throws Exception {
 		final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
 		final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
+		if (kickTheTask) {
+			taskManager.scheduleTaskNow(origTask, waitResult);
+		}
 		final Holder<OperationResult> taskResultHolder = new Holder<>();
 		Checker checker = new Checker() {
 			@Override

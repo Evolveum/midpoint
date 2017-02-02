@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -82,7 +83,15 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
         return createWorkItemEvent(workItem, wfTask, ChangeType.DELETE);
     }
 
-    private WorkItemEvent createWorkItemEvent(WorkItemType workItemType, Task wfTask, ChangeType changeType) {
+	@Override
+	public WorkItemEvent createWorkItemEventForNotificationAction(WorkItemType workItem,
+			WorkItemNotificationActionType notificationAction, Task wfTask, OperationResult result) {
+		WorkItemEvent event = createWorkItemEvent(workItem, wfTask, ChangeType.MODIFY);
+		event.setNotificationAction(notificationAction);
+		return event;
+	}
+
+	private WorkItemEvent createWorkItemEvent(WorkItemType workItemType, Task wfTask, ChangeType changeType) {
         // TODO!!!
 		SimpleObjectRefImpl assignee = workItemType.getOriginalAssigneeRef() != null ?
 				new SimpleObjectRefImpl(notificationsUtil, workItemType.getOriginalAssigneeRef()) : null;

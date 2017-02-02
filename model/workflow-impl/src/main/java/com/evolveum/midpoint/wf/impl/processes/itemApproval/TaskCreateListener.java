@@ -35,6 +35,8 @@ public class TaskCreateListener implements TaskListener {
 	public void notify(DelegateTask delegateTask) {
 		OperationResult result = new OperationResult(TaskCreateListener.class.getName() + ".notify");
 		Task wfTask = ActivitiUtil.getTask(delegateTask.getExecution(), result);
+
+		// duration/deadline
 		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
 		if (level == null) {
 			throw new IllegalStateException("No approval level information in " + delegateTask);
@@ -42,12 +44,16 @@ public class TaskCreateListener implements TaskListener {
 		if (level.getDuration() != null) {
 			MidpointUtil.setTaskDeadline(delegateTask, level.getDuration(), result);
 		}
+
+		// triggers
 		MidpointUtil.createTriggersForTimedActions(delegateTask, wfTask, level.getTimedActions(), result);
 
+		// originalAssignee
 		String assignee = delegateTask.getAssignee();
 		if (assignee != null) {
 			delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, assignee);
 		}
+
 		new MidPointTaskListener().notify(delegateTask);
 	}
 }

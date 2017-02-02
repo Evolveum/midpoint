@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 /**
@@ -42,4 +43,7 @@ public interface WorkflowEventCreator {
     WorkItemEvent createWorkItemCreateEvent(WorkItemType workItem, Task wfTask, OperationResult result);
 
     WorkItemEvent createWorkItemCompleteEvent(WorkItemType workItem, Task wfTask, OperationResult result);
+
+    WorkItemEvent createWorkItemEventForNotificationAction(WorkItemType workItem, WorkItemNotificationActionType notificationAction,
+            Task wfTask, OperationResult result);
 }

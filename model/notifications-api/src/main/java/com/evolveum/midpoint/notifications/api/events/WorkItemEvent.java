@@ -20,10 +20,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +36,7 @@ public class WorkItemEvent extends WorkflowEvent {
 
     @NotNull private final WorkItemType workItem;
     private final SimpleObjectRef assignee;
+    private WorkItemNotificationActionType notificationAction;		// temporary implementation
 
     public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, @NotNull WorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, WfContextType workflowContext) {
@@ -66,7 +64,16 @@ public class WorkItemEvent extends WorkflowEvent {
         return assignee;
     }
 
-    @Override
+	public WorkItemNotificationActionType getNotificationAction() {
+		return notificationAction;
+	}
+
+	public void setNotificationAction(
+			WorkItemNotificationActionType notificationAction) {
+		this.notificationAction = notificationAction;
+	}
+
+	@Override
     public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
         variables.put(SchemaConstants.C_ASSIGNEE, assignee != null ? assignee.resolveObjectType(result, false) : null);
