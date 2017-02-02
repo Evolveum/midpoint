@@ -6597,6 +6597,15 @@
 		        	<xsd:element name="targetType" type="xsd:QName" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
 		        	<xsd:element name="oid" type="xsd:string" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				Fixed OID. If this OID is present then no search will be done. 
+		        				
+		        				It is planned to be used to "remeber" the search result. E.g. to
+		        				search for the target on import and then store the fixed OID.
+		        				But this is not yet implemented.
+		        			</xsd:documentation>
+		        		</xsd:annotation>
 		        	</xsd:element>
 		        	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
@@ -6612,6 +6621,13 @@
 		        	</xsd:element>
                     <xsd:element name="searchStrategy" type="tns:ObjectSearchStrategyType" minOccurs="0" maxOccurs="1">
                     </xsd:element>
+                    <xsd:element name="defaultTargetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				Reference that will be used if no target is found.
+		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
 		        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        	</xsd:element>
 		        	<xsd:element name="populateObject" type="tns:PopulateType" minOccurs="0">
@@ -6688,13 +6704,6 @@
 		        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
 		        	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
-		        	</xsd:element>
-		        	<xsd:element name="defaultTargetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-		        		<xsd:annotation>
-		        			<xsd:documentation>
-		        				Reference that will be used if no target is found.
-		        			</xsd:documentation>
-		        		</xsd:annotation>
 		        	</xsd:element>
 		        </xsd:sequence>
 	        </xsd:extension>

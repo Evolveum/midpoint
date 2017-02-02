@@ -1473,7 +1473,61 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // Postcondition
         assertMonkeyIslandOrgSanity();
     }
+
+    /**
+     * MID-3545
+     */
+    @Test
+    public void test441JackModifyEmployeeTypeRoleCaptain() throws Exception {
+        final String TEST_NAME = "test441JackModifyEmployeeTypeRoleCaptain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("user before", userBefore);
+        
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "ROLE:Captain");
+
+        // THEN
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
     
+    /**
+     * MID-3545
+     */
+    @Test
+    public void test443JackModifyEmployeeTypeRoleNotExist() throws Exception {
+        final String TEST_NAME = "test443JackModifyEmployeeTypeRoleNotExist";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("user before", userBefore);
+        
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "ROLE:TheRoleThatDoesNotExist");
+
+        // THEN
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        assertAssignedRole(userAfter, ROLE_EMPTY_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
     
     /**
      * MID-3545
@@ -1488,7 +1542,6 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("user before", userBefore);
-        
         
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result);
