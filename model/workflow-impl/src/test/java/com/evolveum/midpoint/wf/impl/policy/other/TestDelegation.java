@@ -17,14 +17,17 @@
 package com.evolveum.midpoint.wf.impl.policy.other;
 
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,7 @@ import org.testng.annotations.Test;
 
 import java.util.Collections;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.ADD_ASSIGNEES;
 import static org.testng.AssertJUnit.fail;
@@ -58,6 +62,14 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
 	private PrismObject<UserType> userLead1, userLead3;
 	private String workItemId;
+	private String taskOid;
+
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+
+		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+	}
 
 	@Test
 	public void test100CreateTask() throws Exception {
@@ -76,6 +88,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		workItemId = workItem.getWorkItemId();
+		taskOid = workItem.getTaskRef().getOid();
+
+		display("work item", workItem);
+		display("task", getObjectViaRepo(TaskType.class, taskOid));
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid);
 	}
@@ -115,6 +131,9 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertSuccess(result);
 
 		WorkItemType workItem = getWorkItem(task, result);
+		display("work item", workItem);
+		display("task", getObjectViaRepo(TaskType.class, taskOid));
+
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 	}

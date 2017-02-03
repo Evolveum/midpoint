@@ -160,7 +160,7 @@ public class ParamsTypeUtil {
 			} else if (value instanceof Element || value instanceof JAXBElement<?>) {
 				entryType.setEntryValue((JAXBElement<?>) value);
 			// FIXME: this is really bad code ... it means that 'our' JAXB object should be put as is
-			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_2".equals(value.getClass().getPackage().getName())) {
+			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_3".equals(value.getClass().getPackage().getName())) {
 				JAXBElement<Object> o = new JAXBElement<Object>(SchemaConstants.C_PARAM_VALUE, Object.class, value);
 				entryType.setEntryValue(o);
 			} else {

@@ -452,6 +452,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	protected WorkItemType getWorkItem(Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+		//Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(WorkItemType.F_TASK_REF);
 		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
 		if (itemsAll.size() != 1) {
 			System.out.println("Unexpected # of work items: " + itemsAll.size());

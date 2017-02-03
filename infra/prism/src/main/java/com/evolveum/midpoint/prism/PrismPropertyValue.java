@@ -47,6 +47,7 @@ import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 /**
@@ -569,10 +570,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        boolean wasIdent = false;
+        boolean wasIndent = false;
         if (DebugUtil.isDetailedDebugDump()) {
         	DebugUtil.indentDebugDump(sb, indent);
-        	wasIdent = true;
+        	wasIndent = true;
         	sb.append("PPV(");
 	        dumpSuffix(sb);
 	        sb.append("):");
@@ -582,27 +583,40 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
             	sb.append(" ").append(value.getClass().getSimpleName()).append(":");
             }
         	if (value instanceof DebugDumpable) {
-        		if (wasIdent) {
+        		if (wasIndent) {
         			sb.append("\n");
         		}
         		sb.append(((DebugDumpable)value).debugDump(indent + 1));
         	} else {
-            	if (!wasIdent) {
-                	DebugUtil.indentDebugDump(sb, indent);
-                	wasIdent = true;
-            	}
-        		sb.append(PrettyPrinter.prettyPrint(value));
+				if (!wasIndent) {
+					DebugUtil.indentDebugDump(sb, indent);
+				}
+				debugDumpValue(sb, indent, value, prismContext);
         	}
         } else {
-        	if (!wasIdent) {
+        	if (!wasIndent) {
             	DebugUtil.indentDebugDump(sb, indent);
-            	wasIdent = true;
-        	}
+			}
             sb.append("null");
         }
 
         return sb.toString();
     }
+
+	public static void debugDumpValue(StringBuilder sb, int indent, Object value, PrismContext prismContext) {
+		String formatted;
+		if (DebugUtil.getPrettyPrintBeansAs() != null && value != null && prismContext != null
+				&& value.getClass().getAnnotation(XmlType.class) != null) {
+			try {
+				formatted = prismContext.serializerFor(DebugUtil.getPrettyPrintBeansAs()).serializeRealValue(value, new QName("value"));
+			} catch (SchemaException e) {
+				formatted = PrettyPrinter.prettyPrint(value);
+			}
+		} else {
+			formatted = PrettyPrinter.prettyPrint(value);
+		}
+		sb.append(DebugUtil.fixIndentInMultiline(indent, DebugDumpable.INDENT_STRING, formatted));
+	}
 
 	@Override
 	public String toString() {

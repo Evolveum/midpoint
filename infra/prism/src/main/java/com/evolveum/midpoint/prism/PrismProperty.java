@@ -497,73 +497,72 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         }
         
         List<PrismPropertyValue<T>> values = getValues();
-        if (values == null) {
-            sb.append("null");
-        } else if (values.isEmpty()) {
-        	sb.append("[]");
-        } else {
-        	boolean multiline = false;
-        	PrismPropertyValue<T> firstVal = values.iterator().next();
-        	if (firstVal != null && !firstVal.isRaw() && firstVal.getValue() != null) {
-        		if (DebugUtil.isDetailedDebugDump() && firstVal.getValue() instanceof DebugDumpable) {
-        			multiline = true;
-        		} else {
-        			if (PrettyPrinter.prettyPrint(firstVal.getValue()).length() > MAX_SINGLELINE_LEN) {
-        				multiline = true;
-        			}
-        		}
-        	}
-        	if (multiline) {
-        		sb.append("\n");
-	            Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
-	            while(iterator.hasNext()) {
-	            	PrismPropertyValue<T> value = iterator.next();
-	            	if (value.isRaw()) {
-	            		sb.append(formatRawValueForDump(value.getRawElement()));
-	            		sb.append(" (raw)");
-	            	} else {
-		            	T realValue = value.getValue();
-		            	if (realValue instanceof DebugDumpable) {
-		            		sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
-		            	} else {
-		            		DebugUtil.indentDebugDump(sb, indent + 1);
-			            	if (DebugUtil.isDetailedDebugDump()) {
-			            		sb.append(PrettyPrinter.prettyPrint(value));
-			            	} else {
-			            		sb.append(PrettyPrinter.prettyPrint(value.getValue()));
-			            	}
-		            	}
-	            	}
-	                if (iterator.hasNext()) {
-	                	sb.append("\n");
-	                }
-	            }
-        	} else {
-        		if (isMultivalue) {
-        			sb.append("[ ");
-        		}
-	            Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
-	            while(iterator.hasNext()) {
-	            	PrismPropertyValue<T> value = iterator.next();
-	            	if (value.isRaw()) {
-	            		sb.append(formatRawValueForDump(value.getRawElement()));
-	            		sb.append(" (raw)");
-	            	} else {
-		            	if (DebugUtil.isDetailedDebugDump()) {
-		            		sb.append(PrettyPrinter.prettyPrint(value));
-		            	} else {
-		            		sb.append(value.getValue());
-		            	}
-	            	}
-	                if (iterator.hasNext()) {
-	                	sb.append(", ");
-	                }
-	            }
-	            if (isMultivalue) {
-	            	sb.append(" ]");
-	            }
-        	}
-        }
+		if (values.isEmpty()) {
+			sb.append("[]");
+		} else {
+			boolean multiline = false;
+			PrismPropertyValue<T> firstVal = values.iterator().next();
+			if (firstVal != null && !firstVal.isRaw() && firstVal.getValue() != null) {
+				if (DebugUtil.isDetailedDebugDump() && firstVal.getValue() instanceof DebugDumpable) {
+					multiline = true;
+				} else {
+					if (PrettyPrinter.prettyPrint(firstVal.getValue()).length() > MAX_SINGLELINE_LEN) {
+						multiline = true;
+					}
+				}
+			}
+			if (multiline) {
+				sb.append("\n");
+				Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
+				while(iterator.hasNext()) {
+					PrismPropertyValue<T> value = iterator.next();
+					if (value.isRaw()) {
+						sb.append(formatRawValueForDump(value.getRawElement()));
+						sb.append(" (raw)");
+					} else {
+						T realValue = value.getValue();
+						if (realValue instanceof DebugDumpable) {
+							sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
+						} else {
+							DebugUtil.indentDebugDump(sb, indent + 1);
+							if (DebugUtil.isDetailedDebugDump()) {
+								sb.append(PrettyPrinter.prettyPrint(value));
+							} else {
+								PrismPropertyValue.debugDumpValue(sb, indent + 1, value.getValue(), prismContext);
+								//sb.append(PrettyPrinter.prettyPrint(value.getValue()));
+							}
+						}
+					}
+					if (iterator.hasNext()) {
+						sb.append("\n");
+					}
+				}
+			} else {
+				if (isMultivalue) {
+					sb.append("[ ");
+				}
+				Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
+				while(iterator.hasNext()) {
+					PrismPropertyValue<T> value = iterator.next();
+					if (value.isRaw()) {
+						sb.append(formatRawValueForDump(value.getRawElement()));
+						sb.append(" (raw)");
+					} else {
+						if (DebugUtil.isDetailedDebugDump()) {
+							sb.append(PrettyPrinter.prettyPrint(value));
+						} else {
+							sb.append(value.getValue());
+						}
+					}
+					if (iterator.hasNext()) {
+						sb.append(", ");
+					}
+				}
+				if (isMultivalue) {
+					sb.append(" ]");
+				}
+			}
+		}
         
         if (def != null && DebugUtil.isDetailedDebugDump()) {
             sb.append(" def(");

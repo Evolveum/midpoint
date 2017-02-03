@@ -244,13 +244,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		setResourceSchema(null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance#configure
-	 * (com.evolveum.midpoint.xml.ns._public.common.common_2.Configuration)
-	 */
 	@Override
 	public void configure(PrismContainerValue<?> configuration, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
