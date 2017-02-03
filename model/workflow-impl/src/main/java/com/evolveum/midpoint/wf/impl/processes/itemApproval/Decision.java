@@ -18,12 +18,17 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
+import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedDecisionReasonType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -35,8 +40,12 @@ public class Decision implements Serializable {
 
     private static final long serialVersionUID = -542549699933865819L;
 
+    private LightweightObjectRef approver;
+    private LightweightObjectRef originalAssignee;
     private String approverName;
     private String approverOid;
+    private String originalAssigneeName;
+    private String originalAssigneeOid;
     private boolean approved;
     private String comment;
     private Date date;
@@ -44,6 +53,7 @@ public class Decision implements Serializable {
     private String stageName;
     private String stageDisplayName;
     private String additionalDelta;
+    private AutomatedDecisionReasonType automatedDecisionReason;
 
     public String getComment() {
         return comment;
@@ -61,7 +71,23 @@ public class Decision implements Serializable {
         this.approved = approved;
     }
 
-    public String getApproverName() {
+	public LightweightObjectRef getApprover() {
+		return approver;
+	}
+
+	public void setApprover(@NotNull UserType user) {
+    	approver = new LightweightObjectRefImpl(ObjectTypeUtil.createObjectRef(user));
+	}
+
+	public LightweightObjectRef getOriginalAssignee() {
+		return originalAssignee;
+	}
+
+	public void setOriginalAssignee(LightweightObjectRef originalAssignee) {
+		this.originalAssignee = originalAssignee;
+	}
+
+	public String getApproverName() {
         return approverName;
     }
 
@@ -77,7 +103,23 @@ public class Decision implements Serializable {
         this.approverOid = approverOid;
     }
 
-    public Date getDate() {
+	public String getOriginalAssigneeName() {
+		return originalAssigneeName;
+	}
+
+	public void setOriginalAssigneeName(String originalAssigneeName) {
+		this.originalAssigneeName = originalAssigneeName;
+	}
+
+	public String getOriginalAssigneeOid() {
+		return originalAssigneeOid;
+	}
+
+	public void setOriginalAssigneeOid(String originalAssigneeOid) {
+		this.originalAssigneeOid = originalAssigneeOid;
+	}
+
+	public Date getDate() {
         return date;
     }
 
@@ -109,6 +151,15 @@ public class Decision implements Serializable {
 		this.stageDisplayName = stageDisplayName;
 	}
 
+	public AutomatedDecisionReasonType getAutomatedDecisionReason() {
+		return automatedDecisionReason;
+	}
+
+	public void setAutomatedDecisionReason(
+			AutomatedDecisionReasonType automatedDecisionReason) {
+		this.automatedDecisionReason = automatedDecisionReason;
+	}
+
 	@Override
     public String toString() {
         return "Decision: approved=" + isApproved() + ", comment=" + getComment() + ", approver=" + getApproverName()
@@ -129,19 +180,27 @@ public class Decision implements Serializable {
         decisionType.setApproved(isApproved());
         decisionType.setComment(getComment());
         decisionType.setDateTime(XmlTypeConverter.createXMLGregorianCalendar(getDate()));
-        if (approverOid != null) {
-            ObjectReferenceType ort = new ObjectReferenceType();
-            ort.setOid(approverOid);
-            ort.setType(UserType.COMPLEX_TYPE);
-            ort.setTargetName(new PolyStringType(approverName));
-            decisionType.setApproverRef(ort);
-        }
+		decisionType.setApproverRef(createReference(approverOid, approverName));
+		decisionType.setOriginalAssigneeRef(createReference(originalAssigneeOid, originalAssigneeName));
         decisionType.setStageNumber(stageNumber);
         decisionType.setStageName(stageName);
         decisionType.setStageDisplayName(stageDisplayName);
         if (additionalDelta != null) {
         	decisionType.setAdditionalDelta(prismContext.parserFor(additionalDelta).parseRealValue(ObjectDeltaType.class));
 		}
+		decisionType.setAutomatedDecisionReason(automatedDecisionReason);
         return decisionType;
     }
+
+	private ObjectReferenceType createReference(String oid, String name) {
+		if (oid != null) {
+			ObjectReferenceType ort = new ObjectReferenceType();
+			ort.setOid(approverOid);
+			ort.setType(UserType.COMPLEX_TYPE);
+			ort.setTargetName(new PolyStringType(name));
+			return ort;
+		} else {
+			return null;
+		}
+	}
 }

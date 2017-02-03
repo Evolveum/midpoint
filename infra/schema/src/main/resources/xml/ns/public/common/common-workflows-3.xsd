@@ -129,6 +129,9 @@
 						What is the outcome (of this level) if there are no approvers? E.g. there are no users that have
 						been assigned a role as an approver; or a user has no managers, etc.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupExpansion" type="c:GroupExpansionType" minOccurs="0">
@@ -146,13 +149,14 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Form to be displayed e.g. to present or request additional information.
-						HIGHLY EXPERIMENTAL
+						EXPERIMENTAL
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<!-- TODO some hooks to allow ad-hoc customizations like making a form field obligatory or optional depending on the stage etc. -->
 			<xsd:element name="additionalInformation" type="c:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -163,7 +167,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<!-- TODO some hooks to allow ad-hoc customizations like making a form field obligatory or optional depending on the stage etc. -->
 			<xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -199,7 +202,8 @@
 	<xsd:complexType name="WorkItemTimedActionsType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Actions that should be applied to a work item in given moments (relative to work item creation
+				or work item deadline).
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
@@ -215,6 +219,8 @@
 						Time(s) at which these actions are to be executed. No time or zero time means
 						at the work item deadline. Positive time intervals are meant "after work item start".
 						Negative time intervals are meant "before work item deadline".
+						WILL BE CHANGED BEFORE RELEASE
+						TODO ability to specify e.g. "1 day after deadline"
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -231,7 +237,7 @@
 	<xsd:complexType name="WorkItemActionsType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Actions to execute.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
@@ -243,24 +249,29 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Complete this work item with a given result.
-						TODO
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<!-- TODO maybe also completeLevel -->
-			<xsd:element name="notify" type="tns:WorkItemNotificationActionType" minOccurs="0"/>
-			<xsd:element name="delegate" type="tns:DelegateWorkItemActionType" minOccurs="0">
+			<xsd:element name="notify" type="tns:WorkItemNotificationActionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Send a notification.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="delegate" type="tns:DelegateWorkItemActionType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						Delegate (escalate) this work item.
-						TODO
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<!-- TODO is this ok? -->
+	<!-- Elements to be stored in trigger extension -->
+	<!-- TODO is this ok? Is it really necessary for extension elements to reside outside common namespace? -->
 	<xsd:element name="workItemActions" type="tns:WorkItemActionsType">
 		<xsd:annotation>
 			<xsd:appinfo>
@@ -328,7 +339,7 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractWorkItemActionType">
-				<!-- TODO some parameters could come here, like which notification to invoke. -->
+				<!-- TODO some parameters could come here, like which notification to invoke. Maybe at least custom notifier. -->
 				<!-- Currently standard WorkItemEvent is produced -->
 			</xsd:extension>
 		</xsd:complexContent>
@@ -355,13 +366,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Expression giving an approver to replace the current one.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
 					<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -372,6 +376,15 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Expression giving an approver to replace the current one.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<!-- Evaluation strategy is always "first decides", because we don't create new work items.
+					     So whoever decides first, closes this work item. -->
 					<xsd:element name="outcomeIfNoApprovers" type="c:WorkItemOutcomeType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -379,11 +392,22 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<!-- TODO group expansion. But we currently don't manipulate with candidate users/groups, so it's
+					     not possible to delegate to roles now. -->
+					<!-- "automaticallyApproved" is not supported yet. Can be simulated with approverExpression
+					     + outcomeIfNoApprovers. -->
 					<xsd:element name="duration" type="xsd:duration" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								Duration of the work item after delegation. If not specified, the deadline of the work item
 								is not changed (this is meaningful only if the delegation occurred before the original deadline).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								How to delegate the work item? Default is "replace assignees".
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -1186,10 +1210,64 @@
     </xsd:complexType>
     <xsd:element name="wfContextType" type="tns:WfContextType" />
 
-    <xsd:complexType name="DecisionType">
+	<xsd:complexType name="WfProcessEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Any event occurring during process instance execution that needs to be recorded, e.g. a decision
+				done by a user.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="timestamp" type="xsd:dateTime">
+				<xsd:annotation>
+					<xsd:documentation>
+						Time in which the event occurred.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workItemId" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						ID of the work item (activiti task) this event is related to. May be empty for events
+						not related to any work item, e.g. some kinds of automated approvals.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--<xsd:element name="operational" type="xsd:boolean" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--A hint that this event needs not be displayed in GUI. -->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WfDecisionEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Event describing the decision done (by user or automatically).
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WfProcessEventType">
+				<xsd:sequence>
+					<xsd:element name="decision" type="tns:DecisionType" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="DecisionType">
         <xsd:annotation>
             <xsd:documentation>
-                Basic information on a user decision in context of a work item.
+                Basic information on a user (or automated) decision in context of a work item.
 
                 This structure is meant to describe the outcome of a work items in various contexts,
                 although currently it is used only within the generalized item approval process.
@@ -1199,7 +1277,7 @@
             <xsd:element name="approverRef" type="c:ObjectReferenceType">
                 <xsd:annotation>
 					<xsd:documentation>
-						User who actually decided on this work item.
+						User who actually decided on this work item. May be empty in the case of automated decision.
 					</xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -1264,9 +1342,50 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="automatedDecisionReason" type="tns:AutomatedDecisionReasonType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reason for automated decision, if applicable.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
     <xsd:element name="decisionType" type="tns:DecisionType" />
+
+	<xsd:simpleType name="AutomatedDecisionReasonType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Reason for automated decision.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="autoApprovalCondition">
+				<xsd:annotation>
+					<xsd:documentation>
+						Approved automatically by the auto-approval condition.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="AUTO_APPROVAL_CONDITION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="noApproversFound">
+				<xsd:annotation>
+					<xsd:documentation>
+						Approved/rejected automatically because there were no approvers found.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NO_APPROVERS_FOUND"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
     <xsd:complexType name="WfProcessorSpecificStateType">
         <xsd:annotation>

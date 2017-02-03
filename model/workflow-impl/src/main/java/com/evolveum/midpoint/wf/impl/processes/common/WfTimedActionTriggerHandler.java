@@ -95,8 +95,8 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 				throw new ObjectNotFoundException("No work item with ID " + workItemId);
 			}
 			Task wfTask = taskManager.createTaskInstance(wfTaskType.asPrismObject(), result);
-			if (actions.getNotify() != null) {
-				executeNotificationAction(workItem, actions.getNotify(), wfTask, result);
+			for (WorkItemNotificationActionType notificationAction : actions.getNotify()) {
+				executeNotificationAction(workItem, notificationAction, wfTask, result);
 			}
 			if (actions.getDelegate() != null) {
 				executeDelegateAction(workItem, actions.getDelegate(), wfTask, result);

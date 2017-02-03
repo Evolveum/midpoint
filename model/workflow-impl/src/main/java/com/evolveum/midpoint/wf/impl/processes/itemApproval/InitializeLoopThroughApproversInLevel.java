@@ -71,7 +71,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
 				if (preApproved) {
 					predeterminedOutcome = ApprovalLevelOutcomeType.APPROVE;
-					recordAutoApprovalDecision(wfTask, true, "Approved automatically by the auto-approval condition.", stageNumber, level, prismContext);
+					recordAutoApprovalDecision(wfTask, true, "Approved automatically by the auto-approval condition.",
+							AutomatedDecisionReasonType.AUTO_APPROVAL_CONDITION, stageNumber, level, prismContext);
 				}
             } catch (Exception e) {     // todo
                 throw new SystemException("Couldn't evaluate auto-approval expression", e);
@@ -109,13 +110,13 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
                 switch (predeterminedOutcome) {
 					case APPROVE:
 						recordAutoApprovalDecision(wfTask, true,
-								"Approved automatically because there were no approvers found.", stageNumber, level,
-								prismContext);
+								"Approved automatically because there were no approvers found.",
+								AutomatedDecisionReasonType.NO_APPROVERS_FOUND, stageNumber, level, prismContext);
 						break;
 					case REJECT:
 						recordAutoApprovalDecision(wfTask, false,
-								"Rejected automatically because there were no approvers found.", stageNumber, level,
-								prismContext);
+								"Rejected automatically because there were no approvers found.",
+								AutomatedDecisionReasonType.NO_APPROVERS_FOUND, stageNumber, level, prismContext);
 						break;
 					case SKIP:
 						// do nothing, just silently skip the level
@@ -150,11 +151,12 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);		// store stage information in midPoint task
     }
 
-	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment, int stageNumber, ApprovalLevel level,
-			PrismContext prismContext) {
+	private void recordAutoApprovalDecision(Task wfTask, boolean approved, String comment, AutomatedDecisionReasonType reason,
+			int stageNumber, ApprovalLevel level, PrismContext prismContext) {
 		Decision decision = new Decision();
 		decision.setApproved(approved);
 		decision.setComment(comment);
+		decision.setAutomatedDecisionReason(reason);
 		decision.setDate(new Date());
 		decision.setStageNumber(stageNumber);
 		decision.setStageName(level.getName());

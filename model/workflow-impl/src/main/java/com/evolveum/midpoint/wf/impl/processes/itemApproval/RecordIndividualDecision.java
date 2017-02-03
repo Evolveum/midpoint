@@ -72,19 +72,17 @@ public class RecordIndividualDecision implements JavaDelegate {
 
         Decision decision = new Decision();
 
-        MidPointPrincipal user = null;
+		MidPointPrincipal user;
 		try {
 			user = SecurityUtil.getPrincipal();
-			decision.setApproverName(PolyString.getOrig(user.getName()));
-            decision.setApproverOid(user.getOid());
+			if (user != null) {
+				decision.setApprover(user.getUser());
+			}
 		} catch (SecurityViolationException e) {
-			decision.setApproverName("?");
-            decision.setApproverOid("?");
+			throw new SystemException("Couldn't record a decision: " + e.getMessage(), e);
 		}
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("======================================== Recording individual decision of " + user);
-        }
+		LOGGER.trace("======================================== Recording individual decision of {}", user);
 
         decision.setApproved(approved);
         decision.setComment(comment == null ? "" : comment);
