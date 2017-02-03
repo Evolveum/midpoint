@@ -17,7 +17,11 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * TODO clean up these formatting methods
@@ -146,5 +150,43 @@ public class WfContextUtil {
 			return null;		// TODO log something here? or leave it to the caller?
 		}
 		return info.getApprovalSchema().getLevel().get(level);
+	}
+
+	// we must be strict here; in case of suspicion, throw an exception
+	public static <T extends WfProcessEventType> List<T> getEventsForCurrentStage(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
+		if (wfc.getStageNumber() == null) {
+			throw new IllegalArgumentException("No stage number in workflow context; pid = " + wfc.getProcessInstanceId());
+		}
+		int stageNumber = wfc.getStageNumber();
+		return wfc.getEvent().stream()
+				.filter(e -> clazz.isAssignableFrom(e.getClass()) && e.getStageNumber() != null && stageNumber == e.getStageNumber())
+				.map(e -> (T) e)
+				.collect(Collectors.toList());
+	}
+
+	public static <T extends WfProcessEventType> List<T> getEvents(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
+		return wfc.getEvent().stream()
+				.filter(e -> clazz.isAssignableFrom(e.getClass()))
+				.map(e -> (T) e)
+				.collect(Collectors.toList());
+	}
+
+	public static String getBriefDiagInfo(WfContextType wfc) {
+		if (wfc == null) {
+			return "null";
+		}
+		return "pid: " + wfc.getProcessInstanceId() + ", name: " + wfc.getProcessInstanceName() + ", stage: " + wfc.getStageNumber();
+	}
+
+	@NotNull
+	public static ApprovalLevelOutcomeType getCurrentStageOutcome(WfContextType wfc, List<WfStageCompletionEventType> stageEvents) {
+		if (stageEvents.size() > 1) {
+			throw new IllegalStateException("More than one stage-level event in " + getBriefDiagInfo(wfc) + ": " + stageEvents);
+		}
+		WfStageCompletionEventType event = stageEvents.get(0);
+		if (event.getOutcome() == null) {
+			throw new IllegalStateException("No outcome for stage-level event in " + getBriefDiagInfo(wfc));
+		}
+		return event.getOutcome();
 	}
 }

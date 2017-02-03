@@ -144,7 +144,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
     @Override
     public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
-        return processInterfaceFinder.getProcessInterface(event.getVariables()).prepareApprovedBy(event);
+        return processInterfaceFinder.getProcessInterface(event.getVariables()).prepareApprovedBy(event, job, result);
     }
 
     public PrimaryChangeProcessor getChangeProcessor() {

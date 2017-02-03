@@ -49,7 +49,6 @@
 
         <!-- New variable:
               - loopLevels_stop: whether to stop looping through levels (i.e. when the request is rejected at a particular level)
-              - allDecisions (List<Decision>): here all the decisions are recorded
         -->
 
         <subProcess id="loopLevels">
@@ -128,7 +127,7 @@
                         <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCreateListener" />
-                        <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener" />
+                        <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCompleteListener" />
                     </extensionElements>
                 </userTask>
 
@@ -138,16 +137,12 @@
                         <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCreateListener" />
-                        <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener" />
+                        <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCompleteListener" />
                     </extensionElements>
                 </userTask>
 
-                <sequenceFlow sourceRef="loopLevels.loopApprovers.approve.withGroups" targetRef="loopLevels.loopApprovers.recordDecision" />
-                <sequenceFlow sourceRef="loopLevels.loopApprovers.approve.withoutGroups" targetRef="loopLevels.loopApprovers.recordDecision" />
-
-                <!-- modifies decisionList, allDecisions, and loopApproversInLevel_stop (if necessary) -->
-                <serviceTask id="loopLevels.loopApprovers.recordDecision" activiti:class="com.evolveum.midpoint.wf.impl.processes.itemApproval.RecordIndividualDecision" />
-                <sequenceFlow sourceRef="loopLevels.loopApprovers.recordDecision" targetRef="loopLevels.loopApprovers.before.end" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.approve.withGroups" targetRef="loopLevels.loopApprovers.before.end" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.approve.withoutGroups" targetRef="loopLevels.loopApprovers.before.end" />
 
                 <serviceTask id="loopLevels.loopApprovers.before.end" activiti:class="com.evolveum.midpoint.wf.impl.processes.common.DumpVariables" />
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.before.end" targetRef="loopLevels.loopApprovers.end" />

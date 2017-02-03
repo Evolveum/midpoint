@@ -27,9 +27,6 @@ public class ProcessVariableNames {
     // How the user task (work item) should be named.
     public static final String APPROVAL_TASK_NAME = "approvalTaskName";         // of type String
 
-    // List of all decisions done within this process instance.
-    public static final String ALL_DECISIONS = "allDecisions";                  // List<Decision>
-
     // Whether we have to stop approving at the current level (means the approval was rejected at this level).
     public static final String LOOP_LEVELS_STOP = "loopLevels_stop";            // Boolean
 
@@ -50,11 +47,6 @@ public class ProcessVariableNames {
 
     // Oid of the abstract role if approverRef is an abstract role (in that case, it is used as a candidate group)
     public static final String CANDIDATE_GROUPS = "candidateGroups";
-
-    // List of decisions done in this level.
-    public static final String DECISIONS_IN_LEVEL = "decisionsInLevel";         // List<Decision>
-
-    public static final String PREDETERMINED_LEVEL_OUTCOME = "predeterminedLevelOutcome";         // ApprovalLevelOutcomeType (none if null)
 
     // Whether we have to stop evaluating current level (e.g. because strategy was 'firstDecides' and the first person decided (approved or rejected).
     public static final String LOOP_APPROVERS_IN_LEVEL_STOP = "loopApproversInLevel_stop";  // Boolean

@@ -480,7 +480,7 @@ public class WorkItemProvider {
 			wi.setTargetRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_TARGET_REF)));
 
 			ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
-			wi.setDecision(pmi.extractDecision(variables));
+			wi.setResult(pmi.extractWorkItemResult(variables));
 
 			wi.setStageNumber(pmi.getStageNumber(variables));
 			wi.setStageCount(pmi.getStageCount(variables));

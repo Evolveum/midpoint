@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,6 +97,10 @@ public class ActivitiUtil implements Serializable {
         }
     }
 
+    public static <T> T getVariable(DelegateExecution execution, String name, Class<T> clazz, PrismContext prismContext) {
+    	return getVariable(execution.getVariables(), name, clazz, prismContext);
+	}
+
 	@SuppressWarnings("unchecked")
     public static <T> T getVariable(Map<String, Object> variables, String name, Class<T> clazz, PrismContext prismContext) {
 		Object value = variables.get(name);
@@ -117,4 +122,15 @@ public class ActivitiUtil implements Serializable {
     public static <T> T getVariable(Map<String, Object> variables, String name, Class<T> clazz) {
         return getVariable(variables, name, clazz, null);
     }
+
+    @NotNull
+	public static WfContextType getWorkflowContext(Task wfTask) {
+		if (wfTask == null) {
+			throw new IllegalArgumentException("No task");
+		} else if (wfTask.getWorkflowContext() == null) {
+			throw new IllegalArgumentException("No workflow context in task " + wfTask);
+		} else {
+			return wfTask.getWorkflowContext();
+		}
+	}
 }

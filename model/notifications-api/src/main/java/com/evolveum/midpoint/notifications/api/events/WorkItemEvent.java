@@ -82,11 +82,8 @@ public class WorkItemEvent extends WorkflowEvent {
 
 	@Override
 	protected String getAnswer() {
-		DecisionType decision = workItem.getDecision();
-		if (decision == null) {
-			return null;
-		}
-		return decision.getResultAsString();
+		WorkItemResultType result = workItem.getResult();
+		return result != null ? result.getOutcomeAsString() : null;
 	}
 
 	@Override

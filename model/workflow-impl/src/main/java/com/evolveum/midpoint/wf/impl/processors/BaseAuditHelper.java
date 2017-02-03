@@ -34,10 +34,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -123,17 +120,17 @@ public class BaseAuditHelper {
 		auditEventRecord.setParameter(stageInfo);
         auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
         if (stage == AuditEventStage.EXECUTION) {
-			DecisionType decision = workItem.getDecision();
+			WorkItemResultType itemResult = workItem.getResult();
 			StringBuilder message = new StringBuilder();
 			if (stageInfo != null) {
 				message.append(stageInfo).append(" : ");
 			}
-			if (decision != null) {
-				String answer = ApprovalUtils.makeNice(decision.getResultAsString());
+			if (itemResult != null) {
+				String answer = ApprovalUtils.makeNice(itemResult.getOutcomeAsString());
 				auditEventRecord.setResult(answer);
 				message.append(answer);
-				if (decision.getComment() != null) {
-					message.append(" : ").append(decision.getComment());
+				if (itemResult.getComment() != null) {
+					message.append(" : ").append(itemResult.getComment());
 				}
 			} else {
 				message.append("(no decision)");		// TODO

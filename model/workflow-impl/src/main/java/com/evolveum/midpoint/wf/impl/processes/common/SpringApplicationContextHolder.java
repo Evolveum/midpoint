@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpRepoAccessHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -110,6 +111,10 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
     public static ExpressionFactory getExpressionFactory() {
 		return getBean(ExpressionFactory.class);
 	}
+
+    public static ItemApprovalProcessInterface getItemApprovalProcessInterface() {
+        return getBean(ItemApprovalProcessInterface.class);
+    }
 }
 
   

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
@@ -35,6 +34,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -98,8 +98,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		approvalTaskOid = workItem.getTaskRef().getOid();
 		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
 
-		IntegrationTestTools.display("work item", workItem);
-		IntegrationTestTools.display("workflow task", wfTask);
+		display("work item", workItem);
+		display("workflow task", wfTask);
 
 		assertEquals("Wrong # of triggers", 3, wfTask.asObjectable().getTrigger().size());
 

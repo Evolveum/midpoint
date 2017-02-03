@@ -521,6 +521,7 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="outcome" type="tns:WorkItemOutcomeType" minOccurs="0" />
+			<xsd:element name="outcomeAsString" type="xsd:string" minOccurs="0" />
 			<xsd:element name="comment" type="xsd:string" minOccurs="0" />
 			<xsd:element name="additionalDeltas" type="tns:ObjectTreeDeltasType" minOccurs="0">
 				<xsd:annotation>
@@ -1212,14 +1213,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processorSpecificState" type="tns:WfProcessorSpecificStateType">
+            <xsd:element name="processorSpecificState" type="tns:WfProcessorSpecificStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         State that is specific to a given change processor.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processSpecificState" type="tns:WfProcessSpecificStateType">
+            <xsd:element name="processSpecificState" type="tns:WfProcessSpecificStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         State that is specific to a given BPMN process.
@@ -1326,7 +1327,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="originalAssigneeRef" type="c:ObjectReferenceType">
+					<xsd:element name="originalAssigneeRef" type="c:ObjectReferenceType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								User to which this work item was originally assigned.
@@ -1772,14 +1773,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="decision" type="tns:DecisionType" minOccurs="0">
+            <xsd:element name="result" type="tns:WorkItemResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Approver's decision (if known).
+                        Result of this work item.
                     </xsd:documentation>
 	                <xsd:appinfo>
-		                <a:deprecated>true</a:deprecated>
-		                <a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:since>3.6</a:since>
 	                </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

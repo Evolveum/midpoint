@@ -1,0 +1,129 @@
+/*
+ * Copyright (c) 2010-2013 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.wf.impl.processes.itemApproval;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener;
+import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemCompletionEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.activiti.engine.delegate.DelegateExecution;
+import org.activiti.engine.delegate.DelegateTask;
+import org.activiti.engine.delegate.TaskListener;
+
+import java.util.Date;
+
+import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getItemApprovalProcessInterface;
+import static com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP;
+
+/**
+ * @author mederly
+ */
+public class TaskCompleteListener implements TaskListener {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TaskCompleteListener.class);
+
+	@Override
+	public void notify(DelegateTask delegateTask) {
+
+		OperationResult opResult = new OperationResult(TaskCompleteListener.class.getName() + ".notify");
+		PrismContext prismContext = SpringApplicationContextHolder.getPrismContext();
+
+		new MidPointTaskListener().notify(delegateTask);
+
+		DelegateExecution execution = delegateTask.getExecution();
+
+		String taskOid = ActivitiUtil.getRequiredVariable(execution, VARIABLE_MIDPOINT_TASK_OID, String.class, prismContext);
+        ApprovalLevel level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevel.class, prismContext);
+		level.setPrismContext(prismContext);
+
+
+		WorkItemCompletionEventType event = new WorkItemCompletionEventType();
+		MidPointPrincipal user;
+		try {
+			user = SecurityUtil.getPrincipal();
+			if (user != null) {
+				event.setInitiatorRef(ObjectTypeUtil.createObjectRef(user.getUser()));
+			}
+		} catch (SecurityViolationException e) {
+			throw new SystemException("Couldn't record a decision: " + e.getMessage(), e);
+		}
+
+		LOGGER.trace("======================================== Recording individual decision of {}", user);
+		WorkItemResultType result = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());
+		event.setResult(result);
+		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		event.setWorkItemId(delegateTask.getId());
+		String originalAssigneeString = ActivitiUtil.getVariable(execution, VARIABLE_ORIGINAL_ASSIGNEE, String.class, prismContext);
+		if (originalAssigneeString != null) {
+			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
+		}
+		event.setStageDisplayName(level.getDisplayName());
+		event.setStageName(level.getName());
+		event.setStageNumber(ActivitiUtil.getRequiredVariable(execution, VARIABLE_STAGE_NUMBER, Integer.class, prismContext));
+
+		boolean isApproved = ApprovalUtils.isApproved(result);
+
+        LevelEvaluationStrategyType levelEvaluationStrategyType = level.getEvaluationStrategy();
+        Boolean setLoopApprovesInLevelStop = null;
+        if (levelEvaluationStrategyType == LevelEvaluationStrategyType.FIRST_DECIDES) {
+			LOGGER.trace("Setting " + LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level evaluation strategy is 'firstDecides'.");
+            setLoopApprovesInLevelStop = true;
+        } else if ((levelEvaluationStrategyType == null || levelEvaluationStrategyType == LevelEvaluationStrategyType.ALL_MUST_AGREE) && !isApproved) {
+			LOGGER.trace("Setting " + LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level eval strategy is 'allMustApprove' and the decision was 'reject'.");
+            setLoopApprovesInLevelStop = true;
+        }
+
+        if (setLoopApprovesInLevelStop != null) {
+			//noinspection ConstantConditions
+			execution.setVariable(LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);
+        }
+        // consider removing this
+        execution.setVariable(
+                CommonProcessVariableNames.VARIABLE_WF_STATE, "User " + (user!=null?user.getName():null) + " decided to " + (isApproved ? "approve" : "reject") + " the request.");
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",
+					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
+                    execution.getProcessInstanceId(),
+                    level.getDebugName(), result.getOutcomeAsString(), setLoopApprovesInLevelStop);
+        }
+
+        ObjectDeltaType additionalDelta = result.getAdditionalDeltas() != null ?
+				result.getAdditionalDeltas().getFocusPrimaryDelta() : null;
+        MidpointUtil.recordEventInTask(event, additionalDelta, taskOid, opResult);
+		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
+    }
+
+}

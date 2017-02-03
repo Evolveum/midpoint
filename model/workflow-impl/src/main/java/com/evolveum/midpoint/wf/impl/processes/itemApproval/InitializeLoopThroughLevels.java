@@ -23,8 +23,6 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 
-import java.util.ArrayList;
-
 public class InitializeLoopThroughLevels implements JavaDelegate {
 
     private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughLevels.class);
@@ -35,7 +33,6 @@ public class InitializeLoopThroughLevels implements JavaDelegate {
 				null);
 		execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_COUNT, schema.getLevels().size());
 		execution.setVariableLocal(ProcessVariableNames.LOOP_LEVELS_STOP, Boolean.FALSE);
-        execution.setVariableLocal(ProcessVariableNames.ALL_DECISIONS, new ArrayList<Decision>());
     }
 
 }

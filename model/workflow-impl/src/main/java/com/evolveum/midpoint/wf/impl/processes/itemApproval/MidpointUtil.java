@@ -42,6 +42,7 @@ import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.processes.common.WfTimedActionTriggerHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.delegate.DelegateTask;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,8 +54,8 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getCacheRepositoryService;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_EVENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_SPECIFIC_STATE;
 
 /**
  * @author mederly
@@ -74,33 +75,27 @@ public class MidpointUtil {
 		}
 	}
 
-	public static void recordDecisionInTask(Decision decision, String taskOid) {
+	// additional delta is a bit hack ... TODO refactor (but without splitting the modify operation!)
+	public static void recordEventInTask(WfProcessEventType event, ObjectDeltaType additionalDelta, String taskOid, OperationResult result) {
 		RepositoryService cacheRepositoryService = getCacheRepositoryService();
 		PrismContext prismContext = getPrismContext();
-		OperationResult result = new OperationResult(MidpointUtil.class.getName() + ".recordDecisionInTask");
 		try {
-			DecisionType decisionType = decision.toDecisionType(prismContext);
-			ItemPath decisionsPath = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESS_SPECIFIC_STATE, ItemApprovalProcessStateType.F_DECISIONS);		// assuming it already exists!
-			ItemDefinition<?> decisionsDefinition = getPrismContext().getSchemaRegistry()
-					.findContainerDefinitionByCompileTimeClass(ItemApprovalProcessStateType.class)
-					.findItemDefinition(ItemApprovalProcessStateType.F_DECISIONS);
 			S_ItemEntry deltaBuilder = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
-					.item(decisionsPath, decisionsDefinition).add(decisionType);
+					.item(F_WORKFLOW_CONTEXT, F_EVENT).add(event);
 
-//			if (decisionType.getAdditionalDelta() != null) {
-//				PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, null, result);
-//				WfPrimaryChangeProcessorStateType state = WfContextUtil
-//						.getPrimaryChangeProcessorState(task.asObjectable().getWorkflowContext());
-//				ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(state.getDeltasToProcess(),
-//						decisionType.getAdditionalDelta(), prismContext);
-//				ItemPath deltasToProcessPath = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);		// assuming it already exists!
-//				ItemDefinition<?> deltasToProcessDefinition = getPrismContext().getSchemaRegistry()
-//						.findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
-//						.findItemDefinition(WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);
-//				deltaBuilder = deltaBuilder.item(deltasToProcessPath, deltasToProcessDefinition)
-//						.replace(updatedDelta);
-//			}
-
+			if (additionalDelta != null) {
+				PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, null, result);
+				WfPrimaryChangeProcessorStateType state = WfContextUtil
+						.getPrimaryChangeProcessorState(task.asObjectable().getWorkflowContext());
+				ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(state.getDeltasToProcess(),
+						additionalDelta, prismContext);
+				ItemPath deltasToProcessPath = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);		// assuming it already exists!
+				ItemDefinition<?> deltasToProcessDefinition = getPrismContext().getSchemaRegistry()
+						.findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
+						.findItemDefinition(WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);
+				deltaBuilder = deltaBuilder.item(deltasToProcessPath, deltasToProcessDefinition)
+						.replace(updatedDelta);
+			}
 			cacheRepositoryService.modifyObject(TaskType.class, taskOid, deltaBuilder.asItemDeltas(), result);
 		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
 			throw new SystemException("Couldn't record decision to the task " + taskOid + ": " + e.getMessage(), e);
