@@ -1010,7 +1010,7 @@ public class PageAccounts extends PageAdminConfiguration {
             q = q.item(ShadowType.F_KIND).eq(kind).and();
         }
         if (StringUtils.isNotEmpty(intent)) {
-            q = q.item(ShadowType.F_INTENT).eq(kind).and();
+            q = q.item(ShadowType.F_INTENT).eq(intent).and();
         }
         if (failedOperatonType != null){
             q = q.item(ShadowType.F_FAILED_OPERATION_TYPE).eq(failedOperatonType).and();
