@@ -19,6 +19,9 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessEventType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
@@ -39,27 +42,25 @@ public class DecisionDto extends Selectable {
     private String comment;
     private Date time;
 
-    public DecisionDto(DecisionType decision) {
-        if (decision.getApproverRef() != null) {
-            if (decision.getApproverRef().getTargetName() != null) {
-                this.user = decision.getApproverRef().getTargetName().getOrig();
-            } else {
-                this.user = decision.getApproverRef().getOid();
-            }
-        }
-        if (decision.getStageDisplayName() != null) {
-        	stage = decision.getStageDisplayName();
-		} else if (decision.getStageName() != null) {
-        	stage = decision.getStageName();
-		} else if (decision.getStageNumber() != null) {
-        	stage = String.valueOf(decision.getStageNumber());
-		}
+    private DecisionDto(DecisionType decision) {
+	    this.user = getNameFromRef(decision.getApproverRef());
         outcome = decision.isApproved();
         this.comment = decision.getComment();
         this.time = XmlTypeConverter.toDate(decision.getDateTime());
     }
 
-    public String getTime() {
+    // TODO deduplicate
+	private String getNameFromRef(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
+		} else if (ref.getTargetName() != null) {
+			return ref.getTargetName().getOrig();
+		} else {
+			return ref.getOid();
+		}
+	}
+
+	public String getTime() {
         return time.toLocaleString();      // todo formatting
     }
 
@@ -78,4 +79,21 @@ public class DecisionDto extends Selectable {
     public String getComment() {
         return comment;
     }
+
+	public static DecisionDto create(DecisionType d) {
+		return new DecisionDto(d);
+	}
+
+    @Nullable
+	public static DecisionDto create(WfProcessEventType e) {
+	    e.getInitiatorRef()
+	    if (decision.getStageDisplayName() != null) {
+		    stage = decision.getStageDisplayName();
+	    } else if (decision.getStageName() != null) {
+		    stage = decision.getStageName();
+	    } else if (decision.getStageNumber() != null) {
+		    stage = String.valueOf(decision.getStageNumber());
+	    }
+
+	}
 }
