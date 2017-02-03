@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
 
 /**
  * @author mederly
@@ -67,12 +68,20 @@ public class ApprovalUtils {
 	}
 
 	public static String approvalStringValue(WorkItemOutcomeType outcome) {
+		return approvalStringValue(approvalBooleanValue(outcome));
+	}
+
+	public static Boolean approvalBooleanValue(WorkItemResultType result) {
+		return result != null ? approvalBooleanValue(result.getOutcome()) : null;
+	}
+
+	private static Boolean approvalBooleanValue(WorkItemOutcomeType outcome) {
 		if (outcome == null) {
 			return null;
 		}
 		switch (outcome) {
-			case APPROVE: return DECISION_APPROVED;
-			case REJECT: return DECISION_REJECTED;
+			case APPROVE: return true;
+			case REJECT: return false;
 			default: throw new IllegalArgumentException("outcome: " + outcome);
 		}
 	}

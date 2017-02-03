@@ -1355,7 +1355,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:WorkItemEventType">
 				<xsd:sequence>
-					<xsd:element name="outcome" type="tns:WorkItemOutcomeType" minOccurs="0" />
+					<xsd:element name="result" type="tns:WorkItemResultType" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>

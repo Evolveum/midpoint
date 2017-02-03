@@ -219,8 +219,8 @@ public class PageWorkItem extends PageAdminWorkItems {
 			}
 			String principalOid = principal.getOid();
 			return workItem.getAssigneeRef() != null
-					&& workItem.getAssigneeRef().getOid().equals(principalOid)
-					&& (!workItem.getCandidateUsersRef().isEmpty() || !workItem.getCandidateRolesRef().isEmpty());
+					&& workItem.getAssigneeRef().stream().anyMatch(ref -> ref.getOid().equals(principalOid))
+					&& (!workItem.getCandidateRef().isEmpty());
 		});
 
         AjaxSubmitButton claim = new DefaultAjaxSubmitButton(ID_CLAIM, createStringResource("pageWorkItem.button.claim"),
@@ -292,7 +292,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 		try {
 			WorkItemDto dto = workItemDtoModel.getObject();
 			List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate));
-			getWorkflowService().delegateWorkItem(dto.getWorkItemId(), delegates, WorkItemDelegationMethodType.ADD_DELEGATES, result);
+			getWorkflowService().delegateWorkItem(dto.getWorkItemId(), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES, result);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't delegate work item.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delegate work item", ex);

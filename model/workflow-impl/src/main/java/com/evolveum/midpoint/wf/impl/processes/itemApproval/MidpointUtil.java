@@ -87,19 +87,19 @@ public class MidpointUtil {
 			S_ItemEntry deltaBuilder = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
 					.item(decisionsPath, decisionsDefinition).add(decisionType);
 
-			if (decisionType.getAdditionalDelta() != null) {
-				PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, null, result);
-				WfPrimaryChangeProcessorStateType state = WfContextUtil
-						.getPrimaryChangeProcessorState(task.asObjectable().getWorkflowContext());
-				ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(state.getDeltasToProcess(),
-						decisionType.getAdditionalDelta(), prismContext);
-				ItemPath deltasToProcessPath = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);		// assuming it already exists!
-				ItemDefinition<?> deltasToProcessDefinition = getPrismContext().getSchemaRegistry()
-						.findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
-						.findItemDefinition(WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);
-				deltaBuilder = deltaBuilder.item(deltasToProcessPath, deltasToProcessDefinition)
-						.replace(updatedDelta);
-			}
+//			if (decisionType.getAdditionalDelta() != null) {
+//				PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, null, result);
+//				WfPrimaryChangeProcessorStateType state = WfContextUtil
+//						.getPrimaryChangeProcessorState(task.asObjectable().getWorkflowContext());
+//				ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(state.getDeltasToProcess(),
+//						decisionType.getAdditionalDelta(), prismContext);
+//				ItemPath deltasToProcessPath = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);		// assuming it already exists!
+//				ItemDefinition<?> deltasToProcessDefinition = getPrismContext().getSchemaRegistry()
+//						.findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
+//						.findItemDefinition(WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);
+//				deltaBuilder = deltaBuilder.item(deltasToProcessPath, deltasToProcessDefinition)
+//						.replace(updatedDelta);
+//			}
 
 			cacheRepositoryService.modifyObject(TaskType.class, taskOid, deltaBuilder.asItemDeltas(), result);
 		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {

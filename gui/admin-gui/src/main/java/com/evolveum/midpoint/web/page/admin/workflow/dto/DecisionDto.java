@@ -17,12 +17,13 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessEventType;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
 
 /**
@@ -42,15 +43,8 @@ public class DecisionDto extends Selectable {
     private String comment;
     private Date time;
 
-    private DecisionDto(DecisionType decision) {
-	    this.user = getNameFromRef(decision.getApproverRef());
-        outcome = decision.isApproved();
-        this.comment = decision.getComment();
-        this.time = XmlTypeConverter.toDate(decision.getDateTime());
-    }
-
-    // TODO deduplicate
-	private String getNameFromRef(ObjectReferenceType ref) {
+	// TODO deduplicate
+	private static String getNameFromRef(ObjectReferenceType ref) {
 		if (ref == null) {
 			return null;
 		} else if (ref.getTargetName() != null) {
@@ -80,20 +74,54 @@ public class DecisionDto extends Selectable {
         return comment;
     }
 
+    @Deprecated
 	public static DecisionDto create(DecisionType d) {
-		return new DecisionDto(d);
+		DecisionDto rv = new DecisionDto();
+		rv.user = getNameFromRef(d.getApproverRef());
+		rv.stage = null;
+		rv.outcome = d.isApproved();
+		rv.comment = d.getComment();
+		rv.time = XmlTypeConverter.toDate(d.getDateTime());
+		return rv;
 	}
 
     @Nullable
 	public static DecisionDto create(WfProcessEventType e) {
-	    e.getInitiatorRef()
-	    if (decision.getStageDisplayName() != null) {
-		    stage = decision.getStageDisplayName();
-	    } else if (decision.getStageName() != null) {
-		    stage = decision.getStageName();
-	    } else if (decision.getStageNumber() != null) {
-		    stage = String.valueOf(decision.getStageNumber());
-	    }
 
+		// we want to show user decisions, automatic decisions and delegations
+		DecisionDto rv = new DecisionDto();
+		rv.user = getNameFromRef(e.getInitiatorRef());
+		rv.stage = MiscUtil.getFirstNonNullString(e.getStageDisplayName(), e.getStageName(), e.getStageNumber());
+		rv.time = XmlTypeConverter.toDate(e.getTimestamp());
+
+		if (e instanceof WorkItemCompletionEventType) {
+			WorkItemResultType result = ((WorkItemCompletionEventType) e).getResult();
+			if (result != null) {
+				rv.outcome = ApprovalUtils.approvalBooleanValue(result);
+				rv.comment = result.getComment();
+				// TODO what about additional delta?
+			}
+			return rv;
+		} else if (e instanceof WfStageCompletionEventType) {
+			WfStageCompletionEventType completion = (WfStageCompletionEventType) e;
+			AutomatedDecisionReasonType reason = completion.getAutomatedDecisionReason();
+			if (reason == null) {
+				return null;			// not an automatic stage completion
+			}
+			ApprovalLevelOutcomeType outcome = completion.getOutcome();
+			if (outcome == ApprovalLevelOutcomeType.APPROVE || outcome == ApprovalLevelOutcomeType.REJECT) {
+				rv.outcome = outcome == ApprovalLevelOutcomeType.APPROVE;
+				rv.comment = String.valueOf(reason);		// TODO
+				return rv;
+			} else {
+				return null;			// SKIP (legal = should hide) or null (illegal)
+			}
+		} else if (e instanceof WorkItemDelegationEventType) {
+			WorkItemDelegationEventType delegation = (WorkItemDelegationEventType) e;
+//			delegation.getDelegatedTo()
+			return rv;
+		} else {
+			return null;
+		}
 	}
 }

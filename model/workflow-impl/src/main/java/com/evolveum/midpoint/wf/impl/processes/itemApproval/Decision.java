@@ -181,14 +181,14 @@ public class Decision implements Serializable {
         decisionType.setComment(getComment());
         decisionType.setDateTime(XmlTypeConverter.createXMLGregorianCalendar(getDate()));
 		decisionType.setApproverRef(createReference(approverOid, approverName));
-		decisionType.setOriginalAssigneeRef(createReference(originalAssigneeOid, originalAssigneeName));
-        decisionType.setStageNumber(stageNumber);
-        decisionType.setStageName(stageName);
-        decisionType.setStageDisplayName(stageDisplayName);
-        if (additionalDelta != null) {
-        	decisionType.setAdditionalDelta(prismContext.parserFor(additionalDelta).parseRealValue(ObjectDeltaType.class));
-		}
-		decisionType.setAutomatedDecisionReason(automatedDecisionReason);
+//		decisionType.setOriginalAssigneeRef(createReference(originalAssigneeOid, originalAssigneeName));
+//        decisionType.setStageNumber(stageNumber);
+//        decisionType.setStageName(stageName);
+//        decisionType.setStageDisplayName(stageDisplayName);
+//        if (additionalDelta != null) {
+//        	decisionType.setAdditionalDelta(prismContext.parserFor(additionalDelta).parseRealValue(ObjectDeltaType.class));
+//		}
+//		decisionType.setAutomatedDecisionReason(automatedDecisionReason);
         return decisionType;
     }
 

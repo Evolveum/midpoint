@@ -173,38 +173,14 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getAssignee() {
-        return WebComponentUtil.getName(workItem.getAssigneeRef());
+        return WebComponentUtil.getReferencedObjectNames(workItem.getAssigneeRef(), false);
     }
 
     public String getCandidates() {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (ObjectReferenceType roleRef : workItem.getCandidateRolesRef()) {
-            if (!first) {
-                sb.append(", ");
-            } else {
-                first = false;
-            }
-            sb.append(WebComponentUtil.getName(roleRef));
-            if (RoleType.COMPLEX_TYPE.equals(roleRef.getType())) {
-                sb.append(" (role)");
-            } else if (OrgType.COMPLEX_TYPE.equals(roleRef.getType())) {
-                sb.append(" (org)");
-            }
-        }
-        for (ObjectReferenceType userRef : workItem.getCandidateUsersRef()) {
-            if (!first) {
-                sb.append(", ");
-            } else {
-                first = false;
-            }
-            sb.append(WebComponentUtil.getName(userRef));
-            sb.append(" (user)");
-        }
-        return sb.toString();
-    }
+    	return WebComponentUtil.getReferencedObjectNames(workItem.getCandidateRef(), true);
+	}
 
-    public String getObjectName() {
+	public String getObjectName() {
         return WebComponentUtil.getName(workItem.getObjectRef());
     }
 

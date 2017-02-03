@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -42,7 +43,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
@@ -266,6 +267,21 @@ public final class WebComponentUtil {
 			return null;
 		}
 		return StringEscapeUtils.escapeHtml4(text).replace("\n", "<br/>");
+	}
+
+	public static String getTypeLocalized(ObjectReferenceType ref) {
+		ObjectTypes type = ref != null ? ObjectTypes.getObjectTypeFromTypeQName(ref.getType()) : null;
+		ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(type);
+		if (descriptor == null) {
+			return null;
+		}
+		return createStringResourceStatic(null, descriptor.getLocalizationKey()).getString();
+	}
+
+	public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes) {
+		return refs.stream()
+				.map(ref -> getName(ref) + (showTypes ? (" (" + getTypeLocalized(ref) + ")") : ""))
+				.collect(Collectors.joining(", "));
 	}
 
 	public enum Channel {

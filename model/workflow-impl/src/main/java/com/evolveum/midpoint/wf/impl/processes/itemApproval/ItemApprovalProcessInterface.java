@@ -74,9 +74,9 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
         decision.setResultAsString((String) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
         decision.setApproved(ApprovalUtils.approvalBooleanValue(decision.getResultAsString()));
         decision.setComment((String) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
-        decision.setStageNumber(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, Integer.class));
-        decision.setStageName(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NAME, String.class));
-        decision.setStageDisplayName(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, String.class));
+//        decision.setStageNumber(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, Integer.class));
+//        decision.setStageName(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NAME, String.class));
+//        decision.setStageDisplayName(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, String.class));
 
         // TODO - what with other fields (approver, dateTime)?
 
