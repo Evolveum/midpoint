@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
@@ -40,7 +41,8 @@ import java.util.Collections;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.ADD_ASSIGNEES;
-import static org.testng.AssertJUnit.fail;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -136,6 +138,77 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
+
+		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
+				.taskId(workItem.getWorkItemId())
+				.singleResult();
+		System.out.println("Activiti task: " + activitiTask);
+		assertEquals("Wrong activiti assignee", userLead1Oid, activitiTask.getAssignee());
+		String additionalAssignees = (String) activitiEngine.getTaskService()
+				.getVariables(activitiTask.getId()).get(CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES);
+		assertEquals("Wrong additional assignees", "[UserType:" + userLead2Oid + "]", additionalAssignees);
+	}
+
+	@Test
+	public void test130DelegateToUser3ByReplace() throws Exception {
+		final String TEST_NAME = "test130DelegateToUser3ByReplace";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userLead1);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		workflowService.delegateWorkItem(workItemId, Collections.singletonList(ort(userLead3Oid)), REPLACE_ASSIGNEES, result);
+
+		result.computeStatus();
+		assertSuccess(result);
+
+		WorkItemType workItem = getWorkItem(task, result);
+		display("work item", workItem);
+		display("task", getObjectViaRepo(TaskType.class, taskOid));
+
+		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead3Oid);
+		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
+
+		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
+				.taskId(workItem.getWorkItemId())
+				.singleResult();
+		System.out.println("Activiti task: " + activitiTask);
+		assertEquals("Wrong activiti assignee", userLead3Oid, activitiTask.getAssignee());
+		String additionalAssignees = (String) activitiEngine.getTaskService()
+				.getVariables(activitiTask.getId()).get(CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES);
+		assertNull("additionalAssignees present but it shouldn't be", additionalAssignees);
+	}
+
+	@Test
+	public void test140DelegateToNoneByReplace() throws Exception {
+		final String TEST_NAME = "test140DelegateToNoneByReplace";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userLead3);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		workflowService.delegateWorkItem(workItemId, Collections.emptyList(), REPLACE_ASSIGNEES, result);
+
+		result.computeStatus();
+		assertSuccess(result);
+
+		WorkItemType workItem = getWorkItem(task, result);
+		display("work item", workItem);
+		display("task", getObjectViaRepo(TaskType.class, taskOid));
+
+		assertEquals("Wrong assigneeRef count", 0, workItem.getAssigneeRef().size());
+		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
+
+		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
+				.taskId(workItem.getWorkItemId())
+				.singleResult();
+		System.out.println("Activiti task: " + activitiTask);
+		assertEquals("Wrong activiti assignee", null, activitiTask.getAssignee());
+		String additionalAssignees = (String) activitiEngine.getTaskService()
+				.getVariables(activitiTask.getId()).get(CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES);
+		assertNull("additionalAssignees present but it shouldn't be", additionalAssignees);
 	}
 
 

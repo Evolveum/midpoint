@@ -269,16 +269,18 @@ public class WorkItemProvider {
 		Object o = variables.get(VARIABLE_ADDITIONAL_ASSIGNEES);
 		if (o instanceof String) {
 			String s = (String) o;
-			for (String wrappedRef : s.split(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR)) {
-				if (!wrappedRef.startsWith(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_PREFIX)
-						|| !wrappedRef.endsWith(ADDITIONAL_ASSIGNEES_SUFFIX)) {
-					throw new IllegalStateException("Wrongly-formatted '"
-							+ VARIABLE_ADDITIONAL_ASSIGNEES +"' variable contents: '"
-							+ o +"' in " + contextDescription);
-				} else {
-					String stringRef = wrappedRef.substring(ADDITIONAL_ASSIGNEES_PREFIX.length(),
-							wrappedRef.length()- ADDITIONAL_ASSIGNEES_SUFFIX.length());
-					rv.add(MiscDataUtil.stringToRef(stringRef));
+			if (!s.isEmpty()) {
+				for (String wrappedRef : s.split(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR)) {
+					if (!wrappedRef.startsWith(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_PREFIX)
+							|| !wrappedRef.endsWith(ADDITIONAL_ASSIGNEES_SUFFIX)) {
+						throw new IllegalStateException("Wrongly-formatted '"
+								+ VARIABLE_ADDITIONAL_ASSIGNEES + "' variable contents: '"
+								+ o + "' in " + contextDescription);
+					} else {
+						String stringRef = wrappedRef.substring(ADDITIONAL_ASSIGNEES_PREFIX.length(),
+								wrappedRef.length() - ADDITIONAL_ASSIGNEES_SUFFIX.length());
+						rv.add(MiscDataUtil.stringToRef(stringRef));
+					}
 				}
 			}
 		}

@@ -51,9 +51,7 @@ import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -233,27 +231,45 @@ public class WorkItemManager {
 				throw new SecurityViolationException("You are not authorized to delegate this work item.");
 			}
 
-			if (method != WorkItemDelegationMethodType.ADD_ASSIGNEES) {
+			List<ObjectReferenceType> newAssignees;
+			if (method == null || method == WorkItemDelegationMethodType.REPLACE_ASSIGNEES) {
+				newAssignees = new ArrayList<>();
+			} else if (method == WorkItemDelegationMethodType.ADD_ASSIGNEES) {
+				newAssignees = new ArrayList<>(workItem.getAssigneeRef());
+			} else {
 				throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
 			}
 
-			List<ObjectReferenceType> currentAssignees = workItem.getAssigneeRef();
 			for (ObjectReferenceType delegate : delegates) {
 				if (delegate.getType() != null && !QNameUtil.match(UserType.COMPLEX_TYPE, delegate.getType())) {
-					throw new IllegalArgumentException("Couldn't add non-user reference as a delegate: " + delegate);
+					throw new IllegalArgumentException("Couldn't use non-user object as a delegate: " + delegate);
 				}
 				if (delegate.getOid() == null) {
-					throw new IllegalArgumentException("Couldn't add no-OID reference as a delegate: " + delegate);
+					throw new IllegalArgumentException("Couldn't use no-OID reference as a delegate: " + delegate);
 				}
-				if (!ObjectTypeUtil.containsOid(currentAssignees, delegate.getOid())) {
-					currentAssignees.add(delegate.clone());
+				if (!ObjectTypeUtil.containsOid(newAssignees, delegate.getOid())) {
+					newAssignees.add(delegate.clone());
 				}
 			}
-			// TODO
-			String additionalAssigneesAsString = currentAssignees.stream()
+
+			// don't change the current assignee, if not necessary
+			TaskService taskService = activitiEngine.getTaskService();
+			Task task = taskService.createTaskQuery().taskId(workItemId).singleResult();
+			if (task.getAssignee() != null) {
+				boolean removed = newAssignees.removeIf(newAssignee -> task.getAssignee().equals(newAssignee.getOid()));
+				if (!removed) {
+					// we will nominate the first delegate (if present) as a new assignee
+					if (!newAssignees.isEmpty()) {
+						taskService.setAssignee(workItemId, newAssignees.get(0).getOid());
+						newAssignees.remove(0);
+					} else {
+						taskService.setAssignee(workItemId, null);
+					}
+				}
+			}
+			String additionalAssigneesAsString = newAssignees.isEmpty() ? null : newAssignees.stream()
 					.map(d -> ADDITIONAL_ASSIGNEES_PREFIX + MiscDataUtil.refToString(d) + ADDITIONAL_ASSIGNEES_SUFFIX)
 					.collect(Collectors.joining(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR));
-			TaskService taskService = activitiEngine.getTaskService();
 			taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES, additionalAssigneesAsString);
 		} catch (SecurityViolationException|RuntimeException e) {
 			result.recordFatalError("Couldn't delegate work item " + workItemId + ": " + e.getMessage(), e);
