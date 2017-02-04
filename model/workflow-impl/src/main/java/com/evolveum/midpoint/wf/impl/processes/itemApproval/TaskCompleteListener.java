@@ -20,8 +20,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,12 +31,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener;
-import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemCompletionEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.DelegateTask;
@@ -45,6 +44,7 @@ import java.util.Date;
 import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getItemApprovalProcessInterface;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
 import static com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP;
 
 /**
@@ -57,17 +57,13 @@ public class TaskCompleteListener implements TaskListener {
 	@Override
 	public void notify(DelegateTask delegateTask) {
 
+		DelegateExecution execution = delegateTask.getExecution();
+		PrismContext prismContext = getPrismContext();
 		OperationResult opResult = new OperationResult(TaskCompleteListener.class.getName() + ".notify");
-		PrismContext prismContext = SpringApplicationContextHolder.getPrismContext();
+		Task wfTask = ActivitiUtil.getTask(execution, opResult);
+		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
 		new MidPointTaskListener().notify(delegateTask);
-
-		DelegateExecution execution = delegateTask.getExecution();
-
-		String taskOid = ActivitiUtil.getRequiredVariable(execution, VARIABLE_MIDPOINT_TASK_OID, String.class, prismContext);
-        ApprovalLevel level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevel.class, prismContext);
-		level.setPrismContext(prismContext);
-
 
 		WorkItemCompletionEventType event = new WorkItemCompletionEventType();
 		MidPointPrincipal user;
@@ -117,12 +113,12 @@ public class TaskCompleteListener implements TaskListener {
             LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
                     execution.getProcessInstanceId(),
-                    level.getDebugName(), result.getOutcomeAsString(), setLoopApprovesInLevelStop);
+					WfContextUtil.getLevelDiagName(level), result.getOutcomeAsString(), setLoopApprovesInLevelStop);
         }
 
         ObjectDeltaType additionalDelta = result.getAdditionalDeltas() != null ?
 				result.getAdditionalDeltas().getFocusPrimaryDelta() : null;
-        MidpointUtil.recordEventInTask(event, additionalDelta, taskOid, opResult);
+        MidpointUtil.recordEventInTask(event, additionalDelta, wfTask.getOid(), opResult);
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 

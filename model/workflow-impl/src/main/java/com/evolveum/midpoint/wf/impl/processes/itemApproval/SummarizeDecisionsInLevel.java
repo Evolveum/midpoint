@@ -42,13 +42,11 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-    	OperationResult result = new OperationResult(SummarizeDecisionsInLevel.class.getName() + ".execute");
-    	PrismContext prismContext = getPrismContext();
-
-		ApprovalLevel level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevel.class, prismContext);
-		level.setPrismContext(prismContext);
-
+		PrismContext prismContext = getPrismContext();
+		OperationResult result = new OperationResult(SummarizeDecisionsInLevel.class.getName() + ".execute");
 		Task wfTask = ActivitiUtil.getTask(execution, result);
+		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
+
 		WfContextType wfc = ActivitiUtil.getWorkflowContext(wfTask);
 		List<WfStageCompletionEventType> stageEvents = WfContextUtil.getEventsForCurrentStage(wfc, WfStageCompletionEventType.class);
 
@@ -81,8 +79,7 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Approval process instance {} (id {}), level {}: result of this level: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
-					execution.getProcessInstanceId(),
-					level.getDebugName(), approved);
+					execution.getProcessInstanceId(), WfContextUtil.getLevelDiagName(level), approved);
 		}
         execution.setVariable(ProcessVariableNames.LOOP_LEVELS_STOP, !approved);
     }

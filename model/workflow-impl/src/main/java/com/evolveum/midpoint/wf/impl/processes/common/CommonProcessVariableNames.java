@@ -30,10 +30,6 @@ public class CommonProcessVariableNames {
     // When the process instance was started.
     public static final String VARIABLE_START_TIME = "startTime";
 
-	// [java.util.Date]
-    // When the work item is to be finished.
-    public static final String VARIABLE_DEADLINE = "deadline";
-
 	// [String]
     // OID of task related to the process instance.
     public static final String VARIABLE_MIDPOINT_TASK_OID = "midPointTaskOid";

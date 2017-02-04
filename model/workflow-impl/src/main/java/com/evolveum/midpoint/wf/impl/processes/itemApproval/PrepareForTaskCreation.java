@@ -49,11 +49,10 @@ public class PrepareForTaskCreation implements JavaDelegate {
 		OperationResult result = new OperationResult(PrepareForTaskCreation.class.getName() + ".execute");
 		Task wfTask = ActivitiUtil.getTask(execution, result);
 		Task opTask = getTaskManager().createTaskInstance();
+		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
 		LightweightObjectRef approverRef = getRequiredVariable(execution, ProcessVariableNames.APPROVER_REF, LightweightObjectRef.class,
-				null);
-		ApprovalLevelImpl level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevelImpl.class,
-				null);
+				prismContext);
 
         String assignee = null;
         String candidateGroups = null;

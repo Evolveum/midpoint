@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -38,8 +39,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.impl.processes.common.WfTimedActionTriggerHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -102,44 +101,44 @@ public class MidpointUtil {
 		}
 	}
 
-	public static Set<LightweightObjectRef> expandGroups(Set<LightweightObjectRef> approverRefs) {
+	public static Set<ObjectReferenceType> expandGroups(Set<ObjectReferenceType> approverRefs) {
 		PrismContext prismContext = getPrismContext();
-		Set<LightweightObjectRef> rv = new HashSet<>();
-		for (LightweightObjectRef approverRef : approverRefs) {
+		Set<ObjectReferenceType> rv = new HashSet<>();
+		for (ObjectReferenceType approverRef : approverRefs) {
+			@SuppressWarnings({ "unchecked", "raw" })
 			Class<? extends Containerable> clazz = (Class<? extends Containerable>)
 					prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(approverRef.getType());
 			if (clazz == null) {
 				throw new IllegalStateException("Unknown object type " + approverRef.getType());
 			}
 			if (UserType.class.isAssignableFrom(clazz)) {
-				rv.add(approverRef);
+				rv.add(approverRef.clone());
 			} else if (AbstractRoleType.class.isAssignableFrom(clazz)) {
 				rv.addAll(expandAbstractRole(approverRef, prismContext));
 			} else {
 				LOGGER.warn("Unexpected type {} for approver: {}", clazz, approverRef);
-				rv.add(approverRef);
+				rv.add(approverRef.clone());
 			}
 		}
 		return rv;
 	}
 
-	private static Collection<? extends LightweightObjectRef> expandAbstractRole(LightweightObjectRef approverRef, PrismContext prismContext) {
+	private static Collection<ObjectReferenceType> expandAbstractRole(ObjectReferenceType approverRef, PrismContext prismContext) {
 		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverRef.toObjectReferenceType().asReferenceValue())
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverRef.asReferenceValue())
 				.build();
-		List<PrismObject<UserType>> objects;
 		try {
-			objects = getCacheRepositoryService()
-					.searchObjects(UserType.class, query, null, new OperationResult("dummy"));
+			return getCacheRepositoryService()
+					.searchObjects(UserType.class, query, null, new OperationResult("dummy"))
+					.stream()
+					.map(o -> ObjectTypeUtil.createObjectRef(o))
+					.collect(Collectors.toList());
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't resolve " + approverRef + ": " + e.getMessage(), e);
 		}
-		return objects.stream()
-				.map(o -> new LightweightObjectRefImpl(o.getOid(), UserType.COMPLEX_TYPE, null))
-				.collect(Collectors.toList());
 	}
 
-	public static void setTaskDeadline(DelegateTask delegateTask, Duration duration, OperationResult result) {
+	static void setTaskDeadline(DelegateTask delegateTask, Duration duration) {
 		XMLGregorianCalendar deadline = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 		deadline.add(duration);
 		delegateTask.setDueDate(XmlTypeConverter.toDate(deadline));

@@ -19,19 +19,27 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalLevel;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getMidpointFunctions;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getTaskManager;
@@ -47,7 +55,33 @@ public class ActivitiUtil implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiUtil.class);
 
-    public PrismContext getPrismContext() {
+	@NotNull
+	public static ApprovalLevelType getAndVerifyCurrentStage(DelegateExecution execution, Task wfTask, boolean stageInContextSet,
+			PrismContext prismContext) {
+		int levelIndex = getRequiredVariable(execution, ProcessVariableNames.LEVEL_INDEX, Integer.class, prismContext);
+		int stageNumber = levelIndex+1;
+		ApprovalLevelType level;
+		if (stageInContextSet) {
+			level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
+			if (level == null) {
+				throw new IllegalStateException("No current stage information in " + wfTask);
+			}
+		} else {
+			level = WfContextUtil.getApprovalLevel(wfTask.getWorkflowContext(), stageNumber);
+			if (level == null) {
+				throw new IllegalStateException("No stage #" + stageNumber + " in " + wfTask);
+			}
+		}
+		ApprovalLevel wfLevel = getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevel.class, prismContext);
+		if (!level.getOrder().equals(wfLevel.getOrder()) || level.getOrder() != stageNumber) {
+			throw new IllegalStateException("Current stage number in " + wfTask + " (" + level.getOrder()
+					+ "), number present in activiti process (" + wfLevel
+					+ "), and the stage number according to activiti process (" + stageNumber + ") do not match.");
+		}
+		return level;
+	}
+
+	public PrismContext getPrismContext() {
         return SpringApplicationContextHolder.getPrismContext();
     }
 
@@ -132,5 +166,9 @@ public class ActivitiUtil implements Serializable {
 		} else {
 			return wfTask.getWorkflowContext();
 		}
+	}
+
+	public static List<LightweightObjectRef> toLightweightReferences(Collection<ObjectReferenceType> refs) {
+		return refs.stream().map(ort -> new LightweightObjectRefImpl(ort)).collect(Collectors.toList());
 	}
 }

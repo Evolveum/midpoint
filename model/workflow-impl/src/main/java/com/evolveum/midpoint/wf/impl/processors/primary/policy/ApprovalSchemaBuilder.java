@@ -23,10 +23,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchema;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaImpl;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -83,9 +80,11 @@ class ApprovalSchemaBuilder {
 	private final List<Fragment> standardFragments = new ArrayList<>();
 
 	@NotNull private final BasePrimaryChangeAspect primaryChangeAspect;
+	@NotNull private final ApprovalSchemaHelper approvalSchemaHelper;
 
-	ApprovalSchemaBuilder(@NotNull BasePrimaryChangeAspect primaryChangeAspect) {
+	ApprovalSchemaBuilder(@NotNull BasePrimaryChangeAspect primaryChangeAspect, ApprovalSchemaHelper approvalSchemaHelper) {
 		this.primaryChangeAspect = primaryChangeAspect;
+		this.approvalSchemaHelper = approvalSchemaHelper;
 	}
 
 	// TODO target
@@ -127,17 +126,16 @@ class ApprovalSchemaBuilder {
 		allFragments.addAll(standardFragments);
 
 		ApprovalSchemaType schemaType = new ApprovalSchemaType(ctx.prismContext);
-		ApprovalSchemaImpl schema = new ApprovalSchemaImpl(ctx.prismContext);
 		SchemaAttachedPolicyRulesType attachedRules = new SchemaAttachedPolicyRulesType();
 
 		int i = 0;
 		while(i < allFragments.size()) {
 			List<Fragment> fragmentMergeGroup = getMergeGroup(allFragments, i);
-			processFragmentGroup(fragmentMergeGroup, schemaType, schema, attachedRules, ctx, result);
+			processFragmentGroup(fragmentMergeGroup, schemaType, attachedRules, ctx, result);
 			i += fragmentMergeGroup.size();
 		}
 
-		return new Result(schemaType, schema, attachedRules);
+		return new Result(schemaType, new ApprovalSchema(schemaType), attachedRules);
 	}
 
 	private List<Fragment> getMergeGroup(List<Fragment> fragments, int i) {
@@ -148,7 +146,7 @@ class ApprovalSchemaBuilder {
 		return fragments.subList(i, j);
 	}
 
-	private void processFragmentGroup(List<Fragment> fragments, ApprovalSchemaType resultingSchemaType, ApprovalSchemaImpl resultingSchema,
+	private void processFragmentGroup(List<Fragment> fragments, ApprovalSchemaType resultingSchemaType,
 			SchemaAttachedPolicyRulesType attachedRules, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException {
 		Fragment firstFragment = fragments.get(0);
@@ -163,8 +161,8 @@ class ApprovalSchemaBuilder {
 		int i = from;
 		for (ApprovalLevelType level : fragmentLevels) {
 			level.setOrder(i++);
+			approvalSchemaHelper.prepareLevel(level, relationResolver, referenceResolver);
 			resultingSchemaType.getLevel().add(level);
-			resultingSchema.addLevel(level, relationResolver, referenceResolver);
 		}
 		if (firstFragment.policyRule != null) {
 			SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();

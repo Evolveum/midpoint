@@ -20,6 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -141,16 +143,26 @@ public class WfContextUtil {
 		if (wfc == null || wfc.getStageNumber() == null) {
 			return null;
 		}
+		return getApprovalLevel(wfc, wfc.getStageNumber());
+	}
+
+	public static ApprovalLevelType getApprovalLevel(WfContextType wfc, int stageNumber) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
 		if (info == null || info.getApprovalSchema() == null) {
 			return null;
 		}
-		int level = wfc.getStageNumber()-1;
-		if (level < 0 || level >= info.getApprovalSchema().getLevel().size()) {
-			return null;		// TODO log something here? or leave it to the caller?
+		List<ApprovalLevelType> levels = info.getApprovalSchema().getLevel().stream()
+				.filter(level -> level.getOrder() != null && level.getOrder() == stageNumber)
+				.collect(Collectors.toList());
+		if (levels.size() > 1) {
+			throw new IllegalStateException("More than one level with order of " + stageNumber + ": " + levels);
+		} else if (levels.isEmpty()) {
+			return null;
+		} else {
+			return levels.get(0);
 		}
-		return info.getApprovalSchema().getLevel().get(level);
 	}
+
 
 	// we must be strict here; in case of suspicion, throw an exception
 	public static <T extends WfProcessEventType> List<T> getEventsForCurrentStage(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
@@ -188,5 +200,42 @@ public class WfContextUtil {
 			throw new IllegalStateException("No outcome for stage-level event in " + getBriefDiagInfo(wfc));
 		}
 		return event.getOutcome();
+	}
+
+	public static String getLevelDiagName(ApprovalLevelType level) {
+		return level.getOrder() + ":" + level.getName()
+				+ (level.getDisplayName() != null ? " (" + level.getDisplayName() + ")" : "");
+	}
+
+	public static void orderAndRenumberLevels(ApprovalSchemaType schema) {
+		// Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
+		List<ApprovalLevelType> levels = new ArrayList<>(schema.getLevel());
+		levels.sort(Comparator.comparing(level -> level.getOrder(), Comparator.nullsLast(Comparator.naturalOrder())));
+		for (int i = 0; i < levels.size(); i++) {
+			levels.get(i).setOrder(i+1);
+		}
+		schema.getLevel().clear();
+		schema.getLevel().addAll(levels);
+	}
+
+	public static void checkLevelsOrdering(ApprovalSchemaType schema) {
+		for (int i = 0; i < schema.getLevel().size(); i++) {
+			ApprovalLevelType level = schema.getLevel().get(i);
+			if (level.getOrder() == null) {
+				throw new IllegalStateException("Level without order: " + level);
+			}
+			if (i > 0 && schema.getLevel().get(i-1).getOrder() >= level.getOrder()) {
+				throw new IllegalStateException("Level #" + i + " is not before level #" + (i+1) + " in " + schema);
+			}
+		}
+	}
+
+	public static void checkLevelsOrderingStrict(ApprovalSchemaType schema) {
+		for (int i = 0; i < schema.getLevel().size(); i++) {
+			Integer order = schema.getLevel().get(i).getOrder();
+			if (order == null || order != i+1) {
+				throw new IllegalStateException("Level #" + (i+1) + " has an incorrect order: " + order + " in " + schema);
+			}
+		}
 	}
 }

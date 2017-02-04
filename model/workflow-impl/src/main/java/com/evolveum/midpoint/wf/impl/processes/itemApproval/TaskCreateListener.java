@@ -42,7 +42,7 @@ public class TaskCreateListener implements TaskListener {
 			throw new IllegalStateException("No approval level information in " + delegateTask);
 		}
 		if (level.getDuration() != null) {
-			MidpointUtil.setTaskDeadline(delegateTask, level.getDuration(), result);
+			MidpointUtil.setTaskDeadline(delegateTask, level.getDuration());
 		}
 
 		// triggers

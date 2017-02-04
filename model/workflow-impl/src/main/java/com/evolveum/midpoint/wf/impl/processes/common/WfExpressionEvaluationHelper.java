@@ -27,8 +27,10 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.springframework.stereotype.Component;
 
@@ -57,22 +60,22 @@ import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationCo
 @Component
 public class WfExpressionEvaluationHelper {
 
-	public Collection<? extends LightweightObjectRef> evaluateRefExpressions(List<ExpressionType> expressions,
+	public Collection<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
 			ExpressionVariables variables, DelegateExecution execution, String contextDescription,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		List<LightweightObjectRef> retval = new ArrayList<>();
+		List<ObjectReferenceType> retval = new ArrayList<>();
 		for (ExpressionType expression : expressions) {
 			retval.addAll(evaluateRefExpression(expression, variables, execution, contextDescription, task, result));
 		}
 		return retval;
 	}
 
-	public List<LightweightObjectRef> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
+	public List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
 			DelegateExecution execution, String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 		return evaluateExpression(expressionType, variables, execution, contextDescription, String.class, DOMUtil.XSD_STRING,
 				task, result).stream()
-				.map(LightweightObjectRefImpl::new)
+				.map(oid -> ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER))
 				.collect(Collectors.toList());
 	}
 

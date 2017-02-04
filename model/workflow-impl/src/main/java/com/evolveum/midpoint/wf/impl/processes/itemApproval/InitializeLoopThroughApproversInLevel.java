@@ -18,24 +18,23 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedDecisionReasonType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GroupExpansionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfStageCompletionEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE;
@@ -57,18 +56,13 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         LOGGER.trace("Executing the delegate; execution = {}", execution);
 
-        OperationResult opResult = new OperationResult(InitializeLoopThroughApproversInLevel.class.getName() + ".execute");
-        Task wfTask = ActivitiUtil.getTask(execution, opResult);
+		OperationResult opResult = new OperationResult(InitializeLoopThroughApproversInLevel.class.getName() + ".execute");
 		Task opTask = getTaskManager().createTaskInstance();
+        Task wfTask = ActivitiUtil.getTask(execution, opResult);
+		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, false, prismContext);
+		int stageNumber = level.getOrder();
 
-        ExpressionVariables expressionVariables = null;
-
-        ApprovalLevelImpl level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevelImpl.class,
-				null);
-		level.setPrismContext(prismContext);
-
-		int levelIndex = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL_INDEX, Integer.class, null);
-		int stageNumber = levelIndex+1;
+		ExpressionVariables expressionVariables = null;
 
         ApprovalLevelOutcomeType predeterminedOutcome = null;
         if (level.getAutomaticallyApproved() != null) {
@@ -86,19 +80,19 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             }
         }
 
-        Set<LightweightObjectRef> approverRefs = new HashSet<>();
+        Set<ObjectReferenceType> approverRefs = new HashSet<>();
 
         if (predeterminedOutcome == null) {
-            approverRefs.addAll(level.getApproverRefs());
+            approverRefs.addAll(CloneUtil.cloneCollectionMembers(level.getApproverRef()));
 
-            if (!level.getApproverExpressions().isEmpty()) {
+            if (!level.getApproverExpression().isEmpty()) {
                 try {
                 	if (expressionVariables == null) {
 						expressionVariables = evaluator.getDefaultVariables(execution, wfTask, opResult);
 					}
-                    approverRefs.addAll(evaluator.evaluateRefExpressions(level.getApproverExpressions(), expressionVariables,
+                    approverRefs.addAll(evaluator.evaluateRefExpressions(level.getApproverExpression(), expressionVariables,
 							execution, "resolving approver expression", opTask, opResult));
-                } catch (Exception e) {     // todo
+                } catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException|RuntimeException e) {
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
             }
@@ -140,20 +134,20 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, stageNumber);
         execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NAME, level.getName());
         execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, level.getDisplayName());
-        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, new ArrayList<>(approverRefs));
+        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, ActivitiUtil.toLightweightReferences(approverRefs));
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
 
         if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Approval process instance {} (id {}), level {}: predetermined outcome: {}, approvers: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
 					execution.getProcessInstanceId(),
-					level.getDebugName(), predeterminedOutcome, LightweightObjectRef.toDebugNames(approverRefs));
+					WfContextUtil.getLevelDiagName(level), predeterminedOutcome, approverRefs);
 		}
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);		// store stage information in midPoint task
     }
 
 	private void recordAutoApprovalDecision(String taskOid, ApprovalLevelOutcomeType outcome, AutomatedDecisionReasonType reason,
-			int stageNumber, ApprovalLevel level, OperationResult opResult) {
+			int stageNumber, ApprovalLevelType level, OperationResult opResult) {
     	WfStageCompletionEventType event = new WfStageCompletionEventType();
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		event.setStageNumber(stageNumber);

@@ -32,13 +32,9 @@ public interface ApprovalRequest<I extends Serializable> extends Serializable {
 
     long serialVersionUID = 5111362449970050179L;
 
-    ApprovalSchema getApprovalSchema();
+    ApprovalSchemaType getApprovalSchemaType();
 
     I getItemToApprove();
 
-    void setPrismContext(PrismContext prismContext);
-
-    PrismContext getPrismContext();
-
-	ApprovalSchemaType getApprovalSchemaType();
+    ApprovalSchema getApprovalSchema();
 }

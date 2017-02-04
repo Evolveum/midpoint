@@ -57,7 +57,7 @@
 			<xsd:element name="level" type="c:ApprovalLevelType" minOccurs="1" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Levels, or steps, of the approval process.
+						Levels, or stages, of the approval process.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

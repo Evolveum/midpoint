@@ -22,10 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequest;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalRequestImpl;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.*;
 import com.evolveum.midpoint.wf.impl.processes.modifyAssignment.AssignmentModification;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspectHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -54,6 +51,9 @@ public class RoleAssignmentHelper {
     @Autowired
     private PrismContext prismContext;
 
+    @Autowired
+    private ApprovalSchemaHelper approvalSchemaHelper;
+
     protected boolean isAssignmentRelevant(AssignmentType assignmentType) {
         if (assignmentType.getTarget() != null) {
             return assignmentType.getTarget() instanceof AbstractRoleType;
@@ -74,18 +74,21 @@ public class RoleAssignmentHelper {
 
     ApprovalRequest<AssignmentType> createApprovalRequest(PcpAspectConfigurationType config, AssignmentType a,
 			AbstractRoleType role, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
-        return new ApprovalRequestImpl<>(a, config, role.getApprovalSchema(), role.getApproverRef(),
-                role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext, relationResolver, referenceResolver);
+        ApprovalRequest<AssignmentType> request = new ApprovalRequestImpl<>(a, config, role.getApprovalSchema(), role.getApproverRef(),
+                role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
+        approvalSchemaHelper.prepareSchema(request.getApprovalSchemaType(), relationResolver, referenceResolver);
+        return request;
     }
 
     ApprovalRequest<AssignmentModification> createApprovalRequestForModification(PcpAspectConfigurationType config,
 			AssignmentType assignmentType, AbstractRoleType role, List<ItemDeltaType> modifications,
 			RelationResolver relationResolver, ReferenceResolver referenceResolver) {
         AssignmentModification itemToApprove = new AssignmentModification(assignmentType, role, modifications);
-        return new ApprovalRequestImpl<>(itemToApprove.wrap(prismContext), config, role.getApprovalSchema(),
-				role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext,
-				relationResolver, referenceResolver);
-    }
+        ApprovalRequest<AssignmentModification> request = new ApprovalRequestImpl<>(itemToApprove, config, role.getApprovalSchema(),
+				role.getApproverRef(), role.getApproverExpression(), role.getAutomaticallyApproved(), prismContext);
+		approvalSchemaHelper.prepareSchema(request.getApprovalSchemaType(), relationResolver, referenceResolver);
+		return request;
+	}
 
     // TODO is this ok?
 	AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {

@@ -10,5 +10,6 @@ import java.util.List;
  */
 @FunctionalInterface
 public interface RelationResolver {
+	// Must return parent-less values
 	List<ObjectReferenceType> getApprovers(List<QName> relations);
 }
