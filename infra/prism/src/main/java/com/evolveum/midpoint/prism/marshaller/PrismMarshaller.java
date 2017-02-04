@@ -393,10 +393,13 @@ public class PrismMarshaller {
             return serializePolyString((PolyString) realValue);
         } else if (beanMarshaller.canProcess(typeName)) {
             XNode xnode = beanMarshaller.marshall(realValue);
-			TypeDefinition typeDef = getSchemaRegistry().findTypeDefinitionByCompileTimeClass(realValue.getClass(), TypeDefinition.class);
-			if (xnode != null && typeDef != null && !QNameUtil.match(typeDef.getTypeName(), typeName)) {
-				xnode.setTypeQName(typeDef.getTypeName());
-				xnode.setExplicitTypeDeclaration(true);
+            if (realValue.getClass().getPackage() != null) {
+				TypeDefinition typeDef = getSchemaRegistry()
+						.findTypeDefinitionByCompileTimeClass(realValue.getClass(), TypeDefinition.class);
+				if (xnode != null && typeDef != null && !QNameUtil.match(typeDef.getTypeName(), typeName)) {
+					xnode.setTypeQName(typeDef.getTypeName());
+					xnode.setExplicitTypeDeclaration(true);
+				}
 			}
 			return xnode;
         } else {
