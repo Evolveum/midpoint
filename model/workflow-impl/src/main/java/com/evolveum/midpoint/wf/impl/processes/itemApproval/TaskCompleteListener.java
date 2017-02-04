@@ -65,29 +65,18 @@ public class TaskCompleteListener implements TaskListener {
 
 		new MidPointTaskListener().notify(delegateTask);
 
-		WorkItemCompletionEventType event = new WorkItemCompletionEventType();
 		MidPointPrincipal user;
 		try {
 			user = SecurityUtil.getPrincipal();
-			if (user != null) {
-				event.setInitiatorRef(ObjectTypeUtil.createObjectRef(user.getUser()));
-			}
 		} catch (SecurityViolationException e) {
 			throw new SystemException("Couldn't record a decision: " + e.getMessage(), e);
 		}
 
 		LOGGER.trace("======================================== Recording individual decision of {}", user);
+		WorkItemCompletionEventType event = new WorkItemCompletionEventType();
+		ActivitiUtil.fillInWorkItemEvent(event, user, delegateTask.getId(), execution.getVariables());
 		WorkItemResultType result = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());
 		event.setResult(result);
-		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-		event.setWorkItemId(delegateTask.getId());
-		String originalAssigneeString = ActivitiUtil.getVariable(execution, VARIABLE_ORIGINAL_ASSIGNEE, String.class, prismContext);
-		if (originalAssigneeString != null) {
-			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
-		}
-		event.setStageDisplayName(level.getDisplayName());
-		event.setStageName(level.getName());
-		event.setStageNumber(ActivitiUtil.getRequiredVariable(execution, VARIABLE_STAGE_NUMBER, Integer.class, prismContext));
 
 		boolean isApproved = ApprovalUtils.isApproved(result);
 

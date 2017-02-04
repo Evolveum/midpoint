@@ -34,12 +34,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.FormService;
 import org.activiti.engine.TaskService;
@@ -232,14 +231,16 @@ public class WorkItemManager {
 			}
 
 			List<ObjectReferenceType> newAssignees;
-			if (method == null || method == WorkItemDelegationMethodType.REPLACE_ASSIGNEES) {
-				newAssignees = new ArrayList<>();
-			} else if (method == WorkItemDelegationMethodType.ADD_ASSIGNEES) {
-				newAssignees = new ArrayList<>(workItem.getAssigneeRef());
-			} else {
-				throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
+			if (method == null) {
+				method = WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
+			}
+			switch (method) {
+				case ADD_ASSIGNEES: newAssignees = new ArrayList<>(workItem.getAssigneeRef()); break;
+				case REPLACE_ASSIGNEES: newAssignees = new ArrayList<>(); break;
+				default: throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
 			}
 
+			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
 			for (ObjectReferenceType delegate : delegates) {
 				if (delegate.getType() != null && !QNameUtil.match(UserType.COMPLEX_TYPE, delegate.getType())) {
 					throw new IllegalArgumentException("Couldn't use non-user object as a delegate: " + delegate);
@@ -249,6 +250,7 @@ public class WorkItemManager {
 				}
 				if (!ObjectTypeUtil.containsOid(newAssignees, delegate.getOid())) {
 					newAssignees.add(delegate.clone());
+					delegatedTo.add(delegate.clone());
 				}
 			}
 
@@ -271,6 +273,14 @@ public class WorkItemManager {
 					.map(d -> ADDITIONAL_ASSIGNEES_PREFIX + MiscDataUtil.refToString(d) + ADDITIONAL_ASSIGNEES_SUFFIX)
 					.collect(Collectors.joining(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR));
 			taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES, additionalAssigneesAsString);
+
+			//Map<String, Object> variables = activitiEngine.getRuntimeService().getVariables(task.getExecutionId());
+			Map<String, Object> variables = taskService.getVariables(workItemId);
+			WorkItemDelegationEventType event = new WorkItemDelegationEventType();
+			ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, variables);
+			event.getDelegatedTo().addAll(delegatedTo);
+			event.setDelegationMethod(method);		// not null at this moment
+			MidpointUtil.recordEventInTask(event, null, ActivitiUtil.getTaskOid(variables), result);
 		} catch (SecurityViolationException|RuntimeException e) {
 			result.recordFatalError("Couldn't delegate work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;

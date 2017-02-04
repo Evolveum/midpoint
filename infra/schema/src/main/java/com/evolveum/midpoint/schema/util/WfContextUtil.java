@@ -183,6 +183,13 @@ public class WfContextUtil {
 				.collect(Collectors.toList());
 	}
 
+	public static <T extends WorkItemEventType> List<T> getWorkItemEvents(@NotNull WfContextType wfc, @NotNull String workItemId, Class<T> clazz) {
+		return wfc.getEvent().stream()
+				.filter(e -> clazz.isAssignableFrom(e.getClass()) && workItemId.equals(((WorkItemEventType) e).getWorkItemId()))
+				.map(e -> (T) e)
+				.collect(Collectors.toList());
+	}
+
 	public static String getBriefDiagInfo(WfContextType wfc) {
 		if (wfc == null) {
 			return "null";

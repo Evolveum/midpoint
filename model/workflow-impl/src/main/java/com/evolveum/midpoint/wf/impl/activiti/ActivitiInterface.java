@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.ProcessFinishedEvent;
@@ -171,10 +172,7 @@ public class ActivitiInterface {
     private void notifyMidpointAboutProcessEvent(ProcessEvent event) {
 		OperationResult result = new OperationResult(DOT_CLASS + "notifyMidpointAboutProcessEvent");
 
-		String taskOid = event.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class);
-		if (taskOid == null) {
-			throw new IllegalStateException("No task OID in process variables for " + event.getProcessDebugInfo());
-		}
+		String taskOid = ActivitiUtil.getTaskOid(event.getVariables());
 		Task task;
 		try {
 			task = taskManager.getTask(taskOid, result);

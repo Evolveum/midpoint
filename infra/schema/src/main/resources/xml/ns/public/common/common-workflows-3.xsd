@@ -1372,7 +1372,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:WfProcessEventType">
+			<xsd:extension base="tns:WorkItemEventType">
 				<xsd:sequence>
 					<xsd:element name="delegatedTo" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
 					<xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0" />

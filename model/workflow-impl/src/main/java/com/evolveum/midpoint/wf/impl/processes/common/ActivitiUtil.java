@@ -18,8 +18,11 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,19 +31,23 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalLevel;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getMidpointFunctions;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getTaskManager;
 
@@ -100,11 +107,13 @@ public class ActivitiUtil implements Serializable {
     }
 
     @NotNull
+    public static String getTaskOid(Map<String, Object> variables) {
+		return ActivitiUtil.getRequiredVariable(variables, CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class, null);
+	}
+
+    @NotNull
     public static Task getTask(DelegateExecution execution, OperationResult result) {
-        String oid = execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class);
-        if (oid == null) {
-			throw new IllegalStateException("No task OID in process " + execution.getProcessInstanceId());
-		}
+        String oid = getTaskOid(execution.getVariables());
 		try {
 			return getTaskManager().getTask(oid, result);
 		} catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
@@ -170,5 +179,22 @@ public class ActivitiUtil implements Serializable {
 
 	public static List<LightweightObjectRef> toLightweightReferences(Collection<ObjectReferenceType> refs) {
 		return refs.stream().map(ort -> new LightweightObjectRefImpl(ort)).collect(Collectors.toList());
+	}
+
+	// TODO move to better place (it is called also from WorkItemManager)
+	public static void fillInWorkItemEvent(WorkItemEventType event, MidPointPrincipal currentUser, String workItemId, Map<String, Object> variables) {
+		if (currentUser != null) {
+			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getUser()));
+		}
+		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		event.setWorkItemId(workItemId);
+		String originalAssigneeString = ActivitiUtil.getVariable(variables, VARIABLE_ORIGINAL_ASSIGNEE, String.class, null);
+		if (originalAssigneeString != null) {
+			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
+		}
+		event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, null));
+		event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, null));
+		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, null));
+
 	}
 }
