@@ -92,6 +92,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -156,7 +157,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected static final String USER_LECHUCK_USERNAME = "lechuck";
 	protected static final String USER_LECHUCK_FULL_NAME = "LeChuck";
 			
-	private static final String LDAP_INETORGPERSON_OBJECTCLASS = "inetOrgPerson";
+	protected static final String LDAP_INETORGPERSON_OBJECTCLASS = "inetOrgPerson";
+	
+	protected static final QName ASSOCIATION_GROUP_NAME = new QName(MidPointConstants.NS_RI, "group");
 		
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;

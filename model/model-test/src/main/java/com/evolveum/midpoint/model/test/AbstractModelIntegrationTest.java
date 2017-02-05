@@ -1062,7 +1062,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String resourceOid, ShadowKindType kind, 
 			String intent, boolean add) throws SchemaException {
-		AssignmentType assignmentType = createAssignment(resourceOid, kind, intent);
+		AssignmentType assignmentType = createConstructionAssignment(resourceOid, kind, intent);
 		return createAssignmentModification(assignmentType, add);
 	}
 
@@ -1082,10 +1082,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected AssignmentType createAccountAssignment(String resourceOid, String intent) {
-		return createAssignment(resourceOid, ShadowKindType.ACCOUNT, intent);
+		return createConstructionAssignment(resourceOid, ShadowKindType.ACCOUNT, intent);
 	}
 	
-	protected AssignmentType createAssignment(String resourceOid, ShadowKindType kind, String intent) {
+	protected AssignmentType createConstructionAssignment(String resourceOid, ShadowKindType kind, String intent) {
 		AssignmentType assignmentType = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setKind(kind);
@@ -1095,6 +1095,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         resourceRef.setType(ResourceType.COMPLEX_TYPE);
 		constructionType.setResourceRef(resourceRef);
 		constructionType.setIntent(intent);
+		return assignmentType;
+	}
+	
+	protected AssignmentType createTargetAssignment(String targetOid, QName targetType) {
+		AssignmentType assignmentType = new AssignmentType();
+		ObjectReferenceType targetRef = new ObjectReferenceType();
+		targetRef.setOid(targetOid);
+		targetRef.setType(targetType);
+		assignmentType.setTargetRef(targetRef);
 		return assignmentType;
 	}
 	

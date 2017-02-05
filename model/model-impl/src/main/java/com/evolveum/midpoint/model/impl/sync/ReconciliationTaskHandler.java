@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -151,7 +152,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	public TaskRunResult runInternal(Task coordinatorTask) {
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
-		
+
+		boolean finishOperationsOnly = BooleanUtils.isTrue(
+				coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY));
+
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
@@ -215,8 +219,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		reconResult.setResource(resource);
 		reconResult.setObjectclassDefinition(objectclassDef);
 		
-		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}",
-				resource, objectclassDef);
+		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}, finish operations only: {}",
+				resource, objectclassDef, finishOperationsOnly);
 		long reconStartTimestamp = clock.currentTimeMillis();
 		
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
@@ -260,12 +264,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		long afterResourceReconTimestamp;
 		long afterShadowReconTimestamp;
 		try {			
-			if (!performResourceReconciliation(resource, objectclassDef, reconResult, coordinatorTask, opResult)) {
+			if (!finishOperationsOnly && !performResourceReconciliation(resource, objectclassDef, reconResult, coordinatorTask, opResult)) {
                 processInterruption(runResult, resource, coordinatorTask, opResult);
                 return runResult;
             }
 			afterResourceReconTimestamp = clock.currentTimeMillis();
-			if (!performShadowReconciliation(resource, objectclassDef, reconStartTimestamp, afterResourceReconTimestamp, reconResult, coordinatorTask, opResult)) {
+			if (!finishOperationsOnly && !performShadowReconciliation(resource, objectclassDef, reconStartTimestamp, afterResourceReconTimestamp, reconResult, coordinatorTask, opResult)) {
                 processInterruption(runResult, resource, coordinatorTask, opResult);
                 return runResult;
             }
