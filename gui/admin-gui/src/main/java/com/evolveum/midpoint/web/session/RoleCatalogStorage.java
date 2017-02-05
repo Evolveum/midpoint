@@ -50,6 +50,7 @@ public class RoleCatalogStorage implements PageStorage{
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
     private AssignmentViewType viewType = AssignmentViewType.ROLE_CATALOG_VIEW;      //the current view type
     private PrismObject<UserType> targetUser = null;
+    private PrismObject<UserType> assignmentsUserOwner = null;
 
     private ObjectPaging roleCatalogPaging;
 
@@ -152,5 +153,13 @@ public class RoleCatalogStorage implements PageStorage{
 
     public void setTargetUser(PrismObject<UserType> targetUser) {
         this.targetUser = targetUser;
+    }
+
+    public PrismObject<UserType> getAssignmentsUserOwner() {
+        return assignmentsUserOwner;
+    }
+
+    public void setAssignmentsUserOwner(PrismObject<UserType> assignmentsUserOwner) {
+        this.assignmentsUserOwner = assignmentsUserOwner;
     }
 }

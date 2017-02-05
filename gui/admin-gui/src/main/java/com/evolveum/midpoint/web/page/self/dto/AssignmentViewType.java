@@ -23,7 +23,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
  * Created by honchar.
  */
 public enum AssignmentViewType {
-    ROLE_CATALOG_VIEW, ROLE_TYPE, ORG_TYPE, SERVICE_TYPE;
+    ROLE_CATALOG_VIEW, ROLE_TYPE, ORG_TYPE, SERVICE_TYPE, USER_TYPE;
 
     public static AssignmentViewType getViewTypeFromSession(PageBase pageBase){
         SessionStorage storage = pageBase.getSessionStorage();
