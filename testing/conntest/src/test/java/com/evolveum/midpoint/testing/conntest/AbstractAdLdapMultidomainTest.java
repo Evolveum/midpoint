@@ -323,6 +323,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
@@ -340,6 +341,88 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+        
+        assertLdapConnectorInstances(1);
+	}
+	
+	/**
+	 * MID-3730
+	 */
+	@Test
+    public void test101SeachJackByDn() throws Exception {
+		final String TEST_NAME = "test101SeachJackByDn";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        String jackDn = toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME);
+        ObjectQuery query = createAccountShadowQueryByAttribute("dn", jackDn, resource);
+        
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        
+        PrismObject<ShadowType> shadow = shadows.get(0);
+        display("Shadow", shadow);
+        assertAccountShadow(shadow, jackDn);
+        
+//        assertConnectorOperationIncrement(2);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = shadows.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+        
+        assertLdapConnectorInstances(1);
+	}
+	
+	/**
+	 * Search for non-existent DN should return no results. It should NOT
+	 * throw an error.
+	 * 
+	 * MID-3730
+	 */
+	@Test
+    public void test102SeachNotExistByDn() throws Exception {
+		final String TEST_NAME = "test102SeachNotExistByDn";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        String dn = toAccountDn("idonoexist", "I am a Fiction");
+        ObjectQuery query = createAccountShadowQueryByAttribute("dn", dn, resource);
+        
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+        assertEquals("Unexpected search result: "+shadows, 0, shadows.size());
+                
+//        assertConnectorOperationIncrement(2);
+        assertConnectorSimulatedPagingSearchIncrement(0);
         
         assertLdapConnectorInstances(1);
 	}

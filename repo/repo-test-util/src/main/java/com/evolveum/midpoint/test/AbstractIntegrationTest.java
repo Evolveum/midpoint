@@ -1067,6 +1067,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.build();
 	}
+	
+	protected ObjectQuery createAccountShadowQueryByAttribute(String attributeName, String attributeValue, PrismObject<ResourceType> resource) throws SchemaException {
+		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        return createShadowQueryByAttribute(rAccount, attributeName, attributeValue, resource);
+	}
+	
+	protected ObjectQuery createShadowQueryByAttribute(ObjectClassComplexTypeDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) throws SchemaException {
+        ResourceAttributeDefinition<Object> attrDef = rAccount.findAttributeDefinition(attributeName);
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+				.build();
+	}
 		
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
