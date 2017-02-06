@@ -1,0 +1,251 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+					 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+
+    <name>dummy</name>
+
+        <!-- insert the following element into system configuration object (via debug pages)
+             before logging and cleanup policy items -->
+
+    <notificationConfiguration>
+        <handler>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>to@example.com</value>
+                </recipientExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <simpleResourceObjectNotifier>
+            	<fromExpression>
+                    <value>from@example.com</value>
+                </fromExpression>
+                <recipientExpression>
+                    <value>to@example.com</value>
+                </recipientExpression>
+                <ccExpression>
+                    <value>cc@example.com</value>
+                </ccExpression>
+                <bccExpression>
+                    <value>bcc@example.com</value>
+                </bccExpression>
+		<subjectExpression>
+                	<value>simpleResourceObjectNotifier from/recipient/cc/bcc</value>
+                </subjectExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>from@example.com</value>
+                </recipientExpression>
+                <ccExpression>
+                    <value>cc@example.com</value>
+                </ccExpression>
+                <bccExpression>
+                    <value>bcc@example.com</value>
+                </bccExpression>
+		<subjectExpression>
+                	<value>simpleResourceObjectNotifier recipient/cc/bcc</value>
+                </subjectExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+                <handler>
+            <simpleResourceObjectNotifier>
+            	<fromExpression>
+                    <value>from@example.com</value>
+                </fromExpression>
+                <recipientExpression>
+                    <value>to@example.com</value>
+                </recipientExpression>
+                <bccExpression>
+                    <value>bcc@example.com</value>
+                </bccExpression>
+		<subjectExpression>
+                	<value>simpleResourceObjectNotifier from/recipient/bcc</value>
+                </subjectExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <handler>
+            <simpleResourceObjectNotifier>
+            	<fromExpression>
+                    <value>from@example.com</value>
+                </fromExpression>
+                <recipientExpression>
+                    <value>to@example.com</value>
+                </recipientExpression>
+                <ccExpression>
+                    <value>cc@example.com</value>
+                </ccExpression>
+		<subjectExpression>
+                	<value>simpleResourceObjectNotifier from/recipient/cc</value>
+                </subjectExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+                <handler>
+	<generalNotifier>
+            <name>Test html</name>
+            <expressionFilter>
+                <script>
+                    <code>
+                    import com.evolveum.midpoint.notifications.api.events.*
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                    if ((event instanceof ModelEvent) &amp;&amp; "User".equals(event.getFocusTypeName())) {
+			return true
+		    }			        
+		    else return false
+                    </code>
+                </script>
+            </expressionFilter>
+                   
+            <contentTypeExpression>
+            	 <value>text/html; charset=utf-8</value>
+            </contentTypeExpression>
+            <recipientExpression>
+                 <value>to@example.com</value>
+            </recipientExpression>
+            <fromExpression>
+                 <value>from@example.com</value>
+            </fromExpression>
+            <bccExpression>
+                <script>
+                   <code>
+                   list = new java.util.ArrayList()
+                   list.add('bcc1@example.com')
+                   list.add('bcc2@example.com')
+                   list
+                   </code>
+                </script>
+            </bccExpression>
+            <ccExpression>
+            	<value>cc@example.com</value>
+            </ccExpression>
+            <subjectExpression>
+                <script>
+                    <code>
+                   	'test html' 
+                </code>
+               </script>
+            </subjectExpression>
+           <bodyExpression>    
+                <script>
+                   <code>
+                  '&lt;p>'+
+                  '&lt;h1>title marked as h1...&lt;/h1>'+
+                  '&lt;table>'+
+					  '&lt;tr>'+
+						  '&lt;th>'+'col 1'+'&lt;/th>'+
+						  '&lt;th>'+'col 2'+'&lt;/th>'+
+					  '&lt;/tr>'+
+					  '&lt;tr>'+ 
+						  '&lt;td>'+'val 1'+'&lt;/td>'+
+						  '&lt;td>'+'val 2'+'&lt;/td>'+
+					  '&lt;/tr>'+ 
+                  '&lt;/table>'+
+                  '&lt;/p>'
+                   </code>
+               </script>
+           </bodyExpression>
+           <transport>mail</transport>
+       </generalNotifier>
+       </handler>
+        <handler>
+	<generalNotifier>
+            <name>Test txt</name>
+            <expressionFilter>
+                <script>
+                    <code>
+                    import com.evolveum.midpoint.notifications.api.events.*
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                    if ((event instanceof ModelEvent) &amp;&amp; "User".equals(event.getFocusTypeName())) {
+			return true
+		    }			        
+		    else return false
+                    </code>
+                </script>
+            </expressionFilter>
+                   
+            <contentTypeExpression>
+            	 <value>text/plain; charset=utf-8</value>
+            </contentTypeExpression>
+            <recipientExpression>
+                 <value>to@example.com</value>
+            </recipientExpression>
+            <fromExpression>
+                 <value>from@example.com</value>
+            </fromExpression>
+            <ccExpression>
+            	<value>cc@example.com</value>
+            </ccExpression>
+            <subjectExpression>
+                <script>
+                    <code>
+                   	'test text/plain' 
+                </code>
+               </script>
+            </subjectExpression>
+           <bodyExpression>    
+                <script>
+                   <code>
+                   'this is text/plain, therefore not rendered using html engine'+
+                  '&lt;p>'+
+                  '&lt;h1>title marked as h1...&lt;/h1>'+
+                  '&lt;table>'+
+                  '&lt;tr>'+
+                  '&lt;th>'+'col 1'+'&lt;/th>'+
+                  '&lt;th>'+'col 2'+'&lt;/th>'+
+                  '&lt;/tr>'+
+                  '&lt;tr>'+ 
+                  '&lt;td>'+'val 11'+'&lt;/td>'+
+                  '&lt;td>'+'val 21'+'&lt;/td>'+
+                  '&lt;/tr>'+ 
+                  '&lt;tr>'+ 
+                  '&lt;td>'+'val 12'+'&lt;/td>'+
+                  '&lt;td>'+'val 22'+'&lt;/td>'+
+                  '&lt;/tr>'+
+                  '&lt;/table>'+
+                  '&lt;/p>'
+                   </code>
+               </script>
+           </bodyExpression>
+           <transport>mail</transport>
+       </generalNotifier>
+       </handler>
+        <mail>
+            <server>
+                <host>smtp.gmail.com</host>
+                <port>587</port>
+                <username>..........</username>
+                <password>
+			<t:clearValue>.........</t:clearValue>
+		</password>
+                <transportSecurity>starttlsEnabled</transportSecurity>
+            </server>
+            <!-- or:
+            <redirectToFile>c:\midpoint\mail-notifications.log</redirectToFile>
+            -->
+        </mail>
+    </notificationConfiguration>
+
+</systemConfiguration>
