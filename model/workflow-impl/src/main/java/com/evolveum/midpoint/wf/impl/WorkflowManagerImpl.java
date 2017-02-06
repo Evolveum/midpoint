@@ -152,9 +152,10 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     @Override
     public void approveOrRejectWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult)
+			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException {
-        workItemManager.completeWorkItem(taskId, ApprovalUtils.approvalStringValue(decision), comment, additionalDelta, parentResult);
+        workItemManager.completeWorkItem(taskId, ApprovalUtils.approvalStringValue(decision), comment, additionalDelta,
+				causeInformation, parentResult);
     }
 
     @Override

@@ -118,7 +118,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT;
 		// TODO distinguish from regular user complete action
 		workItemManager.completeWorkItem(workItem.getWorkItemId(), ApprovalUtils.approvalStringValue(outcome),
-				null, null, result);
+				null, null, null, result);
 	}
 
 	private void executeDelegateAction(WorkItemType workItem, DelegateWorkItemActionType delegateAction, Task wfTask,

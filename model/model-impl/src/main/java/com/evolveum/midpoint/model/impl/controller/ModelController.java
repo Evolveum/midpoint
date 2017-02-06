@@ -1996,7 +1996,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
 			OperationResult parentResult)
 			throws SecurityViolationException, SchemaException {
-        getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, comment, additionalDelta, parentResult);
+        getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, comment, additionalDelta, null, parentResult);
     }
 
     @Override

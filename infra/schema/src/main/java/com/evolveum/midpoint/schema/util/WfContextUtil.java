@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -128,15 +129,16 @@ public class WfContextUtil {
 				(ItemApprovalWorkItemPartType) workItem.getProcessSpecificPart() : null;
 	}
 
-	public static SchemaAttachedPolicyRuleType getAttachedPolicyRule(WfContextType workflowContext, int order) {
+	@NotNull
+	public static List<SchemaAttachedPolicyRuleType> getAttachedPolicyRules(WfContextType workflowContext, int order) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(workflowContext);
 		if (info == null || info.getPolicyRules() == null) {
-			return null;
+			return Collections.emptyList();
 		}
 		return info.getPolicyRules().getEntry().stream()
 				.filter(e -> e.getLevelMax() != null && e.getLevelMax() != null
 						&& order >= e.getLevelMin() && order <= e.getLevelMax())
-				.findFirst().orElse(null);
+				.collect(Collectors.toList());
 	}
 
 	public static ApprovalLevelType getCurrentApprovalLevel(WfContextType wfc) {

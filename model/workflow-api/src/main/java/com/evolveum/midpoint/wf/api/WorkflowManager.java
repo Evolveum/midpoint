@@ -64,14 +64,15 @@ public interface WorkflowManager {
 
 	/**
 	 * Approves or rejects a work item (without supplying any further information).
-	 *  @param taskId       identifier of activiti task backing the work item
+	 * @param taskId       identifier of activiti task backing the work item
 	 * @param decision     true = approve, false = reject
 	 * @param comment
 	 * @param additionalDelta
+	 * @param causeInformation
 	 * @param parentResult
 	 */
 	void approveOrRejectWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult) throws SecurityViolationException, SchemaException;
+			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult) throws SecurityViolationException, SchemaException;
 
 	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
 

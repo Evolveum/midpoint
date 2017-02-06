@@ -50,7 +50,10 @@ import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -92,7 +95,8 @@ public class WorkItemManager {
     private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_INTERFACE + "delegateWorkItem";
 
     public void completeWorkItem(String workItemId, String decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult) throws SecurityViolationException, SchemaException {
+			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
+			throws SecurityViolationException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParams(new String[] { "workItemId", "decision", "comment" }, workItemId, decision, comment);

@@ -213,7 +213,7 @@
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="time" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="time" type="tns:WfTimeSpecificationType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Time(s) at which these actions are to be executed. No time or zero time means
@@ -228,6 +228,27 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						What actions to execute.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Should this action be scheduled?
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="escalationFrom" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Apply only for escalation levels greater or equal to this value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="escalationTo" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Apply only for escalation levels not greater than this value.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -263,7 +284,14 @@
 			<xsd:element name="delegate" type="tns:DelegateWorkItemActionType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
-						Delegate (escalate) this work item.
+						Delegate this work item.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="escalate" type="tns:EscalateWorkItemActionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Escalate this work item. Basically the same as "delegate" but increases the escalation level.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -303,6 +331,13 @@
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Should this action be executed?
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -321,6 +356,15 @@
 			<xsd:extension base="tns:AbstractWorkItemActionType">
 				<xsd:sequence>
 					<xsd:element name="outcome" type="tns:WorkItemOutcomeType" minOccurs="0" />
+					<xsd:element name="notifyBeforeAction" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								If specified, sends a standard "action to be executed" notifications at given times.
+								(Unlike timed action interval, here specify a positive time: just like for
+								notifyBeforeDeadline in certification.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -372,6 +416,7 @@
 								<p>
 									What relation(s) to use when determining approvers? E.g. "approver", "owner",
 									"securityApprover", and so on.
+									NOT SUPPORTED YET.
 								</p>
 							</xsd:documentation>
 						</xsd:annotation>
@@ -411,15 +456,49 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<!--<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">-->
-					<!--<xsd:annotation>-->
-					<!--<xsd:documentation>-->
-					<!--What actions are to be applied to work items when given timer(s) occur; they are relative-->
-					<!--to the moment of delegation (positive ones) and to the new deadline (zero or negative ones).-->
-					<!--EXPERIMENTAL-->
-					<!--</xsd:documentation>-->
-					<!--</xsd:annotation>-->
-					<!--</xsd:element>-->
+					<xsd:element name="notifyBeforeAction" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								If specified, sends a standard "action to be executed" notifications at given times.
+								(Unlike timed action interval, here specify a positive time: just like for
+								notifyBeforeDeadline in certification.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="EscalateWorkItemActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:DelegateWorkItemActionType">
+				<xsd:sequence>
+					<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Name for the new escalation level.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0" >
+						<xsd:annotation>
+							<xsd:documentation>
+								Display name for the new escalation level.
+								NOT SUPPORTED YET.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1307,6 +1386,53 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="WorkItemEventCauseInformationType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cause" type="tns:WorkItemEventCauseType" minOccurs="0" />
+			<xsd:element name="causeName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="causeDisplayName" type="xsd:string" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="WorkItemEventCauseType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Reason for automated decision.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="userAction">
+				<xsd:annotation>
+					<xsd:documentation>
+						This event was caused by a user action.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="USER_ACTION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="timedAction">
+				<xsd:annotation>
+					<xsd:documentation>
+						This event was caused by a timed action.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TIMED_ACTION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:complexType name="WorkItemEventType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -1336,6 +1462,35 @@
 								<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
 								<a:since>3.6</a:since>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Escalation level number (if applicable). Zero or null means no escalation.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Escalation level name (if applicable).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Escalation level display name (if applicable).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="cause" type="tns:WorkItemEventCauseInformationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Cause of the event occurring. E.g. user action, timed action (and which one).
+								EXPERIMENTAL; TO BE DECIDED ABOUT THIS BEFORE 3.6 RELEASE
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
 					<!-- TODO reason? e.g. when doing escalation? -->
@@ -1374,8 +1529,29 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:WorkItemEventType">
 				<xsd:sequence>
+					<xsd:element name="originalAssignee" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
 					<xsd:element name="delegatedTo" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
 					<xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemEscalationEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Event describing the fact of escalation.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WorkItemDelegationEventType">
+				<xsd:sequence>
+					<xsd:element name="newEscalationLevelNumber" type="xsd:string"  />
+					<xsd:element name="newEscalationLevelName" type="xsd:string" minOccurs="0" />
+					<xsd:element name="newEscalationLevelDisplayName" type="xsd:string" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1860,4 +2036,54 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="WfTimeSpecificationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="value" type="xsd:duration" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="base" type="tns:WfTimeBaseType" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="WfTimeBaseType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="deadline">
+				<xsd:annotation>
+					<xsd:documentation>
+						Time will be taken relative to the deadline. (This is the default for zero or negative values.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DEADLINE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="workItemCreation">
+				<xsd:annotation>
+					<xsd:documentation>
+						Time will be taken relative to the work item creation timestamp. (This is the default for positive values.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WORK_ITEM_CREATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<!-- TODO process instance creation -->
+		</xsd:restriction>
+	</xsd:simpleType>
 </xsd:schema>
