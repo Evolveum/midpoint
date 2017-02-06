@@ -78,7 +78,7 @@ public class CommonProcessVariableNames {
 	public static final String FORM_FIELD_ADDITIONAL_DELTA = "objectDelta";
 
 	// [String - value of WorkItemEventCauseType]
-	public static final String FORM_FIELD_CAUSE = "cause";
+	public static final String VARIABLE_CAUSE = "cause";
 
 	public static final String FORM_BUTTON_PREFIX = "[B]";
 

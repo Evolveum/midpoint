@@ -124,7 +124,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	private void executeDelegateAction(WorkItemType workItem, DelegateWorkItemActionType delegateAction, Task wfTask,
 			OperationResult result) throws SecurityViolationException, ObjectNotFoundException {
 		workItemManager.delegateWorkItem(workItem.getWorkItemId(), delegateAction.getApproverRef(),
-				WorkItemDelegationMethodType.ADD_ASSIGNEES, result);
+				WorkItemDelegationMethodType.ADD_ASSIGNEES, false, null, null, null, result);
 	}
 
 	private void executeNotificationAction(WorkItemType workItem, WorkItemNotificationActionType notificationAction, Task wfTask,

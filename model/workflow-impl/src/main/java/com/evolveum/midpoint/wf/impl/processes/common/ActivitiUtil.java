@@ -192,9 +192,11 @@ public class ActivitiUtil implements Serializable {
 		if (originalAssigneeString != null) {
 			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
 		}
-		event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, null));
-		event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, null));
 		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, null));
-
+		event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, null));
+		event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, null));
+		event.setEscalationLevelNumber(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NUMBER, Integer.class, null));
+		event.setEscalationLevelName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, null));
+		event.setEscalationLevelDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, null));
 	}
 }

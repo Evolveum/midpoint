@@ -1529,7 +1529,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:WorkItemEventType">
 				<xsd:sequence>
-					<xsd:element name="originalAssignee" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="assigneeBefore" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
 					<xsd:element name="delegatedTo" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
 					<xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0" />
 				</xsd:sequence>
@@ -1549,7 +1549,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:WorkItemDelegationEventType">
 				<xsd:sequence>
-					<xsd:element name="newEscalationLevelNumber" type="xsd:string"  />
+					<xsd:element name="newEscalationLevelNumber" type="xsd:int" />
 					<xsd:element name="newEscalationLevelName" type="xsd:string" minOccurs="0" />
 					<xsd:element name="newEscalationLevelDisplayName" type="xsd:string" minOccurs="0" />
 				</xsd:sequence>
@@ -1974,6 +1974,9 @@
 			<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
 			<xsd:element name="stageName" type="xsd:string" minOccurs="0" />
 			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0" />
+			<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0" />
 			<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>

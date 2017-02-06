@@ -171,7 +171,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     @Override
     public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
-        workItemManager.delegateWorkItem(workItemId, delegates, method, parentResult);
+        workItemManager.delegateWorkItem(workItemId, delegates, method, false, null, null, null, parentResult);
     }
 
     /*
