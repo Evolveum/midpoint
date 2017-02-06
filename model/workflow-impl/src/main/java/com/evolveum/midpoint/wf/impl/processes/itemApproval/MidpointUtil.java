@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.WfTimedActionTriggerHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -157,23 +159,39 @@ public class MidpointUtil {
 					schemaRegistry.findContainerDefinitionByElementName(SchemaConstantsGenerated.C_WORK_ITEM_ACTIONS);
 			List<TriggerType> triggers = new ArrayList<>();
 			for (WorkItemTimedActionsType timedAction : timedActions) {
-				List<Duration> durations = new ArrayList<>(timedAction.getTime());
-				if (durations.isEmpty()) {
-					durations.add(XmlTypeConverter.createDuration(0));
+				int escalationLevel = ActivitiUtil.getEscalationLevelNumber(delegateTask.getVariables());
+				if (timedAction.getEscalationFrom() != null && escalationLevel < timedAction.getEscalationFrom()) {
+					LOGGER.trace("Current escalation level is before 'escalationFrom', skipping timed action {}", timedAction);
+					continue;
 				}
-				for (Duration duration : durations) {
-					TriggerType trigger = new TriggerType(prismContext);
-					trigger.setTimestamp(computeTriggerTime(duration, delegateTask.getCreateTime(), delegateTask.getDueDate()));
-					trigger.setHandlerUri(WfTimedActionTriggerHandler.HANDLER_URI);
-					ExtensionType extension = new ExtensionType(prismContext);
-					trigger.setExtension(extension);
-					PrismProperty<String> workItemIdProp = workItemIdDef.instantiate();
-					workItemIdProp.addRealValue(delegateTask.getId());
-					extension.asPrismContainerValue().add(workItemIdProp);
-					PrismContainer<WorkItemActionsType> workItemActionsCont = workItemActionsDef.instantiate();
-					workItemActionsCont.add(timedAction.getActions().asPrismContainerValue().clone());
-					extension.asPrismContainerValue().add(workItemActionsCont);
-					triggers.add(trigger);
+				if (timedAction.getEscalationTo() != null && escalationLevel > timedAction.getEscalationTo()) {
+					LOGGER.trace("Current escalation level is after 'escalationTo', skipping timed action {}", timedAction);
+					continue;
+				}
+				// TODO evaluate the condition
+				List<WfTimeSpecificationType> timeSpecifications = CloneUtil.cloneCollectionMembers(timedAction.getTime());
+				if (timeSpecifications.isEmpty()) {
+					timeSpecifications.add(new WfTimeSpecificationType());
+				}
+				for (WfTimeSpecificationType timeSpec : timeSpecifications) {
+					if (timeSpec.getValue().isEmpty()) {
+						timeSpec.getValue().add(XmlTypeConverter.createDuration(0));
+					}
+					for (Duration duration : timeSpec.getValue()) {
+						TriggerType trigger = new TriggerType(prismContext);
+						trigger.setTimestamp(computeTriggerTime(duration, timeSpec.getBase(),
+								delegateTask.getCreateTime(), delegateTask.getDueDate()));
+						trigger.setHandlerUri(WfTimedActionTriggerHandler.HANDLER_URI);
+						ExtensionType extension = new ExtensionType(prismContext);
+						trigger.setExtension(extension);
+						PrismProperty<String> workItemIdProp = workItemIdDef.instantiate();
+						workItemIdProp.addRealValue(delegateTask.getId());
+						extension.asPrismContainerValue().add(workItemIdProp);
+						PrismContainer<WorkItemActionsType> workItemActionsCont = workItemActionsDef.instantiate();
+						workItemActionsCont.add(timedAction.getActions().asPrismContainerValue().clone());
+						extension.asPrismContainerValue().add(workItemActionsCont);
+						triggers.add(trigger);
+					}
 				}
 			}
 			LOGGER.trace("Adding {} triggers to {}:\n{}", triggers.size(), wfTask,
@@ -194,21 +212,29 @@ public class MidpointUtil {
 	}
 
 	@NotNull
-	private static XMLGregorianCalendar computeTriggerTime(Duration duration, Date start, Date deadline) {
-		Date base;
-		if (duration.getSign() <= 0) {
-			if (deadline == null) {
-				throw new IllegalStateException("Couldn't set timed action relative to work item's deadline because"
-						+ " the deadline is not set. Requested interval: " + duration);
-			}
-			base = deadline;
-		} else {
-			if (start == null) {
-				throw new IllegalStateException("Task's start time is null");
-			}
-			base = start;
+	private static XMLGregorianCalendar computeTriggerTime(Duration duration, WfTimeBaseType base, Date start, Date deadline) {
+		Date baseTime;
+		if (base == null) {
+			base = duration.getSign() <= 0 ? WfTimeBaseType.DEADLINE : WfTimeBaseType.WORK_ITEM_CREATION;
 		}
-		XMLGregorianCalendar rv = XmlTypeConverter.createXMLGregorianCalendar(base);
+		switch (base) {
+			case DEADLINE:
+				if (deadline == null) {
+					throw new IllegalStateException("Couldn't set timed action relative to work item's deadline because"
+							+ " the deadline is not set. Requested interval: " + duration);
+				}
+				baseTime = deadline;
+				break;
+			case WORK_ITEM_CREATION:
+				if (start == null) {
+					throw new IllegalStateException("Task's start time is null");
+				}
+				baseTime = start;
+				break;
+			default:
+				throw new IllegalArgumentException("base: " + base);
+		}
+		XMLGregorianCalendar rv = XmlTypeConverter.createXMLGregorianCalendar(baseTime);
 		rv.add(duration);
 		return rv;
 	}

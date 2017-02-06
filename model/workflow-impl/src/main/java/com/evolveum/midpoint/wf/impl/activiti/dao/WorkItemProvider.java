@@ -488,6 +488,12 @@ public class WorkItemProvider {
 			wi.setStageCount(pmi.getStageCount(variables));
 			wi.setStageName(pmi.getStageName(variables));
 			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
+			wi.setStageName(pmi.getStageName(variables));
+			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
+
+			wi.setEscalationLevelNumber(pmi.getEscalationLevelNumber(variables));
+			wi.setEscalationLevelName(pmi.getEscalationLevelName(variables));
+			wi.setEscalationLevelDisplayName(pmi.getEscalationLevelDisplayName(variables));
 
 			// This is just because 'variables' switches in task query DO NOT fetch all required variables...
 			if (fetchAllVariables) {		// TODO can we do this e.g. in the task completion listener?

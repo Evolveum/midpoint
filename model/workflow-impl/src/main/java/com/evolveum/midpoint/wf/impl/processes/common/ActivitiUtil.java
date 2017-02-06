@@ -33,10 +33,7 @@ import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalLevel;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.jetbrains.annotations.NotNull;
 
@@ -182,21 +179,27 @@ public class ActivitiUtil implements Serializable {
 	}
 
 	// TODO move to better place (it is called also from WorkItemManager)
-	public static void fillInWorkItemEvent(WorkItemEventType event, MidPointPrincipal currentUser, String workItemId, Map<String, Object> variables) {
+	public static void fillInWorkItemEvent(WorkItemEventType event, MidPointPrincipal currentUser, String workItemId,
+			Map<String, Object> variables, PrismContext prismContext) {
 		if (currentUser != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getUser()));
 		}
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		event.setWorkItemId(workItemId);
-		String originalAssigneeString = ActivitiUtil.getVariable(variables, VARIABLE_ORIGINAL_ASSIGNEE, String.class, null);
+		String originalAssigneeString = ActivitiUtil.getVariable(variables, VARIABLE_ORIGINAL_ASSIGNEE, String.class, prismContext);
 		if (originalAssigneeString != null) {
 			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
 		}
-		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, null));
-		event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, null));
-		event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, null));
-		event.setEscalationLevelNumber(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NUMBER, Integer.class, null));
-		event.setEscalationLevelName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, null));
-		event.setEscalationLevelDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, null));
+		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, prismContext));
+		event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, prismContext));
+		event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, prismContext));
+		event.setEscalationLevelNumber(ActivitiUtil.getEscalationLevelNumber(variables));
+		event.setEscalationLevelName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, prismContext));
+		event.setEscalationLevelDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, prismContext));
+	}
+
+	public static int getEscalationLevelNumber(Map<String, Object> variables) {
+		Integer e = ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NUMBER, Integer.class, null);
+		return e != null ? e : 0;
 	}
 }

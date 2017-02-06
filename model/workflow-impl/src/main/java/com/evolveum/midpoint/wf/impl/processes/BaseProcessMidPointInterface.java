@@ -70,6 +70,21 @@ public abstract class BaseProcessMidPointInterface implements ProcessMidPointInt
 	}
 
 	@Override
+	public Integer getEscalationLevelNumber(Map<String, Object> variables) {
+		return ActivitiUtil.getEscalationLevelNumber(variables);
+	}
+
+	@Override
+	public String getEscalationLevelName(Map<String, Object> variables) {
+		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NAME, String.class);
+	}
+
+	@Override
+	public String getEscalationLevelDisplayName(Map<String, Object> variables) {
+		return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class);
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public List<InformationType> getAdditionalInformation(Map<String, Object> variables) {
 		List<InformationType> info = ActivitiUtil.getVariable(variables, CommonProcessVariableNames.ADDITIONAL_INFORMATION,

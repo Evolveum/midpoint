@@ -99,7 +99,10 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 				executeNotificationAction(workItem, notificationAction, wfTask, result);
 			}
 			if (actions.getDelegate() != null) {
-				executeDelegateAction(workItem, actions.getDelegate(), wfTask, result);
+				executeDelegateAction(workItem, actions.getDelegate(), false, wfTask, result);
+			}
+			if (actions.getEscalate() != null) {
+				executeDelegateAction(workItem, actions.getEscalate(), true, wfTask, result);
 			}
 			if (actions.getComplete() != null) {
 				executeCompleteAction(workItem, actions.getComplete(), wfTask, result);
@@ -116,20 +119,36 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction, Task wfTask,
 			OperationResult result) throws SchemaException, SecurityViolationException {
 		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT;
-		// TODO distinguish from regular user complete action
 		workItemManager.completeWorkItem(workItem.getWorkItemId(), ApprovalUtils.approvalStringValue(outcome),
-				null, null, null, result);
+				null, null, createCauseInformation(completeAction), result);
 	}
 
-	private void executeDelegateAction(WorkItemType workItem, DelegateWorkItemActionType delegateAction, Task wfTask,
+	private void executeDelegateAction(WorkItemType workItem, DelegateWorkItemActionType delegateAction, boolean escalate, Task wfTask,
 			OperationResult result) throws SecurityViolationException, ObjectNotFoundException {
+		String escalationLevelName;
+		String escalationLevelDisplayName;
+		if (escalate && delegateAction instanceof EscalateWorkItemActionType) {
+			escalationLevelName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelName();
+			escalationLevelDisplayName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelDisplayName();
+		} else {
+			escalationLevelName = escalationLevelDisplayName = null;
+		}
 		workItemManager.delegateWorkItem(workItem.getWorkItemId(), delegateAction.getApproverRef(),
-				WorkItemDelegationMethodType.ADD_ASSIGNEES, false, null, null, null, result);
+				delegateAction.getDelegationMethod(), escalate, escalationLevelName, escalationLevelDisplayName,
+				createCauseInformation(delegateAction), result);
 	}
 
 	private void executeNotificationAction(WorkItemType workItem, WorkItemNotificationActionType notificationAction, Task wfTask,
 			OperationResult result) throws SchemaException {
 		wfTaskController.executeWorkItemNotificationAction(workItem, notificationAction, wfTaskController.recreateWfTask(wfTask), result);
+	}
+
+	private WorkItemEventCauseInformationType createCauseInformation(AbstractWorkItemActionType action) {
+		WorkItemEventCauseInformationType cause = new WorkItemEventCauseInformationType();
+		cause.setCause(WorkItemEventCauseType.TIMED_ACTION);
+		cause.setCauseName(action.getName());
+		cause.setCauseDisplayName(action.getDisplayName());
+		return cause;
 	}
 
 

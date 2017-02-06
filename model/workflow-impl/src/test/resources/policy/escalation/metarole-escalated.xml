@@ -33,19 +33,29 @@
 							<duration>P14D</duration>
 							<timedActions>
 								<name>First, send a notification</name>
-								<time>P5D</time>
+								<time>
+									<value>P5D</value>
+								</time>
 								<actions>
 									<notify/>
 								</actions>
 							</timedActions>
 							<timedActions>
-								<name>2 days before deadline, delegate</name>
-								<time>-P2D</time>
+								<name>2 days before deadline, escalate</name>
+								<time>
+									<value>-P2D</value>
+									<base>deadline</base>		<!-- the default, in this case -->
+								</time>
 								<actions>
-									<delegate>
+									<escalate>
 										<approverRef oid="00000001-d34d-b33f-f00d-L00000000002" type="UserType" />  <!-- lead2 -->
-									</delegate>
+										<delegationMethod>addAssignees</delegationMethod>
+										<escalationLevelName>escalation-to-lead2</escalationLevelName>
+										<escalationLevelDisplayName>Escalated to lead2</escalationLevelDisplayName>
+									</escalate>
 								</actions>
+								<escalationFrom>0</escalationFrom>		<!-- applies only to zero escalation level -->
+								<escalationTo>0</escalationTo>			<!-- applies only to zero escalation level -->
 							</timedActions>
 							<timedActions>
 								<name>Finally - approve</name>

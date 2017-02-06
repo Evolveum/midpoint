@@ -17,9 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -31,7 +29,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -39,9 +36,6 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 
-import java.util.Date;
-
-import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getItemApprovalProcessInterface;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
@@ -74,7 +68,9 @@ public class TaskCompleteListener implements TaskListener {
 
 		LOGGER.trace("======================================== Recording individual decision of {}", user);
 		WorkItemCompletionEventType event = new WorkItemCompletionEventType();
-		ActivitiUtil.fillInWorkItemEvent(event, user, delegateTask.getId(), execution.getVariables());
+		ActivitiUtil.fillInWorkItemEvent(event, user, delegateTask.getId(), execution.getVariables(), prismContext);
+		event.setCause(ActivitiUtil.getVariable(delegateTask.getVariables(), CommonProcessVariableNames.VARIABLE_CAUSE,
+				WorkItemEventCauseInformationType.class, prismContext));
 		WorkItemResultType result = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());
 		event.setResult(result);
 

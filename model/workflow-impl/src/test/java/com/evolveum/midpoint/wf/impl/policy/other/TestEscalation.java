@@ -127,8 +127,10 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		// TODO assert notifications
 
 		WorkItemType workItem = getWorkItem(task, result);
+		display("work item", workItem);
 		String wfTaskOid = workItem.getTaskRef().getOid();
 		PrismObject<TaskType> wfTask = getTask(wfTaskOid);
+		display("task", wfTask);
 		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid);
@@ -136,8 +138,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	}
 
 	@Test
-	public void test120Delegate() throws Exception {
-		final String TEST_NAME = "test120Delegate";
+	public void test120Escalate() throws Exception {
+		final String TEST_NAME = "test120Escalate";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
@@ -149,12 +151,14 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
 		WorkItemType workItem = getWorkItem(task, result);
-
+		display("work item", workItem);
 		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		display("task", wfTask);
 		assertEquals("Wrong # of triggers", 1, wfTask.asObjectable().getTrigger().size());
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
+		assertEquals("Wrong escalation level number", (Integer) 1, workItem.getEscalationLevelNumber());
 
 	}
 
@@ -171,16 +175,15 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		clock.overrideDuration("P15D");		// at 0 (i.e. P14D) there is a delegate action
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-//		WorkItemType workItem = getWorkItem(task, result);
-
 		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
+		display("task", wfTask);
 		assertEquals("Wrong # of triggers", 0, wfTask.asObjectable().getTrigger().size());
 
+		Task rootTask = taskManager.getTaskByIdentifier(wfTask.asObjectable().getParent(), result);
+		display("rootTask", rootTask);
+		waitForTaskClose(rootTask, 60000);
+
 		assertAssignedRole(userJackOid, roleE1Oid, task, result);
-
-//		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
-//		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
-
 	}
 
 }

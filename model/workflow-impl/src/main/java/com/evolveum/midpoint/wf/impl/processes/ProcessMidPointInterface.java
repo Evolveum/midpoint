@@ -41,6 +41,12 @@ public interface ProcessMidPointInterface {
 
     String getStageDisplayName(Map<String, Object> variables);
 
+    Integer getEscalationLevelNumber(Map<String, Object> variables);
+
+    String getEscalationLevelName(Map<String, Object> variables);
+
+    String getEscalationLevelDisplayName(Map<String, Object> variables);
+
     List<InformationType> getAdditionalInformation(Map<String, Object> variables);
 
     WorkItemResultType extractWorkItemResult(Map<String, Object> variables);

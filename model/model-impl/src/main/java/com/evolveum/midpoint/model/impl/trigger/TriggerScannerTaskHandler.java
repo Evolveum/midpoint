@@ -216,7 +216,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 			LOGGER.warn("Trigger without handler URI in {}", object);
 			return;
 		}
-		LOGGER.debug("Firing trigger {} in {}", handlerUri, object);
+		LOGGER.debug("Firing trigger {} in {}: id={}", handlerUri, object, trigger.getId());
 		TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
 		if (handler == null) {
 			LOGGER.warn("No registered trigger handler for URI {}", trigger);

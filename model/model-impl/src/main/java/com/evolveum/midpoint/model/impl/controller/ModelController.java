@@ -903,7 +903,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return new SearchResultList(new ArrayList<>());
 		}
 
-		SearchResultList<T> list = null;
+		SearchResultList<T> list;
 		try {
 			RepositoryCache.enter();
 

@@ -126,7 +126,7 @@ public class CloneUtil {
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
 	}
 
-	public static <T> Collection<T> cloneCollectionMembers(Collection<T> collection) {
+	public static <T> List<T> cloneCollectionMembers(Collection<T> collection) {
 		if (collection == null) {
 			return null;
 		}

@@ -98,7 +98,8 @@ public class WorkItemManager {
 			throws SecurityViolationException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
-        result.addParams(new String[] { "workItemId", "decision", "comment" }, workItemId, decision, comment);
+        result.addParams(new String[] { "workItemId", "decision", "comment", "additionalDelta" },
+				workItemId, decision, comment, additionalDelta);
 
 		try {
 			final String userDescription = toShortString(securityEnforcer.getPrincipal().getUser());
@@ -222,15 +223,13 @@ public class WorkItemManager {
     }
 
 	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-	                             boolean escalate, String escalationLevelName, String escalationLevelDisplayName,
-	                             WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
+			boolean escalate, String escalationLevelName, String escalationLevelDisplayName,
+			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
-		result.addParam("workItemId", workItemId);
+		result.addParams( new String[]{ "workItemId", "escalate", "escalationLevelName", "escalationLevelDisplayName"},
+				workItemId, escalate, escalationLevelName, escalationLevelDisplayName);
 		result.addCollectionOfSerializablesAsParam("delegates", delegates);
-		result.addParam("escalate", escalate);
-		result.addParam("escalationLevelName", escalationLevelName);
-		result.addParam("escalationLevelDisplayName", escalationLevelDisplayName);
 		try {
 			MidPointPrincipal principal = securityEnforcer.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
@@ -296,19 +295,23 @@ public class WorkItemManager {
 				WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();
 				escEvent.setNewEscalationLevelName(escalationLevelName);
 				escEvent.setNewEscalationLevelDisplayName(escalationLevelDisplayName);
-				int e = workItem.getEscalationLevelNumber() != null ? workItem.getEscalationLevelNumber() : 0;
-				escEvent.setNewEscalationLevelNumber(e+1);
+				int newLevel = workItem.getEscalationLevelNumber() != null ? workItem.getEscalationLevelNumber()+1 : 1;
+				escEvent.setNewEscalationLevelNumber(newLevel);
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NUMBER, newLevel);
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NAME, escalationLevelName);
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, escalationLevelDisplayName);
 				event = escEvent;
 			} else {
 				event = new WorkItemDelegationEventType();
 			}
 			event.getAssigneeBefore().addAll(assigneesBefore);  // already parent-less
-			ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, variables);
 			event.getDelegatedTo().addAll(delegatedTo);
 			event.setDelegationMethod(method);		// not null at this moment
+			event.setCause(causeInformation);
+			ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, variables, prismContext);
 			MidpointUtil.recordEventInTask(event, null, ActivitiUtil.getTaskOid(variables), result);
 		} catch (SecurityViolationException|RuntimeException e) {
-			result.recordFatalError("Couldn't delegate work item " + workItemId + ": " + e.getMessage(), e);
+			result.recordFatalError("Couldn't delegate/escalate work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
