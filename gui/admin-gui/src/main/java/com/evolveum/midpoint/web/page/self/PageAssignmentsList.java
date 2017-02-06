@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,24 +59,7 @@ public class PageAssignmentsList extends PageBase{
     }
 
     private void initAssignmentsModel() {
-        assignmentsModel = new IModel<List<AssignmentEditorDto>>() {
-            @Override
-            public List<AssignmentEditorDto> getObject() {
-                SessionStorage storage = getSessionStorage();
-                return storage.getRoleCatalog().getAssignmentShoppingCart();
-
-            }
-
-            @Override
-            public void setObject(List<AssignmentEditorDto> assignmentEditorDto) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
+        assignmentsModel = Model.ofList(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart());
     }
 
     public void initLayout() {

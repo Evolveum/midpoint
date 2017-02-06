@@ -19,6 +19,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -146,7 +148,11 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
                     listProvider.getAvailableData().clear();
                 }
                 long from = currentPage * itemsPerRow * DEFAULT_ROWS_COUNT;
-                listProvider.internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
+                try {
+                    listProvider.internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
+                } catch (ArrayIndexOutOfBoundsException ex){
+                    // nothing to do here
+                }
             }
         } else {
             if (objectDataProvider != null) {
@@ -167,7 +173,14 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     }
 
     protected WebMarkupContainer createFooter(String footerId) {
-        return new PagingFooter(footerId, ID_PAGING_FOOTER, CatalogItemsPanel.this);
+        PagingFooter footer = new PagingFooter(footerId, ID_PAGING_FOOTER, CatalogItemsPanel.this);
+        footer.add(new VisibleEnableBehaviour(){
+           @Override
+            public boolean isVisible(){
+               return !isCatalogOidEmpty();
+           }
+        });
+        return footer;
     }
 
     private static class PagingFooter extends Fragment {
