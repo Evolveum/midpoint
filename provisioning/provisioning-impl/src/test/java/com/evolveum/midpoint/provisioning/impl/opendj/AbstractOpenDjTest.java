@@ -78,6 +78,8 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	protected static final String ACCOUNT_JACK_NAME = "jack";
 	protected static final File ACCOUNT_JACK_CHANGE_FILE = new File(TEST_DIR, "account-jack-change.xml");
 	
+	protected static final String ACCOUNT_BARBOSSA_DN = "uid=hbarbossa,ou=People,dc=example,dc=com";
+	
 	protected static final File ACCOUNT_MODIFY_PASSWORD_FILE = new File(TEST_DIR_NAME, "account-modify-password.xml");
 	protected static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
 	

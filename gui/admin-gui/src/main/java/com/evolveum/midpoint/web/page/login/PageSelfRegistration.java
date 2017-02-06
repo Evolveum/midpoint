@@ -107,8 +107,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	private IModel<UserType> userModel;
 
 	private boolean submited = false;
-//	String randomString = null;
-//	String captchaString = null;
+	// String randomString = null;
+	// String captchaString = null;
 
 	public PageSelfRegistration() {
 		this(null);
@@ -206,9 +206,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA);
 		captcha.setOutputMarkupId(true);
 		mainForm.add(captcha);
-		
-		
-		
+
 		AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION) {
 
 			private static final long serialVersionUID = 1L;
@@ -310,10 +308,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 				new PropertyModel<String>(userModel, UserType.F_EMAIL_ADDRESS.getLocalPart()));
 		initInputProperties(feedback, email);
 		staticRegistrationForm.add(email);
-		
-		createPasswordPanel(staticRegistrationForm);
 
-		
+		createPasswordPanel(staticRegistrationForm);
 
 	}
 
@@ -334,27 +330,29 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			@Override
 			public DynamicFormPanel<UserType> run() {
 				final ObjectReferenceType ort = getSelfRegistrationConfiguration().getFormRef();
-				
+
 				if (ort == null) {
 					return null;
 				}
-				
-				DynamicFormPanel<UserType> dynamicForm = new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL, userModel, ort.getOid(),
-						mainForm, true, PageSelfRegistration.this);
+
+				DynamicFormPanel<UserType> dynamicForm = new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL,
+						userModel, ort.getOid(), mainForm, true, PageSelfRegistration.this);
 				return dynamicForm;
 			}
 
 		});
-		
+
 		if (dynamicForm != null) {
 			dynamicRegistrationForm.add(dynamicForm);
 		}
 
 	}
-	
+
 	private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
-//		ProtectedStringType initialPassword = null;
-		PasswordPanel password = new PasswordPanel(ID_PASSWORD, new PropertyModel<ProtectedStringType>(userModel, "credentials.password.value"), false, true, false);
+		// ProtectedStringType initialPassword = null;
+		PasswordPanel password = new PasswordPanel(ID_PASSWORD,
+				new PropertyModel<ProtectedStringType>(userModel, "credentials.password.value"), false, true,
+				false);
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		password.getBaseFormComponent().setRequired(true);
 		staticRegistrationForm.add(password);
@@ -486,7 +484,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			getSession().error(
 					createStringResource("PageSelfRegistration.registration.error", result.getMessage())
 							.getString());
-//			removePassword(target);
+			// removePassword(target);
 			updateCaptcha(target);
 			target.add(getFeedbackPanel());
 			LOGGER.error("Failed to register user {}. Reason {}", userModel.getObject(), result.getMessage());
@@ -565,17 +563,18 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
 			ObjectDelta<UserType> delta = null;
 			if (getSelfRegistrationConfiguration().getFormRef() == null) {
-			 delta = ObjectDelta.createEmptyModifyDelta(UserType.class,
-					getOidFromParams(getPageParameters()), getPrismContext());
-			if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
-				delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE,
-						getSelfRegistrationConfiguration().getInitialLifecycleState());
-			}
+				delta = ObjectDelta.createEmptyModifyDelta(UserType.class,
+						getOidFromParams(getPageParameters()), getPrismContext());
+				if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
+					delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE,
+							getSelfRegistrationConfiguration().getInitialLifecycleState());
+				}
+				 delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE,
+				 createPassword().getValue());
 			} else {
 				delta = getDynamicFormPanel().getObjectDelta();
 			}
-//			delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE,
-//					createPassword().getValue());
+			
 			delta.addModificationReplaceContainer(SchemaConstants.PATH_NONCE,
 					createNonce(getSelfRegistrationConfiguration().getNoncePolicy(), task, result)
 							.asPrismContainerValue());
@@ -589,28 +588,29 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 		SelfRegistrationDto selfRegistrationConfiguration = getSelfRegistrationConfiguration();
 		UserType userType = userModel.getObject();
-		UserType userToSave = userType.clone(); 
-				
-		if (selfRegistrationConfiguration.getFormRef() == null){
-				userType.clone();
-		if (selfRegistrationConfiguration.getRequiredLifecycleState() != null) {
-			String userLifecycle = userToSave.getLifecycleState();
-			if (!selfRegistrationConfiguration.getRequiredLifecycleState().equals(userLifecycle)) {
-				LOGGER.error(
-						"Registration not allowed for a user {} -> Unsatisfied Configuration for required lifecycle, expected {} but was {}",
-						new Object[] {
-								userToSave.getEmailAddress() != null ? userToSave.getEmailAddress()
-										: userToSave,
-								selfRegistrationConfiguration.getRequiredLifecycleState(), userLifecycle });
-				getSession().error(createStringResource(
-						"PageSelfRegistration.registration.failed.unsatisfied.registration.configuration")
-								.getString());
-				throw new RestartResponseException(this);
-			}
+		UserType userToSave = userType.clone();
 
-		}
+		if (selfRegistrationConfiguration.getFormRef() == null) {
+			userType.clone();
+			if (selfRegistrationConfiguration.getRequiredLifecycleState() != null) {
+				String userLifecycle = userToSave.getLifecycleState();
+				if (!selfRegistrationConfiguration.getRequiredLifecycleState().equals(userLifecycle)) {
+					LOGGER.error(
+							"Registration not allowed for a user {} -> Unsatisfied Configuration for required lifecycle, expected {} but was {}",
+							new Object[] {
+									userToSave.getEmailAddress() != null ? userToSave.getEmailAddress()
+											: userToSave,
+									selfRegistrationConfiguration.getRequiredLifecycleState(),
+									userLifecycle });
+					getSession().error(createStringResource(
+							"PageSelfRegistration.registration.failed.unsatisfied.registration.configuration")
+									.getString());
+					throw new RestartResponseException(this);
+				}
+
+			}
 		} else {
-			
+
 			try {
 				userToSave = getDynamicFormPanel().getObject().asObjectable().clone();
 			} catch (SchemaException e) {
@@ -619,10 +619,9 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			}
 		}
 
-//		CredentialsType credentials = 
-		createCredentials(userToSave, selfRegistrationConfiguration.getNoncePolicy(), task,
-				result);
-//		userToSave.setCredentials(credentials);
+		// CredentialsType credentials =
+		createCredentials(userToSave, selfRegistrationConfiguration.getNoncePolicy(), task, result);
+		// userToSave.setCredentials(credentials);
 		if (selfRegistrationConfiguration.getInitialLifecycleState() != null) {
 			LOGGER.trace("Setting initial lifecycle state of registered user to {}",
 					selfRegistrationConfiguration.getInitialLifecycleState());
@@ -638,26 +637,27 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return userToSave;
 
 	}
-	
+
 	private DynamicFormPanel<UserType> getDynamicFormPanel() {
-		return (DynamicFormPanel<UserType>) get(createComponentPath(ID_MAIN_FORM, ID_DYNAMIC_FORM, ID_DYNAMIC_FORM_PANEL));
+		return (DynamicFormPanel<UserType>) get(
+				createComponentPath(ID_MAIN_FORM, ID_DYNAMIC_FORM, ID_DYNAMIC_FORM_PANEL));
 	}
 
 	private void createCredentials(UserType user, NonceCredentialsPolicyType noncePolicy, Task task,
 			OperationResult result) {
 		NonceType nonceType = createNonce(noncePolicy, task, result);
 
-//		PasswordType password = createPassword();
-		
+		// PasswordType password = createPassword();
+
 		CredentialsType credentials = user.getCredentials();
 		if (user.getCredentials() == null) {
 			credentials = new CredentialsType();
 			user.setCredentials(credentials);
-		} 
-		
+		}
+
 		credentials.setNonce(nonceType);
-//		credentials.setPassword(password);
-//		return credentials;
+		// credentials.setPassword(password);
+		// return credentials;
 
 	}
 
@@ -670,13 +670,13 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return nonceType;
 	}
 
-//	private PasswordType createPassword() {
-//		PasswordType password = new PasswordType();
-//		ProtectedStringType protectedString = new ProtectedStringType();
-//		protectedString.setClearValue(getPassword());
-//		password.setValue(protectedString);
-//		return password;
-//	}
+	private PasswordType createPassword() {
+		PasswordType password = new PasswordType();
+		ProtectedStringType protectedString = new ProtectedStringType();
+		protectedString.setClearValue(getPassword());
+		password.setValue(protectedString);
+		return password;
+	}
 
 	private String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
 		ValuePolicyType policy = null;
@@ -690,18 +690,20 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return ValuePolicyGenerator.generate(policy != null ? policy.getStringPolicy() : null, 24, result);
 	}
 
-//	private String getPassword() {
-//		PasswordPanel password = (PasswordPanel) get(createComponentPath(ID_MAIN_FORM, ID_PASSWORD));
-//		return (String) password.getBaseFormComponent().getModel().getObject();
-//	}
+	 private String getPassword() {
+		 PasswordPanel password = (PasswordPanel)
+				 get(createComponentPath(ID_MAIN_FORM, ID_STATIC_FORM, ID_PASSWORD));
+		 return (String) password.getBaseFormComponent().getModel().getObject();
+	 }
 
-//	private void removePassword(AjaxRequestTarget target) {
-//		PasswordPanel password = (PasswordPanel) get(createComponentPath(ID_MAIN_FORM, ID_PASSWORD));
-//		for (FormComponent comp : password.getFormComponents()) {
-//			comp.getModel().setObject(null);
-//		}
-//		target.add(password);
-//	}
+	// private void removePassword(AjaxRequestTarget target) {
+	// PasswordPanel password = (PasswordPanel)
+	// get(createComponentPath(ID_MAIN_FORM, ID_PASSWORD));
+	// for (FormComponent comp : password.getFormComponents()) {
+	// comp.getModel().setObject(null);
+	// }
+	// target.add(password);
+	// }
 
 	@Override
 	protected void createBreadcrumb() {
