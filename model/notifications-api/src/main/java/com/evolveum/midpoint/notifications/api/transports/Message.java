@@ -27,9 +27,12 @@ import java.util.List;
 public class Message implements DebugDumpable {
 
     private List<String> to;
+    private List<String> cc;
+    private List<String> bcc;
     private String subject;
     private String body;         // todo
     private String contentType;
+    private String from;
 
     public String getBody() {
         return body;
@@ -54,6 +57,22 @@ public class Message implements DebugDumpable {
     public void setTo(List<String> to) {
         this.to = to;
     }
+    
+    public List<String> getCc() {
+        return cc;
+    }
+
+    public void setCc(List<String> cc) {
+        this.cc = cc;
+    }
+    
+    public List<String> getBcc() {
+        return bcc;
+    }
+
+    public void setBcc(List<String> bcc) {
+        this.bcc = bcc;
+    }
 
     public String getContentType() {
         return contentType;
@@ -62,11 +81,25 @@ public class Message implements DebugDumpable {
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }
+    
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
 
     @Override
     public String toString() {
+    	String fromString = from!= null ? ", from='" + from + "' " : "";
+    	String ccString = cc!= null ? ", cc='" + cc + "' " : "";
+    	String bccString = bcc!= null ? ", bcc='" + bcc + "' " : "";
         return "Message{" +
-                "to='" + to + '\'' +
+        		"to='" + to + '\'' +
+        		fromString +
+                ccString +
+                bccString +
                 ", subject='" + subject + '\'' +
                 ", contentType='" + contentType + '\'' +
                 ", body='" + body + '\'' +
@@ -81,12 +114,27 @@ public class Message implements DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder rv = new StringBuilder();
+		rv.append("\n");
 		DebugUtil.debugDumpLabel(rv, "Message", indent);
 		rv.append("\n");
 
+		if (from != null){
+			DebugUtil.debugDumpWithLabel(rv, "From", from, indent+1);
+			rv.append("\n");
+		}
+		
 		DebugUtil.debugDumpWithLabel(rv, "To", to, indent+1);
 		rv.append("\n");
 
+		if (cc != null){
+			DebugUtil.debugDumpWithLabel(rv, "Cc", cc, indent+1);
+			rv.append("\n");
+		}
+		if (bcc != null){
+			DebugUtil.debugDumpWithLabel(rv, "Bcc", bcc, indent+1);
+			rv.append("\n");
+		}
+		
 		DebugUtil.debugDumpWithLabel(rv, "Subject", subject, indent+1);
 		rv.append("\n");
 
