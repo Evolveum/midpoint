@@ -343,7 +343,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// assignment with weapon := 'pistol' (test for
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		AssignmentType assignmentType = createAssignment(RESOURCE_DUMMY_PINK_OID, ShadowKindType.ACCOUNT, null);
+		AssignmentType assignmentType = createConstructionAssignment(RESOURCE_DUMMY_PINK_OID, ShadowKindType.ACCOUNT, null);
 		ConstructionType constructionType = assignmentType.getConstruction();
 		ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
 		attributeDefinitionType.setRef(new ItemPathType(new ItemPath(dummyResourceCtlPink.getAttributeWeaponQName())));

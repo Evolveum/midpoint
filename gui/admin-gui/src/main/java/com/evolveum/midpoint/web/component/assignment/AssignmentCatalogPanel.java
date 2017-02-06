@@ -16,15 +16,14 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -54,10 +55,13 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -78,6 +82,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
     private static final String ID_PANEL_CONTAINER = "catalogItemsPanelContainer";
+    private static final String ID_TARGET_USER_CONTAINER = "targetUserContainer";
+    private static final String ID_TARGET_USER_BUTTON = "targetUserButton";
+    private static final String ID_DELETE_TARGET_USER_BUTTON = "deleteTargetUserButton";
+    private static final String ID_TARGET_USER_LABEL = "targetUserLabel";
 
     private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
@@ -89,8 +97,11 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private String rootOid;
     private IModel<Search> searchModel;
     private IModel<AssignmentViewType> viewModel;
-    private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> provider;
+    private IModel<PrismObject<UserType>> targetUserModel;
+    private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> objectProvider;
+    private ListDataProvider<AssignmentEditorDto> listProvider;
     private int itemsPerRow = 4;
+    private boolean showUserSelectionPopup = true;
 
     public AssignmentCatalogPanel(String id) {
         super(id);
@@ -101,7 +112,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         this.pageBase = pageBase;
         this.rootOid = rootOid;
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
-//        pageBase.getSessionStorage().getRoleCatalog().setSelectedOid(rootOid);
         initLayout();
     }
 
@@ -118,9 +128,9 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     protected void initProvider() {
         if (isCatalogOidEmpty()){
-            provider = null;
+            objectProvider = null;
         } else {
-            provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
+            objectProvider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -153,7 +163,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         panelContainer.setOutputMarkupId(true);
         add(panelContainer);
 
-        addOrReplaceLayout(panelContainer);
+        addOrReplaceLayout(null, panelContainer);
     }
 
     private void initHeaderPanel(){
@@ -162,10 +172,11 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         add(headerPanel);
 
         initViewSelector(headerPanel);
+        initUserSelectionPanel(headerPanel);
         initCartButton(headerPanel);
         initSearchPanel(headerPanel);
     }
-    public void addOrReplaceLayout(WebMarkupContainer panelContainer){
+    public void addOrReplaceLayout(AjaxRequestTarget target, WebMarkupContainer panelContainer){
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
         treePanelContainer.setOutputMarkupId(true);
         panelContainer.addOrReplace(treePanelContainer);
@@ -252,8 +263,45 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         catalogItemsPanelContainer.setOutputMarkupId(true);
         panelContainer.addOrReplace(catalogItemsPanelContainer);
 
-        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, selectedTreeItemOidModel,
-                pageBase, itemsPerRow, provider);
+        CatalogItemsPanel catalogItemsPanel;
+        if (AssignmentViewType.USER_TYPE.equals(viewModel.getObject())) {
+            PrismObject<UserType> assignmentsOwner = pageBase.getSessionStorage().getRoleCatalog().getAssignmentsUserOwner();
+            IModel<List<AssignmentEditorDto>> assignmentsModel = new IModel<List<AssignmentEditorDto>>() {
+                @Override
+                public List<AssignmentEditorDto> getObject() {
+                    if (assignmentsOwner == null){
+                        return new ArrayList<>();
+                    }
+                    List<AssignmentEditorDto> list = new ArrayList<>();
+                    List<AssignmentType> assignments = assignmentsOwner.asObjectable().getAssignment();
+                    for (AssignmentType assignment : assignments) {
+                        if (assignment.getTargetRef() == null ||
+                                !UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                            assignment.setId(null);
+                            list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, pageBase));
+                        }
+                    }
+                    Collections.sort(list);
+                    return list;
+                }
+
+                @Override
+                public void setObject(List<AssignmentEditorDto> assignmentEditorDtos) {
+
+                }
+
+                @Override
+                public void detach() {
+
+                }
+            };
+            ListDataProvider listDataProvider = new ListDataProvider(this, assignmentsModel);
+            catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL,
+                    pageBase, itemsPerRow, listDataProvider);
+        } else {
+            catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, selectedTreeItemOidModel,
+                    pageBase, itemsPerRow, objectProvider);
+        }
         if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
             catalogItemsPanelContainer.add(new AttributeAppender("class", "col-md-9"));
         } else {
@@ -270,7 +318,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         }
         selectedTreeItemOidModel.setObject(selectedOrg.getOid());
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
-        AssignmentCatalogPanel.this.addOrReplaceLayout(getCatalogItemsPanelContainer());
+        AssignmentCatalogPanel.this.addOrReplaceLayout(null, getCatalogItemsPanelContainer());
         target.add(getCatalogItemsPanelContainer());
 
     }
@@ -318,6 +366,31 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 return search;
             }
         };
+
+        targetUserModel = new IModel<PrismObject<UserType>>() {
+            @Override
+            public PrismObject<UserType> getObject() {
+                PrismObject<UserType> targetUser = pageBase.getSessionStorage().getRoleCatalog().getTargetUser();
+                if (targetUser != null){
+                    return targetUser;
+                }
+                PrismObject<UserType> user = pageBase.loadUserSelf(pageBase);
+                if (user != null){
+                    return user;
+                }
+                return null;
+            }
+
+            @Override
+            public void setObject(PrismObject<UserType> userType) {
+                pageBase.getSessionStorage().getRoleCatalog().setTargetUser(userType);
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
     }
 
     public String getRootOid() {
@@ -328,7 +401,40 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         this.rootOid = rootOid;
     }
 
+    private void initUserSelectionPanel(WebMarkupContainer headerPanel){
+        WebMarkupContainer targetUserContainer = new WebMarkupContainer(ID_TARGET_USER_CONTAINER);
+        targetUserContainer.setOutputMarkupId(true);
+        AjaxLink<String> targetUserButton = new AjaxLink<String>(ID_TARGET_USER_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (showUserSelectionPopup) {
+                    initUserSelectionPopup(createStringResource("AssignmentCatalogPanel.selectTargetUser"), true, target);
+                }
+            }
+        };
+        targetUserContainer.add(targetUserButton);
 
+        Label label = new Label(ID_TARGET_USER_LABEL, getTargetUserLabelModel());
+        label.setRenderBodyOnly(true);
+        targetUserButton.add(label);
+
+        AjaxLink deleteButton = new AjaxLink(ID_DELETE_TARGET_USER_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showUserSelectionPopup = false;
+                pageBase.getSessionStorage().getRoleCatalog().setTargetUser(null);
+                target.add(getTargetUserContainer());
+            }
+        };
+        deleteButton.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return pageBase.getSessionStorage().getRoleCatalog().getTargetUser() != null;
+            }
+        });
+        targetUserButton.add(deleteButton);
+        headerPanel.add(targetUserContainer);
+    }
     private void initViewSelector(WebMarkupContainer headerPanel){
         DropDownChoice<AssignmentViewType> viewSelect = new DropDownChoice(ID_VIEW_TYPE, viewModel, new ListModel(createAssignableTypesList()),
                 new EnumChoiceRenderer<AssignmentViewType>(this));
@@ -336,8 +442,13 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                AssignmentCatalogPanel.this.addOrReplaceLayout(getCatalogItemsPanelContainer());
-                target.add(getCatalogItemsPanelContainer());
+                if (AssignmentViewType.USER_TYPE.equals(viewSelect.getModelObject())){
+                    initUserSelectionPopup(createStringResource("AssignmentCatalogPanel.selectAssignmentsUserOwner"),
+                            false, target);
+                } else {
+                    AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
+                    target.add(getCatalogItemsPanelContainer());
+                }
             }
         });
         viewSelect.setOutputMarkupId(true);
@@ -371,8 +482,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 //        setCurrentPage(0);
-        provider.setQuery(createContentQuery(query));
-        AssignmentCatalogPanel.this.addOrReplaceLayout(getCatalogItemsPanelContainer());
+        objectProvider.setQuery(createContentQuery(query));
+        AssignmentCatalogPanel.this.addOrReplaceLayout(null, getCatalogItemsPanelContainer());
         target.add(getCatalogItemsPanelContainer());
     }
 
@@ -491,38 +602,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private PrismObject<UserType> loadUser() {
-        LOGGER.debug("Loading user and accounts.");
-        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-        PrismObject<UserType> user = null;
-        try {
-            String userOid = SecurityUtils.getPrincipalUser().getOid();
-            Task task = pageBase.createSimpleTask(OPERATION_LOAD_USER);
-            user = WebModelServiceUtils.loadObject(UserType.class, userOid, null, pageBase,
-                    task, result);
-            result.recordSuccessIfUnknown();
-
-            result.recordSuccessIfUnknown();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
-            result.recordFatalError("Couldn't load accounts", ex);
-        } finally {
-            result.recomputeStatus();
-        }
-        if (!result.isSuccess() && !result.isHandledError()) {
-            pageBase.showResult(result);
-        }
-        return user;
-    }
-
-    private void setCurrentViewType(QName viewTypeClass){
-        if (OrgType.COMPLEX_TYPE.equals(viewTypeClass)) {
-            AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ORG_TYPE) ;
-        } else if (RoleType.COMPLEX_TYPE.equals(viewTypeClass)) {
-            AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_TYPE) ;
-        } else if (ServiceType.COMPLEX_TYPE.equals(viewTypeClass)) {
-            AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.SERVICE_TYPE) ;
+        if (pageBase.getSessionStorage().getRoleCatalog().getTargetUser() != null){
+            return pageBase.getSessionStorage().getRoleCatalog().getTargetUser();
         } else {
-            AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW) ;
+            return pageBase.loadUserSelf(pageBase);
         }
     }
 
@@ -544,6 +627,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         focusTypeList.add(AssignmentViewType.ORG_TYPE);
         focusTypeList.add(AssignmentViewType.ROLE_TYPE);
         focusTypeList.add(AssignmentViewType.SERVICE_TYPE);
+        focusTypeList.add(AssignmentViewType.USER_TYPE);
 
         return focusTypeList;
     }
@@ -553,5 +637,60 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 (selectedTreeItemOidModel == null || StringUtils.isEmpty(selectedTreeItemOidModel.getObject()));
     }
 
+    private void initUserSelectionPopup(StringResourceModel title, boolean targetUserSelection, AjaxRequestTarget target) {
+
+        List<QName> supportedTypes = new ArrayList<>();
+        supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class).getTypeName());
+        ObjectBrowserPanel<UserType> focusBrowser = new ObjectBrowserPanel<UserType>(getPageBase().getMainPopupBodyId(),
+                UserType.class, supportedTypes, false, getPageBase()) {
+            @Override
+            protected void onSelectPerformed(AjaxRequestTarget target, UserType targetUser) {
+                super.onSelectPerformed(target, targetUser);
+                if (targetUserSelection) {
+                    pageBase.getSessionStorage().getRoleCatalog().setTargetUser(targetUser.asPrismContainer());
+                    target.add(getTargetUserContainer());
+                } else {
+                    pageBase.getSessionStorage().getRoleCatalog().setAssignmentsUserOwner(targetUser.asPrismContainer());
+                    AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
+                    target.add(getCatalogItemsPanelContainer());              }
+            }
+
+            @Override
+            public StringResourceModel getTitle() {
+                return title;
+            }
+
+        };
+        getPageBase().showMainPopup(focusBrowser, target);
+    }
+
+    private WebMarkupContainer getTargetUserContainer(){
+        return (WebMarkupContainer)get(ID_HEADER_PANEL).get(ID_TARGET_USER_CONTAINER);
+    }
+    private IModel<String> getTargetUserLabelModel(){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                if (pageBase.getSessionStorage().getRoleCatalog().getTargetUser() == null){
+                    return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
+                }
+                if (targetUserModel != null && targetUserModel.getObject() != null){
+                    return createStringResource("AssignmentCatalogPanel.requestFor").getString() +
+                            " " + targetUserModel.getObject().getName().getOrig();
+                }
+                return "";
+            }
+
+            @Override
+            public void setObject(String s) {
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
 }
 

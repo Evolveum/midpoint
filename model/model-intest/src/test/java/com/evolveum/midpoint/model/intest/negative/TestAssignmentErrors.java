@@ -664,7 +664,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         getDummyResource().resetBreakMode();
         
         PrismObject<UserType> user = createUser(userName, userFullName);
-        AssignmentType assignmentType = createAssignment(dummyResourceOid, ShadowKindType.ACCOUNT, null);
+        AssignmentType assignmentType = createConstructionAssignment(dummyResourceOid, ShadowKindType.ACCOUNT, null);
         user.asObjectable().getAssignment().add(assignmentType);
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);

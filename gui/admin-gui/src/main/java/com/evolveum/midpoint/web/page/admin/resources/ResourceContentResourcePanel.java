@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -108,6 +110,18 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 	@Override
 	protected ModelExecuteOptions createModelOptions() {
 		return null;
+	}
+
+	@Override
+	protected void initShadowStatistics(WebMarkupContainer totals) {
+		totals.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return false;
+			}
+		});
+		
 	}
 
 }

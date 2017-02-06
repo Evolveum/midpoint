@@ -1608,7 +1608,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return item;
 	}
 
-	protected PrismObject<UserType> loadUserSelf(PageBase page) {
+	public PrismObject<UserType> loadUserSelf(PageBase page) {
 		Task task = createSimpleTask(OPERATION_LOAD_USER);
 		OperationResult result = task.getResult();
 		PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,

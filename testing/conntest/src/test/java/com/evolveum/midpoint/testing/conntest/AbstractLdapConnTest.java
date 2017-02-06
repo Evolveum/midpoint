@@ -26,16 +26,19 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -69,10 +72,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -102,6 +107,10 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	protected static final String ACCOUNT_HT_CN = "Herman Toothrot";
 	protected static final String ACCOUNT_HT_GIVENNAME = "Herman";
 	protected static final String ACCOUNT_HT_SN = "Toothrot";
+
+	private static final String USER_LARGO_NAME = "LarGO";
+	private static final String USER_LARGO_GIVEN_NAME = "Largo";
+	private static final String USER_LARGO_FAMILY_NAME = "LaGrande";
 	
 	protected static final File ROLE_UNDEAD_FILE = new File (COMMON_DIR, "role-undead.xml");
 	protected static final String ROLE_UNDEAD_OID = "54885c40-ffcc-11e5-b782-63b3e4e2a69d";
@@ -1033,7 +1042,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -1323,6 +1332,69 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertLdapConnectorInstances(1, 2);
 	}
 	
+	/**
+	 * Add user that has role evil, check association. Use mixed lower/upper chars in the username.
+	 * MID-3713
+	 */
+	@Test
+    public void test320AddEvilUserLargo() throws Exception {
+		final String TEST_NAME = "test320AddEvilUserLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = createUser(USER_LARGO_NAME, USER_LARGO_GIVEN_NAME, USER_LARGO_FAMILY_NAME, true);
+        AssignmentType assignmentType = createTargetAssignment(ROLE_EVIL_OID, RoleType.COMPLEX_TYPE);
+		userBefore.asObjectable().getAssignment().add(assignmentType);
+		display("user before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(userBefore, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_NAME);
+        display("user after", userAfter);
+        assertAssignedRole(userAfter, ROLE_EVIL_OID);
+        assertAssignments(userAfter, 1);
+
+        String shadowOid = getSingleLinkOid(userAfter);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+
+        Entry entry = assertLdapAccount(USER_LARGO_NAME, userAfter.asObjectable().getFullName().getOrig());
+        display("account after", entry);
+                
+        assertLdapGroupMember(entry, GROUP_EVIL_CN);
+        assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
+        
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
+        
+        assertAssociation(shadow, ASSOCIATION_GROUP_NAME, groupEvilShadowOid);
+        
+        assertLdapConnectorInstances(1, 2);
+	} 
+	
+	private void assertAssociation(PrismObject<ShadowType> shadow, QName assocName, String entitlementOid) {
+		for (ShadowAssociationType association: shadow.asObjectable().getAssociation()) {
+			if (QNameUtil.match(assocName, association.getName())) {
+				assertEquals("Wrong association shadow ref in "+shadow, entitlementOid, 
+						association.getShadowRef().getOid());
+				return;
+			}
+		}
+		AssertJUnit.fail("Association "+assocName+" not found in "+shadow);
+	}
+
 	protected void assertConnectorOperationIncrement(int shortcutIncrement, int noShortcutIncrement) {
 		if (hasAssociationShortcut()) {
 			assertConnectorOperationIncrement(shortcutIncrement);

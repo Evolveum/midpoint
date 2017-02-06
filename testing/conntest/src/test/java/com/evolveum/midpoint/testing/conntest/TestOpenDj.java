@@ -31,7 +31,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
 
 	private static final String OPENDJ_TEMPLATE_NAME = "opendj-4000.template";
 	
-	private static final int INITIAL_SYNC_TOKEN = 23;
+	private static final int INITIAL_SYNC_TOKEN = 25;
 
 	@Override
 	protected String getResourceOid() {

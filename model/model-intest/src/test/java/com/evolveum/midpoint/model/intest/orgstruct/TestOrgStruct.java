@@ -1305,10 +1305,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertMonkeyIslandOrgSanity();
     }
     
-    
     @Test
-    public void test500JackAssignMetaroleOffender() throws Exception {
-    	final String TEST_NAME = "test500JackAssignMetaroleOffender";
+    public void test430JackAssignMetaroleOffender() throws Exception {
+    	final String TEST_NAME = "test430JackAssignMetaroleOffender";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -1342,8 +1341,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     }
     
     @Test
-    public void test501JackAssignMetaroleOffenderAdmin() throws Exception {
-    	final String TEST_NAME = "test500JackAssignMetaroleOffender";
+    public void test431JackAssignMetaroleOffenderAdmin() throws Exception {
+    	final String TEST_NAME = "test431JackAssignMetaroleOffenderAdmin";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -1365,6 +1364,193 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         MidPointAsserts.assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
         
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+    
+    @Test
+    public void test437JackUnassignOffender() throws Exception {
+        final String TEST_NAME = "test437JackUnassignOffender";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("user before", userBefore);
+
+        // WHEN
+        unassignRole(USER_JACK_OID, ROLE_OFFENDER_OID, task, result);
+
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        MidPointAsserts.assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+    
+    @Test
+    public void test438JackUnassignOffenderAdmin() throws Exception {
+        final String TEST_NAME = "test438JackUnassignOffenderAdmin";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("user before", userBefore);
+
+        // WHEN
+        unassignRole(USER_JACK_OID, ROLE_OFFENDER_ADMIN_OID, task, result);
+
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+    
+    @Test
+    public void test439JackCleanup() throws Exception {
+        final String TEST_NAME = "test439JackCleanup";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
+
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertNoAssignments(userJack);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+    
+    /**
+     * MID-3545
+     */
+    @Test
+    public void test440JackModifyEmployeeTypeRolePirate() throws Exception {
+        final String TEST_NAME = "test440JackModifyEmployeeTypeRolePirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("user before", userBefore);
+        assertNoAssignments(userBefore);
+        
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "ROLE:Pirate");
+
+        // THEN
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
+    /**
+     * MID-3545
+     */
+    @Test
+    public void test441JackModifyEmployeeTypeRoleCaptain() throws Exception {
+        final String TEST_NAME = "test441JackModifyEmployeeTypeRoleCaptain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("user before", userBefore);
+        
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "ROLE:Captain");
+
+        // THEN
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+    
+    /**
+     * MID-3545
+     */
+    @Test
+    public void test443JackModifyEmployeeTypeRoleNotExist() throws Exception {
+        final String TEST_NAME = "test443JackModifyEmployeeTypeRoleNotExist";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("user before", userBefore);
+        
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "ROLE:TheRoleThatDoesNotExist");
+
+        // THEN
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        assertAssignedRole(userAfter, ROLE_EMPTY_OID);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
+    
+    /**
+     * MID-3545
+     */
+    @Test
+    public void test449JackModifyEmployeeTypeNull() throws Exception {
+        final String TEST_NAME = "test449JackModifyEmployeeTypeNull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("user before", userBefore);
+        
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result);
+
+        // THEN
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertNoAssignments(userAfter);
+
         // Postcondition
         assertMonkeyIslandOrgSanity();
     }

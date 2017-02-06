@@ -3093,7 +3093,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
         
         PrismObject<UserType> userJack = PrismTestUtil.parseObject(USER_JACK_FILE);
-        AssignmentType assignmentBlue = createAssignment(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null);
+        AssignmentType assignmentBlue = createConstructionAssignment(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null);
 		userJack.asObjectable().getAssignment().add(assignmentBlue);
         
         ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(userJack);

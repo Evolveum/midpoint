@@ -30,6 +30,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -144,6 +145,7 @@ public abstract class ResourceContentPanel extends Panel {
 	private static final String ID_IMPORT = "import";
 	private static final String ID_RECONCILIATION = "reconciliation";
 	private static final String ID_LIVE_SYNC = "liveSync";
+	private static final String ID_TOTALS = "totals";
 
 	private PageBase pageBase;
 	private ShadowKindType kind;
@@ -246,6 +248,11 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private void initLayout() {
+		
+		WebMarkupContainer totals = new WebMarkupContainer(ID_TOTALS);
+        totals.setOutputMarkupId(true);
+        add(totals);
+        initShadowStatistics(totals);
 
 		MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE,
 				ShadowType.class, getTableId(), null, pageBase) {
@@ -373,6 +380,8 @@ public abstract class ResourceContentPanel extends Panel {
 		initCustomLayout();
 	}
 
+	protected abstract void initShadowStatistics(WebMarkupContainer totals);
+	
 	private void initButton(String id, String label, String icon, final String category,
 			final List<TaskType> tasks) {
 
