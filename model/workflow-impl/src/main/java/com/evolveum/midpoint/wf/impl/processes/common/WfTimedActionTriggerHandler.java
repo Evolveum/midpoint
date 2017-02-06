@@ -130,6 +130,10 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 		if (escalate && delegateAction instanceof EscalateWorkItemActionType) {
 			escalationLevelName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelName();
 			escalationLevelDisplayName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelDisplayName();
+			if (escalationLevelName == null && escalationLevelDisplayName == null) {
+				escalationLevelName = delegateAction.getName();
+				escalationLevelDisplayName = delegateAction.getDisplayName();
+			}
 		} else {
 			escalationLevelName = escalationLevelDisplayName = null;
 		}

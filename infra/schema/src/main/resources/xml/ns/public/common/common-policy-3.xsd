@@ -639,6 +639,18 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="order" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="exclusive" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, this fragment might be the only one with this particular order number.
+						(Other fragments could be merged into it, but in "mergeIntoOrder" mode. TODO TODO TODO)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="mergeable" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -646,9 +658,11 @@
                         (Non-mergeable fragments with the same order are ordered randomly. Mergeable fragments must have
                         order filled-in.)
 
+						Mergeable fragments must have "order" attribute set.
+
                         Restrictions on merging schema fragments:
-                        1) Mergeable fragments must contain exactly one level. It is merged to the other levels without
-                        any further considerations (e.g. regarding level order or name or whatever.
+                        1) Mergeable fragments must contain exactly one level. It is merged with the level(s) of the other
+                        fragment(s) without any further considerations (e.g. regarding level order or name or whatever).
                         2) It is expected that single policy rule triggered all the fragments that are being merged. So
                         we consider any of these rules.
                     </xsd:documentation>
@@ -658,11 +672,37 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mergeOrder" type="xsd:int" minOccurs="0">
+            <xsd:element name="mergeIntoOrder" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Order in which this level is merged.
+                        Which fragments should this one be merged with. This is mutually exclusive with the "order" attribute.
+						If order is set, it is not possible to specify mergeIntoOrder. Both fragments with the same order are
+						considered "equal". This can be used e.g. to provide a different set of approvers (for the given level).
+						If mergeIntoOrder is set (usually with multiple values), this fragment is considered as an augmentation
+						of other ones. This can be used e.g. to provide an escalation or notification strategy, custom form information, etc.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element><xsd:element name="mergeIntoAll" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates that this fragment is to be merged into all the other "base" fragments.
+						This is mutually exclusive with the "order" and "mergeIntoOrder" attributes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mergePriority" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Provides an information about order in which this fragment is merged (lower numbers are processed before higher ones).
+					</xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:experimental>true</a:experimental>

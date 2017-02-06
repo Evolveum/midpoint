@@ -1993,10 +1993,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //region Workflow-related operations
     @Override
-    public void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
+    public void completeWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
 			OperationResult parentResult)
 			throws SecurityViolationException, SchemaException {
-        getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, comment, additionalDelta, null, parentResult);
+        getWorkflowManagerChecked().completeWorkItem(workItemId, decision, comment, additionalDelta, null, parentResult);
     }
 
     @Override

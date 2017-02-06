@@ -213,13 +213,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);
 	}
 
-	protected String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
-		String oid = repoAddObjectFromFile(file, initResult).getOid();
-		recomputeUser(oid, initTask, initResult);
-		display("User " + file, getUser(oid));
-		return oid;
-	}
-
 	protected void importLead10(Task task, OperationResult result) throws Exception {
 		userLead10Oid = addAndRecomputeUser(USER_LEAD10_FILE, task, result);
 	}
@@ -604,7 +597,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				display("Execution id = " + executionId);
 				Boolean approve = testDetails.decideOnApproval(executionId, task);
 				if (approve != null) {
-					workflowManager.approveOrRejectWorkItem(task.getId(), approve, null, null, null, result);
+					workflowManager.completeWorkItem(task.getId(), approve, null, null, null, result);
 					login(userAdministrator);
 					break;
 				}
@@ -623,7 +616,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					for (WorkItemType workItem : currentWorkItems) {
 						if (approvalInstruction.matches(workItem)) {
 							login(getUser(approvalInstruction.approverOid));
-							workflowManager.approveOrRejectWorkItem(workItem.getWorkItemId(), approvalInstruction.approval, null,
+							workflowManager.completeWorkItem(workItem.getWorkItemId(), approvalInstruction.approval, null,
 									null, null, result);
 							login(userAdministrator);
 							matched = true;

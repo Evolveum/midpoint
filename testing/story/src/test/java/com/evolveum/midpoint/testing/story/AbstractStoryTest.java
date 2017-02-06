@@ -15,21 +15,6 @@ package com.evolveum.midpoint.testing.story;
  * limitations under the License.
  */
 
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -42,6 +27,13 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 
 /**
  * @author Radovan Semancik
@@ -73,9 +65,11 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 
 	protected MatchingRule<String> caseIgnoreMatchingRule;
 	
-	@Autowired(required=true)
+	@Autowired
 	protected MatchingRuleRegistry matchingRuleRegistry;
-	
+
+	protected PrismObject<UserType> userAdministrator;
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -90,7 +84,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		}
 		
 		// User administrator
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(USER_JACK_FILE, true, initResult).asObjectable();
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);

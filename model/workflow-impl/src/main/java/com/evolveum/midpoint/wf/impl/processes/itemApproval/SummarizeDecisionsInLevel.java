@@ -76,6 +76,8 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 			}
 		}
 
+		MidpointUtil.removeAllStageTriggersForWorkItem(wfTask, result);
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Approval process instance {} (id {}), level {}: result of this level: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),

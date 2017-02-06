@@ -262,7 +262,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
 			WorkItemDto dto = workItemDtoModel.getObject();
 			ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
-            getWorkflowService().approveOrRejectWorkItem(dto.getWorkItemId(), decision, dto.getApproverComment(), delta, result);
+            getWorkflowService().completeWorkItem(dto.getWorkItemId(), decision, dto.getApproverComment(), delta, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);

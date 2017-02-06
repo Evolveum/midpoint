@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
@@ -160,11 +161,11 @@ public class MidpointUtil {
 			List<TriggerType> triggers = new ArrayList<>();
 			for (WorkItemTimedActionsType timedAction : timedActions) {
 				int escalationLevel = ActivitiUtil.getEscalationLevelNumber(delegateTask.getVariables());
-				if (timedAction.getEscalationFrom() != null && escalationLevel < timedAction.getEscalationFrom()) {
+				if (timedAction.getEscalationLevelFrom() != null && escalationLevel < timedAction.getEscalationLevelFrom()) {
 					LOGGER.trace("Current escalation level is before 'escalationFrom', skipping timed action {}", timedAction);
 					continue;
 				}
-				if (timedAction.getEscalationTo() != null && escalationLevel > timedAction.getEscalationTo()) {
+				if (timedAction.getEscalationLevelTo() != null && escalationLevel > timedAction.getEscalationLevelTo()) {
 					LOGGER.trace("Current escalation level is after 'escalationTo', skipping timed action {}", timedAction);
 					continue;
 				}
@@ -238,4 +239,42 @@ public class MidpointUtil {
 		rv.add(duration);
 		return rv;
 	}
+
+	public static void removeTriggersForWorkItem(Task wfTask, String workItemId, OperationResult result) {
+		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
+		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
+			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
+				PrismProperty workItemIdProperty = triggerType.getExtension().asPrismContainerValue()
+						.findProperty(SchemaConstantsGenerated.C_WORK_ITEM_ID);
+				if (workItemIdProperty != null && workItemId.equals(workItemIdProperty.getRealValue())) {
+					toDelete.add(triggerType.clone().asPrismContainerValue());
+				}
+			}
+		}
+		removeSelectedTriggers(wfTask, toDelete, result);
+	}
+
+	public static void removeAllStageTriggersForWorkItem(Task wfTask, OperationResult result) {
+		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
+		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
+			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
+				toDelete.add(triggerType.clone().asPrismContainerValue());
+			}
+		}
+		removeSelectedTriggers(wfTask, toDelete, result);
+	}
+
+	private static void removeSelectedTriggers(Task wfTask, List<PrismContainerValue<TriggerType>> toDelete, OperationResult result) {
+		try {
+			LOGGER.trace("About to delete {} triggers from {}: {}", toDelete.size(), wfTask, toDelete);
+			List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(TaskType.F_TRIGGER).delete(toDelete)
+					.asItemDeltas();
+			getCacheRepositoryService().modifyObject(TaskType.class, wfTask.getOid(), itemDeltas, result);
+		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove triggers from task {}", e, wfTask);
+		}
+	}
+
+
 }

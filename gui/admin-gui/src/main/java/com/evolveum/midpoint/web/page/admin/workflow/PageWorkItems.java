@@ -139,7 +139,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
-                workflowService.approveOrRejectWorkItem(workItemDto.getWorkItemId(), approve, null, null, result);
+                workflowService.completeWorkItem(workItemDto.getWorkItemId(), approve, null, null, result);
                 result.computeStatus();
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);

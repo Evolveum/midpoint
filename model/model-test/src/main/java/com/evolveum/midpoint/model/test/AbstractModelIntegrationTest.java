@@ -3848,4 +3848,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			AssertJUnit.fail("Expected no postponed operation in "+shadow+", but found one: "+objectChangeItem);
 		}
 	}
+
+	protected String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
+		String oid = repoAddObjectFromFile(file, initResult).getOid();
+		recomputeUser(oid, initTask, initResult);
+		display("User " + file, getUser(oid));
+		return oid;
+	}
+
+	protected String addAndRecompute(File file, Task task, OperationResult result) throws Exception {
+		PrismObject<ObjectType> object = repoAddObjectFromFile(file, result);
+		modelService.recompute(object.asObjectable().getClass(), object.getOid(), task, result);
+		display("Object: " + file, getObject(object.asObjectable().getClass(), object.getOid()));
+		return object.getOid();
+	}
 }

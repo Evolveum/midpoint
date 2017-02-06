@@ -14,34 +14,36 @@
   ~ limitations under the License.
   -->
 
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="2dadd243-687d-4b4c-80cd-09ddfe4cbf59">
-	<name>metarole-approval-role-approvers-all</name>
-	<description>Requests to assign role holding this metarole will be approved by the role approver(s) using "all must approve" method</description>
-	<displayName>Metarole: approval by the role approver(s) - all must approve</displayName>
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="1eee65d1-81d1-4cbb-81e0-4ba3022271db">
+	<name>metarole-approval-rejection</name>
+	<description>Needs to be used along with some other approvals</description>
+	<displayName>Metarole: auto-rejection feature for approvals</displayName>
 	<inducement>
 		<policyRule>
 			<policyConstraints>
-				<assignment/>
+				<assignment/>		<!-- TODO is this really necessary? -->
 			</policyConstraints>
 			<policyActions>
 				<approval>
 					<compositionStrategy>
-						<order>40</order>
-						<exclusive>true</exclusive>
+						<mergeIntoOrder>20</mergeIntoOrder>
+						<mergeIntoOrder>30</mergeIntoOrder>
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
-                            <name>Role approvers (all)</name>
-                            <approverRelation>approver</approverRelation>
-							<evaluationStrategy>allMustApprove</evaluationStrategy>
-							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+							<duration>P7D</duration>
+							<timedActions>
+								<!-- no time set - executes at deadline -->
+								<actions>
+									<complete>
+										<outcome>reject</outcome>
+									</complete>
+								</actions>
+							</timedActions>
 						</level>
 					</approvalSchema>
 				</approval>
 			</policyActions>
 		</policyRule>
-	</inducement>
-	<inducement>
-		<targetRef oid="99828c23-40c1-4340-9fe4-8df2599a1691" type="RoleType"/>		<!-- escalation then rejection -->
 	</inducement>
 </role>

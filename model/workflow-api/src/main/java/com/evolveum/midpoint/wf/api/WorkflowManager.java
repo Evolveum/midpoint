@@ -71,7 +71,7 @@ public interface WorkflowManager {
 	 * @param causeInformation
 	 * @param parentResult
 	 */
-	void approveOrRejectWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
+	void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult) throws SecurityViolationException, SchemaException;
 
 	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;

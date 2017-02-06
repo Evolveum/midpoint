@@ -104,6 +104,9 @@ public class TaskCompleteListener implements TaskListener {
         ObjectDeltaType additionalDelta = result.getAdditionalDeltas() != null ?
 				result.getAdditionalDeltas().getFocusPrimaryDelta() : null;
         MidpointUtil.recordEventInTask(event, additionalDelta, wfTask.getOid(), opResult);
+
+        MidpointUtil.removeTriggersForWorkItem(wfTask, delegateTask.getId(), opResult);
+
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 

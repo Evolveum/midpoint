@@ -24,7 +24,7 @@ public interface WorkflowService {
 	 * @param additionalDelta
 	 * @param parentResult
 	 */
-    void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
+    void completeWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
 			OperationResult parentResult) throws SecurityViolationException, SchemaException;
 
     void stopProcessInstance(String instanceId, String username, OperationResult parentResult)

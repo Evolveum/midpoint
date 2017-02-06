@@ -316,5 +316,5 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		assertNotNull("User secondary delta is null", userSecondaryDelta);
 		assertFalse("User secondary delta is empty", userSecondaryDelta.isEmpty());
 	}
-	     	
+
 }

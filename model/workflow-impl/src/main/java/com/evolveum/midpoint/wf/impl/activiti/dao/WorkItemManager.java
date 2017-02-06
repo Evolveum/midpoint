@@ -140,7 +140,9 @@ public class WorkItemManager {
 				}
 			}
 			LOGGER.trace("Submitting {} properties", propertiesToSubmit.size());
-			formService.submitTaskFormData(workItemId, propertiesToSubmit);
+			//formService.submitTaskFormData(workItemId, propertiesToSubmit);
+			Map<String, Object> variables = new HashMap<>(propertiesToSubmit);
+			taskService.complete(workItemId, variables, true);
 		} catch (SecurityViolationException|SchemaException|RuntimeException e) {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
@@ -222,6 +224,10 @@ public class WorkItemManager {
 		}
     }
 
+    // TODO when calling from model API, what should we put into escalationLevelName+DisplayName ?
+	// Probably the API should look different. E.g. there could be an "Escalate" button, that would look up the
+	// appropriate escalation timed action, and invoke it. We'll solve this when necessary. Until that time, be
+	// aware that escalationLevelName/DisplayName are for internal use only.
 	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			boolean escalate, String escalationLevelName, String escalationLevelDisplayName,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)

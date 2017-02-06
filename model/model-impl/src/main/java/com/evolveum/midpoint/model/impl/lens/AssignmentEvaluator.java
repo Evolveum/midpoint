@@ -558,7 +558,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 			ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, systemConfiguration.asObjectable());
 			variables.addVariableDefinition(ExpressionConstants.VAR_SOURCE, assignmentPathSegment.getOrderOneObject());
-			Utils.addAssignmentPathVariables(LensUtil.computeAssignmentPathVariables(assignmentPath), variables);
+			AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
+			if (assignmentPathVariables != null) {
+				Utils.addAssignmentPathVariables(assignmentPathVariables, variables);
+			}
 	
 			ObjectFilter origFilter = QueryConvertor.parseFilter(filter, clazz, prismContext);
 			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", task, result);

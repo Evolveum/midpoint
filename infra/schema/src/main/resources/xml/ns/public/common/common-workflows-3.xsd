@@ -179,6 +179,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Duration of work items created at this level.
+						TODO other time units, like business days?
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
@@ -238,14 +239,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="escalationFrom" type="xsd:int" minOccurs="0">
+			<xsd:element name="escalationLevelFrom" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Apply only for escalation levels greater or equal to this value.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="escalationTo" type="xsd:int" minOccurs="0">
+			<xsd:element name="escalationLevelTo" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Apply only for escalation levels not greater than this value.
@@ -363,6 +364,7 @@
 								If specified, sends a standard "action to be executed" notifications at given times.
 								(Unlike timed action interval, here specify a positive time: just like for
 								notifyBeforeDeadline in certification.)
+								TODO other time units, like business days?
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -447,6 +449,8 @@
 							<xsd:documentation>
 								Duration of the work item after delegation. If not specified, the deadline of the work item
 								is not changed (this is meaningful only if the delegation occurred before the original deadline).
+								TODO other time units, like business days?
+								TODO relative to original start time, original deadline, or current time?
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -463,6 +467,7 @@
 								If specified, sends a standard "action to be executed" notifications at given times.
 								(Unlike timed action interval, here specify a positive time: just like for
 								notifyBeforeDeadline in certification.)
+								TODO other time units, like business days?
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -2052,6 +2057,7 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="value" type="xsd:duration" minOccurs="0" maxOccurs="unbounded" />
+			<!-- TODO other time units, like business days? -->
 			<xsd:element name="base" type="tns:WfTimeBaseType" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>

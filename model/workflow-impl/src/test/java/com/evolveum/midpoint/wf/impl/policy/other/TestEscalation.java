@@ -74,7 +74,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_XML);
+		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 
 		metaroleEscalatedOid = repoAddObjectFromFile(METAROLE_ESCALATED_FILE, initResult).getOid();
 		roleE1Oid = repoAddObjectFromFile(ROLE_E1_FILE, initResult).getOid();
