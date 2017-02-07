@@ -25,7 +25,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
-import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -51,7 +51,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 	private MidpointFunctions midpointFunctions;
 
 	@Autowired
-	private NotificationFuctionsImpl notificationsUtil;
+	private NotificationFunctionsImpl notificationsUtil;
 	
 	
 	private static String CONFIRMATION_LINK = "/confirm/";

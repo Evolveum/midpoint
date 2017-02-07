@@ -47,7 +47,7 @@ public class NotificationTaskListener implements TaskListener {
     private NotificationManager notificationManager;
 
     @Autowired
-    private NotificationFuctionsImpl notificationsUtil;
+    private NotificationFunctionsImpl notificationsUtil;
 
 	@Autowired
 	private TaskManager taskManager;

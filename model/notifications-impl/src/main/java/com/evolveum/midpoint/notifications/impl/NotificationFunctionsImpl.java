@@ -60,9 +60,9 @@ import java.util.*;
  * @author mederly
  */
 @Component
-public class NotificationFuctionsImpl implements NotificationFunctions {
+public class NotificationFunctionsImpl implements NotificationFunctions {
 
-    private static final Trace LOGGER = TraceManager.getTrace(NotificationFuctionsImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(NotificationFunctionsImpl.class);
 
     @Autowired
     @Qualifier("cacheRepositoryService")

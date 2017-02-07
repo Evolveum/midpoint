@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
@@ -99,7 +99,7 @@ public class SimpleSmsTransport implements Transport {
         result.addCollectionOfSerializablesAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
 
-        SystemConfigurationType systemConfiguration = NotificationFuctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
+        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. SMS notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;

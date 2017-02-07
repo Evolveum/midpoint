@@ -223,6 +223,36 @@
         <xsd:attribute name="name" type="xsd:string" />
     </xsd:complexType>
 
+    <xsd:complexType name="CustomTransportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <!--<xsd:appinfo>-->
+            <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that processes incoming message.
+						Expects a single-valued "message" variable.
+						Should not return anything.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Instead of executing the expression, writes all messages to a file. Useful for debugging.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
+
     <xsd:complexType name="SmsGatewayConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -281,6 +311,7 @@
             <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
             <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0"/>
             <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="customTransport" type="tns:CustomTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
@@ -460,6 +491,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Here can go any notifiers (that extend GeneralNotifierType).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="customNotifier" type="tns:CustomNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO EXPERIMENTAL
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -742,6 +780,23 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="CustomNotifierType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                     <xsd:element name="expression" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Generates resulting NotificationMessageType object. Expects an "event" variable.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="SimpleResourceObjectNotifierType">
         <xsd:annotation>
             <xsd:documentation>
@@ -947,5 +1002,27 @@
            
         </xsd:restriction>
     </xsd:simpleType>
+
+	<xsd:complexType name="NotificationMessageType">
+		<xsd:annotation>
+			<xsd:documentation>
+				XML version of Message (in notifications module).
+				Introduced in order to provide custom notifiers.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="from" type="xsd:string" minOccurs="0" />
+			<xsd:element name="to" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="cc" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="bcc" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="subject" type="xsd:string" minOccurs="0" />
+			<xsd:element name="body" type="xsd:string" minOccurs="0" />
+			<xsd:element name="contentType" type="xsd:string" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
 
 </xsd:schema>

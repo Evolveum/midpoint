@@ -19,7 +19,7 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
-import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,7 +52,7 @@ public class UserPasswordNotifier extends GeneralNotifier {
     private MidpointFunctions midpointFunctions;
 
     @Autowired
-    private NotificationFuctionsImpl notificationsUtil;
+    private NotificationFunctionsImpl notificationsUtil;
 
     @PostConstruct
     public void init() {

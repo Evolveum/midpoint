@@ -135,6 +135,7 @@ public class AggregatedEventHandler extends BaseHandler {
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getUserRegistrationNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getAccountPasswordNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getGeneralNotifier(), notificationManager, task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getCustomNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleCampaignNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleCampaignStageNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleReviewerNotifier(), notificationManager, task, result);
@@ -144,9 +145,9 @@ public class AggregatedEventHandler extends BaseHandler {
         return shouldContinue;
     }
 
-    private boolean processNotifiers(Event event, List<? extends GeneralNotifierType> notifiers, NotificationManager notificationManager, Task task, OperationResult result) throws SchemaException {
-        for (GeneralNotifierType generalNotifierType : notifiers) {
-            boolean shouldContinue = ((NotificationManagerImpl) notificationManager).getEventHandler(generalNotifierType).processEvent(event, generalNotifierType, notificationManager, task, result);
+    private boolean processNotifiers(Event event, List<? extends EventHandlerType> notifiers, NotificationManager notificationManager, Task task, OperationResult result) throws SchemaException {
+        for (EventHandlerType notifier : notifiers) {
+            boolean shouldContinue = ((NotificationManagerImpl) notificationManager).getEventHandler(notifier).processEvent(event, notifier, notificationManager, task, result);
             if (!shouldContinue) {
                 return false;
             }

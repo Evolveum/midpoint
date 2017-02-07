@@ -128,7 +128,8 @@ public class NotificationManagerImpl implements NotificationManager {
             processEvent(event, event.getAdHocHandler(), task, result);
         }
 
-        SystemConfigurationType systemConfigurationType = NotificationFuctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
+        SystemConfigurationType systemConfigurationType = NotificationFunctionsImpl
+				.getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }

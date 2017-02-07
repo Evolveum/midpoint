@@ -18,26 +18,15 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 
-import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.*;
-import static com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP;
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
 
 /**
  * @author mederly
@@ -50,6 +39,14 @@ public class TaskDeleteListener implements TaskListener {
 
 	@Override
 	public void notify(DelegateTask delegateTask) {
+
+		DelegateExecution execution = delegateTask.getExecution();
+		PrismContext prismContext = getPrismContext();
+		OperationResult opResult = new OperationResult(TaskCompleteListener.class.getName() + ".notify");
+		Task wfTask = ActivitiUtil.getTask(execution, opResult);
+		//ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
+
+		MidpointUtil.removeTriggersForWorkItem(wfTask, delegateTask.getId(), opResult);
 
 		// We could send a "task deleted" notification, if needed.
 		// In order to do this, task completion listener could create "wasCompleted" task variable (so we could know which

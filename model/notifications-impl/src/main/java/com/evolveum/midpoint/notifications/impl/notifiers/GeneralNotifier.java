@@ -24,7 +24,7 @@ import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.cxf.common.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +66,7 @@ public class GeneralNotifier extends BaseHandler {
     protected NotificationManager notificationManager;
 
     @Autowired
-    protected NotificationFuctionsImpl notificationsUtil;
+    protected NotificationFunctionsImpl notificationsUtil;
 
     @Autowired
     protected TextFormatter textFormatter;
@@ -226,6 +227,7 @@ public class GeneralNotifier extends BaseHandler {
         return addresses;
     }
 
+    @NotNull
     protected List<String> getCcBccAddresses(List<ExpressionType> expressions, ExpressionVariables variables,
 			String shortDesc, Task task, OperationResult result) {
     	List<String> addresses = new ArrayList<>();
@@ -316,7 +318,7 @@ public class GeneralNotifier extends BaseHandler {
     protected boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {
 
         for (ItemDelta itemDelta : delta.getModifications()) {
-            if (!NotificationFuctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
+            if (!NotificationFunctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
                 return true;
             }
         }
@@ -331,7 +333,7 @@ public class GeneralNotifier extends BaseHandler {
 
         boolean showValues = !Boolean.FALSE.equals(showValuesBoolean);
         for (ItemDelta<?,?> itemDelta : delta.getModifications()) {
-            if (NotificationFuctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+            if (NotificationFunctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                 continue;
             }
             body.append(" - ");

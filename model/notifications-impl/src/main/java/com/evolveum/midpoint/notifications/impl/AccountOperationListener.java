@@ -57,15 +57,15 @@ public class AccountOperationListener implements ResourceOperationListener {
     @Autowired
     private ChangeNotificationDispatcher provisioningNotificationDispatcher;
 
-    @Autowired(required = true)
+    @Autowired
     private NotificationManager notificationManager;
 
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
     @Autowired
-    private NotificationFuctionsImpl notificationsUtil;
+    private NotificationFunctionsImpl notificationsUtil;
 
     @PostConstruct
     public void init() {

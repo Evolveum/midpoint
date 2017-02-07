@@ -31,21 +31,21 @@ import org.apache.commons.lang.Validate;
 public class SimpleObjectRefImpl implements SimpleObjectRef {
     private String oid;
     private ObjectType objectType;
-    private NotificationFuctionsImpl notificationsUtil;        // used to resolve object refs
+    private NotificationFunctionsImpl notificationsUtil;        // used to resolve object refs
 
-    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, ObjectType objectType) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl notificationsUtil, ObjectType objectType) {
         this.oid = objectType.getOid();
         this.objectType = objectType;
         this.notificationsUtil = notificationsUtil;
     }
 
-    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, PrismObject object) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl notificationsUtil, PrismObject object) {
         this.oid = object.getOid();
         this.objectType = (ObjectType) object.asObjectable();
         this.notificationsUtil = notificationsUtil;
     }
 
-    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, ObjectReferenceType ref) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl notificationsUtil, ObjectReferenceType ref) {
         Validate.notNull(ref);
         this.oid = ref.getOid();
         if (ref.asReferenceValue().getObject() != null) {
@@ -54,7 +54,7 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
         this.notificationsUtil = notificationsUtil;
     }
 
-    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, String oid) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl notificationsUtil, String oid) {
         this.oid = oid;
         this.notificationsUtil = notificationsUtil;
     }

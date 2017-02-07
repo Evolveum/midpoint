@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.formatters;
 
-import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -444,7 +444,7 @@ public class TextFormatter {
         List<QName> noDefinition = new ArrayList<>();
         for (ItemDelta itemDelta: objectDelta.getModifications()) {
             if (itemDelta.getDefinition() != null) {
-                if ((showOperationalAttributes || !itemDelta.getDefinition().isOperational()) && !NotificationFuctionsImpl
+                if ((showOperationalAttributes || !itemDelta.getDefinition().isOperational()) && !NotificationFunctionsImpl
 						.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                     toBeDisplayed.add(itemDelta);
                 }
@@ -489,7 +489,7 @@ public class TextFormatter {
         List<QName> noDefinition = new ArrayList<>();
         for (Item item : items) {
             if (item.getDefinition() != null) {
-                boolean isHidden = NotificationFuctionsImpl.isAmongHiddenPaths(item.getPath(), hiddenPaths);
+                boolean isHidden = NotificationFunctionsImpl.isAmongHiddenPaths(item.getPath(), hiddenPaths);
                 if (!isHidden && (showOperationalAttributes || !item.getDefinition().isOperational())) {
                     toBeDisplayed.add(item);
                 }
