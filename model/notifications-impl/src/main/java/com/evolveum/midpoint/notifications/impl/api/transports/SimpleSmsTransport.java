@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
@@ -93,7 +94,7 @@ public class SimpleSmsTransport implements Transport {
     }
 
     @Override
-    public void send(Message message, String transportName, Task task, OperationResult parentResult) {
+    public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addCollectionOfSerializablesAsParam("message recipient(s)", message.getTo());

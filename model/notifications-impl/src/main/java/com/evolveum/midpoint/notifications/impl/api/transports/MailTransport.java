@@ -26,6 +26,7 @@ import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.evolveum.midpoint.notifications.api.events.Event;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -78,7 +79,7 @@ public class MailTransport implements Transport {
     }
 
     @Override
-    public void send(Message mailMessage, String transportName, Task task, OperationResult parentResult) {
+    public void send(Message mailMessage, String transportName, Event event, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addCollectionOfSerializablesAsParam("mailMessage recipient(s)", mailMessage.getTo());

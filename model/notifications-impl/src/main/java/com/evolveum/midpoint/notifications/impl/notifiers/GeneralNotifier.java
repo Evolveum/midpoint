@@ -153,7 +153,7 @@ public class GeneralNotifier extends BaseHandler {
 								message.setBcc(getCcBccAddresses(generalNotifierType.getBccExpression(), variables, "notification bcc-expression", task, result));
 
                                 getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-                                transport.send(message, transportName, task, result);
+                                transport.send(message, transportName, event, task, result);
                             } else {
                                 getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
                             }

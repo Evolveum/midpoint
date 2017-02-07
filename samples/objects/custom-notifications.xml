@@ -57,7 +57,7 @@
             <expression>
                 <script>
                     <code>
-                        log.info('custom transport got a message:\n{}', message)
+                        log.info('custom transport got a message:\n{}\n\nEvent was:\n{}', message, event)
                     </code>
                 </script>
             </expression>

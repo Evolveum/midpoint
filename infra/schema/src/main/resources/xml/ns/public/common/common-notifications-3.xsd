@@ -237,7 +237,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression that processes incoming message.
-						Expects a single-valued "message" variable.
+						Expects a single-valued "message" variable. (If really needed, "event" variable is also available.)
 						Should not return anything.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -542,6 +542,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+			<!--<xsd:enumeration value="workflowProcessStageEvent">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:appinfo>-->
+						<!--<jaxb:typesafeEnumMember name="WORKFLOW_PROCESS_STAGE_EVENT"/>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:enumeration>-->
             <xsd:enumeration value="workflowEvent">
                 <xsd:annotation>
                     <xsd:appinfo>

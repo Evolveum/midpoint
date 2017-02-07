@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
@@ -86,7 +87,7 @@ public class CustomTransport implements Transport {
     }
 
     @Override
-    public void send(Message message, String transportName, Task task, OperationResult parentResult) {
+    public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addCollectionOfSerializablesAsParam("message recipient(s)", message.getTo());
@@ -120,7 +121,7 @@ public class CustomTransport implements Transport {
         }
 
         try {
-            evaluateExpression(configuration.getExpression(), getDefaultVariables(message),
+            evaluateExpression(configuration.getExpression(), getDefaultVariables(message, event),
                     "custom transport expression", task, result);
             LOGGER.trace("Custom transport expression execution finished");
             result.recordSuccess();
@@ -158,9 +159,10 @@ public class CustomTransport implements Transport {
         ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
     }
 
-    protected ExpressionVariables getDefaultVariables(Message message) throws UnsupportedEncodingException {
+    protected ExpressionVariables getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {
     	ExpressionVariables variables = new ExpressionVariables();
         variables.addVariableDefinition(SchemaConstants.C_MESSAGE, message);
+        variables.addVariableDefinition(SchemaConstants.C_EVENT, event);
         return variables;
     }
 
