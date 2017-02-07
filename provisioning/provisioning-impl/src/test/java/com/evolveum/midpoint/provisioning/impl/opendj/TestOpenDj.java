@@ -73,6 +73,7 @@ import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.match.UuidMatchingRule;
 import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1618,16 +1619,98 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		rememberConnectorSimulatedPagingSearchCount();
 		
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ShadowType>> objListType = 
 			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
 		for (PrismObject<ShadowType> objType : objListType) {
 			assertNotNull("Null search result", objType);
 			display("found object", objType);
 		}
 		
 		assertEquals("Unexpected number of objects found", 1, objListType.size());
+		
+		assertConnectorOperationIncrement(1, 3);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	@Test
+	public void test203SearchObjectsByDnExists() throws Exception {
+		final String TEST_NAME = "test203SearchObjectsByDnExists";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(ACCOUNT_BARBOSSA_DN, resource);
+
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> objListType = 
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		for (PrismObject<ShadowType> objType : objListType) {
+			assertNotNull("Null search result", objType);
+			display("found object", objType);
+		}
+		
+		assertEquals("Unexpected number of objects found", 1, objListType.size());
+		
+		PrismObject<ShadowType> shadow = objListType.get(0);
+		assertAttribute(shadow, "dn", ACCOUNT_BARBOSSA_DN);
+		
+		assertConnectorOperationIncrement(1, 3);
+		assertConnectorSimulatedPagingSearchIncrement(0);
+	}
+	
+	/**
+	 * Search for non-existent DN should return no results. It should NOT
+	 * throw an error.
+	 * MID-3730
+	 */
+	@Test
+	public void test205SearchObjectsByDnNotExists() throws Exception {
+		final String TEST_NAME = "test205SearchObjectsByDnNotExists";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(
+				"uid=DoesNOTeXXXiSt,ou=People,dc=example,dc=com", resource);
+
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> objListType = 
+			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		for (PrismObject<ShadowType> objType : objListType) {
+			assertNotNull("Null search result", objType);
+			display("found object", objType);
+		}
+		
+		assertEquals("Unexpected number of objects found", 0, objListType.size());
 		
 		assertConnectorOperationIncrement(1, 3);
 		assertConnectorSimulatedPagingSearchIncrement(0);
