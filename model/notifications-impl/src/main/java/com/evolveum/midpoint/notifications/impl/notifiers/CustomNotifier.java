@@ -117,8 +117,12 @@ public class CustomNotifier extends BaseHandler {
 					Transport transport = notificationManager.getTransport(transportName);
 
 					Message message = getMessageFromExpression(config, variables, task, result);
-					getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-					transport.send(message, transportName, task, result);
+					if (message != null) {
+						getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
+						transport.send(message, transportName, task, result);
+					} else {
+						getLogger().debug("No message for transport {}, won't send anything", transportName);
+					}
 				}
 			} finally {
 				if (event instanceof ModelEvent) {
