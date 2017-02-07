@@ -281,6 +281,7 @@ public class GeneralNotifier extends BaseHandler {
             		task, result);
             if (contentTypeList == null || contentTypeList.isEmpty()) {
                 getLogger().info("contentType expression for event " + event.getId() + " returned nothing.");
+                return null;
             }
             if (contentTypeList.size() > 1) {
                 getLogger().warn("contentType expression for event " + event.getId() + " returned more than 1 item.");
