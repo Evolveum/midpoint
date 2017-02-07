@@ -47,6 +47,7 @@ import static com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariab
 public class TaskCompleteListener implements TaskListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskCompleteListener.class);
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	public void notify(DelegateTask delegateTask) {
@@ -56,6 +57,9 @@ public class TaskCompleteListener implements TaskListener {
 		OperationResult opResult = new OperationResult(TaskCompleteListener.class.getName() + ".notify");
 		Task wfTask = ActivitiUtil.getTask(execution, opResult);
 		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
+
+//		System.out.println("%%% Task " + delegateTask + " has been completed.");
+//		LOGGER.info("%%% Task {} has been completed", delegateTask);
 
 		new MidPointTaskListener().notify(delegateTask);
 

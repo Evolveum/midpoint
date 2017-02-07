@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.test.DummyTransport;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -32,7 +34,11 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -45,8 +51,7 @@ import java.util.*;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValues;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 /**
  * 
@@ -54,11 +59,13 @@ import static org.testng.AssertJUnit.assertNotNull;
  *
  */
 
+@SuppressWarnings("FieldCanBeLocal")
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestStrings extends AbstractStoryTest {
 
 	@Autowired private WorkflowService workflowService;
+	@Autowired private DummyTransport dummyTransport;
 	
 	private static final String TEST_DIR = "src/test/resources/strings";
 	private static final String ORG_DIR = TEST_DIR + "/orgs";
@@ -131,6 +138,8 @@ public class TestStrings extends AbstractStoryTest {
 
 	public static final String NS_STRINGS_EXT = "http://midpoint.evolveum.com/xml/ns/strings";
 
+	private static final String DUMMY_WORK_ITEMS = "dummy:workItems";
+	private static final String DUMMY_PROCESSES = "dummy:processes";
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -226,6 +235,47 @@ public class TestStrings extends AbstractStoryTest {
 		assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
 		assertStage(wfTask, 1, 3, "Line managers", null);
 		assertAssignee(workItem, userLechuckOid, userLechuckOid);
+
+		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
+		display("work items notifications", workItemMessages);
+		display("processes notifications", processMessages);
+		dummyTransport.clearMessages();
+
+		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
+		assertMessage(workItemMessages.get(0), "lechuck@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Assignee: lechuck");
+
+		assertEquals("Wrong # of process messages", 1, processMessages.size());
+		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
+				"Process instance name: Assigning a-test-1 to bob", "Stage: Line managers (1/3)");
+	}
+
+	private void assertMessage(Message message, String recipient, String subject, String... texts) {
+		assertNotNull("No message for " + recipient, message);
+		assertEquals("Wrong # of recipients", 1, message.getTo().size());
+		assertEquals("Wrong recipient", recipient, message.getTo().get(0));
+		assertEquals("Wrong subject", subject, message.getSubject());
+		for (String text : texts) {
+			if (!message.getBody().contains(text)) {
+				fail("Message body doesn't contain '" + text + "': " + message.getBody());
+			}
+		}
+	}
+
+	private MultiValuedMap<String, Message> sortByRecipients(Collection<Message> messages) {
+		MultiValuedMap<String, Message> rv = new ArrayListValuedHashMap<>();
+		messages.forEach(m ->
+				m.getTo().forEach(
+						to -> rv.put(to, m)));
+		return rv;
+	}
+
+	private Map<String, Message> sortByRecipientsSingle(Collection<Message> messages) {
+		Map<String, Message> rv = new HashMap<>();
+		messages.forEach(m ->
+				m.getTo().forEach(
+						to -> rv.put(to, m)));
+		return rv;
 	}
 
 	@Test
@@ -254,7 +304,19 @@ public class TestStrings extends AbstractStoryTest {
 		assertStage(wfTask, 2, 3, "Security", null);
 		assertTriggers(wfTask, 2);
 
-		// TODO check events
+		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
+		display("work items notifications", workItemMessages);
+		display("processes notifications", processMessages);
+		dummyTransport.clearMessages();
+
+		assertEquals("Wrong # of work items messages", 3, workItemMessages.size());
+		assertNull("process messages", processMessages);
+
+		Map<String,Message> sorted = sortByRecipientsSingle(workItemMessages);
+		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)", "Assignee: lechuck", "Result: APPROVED");
+		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Assignee: elaine");
+		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Assignee: barkeeper");
 	}
 
 	@Test
@@ -280,9 +342,114 @@ public class TestStrings extends AbstractStoryTest {
 		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
 		assertTriggers(wfTask, 2);
 
-		Map<String, WorkItemType> workItemsMap = createWorkItemsMap(workItems);
+		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 		assertNotNull("chef is not an approver", workItemsMap.get(userChefOid));
 		assertNotNull("cheese is not an approver", workItemsMap.get(userCheeseOid));
+
+		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
+		display("work items notifications", workItemMessages);
+		display("processes notifications", processMessages);
+		dummyTransport.clearMessages();
+
+		assertEquals("Wrong # of work items messages", 3, workItemMessages.size());
+		assertNull("process messages", processMessages);
+
+		Map<String,Message> sorted = sortByRecipientsSingle(workItemMessages);
+		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Assignee: elaine", "Result: APPROVED");
+		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: cheese");
+		assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: chef");
+	}
+
+	@Test
+	public void test106SimpleAssignmentApproveByCheese() throws Exception {
+		final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+		login(userAdministrator);
+		List<WorkItemType> workItems = getWorkItems(task, result);
+		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
+
+		// WHEN
+		workflowService.completeWorkItem(workItemsMap.get(userCheeseOid).getWorkItemId(), true, "OK. Cheese.", null, result);
+
+		// THEN
+		workItems = getWorkItems(task, result);
+		workItems.forEach(wi -> display("Work item after 3rd approval", wi));
+		assertEquals("Wrong # of work items on level 3", 1, workItems.size());
+		workItemsMap = sortByOriginalAssignee(workItems);
+		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		display("wfTask after 3rd approval", wfTask);
+
+		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
+		assertTriggers(wfTask, 1);
+
+		assertNotNull("chef is not an approver", workItemsMap.get(userChefOid));
+
+		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
+		display("work items notifications", workItemMessages);
+		display("processes notifications", processMessages);
+		dummyTransport.clearMessages();
+
+		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
+		assertNull("process messages", processMessages);
+
+		Map<String,Message> sorted = sortByRecipientsSingle(workItemMessages);
+		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: cheese", "Result: APPROVED");
+	}
+
+	@Test
+	public void test108SimpleAssignmentApproveByChef() throws Exception {
+		final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+		login(userAdministrator);
+		List<WorkItemType> workItems = getWorkItems(task, result);
+		String taskOid = workItems.get(0).getTaskRef().getOid();
+		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
+
+		// WHEN
+		login(getUser(userChefOid));
+		workflowService.completeWorkItem(workItemsMap.get(userChefOid).getWorkItemId(), true, "OK. Chef.", null, result);
+
+		// THEN
+		login(userAdministrator);
+		workItems = getWorkItems(task, result);
+		workItems.forEach(wi -> display("Work item after 4th approval", wi));
+		assertEquals("Wrong # of work items on level 3", 0, workItems.size());
+		PrismObject<TaskType> wfTask = getTask(taskOid);
+		display("wfTask after 4th approval", wfTask);
+
+		Task parent = getParentTask(wfTask, result);
+		waitForTaskFinish(parent, true, 60000);
+
+//		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
+		assertTriggers(wfTask, 0);
+
+		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
+		display("work items notifications", workItemMessages);
+		display("processes notifications", processMessages);
+		dummyTransport.clearMessages();
+
+		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
+		assertEquals("Wrong # of process messages", 1, processMessages.size());
+
+		Map<String,Message> sorted = sortByRecipientsSingle(workItemMessages);
+		assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: chef", "Result: APPROVED");
+		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished", "Process instance name: Assigning a-test-1 to bob", "Result: APPROVED");
+	}
+
+	private Task getParentTask(PrismObject<TaskType> task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		return taskManager.getTaskByIdentifier(task.asObjectable().getParent(), result);
 	}
 
 	private void assertTriggers(PrismObject<TaskType> wfTask, int count) {
@@ -346,7 +513,7 @@ public class TestStrings extends AbstractStoryTest {
 		return ref(Collections.singletonList(ort));
 	}
 
-	protected Map<String, WorkItemType> createWorkItemsMap(Collection<WorkItemType> workItems) {
+	protected Map<String, WorkItemType> sortByOriginalAssignee(Collection<WorkItemType> workItems) {
 		Map<String, WorkItemType> rv = new HashMap<>();
 		workItems.forEach(wi -> rv.put(wi.getOriginalAssigneeRef().getOid(), wi));
 		return rv;

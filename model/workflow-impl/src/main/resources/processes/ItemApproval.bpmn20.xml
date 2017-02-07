@@ -128,6 +128,7 @@
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCreateListener" />
                         <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCompleteListener" />
+                        <activiti:taskListener event="delete" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskDeleteListener" />
                     </extensionElements>
                 </userTask>
 
@@ -138,6 +139,7 @@
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCreateListener" />
                         <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskCompleteListener" />
+                        <activiti:taskListener event="delete" class="com.evolveum.midpoint.wf.impl.processes.itemApproval.TaskDeleteListener" />
                     </extensionElements>
                 </userTask>
 

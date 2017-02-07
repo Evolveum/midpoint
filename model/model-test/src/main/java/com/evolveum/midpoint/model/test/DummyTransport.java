@@ -89,7 +89,7 @@ public class DummyTransport implements Transport, DebugDumpable {
 
     @Override
     public String getDefaultRecipientAddress(UserType recipient) {
-        return "dummyAddress";
+        return recipient.getEmailAddress() != null ? recipient.getEmailAddress() : "dummyAddress";
     }
 
     @Override
@@ -104,6 +104,14 @@ public class DummyTransport implements Transport, DebugDumpable {
 
 	@Override
 	public String debugDump(int indent) {
-		return DebugUtil.debugDump(messages, indent);
+    	StringBuilder sb = new StringBuilder();
+    	DebugUtil.indentDebugDump(sb, indent);
+    	sb.append("(\n");
+		for (Map.Entry<String, List<Message>> entry : messages.entrySet()) {
+			DebugUtil.debugDumpWithLabelLn(sb, entry.getKey(), entry.getValue(), indent + 1);
+		}
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(")");
+		return sb.toString();
 	}
 }
