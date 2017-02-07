@@ -137,16 +137,19 @@ public class GeneralNotifier extends BaseHandler {
 
                                 Message message = new Message();
                                 message.setBody(body != null ? body : "");
-                                message.setContentType(contentType);
-								message.setContentType(generalNotifierType.getContentType());
+                                if (contentType != null) {
+                                    message.setContentType(contentType);
+                                } else if (generalNotifierType.getContentType() != null) {
+                                    message.setContentType(generalNotifierType.getContentType());
+                                }
                                 message.setSubject(subject);
 
-                                if (from != null)message.setFrom(from);
-                                message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
-                                List<String> cc = getCcAddresses(event, generalNotifierType, variables,  task, result);
-                                if (cc != null)message.setCc(cc);
-                                List<String> bcc = getBccAddresses(event, generalNotifierType, variables,  task, result);
-                                if (bcc != null)message.setBcc(bcc);;
+                                if (from != null) {
+                                	message.setFrom(from);
+								}
+                                message.setTo(recipientsAddresses);
+                                message.setCc(getCcBccAddresses(generalNotifierType.getCcExpression(), variables, "notification cc-expression", task, result));
+								message.setBcc(getCcBccAddresses(generalNotifierType.getBccExpression(), variables, "notification bcc-expression", task, result));
 
                                 getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
                                 transport.send(message, transportName, task, result);
@@ -223,34 +226,14 @@ public class GeneralNotifier extends BaseHandler {
         return addresses;
     }
 
-    protected List<String> getCcAddresses(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
-    	Task task, OperationResult result) {
-    	List<String> addresses = null;
-        if (!generalNotifierType.getCcExpression().isEmpty()) {
-        	addresses = new ArrayList<>();
-            for (ExpressionType expressionType : generalNotifierType.getCcExpression()) {
-                List<String> r = evaluateExpressionChecked(expressionType, variables, "notification cc-recipient", task, result);
-                if (r != null) {
-                    addresses.addAll(r);
-                }
-            }
-
-        }
-        return addresses;
-    }
-
-    protected List<String> getBccAddresses(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
-    	Task task, OperationResult result) {
-    	List<String> addresses = null;
-        if (!generalNotifierType.getBccExpression().isEmpty()) {
-        	addresses = new ArrayList<>();
-            for (ExpressionType expressionType : generalNotifierType.getBccExpression()) {
-                List<String> r = evaluateExpressionChecked(expressionType, variables, "notification cc-recipient", task, result);
-                if (r != null) {
-                    addresses.addAll(r);
-                }
-            }
-
+    protected List<String> getCcBccAddresses(List<ExpressionType> expressions, ExpressionVariables variables,
+			String shortDesc, Task task, OperationResult result) {
+    	List<String> addresses = new ArrayList<>();
+		for (ExpressionType expressionType : expressions) {
+			List<String> r = evaluateExpressionChecked(expressionType, variables, shortDesc, task, result);
+			if (r != null) {
+				addresses.addAll(r);
+			}
         }
         return addresses;
     }
@@ -280,6 +263,7 @@ public class GeneralNotifier extends BaseHandler {
             		task, result);
             if (fromList == null || fromList.isEmpty()) {
                 getLogger().info("from expression for event " + event.getId() + " returned nothing.");
+                return null;
             }
             if (fromList.size() > 1) {
                 getLogger().warn("from expression for event " + event.getId() + " returned more than 1 item.");

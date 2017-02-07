@@ -18,7 +18,9 @@ package com.evolveum.midpoint.notifications.api.transports;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,9 +28,9 @@ import java.util.List;
  */
 public class Message implements DebugDumpable {
 
-    private List<String> to;
-    private List<String> cc;
-    private List<String> bcc;
+    @NotNull private List<String> to = new ArrayList<>();
+	@NotNull private List<String> cc = new ArrayList<>();
+	@NotNull private List<String> bcc = new ArrayList<>();
     private String subject;
     private String body;         // todo
     private String contentType;
@@ -50,27 +52,30 @@ public class Message implements DebugDumpable {
         this.subject = subject;
     }
 
+	@NotNull
     public List<String> getTo() {
         return to;
     }
 
-    public void setTo(List<String> to) {
+    public void setTo(@NotNull List<String> to) {
         this.to = to;
     }
-    
+
+	@NotNull
     public List<String> getCc() {
         return cc;
     }
 
-    public void setCc(List<String> cc) {
+    public void setCc(@NotNull List<String> cc) {
         this.cc = cc;
     }
-    
+
+	@NotNull
     public List<String> getBcc() {
         return bcc;
     }
 
-    public void setBcc(List<String> bcc) {
+    public void setBcc(@NotNull List<String> bcc) {
         this.bcc = bcc;
     }
 
@@ -92,14 +97,11 @@ public class Message implements DebugDumpable {
 
     @Override
     public String toString() {
-    	String fromString = from!= null ? ", from='" + from + "' " : "";
-    	String ccString = cc!= null ? ", cc='" + cc + "' " : "";
-    	String bccString = bcc!= null ? ", bcc='" + bcc + "' " : "";
         return "Message{" +
         		"to='" + to + '\'' +
-        		fromString +
-                ccString +
-                bccString +
+				(from != null ? ", from='" + from + "'" : "") +
+				", cc='" + cc + "'" +
+				", bcc='" + bcc + "'" +
                 ", subject='" + subject + '\'' +
                 ", contentType='" + contentType + '\'' +
                 ", body='" + body + '\'' +
@@ -126,15 +128,12 @@ public class Message implements DebugDumpable {
 		DebugUtil.debugDumpWithLabel(rv, "To", to, indent+1);
 		rv.append("\n");
 
-		if (cc != null){
-			DebugUtil.debugDumpWithLabel(rv, "Cc", cc, indent+1);
-			rv.append("\n");
-		}
-		if (bcc != null){
-			DebugUtil.debugDumpWithLabel(rv, "Bcc", bcc, indent+1);
-			rv.append("\n");
-		}
-		
+		DebugUtil.debugDumpWithLabel(rv, "Cc", cc, indent+1);
+		rv.append("\n");
+
+		DebugUtil.debugDumpWithLabel(rv, "Bcc", bcc, indent+1);
+		rv.append("\n");
+
 		DebugUtil.debugDumpWithLabel(rv, "Subject", subject, indent+1);
 		rv.append("\n");
 

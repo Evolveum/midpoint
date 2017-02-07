@@ -191,20 +191,14 @@ public class MailTransport implements Transport {
                 String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
                 mimeMessage.setFrom(new InternetAddress(from));
                 
-                if (mailMessage.getTo() != null){
-                	for (String recipient : mailMessage.getTo()) {
-                		mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
-                	}
+               	for (String recipient : mailMessage.getTo()) {
+               		mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
+               	}
+                for (String recipientCc : mailMessage.getCc()) {
+                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
                 }
-                if (mailMessage.getCc() != null){
-	                for (String recipientCc : mailMessage.getCc()) {
-	                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
-	                }
-                }
-                if (mailMessage.getBcc() != null){
-	                for (String recipientBcc : mailMessage.getBcc()) {
-	                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
-	                }
+                for (String recipientBcc : mailMessage.getBcc()) {
+                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
                 }
                 mimeMessage.setSubject(mailMessage.getSubject(), "utf-8");
                 String contentType = mailMessage.getContentType();
