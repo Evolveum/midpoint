@@ -135,7 +135,7 @@ public class MailTransport implements Transport {
 
         long start = System.currentTimeMillis();
 
-        String from = mailConfigurationType.getDefaultFrom() != null ? mailConfigurationType.getDefaultFrom() : "nobody@nowhere.org";
+        String defaultFrom = mailConfigurationType.getDefaultFrom() != null ? mailConfigurationType.getDefaultFrom() : "nobody@nowhere.org";
 
         for (MailServerConfigurationType mailServerConfigurationType : mailConfigurationType.getServer()) {
 
@@ -188,9 +188,17 @@ public class MailTransport implements Transport {
 
             try {
                 MimeMessage mimeMessage = new MimeMessage(session);
+                String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
                 mimeMessage.setFrom(new InternetAddress(from));
-                for (String recipient : mailMessage.getTo()) {
-                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
+                
+               	for (String recipient : mailMessage.getTo()) {
+               		mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
+               	}
+                for (String recipientCc : mailMessage.getCc()) {
+                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
+                }
+                for (String recipientBcc : mailMessage.getBcc()) {
+                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
                 }
                 mimeMessage.setSubject(mailMessage.getSubject(), "utf-8");
                 String contentType = mailMessage.getContentType();
@@ -238,7 +246,7 @@ public class MailTransport implements Transport {
 
 
     private String formatToFile(Message mailMessage) {
-        return "============================================ " + new Date() + "\n" + mailMessage.toString() + "\n\n";
+        return "============================================ " + "\n" +new Date() + "\n" + mailMessage.toString() + "\n\n";
     }
 
     @Override

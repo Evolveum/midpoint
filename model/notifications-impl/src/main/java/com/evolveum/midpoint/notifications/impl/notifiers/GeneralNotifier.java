@@ -124,6 +124,8 @@ public class GeneralNotifier extends BaseHandler {
 
                                 String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
                                 String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
+                                String from = getFromFromExpression(event, generalNotifierType, variables, task, result);
+                                String contentType = getContentTypeFromExpression(event, generalNotifierType, variables, task, result);
 
                                 if (body == null) {
                                     body = getBody(event, generalNotifierType, transportName, task, result);
@@ -135,9 +137,19 @@ public class GeneralNotifier extends BaseHandler {
 
                                 Message message = new Message();
                                 message.setBody(body != null ? body : "");
-								message.setContentType(generalNotifierType.getContentType());
+                                if (contentType != null) {
+                                    message.setContentType(contentType);
+                                } else if (generalNotifierType.getContentType() != null) {
+                                    message.setContentType(generalNotifierType.getContentType());
+                                }
                                 message.setSubject(subject);
-                                message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
+
+                                if (from != null) {
+                                	message.setFrom(from);
+								}
+                                message.setTo(recipientsAddresses);
+                                message.setCc(getCcBccAddresses(generalNotifierType.getCcExpression(), variables, "notification cc-expression", task, result));
+								message.setBcc(getCcBccAddresses(generalNotifierType.getBccExpression(), variables, "notification bcc-expression", task, result));
 
                                 getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
                                 transport.send(message, transportName, task, result);
@@ -214,6 +226,18 @@ public class GeneralNotifier extends BaseHandler {
         return addresses;
     }
 
+    protected List<String> getCcBccAddresses(List<ExpressionType> expressions, ExpressionVariables variables,
+			String shortDesc, Task task, OperationResult result) {
+    	List<String> addresses = new ArrayList<>();
+		for (ExpressionType expressionType : expressions) {
+			List<String> r = evaluateExpressionChecked(expressionType, variables, shortDesc, task, result);
+			if (r != null) {
+				addresses.addAll(r);
+			}
+        }
+        return addresses;
+    }
+
     protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables, 
     		Task task, OperationResult result) {
         if (generalNotifierType.getSubjectExpression() != null) {
@@ -227,6 +251,42 @@ public class GeneralNotifier extends BaseHandler {
                 getLogger().warn("Subject expression for event " + event.getId() + " returned more than 1 item.");
             }
             return subjectList.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    protected String getFromFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
+    		Task task, OperationResult result) {
+        if (generalNotifierType.getFromExpression() != null) {
+            List<String> fromList = evaluateExpressionChecked(generalNotifierType.getFromExpression(), variables, "from expression",
+            		task, result);
+            if (fromList == null || fromList.isEmpty()) {
+                getLogger().info("from expression for event " + event.getId() + " returned nothing.");
+                return null;
+            }
+            if (fromList.size() > 1) {
+                getLogger().warn("from expression for event " + event.getId() + " returned more than 1 item.");
+            }
+            return fromList.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    protected String getContentTypeFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
+    		Task task, OperationResult result) {
+        if (generalNotifierType.getContentTypeExpression() != null) {
+            List<String> contentTypeList = evaluateExpressionChecked(generalNotifierType.getContentTypeExpression(), variables, "contentType expression",
+            		task, result);
+            if (contentTypeList == null || contentTypeList.isEmpty()) {
+                getLogger().info("contentType expression for event " + event.getId() + " returned nothing.");
+                return null;
+            }
+            if (contentTypeList.size() > 1) {
+                getLogger().warn("contentType expression for event " + event.getId() + " returned more than 1 item.");
+            }
+            return contentTypeList.get(0);
         } else {
             return null;
         }
