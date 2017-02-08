@@ -35,5 +35,5 @@ public interface WorkflowService {
     void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
 
     void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
+			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException;
 }

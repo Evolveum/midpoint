@@ -77,7 +77,7 @@ public class CommonProcessVariableNames {
 	// EXPERIMENTAL
 	public static final String FORM_FIELD_ADDITIONAL_DELTA = "objectDelta";
 
-	// [String - value of WorkItemEventCauseType]
+	// [serialized value of WorkItemEventCauseInformationType]
 	public static final String VARIABLE_CAUSE = "cause";
 
 	public static final String FORM_BUTTON_PREFIX = "[B]";
@@ -139,4 +139,8 @@ public class CommonProcessVariableNames {
 	// Whether this work item was completed (instead of simply deleted)
 	// [Boolean]
 	public static final String VARIABLE_WORK_ITEM_WAS_COMPLETED = "workItemWasCompleted";
+
+	// Who completed this work item (OID of the user)
+	// [String]
+	public static final String VARIABLE_WORK_ITEM_COMPLETED_BY = "workItemCompletedBy";
 }

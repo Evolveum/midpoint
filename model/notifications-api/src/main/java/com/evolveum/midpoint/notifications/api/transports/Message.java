@@ -151,7 +151,7 @@ public class Message implements DebugDumpable {
 		DebugUtil.debugDumpWithLabel(rv, "Subject", subject, indent+1);
 		rv.append("\n");
 
-		DebugUtil.debugDumpWithLabel(rv, "Body", body, indent+1);
+		DebugUtil.debugDumpWithLabel(rv, "Body", DebugUtil.fixIndentInMultiline(indent+1, DebugDumpable.INDENT_STRING, body), indent+1);
 		return rv.toString();
 	}
 }

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,16 +30,14 @@ import org.jetbrains.annotations.NotNull;
 abstract public class WorkflowEvent extends BaseEvent {
 
     @NotNull protected final WfContextType workflowContext;
-    @NotNull private final ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
+    @NotNull private final ChangeType changeType;
 
     public WorkflowEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-            @NotNull WfContextType workflowContext) {
-        super(lightweightIdentifierGenerator);
+            @NotNull WfContextType workflowContext, EventHandlerType handler) {
+        super(lightweightIdentifierGenerator, handler);
         this.changeType = changeType;
 		this.workflowContext = workflowContext;
     }
-
-
 
     public String getProcessInstanceName() {
         return workflowContext.getProcessInstanceName();

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.MidpointUtil;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -58,6 +60,8 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_PREFIX;
 import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SUFFIX;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.DELEGATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.ESCALATE;
 
 /**
  * @author mederly
@@ -68,23 +72,14 @@ public class WorkItemManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemManager.class);
 
-    @Autowired
-    private ActivitiEngine activitiEngine;
-
-    @Autowired
-    private MiscDataUtil miscDataUtil;
-    
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
-    
-    @Autowired
-	private SystemObjectCache systemObjectCache;
-
-    @Autowired
-	private PrismContext prismContext;
-
-    @Autowired
-	private WorkItemProvider workItemProvider;
+    @Autowired private ActivitiEngine activitiEngine;
+    @Autowired private MiscDataUtil miscDataUtil;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private PrismContext prismContext;
+    @Autowired private WorkItemProvider workItemProvider;
+    @Autowired private WfTaskController wfTaskController;
+    @Autowired private TaskManager taskManager;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -231,7 +226,7 @@ public class WorkItemManager {
 	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			boolean escalate, String escalationLevelName, String escalationLevelDisplayName,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
 		result.addParams( new String[]{ "workItemId", "escalate", "escalationLevelName", "escalationLevelDisplayName"},
 				workItemId, escalate, escalationLevelName, escalationLevelDisplayName);
@@ -239,6 +234,10 @@ public class WorkItemManager {
 		try {
 			MidPointPrincipal principal = securityEnforcer.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
+
+			ObjectReferenceType initiator =
+					principal.getUser() != null && (causeInformation == null || causeInformation.getCause() == WorkItemEventCauseType.USER_ACTION) ?
+							ObjectTypeUtil.createObjectRef(principal.getUser()) : null;
 
 			LOGGER.trace("Delegating work item {} to {}: escalation={}:{}/{}; cause={}", workItemId, delegates, escalate,
 					escalationLevelName, escalationLevelDisplayName, causeInformation);
@@ -248,7 +247,13 @@ public class WorkItemManager {
 				throw new SecurityViolationException("You are not authorized to delegate this work item.");
 			}
 
-			Collection<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
+			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
+
+			WorkItemOperationKindType operationKind = escalate ? ESCALATE : DELEGATE;
+
+			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(workItem.getTaskRef().getOid(), result);
+			wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, assigneesBefore, null, operationKind,
+					initiator, null, causeInformation, wfTask, result);
 
 			List<ObjectReferenceType> newAssignees;
 			if (method == null) {
@@ -316,7 +321,12 @@ public class WorkItemManager {
 			event.setCause(causeInformation);
 			ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, variables, prismContext);
 			MidpointUtil.recordEventInTask(event, null, ActivitiUtil.getTaskOid(variables), result);
-		} catch (SecurityViolationException|RuntimeException e) {
+
+			WorkItemType workItemAfter = workItemProvider.getWorkItem(workItemId, result);
+			com.evolveum.midpoint.task.api.Task wfTaskAfter = taskManager.getTask(wfTask.getOid(), result);
+			wfTaskController.notifyWorkItemAllocationChangeNewActors(workItemAfter, assigneesBefore,
+					workItemAfter.getAssigneeRef(), operationKind, initiator, null, causeInformation, wfTaskAfter, result);
+		} catch (SecurityViolationException|RuntimeException|ObjectNotFoundException|SchemaException e) {
 			result.recordFatalError("Couldn't delegate/escalate work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {

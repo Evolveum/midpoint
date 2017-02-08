@@ -2029,7 +2029,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
+			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException {
         getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, parentResult);
     }
     //endregion

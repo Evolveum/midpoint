@@ -23,25 +23,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 import java.util.Map;
 
 /**
  * @author mederly
  */
-public class WorkItemLifecycleEvent extends WorkItemEvent {
+public class WorkItemAllocationEvent extends WorkItemEvent {
 
-    public WorkItemLifecycleEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
-			@NotNull WorkItemType workItem,
-			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
-			WorkItemOperationKindType operationKind,
-			WfContextType workflowContext) {
-        super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationKind, workflowContext, null);
-    }
+	private WorkItemNotificationActionType notificationAction;
+
+	public WorkItemAllocationEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
+			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, WorkItemOperationKindType operationKind,
+			SimpleObjectRef initiator, WfContextType workflowContext,
+			Duration timeBefore) {
+        super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationKind, workflowContext,
+				null);
+	}
 
 	@Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
-        return eventCategoryType == EventCategoryType.WORK_ITEM_LIFECYCLE_EVENT
+        return eventCategoryType == EventCategoryType.WORK_ITEM_ALLOCATION_EVENT
         		|| eventCategoryType == EventCategoryType.WORK_ITEM_EVENT
 				|| eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
     }
@@ -53,6 +56,7 @@ public class WorkItemLifecycleEvent extends WorkItemEvent {
 
 	@Override
 	public String toString() {
-		return "WorkItemLifecycleEvent:" + super.toString();
+		return "WorkItemCustomEvent:" + super.toString();
 	}
+
 }

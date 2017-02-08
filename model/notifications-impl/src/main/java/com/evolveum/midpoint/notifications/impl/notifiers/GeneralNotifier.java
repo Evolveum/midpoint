@@ -66,7 +66,7 @@ public class GeneralNotifier extends BaseHandler {
     protected NotificationManager notificationManager;
 
     @Autowired
-    protected NotificationFunctionsImpl notificationsUtil;
+    protected NotificationFunctionsImpl functions;
 
     @Autowired
     protected TextFormatter textFormatter;
@@ -189,7 +189,7 @@ public class GeneralNotifier extends BaseHandler {
     }
 
     protected UserType getDefaultRecipient(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        ObjectType objectType = notificationsUtil.getObjectType(event.getRequestee(), true, result);
+        ObjectType objectType = functions.getObjectType(event.getRequestee(), true, result);
         if (objectType instanceof UserType) {
             return (UserType) objectType;
         } else {

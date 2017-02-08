@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
@@ -46,6 +46,8 @@ import com.evolveum.midpoint.wf.impl.processes.common.WfTimedActionTriggerHandle
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.delegate.DelegateTask;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.Duration;
@@ -148,29 +150,23 @@ public class MidpointUtil {
 	}
 
 	public static void createTriggersForTimedActions(DelegateTask delegateTask, Task wfTask,
-			List<WorkItemTimedActionsType> timedActions,
+			List<WorkItemTimedActionsType> timedActionsList,
 			OperationResult result) {
 		try {
 			PrismContext prismContext = getPrismContext();
-			SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-			@SuppressWarnings("unchecked")
-			@NotNull PrismPropertyDefinition<String> workItemIdDef =
-					schemaRegistry.findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_WORK_ITEM_ID);
-			@NotNull PrismContainerDefinition<WorkItemActionsType> workItemActionsDef =
-					schemaRegistry.findContainerDefinitionByElementName(SchemaConstantsGenerated.C_WORK_ITEM_ACTIONS);
 			List<TriggerType> triggers = new ArrayList<>();
-			for (WorkItemTimedActionsType timedAction : timedActions) {
+			for (WorkItemTimedActionsType timedActionsEntry : timedActionsList) {
 				int escalationLevel = ActivitiUtil.getEscalationLevelNumber(delegateTask.getVariables());
-				if (timedAction.getEscalationLevelFrom() != null && escalationLevel < timedAction.getEscalationLevelFrom()) {
-					LOGGER.trace("Current escalation level is before 'escalationFrom', skipping timed action {}", timedAction);
+				if (timedActionsEntry.getEscalationLevelFrom() != null && escalationLevel < timedActionsEntry.getEscalationLevelFrom()) {
+					LOGGER.trace("Current escalation level is before 'escalationFrom', skipping timed actions {}", timedActionsEntry);
 					continue;
 				}
-				if (timedAction.getEscalationLevelTo() != null && escalationLevel > timedAction.getEscalationLevelTo()) {
-					LOGGER.trace("Current escalation level is after 'escalationTo', skipping timed action {}", timedAction);
+				if (timedActionsEntry.getEscalationLevelTo() != null && escalationLevel > timedActionsEntry.getEscalationLevelTo()) {
+					LOGGER.trace("Current escalation level is after 'escalationTo', skipping timed actions {}", timedActionsEntry);
 					continue;
 				}
 				// TODO evaluate the condition
-				List<WfTimeSpecificationType> timeSpecifications = CloneUtil.cloneCollectionMembers(timedAction.getTime());
+				List<WfTimeSpecificationType> timeSpecifications = CloneUtil.cloneCollectionMembers(timedActionsEntry.getTime());
 				if (timeSpecifications.isEmpty()) {
 					timeSpecifications.add(new WfTimeSpecificationType());
 				}
@@ -179,19 +175,17 @@ public class MidpointUtil {
 						timeSpec.getValue().add(XmlTypeConverter.createDuration(0));
 					}
 					for (Duration duration : timeSpec.getValue()) {
-						TriggerType trigger = new TriggerType(prismContext);
-						trigger.setTimestamp(computeTriggerTime(duration, timeSpec.getBase(),
-								delegateTask.getCreateTime(), delegateTask.getDueDate()));
-						trigger.setHandlerUri(WfTimedActionTriggerHandler.HANDLER_URI);
-						ExtensionType extension = new ExtensionType(prismContext);
-						trigger.setExtension(extension);
-						PrismProperty<String> workItemIdProp = workItemIdDef.instantiate();
-						workItemIdProp.addRealValue(delegateTask.getId());
-						extension.asPrismContainerValue().add(workItemIdProp);
-						PrismContainer<WorkItemActionsType> workItemActionsCont = workItemActionsDef.instantiate();
-						workItemActionsCont.add(timedAction.getActions().asPrismContainerValue().clone());
-						extension.asPrismContainerValue().add(workItemActionsCont);
-						triggers.add(trigger);
+						XMLGregorianCalendar mainTriggerTime = computeTriggerTime(duration, timeSpec.getBase(),
+								delegateTask.getCreateTime(), delegateTask.getDueDate());
+						TriggerType mainTrigger = createTrigger(mainTriggerTime, delegateTask.getId(), timedActionsEntry.getActions(), null, prismContext);
+						triggers.add(mainTrigger);
+						List<Pair<Duration, AbstractWorkItemActionType>> notifyInfoList = getNotifyBefore(timedActionsEntry);
+						for (Pair<Duration, AbstractWorkItemActionType> notifyInfo : notifyInfoList) {
+							XMLGregorianCalendar notifyTime = (XMLGregorianCalendar) mainTriggerTime.clone();
+							notifyTime.add(notifyInfo.getKey().negate());
+							TriggerType notifyTrigger = createTrigger(notifyTime, delegateTask.getId(), null, notifyInfo, prismContext);
+							triggers.add(notifyTrigger);
+						}
 					}
 				}
 			}
@@ -210,6 +204,77 @@ public class MidpointUtil {
 		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
 			throw new SystemException("Couldn't add trigger(s) to " + wfTask + ": " + e.getMessage(), e);
 		}
+	}
+
+	@NotNull
+	private static TriggerType createTrigger(XMLGregorianCalendar triggerTime, String workItemId,
+			WorkItemActionsType actions, Pair<Duration, AbstractWorkItemActionType> notifyInfo, PrismContext prismContext)
+			throws SchemaException {
+		TriggerType trigger = new TriggerType(prismContext);
+		trigger.setTimestamp(triggerTime);
+		trigger.setHandlerUri(WfTimedActionTriggerHandler.HANDLER_URI);
+		ExtensionType extension = new ExtensionType(prismContext);
+		trigger.setExtension(extension);
+
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+		// workItemId
+		@SuppressWarnings("unchecked")
+		@NotNull PrismPropertyDefinition<String> workItemIdDef =
+				schemaRegistry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
+		PrismProperty<String> workItemIdProp = workItemIdDef.instantiate();
+		workItemIdProp.addRealValue(workItemId);
+		extension.asPrismContainerValue().add(workItemIdProp);
+		// actions
+		if (actions != null) {
+			@NotNull PrismContainerDefinition<WorkItemActionsType> workItemActionsDef =
+					schemaRegistry.findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTIONS);
+			PrismContainer<WorkItemActionsType> workItemActionsCont = workItemActionsDef.instantiate();
+			workItemActionsCont.add(actions.asPrismContainerValue().clone());
+			extension.asPrismContainerValue().add(workItemActionsCont);
+		}
+		// time before + action
+		if (notifyInfo != null) {
+			@NotNull PrismContainerDefinition<AbstractWorkItemActionType> workItemActionDef =
+					schemaRegistry.findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTION);
+			PrismContainer<AbstractWorkItemActionType> workItemActionCont = workItemActionDef.instantiate();
+			workItemActionCont.add(notifyInfo.getValue().asPrismContainerValue().clone());
+			extension.asPrismContainerValue().add(workItemActionCont);
+			@SuppressWarnings("unchecked")
+			@NotNull PrismPropertyDefinition<Duration> timeBeforeActionDef =
+					schemaRegistry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_TIME_BEFORE_ACTION);
+			PrismProperty<Duration> timeBeforeActionProp = timeBeforeActionDef.instantiate();
+			timeBeforeActionProp.addRealValue(notifyInfo.getKey());
+			extension.asPrismContainerValue().add(timeBeforeActionProp);
+		}
+		return trigger;
+	}
+
+	private static List<Pair<Duration,AbstractWorkItemActionType>> getNotifyBefore(WorkItemTimedActionsType timedActions) {
+		List<Pair<Duration,AbstractWorkItemActionType>> rv = new ArrayList<>();
+		WorkItemActionsType actions = timedActions.getActions();
+		if (actions.getComplete() != null) {
+			collectNotifyBefore(rv, actions.getComplete());
+		}
+		if (actions.getDelegate() != null) {
+			collectNotifyBefore(rv, actions.getDelegate());
+		}
+		if (actions.getEscalate() != null) {
+			collectNotifyBefore(rv, actions.getEscalate());
+		}
+		return rv;
+	}
+
+	private static void collectNotifyBefore(List<Pair<Duration,AbstractWorkItemActionType>> rv, CompleteWorkItemActionType complete) {
+		collectNotifyBefore(rv, complete.getNotifyBeforeAction(), complete);
+	}
+
+	private static void collectNotifyBefore(List<Pair<Duration,AbstractWorkItemActionType>> rv, DelegateWorkItemActionType delegate) {
+		collectNotifyBefore(rv, delegate.getNotifyBeforeAction(), delegate);
+	}
+
+	private static void collectNotifyBefore(List<Pair<Duration, AbstractWorkItemActionType>> rv,
+			List<Duration> beforeTimes, AbstractWorkItemActionType action) {
+		beforeTimes.forEach(beforeTime -> rv.add(new ImmutablePair<>(beforeTime, action)));
 	}
 
 	@NotNull
@@ -245,7 +310,7 @@ public class MidpointUtil {
 		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {
 			if (WfTimedActionTriggerHandler.HANDLER_URI.equals(triggerType.getHandlerUri())) {
 				PrismProperty workItemIdProperty = triggerType.getExtension().asPrismContainerValue()
-						.findProperty(SchemaConstantsGenerated.C_WORK_ITEM_ID);
+						.findProperty(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
 				if (workItemIdProperty != null && workItemId.equals(workItemIdProperty.getRealValue())) {
 					toDelete.add(triggerType.clone().asPrismContainerValue());
 				}

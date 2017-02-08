@@ -27,7 +27,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Model object extension schema. Used mostly in task extensions.
+            Model object extension schema. Used mostly in task extensions. (Some of them in trigger extensions.)
         </xsd:documentation>
     </xsd:annotation>
 
@@ -165,7 +165,6 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-
 
     <xsd:element name="objectclass" type="xsd:QName">
         <xsd:annotation>
@@ -311,6 +310,47 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
+	<!-- Elements to be stored in task trigger extension (used for workflows) -->
+	<xsd:element name="workItemActions" type="c:WorkItemActionsType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="workItemAction" type="c:AbstractWorkItemActionType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="workItemId" type="xsd:string">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="timeBeforeAction" type="xsd:duration">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:minOccurs>0</a:minOccurs>
+				<a:maxOccurs>1</a:maxOccurs>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
 
 </xsd:schema>
 

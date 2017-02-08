@@ -299,25 +299,6 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<!-- Elements to be stored in trigger extension -->
-	<!-- TODO is this ok? Is it really necessary for extension elements to reside outside common namespace? -->
-	<xsd:element name="workItemActions" type="tns:WorkItemActionsType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
-	<xsd:element name="workItemId" type="xsd:string">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:minOccurs>0</a:minOccurs>
-				<a:maxOccurs>1</a:maxOccurs>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
-
 	<xsd:complexType name="AbstractWorkItemActionType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -386,8 +367,24 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractWorkItemActionType">
-				<!-- TODO some parameters could come here, like which notification to invoke. Maybe at least custom notifier. -->
-				<!-- Currently standard WorkItemEvent is produced -->
+				<xsd:sequence>
+					<xsd:element name="perAssignee" type="xsd:boolean" minOccurs="0" >
+						<xsd:annotation>
+							<xsd:documentation>
+								If true (the default) creates one notification event for each assignee. Otherwise,
+								creates a single notification event for the whole work item.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="handler" type="c:EventHandlerType" minOccurs="0" >
+						<xsd:annotation>
+							<xsd:documentation>
+								Ad-hoc event handler that will be used to process these event emitted. In addition to it,
+								a system-wide handler for workItemCustomEvent will be invoked.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -1836,7 +1833,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:workItemId">
+            <xsd:element name="workItemId" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Internal identifier of a work item, assigned by the underlying workflow engine
@@ -1959,6 +1956,16 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Result of this work item (null if it was not completed).
+                    </xsd:documentation>
+	                <xsd:appinfo>
+						<a:since>3.6</a:since>
+	                </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="completedByRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Who has completed this work item (null if unknown, not completed or completed automatically).
                     </xsd:documentation>
 	                <xsd:appinfo>
 						<a:since>3.6</a:since>
@@ -2096,4 +2103,70 @@
 			<!-- TODO process instance creation -->
 		</xsd:restriction>
 	</xsd:simpleType>
+
+	<xsd:simpleType name="WorkItemOperationKindType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Kind of (explicit) operation. Implicit operations like "work item deletion when process instance finishes"
+				are not covered here.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="complete">
+				<xsd:annotation>
+					<xsd:documentation>
+						Complete (approve/reject) operation. (Explicit or automated.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="COMPLETE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="delegate">
+				<xsd:annotation>
+					<xsd:documentation>
+						Delegate operation. (Explicit or automated.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DELEGATE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="escalate">
+				<xsd:annotation>
+					<xsd:documentation>
+						Escalate operation. (Explicit or automated.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ESCALATE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="claim">
+				<xsd:annotation>
+					<xsd:documentation>
+						Claim operation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CLAIM"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="release">
+				<xsd:annotation>
+					<xsd:documentation>
+						Claim operation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RELEASE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 </xsd:schema>

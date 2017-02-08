@@ -37,6 +37,7 @@
 								<actions>
 									<complete>
 										<outcome>reject</outcome>
+										<notifyBeforeAction>P1D</notifyBeforeAction>
 									</complete>
 								</actions>
 							</timedActions>

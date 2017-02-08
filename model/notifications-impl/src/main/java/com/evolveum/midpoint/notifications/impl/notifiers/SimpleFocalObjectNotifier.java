@@ -74,7 +74,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
         }
 
         for (ObjectDelta<FocusType> delta : deltas) {
-            if (!delta.isModify() || deltaContainsOtherPathsThan(delta, notificationsUtil.getAuxiliaryPaths())) {
+            if (!delta.isModify() || deltaContainsOtherPathsThan(delta, functions.getAuxiliaryPaths())) {
                 return true;
             }
         }
@@ -155,7 +155,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
         }
 
-        notificationsUtil.addRequesterAndChannelInformation(body, event, result);
+        functions.addRequesterAndChannelInformation(body, event, result);
 
         if (techInfo) {
             body.append("----------------------------------------\n");

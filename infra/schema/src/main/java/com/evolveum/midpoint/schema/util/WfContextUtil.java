@@ -63,6 +63,26 @@ public class WfContextUtil {
 		return sb.toString();
 	}
 
+	@Nullable
+	public static String getEscalationInfo(WorkItemType workItem) {
+		if (workItem == null) {
+			return null;
+		}
+		return getEscalationInfo(workItem.getEscalationLevelNumber(), workItem.getEscalationLevelName(), workItem.getEscalationLevelDisplayName());
+	}
+
+	private static String getEscalationInfo(Integer levelNumber, String levelName, String levelDisplayName) {
+		if (levelNumber == null || levelNumber == 0) {
+			return null;
+		}
+		String name = levelDisplayName != null ? levelDisplayName : levelName;
+		if (name != null) {
+			return name + " (" + levelNumber + ")";
+		} else {
+			return String.valueOf(levelNumber);
+		}
+	}
+
 	public static boolean hasFinished(WfContextType wfc) {
 		return wfc.getEndTimestamp() != null;
 	}

@@ -35,15 +35,27 @@ import java.util.Map;
 public class WorkItemEvent extends WorkflowEvent {
 
     @NotNull protected final WorkItemType workItem;
+    // (Currently) Each work item event is related to at most one assignee. So, if a work item has more assignees,
+	// more events will be generated. This might change in a future.
 	protected final SimpleObjectRef assignee;
-    @Deprecated private WorkItemNotificationActionType notificationAction;		// temporary implementation
+	/**
+	 * User who "pressed the button". I.e. the one that really approved, rejected or delegated/escalated a work item.
+	 * In case of automated actions (completion, delegation/escalation) this is not filled-in.
+	 */
+	protected final SimpleObjectRef initiator;
+	protected final WorkItemOperationKindType operationKind;
 
-    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, @NotNull WorkItemType workItem,
-			@Nullable SimpleObjectRef assignee, WfContextType workflowContext) {
-        super(lightweightIdentifierGenerator, changeType, workflowContext);
+    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
+			@NotNull WorkItemType workItem,
+			@Nullable SimpleObjectRef assignee, SimpleObjectRef initiator, WorkItemOperationKindType operationKind,
+			WfContextType workflowContext,
+			EventHandlerType handler) {
+        super(lightweightIdentifierGenerator, changeType, workflowContext, handler);
         Validate.notNull(workItem);
         this.workItem = workItem;
 		this.assignee = assignee;
+		this.initiator = initiator;
+		this.operationKind = operationKind;
     }
 
     public String getWorkItemName() {
@@ -64,13 +76,12 @@ public class WorkItemEvent extends WorkflowEvent {
         return assignee;
     }
 
-	public WorkItemNotificationActionType getNotificationAction() {
-		return notificationAction;
+	public SimpleObjectRef getInitiator() {
+		return initiator;
 	}
 
-	public void setNotificationAction(
-			WorkItemNotificationActionType notificationAction) {
-		this.notificationAction = notificationAction;
+	public WorkItemOperationKindType getOperationKind() {
+		return operationKind;
 	}
 
 	@Override

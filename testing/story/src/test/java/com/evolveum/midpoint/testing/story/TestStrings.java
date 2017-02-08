@@ -138,8 +138,10 @@ public class TestStrings extends AbstractStoryTest {
 
 	public static final String NS_STRINGS_EXT = "http://midpoint.evolveum.com/xml/ns/strings";
 
-	private static final String DUMMY_WORK_ITEMS = "dummy:workItems";
-	private static final String DUMMY_PROCESSES = "dummy:processes";
+	private static final String DUMMY_WORK_ITEM_LIFECYCLE = "dummy:workItemLifecycle";
+	private static final String DUMMY_WORK_ITEM_ALLOCATION = "dummy:workItemAllocation";
+	private static final String DUMMY_WORK_ITEM_CUSTOM = "dummy:workItemCustom";
+	private static final String DUMMY_PROCESS = "dummy:process";
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -210,7 +212,8 @@ public class TestStrings extends AbstractStoryTest {
         // TODO
 	}
 
-	@Test(enabled = false)
+	//region Basic approval
+	@Test(enabled = true)
     public void test100SimpleAssignmentStart() throws Exception {
 		final String TEST_NAME = "test100SimpleAssignmentStart";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -225,7 +228,7 @@ public class TestStrings extends AbstractStoryTest {
 		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
 		display("wfTask", wfTask);
 
-		assertTriggers(wfTask, 1);
+		assertTriggers(wfTask, 2);
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
@@ -236,21 +239,26 @@ public class TestStrings extends AbstractStoryTest {
 		assertStage(wfTask, 1, 3, "Line managers", null);
 		assertAssignee(workItem, userLechuckOid, userLechuckOid);
 
-		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
-		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
-		display("work items notifications", workItemMessages);
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 		dummyTransport.clearMessages();
 
-		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
-		assertMessage(workItemMessages.get(0), "lechuck@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Assignee: lechuck");
+		assertEquals("Wrong # of work items lifecycle messages", 1, lifecycleMessages.size());
+		assertMessage(lifecycleMessages.get(0), "lechuck@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)");
+
+		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
+		assertMessage(allocationMessages.get(0), "lechuck@evolveum.com", "Work item has been allocated to you", "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)");
 
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
 				"Process instance name: Assigning a-test-1 to bob", "Stage: Line managers (1/3)");
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void test102SimpleAssignmentApproveByLechuck() throws Exception {
 		final String TEST_NAME = "test102SimpleAssignmentApproveByLechuck";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -274,24 +282,32 @@ public class TestStrings extends AbstractStoryTest {
 		display("wfTask after 1st approval", wfTask);
 
 		assertStage(wfTask, 2, 3, "Security", null);
-		assertTriggers(wfTask, 2);
+		assertTriggers(wfTask, 4);
 
-		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
-		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
-		display("work items notifications", workItemMessages);
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 		dummyTransport.clearMessages();
 
-		assertEquals("Wrong # of work items messages", 3, workItemMessages.size());
+		assertEquals("Wrong # of work items lifecycle messages", 3, lifecycleMessages.size());
+		assertEquals("Wrong # of work items allocation messages", 3, allocationMessages.size());
 		assertNull("process messages", processMessages);
 
-		Map<String,Message> sorted = sortByRecipientsSingle(workItemMessages);
-		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)", "Assignee: lechuck", "Result: APPROVED");
-		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Assignee: elaine");
-		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Assignee: barkeeper");
+		Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED");
+		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)");
+		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
+
+		Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
+		assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED");
+		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been allocated to you", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)");
+		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
 		final String TEST_NAME = "test104SimpleAssignmentApproveByAdministrator";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -312,28 +328,38 @@ public class TestStrings extends AbstractStoryTest {
 		display("wfTask after 2nd approval", wfTask);
 
 		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
-		assertTriggers(wfTask, 2);
+		assertTriggers(wfTask, 4);
 
 		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 		assertNotNull("chef is not an approver", workItemsMap.get(userChefOid));
 		assertNotNull("cheese is not an approver", workItemsMap.get(userCheeseOid));
 
-		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
-		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
-		display("work items notifications", workItemMessages);
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 		dummyTransport.clearMessages();
 
-		assertEquals("Wrong # of work items messages", 3, workItemMessages.size());
+		assertEquals("Wrong # of work items lifecycle messages", 4, lifecycleMessages.size());
+		assertEquals("Wrong # of work items allocation messages", 4, allocationMessages.size());
 		assertNull("process messages", processMessages);
 
-		Map<String,Message> sorted = sortByRecipientsSingle(workItemMessages);
-		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Assignee: elaine", "Result: APPROVED");
-		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: cheese");
-		assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: chef");
+		Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)", "Carried out by: midPoint Administrator (administrator)", "Result: APPROVED");
+		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:");
+		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Ignatius Cheese (cheese)", "^Result:");
+		assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Scumm Bar Chef (chef)", "^Result:");
+
+		Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
+		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)", "Carried out by: midPoint Administrator (administrator)", "Result: APPROVED");
+		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:");
+		assertMessage(sorted2.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been allocated to you", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Ignatius Cheese (cheese)", "^Result:");
+		assertMessage(sorted2.get("chef@evolveum.com"), "chef@evolveum.com", "Work item has been allocated to you", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Scumm Bar Chef (chef)", "^Result:");
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void test106SimpleAssignmentApproveByCheese() throws Exception {
 		final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -346,9 +372,11 @@ public class TestStrings extends AbstractStoryTest {
 		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 
 		// WHEN
+		login(getUser(userCheeseOid));
 		workflowService.completeWorkItem(workItemsMap.get(userCheeseOid).getWorkItemId(), true, "OK. Cheese.", null, result);
 
 		// THEN
+		login(userAdministrator);
 		workItems = getWorkItems(task, result);
 		workItems.forEach(wi -> display("Work item after 3rd approval", wi));
 		assertEquals("Wrong # of work items on level 3", 1, workItems.size());
@@ -357,24 +385,28 @@ public class TestStrings extends AbstractStoryTest {
 		display("wfTask after 3rd approval", wfTask);
 
 		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
-		assertTriggers(wfTask, 1);
+		assertTriggers(wfTask, 2);
 
 		assertNotNull("chef is not an approver", workItemsMap.get(userChefOid));
 
-		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
-		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
-		display("work items notifications", workItemMessages);
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 		dummyTransport.clearMessages();
 
-		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
+		assertEquals("Wrong # of work items lifecycle messages", 1, lifecycleMessages.size());
+		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
 		assertNull("process messages", processMessages);
 
-		Map<String,Message> sorted = sortByRecipientsSingle(workItemMessages);
-		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: cheese", "Result: APPROVED");
+		assertMessage(lifecycleMessages.get(0), "cheese@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)", "Result: APPROVED");
+		assertMessage(allocationMessages.get(0), "cheese@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)", "Result: APPROVED");
+
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void test108SimpleAssignmentApproveByChef() throws Exception {
 		final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -407,22 +439,25 @@ public class TestStrings extends AbstractStoryTest {
 //		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
 		assertTriggers(wfTask, 0);
 
-		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
-		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
-		display("work items notifications", workItemMessages);
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 		dummyTransport.clearMessages();
 
-		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
+		assertEquals("Wrong # of work items lifecycle messages", 1, lifecycleMessages.size());
+		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
 
-		Map<String,Message> sorted = sortByRecipientsSingle(workItemMessages);
-		assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: chef", "Result: APPROVED");
+		assertMessage(lifecycleMessages.get(0), "chef@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Scumm Bar Chef (chef)", "Carried out by: Scumm Bar Chef (chef)", "Result: APPROVED");
+		assertMessage(allocationMessages.get(0), "chef@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Scumm Bar Chef (chef)", "Carried out by: Scumm Bar Chef (chef)", "Result: APPROVED");
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished", "Process instance name: Assigning a-test-1 to bob", "Result: APPROVED");
 	}
+	//endregion
 
 	//region Testing escalation
-
 	@Test
 	public void test200EscalatedApprovalStart() throws Exception {
 		final String TEST_NAME = "test200EscalatedApprovalStart";
@@ -438,19 +473,25 @@ public class TestStrings extends AbstractStoryTest {
 		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
 		display("wfTask", wfTask);
 
-		assertTriggers(wfTask, 1);
+		assertTriggers(wfTask, 2);
 
 		assertStage(wfTask, 1, 3, "Line managers", null);
 		assertAssignee(workItem, userGuybrushOid, userGuybrushOid);
 
-		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
-		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
-		display("work items notifications", workItemMessages);
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 		dummyTransport.clearMessages();
 
-		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
-		assertMessage(workItemMessages.get(0), "guybrush@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Assignee: guybrush");
+		assertEquals("Wrong # of work items messages", 1, lifecycleMessages.size());
+		assertMessage(lifecycleMessages.get(0), "guybrush@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Allocated to: Guybrush Threepwood (guybrush)");
+		assertMessage(allocationMessages.get(0), "guybrush@evolveum.com", "Work item has been allocated to you", "Stage: Line managers (1/3)", "Allocated to: Guybrush Threepwood (guybrush)");
+
+		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
+		//assertMessage(lifecycleMessages.get(0), "guybrush@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Guybrush Threepwood (guybrush)");
 
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
@@ -467,18 +508,19 @@ public class TestStrings extends AbstractStoryTest {
 		clock.overrideDuration("P4D");
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
-		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
-		display("work items notifications", workItemMessages);
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 		dummyTransport.clearMessages();
 
-		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
-		//assertMessage(workItemMessages.get(0), "guybrush@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Assignee: guybrush");
+		assertNull("lifecycle messages", lifecycleMessages);
+		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
+		//assertMessage(workItemMessages.get(0), "guybrush@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Allocated to: guybrush");
 		assertNull("process messages", processMessages);
 	}
-
-
 	//endregion
 
 
@@ -536,8 +578,16 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong recipient", recipient, message.getTo().get(0));
 		assertEquals("Wrong subject", subject, message.getSubject());
 		for (String text : texts) {
-			if (!message.getBody().contains(text)) {
-				fail("Message body doesn't contain '" + text + "': " + message.getBody());
+			if (text.startsWith("^")) {
+				String pureText = text.substring(1);
+				if (message.getBody().contains(pureText)) {
+					fail("Message body does contain '" + pureText + "' even if it shouldn't: " + message.getBody());
+				}
+
+			} else {
+				if (!message.getBody().contains(text)) {
+					fail("Message body doesn't contain '" + text + "': " + message.getBody());
+				}
 			}
 		}
 	}

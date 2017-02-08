@@ -79,7 +79,7 @@ public interface WorkflowManager {
 	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
 	void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 

@@ -473,6 +473,9 @@ public class DebugUtil {
 	}
 
 	public static String fixIndentInMultiline(int indent, String indentString, String s) {
+		if (s == null) {
+			return null;
+		}
 		int cr = s.indexOf('\r');
 		int lf = s.indexOf('\n');
 		String searchFor;

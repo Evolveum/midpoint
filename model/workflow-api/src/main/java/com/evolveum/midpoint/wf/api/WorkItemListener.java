@@ -18,8 +18,10 @@ package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.Duration;
+import java.util.List;
 
 /**
  * An interface through which external observers can be notified about work item related events.
@@ -39,19 +41,37 @@ public interface WorkItemListener {
     /**
      * This method is called by wf module when a work item is created.
      *
-     * @param workItem the work item
-     */
-    void onWorkItemCreation(WorkItemType workItem, Task wfTask, OperationResult result);
+	 * @param workItem the work item
+	 * @param originalAssigneeRef
+	 */
+    void onWorkItemCreation(WorkItemType workItem, ObjectReferenceType originalAssigneeRef, Task wfTask, OperationResult result);
 
     /**
      * This method is called by wf module when a work item is completed.
-     *
-     * @param workItem the work item
-     */
-    void onWorkItemDeletion(WorkItemType workItem, Task wfTask, OperationResult result);
+	 * @param workItem the work item
+	 * @param assignee
+	 * @param initiator
+	 * @param operationKind
+	 */
+    void onWorkItemDeletion(WorkItemType workItem, ObjectReferenceType assignee, ObjectReferenceType initiator,
+			WorkItemOperationKindType operationKind, Task wfTask, OperationResult result);
+
+    void onWorkItemCustomEvent(WorkItemType workItem, ObjectReferenceType assignee,
+			WorkItemNotificationActionType notificationAction, Task wfTask,
+			OperationResult result);
 
 	/**
 	 * EXPERIMENTAL
 	 */
-	void onWorkItemNotificationAction(WorkItemType workItem, WorkItemNotificationActionType notificationAction, Task wfTask, OperationResult result);
+	void onWorkItemAllocationChangeCurrentActors(WorkItemType workItem, List<ObjectReferenceType> currentActors,
+			Duration timeBefore, WorkItemOperationKindType operationKind, ObjectReferenceType initiator,
+			AbstractWorkItemActionType source,
+			WorkItemEventCauseInformationType reason,
+			Task task, OperationResult result);
+
+	void onWorkItemAllocationChangeNewActors(WorkItemType workItem, List<ObjectReferenceType> currentActors,
+			List<ObjectReferenceType> newActors, WorkItemOperationKindType operationKind, ObjectReferenceType initiator,
+			AbstractWorkItemActionType source,
+			WorkItemEventCauseInformationType reason,
+			Task task, OperationResult result);
 }

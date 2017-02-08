@@ -39,12 +39,20 @@
     <notificationConfiguration>
 	    <handler>
 			<simpleWorkflowNotifier>
-				<category>workItemEvent</category>
-				<transport>dummy:workItems</transport>
+				<category>workItemLifecycleEvent</category>
+				<transport>dummy:workItemLifecycle</transport>
+			</simpleWorkflowNotifier>
+			<simpleWorkflowNotifier>
+				<category>workItemAllocationEvent</category>
+				<transport>dummy:workItemAllocation</transport>
+			</simpleWorkflowNotifier>
+			<simpleWorkflowNotifier>
+				<category>workItemCustomEvent</category>
+				<transport>dummy:workItemCustom</transport>
 			</simpleWorkflowNotifier>
 			<simpleWorkflowNotifier>
 				<category>workflowProcessEvent</category>
-				<transport>dummy:processes</transport>
+				<transport>dummy:process</transport>
 			</simpleWorkflowNotifier>
         </handler>
         <mail>

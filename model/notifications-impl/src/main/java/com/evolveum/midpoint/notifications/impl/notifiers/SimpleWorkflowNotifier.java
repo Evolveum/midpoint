@@ -17,22 +17,21 @@
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.notifications.api.events.*;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleWorkflowNotifierType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
 import java.util.Date;
+
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 /**
  * Default implementation of a notifier dealing with workflow events (related to both work items and process instances).
@@ -60,7 +59,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 
 	@Override
 	protected UserType getDefaultRecipient(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-		SimpleObjectRef recipientRef;
+		@Nullable SimpleObjectRef recipientRef;
 		if (event instanceof WorkflowProcessEvent) {
 			recipientRef = event.getRequester();
 		} else if (event instanceof WorkItemEvent) {
@@ -68,7 +67,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 		} else {
 			return null;
 		}
-		ObjectType recipient = notificationsUtil.getObjectType(recipientRef, false, result);
+		ObjectType recipient = functions.getObjectType(recipientRef, false, result);
 		if (recipient instanceof UserType) {
 			return (UserType) recipient;
 		} else {
@@ -78,28 +77,55 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 
 	@Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
+		if (event instanceof WorkflowProcessEvent) {
+			return event.isAdd() ? "Workflow process instance has been started" : "Workflow process instance has finished";
+		} else if (event instanceof WorkItemEvent) {
+			return getSubjectFromWorkItemEvent((WorkItemEvent) event, generalNotifierType, transport, task, result);
+		} else {
+			throw new UnsupportedOperationException("Unsupported event type for event=" + event);
+		}
+	}
 
-        if (event.isAdd()) {
-            if (event instanceof WorkItemEvent) {
-                return "A new work item has been created";
-            } else {
-                return "Workflow process instance has been started";
-            }
-        } else {
-            if (event instanceof WorkItemEvent) {
-                return "Work item has been completed";
-            } else {
-                return "Workflow process instance has finished";
-            }
-        }
-    }
+	private String getSubjectFromWorkItemEvent(WorkItemEvent event, GeneralNotifierType generalNotifierType, String transport,
+			Task task, OperationResult result) {
+		if (event instanceof WorkItemLifecycleEvent) {
+			if (event.isAdd()) {
+				return "A new work item has been created";
+			} else if (event.isDelete()) {
+				if (event.getOperationKind() == WorkItemOperationKindType.COMPLETE) {
+					return "Work item has been completed";
+				} else {
+					return "Work item has been cancelled";
+				}
+			} else {
+				throw new UnsupportedOperationException("workItemLifecycle event with MODIFY operation is not supported");
+			}
+		} else if (event instanceof WorkItemAllocationEvent) {
+			if (event.isAdd()) {
+				return "Work item has been allocated to you";
+			} else if (event.isModify()) {
+				if (event.getOperationKind() == null) {
+					throw new IllegalStateException("Missing operationKind in " + event);
+				}
+				String rv = "Work item is to be automatically " + getOperationPastTenseVerb(event.getOperationKind());
+				// TODO time
+				return rv;
+			} else {
+				return "Work item has been " + getOperationPastTenseVerb(event.getOperationKind());
+			}
+		} else if (event instanceof WorkItemCustomEvent) {
+			return "A notification about work item";
+		} else {
+			throw new UnsupportedOperationException("Unsupported event type for event=" + event);
+		}
+	}
 
-    @Override
+	@Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
 
         WorkflowEvent workflowEvent = (WorkflowEvent) event;
 
-        //boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
+        boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
         StringBuilder body = new StringBuilder();
 
@@ -108,30 +134,78 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 
         body.append("Process instance name: " + workflowEvent.getProcessInstanceName() + "\n");
         if (workflowEvent instanceof WorkItemEvent) {
-            WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
-            body.append("Work item: ").append(workItemEvent.getWorkItemName()).append("\n");
-            appendStageInformation(body, workflowEvent);
-            ObjectType assigneeType = notificationsUtil.getObjectType(workItemEvent.getAssignee(), true, result);
-            if (assigneeType != null) {
-                body.append("Assignee: ").append(assigneeType.getName()).append("\n");
-            }
+			appendWorkItemInformation(body, (WorkItemEvent) workflowEvent, result);
         } else {
 			appendStageInformation(body, workflowEvent);
+			appendResultInformation(body, workflowEvent);
 		}
-        body.append("\n");
-        if (event.isDelete() && workflowEvent.isResultKnown()) {
-            body.append("Result: ").append(workflowEvent.isApproved() ? "APPROVED" : "REJECTED").append("\n\n");
+		body.append("Notification created on: ").append(new Date()).append("\n\n");
+
+        if (techInfo) {
+            body.append("----------------------------------------\n");
+            body.append("Technical information:\n\n");
+            if (workflowEvent instanceof WorkItemEvent) {
+				body.append("WorkItem:\n")
+						.append(PrismUtil.serializeQuietly(prismContext, ((WorkItemEvent) workflowEvent).getWorkItem()))
+						.append("\n");
+			}
+			body.append("Workflow context:\n")
+					.append(PrismUtil.serializeQuietly(prismContext, ((WorkflowEvent) event).getWorkflowContext()));
         }
-        body.append("Notification created on: ").append(new Date()).append("\n\n");
-
-//        if (techInfo) {
-//            body.append("----------------------------------------\n");
-//            body.append("Technical information:\n\n");
-//            body.append(workflowEvent.getProcessInstanceState().debugDump());
-//        }
-
         return body.toString();
     }
+
+	private void appendResultInformation(StringBuilder body, WorkflowEvent workflowEvent) {
+		if (workflowEvent.isDelete() && workflowEvent.isResultKnown()) {
+			body.append("Result: ").append(workflowEvent.isApproved() ? "APPROVED" : "REJECTED").append("\n\n");
+		}
+	}
+
+	private void appendWorkItemInformation(StringBuilder sb, WorkItemEvent event, OperationResult result) {
+		WorkItemType workItem = event.getWorkItem();
+
+		sb.append("Work item: ").append(event.getWorkItemName()).append("\n");
+		appendStageInformation(sb, event);
+		appendEscalationInformation(sb, event);
+		sb.append("\n");
+
+		ObjectReferenceType originalAssigneeRef = workItem.getOriginalAssigneeRef();
+		if (originalAssigneeRef != null && (event.getAssignee() == null ||
+				!java.util.Objects.equals(originalAssigneeRef.getOid(), event.getAssignee().getOid()))) {
+			UserType originalAssignee = (UserType) functions.getObjectType(originalAssigneeRef, true, result);
+			sb.append("Originally allocated to: ").append(formatUserName(originalAssignee, originalAssigneeRef.getOid())).append("\n");
+		}
+		if (event.getAssignee() != null) {
+			UserType assigneeFull = (UserType) functions.getObjectType(event.getAssignee(), true, result);
+			sb.append("Allocated to: ").append(formatUserName(assigneeFull, event.getAssignee().getOid()))
+					.append("\n");        // TODO what about other assignees
+		}
+		SimpleObjectRef initiator = event.getInitiator();
+		if (initiator != null) {
+			UserType initiatorFull = (UserType) functions.getObjectType(initiator, true, result);
+			sb.append("Carried out by: ").append(formatUserName(initiatorFull, initiator.getOid())).append("\n");
+		}
+		sb.append("\n");
+		appendResultInformation(sb, event);
+	}
+
+	private String formatUserName(UserType user, String oid) {
+    	if (user == null || (user.getName() == null && user.getFullName() == null)) {
+    		return oid;
+		}
+		if (user.getFullName() != null) {
+    		return getOrig(user.getFullName()) + " (" + getOrig(user.getName()) + ")";
+		} else {
+    		return getOrig(user.getName());
+		}
+	}
+
+	private void appendEscalationInformation(StringBuilder sb, WorkItemEvent workItemEvent) {
+		String info = WfContextUtil.getEscalationInfo(workItemEvent.getWorkItem());
+		if (info != null) {
+			sb.append("Escalation level: ").append(info).append("\n");
+		}
+	}
 
 	private void appendStageInformation(StringBuilder sb, WorkflowEvent workflowEvent) {
     	String info = WfContextUtil.getStageInfo(workflowEvent.getWorkflowContext());
@@ -144,5 +218,19 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
     protected Trace getLogger() {
         return LOGGER;
     }
+
+	private String getOperationPastTenseVerb(WorkItemOperationKindType operationKind) {
+		if (operationKind == null) {
+			return "cancelled";		// OK?
+		}
+		switch (operationKind) {
+			case CLAIM: return "claimed";
+			case RELEASE: return "released";
+			case COMPLETE: return "completed";
+			case DELEGATE: return "delegated";
+			case ESCALATE: return "escalated";
+			default: throw new IllegalArgumentException("operation kind: " + operationKind);
+		}
+	}
 
 }

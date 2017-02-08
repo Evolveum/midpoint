@@ -28,7 +28,9 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -483,6 +485,10 @@ public class WorkItemProvider {
 
 			ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
 			wi.setResult(pmi.extractWorkItemResult(variables));
+			String completedBy = ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_WORK_ITEM_COMPLETED_BY, String.class, prismContext);
+			if (completedBy != null) {
+				wi.setCompletedByRef(ObjectTypeUtil.createObjectRef(completedBy, ObjectTypes.USER));
+			}
 
 			wi.setStageNumber(pmi.getStageNumber(variables));
 			wi.setStageCount(pmi.getStageCount(variables));

@@ -43,6 +43,7 @@
 											</script>
 										</approverExpression>
 										<duration>P5D</duration>
+										<notifyBeforeAction>P1D</notifyBeforeAction>
 										<escalationLevelName>Line manager escalation</escalationLevelName>
 									</escalate>
 								</actions>
@@ -54,6 +55,7 @@
 								<actions>
 									<complete>
 										<outcome>reject</outcome>
+										<notifyBeforeAction>P1D</notifyBeforeAction>
 									</complete>
 								</actions>
 								<escalationLevelFrom>1</escalationLevelFrom>

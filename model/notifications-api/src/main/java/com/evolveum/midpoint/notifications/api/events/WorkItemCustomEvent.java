@@ -19,7 +19,10 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,19 +32,21 @@ import java.util.Map;
 /**
  * @author mederly
  */
-public class WorkItemLifecycleEvent extends WorkItemEvent {
+public class WorkItemCustomEvent extends WorkItemEvent {
 
-    public WorkItemLifecycleEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
-			@NotNull WorkItemType workItem,
-			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
-			WorkItemOperationKindType operationKind,
-			WfContextType workflowContext) {
-        super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationKind, workflowContext, null);
-    }
+	private WorkItemNotificationActionType notificationAction;
+
+	public WorkItemCustomEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
+			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, WfContextType workflowContext,
+			@NotNull WorkItemNotificationActionType notificationAction) {
+        super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null, workflowContext,
+				notificationAction.getHandler());
+		this.notificationAction = notificationAction;
+	}
 
 	@Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
-        return eventCategoryType == EventCategoryType.WORK_ITEM_LIFECYCLE_EVENT
+        return eventCategoryType == EventCategoryType.WORK_ITEM_CUSTOM_EVENT
         		|| eventCategoryType == EventCategoryType.WORK_ITEM_EVENT
 				|| eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
     }
@@ -53,6 +58,7 @@ public class WorkItemLifecycleEvent extends WorkItemEvent {
 
 	@Override
 	public String toString() {
-		return "WorkItemLifecycleEvent:" + super.toString();
+		return "WorkItemCustomEvent:" + super.toString();
 	}
+
 }

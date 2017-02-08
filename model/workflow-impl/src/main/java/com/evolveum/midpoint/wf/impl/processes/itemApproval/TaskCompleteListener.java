@@ -35,6 +35,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getItemApprovalProcessInterface;
@@ -58,7 +59,9 @@ public class TaskCompleteListener implements TaskListener {
 		Task wfTask = ActivitiUtil.getTask(execution, opResult);
 		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
-//		System.out.println("%%% Task " + delegateTask + " has been completed.");
+		delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.TRUE);
+
+		//		System.out.println("%%% Task " + delegateTask + " has been completed.");
 //		LOGGER.info("%%% Task {} has been completed", delegateTask);
 
 		MidPointPrincipal user;
@@ -68,12 +71,16 @@ public class TaskCompleteListener implements TaskListener {
 			throw new SystemException("Couldn't record a decision: " + e.getMessage(), e);
 		}
 
+		if (user != null && user.getOid() != null) {
+			delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_WORK_ITEM_COMPLETED_BY, user.getOid());
+		}
+
 		LOGGER.trace("======================================== Recording individual decision of {}", user);
 		WorkItemCompletionEventType event = new WorkItemCompletionEventType();
 		ActivitiUtil.fillInWorkItemEvent(event, user, delegateTask.getId(), execution.getVariables(), prismContext);
 		event.setCause(ActivitiUtil.getVariable(delegateTask.getVariables(), CommonProcessVariableNames.VARIABLE_CAUSE,
 				WorkItemEventCauseInformationType.class, prismContext));
-		WorkItemResultType result = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());
+		@NotNull WorkItemResultType result = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());
 		event.setResult(result);
 
 		boolean isApproved = ApprovalUtils.isApproved(result);
@@ -95,8 +102,6 @@ public class TaskCompleteListener implements TaskListener {
         // consider removing this
         execution.setVariable(
                 CommonProcessVariableNames.VARIABLE_WF_STATE, "User " + (user!=null?user.getName():null) + " decided to " + (isApproved ? "approve" : "reject") + " the request.");
-
-		delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.TRUE);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",
