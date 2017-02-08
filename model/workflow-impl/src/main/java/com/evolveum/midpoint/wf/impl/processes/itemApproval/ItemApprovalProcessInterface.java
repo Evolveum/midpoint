@@ -28,12 +28,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -72,6 +74,10 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 
     @Override
 	public WorkItemResultType extractWorkItemResult(Map<String, Object> variables) {
+	    Boolean wasCompleted = ActivitiUtil.getVariable(variables, VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.class, prismContext);
+	    if (BooleanUtils.isNotTrue(wasCompleted)) {
+		    return null;
+	    }
 		WorkItemResultType result = new WorkItemResultType();
 		result.setOutcomeAsString(ActivitiUtil.getVariable(variables, FORM_FIELD_DECISION, String.class, prismContext));
 		result.setOutcome(ApprovalUtils.approvalOutcomeValue(result.getOutcomeAsString()));

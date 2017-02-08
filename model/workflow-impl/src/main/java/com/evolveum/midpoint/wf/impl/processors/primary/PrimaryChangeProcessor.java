@@ -341,7 +341,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     //region Auditing
     @Override
     public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, variables, result);
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, result);
 
         ObjectTreeDeltas<?> deltas = null;
         try {
@@ -373,7 +373,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
             OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemAuditRecord(workItem, wfTask, stage, result);
 
         ObjectTreeDeltas<?> deltas = null;
         try {
@@ -387,6 +387,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 				auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
 			}
 		}
+
+		// TODO what about additional deltas?
 
 		return auditEventRecord;
     }

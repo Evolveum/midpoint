@@ -135,4 +135,8 @@ public class CommonProcessVariableNames {
 	public static final String VARIABLE_ORIGINAL_ASSIGNEE = "originalAssignee";
 
 	public static final String TYPE_NAME_SEPARATOR = ":";
+
+	// Whether this work item was completed (instead of simply deleted)
+	// [Boolean]
+	public static final String VARIABLE_WORK_ITEM_WAS_COMPLETED = "workItemWasCompleted";
 }

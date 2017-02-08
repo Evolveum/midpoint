@@ -61,8 +61,6 @@ public class TaskCompleteListener implements TaskListener {
 //		System.out.println("%%% Task " + delegateTask + " has been completed.");
 //		LOGGER.info("%%% Task {} has been completed", delegateTask);
 
-		new MidPointTaskListener().notify(delegateTask);
-
 		MidPointPrincipal user;
 		try {
 			user = SecurityUtil.getPrincipal();
@@ -98,6 +96,8 @@ public class TaskCompleteListener implements TaskListener {
         execution.setVariable(
                 CommonProcessVariableNames.VARIABLE_WF_STATE, "User " + (user!=null?user.getName():null) + " decided to " + (isApproved ? "approve" : "reject") + " the request.");
 
+		delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.TRUE);
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
@@ -109,6 +109,7 @@ public class TaskCompleteListener implements TaskListener {
 				result.getAdditionalDeltas().getFocusPrimaryDelta() : null;
         MidpointUtil.recordEventInTask(event, additionalDelta, wfTask.getOid(), opResult);
 
+		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 

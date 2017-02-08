@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
+
 /**
  * @author mederly
  */
@@ -54,6 +56,6 @@ public class TaskCreateListener implements TaskListener {
 			delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, assignee);
 		}
 
-		new MidPointTaskListener().notify(delegateTask);
+		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);
 	}
 }

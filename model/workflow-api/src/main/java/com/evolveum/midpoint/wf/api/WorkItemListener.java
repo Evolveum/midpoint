@@ -48,7 +48,7 @@ public interface WorkItemListener {
      *
      * @param workItem the work item
      */
-    void onWorkItemCompletion(WorkItemType workItem, Task wfTask, OperationResult result);
+    void onWorkItemDeletion(WorkItemType workItem, Task wfTask, OperationResult result);
 
 	/**
 	 * EXPERIMENTAL

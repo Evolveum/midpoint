@@ -335,10 +335,10 @@ public class WfTaskController {
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
             }
-        } else if (taskEvent instanceof TaskCompletedEvent) {
+        } else if (taskEvent instanceof TaskDeletedEvent) {
             auditWorkItemEvent(workItem, wfTask, taskEvent, AuditEventStage.EXECUTION, result);
             try {
-                notifyWorkItemCompleted(workItem, wfTask, result);
+                notifyWorkItemDeleted(workItem, wfTask, result);
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't audit work item complete event", e);
             }
@@ -385,9 +385,9 @@ public class WfTaskController {
         }
     }
 
-    private void notifyWorkItemCompleted(WorkItemType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
+    private void notifyWorkItemDeleted(WorkItemType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCompletion(workItem, wfTask.getTask(), result);
+            workItemListener.onWorkItemDeletion(workItem, wfTask.getTask(), result);
         }
     }
 

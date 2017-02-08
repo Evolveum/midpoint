@@ -26,6 +26,7 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 
+import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
 
 /**
@@ -47,25 +48,6 @@ public class TaskDeleteListener implements TaskListener {
 		//ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
 		MidpointUtil.removeTriggersForWorkItem(wfTask, delegateTask.getId(), opResult);
-
-		// We could send a "task deleted" notification, if needed.
-		// In order to do this, task completion listener could create "wasCompleted" task variable (so we could know which
-		// tasks were completed and which simply deleted - the former ones should not get 'delete' notification twice!).
-		// And we would call new MidPointTaskListener().notify(delegateTask), and amend it to send a notification for
-		// deleted non-completed tasks.
-
-
-//		DelegateExecution execution = delegateTask.getExecution();
-//		PrismContext prismContext = getPrismContext();
-//		OperationResult opResult = new OperationResult(TaskDeleteListener.class.getName() + ".notify");
-//		Task wfTask = ActivitiUtil.getTask(execution, opResult);
-//		//ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
-//
-//		System.out.println("%%% Task " + delegateTask + " is being deleted.");
-//		LOGGER.info("%%% Task {} is being deleted", delegateTask);
-//
-//		System.out.println("%%% Variables: " + delegateTask.getVariables());
-
+		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);
     }
-
 }

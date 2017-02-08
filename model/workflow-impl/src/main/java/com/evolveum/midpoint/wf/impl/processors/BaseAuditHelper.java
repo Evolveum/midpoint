@@ -20,7 +20,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -29,18 +28,15 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
-import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
 import static com.evolveum.midpoint.audit.api.AuditEventType.WORKFLOW_PROCESS_INSTANCE;
@@ -54,19 +50,9 @@ public class BaseAuditHelper {
     private static final Trace LOGGER = TraceManager.getTrace(BaseAuditHelper.class);
 
     @Autowired
-    private MiscDataUtil miscDataUtil;
-
-    @Autowired
-    private WorkItemProvider workItemProvider;
-    
-    @Autowired
     private SecurityEnforcer securityEnforcer;
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, OperationResult result) {
 
         AuditEventRecord auditEventRecord = new AuditEventRecord();
         auditEventRecord.setEventType(WORKFLOW_PROCESS_INSTANCE);
@@ -88,8 +74,8 @@ public class BaseAuditHelper {
     }
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
-			OperationResult result) throws WorkflowException {
+    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, AuditEventStage stage,
+		OperationResult result) throws WorkflowException {
 
         AuditEventRecord auditEventRecord = new AuditEventRecord();
         auditEventRecord.setEventType(AuditEventType.WORK_ITEM);
@@ -97,7 +83,9 @@ public class BaseAuditHelper {
 
         if (stage == AuditEventStage.REQUEST) {
             auditEventRecord.setInitiator(wfTask.getRequesterIfExists(result));
-            auditEventRecord.setTargetOwner((PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getOriginalAssigneeRef()));
+	        @SuppressWarnings("unchecked")
+	        PrismObject<UserType> targetOwner = (PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getOriginalAssigneeRef());
+	        auditEventRecord.setTargetOwner(targetOwner);
         } else {
             try {
                 @SuppressWarnings("unchecked")
