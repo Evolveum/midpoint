@@ -117,4 +117,8 @@ public class TreeStateSet<T extends Serializable> implements Set<T>, Serializabl
 
         return set;
     }
+
+    public boolean isInverse() {
+        return inverse;
+    }
 }
