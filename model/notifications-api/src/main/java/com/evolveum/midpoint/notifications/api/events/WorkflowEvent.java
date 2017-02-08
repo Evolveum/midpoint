@@ -40,6 +40,8 @@ abstract public class WorkflowEvent extends BaseEvent {
 		this.workflowContext = workflowContext;
     }
 
+
+
     public String getProcessInstanceName() {
         return workflowContext.getProcessInstanceName();
     }

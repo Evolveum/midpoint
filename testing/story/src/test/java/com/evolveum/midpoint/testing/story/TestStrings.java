@@ -210,7 +210,7 @@ public class TestStrings extends AbstractStoryTest {
         // TODO
 	}
 
-	@Test
+	@Test(enabled = false)
     public void test100SimpleAssignmentStart() throws Exception {
 		final String TEST_NAME = "test100SimpleAssignmentStart";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -250,35 +250,7 @@ public class TestStrings extends AbstractStoryTest {
 				"Process instance name: Assigning a-test-1 to bob", "Stage: Line managers (1/3)");
 	}
 
-	private void assertMessage(Message message, String recipient, String subject, String... texts) {
-		assertNotNull("No message for " + recipient, message);
-		assertEquals("Wrong # of recipients", 1, message.getTo().size());
-		assertEquals("Wrong recipient", recipient, message.getTo().get(0));
-		assertEquals("Wrong subject", subject, message.getSubject());
-		for (String text : texts) {
-			if (!message.getBody().contains(text)) {
-				fail("Message body doesn't contain '" + text + "': " + message.getBody());
-			}
-		}
-	}
-
-	private MultiValuedMap<String, Message> sortByRecipients(Collection<Message> messages) {
-		MultiValuedMap<String, Message> rv = new ArrayListValuedHashMap<>();
-		messages.forEach(m ->
-				m.getTo().forEach(
-						to -> rv.put(to, m)));
-		return rv;
-	}
-
-	private Map<String, Message> sortByRecipientsSingle(Collection<Message> messages) {
-		Map<String, Message> rv = new HashMap<>();
-		messages.forEach(m ->
-				m.getTo().forEach(
-						to -> rv.put(to, m)));
-		return rv;
-	}
-
-	@Test
+	@Test(enabled = false)
 	public void test102SimpleAssignmentApproveByLechuck() throws Exception {
 		final String TEST_NAME = "test102SimpleAssignmentApproveByLechuck";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -319,7 +291,7 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Assignee: barkeeper");
 	}
 
-	@Test
+	@Test(enabled = false)
 	public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
 		final String TEST_NAME = "test104SimpleAssignmentApproveByAdministrator";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -361,7 +333,7 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: chef");
 	}
 
-	@Test
+	@Test(enabled = false)
 	public void test106SimpleAssignmentApproveByCheese() throws Exception {
 		final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -402,7 +374,7 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Assignee: cheese", "Result: APPROVED");
 	}
 
-	@Test
+	@Test(enabled = false)
 	public void test108SimpleAssignmentApproveByChef() throws Exception {
 		final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -430,6 +402,8 @@ public class TestStrings extends AbstractStoryTest {
 		Task parent = getParentTask(wfTask, result);
 		waitForTaskFinish(parent, true, 60000);
 
+		assertAssignedRole(getUser(userBobOid), roleATest1Oid);
+
 //		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
 		assertTriggers(wfTask, 0);
 
@@ -447,36 +421,72 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished", "Process instance name: Assigning a-test-1 to bob", "Result: APPROVED");
 	}
 
-	private Task getParentTask(PrismObject<TaskType> task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
-		return taskManager.getTaskByIdentifier(task.asObjectable().getParent(), result);
+	//region Testing escalation
+
+	@Test
+	public void test200EscalatedApprovalStart() throws Exception {
+		final String TEST_NAME = "test200EscalatedApprovalStart";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		assignRole(userCarlaOid, roleATest1Oid, task, task.getResult());
+		assertNotAssignedRole(getUser(userCarlaOid), roleATest1Oid);
+
+		WorkItemType workItem = getWorkItem(task, result);
+		display("Work item", workItem);
+		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		display("wfTask", wfTask);
+
+		assertTriggers(wfTask, 1);
+
+		assertStage(wfTask, 1, 3, "Line managers", null);
+		assertAssignee(workItem, userGuybrushOid, userGuybrushOid);
+
+		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
+		display("work items notifications", workItemMessages);
+		display("processes notifications", processMessages);
+		dummyTransport.clearMessages();
+
+		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
+		assertMessage(workItemMessages.get(0), "guybrush@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Assignee: guybrush");
+
+		assertEquals("Wrong # of process messages", 1, processMessages.size());
+		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
+				"Process instance name: Assigning a-test-1 to carla", "Stage: Line managers (1/3)");
 	}
 
-	private void assertTriggers(PrismObject<TaskType> wfTask, int count) {
-		assertEquals("Wrong # of triggers", count, wfTask.asObjectable().getTrigger().size());
+	@Test
+	public void test202FourDaysLater() throws Exception {
+		final String TEST_NAME = "test202FourDaysLater";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clock.overrideDuration("P4D");
+		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+
+		List<Message> workItemMessages = dummyTransport.getMessages(DUMMY_WORK_ITEMS);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESSES);
+		display("work items notifications", workItemMessages);
+		display("processes notifications", processMessages);
+		dummyTransport.clearMessages();
+
+		assertEquals("Wrong # of work items messages", 1, workItemMessages.size());
+		//assertMessage(workItemMessages.get(0), "guybrush@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Assignee: guybrush");
+		assertNull("process messages", processMessages);
 	}
 
-	private void assertAssignee(WorkItemType workItem, String originalAssignee, String... currentAssignee) {
-		assertRefEquals("Wrong original assignee", ObjectTypeUtil.createObjectRef(originalAssignee, ObjectTypes.USER), workItem.getOriginalAssigneeRef());
-		assertReferenceValues(ref(workItem.getAssigneeRef()), currentAssignee);
-	}
+
+	//endregion
 
 
-	private void assertStage(PrismObject<TaskType> wfTask, Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
-		WfContextType wfc = wfTask.asObjectable().getWorkflowContext();
-		assertEquals("Wrong stage number", stageNumber, wfc.getStageNumber());
-		assertEquals("Wrong stage count", stageCount, wfc.getStageCount());
-		assertEquals("Wrong stage name", stageName, wfc.getStageName());
-		assertEquals("Wrong stage name", stageDisplayName, wfc.getStageDisplayName());
-	}
 
-	private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {
-		ApprovalLevelType level = schema.getLevel().get(number-1);
-		assertEquals("Wrong level number", number, (int) level.getOrder());
-		assertEquals("Wrong level name", name, level.getName());
-		assertEquals("Wrong level duration", XmlTypeConverter.createDuration(duration), level.getDuration());
-		assertEquals("Wrong # of timed actions", timedActions, level.getTimedActions().size());
-	}
+
+
+
+
 
 	//region TODO deduplicate with AbstractWfTestPolicy
 	protected WorkItemType getWorkItem(Task task, OperationResult result) throws Exception {
@@ -519,5 +529,64 @@ public class TestStrings extends AbstractStoryTest {
 		return rv;
 	}
 	//endregion
+
+	private void assertMessage(Message message, String recipient, String subject, String... texts) {
+		assertNotNull("No message for " + recipient, message);
+		assertEquals("Wrong # of recipients", 1, message.getTo().size());
+		assertEquals("Wrong recipient", recipient, message.getTo().get(0));
+		assertEquals("Wrong subject", subject, message.getSubject());
+		for (String text : texts) {
+			if (!message.getBody().contains(text)) {
+				fail("Message body doesn't contain '" + text + "': " + message.getBody());
+			}
+		}
+	}
+
+	private MultiValuedMap<String, Message> sortByRecipients(Collection<Message> messages) {
+		MultiValuedMap<String, Message> rv = new ArrayListValuedHashMap<>();
+		messages.forEach(m ->
+				m.getTo().forEach(
+						to -> rv.put(to, m)));
+		return rv;
+	}
+
+	private Map<String, Message> sortByRecipientsSingle(Collection<Message> messages) {
+		Map<String, Message> rv = new HashMap<>();
+		messages.forEach(m ->
+				m.getTo().forEach(
+						to -> rv.put(to, m)));
+		return rv;
+	}
+
+	private Task getParentTask(PrismObject<TaskType> task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		return taskManager.getTaskByIdentifier(task.asObjectable().getParent(), result);
+	}
+
+	private void assertTriggers(PrismObject<TaskType> wfTask, int count) {
+		assertEquals("Wrong # of triggers", count, wfTask.asObjectable().getTrigger().size());
+	}
+
+	private void assertAssignee(WorkItemType workItem, String originalAssignee, String... currentAssignee) {
+		assertRefEquals("Wrong original assignee", ObjectTypeUtil.createObjectRef(originalAssignee, ObjectTypes.USER), workItem.getOriginalAssigneeRef());
+		assertReferenceValues(ref(workItem.getAssigneeRef()), currentAssignee);
+	}
+
+
+	private void assertStage(PrismObject<TaskType> wfTask, Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
+		WfContextType wfc = wfTask.asObjectable().getWorkflowContext();
+		assertEquals("Wrong stage number", stageNumber, wfc.getStageNumber());
+		assertEquals("Wrong stage count", stageCount, wfc.getStageCount());
+		assertEquals("Wrong stage name", stageName, wfc.getStageName());
+		assertEquals("Wrong stage name", stageDisplayName, wfc.getStageDisplayName());
+	}
+
+	private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {
+		ApprovalLevelType level = schema.getLevel().get(number-1);
+		assertEquals("Wrong level number", number, (int) level.getOrder());
+		assertEquals("Wrong level name", name, level.getName());
+		assertEquals("Wrong level duration", XmlTypeConverter.createDuration(duration), level.getDuration());
+		assertEquals("Wrong # of timed actions", timedActions, level.getTimedActions().size());
+	}
 
 }

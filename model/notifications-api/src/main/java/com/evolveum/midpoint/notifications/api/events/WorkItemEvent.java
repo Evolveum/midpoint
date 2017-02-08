@@ -34,9 +34,9 @@ import java.util.Map;
  */
 public class WorkItemEvent extends WorkflowEvent {
 
-    @NotNull private final WorkItemType workItem;
-    private final SimpleObjectRef assignee;
-    private WorkItemNotificationActionType notificationAction;		// temporary implementation
+    @NotNull protected final WorkItemType workItem;
+	protected final SimpleObjectRef assignee;
+    @Deprecated private WorkItemNotificationActionType notificationAction;		// temporary implementation
 
     public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, @NotNull WorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, WfContextType workflowContext) {

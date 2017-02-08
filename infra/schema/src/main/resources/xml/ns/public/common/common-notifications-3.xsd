@@ -535,6 +535,43 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="workItemLifecycleEvent">
+                <xsd:annotation>
+					<xsd:documentation>
+						Subtype of workItemEvent. Represents the fact that a work item was created or deleted.
+						Operation of ADD means that the work item was created.
+						Operation of DELETE means that the work item was deleted (usually because it was completed).
+					</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORK_ITEM_LIFECYCLE_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="workItemAllocationEvent">
+                <xsd:annotation>
+					<xsd:documentation>
+						Subtype of workItemEvent. Represents the fact that a work item was allocated to a user.
+						(Either automatically when it is created or delegated, or manually when the user has claimed the item.)
+						Operation of ADD means that the allocation was created.
+						Operation of MODIFY means that the allocation is about to be deleted (probably as part of timed
+						delegation/escalation or timed completion).
+						Operation of DELETE means that the allocation was deleted (because of task completion/deletion or delegation).
+					</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORK_ITEM_ALLOCATION_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+			<xsd:enumeration value="workItemCustomEvent">
+                <xsd:annotation>
+					<xsd:documentation>
+						Subtype of workItemEvent. Custom notification event emitted by "notify" timed action.
+					</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORK_ITEM_CUSTOM_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="workflowProcessEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
