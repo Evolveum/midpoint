@@ -16,12 +16,11 @@
 package com.evolveum.midpoint.web.page.admin.orgs;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -84,15 +83,15 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 					currentTabbedPanel = getTree().findParent(PageOrgTree.class).getTabPanel().getTabbedPanel();
                     if (currentTabbedPanel != null) {
                         int tabId = currentTabbedPanel.getSelectedTab();
-						int storedTabId = OrgTreePanel.this.getSelectedTabId();
+						int storedTabId = OrgTreePanel.this.getSelectedTabId(getOrgTreeStateStorage());
                         if (storedTabId != -1
                                 && tabId != storedTabId) {
-                            OrgTreePanel.this.setSelectedItem(null);
+                            OrgTreePanel.this.setSelectedItem(null, getOrgTreeStateStorage());
                         }
                     }
 				}
-				if (OrgTreePanel.this.getSelectedItem() != null) {
-					return OrgTreePanel.this.getSelectedItem();
+				if (OrgTreePanel.this.getSelectedItem(getOrgTreeStateStorage()) != null) {
+					return OrgTreePanel.this.getSelectedItem(getOrgTreeStateStorage());
 				} else {
 					return getRootFromProvider();
 				}
@@ -167,15 +166,15 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				ID_TREE, columns, provider, Integer.MAX_VALUE, new TreeStateModel(this, provider){
 			@Override
 			public Set<SelectableBean<OrgType>> getExpandedItems(){
-				return OrgTreePanel.this.getExpandedItems();
+				return OrgTreePanel.this.getExpandedItems(getOrgTreeStateStorage());
 			}
 			@Override
 			public SelectableBean<OrgType> getCollapsedItem(){
-				return OrgTreePanel.this.getCollapsedItem();
+				return OrgTreePanel.this.getCollapsedItem(getOrgTreeStateStorage());
 			}
 			@Override
 			public void setCollapsedItem(SelectableBean<OrgType> item){
-				OrgTreePanel.this.setCollapsedItem(null);
+				OrgTreePanel.this.setCollapsedItem(null, getOrgTreeStateStorage());
 			}
 		}) {
 
@@ -187,7 +186,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 					protected void onClick(AjaxRequestTarget target) {
 						super.onClick(target);
 
-						OrgTreePanel.this.setSelectedItem(selected.getObject());
+						OrgTreePanel.this.setSelectedItem(selected.getObject(), getOrgTreeStateStorage());
 
 						selectTreeItemPerformed(selected.getObject(), target);
 					}
@@ -216,22 +215,23 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			@Override
 			public void collapse(SelectableBean<OrgType> collapsedItem) {
 				super.collapse(collapsedItem);
-				MidPointAuthWebSession session = OrgTreePanel.this.getSession();
-				SessionStorage storage = session.getSessionStorage();
-				Set<SelectableBean<OrgType>> items = OrgTreePanel.this.getExpandedItems();
+
+				Set<SelectableBean<OrgType>> items = OrgTreePanel.this.getExpandedItems(getOrgTreeStateStorage());
 				if (items != null && items.contains(collapsedItem)) {
 					items.remove(collapsedItem);
 				}
-				OrgTreePanel.this.setExpandedItems((TreeStateSet) items);
-				OrgTreePanel.this.setCollapsedItem(collapsedItem);
+				OrgTreePanel.this.setExpandedItems((TreeStateSet) items, getOrgTreeStateStorage());
+				OrgTreePanel.this.setCollapsedItem(collapsedItem, getOrgTreeStateStorage());
 			}
 
 			@Override
 			protected void onModelChanged() {
 				super.onModelChanged();
 
-				Set<SelectableBean<OrgType>> items = getModelObject();
-				OrgTreePanel.this.setExpandedItems((TreeStateSet<SelectableBean<OrgType>>) items);
+				TreeStateSet<SelectableBean<OrgType>> items = (TreeStateSet) getModelObject();
+				if (!items.isInverse()) {
+					OrgTreePanel.this.setExpandedItems(items, getOrgTreeStateStorage());
+				}
 			}
 		};
 		tree.setItemReuseStrategy(new ReuseIfModelsEqualStrategy());
@@ -365,31 +365,35 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		target.add(tree);
 	}
 
-	public Set<SelectableBean<OrgType>> getExpandedItems(){
-		return storage.getUsers().getExpandedItems();
+	public Set<SelectableBean<OrgType>> getExpandedItems(OrgTreeStateStorage storage){
+		return storage.getExpandedItems();
 	}
 
-	public void setExpandedItems(TreeStateSet items){
-		storage.getUsers().setExpandedItems(items);
+	public void setExpandedItems(TreeStateSet items, OrgTreeStateStorage storage){
+		storage.setExpandedItems(items);
 	}
 
-	public SelectableBean<OrgType> getCollapsedItem(){
-		return storage.getUsers().getCollapsedItem();
+	public SelectableBean<OrgType> getCollapsedItem(OrgTreeStateStorage storage){
+		return storage.getCollapsedItem();
 	}
 
-	public void setCollapsedItem(SelectableBean<OrgType> item){
-		storage.getUsers().setCollapsedItem(item);
+	public void setCollapsedItem(SelectableBean<OrgType> item, OrgTreeStateStorage storage){
+		storage.setCollapsedItem(item);
 	}
 
-	public void setSelectedItem(SelectableBean<OrgType> item){
-		storage.getUsers().setSelectedItem(item);
+	public void setSelectedItem(SelectableBean<OrgType> item, OrgTreeStateStorage storage){
+		storage.setSelectedItem(item);
 	}
 
-	public SelectableBean<OrgType> getSelectedItem(){
-		return storage.getUsers().getSelectedItem();
+	public SelectableBean<OrgType> getSelectedItem(OrgTreeStateStorage storage){
+		return storage.getSelectedItem();
 	}
 
-	public int getSelectedTabId(){
-		return storage.getUsers().getSelectedTabId();
+	protected OrgTreeStateStorage getOrgTreeStateStorage(){
+		return storage.getUsers();
+	}
+
+	public int getSelectedTabId(OrgTreeStateStorage storage){
+		return storage.getSelectedTabId();
 	}
 }

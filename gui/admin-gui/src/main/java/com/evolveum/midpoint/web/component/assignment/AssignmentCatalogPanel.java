@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -204,38 +205,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 }
 
                 @Override
-                public Set<SelectableBean<OrgType>> getExpandedItems(){
-                    return pageBase.getSessionStorage().getRoleCatalog().getExpandedItems();
-                }
-
-                @Override
-                public void setExpandedItems(TreeStateSet items){
-                    pageBase.getSessionStorage().getRoleCatalog().setExpandedItems(items);
-                }
-
-                @Override
-                public SelectableBean<OrgType> getCollapsedItem(){
-                    return pageBase.getSessionStorage().getRoleCatalog().getCollapsedItem();
-                }
-
-                @Override
-                public void setCollapsedItem(SelectableBean<OrgType> item){
-                    pageBase.getSessionStorage().getRoleCatalog().setCollapsedItem(item);
-                }
-
-                @Override
-                public void setSelectedItem(SelectableBean<OrgType> item){
-                    pageBase.getSessionStorage().getRoleCatalog().setSelectedItem(item);
-                }
-
-                @Override
-                public SelectableBean<OrgType> getSelectedItem(){
-                    return pageBase.getSessionStorage().getRoleCatalog().getSelectedItem();
-                }
-
-                @Override
-                public int getSelectedTabId(){
-                    return pageBase.getSessionStorage().getRoleCatalog().getSelectedTabId();
+                protected OrgTreeStateStorage getOrgTreeStateStorage(){
+                    return pageBase.getSessionStorage().getRoleCatalog();
                 }
             };
             treePanel.setOutputMarkupId(true);
