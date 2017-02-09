@@ -69,7 +69,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             try {
                 opTask.setChannel(wfTask.getChannel());
                 expressionVariables = evaluator.getDefaultVariables(execution, wfTask, opResult);
-                boolean preApproved = evaluator.evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, "automatic approval expression", opTask, opResult);
+                boolean preApproved = evaluator.evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables,
+						"automatic approval expression", opTask, opResult);
 				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
 				if (preApproved) {
 					predeterminedOutcome = APPROVE;
@@ -91,7 +92,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 						expressionVariables = evaluator.getDefaultVariables(execution, wfTask, opResult);
 					}
                     approverRefs.addAll(evaluator.evaluateRefExpressions(level.getApproverExpression(), expressionVariables,
-							execution, "resolving approver expression", opTask, opResult));
+							"resolving approver expression", opTask, opResult));
                 } catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException|RuntimeException e) {
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }

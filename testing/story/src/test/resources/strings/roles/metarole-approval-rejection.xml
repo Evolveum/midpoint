@@ -37,7 +37,7 @@
 								<actions>
 									<complete>
 										<outcome>reject</outcome>
-										<notifyBeforeAction>P1D</notifyBeforeAction>
+										<notifyBeforeAction>P2D</notifyBeforeAction>
 									</complete>
 								</actions>
 							</timedActions>

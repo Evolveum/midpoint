@@ -17,15 +17,10 @@ package com.evolveum.midpoint.prism.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -1178,4 +1173,16 @@ public class PrismAsserts {
 				expectedClass.isAssignableFrom(object.getClass()));	
 	}
 
+	public static void assertDuration(String message, String durationString, long start, XMLGregorianCalendar end, Long precision) {
+		assertNotNull("expected duration is null", durationString);
+		assertNotNull("end time is null", end);
+		XMLGregorianCalendar startGC = XmlTypeConverter.createXMLGregorianCalendar(start);
+		startGC.add(XmlTypeConverter.createDuration(durationString));
+		long difference = Math.abs(XmlTypeConverter.toMillis(startGC) - XmlTypeConverter.toMillis(end));
+		long threshold = precision != null ? precision : 60000L;
+		if (difference > threshold) {
+			fail(message + ": Wrong time interval between " + new Date(start) + " and " + end + ": expected " + durationString
+					+ " (precision of " + threshold + "); real difference with the expected value is " + difference);
+		}
+	}
 }

@@ -20,10 +20,12 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -51,9 +53,12 @@ import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
 import org.activiti.engine.task.Task;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -225,7 +230,8 @@ public class WorkItemManager {
 	// aware that escalationLevelName/DisplayName are for internal use only.
 	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			boolean escalate, String escalationLevelName, String escalationLevelDisplayName,
-			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
+			Duration newDuration, WorkItemEventCauseInformationType causeInformation,
+			OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
 		result.addParams( new String[]{ "workItemId", "escalate", "escalationLevelName", "escalationLevelDisplayName"},
@@ -282,33 +288,22 @@ public class WorkItemManager {
 			// don't change the current assignee, if not necessary
 			TaskService taskService = activitiEngine.getTaskService();
 			Task task = taskService.createTaskQuery().taskId(workItemId).singleResult();
-			if (task.getAssignee() != null) {
-				boolean removed = newAssignees.removeIf(newAssignee -> task.getAssignee().equals(newAssignee.getOid()));
-				if (!removed) {
-					// we will nominate the first delegate (if present) as a new assignee
-					if (!newAssignees.isEmpty()) {
-						taskService.setAssignee(workItemId, newAssignees.get(0).getOid());
-						newAssignees.remove(0);
-					} else {
-						taskService.setAssignee(workItemId, null);
-					}
-				}
+			setNewAssignees(task, newAssignees, taskService);
+			Date deadline = task.getDueDate();
+			if (newDuration != null) {
+				deadline = setNewDuration(task.getId(), newDuration, taskService);
 			}
-			String additionalAssigneesAsString = newAssignees.isEmpty() ? null : newAssignees.stream()
-					.map(d -> ADDITIONAL_ASSIGNEES_PREFIX + MiscDataUtil.refToString(d) + ADDITIONAL_ASSIGNEES_SUFFIX)
-					.collect(Collectors.joining(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR));
-			taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES, additionalAssigneesAsString);
 
-			//Map<String, Object> variables = activitiEngine.getRuntimeService().getVariables(task.getExecutionId());
 			Map<String, Object> variables = taskService.getVariables(workItemId);
 			WorkItemDelegationEventType event;
+			int escalationLevel = workItem.getEscalationLevelNumber() != null ? workItem.getEscalationLevelNumber() : 0;
 			if (escalate) {
 				WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();
 				escEvent.setNewEscalationLevelName(escalationLevelName);
 				escEvent.setNewEscalationLevelDisplayName(escalationLevelDisplayName);
-				int newLevel = workItem.getEscalationLevelNumber() != null ? workItem.getEscalationLevelNumber()+1 : 1;
-				escEvent.setNewEscalationLevelNumber(newLevel);
-				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NUMBER, newLevel);
+				escalationLevel = escalationLevel + 1;
+				escEvent.setNewEscalationLevelNumber(escalationLevel);
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NUMBER, escalationLevel);
 				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NAME, escalationLevelName);
 				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, escalationLevelDisplayName);
 				event = escEvent;
@@ -322,6 +317,11 @@ public class WorkItemManager {
 			ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, variables, prismContext);
 			MidpointUtil.recordEventInTask(event, null, ActivitiUtil.getTaskOid(variables), result);
 
+			ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
+			MidpointUtil.createTriggersForTimedActions(workItemId, escalationLevel,
+					XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp()),
+					deadline, wfTask, level.getTimedActions(), result);
+
 			WorkItemType workItemAfter = workItemProvider.getWorkItem(workItemId, result);
 			com.evolveum.midpoint.task.api.Task wfTaskAfter = taskManager.getTask(wfTask.getOid(), result);
 			wfTaskController.notifyWorkItemAllocationChangeNewActors(workItemAfter, assigneesBefore,
@@ -332,6 +332,33 @@ public class WorkItemManager {
 		} finally {
 			result.computeStatusIfUnknown();
 		}
+	}
+
+	private Date setNewDuration(String workItemId, @NotNull Duration newDuration, TaskService taskService) {
+		XMLGregorianCalendar newDeadline = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+		newDeadline.add(newDuration);
+		Date dueDate = XmlTypeConverter.toDate(newDeadline);
+		taskService.setDueDate(workItemId, dueDate);
+		return dueDate;
+	}
+
+	private void setNewAssignees(Task task, List<ObjectReferenceType> newAssignees, TaskService taskService) {
+		if (task.getAssignee() != null) {
+			boolean removed = newAssignees.removeIf(newAssignee -> task.getAssignee().equals(newAssignee.getOid()));
+			if (!removed) {
+				// we will nominate the first delegate (if present) as a new assignee
+				if (!newAssignees.isEmpty()) {
+					taskService.setAssignee(task.getId(), newAssignees.get(0).getOid());
+					newAssignees.remove(0);
+				} else {
+					taskService.setAssignee(task.getId(), null);
+				}
+			}
+		}
+		String additionalAssigneesAsString = newAssignees.isEmpty() ? null : newAssignees.stream()
+				.map(d -> ADDITIONAL_ASSIGNEES_PREFIX + MiscDataUtil.refToString(d) + ADDITIONAL_ASSIGNEES_SUFFIX)
+				.collect(Collectors.joining(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR));
+		taskService.setVariableLocal(task.getId(), CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES, additionalAssigneesAsString);
 	}
 
 }

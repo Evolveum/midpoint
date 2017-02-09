@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
@@ -48,7 +47,9 @@ public class TaskCreateListener implements TaskListener {
 		}
 
 		// triggers
-		MidpointUtil.createTriggersForTimedActions(delegateTask, wfTask, level.getTimedActions(), result);
+		int escalationLevel = ActivitiUtil.getEscalationLevelNumber(delegateTask.getVariables());
+		MidpointUtil.createTriggersForTimedActions(delegateTask.getId(), escalationLevel, delegateTask.getCreateTime(),
+				delegateTask.getDueDate(), wfTask, level.getTimedActions(), result);
 
 		// originalAssignee
 		String assignee = delegateTask.getAssignee();

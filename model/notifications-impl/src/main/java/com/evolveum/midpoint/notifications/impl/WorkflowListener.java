@@ -141,9 +141,9 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     	checkOids(currentActors);
     	checkOids(newActors);
 		for (ObjectReferenceType newActor : newActors) {
-			if (!ObjectTypeUtil.containsOid(currentActors, newActor.getOid())) {
+//			if (!ObjectTypeUtil.containsOid(currentActors, newActor.getOid())) {
 				onWorkItemAllocationAdd(newActor, workItem, operationKind, initiator, source, cause, task, result);
-			}
+//			}
 		}
 	}
 

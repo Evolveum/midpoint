@@ -40,6 +40,7 @@ import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.activiti.engine.delegate.DelegateExecution;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
@@ -60,20 +61,20 @@ import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationCo
 @Component
 public class WfExpressionEvaluationHelper {
 
-	public Collection<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
-			ExpressionVariables variables, DelegateExecution execution, String contextDescription,
+	public List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
+			ExpressionVariables variables, String contextDescription,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		List<ObjectReferenceType> retval = new ArrayList<>();
 		for (ExpressionType expression : expressions) {
-			retval.addAll(evaluateRefExpression(expression, variables, execution, contextDescription, task, result));
+			retval.addAll(evaluateRefExpression(expression, variables, contextDescription, task, result));
 		}
 		return retval;
 	}
 
 	public List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
-			DelegateExecution execution, String contextDescription, Task task, OperationResult result)
+			String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		return evaluateExpression(expressionType, variables, execution, contextDescription, String.class, DOMUtil.XSD_STRING,
+		return evaluateExpression(expressionType, variables, contextDescription, String.class, DOMUtil.XSD_STRING,
 				task, result).stream()
 				.map(oid -> ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER))
 				.collect(Collectors.toList());
@@ -93,7 +94,8 @@ public class WfExpressionEvaluationHelper {
 
 	@SuppressWarnings("unchecked")
 	public <T> List<T> evaluateExpression(ExpressionType expressionType, ExpressionVariables variables,
-			DelegateExecution execution, String contextDescription, Class<T> clazz, QName typeName, Task task, OperationResult result)
+			String contextDescription, Class<T> clazz, QName typeName, Task task,
+			OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 		ExpressionFactory expressionFactory = getExpressionFactory();
 		PrismContext prismContext = expressionFactory.getPrismContext();
@@ -114,14 +116,15 @@ public class WfExpressionEvaluationHelper {
 	}
 
 	public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-			DelegateExecution execution, String contextDescription, Task task, OperationResult result)
+			String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, execution, contextDescription,
+		Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
 				Boolean.class, DOMUtil.XSD_BOOLEAN, task, result);
 		return getSingleValue(values, false, contextDescription);
 	}
 
-	public ExpressionVariables getDefaultVariables(DelegateExecution execution, Task wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public ExpressionVariables getDefaultVariables(@Nullable DelegateExecution execution, Task wfTask, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
 
 		MiscDataUtil miscDataUtil = getMiscDataUtil();
 
@@ -148,8 +151,10 @@ public class WfExpressionEvaluationHelper {
 		// todo other variables?
 
 		// Activiti process instance variables (use with care)
-		execution.getVariables().entrySet().forEach(e ->
-				variables.addVariableDefinition(new QName("_" + e.getKey()), e.getValue()));
+		if (execution != null) {
+			execution.getVariables().entrySet().forEach(e ->
+					variables.addVariableDefinition(new QName("_" + e.getKey()), e.getValue()));
+		}
 
 		return variables;
 	}

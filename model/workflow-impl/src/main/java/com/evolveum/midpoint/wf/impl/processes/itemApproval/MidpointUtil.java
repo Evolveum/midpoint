@@ -149,14 +149,12 @@ public class MidpointUtil {
 		delegateTask.setDueDate(XmlTypeConverter.toDate(deadline));
 	}
 
-	public static void createTriggersForTimedActions(DelegateTask delegateTask, Task wfTask,
-			List<WorkItemTimedActionsType> timedActionsList,
-			OperationResult result) {
+	public static void createTriggersForTimedActions(String workItemId, int escalationLevel, Date workItemCreateTime,
+			Date workItemDeadline, Task wfTask, List<WorkItemTimedActionsType> timedActionsList, OperationResult result) {
 		try {
 			PrismContext prismContext = getPrismContext();
 			List<TriggerType> triggers = new ArrayList<>();
 			for (WorkItemTimedActionsType timedActionsEntry : timedActionsList) {
-				int escalationLevel = ActivitiUtil.getEscalationLevelNumber(delegateTask.getVariables());
 				if (timedActionsEntry.getEscalationLevelFrom() != null && escalationLevel < timedActionsEntry.getEscalationLevelFrom()) {
 					LOGGER.trace("Current escalation level is before 'escalationFrom', skipping timed actions {}", timedActionsEntry);
 					continue;
@@ -176,14 +174,14 @@ public class MidpointUtil {
 					}
 					for (Duration duration : timeSpec.getValue()) {
 						XMLGregorianCalendar mainTriggerTime = computeTriggerTime(duration, timeSpec.getBase(),
-								delegateTask.getCreateTime(), delegateTask.getDueDate());
-						TriggerType mainTrigger = createTrigger(mainTriggerTime, delegateTask.getId(), timedActionsEntry.getActions(), null, prismContext);
+								workItemCreateTime, workItemDeadline);
+						TriggerType mainTrigger = createTrigger(mainTriggerTime, workItemId, timedActionsEntry.getActions(), null, prismContext);
 						triggers.add(mainTrigger);
 						List<Pair<Duration, AbstractWorkItemActionType>> notifyInfoList = getNotifyBefore(timedActionsEntry);
 						for (Pair<Duration, AbstractWorkItemActionType> notifyInfo : notifyInfoList) {
 							XMLGregorianCalendar notifyTime = (XMLGregorianCalendar) mainTriggerTime.clone();
 							notifyTime.add(notifyInfo.getKey().negate());
-							TriggerType notifyTrigger = createTrigger(notifyTime, delegateTask.getId(), null, notifyInfo, prismContext);
+							TriggerType notifyTrigger = createTrigger(notifyTime, workItemId, null, notifyInfo, prismContext);
 							triggers.add(notifyTrigger);
 						}
 					}

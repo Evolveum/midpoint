@@ -38,11 +38,12 @@
 										<approverExpression>
 											<script>
 												<code>
-													TODO
+													midpoint.getManagersOidsExceptUser(workItem.assigneeRef)
 												</code>
 											</script>
 										</approverExpression>
-										<duration>P5D</duration>
+										<duration>P9D</duration>	<!-- using value different from original duration, just to test -->
+										<delegationMethod>addAssignees</delegationMethod>
 										<notifyBeforeAction>P1D</notifyBeforeAction>
 										<escalationLevelName>Line manager escalation</escalationLevelName>
 									</escalate>
@@ -55,7 +56,8 @@
 								<actions>
 									<complete>
 										<outcome>reject</outcome>
-										<notifyBeforeAction>P1D</notifyBeforeAction>
+										<notifyBeforeAction>P2D</notifyBeforeAction>
+										<notifyBeforeAction>P2DT12H</notifyBeforeAction>
 									</complete>
 								</actions>
 								<escalationLevelFrom>1</escalationLevelFrom>

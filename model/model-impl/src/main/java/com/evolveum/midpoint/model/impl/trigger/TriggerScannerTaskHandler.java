@@ -76,34 +76,34 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
         super(ObjectType.class, "Trigger scan", OperationConstants.TRIGGER_SCAN);
     }
 
-	// task OID -> handlerUri -> OIDs; cleared on task start
+	// task OID -> handlerUri -> OID+TriggerID; cleared on task start
 	// we use plain map, as it is much easier to synchronize explicitly than to play with ConcurrentMap methods
-	private Map<String,Map<String,Set<String>>> processedOidsMap = new HashMap<>();
+	private Map<String,Map<String,Set<String>>> processedTriggersMap = new HashMap<>();
 
-	private synchronized void initProcessedOids(Task coordinatorTask) {
+	private synchronized void initProcessedTriggers(Task coordinatorTask) {
 		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
-		processedOidsMap.put(coordinatorTask.getOid(), new HashMap<>());
+		processedTriggersMap.put(coordinatorTask.getOid(), new HashMap<>());
 	}
 
 	// TODO fix possible (although very small) memory leak occurring when task finishes unsuccessfully
 	private synchronized void cleanupProcessedOids(Task coordinatorTask) {
 		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
-		processedOidsMap.remove(coordinatorTask.getOid());
+		processedTriggersMap.remove(coordinatorTask.getOid());
 	}
 
-	private synchronized boolean oidAlreadySeen(Task coordinatorTask, String handlerUri, String objectOid) {
+	private synchronized boolean triggerAlreadySeen(Task coordinatorTask, String handlerUri, String oidPlusTriggerId) {
 		Validate.notNull(coordinatorTask.getOid(), "Coordinator task OID is null");
-		Map<String,Set<String>> taskMap = processedOidsMap.get(coordinatorTask.getOid());
-		if (taskMap == null) {
-			throw new IllegalStateException("ProcessedOids map was not initialized for task = " + coordinatorTask);
+		Map<String,Set<String>> taskTriggersMap = processedTriggersMap.get(coordinatorTask.getOid());
+		if (taskTriggersMap == null) {
+			throw new IllegalStateException("ProcessedTriggers map was not initialized for task = " + coordinatorTask);
 		}
-		Set<String> processedOids = taskMap.get(handlerUri);
-		if (processedOids != null) {
-			return !processedOids.add(objectOid);
+		Set<String> processedTriggers = taskTriggersMap.get(handlerUri);
+		if (processedTriggers != null) {
+			return !processedTriggers.add(oidPlusTriggerId);
 		} else {
-			processedOids = new HashSet<>();
-			processedOids.add(objectOid);
-			taskMap.put(handlerUri, processedOids);
+			processedTriggers = new HashSet<>();
+			processedTriggers.add(oidPlusTriggerId);
+			taskTriggersMap.put(handlerUri, processedTriggers);
 			return false;
 		}
 	}
@@ -121,7 +121,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	@Override
 	protected ObjectQuery createQuery(AbstractScannerResultHandler<ObjectType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 
-		initProcessedOids(task);
+		initProcessedTriggers(task);
 
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
@@ -220,8 +220,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
 		if (handler == null) {
 			LOGGER.warn("No registered trigger handler for URI {}", trigger);
-		} else if (oidAlreadySeen(coordinatorTask, handlerUri, object.getOid())) {
-			LOGGER.trace("Handler {} already executed for {}", trigger, ObjectTypeUtil.toShortString(object));
+		} else if (triggerAlreadySeen(coordinatorTask, handlerUri, object.getOid()+":"+trigger.getId())) {
+			LOGGER.trace("Handler {} already executed for {}:{}", trigger, ObjectTypeUtil.toShortString(object), trigger.getId());
 		} else {
 			try {
 				handler.handle(object, trigger, workerTask, result);

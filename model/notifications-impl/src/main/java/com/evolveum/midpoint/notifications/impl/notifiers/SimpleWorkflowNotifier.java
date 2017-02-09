@@ -112,7 +112,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 				if (event.getOperationKind() == null) {
 					throw new IllegalStateException("Missing operationKind in " + event);
 				}
-				String rv = "Work item is to be automatically " + getOperationPastTenseVerb(event.getOperationKind());
+				String rv = "Work item will be automatically " + getOperationPastTenseVerb(event.getOperationKind());
 				if (event.getTimeBefore() != null) {        // should always be
 					rv += " in " + DurationFormatUtils.formatDurationWords(
 							event.getTimeBefore().getTimeInMillis(new Date()), true, true);
@@ -185,7 +185,13 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 			sb.append("Originally allocated to: ").append(formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
 		}
 		if (!workItem.getAssigneeRef().isEmpty()) {
-			sb.append("Allocated to: ");
+			sb.append("Allocated to");
+			if (event.getOperationKind() == WorkItemOperationKindType.DELEGATE) {
+				sb.append(event.isAdd() ? " (after delegation)" : " (before delegation)");
+			} else if (event.getOperationKind() == WorkItemOperationKindType.ESCALATE) {
+				sb.append(event.isAdd() ? " (after escalation)" : " (before escalation)");
+			}
+			sb.append(": ");
 			sb.append(workItem.getAssigneeRef().stream()
 					.map(ref -> formatUserName(ref, result))
 					.collect(Collectors.joining(", ")));
