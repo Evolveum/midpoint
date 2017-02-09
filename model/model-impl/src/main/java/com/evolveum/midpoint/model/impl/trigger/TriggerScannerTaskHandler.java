@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -180,24 +181,30 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 				LOGGER.warn("Strange thing, attempt to fire triggers on {}, but it does not have any triggers in trigger container", object);
 			} else {
 				LOGGER.trace("Firing triggers for {} ({} triggers)", object, triggerCVals.size());
-				for (PrismContainerValue<TriggerType> triggerCVal: triggerCVals) {
-					TriggerType triggerType = triggerCVal.asContainerable();
-					XMLGregorianCalendar timestamp = triggerType.getTimestamp();
+				List<TriggerType> triggers = getSortedTriggers(triggerCVals);
+				for (TriggerType trigger: triggers) {
+					XMLGregorianCalendar timestamp = trigger.getTimestamp();
 					if (timestamp == null) {
 						LOGGER.warn("Trigger without a timestamp in {}", object);
 					} else {
 						if (isHot(handler, timestamp)) {
-							fireTrigger(triggerType, object, workerTask, coordinatorTask, result);
-							removeTrigger(object, triggerCVal, workerTask);
+							fireTrigger(trigger, object, workerTask, coordinatorTask, result);
+							removeTrigger(object, trigger.asPrismContainerValue(), workerTask, triggerContainer.getDefinition());
 						} else {
 							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})",
-									triggerType, timestamp,
-									handler.getThisScanTimestamp(), handler.getLastScanTimestamp());
+									trigger, timestamp, handler.getThisScanTimestamp(), handler.getLastScanTimestamp());
 						}
 					}
 				}
 			}
 		}
+	}
+
+	private List<TriggerType> getSortedTriggers(List<PrismContainerValue<TriggerType>> triggerCVals) {
+		List<TriggerType> rv = new ArrayList<>();
+		triggerCVals.forEach(cval -> rv.add(cval.clone().asContainerable()));
+		rv.sort(Comparator.comparingLong(t -> XmlTypeConverter.toMillis(t.getTimestamp())));
+		return rv;
 	}
 
 	/**
@@ -234,8 +241,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		}
 	}
 
-	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task) {
-		PrismContainerDefinition<TriggerType> triggerContainerDef = triggerCVal.getParent().getDefinition();
+	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task,
+			PrismContainerDefinition<TriggerType> triggerContainerDef) {
 		ContainerDelta<TriggerType> triggerDelta = triggerContainerDef.createEmptyDelta(new ItemPath(F_TRIGGER));
 		triggerDelta.addValuesToDelete(triggerCVal.clone());
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(triggerDelta);
