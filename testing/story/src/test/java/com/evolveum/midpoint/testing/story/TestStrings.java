@@ -248,10 +248,12 @@ public class TestStrings extends AbstractStoryTest {
 		dummyTransport.clearMessages();
 
 		assertEquals("Wrong # of work items lifecycle messages", 1, lifecycleMessages.size());
-		assertMessage(lifecycleMessages.get(0), "lechuck@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)");
+		assertMessage(lifecycleMessages.get(0), "lechuck@evolveum.com", "A new work item has been created",
+				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
 
 		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
-		assertMessage(allocationMessages.get(0), "lechuck@evolveum.com", "Work item has been allocated to you", "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)");
+		assertMessage(allocationMessages.get(0), "lechuck@evolveum.com", "Work item has been allocated to you",
+				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
 
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
@@ -297,14 +299,26 @@ public class TestStrings extends AbstractStoryTest {
 		assertNull("process messages", processMessages);
 
 		Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
-		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED");
-		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)");
-		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
+		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
+				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
+		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
+				"Allocated to: Elaine Marley (elaine)", "(in 7 days)", "^Result:");
+		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
+				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
 		Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
-		assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED");
-		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been allocated to you", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)");
-		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
+		assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
+				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
+		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been allocated to you",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
+				"(in 7 days)", "^Result:");
+		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
+				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 	}
 
 	@Test(enabled = true)
@@ -347,16 +361,32 @@ public class TestStrings extends AbstractStoryTest {
 		assertNull("process messages", processMessages);
 
 		Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
-		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)", "Carried out by: midPoint Administrator (administrator)", "Result: APPROVED");
-		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:");
-		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Ignatius Cheese (cheese)", "^Result:");
-		assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "A new work item has been created", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Scumm Bar Chef (chef)", "^Result:");
+		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
+				"Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
+		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
+				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:");
+		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "A new work item has been created",
+				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
+				"Allocated to: Ignatius Cheese (cheese)", "^Result:", "(in 5 days)");
+		assertMessage(sorted.get("chef@evolveum.com"), "chef@evolveum.com", "A new work item has been created",
+				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
+				"Allocated to: Scumm Bar Chef (chef)", "^Result:", "(in 5 days)");
 
 		Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
-		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)", "Carried out by: midPoint Administrator (administrator)", "Result: APPROVED");
-		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled", "Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:");
-		assertMessage(sorted2.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been allocated to you", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Ignatius Cheese (cheese)", "^Result:");
-		assertMessage(sorted2.get("chef@evolveum.com"), "chef@evolveum.com", "Work item has been allocated to you", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Scumm Bar Chef (chef)", "^Result:");
+		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
+				"Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
+		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
+				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:");
+		assertMessage(sorted2.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been allocated to you",
+				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
+				"Allocated to: Ignatius Cheese (cheese)", "^Result:", "(in 5 days)");
+		assertMessage(sorted2.get("chef@evolveum.com"), "chef@evolveum.com", "Work item has been allocated to you",
+				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
+				"Allocated to: Scumm Bar Chef (chef)", "^Result:", "(in 5 days)");
 	}
 
 	@Test(enabled = true)
@@ -401,9 +431,14 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
 		assertNull("process messages", processMessages);
 
-		assertMessage(lifecycleMessages.get(0), "cheese@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)", "Result: APPROVED");
-		assertMessage(allocationMessages.get(0), "cheese@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)", "Result: APPROVED");
-
+		assertMessage(lifecycleMessages.get(0), "cheese@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
+				"Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)",
+				"Result: APPROVED", "^Deadline:");
+		assertMessage(allocationMessages.get(0), "cheese@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
+				"Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)",
+				"Result: APPROVED", "^Deadline:");
 	}
 
 	@Test(enabled = true)
@@ -451,9 +486,16 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
 
-		assertMessage(lifecycleMessages.get(0), "chef@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Scumm Bar Chef (chef)", "Carried out by: Scumm Bar Chef (chef)", "Result: APPROVED");
-		assertMessage(allocationMessages.get(0), "chef@evolveum.com", "Work item has been completed", "Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)", "Allocated to: Scumm Bar Chef (chef)", "Carried out by: Scumm Bar Chef (chef)", "Result: APPROVED");
-		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished", "Process instance name: Assigning a-test-1 to bob", "Result: APPROVED");
+		assertMessage(lifecycleMessages.get(0), "chef@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
+				"Allocated to: Scumm Bar Chef (chef)", "Carried out by: Scumm Bar Chef (chef)",
+				"Result: APPROVED", "^Deadline:");
+		assertMessage(allocationMessages.get(0), "chef@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
+				"Allocated to: Scumm Bar Chef (chef)", "Carried out by: Scumm Bar Chef (chef)",
+				"Result: APPROVED", "^Deadline:");
+		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
+				"Process instance name: Assigning a-test-1 to bob", "Result: APPROVED");
 	}
 	//endregion
 
@@ -518,7 +560,8 @@ public class TestStrings extends AbstractStoryTest {
 
 		assertNull("lifecycle messages", lifecycleMessages);
 		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
-		//assertMessage(workItemMessages.get(0), "guybrush@evolveum.com", "A new work item has been created", "Stage: Line managers (1/3)", "Allocated to: guybrush");
+		assertMessage(allocationMessages.get(0), "guybrush@evolveum.com", "Work item is to be automatically escalated in 1 day",
+				"Stage: Line managers (1/3)", "Allocated to: Guybrush Threepwood (guybrush)");
 		assertNull("process messages", processMessages);
 	}
 	//endregion

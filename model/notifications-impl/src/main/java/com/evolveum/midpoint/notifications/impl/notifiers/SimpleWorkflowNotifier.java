@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.notifications.api.events.*;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -25,11 +26,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
@@ -108,7 +113,10 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 					throw new IllegalStateException("Missing operationKind in " + event);
 				}
 				String rv = "Work item is to be automatically " + getOperationPastTenseVerb(event.getOperationKind());
-				// TODO time
+				if (event.getTimeBefore() != null) {        // should always be
+					rv += " in " + DurationFormatUtils.formatDurationWords(
+							event.getTimeBefore().getTimeInMillis(new Date()), true, true);
+				}
 				return rv;
 			} else {
 				return "Work item has been " + getOperationPastTenseVerb(event.getOperationKind());
@@ -132,11 +140,12 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         body.append(getSubject(event, generalNotifierType, transport, task, result));
         body.append("\n\n");
 
-        body.append("Process instance name: " + workflowEvent.getProcessInstanceName() + "\n");
+        body.append("Process instance name: ").append(workflowEvent.getProcessInstanceName()).append("\n");
         if (workflowEvent instanceof WorkItemEvent) {
 			appendWorkItemInformation(body, (WorkItemEvent) workflowEvent, result);
         } else {
 			appendStageInformation(body, workflowEvent);
+	        body.append("\n");
 			appendResultInformation(body, workflowEvent);
 		}
 		body.append("Notification created on: ").append(new Date()).append("\n\n");
@@ -169,24 +178,64 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 		appendEscalationInformation(sb, event);
 		sb.append("\n");
 
-		ObjectReferenceType originalAssigneeRef = workItem.getOriginalAssigneeRef();
-		if (originalAssigneeRef != null && (event.getAssignee() == null ||
-				!java.util.Objects.equals(originalAssigneeRef.getOid(), event.getAssignee().getOid()))) {
-			UserType originalAssignee = (UserType) functions.getObjectType(originalAssigneeRef, true, result);
-			sb.append("Originally allocated to: ").append(formatUserName(originalAssignee, originalAssigneeRef.getOid())).append("\n");
+		ObjectReferenceType originalAssignee = workItem.getOriginalAssigneeRef();
+		List<ObjectReferenceType> currentAssignees = workItem.getAssigneeRef();
+		if (currentAssignees.size() != 1 || !java.util.Objects.equals(originalAssignee.getOid(), currentAssignees.get(0).getOid())) {
+			UserType originalAssigneeObject = (UserType) functions.getObjectType(originalAssignee, true, result);
+			sb.append("Originally allocated to: ").append(formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
 		}
-		if (event.getAssignee() != null) {
-			UserType assigneeFull = (UserType) functions.getObjectType(event.getAssignee(), true, result);
-			sb.append("Allocated to: ").append(formatUserName(assigneeFull, event.getAssignee().getOid()))
-					.append("\n");        // TODO what about other assignees
+		if (!workItem.getAssigneeRef().isEmpty()) {
+			sb.append("Allocated to: ");
+			sb.append(workItem.getAssigneeRef().stream()
+					.map(ref -> formatUserName(ref, result))
+					.collect(Collectors.joining(", ")));
+			sb.append("\n");
 		}
 		SimpleObjectRef initiator = event.getInitiator();
 		if (initiator != null) {
 			UserType initiatorFull = (UserType) functions.getObjectType(initiator, true, result);
 			sb.append("Carried out by: ").append(formatUserName(initiatorFull, initiator.getOid())).append("\n");
 		}
-		sb.append("\n");
 		appendResultInformation(sb, event);
+		if (!isDone(event) && workItem.getDeadline() != null) {
+			XMLGregorianCalendar deadline = workItem.getDeadline();
+			long before = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
+			long beforeRounded = Math.round((double) before / 60000.0) * 60000L;
+			String beforeWords = DurationFormatUtils.formatDurationWords(Math.abs(beforeRounded), true, true);
+			String beforePhrase;
+			if (beforeRounded > 0) {
+				beforePhrase = " (in " + beforeWords + ")";
+			} else if (beforeRounded < 0) {
+				beforePhrase = " (" + beforeWords + " ago)";
+			} else {
+				beforePhrase = "";
+			}
+			sb.append("Deadline: ").append(formatDateTime(deadline)).append(beforePhrase).append("\n");
+		}
+		sb.append("\n");
+	}
+
+	// a bit of heuristics...
+	private boolean isDone(WorkItemEvent event) {
+		if (event instanceof WorkItemLifecycleEvent) {
+			return event.isDelete();
+		} else if (event instanceof WorkItemAllocationEvent) {
+			return event.isDelete() &&
+					(event.getOperationKind() == null || event.getOperationKind() == WorkItemOperationKindType.COMPLETE);
+		} else {
+			return false;
+		}
+	}
+
+	private String formatUserName(ObjectReferenceType ref, OperationResult result) {
+		UserType user = (UserType) functions.getObjectType(ref, true, result);
+		return formatUserName(user, ref.getOid());
+	}
+
+	// TODO implement seriously
+	private String formatDateTime(XMLGregorianCalendar timestamp) {
+		//DateFormatUtils.format(timestamp.toGregorianCalendar(), DateFormatUtils.SMTP_DATETIME_FORMAT.getPattern());
+		return String.valueOf(XmlTypeConverter.toDate(timestamp));
 	}
 
 	private String formatUserName(UserType user, String oid) {

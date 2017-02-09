@@ -40,7 +40,7 @@ public class WorkItemCustomEvent extends WorkItemEvent {
 			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, WfContextType workflowContext,
 			@NotNull WorkItemNotificationActionType notificationAction) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null, workflowContext,
-				notificationAction.getHandler());
+				notificationAction.getHandler(), null);
 		this.notificationAction = notificationAction;
 	}
 

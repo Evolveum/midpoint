@@ -39,7 +39,7 @@ public class WorkItemAllocationEvent extends WorkItemEvent {
 			SimpleObjectRef initiator, WfContextType workflowContext,
 			Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationKind, workflowContext,
-				null);
+				null, timeBefore);
 	}
 
 	@Override

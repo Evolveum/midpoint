@@ -25,6 +25,7 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
 import java.util.Map;
@@ -44,18 +45,20 @@ public class WorkItemEvent extends WorkflowEvent {
 	 */
 	protected final SimpleObjectRef initiator;
 	protected final WorkItemOperationKindType operationKind;
+	protected final Duration timeBefore;
 
     public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
-			@NotNull WorkItemType workItem,
-			@Nullable SimpleObjectRef assignee, SimpleObjectRef initiator, WorkItemOperationKindType operationKind,
-			WfContextType workflowContext,
-			EventHandlerType handler) {
+                         @NotNull WorkItemType workItem,
+                         @Nullable SimpleObjectRef assignee, SimpleObjectRef initiator, WorkItemOperationKindType operationKind,
+                         WfContextType workflowContext,
+                         EventHandlerType handler, Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workflowContext, handler);
-        Validate.notNull(workItem);
+	    Validate.notNull(workItem);
         this.workItem = workItem;
 		this.assignee = assignee;
 		this.initiator = initiator;
 		this.operationKind = operationKind;
+	    this.timeBefore = timeBefore;
     }
 
     public String getWorkItemName() {
@@ -82,6 +85,10 @@ public class WorkItemEvent extends WorkflowEvent {
 
 	public WorkItemOperationKindType getOperationKind() {
 		return operationKind;
+	}
+
+	public Duration getTimeBefore() {
+		return timeBefore;
 	}
 
 	@Override
