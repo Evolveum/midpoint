@@ -503,6 +503,10 @@ public class ObjectTypeUtil {
 		return deltas1;
 	}
 
+	public static PolyStringType getDisplayName(PrismObject<?> object) {
+    	return object != null ? getDisplayName((ObjectType) object.asObjectable()) : null;
+	}
+
 	public static PolyStringType getDisplayName(ObjectType object) {
     	if (object instanceof AbstractRoleType) {
     		return ((AbstractRoleType) object).getDisplayName();
@@ -511,6 +515,10 @@ public class ObjectTypeUtil {
 		} else {
     		return null;
 		}
+	}
+
+	public static PolyStringType getDisplayName(ObjectReferenceType ref) {
+		return ref != null ? getDisplayName(ref.asReferenceValue().getObject()) : null;
 	}
 
 	public static ObjectType toObjectable(PrismObject object) {

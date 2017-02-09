@@ -256,7 +256,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 	}
 
 	private void appendEscalationInformation(StringBuilder sb, WorkItemEvent workItemEvent) {
-		String info = WfContextUtil.getEscalationInfo(workItemEvent.getWorkItem());
+		String info = WfContextUtil.getEscalationLevelInfo(workItemEvent.getWorkItem());
 		if (info != null) {
 			sb.append("Escalation level: ").append(info).append("\n");
 		}

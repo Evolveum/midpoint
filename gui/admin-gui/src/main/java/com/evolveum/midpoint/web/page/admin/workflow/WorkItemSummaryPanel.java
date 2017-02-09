@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -87,8 +88,14 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				return getString("TaskSummaryPanel.requestedBy",
-						WebComponentUtil.getName(dtoModel.getObject().getRequester()));
+				UserType requester = dtoModel.getObject().getRequester();
+				String displayName = WebComponentUtil.getDisplayName(requester.asPrismObject());
+				String name = WebComponentUtil.getName(requester.asPrismObject());
+				if (displayName != null) {
+					return getString("TaskSummaryPanel.requestedByWithFullName", displayName, name);
+				} else {
+					return getString("TaskSummaryPanel.requestedBy", name);
+				}
 			}
 		};
 	}

@@ -284,6 +284,12 @@ public final class WebComponentUtil {
 				.collect(Collectors.joining(", "));
 	}
 
+	public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {
+		return refs.stream()
+				.map(ref -> getDisplayNameAndName(ref) + (showTypes ? (" (" + getTypeLocalized(ref) + ")") : ""))
+				.collect(Collectors.joining(", "));
+	}
+
 	public enum Channel {
 		// TODO: move this to schema component
 		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
@@ -786,20 +792,26 @@ public final class WebComponentUtil {
 		if (object == null) {
 			return null;
 		}
-		if (object.canRepresent(OrgType.class) ||
-				object.canRepresent(RoleType.class) ||
-				object.canRepresent(ServiceType.class)) {
-			PolyString displayName = getValue(object, AbstractRoleType.F_DISPLAY_NAME, PolyString.class);
-			if (displayName != null && displayName.getOrig() != null) {
-				return displayName.getOrig();
-			}
-		} else if (object.canRepresent(UserType.class)){
-			PolyString displayName = getValue(object, UserType.F_FULL_NAME, PolyString.class);
-			if (displayName != null && displayName.getOrig() != null) {
-				return displayName.getOrig();
-			}
+		String displayName = getDisplayName(object);
+		return displayName != null ? displayName : getName(object);
+	}
+
+	// <display-name> (<name>) OR simply <name> if there's no display name
+	private static String getDisplayNameAndName(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
 		}
-		return getName(object);
+		String displayName = getDisplayName(ref);
+		String name = getName(ref);
+		return displayName != null ? displayName + " (" + name + ")" : name;
+	}
+
+	public static String getDisplayName(ObjectReferenceType ref) {
+		return PolyString.getOrig(ObjectTypeUtil.getDisplayName(ref));
+	}
+
+	public static String getDisplayName(PrismObject object) {
+		return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
 	}
 
 	public static String getIdentification(ObjectType object) {

@@ -44,14 +44,16 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+
+import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 
 /**
  * @author lazyman
@@ -63,12 +65,19 @@ public class WorkItemDto extends Selectable {
     public static final String F_NAME = "name";
     public static final String F_CREATED_FORMATTED = "createdFormatted";
     public static final String F_CREATED_FORMATTED_FULL = "createdFormattedFull";
+	public static final String F_DEADLINE_FORMATTED = "deadlineFormatted";
+    public static final String F_DEADLINE_FORMATTED_FULL = "deadlineFormattedFull";
     public static final String F_STARTED_FORMATTED_FULL = "startedFormattedFull";
     public static final String F_ASSIGNEE_OR_CANDIDATES = "assigneeOrCandidates";
-    public static final String F_ASSIGNEE = "assignee";
+    public static final String F_ORIGINAL_ASSIGNEE = "originalAssignee";
+    public static final String F_ORIGINAL_ASSIGNEE_FULL = "originalAssigneeFull";
+    public static final String F_CURRENT_ASSIGNEES = "currentAssignees";
+    public static final String F_CURRENT_ASSIGNEES_FULL = "currentAssigneesFull";
     public static final String F_CANDIDATES = "candidates";
     public static final String F_STAGE_INFO = "stageInfo";
-    public static final String F_ADDITIONAL_INFORMATION = "additionalInformation";
+    public static final String F_ESCALATION_LEVEL_INFO = "escalationLevelInfo";
+	public static final String F_ESCALATION_LEVEL_NUMBER = "escalationLevelNumber";
+	public static final String F_ADDITIONAL_INFORMATION = "additionalInformation";
 
 	public static final String F_OTHER_WORK_ITEMS = "otherWorkItems";
 	public static final String F_RELATED_WORKFLOW_REQUESTS = "relatedWorkflowRequests";
@@ -147,12 +156,24 @@ public class WorkItemDto extends Selectable {
         return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
     }
 
+    public String getDeadlineFormatted() {
+        return WebComponentUtil.getLocalizedDate(workItem.getDeadline(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+    }
+
 	public String getCreatedFormattedFull() {
 		return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
 	}
 
+	public String getDeadlineFormattedFull() {
+		return WebComponentUtil.getLocalizedDate(workItem.getDeadline(), DateLabelComponent.FULL_MEDIUM_STYLE);
+	}
+
 	public Date getCreatedDate() {
         return XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp());
+    }
+
+	public Date getDeadlineDate() {
+        return XmlTypeConverter.toDate(workItem.getDeadline());
     }
 
     public Date getStartedDate() {
@@ -163,8 +184,9 @@ public class WorkItemDto extends Selectable {
         return WebComponentUtil.getLocalizedDate(workItem.getProcessStartedTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
     }
 
+    // TODO
     public String getAssigneeOrCandidates() {
-        String assignee = getAssignee();
+        String assignee = getCurrentAssignees();
         if (assignee != null) {
             return assignee;
         } else {
@@ -172,8 +194,20 @@ public class WorkItemDto extends Selectable {
         }
     }
 
-    public String getAssignee() {
+    public String getOriginalAssignee() {
+        return WebComponentUtil.getReferencedObjectNames(Collections.singletonList(workItem.getOriginalAssigneeRef()), false);
+    }
+
+    public String getOriginalAssigneeFull() {
+        return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Collections.singletonList(workItem.getOriginalAssigneeRef()), false);
+    }
+
+    public String getCurrentAssignees() {
         return WebComponentUtil.getReferencedObjectNames(workItem.getAssigneeRef(), false);
+    }
+
+    public String getCurrentAssigneesFull() {
+        return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(workItem.getAssigneeRef(), false);
     }
 
     public String getCandidates() {
@@ -292,18 +326,36 @@ public class WorkItemDto extends Selectable {
 		return task != null ? task.getOid() : null;
 	}
 
+	// TODO deduplicate
 	public boolean hasHistory() {
-		WfContextType wfc = getWorkflowContext();
-		if (wfc == null || !(wfc.getProcessSpecificState() instanceof ItemApprovalProcessStateType)) {
+		List<DecisionDto> rv = new ArrayList<>();
+		WfContextType wfContextType = getWorkflowContext();
+		if (wfContextType == null) {
 			return false;
 		}
-		ItemApprovalProcessStateType instanceState = (ItemApprovalProcessStateType) wfc.getProcessSpecificState();
-		return CollectionUtils.isNotEmpty(instanceState.getDecisions());
+		if (!wfContextType.getEvent().isEmpty()) {
+			wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e)));
+		} else {
+			ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
+			if (instanceState != null) {
+				instanceState.getDecisions().forEach(d -> addIgnoreNull(rv, DecisionDto.create(d)));
+			}
+		}
+		return !rv.isEmpty();
 	}
 
 	public String getStageInfo() {
     	WfContextType wfc = getWorkflowContext();		// wfc contains also the approval schema
 		return wfc != null ? WfContextUtil.getStageInfo(wfc) : WfContextUtil.getStageInfo(workItem);
+	}
+
+	public String getEscalationLevelInfo() {
+    	return WfContextUtil.getEscalationLevelInfo(workItem);
+	}
+
+	public Integer getEscalationLevelNumber() {
+    	return workItem.getEscalationLevelNumber() == null || workItem.getEscalationLevelNumber() == 0 ?
+				null : workItem.getEscalationLevelNumber();
 	}
 
 	public List<InformationType> getAdditionalInformation() {

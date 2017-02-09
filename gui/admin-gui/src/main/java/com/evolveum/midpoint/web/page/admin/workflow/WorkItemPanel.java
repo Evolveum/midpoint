@@ -65,14 +65,18 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_PRIMARY_INFO_COLUMN = "primaryInfoColumn";
     private static final String ID_ADDITIONAL_INFO_COLUMN = "additionalInfoColumn";
 
-    private static final String ID_REQUESTED_BY = "requestedBy";
-    private static final String ID_REQUESTED_BY_FULL_NAME = "requestedByFullName";
-    private static final String ID_REQUESTED_ON = "requestedOn";
+//    private static final String ID_REQUESTED_BY = "requestedBy";
+//    private static final String ID_REQUESTED_BY_FULL_NAME = "requestedByFullName";
+//    private static final String ID_REQUESTED_ON = "requestedOn";
     private static final String ID_WORK_ITEM_CREATED_ON = "workItemCreatedOn";
-    private static final String ID_ASSIGNEE = "assignee";
+    private static final String ID_WORK_ITEM_DEADLINE = "workItemDeadline";
+    private static final String ID_ORIGINALLY_ALLOCATED_TO = "originallyAllocatedTo";
+    private static final String ID_CURRENTLY_ALLOCATED_TO = "currentlyAllocatedTo";
     private static final String ID_CANDIDATES = "candidates";
     private static final String ID_STAGE_INFO_CONTAINER = "stageInfoContainer";
     private static final String ID_STAGE_INFO = "stageInfo";
+    private static final String ID_ESCALATION_LEVEL_INFO_CONTAINER = "escalationLevelInfoContainer";
+    private static final String ID_ESCALATION_LEVEL_INFO = "escalationLevelInfo";
     private static final String ID_DELTAS_TO_BE_APPROVED = "deltasToBeApproved";
     private static final String ID_HISTORY_CONTAINER = "historyContainer";
     private static final String ID_HISTORY = "history";
@@ -153,17 +157,24 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 
 		WebMarkupContainer primaryInfoColumn = new WebMarkupContainer(ID_PRIMARY_INFO_COLUMN);
 
-		primaryInfoColumn.add(new Label(ID_REQUESTED_BY, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_NAME)));
-		primaryInfoColumn.add(new Label(ID_REQUESTED_BY_FULL_NAME, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_FULL_NAME)));
-		primaryInfoColumn.add(new Label(ID_REQUESTED_ON, new PropertyModel(getModel(), WorkItemDto.F_STARTED_FORMATTED_FULL)));
+//		primaryInfoColumn.add(new Label(ID_REQUESTED_BY, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_NAME)));
+//		primaryInfoColumn.add(new Label(ID_REQUESTED_BY_FULL_NAME, new PropertyModel(getModel(), WorkItemDto.F_REQUESTER_FULL_NAME)));
+//		primaryInfoColumn.add(new Label(ID_REQUESTED_ON, new PropertyModel(getModel(), WorkItemDto.F_STARTED_FORMATTED_FULL)));
 		primaryInfoColumn.add(new Label(ID_WORK_ITEM_CREATED_ON, new PropertyModel(getModel(), WorkItemDto.F_CREATED_FORMATTED_FULL)));
-		primaryInfoColumn.add(new Label(ID_ASSIGNEE, new PropertyModel(getModel(), WorkItemDto.F_ASSIGNEE)));
+		primaryInfoColumn.add(new Label(ID_WORK_ITEM_DEADLINE, new PropertyModel(getModel(), WorkItemDto.F_DEADLINE_FORMATTED_FULL)));
+		primaryInfoColumn.add(new Label(ID_ORIGINALLY_ALLOCATED_TO, new PropertyModel(getModel(), WorkItemDto.F_ORIGINAL_ASSIGNEE_FULL)));
+		primaryInfoColumn.add(new Label(ID_CURRENTLY_ALLOCATED_TO, new PropertyModel(getModel(), WorkItemDto.F_CURRENT_ASSIGNEES_FULL)));
 		primaryInfoColumn.add(new Label(ID_CANDIDATES, new PropertyModel(getModel(), WorkItemDto.F_CANDIDATES)));
 
 		WebMarkupContainer stageInfoContainer = new WebMarkupContainer(ID_STAGE_INFO_CONTAINER);
 		primaryInfoColumn.add(stageInfoContainer);
 		stageInfoContainer.add(new Label(ID_STAGE_INFO, new PropertyModel<String>(getModel(), WorkItemDto.F_STAGE_INFO)));
 		stageInfoContainer.add(new VisibleBehaviour(() -> getModelObject().getStageInfo() != null));
+
+		WebMarkupContainer escalationLevelInfoContainer = new WebMarkupContainer(ID_ESCALATION_LEVEL_INFO_CONTAINER);
+		primaryInfoColumn.add(escalationLevelInfoContainer);
+		escalationLevelInfoContainer.add(new Label(ID_ESCALATION_LEVEL_INFO, new PropertyModel<String>(getModel(), WorkItemDto.F_ESCALATION_LEVEL_INFO)));
+		escalationLevelInfoContainer.add(new VisibleBehaviour(() -> getModelObject().getEscalationLevelInfo() != null));
 
 		//primaryInfoColumn.add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<SceneDto>(getModel(), WorkItemDto.F_DELTAS)));
 		primaryInfoColumn.add(new TaskChangesPanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<>(getModel(), WorkItemDto.F_CHANGES)));
@@ -174,7 +185,6 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			}
 		}));
 		add(primaryInfoColumn);
-
 
 		add(new AjaxFallbackLink(ID_SHOW_REQUEST) {
 			public void onClick(AjaxRequestTarget target) {

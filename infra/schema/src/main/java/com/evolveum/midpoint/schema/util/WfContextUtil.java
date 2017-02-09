@@ -50,7 +50,7 @@ public class WfContextUtil {
 	}
 
 	// wfc is used to retrieve approval schema (if needed)
-	private static String getStageInfo(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
+	public static String getStageInfo(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
 		String name = stageDisplayName != null ? stageDisplayName : stageName;
 		if (name == null && stageNumber == null) {
 			return null;
@@ -64,14 +64,14 @@ public class WfContextUtil {
 	}
 
 	@Nullable
-	public static String getEscalationInfo(WorkItemType workItem) {
+	public static String getEscalationLevelInfo(WorkItemType workItem) {
 		if (workItem == null) {
 			return null;
 		}
-		return getEscalationInfo(workItem.getEscalationLevelNumber(), workItem.getEscalationLevelName(), workItem.getEscalationLevelDisplayName());
+		return getEscalationLevelInfo(workItem.getEscalationLevelNumber(), workItem.getEscalationLevelName(), workItem.getEscalationLevelDisplayName());
 	}
 
-	private static String getEscalationInfo(Integer levelNumber, String levelName, String levelDisplayName) {
+	private static String getEscalationLevelInfo(Integer levelNumber, String levelName, String levelDisplayName) {
 		if (levelNumber == null || levelNumber == 0) {
 			return null;
 		}

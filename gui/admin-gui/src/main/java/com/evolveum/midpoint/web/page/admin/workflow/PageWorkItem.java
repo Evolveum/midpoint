@@ -63,6 +63,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WO
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ORIGINAL_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_ID;
 
 /**
@@ -132,7 +133,8 @@ public class PageWorkItem extends PageAdminWorkItems {
             final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
                     .item(F_WORK_ITEM_ID).eq(taskId)
                     .build();
-			final Collection<SelectorOptions<GetOperationOptions>> options = resolveItemsNamed(F_ASSIGNEE_REF);
+			final Collection<SelectorOptions<GetOperationOptions>> options =
+					resolveItemsNamed(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF);
 			List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
             if (workItems.size() > 1) {
                 throw new SystemException("More than one work item with ID of " + taskId);

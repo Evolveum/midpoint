@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
@@ -36,23 +38,14 @@ public class DecisionDto extends Selectable {
     public static final String F_OUTCOME = "outcome";
     public static final String F_COMMENT = "comment";
     public static final String F_TIME = "time";
+    public static final String F_ESCALATION_LEVEL_NUMBER = "escalationLevelNumber";
 
     private String user;
     private String stage;
     private Boolean outcome;
     private String comment;
     private Date time;
-
-	// TODO deduplicate
-	private static String getNameFromRef(ObjectReferenceType ref) {
-		if (ref == null) {
-			return null;
-		} else if (ref.getTargetName() != null) {
-			return ref.getTargetName().getOrig();
-		} else {
-			return ref.getOid();
-		}
-	}
+    private Integer escalationLevelNumber;
 
 	public String getTime() {
         return time.toLocaleString();      // todo formatting
@@ -74,14 +67,19 @@ public class DecisionDto extends Selectable {
         return comment;
     }
 
-    @Deprecated
+	public Integer getEscalationLevelNumber() {
+		return escalationLevelNumber == null || escalationLevelNumber == 0 ? null : escalationLevelNumber;
+	}
+
+	@Deprecated
 	public static DecisionDto create(DecisionType d) {
 		DecisionDto rv = new DecisionDto();
-		rv.user = getNameFromRef(d.getApproverRef());
+		rv.user = WebComponentUtil.getName(d.getApproverRef());
 		rv.stage = null;
 		rv.outcome = d.isApproved();
 		rv.comment = d.getComment();
 		rv.time = XmlTypeConverter.toDate(d.getDateTime());
+		rv.escalationLevelNumber = null;
 		return rv;
 	}
 
@@ -90,8 +88,9 @@ public class DecisionDto extends Selectable {
 
 		// we want to show user decisions, automatic decisions and delegations
 		DecisionDto rv = new DecisionDto();
-		rv.user = getNameFromRef(e.getInitiatorRef());
-		rv.stage = MiscUtil.getFirstNonNullString(e.getStageDisplayName(), e.getStageName(), e.getStageNumber());
+		rv.user = WebComponentUtil.getName(e.getInitiatorRef());
+		rv.stage = WfContextUtil.getStageInfo(e.getStageNumber(), null, e.getStageName(), e.getStageDisplayName());
+		//rv.stage = MiscUtil.getFirstNonNullString(e.getStageDisplayName(), e.getStageName(), e.getStageNumber());
 		rv.time = XmlTypeConverter.toDate(e.getTimestamp());
 
 		if (e instanceof WorkItemCompletionEventType) {
@@ -101,6 +100,7 @@ public class DecisionDto extends Selectable {
 				rv.comment = result.getComment();
 				// TODO what about additional delta?
 			}
+			rv.escalationLevelNumber = ((WorkItemCompletionEventType) e).getEscalationLevelNumber();
 			return rv;
 		} else if (e instanceof WfStageCompletionEventType) {
 			WfStageCompletionEventType completion = (WfStageCompletionEventType) e;
@@ -118,10 +118,12 @@ public class DecisionDto extends Selectable {
 			}
 		} else if (e instanceof WorkItemDelegationEventType) {
 			WorkItemDelegationEventType delegation = (WorkItemDelegationEventType) e;
+			rv.comment = String.valueOf(((WorkItemDelegationEventType) e).getDelegatedTo());		// TODO
 //			delegation.getDelegatedTo()
 			return rv;
 		} else {
 			return null;
 		}
+		// delegations are not shown here
 	}
 }
