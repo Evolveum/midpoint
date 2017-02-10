@@ -54,8 +54,8 @@
 										<escalationLevelDisplayName>Escalated to lead2</escalationLevelDisplayName>
 									</escalate>
 								</actions>
-								<escalationFrom>0</escalationFrom>		<!-- applies only to zero escalation level -->
-								<escalationTo>0</escalationTo>			<!-- applies only to zero escalation level -->
+								<escalationLevelFrom>0</escalationLevelFrom>		<!-- applies only to zero escalation level -->
+								<escalationLevelTo>0</escalationLevelTo>			<!-- applies only to zero escalation level -->
 							</timedActions>
 							<timedActions>
 								<name>Finally - approve</name>
