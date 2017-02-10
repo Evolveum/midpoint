@@ -64,15 +64,14 @@ public class SchemaDefinitionFactory {
 		return new PrismReferenceDefinitionImpl(primaryElementName, typeName, prismContext);
 	}
 	
-	public <C extends Containerable> PrismContainerDefinitionImpl<C> createContainerDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition,
-			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismContainerDefinitionImpl<C>(elementName, complexTypeDefinition, prismContext);
+	public <C extends Containerable> PrismContainerDefinitionImpl<C> createContainerDefinition(QName elementName,
+			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<C> compileTimeClass) throws SchemaException {
+		return new PrismContainerDefinitionImpl<>(elementName, complexTypeDefinition, prismContext, compileTimeClass);
 	}
 
 	public <T extends Objectable> PrismObjectDefinitionImpl<T> createObjectDefinition(QName elementName,
-			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> compileTimeClass,
-			XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismObjectDefinitionImpl<T>(elementName, complexTypeDefinition, prismContext, compileTimeClass );
+			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> compileTimeClass) throws SchemaException {
+		return new PrismObjectDefinitionImpl<>(elementName, complexTypeDefinition, prismContext, compileTimeClass);
 	}
 
 	/**

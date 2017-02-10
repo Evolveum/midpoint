@@ -324,14 +324,14 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	
 	public void loadPrismSchemaFile(File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = loadPrismSchemaFileDescription(file);
-		parsePrismSchema(desc);
+		parsePrismSchema(desc, false);
 	}
 
     public void loadPrismSchemaResource(String resourcePath) throws SchemaException {
         SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
         desc.setPrismSchema(true);
         registerSchemaDescription(desc);
-        parsePrismSchema(desc);
+        parsePrismSchema(desc, false);
     }
 
     /**
@@ -377,21 +377,38 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	private void parsePrismSchemas() throws SchemaException {
 		for (SchemaDescription schemaDescription : schemaDescriptions) {
 			if (schemaDescription.isPrismSchema()) {
-				parsePrismSchema(schemaDescription);
+				parsePrismSchema(schemaDescription, true);
 			}
 		}
 		applySchemaExtensions();
+		for (SchemaDescription schemaDescription : schemaDescriptions) {
+			if (schemaDescription.getSchema() != null) {
+				resolveMissingTypeDefinitionsInGlobalItemDefinitions((PrismSchemaImpl) schemaDescription.getSchema());
+			}
+		}
 	}
-	
-	private void parsePrismSchema(SchemaDescription schemaDescription) throws SchemaException {
+
+	// global item definitions may refer to types that are not yet available
+	private void resolveMissingTypeDefinitionsInGlobalItemDefinitions(PrismSchemaImpl schema) throws SchemaException {
+		for (Iterator<DefinitionSupplier> iterator = schema.getDelayedItemDefinitions().iterator(); iterator.hasNext(); ) {
+			DefinitionSupplier definitionSupplier = iterator.next();
+			Definition definition = definitionSupplier.get();
+			if (definition != null) {
+				schema.add(definition);
+			}
+			iterator.remove();
+		}
+	}
+
+	private void parsePrismSchema(SchemaDescription schemaDescription, boolean allowDelayedItemDefinitions) throws SchemaException {
 		String namespace = schemaDescription.getNamespace();
 		
 		Element domElement = schemaDescription.getDomElement();
 		boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
-//		System.out.println("Parsing schema " + schemaDescription.getNamespace());
 		LOGGER.trace("Parsing schema {}, namespace: {}, isRuntime: {}",
 				schemaDescription.getSourceDescription(), namespace, isRuntime);
-		PrismSchema schema = PrismSchemaImpl.parse(domElement, entityResolver, isRuntime, schemaDescription.getSourceDescription(), getPrismContext());
+		PrismSchema schema = PrismSchemaImpl.parse(domElement, entityResolver, isRuntime,
+				schemaDescription.getSourceDescription(), allowDelayedItemDefinitions, getPrismContext());
 		if (StringUtils.isEmpty(namespace)) {
 			namespace = schema.getNamespace();
 		}

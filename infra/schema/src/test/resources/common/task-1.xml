@@ -37,6 +37,21 @@
 			</q:filter>
 		</mext:objectQuery>
 	</extension>
+	<trigger id="1">
+		<timestamp>2017-02-16T23:13:34.675+01:00</timestamp>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/workflow/trigger/timed-action/handler-3</handlerUri>
+		<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+				   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				   xsi:type="c:ExtensionType">
+			<mext:workItemId>20338</mext:workItemId>
+			<mext:workItemActions>
+				<complete>
+					<outcome>reject</outcome>
+					<notifyBeforeAction>P2D</notifyBeforeAction>
+				</complete>
+			</mext:workItemActions>
+		</extension>
+	</trigger>
 	
 	<taskIdentifier>44444444-4444-4444-4444-000000001111</taskIdentifier>
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
