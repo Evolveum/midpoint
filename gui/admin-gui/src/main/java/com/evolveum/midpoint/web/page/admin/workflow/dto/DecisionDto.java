@@ -16,16 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
 
 /**
@@ -34,6 +34,7 @@ import java.util.Date;
 public class DecisionDto extends Selectable {
 
     public static final String F_USER = "user";
+    public static final String F_ORIGINAL_ACTOR = "originalActor";
     public static final String F_STAGE = "stage";
     public static final String F_OUTCOME = "outcome";
     public static final String F_COMMENT = "comment";
@@ -41,6 +42,7 @@ public class DecisionDto extends Selectable {
     public static final String F_ESCALATION_LEVEL_NUMBER = "escalationLevelNumber";
 
     private String user;
+    private String originalActor;
     private String stage;
     private Boolean outcome;
     private String comment;
@@ -55,7 +57,11 @@ public class DecisionDto extends Selectable {
         return user;
     }
 
-    public String getStage() {
+	public String getOriginalActor() {
+		return originalActor;
+	}
+
+	public String getStage() {
     	return stage;
 	}
 
@@ -75,6 +81,7 @@ public class DecisionDto extends Selectable {
 	public static DecisionDto create(DecisionType d) {
 		DecisionDto rv = new DecisionDto();
 		rv.user = WebComponentUtil.getName(d.getApproverRef());
+		rv.originalActor = null;
 		rv.stage = null;
 		rv.outcome = d.isApproved();
 		rv.comment = d.getComment();
@@ -83,24 +90,29 @@ public class DecisionDto extends Selectable {
 		return rv;
 	}
 
+	// if pageBase is null, references will not be resolved
     @Nullable
-	public static DecisionDto create(WfProcessEventType e) {
+	public static DecisionDto create(WfProcessEventType e, @Nullable PageBase pageBase) {
 
 		// we want to show user decisions, automatic decisions and delegations
 		DecisionDto rv = new DecisionDto();
 		rv.user = WebComponentUtil.getName(e.getInitiatorRef());
 		rv.stage = WfContextUtil.getStageInfo(e.getStageNumber(), null, e.getStageName(), e.getStageDisplayName());
-		//rv.stage = MiscUtil.getFirstNonNullString(e.getStageDisplayName(), e.getStageName(), e.getStageNumber());
 		rv.time = XmlTypeConverter.toDate(e.getTimestamp());
 
 		if (e instanceof WorkItemCompletionEventType) {
-			WorkItemResultType result = ((WorkItemCompletionEventType) e).getResult();
+			WorkItemCompletionEventType completionEvent = (WorkItemCompletionEventType) e;
+			WorkItemResultType result = completionEvent.getResult();
 			if (result != null) {
 				rv.outcome = ApprovalUtils.approvalBooleanValue(result);
 				rv.comment = result.getComment();
 				// TODO what about additional delta?
 			}
-			rv.escalationLevelNumber = ((WorkItemCompletionEventType) e).getEscalationLevelNumber();
+			rv.escalationLevelNumber = completionEvent.getEscalationLevelNumber();
+			if (completionEvent.getOriginalAssigneeRef() != null && pageBase != null) {
+				// TODO optimize repo access
+				rv.originalActor = WebModelServiceUtils.resolveReferenceName(completionEvent.getOriginalAssigneeRef(), pageBase);
+			}
 			return rv;
 		} else if (e instanceof WfStageCompletionEventType) {
 			WfStageCompletionEventType completion = (WfStageCompletionEventType) e;
@@ -111,16 +123,13 @@ public class DecisionDto extends Selectable {
 			ApprovalLevelOutcomeType outcome = completion.getOutcome();
 			if (outcome == ApprovalLevelOutcomeType.APPROVE || outcome == ApprovalLevelOutcomeType.REJECT) {
 				rv.outcome = outcome == ApprovalLevelOutcomeType.APPROVE;
-				rv.comment = String.valueOf(reason);		// TODO
+				rv.user = PageBase.createStringResourceStatic(null,
+						"DecisionDto." + (rv.outcome ? "automaticallyApproved" : "automaticallyRejected")).getString();
+				rv.comment = PageBase.createStringResourceStatic(null, "DecisionDto." + reason.name()).getString();
 				return rv;
 			} else {
 				return null;			// SKIP (legal = should hide) or null (illegal)
 			}
-		} else if (e instanceof WorkItemDelegationEventType) {
-			WorkItemDelegationEventType delegation = (WorkItemDelegationEventType) e;
-			rv.comment = String.valueOf(((WorkItemDelegationEventType) e).getDelegatedTo());		// TODO
-//			delegation.getDelegatedTo()
-			return rv;
 		} else {
 			return null;
 		}

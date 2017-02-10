@@ -77,7 +77,7 @@ public class TaskCompleteListener implements TaskListener {
 
 		LOGGER.trace("======================================== Recording individual decision of {}", user);
 		WorkItemCompletionEventType event = new WorkItemCompletionEventType();
-		ActivitiUtil.fillInWorkItemEvent(event, user, delegateTask.getId(), execution.getVariables(), prismContext);
+		ActivitiUtil.fillInWorkItemEvent(event, user, delegateTask.getId(), delegateTask.getVariables(), prismContext);
 		event.setCause(ActivitiUtil.getVariable(delegateTask.getVariables(), CommonProcessVariableNames.VARIABLE_CAUSE,
 				WorkItemEventCauseInformationType.class, prismContext));
 		@NotNull WorkItemResultType result = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());

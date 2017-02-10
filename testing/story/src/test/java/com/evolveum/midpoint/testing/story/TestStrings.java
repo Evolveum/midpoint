@@ -278,14 +278,16 @@ public class TestStrings extends AbstractStoryTest {
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
+		// GIVEN
 		login(userAdministrator);
 		WorkItemType workItem = getWorkItem(task, result);
 
+		// WHEN
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
-
 		workflowService.completeWorkItem(workItem.getWorkItemId(), true, "OK. LeChuck", null, result);
 
+		// THEN
 		login(userAdministrator);
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
@@ -297,6 +299,7 @@ public class TestStrings extends AbstractStoryTest {
 		assertStage(wfTask, 2, 3, "Security", null);
 		assertTriggers(wfTask, 4);
 
+		// notifications
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
 		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
@@ -330,6 +333,10 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you",
 				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
 				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
+
+		// events
+		List<WfProcessEventType> events = assertEvents(wfTask, 1);
+		assertCompletionEvent(events.get(0), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
 	}
 
 	@Test(enabled = true)
@@ -615,7 +622,7 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong escalation level name", "Line manager escalation", workItem.getEscalationLevelName());
 
 		List<WfProcessEventType> events = assertEvents(wfTask, 1);
-		assertEscalationEvent(events.get(0), userAdministrator.getOid(), 1, "Line managers", userGuybrushOid,
+		assertEscalationEvent(events.get(0), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
 				Collections.singletonList(userGuybrushOid), Collections.singletonList(userCheeseOid), WorkItemDelegationMethodType.ADD_ASSIGNEES,
 				1, "Line manager escalation");
 
@@ -664,23 +671,22 @@ public class TestStrings extends AbstractStoryTest {
 		assertNull("process messages", processMessages);
 		assertEquals("Wrong # of work items allocation messages", 4, allocationMessages.size());
 		ArrayListValuedHashMap<String, Message> sorted = sortByRecipients(allocationMessages);
-		// TODO brittle ... if failing, swap get(0) vs get(1)
-		assertMessage(sorted.get("guybrush@evolveum.com").get(0), "guybrush@evolveum.com", "Work item will be automatically completed in 2 days",
+		assertMessage(sorted.get("guybrush@evolveum.com").get(0), "guybrush@evolveum.com", "Work item will be automatically completed in 2 days 12 hours",
 				"Work item: Approve assigning a-test-1 to carla", "Stage: Line managers (1/3)",
 				"Escalation level: Line manager escalation (1)",
 				"|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
 				"(in 9 days)");
-		assertMessage(sorted.get("guybrush@evolveum.com").get(1), "guybrush@evolveum.com", "Work item will be automatically completed in 2 days 12 hours",
+		assertMessage(sorted.get("guybrush@evolveum.com").get(1), "guybrush@evolveum.com", "Work item will be automatically completed in 2 days",
 				"Work item: Approve assigning a-test-1 to carla", "Stage: Line managers (1/3)",
 				"Escalation level: Line manager escalation (1)",
 				"|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
 				"(in 9 days)");
-		assertMessage(sorted.get("cheese@evolveum.com").get(0), "cheese@evolveum.com", "Work item will be automatically completed in 2 days",
+		assertMessage(sorted.get("cheese@evolveum.com").get(0), "cheese@evolveum.com", "Work item will be automatically completed in 2 days 12 hours",
 				"Work item: Approve assigning a-test-1 to carla", "Stage: Line managers (1/3)",
 				"Escalation level: Line manager escalation (1)",
 				"|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
 				"(in 9 days)");
-		assertMessage(sorted.get("cheese@evolveum.com").get(1), "cheese@evolveum.com", "Work item will be automatically completed in 2 days 12 hours",
+		assertMessage(sorted.get("cheese@evolveum.com").get(1), "cheese@evolveum.com", "Work item will be automatically completed in 2 days",
 				"Work item: Approve assigning a-test-1 to carla", "Stage: Line managers (1/3)",
 				"Escalation level: Line manager escalation (1)",
 				"|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
@@ -1001,22 +1007,45 @@ public class TestStrings extends AbstractStoryTest {
 		return wfc.getEvent();
 	}
 
-	private void assertEscalationEvent(WfProcessEventType wfProcessEventType, String initiator, int stageNumber, String stageName,
-			String originalAssignee, List<String> assigneesBefore, List<String> delegatedTo, WorkItemDelegationMethodType methodType,
-			int newEscalationLevelNumber, String newEscalationLevelName) {
+	private void assertEscalationEvent(WfProcessEventType wfProcessEventType, String initiator, String originalAssignee,
+			int stageNumber, String stageName, List<String> assigneesBefore, List<String> delegatedTo,
+			WorkItemDelegationMethodType methodType, int newEscalationLevelNumber, String newEscalationLevelName) {
 		if (!(wfProcessEventType instanceof WorkItemEscalationEventType)) {
 			fail("Wrong event class: expected: " + WorkItemEscalationEventType.class + ", real: " + wfProcessEventType.getClass());
 		}
 		WorkItemEscalationEventType event = (WorkItemEscalationEventType) wfProcessEventType;
-		PrismAsserts.assertReferenceValue(ref(event.getInitiatorRef()), initiator);
-		assertEquals("Wrong stage #", (Integer) stageNumber, event.getStageNumber());
-		assertEquals("Wrong stage name", stageName, event.getStageName());
-		PrismAsserts.assertReferenceValue(ref(event.getOriginalAssigneeRef()), originalAssignee);
+		assertEvent(event, initiator, originalAssignee, stageNumber, stageName);
 		PrismAsserts.assertReferenceValues(ref(event.getAssigneeBefore()), assigneesBefore.toArray(new String[0]));
 		PrismAsserts.assertReferenceValues(ref(event.getDelegatedTo()), delegatedTo.toArray(new String[0]));
 		assertEquals("Wrong delegation method", methodType, event.getDelegationMethod());
 		assertEquals("Wrong escalation level #", newEscalationLevelNumber, event.getNewEscalationLevelNumber());
 		assertEquals("Wrong escalation level name", newEscalationLevelName, event.getNewEscalationLevelName());
+	}
+
+	private void assertCompletionEvent(WfProcessEventType wfProcessEventType, String initiator, String originalAssignee,
+			int stageNumber, String stageName, WorkItemOutcomeType outcome, String comment) {
+		if (!(wfProcessEventType instanceof WorkItemCompletionEventType)) {
+			fail("Wrong event class: expected: " + WorkItemCompletionEventType.class + ", real: " + wfProcessEventType.getClass());
+		}
+		WorkItemCompletionEventType event = (WorkItemCompletionEventType) wfProcessEventType;
+		assertEvent(event, initiator, originalAssignee, stageNumber, stageName);
+		assertEquals("Wrong outcome", outcome, event.getResult().getOutcome());
+		assertEquals("Wrong comment", comment, event.getResult().getComment());
+	}
+
+	private void assertEvent(WfProcessEventType processEvent, String initiator, String originalAssignee, Integer stageNumber,
+			String stageName) {
+		if (!(processEvent instanceof WorkItemEventType)) {
+			fail("Wrong event class: expected: " + WorkItemEventType.class + ", real: " + processEvent.getClass());
+		}
+		WorkItemEventType event = (WorkItemEventType) processEvent;
+		PrismAsserts.assertReferenceValue(ref(event.getInitiatorRef()), initiator);
+		assertEquals("Wrong stage #", stageNumber, event.getStageNumber());
+		assertEquals("Wrong stage name", stageName, event.getStageName());
+		if (originalAssignee != null) {
+			assertNotNull("Null original assignee", event.getOriginalAssigneeRef());
+			PrismAsserts.assertReferenceValue(ref(event.getOriginalAssigneeRef()), originalAssignee);
+		}
 	}
 
 }

@@ -334,7 +334,7 @@ public class WorkItemDto extends Selectable {
 			return false;
 		}
 		if (!wfContextType.getEvent().isEmpty()) {
-			wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e)));
+			wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e, null)));
 		} else {
 			ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
 			if (instanceState != null) {

@@ -58,7 +58,7 @@ public class ItemApprovalHistoryPanel extends BasePanel<WfContextType> {
 					return rv;
 				}
 				if (!wfContextType.getEvent().isEmpty()) {
-					wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e)));
+					wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e, getPageBase())));
 				} else {
 					ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
 					if (instanceState != null) {

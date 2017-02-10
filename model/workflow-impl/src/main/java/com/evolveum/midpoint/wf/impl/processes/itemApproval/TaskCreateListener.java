@@ -22,6 +22,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import org.activiti.engine.TaskService;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 
@@ -54,7 +55,8 @@ public class TaskCreateListener implements TaskListener {
 		// originalAssignee
 		String assignee = delegateTask.getAssignee();
 		if (assignee != null) {
-			delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, assignee);
+			TaskService taskService = delegateTask.getExecution().getEngineServices().getTaskService();
+			taskService.setVariableLocal(delegateTask.getId(), CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, assignee);
 		}
 
 		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);

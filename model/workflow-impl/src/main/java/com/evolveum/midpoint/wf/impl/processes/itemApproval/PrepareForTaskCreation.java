@@ -66,6 +66,7 @@ public class PrepareForTaskCreation implements JavaDelegate {
             throw new IllegalStateException("Unsupported type of the approver: " + approverRef.getType());
         }
 
+        // TODO optimize by using setVariablesLocal
 		execution.setVariableLocal(ProcessVariableNames.ASSIGNEE, assignee);
 		execution.setVariableLocal(ProcessVariableNames.CANDIDATE_GROUPS, candidateGroups);
 
