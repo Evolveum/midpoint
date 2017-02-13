@@ -222,7 +222,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		setResponsePage(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService()));
+		navigateToNext(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService()));
 	}
 
 	@Override
