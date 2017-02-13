@@ -69,7 +69,7 @@ public class TestStrings extends AbstractStoryTest {
 
 	@Autowired private WorkflowService workflowService;
 	@Autowired private DummyTransport dummyTransport;
-	
+
 	private static final String TEST_DIR = "src/test/resources/strings";
 	private static final String ORG_DIR = TEST_DIR + "/orgs";
 	private static final String ROLES_DIR = TEST_DIR + "/roles";
@@ -231,7 +231,13 @@ public class TestStrings extends AbstractStoryTest {
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// WHEN
 		assignRole(userBobOid, roleATest1Oid, task, task.getResult());
+
+		// THEN
 		assertNotAssignedRole(getUser(userBobOid), roleATest1Oid);
 
 		WorkItemType workItem = getWorkItem(task, result);
@@ -256,7 +262,6 @@ public class TestStrings extends AbstractStoryTest {
 		display("work items lifecycle notifications", lifecycleMessages);
 		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
-		dummyTransport.clearMessages();
 
 		assertEquals("Wrong # of work items lifecycle messages", 1, lifecycleMessages.size());
 		assertMessage(lifecycleMessages.get(0), "lechuck@evolveum.com", "A new work item has been created",
@@ -269,6 +274,8 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
 				"Process instance name: Assigning a-test-1 to bob", "Stage: Line managers (1/3)");
+
+		display("audit", dummyAuditService);
 	}
 
 	@Test(enabled = true)
@@ -277,6 +284,9 @@ public class TestStrings extends AbstractStoryTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
 
 		// GIVEN
 		login(userAdministrator);
@@ -337,6 +347,8 @@ public class TestStrings extends AbstractStoryTest {
 		// events
 		List<WfProcessEventType> events = assertEvents(wfTask, 1);
 		assertCompletionEvent(events.get(0), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
+
+		display("audit", dummyAuditService);
 	}
 
 	@Test(enabled = true)
@@ -346,13 +358,19 @@ public class TestStrings extends AbstractStoryTest {
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// GIVEN
 		login(userAdministrator);
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		WorkItemType firstWorkItem = workItems.get(0);
 
+		// WHEN
 		// Second approval
 		workflowService.completeWorkItem(firstWorkItem.getWorkItemId(), true, "OK. Security.", null, result);
 
+		// THEN
 		workItems = getWorkItems(task, result);
 		workItems.forEach(wi -> display("Work item after 2nd approval", wi));
 		assertEquals("Wrong # of work items on level 3", 2, workItems.size());
@@ -405,6 +423,8 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(sorted2.get("chef@evolveum.com"), "chef@evolveum.com", "Work item has been allocated to you",
 				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
 				"Allocated to: Scumm Bar Chef (chef)", "^Result:", "(in 5 days)");
+
+		display("audit", dummyAuditService);
 	}
 
 	@Test(enabled = true)
@@ -413,6 +433,9 @@ public class TestStrings extends AbstractStoryTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
 
 		// GIVEN
 		login(userAdministrator);
@@ -457,6 +480,8 @@ public class TestStrings extends AbstractStoryTest {
 				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
 				"Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)",
 				"Result: APPROVED", "^Deadline:");
+
+		display("audit", dummyAuditService);
 	}
 
 	@Test(enabled = true)
@@ -514,6 +539,8 @@ public class TestStrings extends AbstractStoryTest {
 				"Result: APPROVED", "^Deadline:");
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
 				"Process instance name: Assigning a-test-1 to bob", "Result: APPROVED");
+
+		display("audit", dummyAuditService);
 	}
 	//endregion
 
@@ -525,7 +552,13 @@ public class TestStrings extends AbstractStoryTest {
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// WHEN
 		assignRole(userCarlaOid, roleATest1Oid, task, task.getResult());
+
+		// THEN
 		assertNotAssignedRole(getUser(userCarlaOid), roleATest1Oid);
 
 		WorkItemType workItem = getWorkItem(task, result);
@@ -556,6 +589,8 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
 				"Process instance name: Assigning a-test-1 to carla", "Stage: Line managers (1/3)");
+
+		display("audit", dummyAuditService);
 	}
 
 	@Test
@@ -565,9 +600,14 @@ public class TestStrings extends AbstractStoryTest {
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// WHEN
 		clock.overrideDuration("P4D");
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
+		// THEN
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
 		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
@@ -581,6 +621,8 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(allocationMessages.get(0), "guybrush@evolveum.com", "Work item will be automatically escalated in 1 day",
 				"Stage: Line managers (1/3)", "Allocated to (before escalation): Guybrush Threepwood (guybrush)");
 		assertNull("process messages", processMessages);
+
+		display("audit", dummyAuditService);
 	}
 
 	// escalation should occur here
@@ -590,6 +632,9 @@ public class TestStrings extends AbstractStoryTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
 
 		// WHEN
 		clock.resetOverride();
@@ -646,6 +691,8 @@ public class TestStrings extends AbstractStoryTest {
 				"Escalation level: Line manager escalation (1)",
 				"|Allocated to (after escalation): Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to (after escalation): Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
 				"(in 9 days)");
+
+		display("audit", dummyAuditService);
 	}
 
 	@Test
@@ -655,10 +702,15 @@ public class TestStrings extends AbstractStoryTest {
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// WHEN
 		clock.resetOverride();
 		clock.overrideDuration("P8D");
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
+		// THEN
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
 		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
@@ -691,6 +743,8 @@ public class TestStrings extends AbstractStoryTest {
 				"Escalation level: Line manager escalation (1)",
 				"|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
 				"(in 9 days)");
+
+		display("audit", dummyAuditService);
 	}
 
 	@Test(enabled = true)
@@ -699,6 +753,9 @@ public class TestStrings extends AbstractStoryTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
 
 		// GIVEN
 		login(userAdministrator);
@@ -777,6 +834,8 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you",
 				"Work item: Approve assigning a-test-1 to carla", "Stage: Security (2/3)",
 				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
+
+		display("audit", dummyAuditService);
 	}
 
 	// notification should be send
@@ -786,6 +845,9 @@ public class TestStrings extends AbstractStoryTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
 
 		// GIVEN
 		clock.resetOverride();
@@ -815,6 +877,8 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com",
 				"Work item will be automatically completed in 2 days",
 				"Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)");
+
+		display("audit", dummyAuditService);
 	}
 
 	@Test
@@ -823,6 +887,9 @@ public class TestStrings extends AbstractStoryTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
 
 		// GIVEN
 		clock.resetOverride();
@@ -847,6 +914,8 @@ public class TestStrings extends AbstractStoryTest {
 		checkOneCompletedOneCancelled(allocationMessages);
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
 				"Process instance name: Assigning a-test-1 to carla", "Result: REJECTED");
+
+		display("audit", dummyAuditService);
 	}
 
 	private void checkOneCompletedOneCancelled(List<Message> lifecycleMessages) {
