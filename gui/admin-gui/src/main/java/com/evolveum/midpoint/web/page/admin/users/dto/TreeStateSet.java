@@ -42,6 +42,14 @@ public class TreeStateSet<T extends Serializable> implements Set<T>, Serializabl
         inverse = false;
     }
 
+    public boolean isInverse() {
+        return inverse;
+    }
+
+    public void setInverse(boolean inverse) {
+        this.inverse = inverse;
+    }
+
     @Override
     public boolean add(T t) {
         return inverse ? set.remove(t) : set.add(t);

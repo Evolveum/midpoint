@@ -2,13 +2,18 @@ package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -20,11 +25,10 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -42,11 +46,13 @@ public class PageAssignmentsList extends PageBase{
     private static final String ID_FORM = "mainForm";
     private static final String ID_BACK = "back";
     private static final String ID_REQUEST_BUTTON = "request";
+    private static final String ID_SUBMIT_BUTTON = "submit";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRequestRole.class);
     private static final String DOT_CLASS = PageAssignmentsList.class.getName() + ".";
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
     private static final String OPERATION_WF_TASK_CREATED = "com.evolveum.midpoint.wf.impl.WfHook.invoke";
+    private static final String OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS = "reviewAssignmentConflicts";
 
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
     private PrismObject<UserType> user;
@@ -118,6 +124,25 @@ public class PageAssignmentsList extends PageBase{
 
         };
         mainForm.add(requestAssignments);
+
+            AjaxSubmitButton submitAssignments = new AjaxSubmitButton(ID_SUBMIT_BUTTON,
+                    createStringResource("PageAssignmentsList.submitButton")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                getAssignmentConflicts();
+//                PageAssignmentsList.this.setResponsePage(PageAssignmentConflicts.class);
+            }
+
+        };
+        //TODO temporarily
+        submitAssignments.setVisible(false);
+        mainForm.add(submitAssignments);
 
     }
 
@@ -252,4 +277,84 @@ public class PageAssignmentsList extends PageBase{
         }
         return assignmentsList;
     }
+
+    private void getAssignmentConflicts(){
+        ModelContext<UserType> modelContext = null;
+
+        ObjectDelta<UserType> delta;
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+
+        OperationResult result = new OperationResult(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
+        Task task = createSimpleTask(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
+        try {
+            delta = user.createModifyDelta();
+
+            PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+            handleAssignmentDeltas(delta, addAssignmentsToUser(), def);
+
+            modelContext = getModelInteractionService()
+                    .previewChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
+                    .getEvaluatedAssignmentTriple();
+            Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple
+                    .getPlusSet();
+            if (addedAssignments != null) {
+                for (EvaluatedAssignment evaluatedAssignment : addedAssignments){
+                    Collection<EvaluatedPolicyRule> targetPolicyRules = evaluatedAssignment.getTargetPolicyRules();
+                    if (targetPolicyRules != null) {
+                        for (EvaluatedPolicyRule rule : targetPolicyRules){
+                            List<ExclusionPolicyConstraintType> exclusions = rule.getPolicyConstraints().getExclusion();
+                            if (exclusions != null){
+                                for (ExclusionPolicyConstraintType exclusion : exclusions){
+                                    ObjectReferenceType ref = exclusion.getTargetRef();
+                                    if (ref !=  null){
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+                    if (addedAssignments.isEmpty()) {
+//                info(getString("pageAdminFocus.message.noAssignmentsAvailable"));
+//                target.add(getFeedbackPanel());
+//                return null;
+                    }
+            }
+
+//            for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
+//                if (!evaluatedAssignment.isValid()) {
+//                    continue;
+//                }
+//                // roles and orgs
+//                DeltaSetTriple<? extends EvaluatedAssignmentTarget> evaluatedRolesTriple = evaluatedAssignment
+//                        .getRoles();
+//                Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = evaluatedRolesTriple
+//                        .getNonNegativeValues();
+//                for (EvaluatedAssignmentTarget role : evaluatedRoles) {
+//                    if (role.isEvaluateConstructions()) {
+//                        assignmentDtoSet.add(createAssignmentsPreviewDto(role, task, result));
+//                    }
+//                }
+//
+//                // all resources
+//                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment
+//                        .getEvaluatedConstructions(task, result);
+//                Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple
+//                        .getNonNegativeValues();
+//                for (EvaluatedConstruction construction : evaluatedConstructions) {
+//                    assignmentDtoSet.add(createAssignmentsPreviewDto(construction));
+//                }
+//            }
+//
+//            return new ArrayList<>(assignmentDtoSet);
+        } catch (Exception e) {
+//            target.add(getFeedbackPanel());
+//            return null;
+        }
+
+
+    }
+
 }

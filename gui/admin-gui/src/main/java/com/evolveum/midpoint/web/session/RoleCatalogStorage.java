@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class RoleCatalogStorage implements PageStorage{
+public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     /**
      * DTO used for search in {@link com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart}
      */
@@ -87,34 +87,42 @@ public class RoleCatalogStorage implements PageStorage{
         return sb.toString();
     }
 
+    @Override
     public SelectableBean<OrgType> getSelectedItem() {
         return selectedItem;
     }
 
+    @Override
     public void setSelectedItem(SelectableBean<OrgType> selectedItem) {
         this.selectedItem = selectedItem;
     }
 
+    @Override
     public TreeStateSet<SelectableBean<OrgType>> getExpandedItems() {
         return expandedItems;
     }
 
+    @Override
     public void setExpandedItems(TreeStateSet<SelectableBean<OrgType>> expandedItems) {
         this.expandedItems = expandedItems;
     }
 
+    @Override
     public int getSelectedTabId() {
         return selectedTabId;
     }
 
+    @Override
     public void setSelectedTabId(int selectedTabId) {
         this.selectedTabId = selectedTabId;
     }
 
+    @Override
     public SelectableBean<OrgType> getCollapsedItem() {
         return collapsedItem;
     }
 
+    @Override
     public void setCollapsedItem(SelectableBean<OrgType> collapsedItem) {
         this.collapsedItem = collapsedItem;
     }

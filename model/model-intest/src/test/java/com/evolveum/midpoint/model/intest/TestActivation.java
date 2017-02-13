@@ -1688,7 +1688,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 * Add draft user with a role assignment.
 	 * Even though Pirate role gives dummy account the user is in the draft
 	 * state. No account should be created.
-	 * MID-3689
+	 * MID-3689, MID-3737
 	 */
 	@Test
     public void test240AddUserRappDraft() throws Exception {
@@ -1703,9 +1703,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         userTypeBefore.setLifecycleState(SchemaConstants.LIFECYCLE_DRAFT);
         AssignmentType assignmentType = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType();
-        targetRef.setOid(ROLE_PIRATE_OID);
+        targetRef.setOid(ROLE_CARIBBEAN_PIRATE_OID);
         targetRef.setType(RoleType.COMPLEX_TYPE);
 		assignmentType.setTargetRef(targetRef);
+		ActivationType activationType = new ActivationType();
+		// Make sure that this assignment is very explicitly enabled.
+		// Even though it is enabled the lifecycle should overrule it.
+		activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
+		assignmentType.setActivation(activationType);
 		userTypeBefore.getAssignment().add(assignmentType);
         display("User before", userBefore);
 
@@ -1725,8 +1730,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
         
-        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignedRole(userAfter, ROLE_CARIBBEAN_PIRATE_OID);
         assertAssignments(userAfter, 1);
+        
+        // assignments are not active due to lifecycle, there should
+        // be no roles in roleMembershipRef
+        // MID-3741
+//        assertRoleMembershipRef(userAfter);
         
         assertLinks(userAfter, 0);
         
@@ -1736,7 +1746,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	/**
 	 * Still draft. Still no accounts.
-	 * MID-3689
+	 * MID-3689, MID-3737
 	 */
 	@Test
     public void test241RecomputeRappDraft() throws Exception {
@@ -1762,8 +1772,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
         
-        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignedRole(userAfter, ROLE_CARIBBEAN_PIRATE_OID);
         assertAssignments(userAfter, 1);
+        
+        // assignments are not active due to lifecycle, there should
+        // be no roles in roleMembershipRef
+        // MID-3741
+//        assertRoleMembershipRef(userAfter);
         
         assertLinks(userAfter, 0);
         
@@ -1774,7 +1789,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Even though Captain role gives dummy account the user is in the draft
 	 * state. No account should be created.
-	 * MID-3689
+	 * MID-3689, MID-3737
 	 */
 	@Test
     public void test242RappAssignCaptain() throws Exception {
@@ -1797,9 +1812,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("user after", userAfter);
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
         
-        assertAssignedRoles(userAfter, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
         assertLinks(userAfter, 0);
+        
+        // assignments are not active due to lifecycle, there should
+        // be no roles in roleMembershipRef
+        // MID-3741
+//        assertRoleMembershipRef(userAfter);
         
         assertNoDummyAccount(USER_RAPP_USERNAME);
 	}
@@ -1807,7 +1827,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Switch Rapp to active state. The assignments should be
 	 * activated as well.
-	 * MID-3689
+	 * MID-3689, MID-3737
 	 */
 	@Test
     public void test245ActivateRapp() throws Exception {
@@ -1831,9 +1851,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("user after", userAfter);
         assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
         
-        assertAssignedRoles(userAfter, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
         assertLinks(userAfter, 1);
+        
+        assertRoleMembershipRef(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
         
         DummyAccount dummyAccount = assertDummyAccount(null, USER_RAPP_USERNAME);
         display("dummy account", dummyAccount);
@@ -1872,9 +1894,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("user after", userAfter);
         assertEffectiveActivation(userAfter, ActivationStatusType.ARCHIVED);
         
-        assertAssignedRoles(userAfter, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+        assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);
         assertLinks(userAfter, 0);
+        
+        // assignments are not active due to lifecycle, there should
+        // be no roles in roleMembershipRef
+        // MID-3741
+//        assertRoleMembershipRef(userAfter);
         
         assertNoDummyAccount(USER_RAPP_USERNAME);
 	}

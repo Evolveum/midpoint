@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * @author lazyman
  */
-public class UsersStorage implements PageStorage, DebugDumpable {
+public class UsersStorage implements PageStorage, DebugDumpable, OrgTreeStateStorage {
 
     /**
 	 * 
@@ -98,34 +98,42 @@ public class UsersStorage implements PageStorage, DebugDumpable {
         this.orgUnitPaging = orgUnitPaging;
     }
 
+    @Override
     public Set<SelectableBean<OrgType>> getExpandedItems() {
         return expandedItems;
     }
 
+    @Override
     public void setExpandedItems(TreeStateSet<SelectableBean<OrgType>> expandedItems) {
         this.expandedItems = expandedItems != null ? expandedItems.clone() : null;
     }
 
+    @Override
     public SelectableBean<OrgType> getSelectedItem() {
         return selectedItem;
     }
 
+    @Override
     public void setSelectedItem(SelectableBean<OrgType> selectedItem) {
         this.selectedItem = selectedItem;
     }
 
+    @Override
     public int getSelectedTabId() {
         return selectedTabId;
     }
 
+    @Override
     public void setSelectedTabId(int selectedTabId) {
         this.selectedTabId = selectedTabId;
     }
 
+    @Override
     public SelectableBean<OrgType> getCollapsedItem() {
         return collapsedItem;
     }
 
+    @Override
     public void setCollapsedItem(SelectableBean<OrgType> collapsedItem) {
         this.collapsedItem = collapsedItem;
     }
