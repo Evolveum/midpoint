@@ -191,6 +191,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String ROLE_PIRATE_TITLE = "Bloody Pirate";
     protected static final String ROLE_PIRATE_WEAPON = "cutlass";
     
+    protected static final File ROLE_CARIBBEAN_PIRATE_FILE = new File(COMMON_DIR, "role-caribbean-pirate.xml");
+	protected static final String ROLE_CARIBBEAN_PIRATE_OID = "0719ec66-edd9-11e6-bd70-03a74157ff9e";
+    
     protected static final File ROLE_PIRATE_GREEN_FILE = new File(COMMON_DIR, "role-pirate-green.xml");
 	protected static final String ROLE_PIRATE_GREEN_OID = "12345678-d34d-b33f-f00d-555555557777";
     protected static final String ROLE_PIRATE_GREEN_NAME = "Pirate Green";
