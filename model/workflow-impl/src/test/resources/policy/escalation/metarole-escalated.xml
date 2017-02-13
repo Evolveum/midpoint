@@ -39,6 +39,8 @@
 								<actions>
 									<notify/>
 								</actions>
+								<escalationLevelFrom>0</escalationLevelFrom>		<!-- applies only to zero escalation level -->
+								<escalationLevelTo>0</escalationLevelTo>			<!-- applies only to zero escalation level -->
 							</timedActions>
 							<timedActions>
 								<name>2 days before deadline, escalate</name>
@@ -54,8 +56,8 @@
 										<escalationLevelDisplayName>Escalated to lead2</escalationLevelDisplayName>
 									</escalate>
 								</actions>
-								<escalationLevelFrom>0</escalationLevelFrom>		<!-- applies only to zero escalation level -->
-								<escalationLevelTo>0</escalationLevelTo>			<!-- applies only to zero escalation level -->
+								<escalationLevelFrom>0</escalationLevelFrom>
+								<escalationLevelTo>0</escalationLevelTo>
 							</timedActions>
 							<timedActions>
 								<name>Finally - approve</name>
@@ -64,6 +66,8 @@
 										<outcome>approve</outcome>
 									</complete>
 								</actions>
+								<escalationLevelFrom>0</escalationLevelFrom>		<!-- no need to reapply after escalation: the trigger is already there -->
+								<escalationLevelTo>0</escalationLevelTo>
 							</timedActions>
 						</level>
 					</approvalSchema>

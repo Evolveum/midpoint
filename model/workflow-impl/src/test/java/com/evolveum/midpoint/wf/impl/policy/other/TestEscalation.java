@@ -106,6 +106,9 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		display("work item", workItem);
 		display("workflow task", wfTask);
 
+		// 5 days: notification
+		// D-2 days: escalate
+		// D-0 days: approve
 		assertEquals("Wrong # of triggers", 3, wfTask.asObjectable().getTrigger().size());
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid);
