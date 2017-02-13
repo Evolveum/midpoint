@@ -285,14 +285,21 @@ public class SchemaTransformer {
 						// This means allow to all subitems unless otherwise denied.
 						subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
 					}
+					boolean itemWasEmpty = item.isEmpty();		// to prevent removal of originally empty items
 					List<? extends PrismContainerValue<?>> values = ((PrismContainer<?>)item).getValues();
 					Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
 					while (vi.hasNext()) {
 						PrismContainerValue<?> cval = vi.next();
 						List<Item<?,?>> subitems = cval.getItems();
-						if (subitems != null) {
+						if (subitems != null && !subitems.isEmpty()) {	// second condition is to prevent removal of originally empty values
 							applySecurityConstraints(subitems, securityConstraints, subDefaultReadDecision, itemAddDecision, itemModifyDecision, phase);
+							if (subitems.isEmpty()) {
+								vi.remove();
+							}
 						}
+					}
+					if (!itemWasEmpty && item.isEmpty()) {
+						iterator.remove();
 					}
 				}
 			} else {
