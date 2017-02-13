@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -32,6 +33,7 @@ import org.apache.wicket.markup.html.navigation.paging.IPageableItems;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,9 +48,8 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private static final String ID_PAGING_FOOTER = "pagingFooter";
     private static final String ID_PAGING = "paging";
     private static final String ID_COUNT = "count";
-    private static final String ID_MENU = "menu";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
-    private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
+    private static final String ID_SUBMIT_BUTTON = "submitButton";
     private static final String ID_FOOTER = "footer";
 
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> objectDataProvider;
@@ -119,26 +120,13 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     }
 
     private void initItemListModel() {
-        itemsListModel = new IModel<List<AssignmentEditorDto>>() {
-            @Override
-            public List<AssignmentEditorDto> getObject() {
-                if (isListProvider){
-                    return listProvider != null ? listProvider.getAvailableData() : new ArrayList<AssignmentEditorDto>();
-                } else {
-                    return objectDataProvider != null ? objectDataProvider.getAvailableData() : new ArrayList<AssignmentEditorDto>();
-                }
-            }
-
-            @Override
-            public void setObject(List<AssignmentEditorDto> assignmentTypeList) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
+        List<AssignmentEditorDto> itemList = new ArrayList<>();
+        if (isListProvider){
+            itemList = listProvider != null ? listProvider.getAvailableData() : new ArrayList<>();
+        } else {
+            itemList = objectDataProvider != null ? objectDataProvider.getAvailableData() : new ArrayList<>();
+        }
+        itemsListModel = Model.ofList(itemList);
     }
 
     private void refreshItemsPanel() {
@@ -177,7 +165,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         footer.add(new VisibleEnableBehaviour(){
            @Override
             public boolean isVisible(){
-               return !isCatalogOidEmpty();
+               return !isCatalogOidEmpty() && getPageCount() > 1;
            }
         });
         return footer;
