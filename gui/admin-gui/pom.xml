@@ -539,6 +539,23 @@
             <artifactId>commons-validator</artifactId>
         </dependency>
 
+ 		<dependency>
+	        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+	             As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+	             Therefore explicitly use the custom version. -->
+	        <groupId>org.apache.httpcomponents</groupId>
+	        <artifactId>httpclient</artifactId>
+	        <scope>runtime</scope>
+        </dependency>
+        <dependency>
+	        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+	             As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+	             Therefore explicitly use the custom version. -->
+	        <groupId>org.apache.httpcomponents</groupId>
+	        <artifactId>httpcore</artifactId>
+	        <scope>runtime</scope>
+        </dependency>
+        
         <dependency>
             <groupId>org.ocpsoft.prettytime</groupId>
             <artifactId>prettytime</artifactId>
