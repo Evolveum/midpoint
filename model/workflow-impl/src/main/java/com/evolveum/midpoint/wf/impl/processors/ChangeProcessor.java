@@ -104,17 +104,11 @@ public interface ChangeProcessor {
 
     /**
      * Prepares a work item-related audit record.
-     *
-     *
-	 * @param workItem
-	 * @param wfTask
-	 * @param taskEvent
-	 * @param stage
-	 * @param result
-	 * @return
      */
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
+    AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, OperationResult result) throws WorkflowException;
+
+    AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, OperationResult result) throws WorkflowException;
 
     /**
      * Auxiliary method to access autowired Spring beans from within non-spring java objects.

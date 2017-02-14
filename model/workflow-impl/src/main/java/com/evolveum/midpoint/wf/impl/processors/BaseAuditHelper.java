@@ -27,13 +27,11 @@ import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,77 +52,116 @@ public class BaseAuditHelper {
 
     public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, OperationResult result) {
 
-        AuditEventRecord auditEventRecord = new AuditEventRecord();
-        auditEventRecord.setEventType(WORKFLOW_PROCESS_INSTANCE);
-        auditEventRecord.setEventStage(stage);
-		auditEventRecord.setInitiator(wfTask.getRequesterIfExists(result));
+        AuditEventRecord record = new AuditEventRecord();
+        record.setEventType(WORKFLOW_PROCESS_INSTANCE);
+        record.setEventStage(stage);
+		record.setInitiator(wfTask.getRequesterIfExists(result));
 
         PrismObject<GenericObjectType> processInstanceObject = new PrismObject<>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
         processInstanceObject.asObjectable().setName(new PolyStringType(wfTask.getProcessInstanceName()));
         processInstanceObject.asObjectable().setOid(wfTask.getProcessInstanceId());
-        auditEventRecord.setTarget(processInstanceObject);
+        record.setTarget(processInstanceObject);
 
-        auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
+        record.setOutcome(OperationResultStatus.SUCCESS);
 
+		WfContextType wfc = wfTask.getTask().getWorkflowContext();
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, wfc.getObjectRef());
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, wfc.getTargetRef());
 		if (stage == EXECUTION) {
-			auditEventRecord.setParameter(wfTask.getCompleteStageInfo());
+			String stageInfo = wfTask.getCompleteStageInfo();
+			record.setParameter(stageInfo);
+			String answer = wfTask.getAnswerNice();
+			record.setResult(answer);
+			record.setMessage(stageInfo != null ? stageInfo + " : " + answer : answer);
+
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, wfc.getStageNumber());
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, wfc.getStageCount());
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, wfc.getStageName());
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, wfc.getStageDisplayName());
 		}
 
-		return auditEventRecord;
+		return record;
+    }
+
+    public AuditEventRecord prepareWorkItemAuditReportCommon(WorkItemType workItem, WfTask wfTask, AuditEventStage stage,
+			OperationResult result) throws WorkflowException {
+
+		AuditEventRecord record = new AuditEventRecord();
+		record.setEventType(AuditEventType.WORK_ITEM);
+		record.setEventStage(stage);
+
+		PrismObject<GenericObjectType> targetObject = new PrismObject<>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
+		targetObject.asObjectable().setName(new PolyStringType(workItem.getName()));
+		targetObject.asObjectable().setOid(workItem.getWorkItemId());
+		record.setTarget(targetObject);
+
+		@SuppressWarnings("unchecked")
+		PrismObject<UserType> targetOwner = (PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getOriginalAssigneeRef());
+		record.setTargetOwner(targetOwner);
+
+		record.setOutcome(OperationResultStatus.SUCCESS);
+		record.setParameter(wfTask.getCompleteStageInfo());
+
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, workItem.getObjectRef());
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, workItem.getTargetRef());
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE, workItem.getOriginalAssigneeRef());
+		record.addReferenceValues(WorkflowConstants.AUDIT_CURRENT_ASSIGNEE, workItem.getAssigneeRef());
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, workItem.getStageCount());
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, workItem.getStageName());
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, workItem.getStageDisplayName());
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, workItem.getEscalationLevelNumber());
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, workItem.getEscalationLevelName());
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, workItem.getEscalationLevelDisplayName());
+		return record;
+	}
+
+	// workItem contains taskRef, assignee, originalAssignee, candidates resolved (if possible)
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, OperationResult result)
+			throws WorkflowException {
+
+        AuditEventRecord record = prepareWorkItemAuditReportCommon(workItem, wfTask, AuditEventStage.REQUEST, result);
+		record.setInitiator(wfTask.getRequesterIfExists(result));
+		record.setMessage(wfTask.getCompleteStageInfo());
+        return record;
     }
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, AuditEventStage stage,
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask,
 		OperationResult result) throws WorkflowException {
 
-        AuditEventRecord auditEventRecord = new AuditEventRecord();
-        auditEventRecord.setEventType(AuditEventType.WORK_ITEM);
-        auditEventRecord.setEventStage(stage);
+        AuditEventRecord record = prepareWorkItemAuditReportCommon(workItem, wfTask, AuditEventStage.EXECUTION, result);
+		setCurrentUserAsInitiator(record);
 
-        if (stage == AuditEventStage.REQUEST) {
-            auditEventRecord.setInitiator(wfTask.getRequesterIfExists(result));
-	        @SuppressWarnings("unchecked")
-	        PrismObject<UserType> targetOwner = (PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getOriginalAssigneeRef());
-	        auditEventRecord.setTargetOwner(targetOwner);
-        } else {
-            try {
-                @SuppressWarnings("unchecked")
-                PrismObject<UserType> principal = securityEnforcer.getPrincipal().getUser().asPrismObject();
-                auditEventRecord.setInitiator(principal);
-                auditEventRecord.setTargetOwner(principal);
-            } catch (SecurityViolationException e) {
-                auditEventRecord.setInitiator(null);
-                auditEventRecord.setTargetOwner(null);
-                LOGGER.warn("No initiator and target owner known for auditing work item completion: " + e.getMessage(), e);
-            }
-        }
-
-        PrismObject<GenericObjectType> targetObject = new PrismObject<>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
-        targetObject.asObjectable().setName(new PolyStringType(workItem.getName()));
-        targetObject.asObjectable().setOid(workItem.getWorkItemId());
-        auditEventRecord.setTarget(targetObject);
-
+		// message + result
+		StringBuilder message = new StringBuilder();
 		String stageInfo = wfTask.getCompleteStageInfo();
-		auditEventRecord.setParameter(stageInfo);
-        auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
-        if (stage == AuditEventStage.EXECUTION) {
-			WorkItemResultType itemResult = workItem.getResult();
-			StringBuilder message = new StringBuilder();
-			if (stageInfo != null) {
-				message.append(stageInfo).append(" : ");
+		if (stageInfo != null) {
+			message.append(stageInfo).append(" : ");
+		}
+		WorkItemResultType itemResult = workItem.getResult();
+		if (itemResult != null) {
+			String answer = ApprovalUtils.makeNice(itemResult.getOutcomeAsString());
+			record.setResult(answer);
+			message.append(answer);
+			if (itemResult.getComment() != null) {
+				message.append(" : ").append(itemResult.getComment());
 			}
-			if (itemResult != null) {
-				String answer = ApprovalUtils.makeNice(itemResult.getOutcomeAsString());
-				auditEventRecord.setResult(answer);
-				message.append(answer);
-				if (itemResult.getComment() != null) {
-					message.append(" : ").append(itemResult.getComment());
-				}
-			} else {
-				message.append("(no decision)");		// TODO
-			}
-			auditEventRecord.setMessage(message.toString());
-        }
-        return auditEventRecord;
+		} else {
+			message.append("(no decision)");		// TODO
+		}
+		record.setMessage(message.toString());
+        return record;
     }
+
+	private void setCurrentUserAsInitiator(AuditEventRecord record) {
+		try {
+			@SuppressWarnings("unchecked")
+			PrismObject<UserType> principal = securityEnforcer.getPrincipal().getUser().asPrismObject();
+			record.setInitiator(principal);
+		} catch (SecurityViolationException e) {
+			record.setInitiator(null);
+			LOGGER.warn("No initiator known for auditing work item event: " + e.getMessage(), e);
+		}
+	}
 }

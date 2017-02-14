@@ -199,9 +199,15 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
             OperationResult result) throws WorkflowException {
-        return getScenarioBean(taskEvent.getVariables()).prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
+        return getScenarioBean(taskEvent.getVariables()).prepareWorkItemCreatedAuditRecord(workItem, wfTask, taskEvent, result);
+    }
+
+    @Override
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
+            OperationResult result) throws WorkflowException {
+        return getScenarioBean(taskEvent.getVariables()).prepareWorkItemDeletedAuditRecord(workItem, wfTask, taskEvent, result);
     }
     //endregion
 }

@@ -24,4 +24,16 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 public class WorkflowConstants {
 
 	public static final String NS_WORKFLOW_TRIGGER_PREFIX = SchemaConstants.NS_WORKFLOW + "/trigger";
+	
+	public static final String AUDIT_OBJECT = "wf.object";
+	public static final String AUDIT_TARGET = "wf.target";
+	public static final String AUDIT_ORIGINAL_ASSIGNEE = "wf.originalAssignee";
+	public static final String AUDIT_CURRENT_ASSIGNEE = "wf.currentAssignee";
+	public static final String AUDIT_STAGE_NUMBER = "wf.stageNumber";
+	public static final String AUDIT_STAGE_COUNT = "wf.stageCount";
+	public static final String AUDIT_STAGE_NAME = "wf.stageName";
+	public static final String AUDIT_STAGE_DISPLAY_NAME = "wf.stageDisplayName";
+	public static final String AUDIT_ESCALATION_LEVEL_NUMBER = "wf.escalationLevelNumber";
+	public static final String AUDIT_ESCALATION_LEVEL_NAME = "wf.escalationLevelName";
+	public static final String AUDIT_ESCALATION_LEVEL_DISPLAY_NAME = "wf.escalationLevelDisplayName";
 }

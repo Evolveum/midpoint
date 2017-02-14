@@ -318,6 +318,18 @@ public class AuditEventRecord implements DebugDumpable {
 		properties.computeIfAbsent(key, k -> new HashSet<>()).add(value);
 	}
 
+	public void addPropertyValueIgnoreNull(String key, Object value) {
+		if (value != null) {
+			addPropertyValue(key, String.valueOf(value));
+		}
+	}
+
+	public void addReferenceValueIgnoreNull(String key, ObjectReferenceType value) {
+		if (value != null) {
+			addReferenceValue(key, value.asReferenceValue());
+		}
+	}
+
 	public void addReferenceValue(String key, @NotNull AuditReferenceValue value) {
 		Validate.notNull(value, "Reference value must not be null");
 		references.computeIfAbsent(key, k -> new HashSet<>()).add(value);
@@ -326,6 +338,10 @@ public class AuditEventRecord implements DebugDumpable {
 	public void addReferenceValue(String key, @NotNull PrismReferenceValue prv) {
 		Validate.notNull(prv, "Reference value must not be null");
 		addReferenceValue(key, new AuditReferenceValue(prv));
+	}
+
+	public void addReferenceValues(String key, @NotNull List<ObjectReferenceType> values) {
+		values.forEach(v -> addReferenceValue(key, v.asReferenceValue()));
 	}
 
 	public void checkConsistence() {

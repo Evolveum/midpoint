@@ -343,7 +343,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, result);
 
-        ObjectTreeDeltas<?> deltas = null;
+        ObjectTreeDeltas<?> deltas;
         try {
             if (stage == REQUEST) {
                 deltas = wfTaskUtil.retrieveDeltasToProcess(wfTask.getTask());
@@ -351,7 +351,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 deltas = wfTaskUtil.retrieveResultingDeltas(wfTask.getTask());
             }
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve delta(s) from task " + wfTask.getTask(), e);
+            throw new SystemException("Couldn't retrieve delta(s) from task " + wfTask.getTask(), e);
         }
         if (deltas != null) {
             List<ObjectDelta<?>> deltaList = deltas.getDeltaList();
@@ -359,38 +359,42 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
             }
         }
-
-        if (stage == EXECUTION) {
-			String answer = wfTask.getAnswerNice();
-			String stageInfo = wfTask.getCompleteStageInfo();
-			auditEventRecord.setResult(answer);
-            auditEventRecord.setMessage(stageInfo != null ? stageInfo + " : " + answer : answer);
-        }
-
         return auditEventRecord;
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
             OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemAuditRecord(workItem, wfTask, stage, result);
-
-        ObjectTreeDeltas<?> deltas = null;
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
         try {
-			deltas = getWfTaskUtil().retrieveDeltasToProcess(wfTask.getTask());
+            addDeltasToEventRecord(auditEventRecord,
+                    getWfTaskUtil().retrieveDeltasToProcess(wfTask.getTask()));
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
         }
+		return auditEventRecord;
+    }
 
-		if (deltas != null) {
+    @Override
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
+            OperationResult result) throws WorkflowException {
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, wfTask, result);
+        try {
+        	// TODO TODO TODO
+            addDeltasToEventRecord(auditEventRecord,
+                    getWfTaskUtil().retrieveDeltasToProcess(wfTask.getTask()));
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
+        }
+		return auditEventRecord;
+    }
+
+    private void addDeltasToEventRecord(AuditEventRecord auditEventRecord, ObjectTreeDeltas<?> deltas) {
+        if (deltas != null) {
 			for (ObjectDelta<?> delta : deltas.getDeltaList()) {
 				auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
 			}
 		}
-
-		// TODO what about additional deltas?
-
-		return auditEventRecord;
     }
 
     //endregion

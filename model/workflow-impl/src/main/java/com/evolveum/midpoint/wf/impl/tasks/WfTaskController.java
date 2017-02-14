@@ -329,7 +329,8 @@ public class WfTaskController {
 
 		// auditing & notifications
         if (taskEvent instanceof TaskCreatedEvent) {
-            auditWorkItemEvent(workItem, wfTask, taskEvent, AuditEventStage.REQUEST, result);
+			AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemCreatedAuditRecord(workItem, wfTask, taskEvent, result);
+			auditService.audit(auditEventRecord, wfTask.getTask());
             try {
                 notifyWorkItemCreated(workItem, workItem.getOriginalAssigneeRef(), wfTask, result);
                 if (workItem.getAssigneeRef() != null) {
@@ -340,7 +341,8 @@ public class WfTaskController {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
             }
         } else if (taskEvent instanceof TaskDeletedEvent) {
-            auditWorkItemEvent(workItem, wfTask, taskEvent, AuditEventStage.EXECUTION, result);
+			AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemDeletedAuditRecord(workItem, wfTask, taskEvent, result);
+			auditService.audit(auditEventRecord, wfTask.getTask());
             try {
             	WorkItemOperationKindType operationKind = BooleanUtils.isTrue(ActivitiUtil.getVariable(taskEvent.getVariables(),
 						CommonProcessVariableNames.VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.class, prismContext)) ?
@@ -433,12 +435,6 @@ public class WfTaskController {
         for (WorkItemListener workItemListener : workItemListeners) {
             workItemListener.onWorkItemCustomEvent(workItem, assignee, notificationAction, wfTask, result);
         }
-    }
-
-	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    private void auditWorkItemEvent(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
-        auditService.audit(auditEventRecord, wfTask.getTask());
     }
 
     public void registerProcessListener(ProcessListener processListener) {

@@ -91,9 +91,16 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
 			OperationResult result) throws WorkflowException {
-        return baseAuditHelper.prepareWorkItemAuditRecord(workItem, wfTask, stage, result);
+        return baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
+        // TODO fill-in missing delta somehow
+    }
+
+    @Override
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
+			OperationResult result) throws WorkflowException {
+        return baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, wfTask, result);
         // TODO fill-in missing delta somehow
     }
 
