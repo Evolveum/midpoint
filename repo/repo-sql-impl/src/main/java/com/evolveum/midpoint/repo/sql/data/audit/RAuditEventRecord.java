@@ -104,7 +104,7 @@ public class RAuditEventRecord implements Serializable {
 		return result;
 	}
 
-	@Column(length = 1024)
+	@Column(length = AuditService.MAX_MESSAGE_SIZE)
 	public String getMessage() {
 		return message;
 	}
@@ -452,7 +452,7 @@ public class RAuditEventRecord implements Serializable {
 		repo.setEventIdentifier(record.getEventIdentifier());
 		repo.setHostIdentifier(record.getHostIdentifier());
 		repo.setParameter(record.getParameter());
-		repo.setMessage(trimMessage(record.getMessage()));
+		repo.setMessage(RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
 		if (record.getOutcome() != null) {
 			repo.setOutcome(RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
 					ROperationResultStatus.class));
@@ -505,7 +505,8 @@ public class RAuditEventRecord implements Serializable {
 
 			for (Map.Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
 				for (String propertyValue : propertyEntry.getValue()) {
-					repo.getPropertyValues().add(RAuditPropertyValue.toRepo(repo, propertyEntry.getKey(), propertyValue));
+					repo.getPropertyValues().add(RAuditPropertyValue.toRepo(
+							repo, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE)));
 				}
 			}
 			for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
@@ -575,13 +576,6 @@ public class RAuditEventRecord implements Serializable {
 		return audit;
 		// initiator, target, targetOwner
 
-	}
-
-	private static String trimMessage(String message) {
-		if (message == null || message.length() <= AuditService.MAX_MESSAGE_SIZE) {
-			return message;
-		}
-		return message.substring(0, AuditService.MAX_MESSAGE_SIZE - 4) + "...";
 	}
 
 	private static String getOrigName(PrismObject object) {

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public interface AuditService {
 
     int MAX_MESSAGE_SIZE = 1024;
+    int MAX_PROPERTY_SIZE = 1024;
 
 	void audit(AuditEventRecord record, Task task);
 

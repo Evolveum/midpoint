@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import com.evolveum.midpoint.audit.api.AuditService;
+
 import javax.persistence.*;
 
 import java.util.Objects;
@@ -84,6 +86,7 @@ public class RAuditPropertyValue {
 		this.key = key;
 	}
 
+	@Column(length = AuditService.MAX_PROPERTY_SIZE)
 	public String getValue() {
 		return value;
 	}
