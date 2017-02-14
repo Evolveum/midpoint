@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.testing.story;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.test.DummyTransport;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -499,7 +502,8 @@ public class TestStrings extends AbstractStoryTest {
 
 		// WHEN
 		login(getUser(userChefOid));
-		workflowService.completeWorkItem(workItemsMap.get(userChefOid).getWorkItemId(), true, "OK. Chef.", null, result);
+		String workItemId = workItemsMap.get(userChefOid).getWorkItemId();
+		workflowService.completeWorkItem(workItemId, true, "OK. Chef.", null, result);
 
 		// THEN
 		login(userAdministrator);
@@ -514,7 +518,6 @@ public class TestStrings extends AbstractStoryTest {
 
 		assertAssignedRole(getUser(userBobOid), roleATest1Oid);
 
-//		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
 		assertTriggers(wfTask, 0);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -541,7 +544,18 @@ public class TestStrings extends AbstractStoryTest {
 				"Process instance name: Assigning a-test-1 to bob", "Result: APPROVED");
 
 		display("audit", dummyAuditService);
+
+		List<AuditEventRecord> workItemEvent = filterByStage(getObjectAuditRecords(workItemId), AuditEventStage.EXECUTION);
+		assertAuditReferenceValue(workItemEvent, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+		assertAuditReferenceValue(workItemEvent, WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+		// TODO other items
+		List<AuditEventRecord> processEvent = filterByStage(
+				getObjectAuditRecords(wfTask.asObjectable().getWorkflowContext().getProcessInstanceId()), AuditEventStage.EXECUTION);
+		assertAuditReferenceValue(processEvent, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+		assertAuditReferenceValue(processEvent, WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+		// TODO other items
 	}
+
 	//endregion
 
 	//region Testing escalation

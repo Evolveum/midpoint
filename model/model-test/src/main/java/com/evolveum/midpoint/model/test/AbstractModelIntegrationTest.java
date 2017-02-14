@@ -21,6 +21,8 @@ import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -157,6 +160,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -3861,5 +3865,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.recompute(object.asObjectable().getClass(), object.getOid(), task, result);
 		display("Object: " + file, getObject(object.asObjectable().getClass(), object.getOid()));
 		return object.getOid();
+	}
+
+	protected void assertAuditReferenceValue(List<AuditEventRecord> events, String refName, String oid, QName type, String name) {
+		if (events.size() != 1) {
+			display("Events", events);
+			assertEquals("Wrong # of events", 1, events.size());
+		}
+		assertAuditReferenceValue(events.get(0), refName, oid, type, name);
+	}
+
+	protected void assertAuditReferenceValue(AuditEventRecord event, String refName, String oid, QName type, String name) {
+		Set<AuditReferenceValue> values = event.getReferenceValues(refName);
+		assertEquals("Wrong # of reference values of '" + refName + "'", 1, values.size());
+		AuditReferenceValue value = values.iterator().next();
+		assertEquals("Wrong OID", oid, value.getOid());
+		assertEquals("Wrong type", type, value.getType());
+		assertEquals("Wrong name", name, PolyString.getOrig(value.getTargetName()));
+	}
+
+	protected List<AuditEventRecord> filterByStage(List<AuditEventRecord> records, AuditEventStage stage) {
+		return records.stream()
+				.filter(r -> r.getEventStage() == stage)
+				.collect(Collectors.toList());
 	}
 }
