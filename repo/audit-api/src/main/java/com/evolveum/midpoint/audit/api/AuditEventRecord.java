@@ -17,8 +17,7 @@ package com.evolveum.midpoint.audit.api;
 
 import java.beans.Transient;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -38,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperation
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Audit event record describes a single event (usually data change) in a format suitable for audit.
@@ -97,7 +98,7 @@ public class AuditEventRecord implements DebugDumpable {
 	private AuditEventStage eventStage;
 	
 	// delta
-	private Collection<ObjectDeltaOperation<? extends ObjectType>> deltas;
+	private final Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = new ArrayList<>();
 	
 	// delta order (primary, secondary)
 	
@@ -114,18 +115,19 @@ public class AuditEventRecord implements DebugDumpable {
     private String message;
 
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-	
+
+	private final Map<String, Set<String>> properties = new HashMap<>();
+
+	private final Map<String, Set<AuditReferenceValue>> references = new HashMap<>();
+
 	public AuditEventRecord() {
-		this.deltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
 	}
 	
 	public AuditEventRecord(AuditEventType eventType) {
-		this.deltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
 		this.eventType = eventType;
 	}
 
 	public AuditEventRecord(AuditEventType eventType, AuditEventStage eventStage) {
-		this.deltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
 		this.eventType = eventType;
 		this.eventStage = eventStage;
 	}
@@ -294,7 +296,32 @@ public class AuditEventRecord implements DebugDumpable {
 		this.repoId = repoId;
 	}
 
-    public void checkConsistence() {
+	public Map<String, Set<String>> getProperties() {
+		return properties;
+	}
+
+	public Set<String> getPropertyValues(String name) {
+		return properties.get(name);
+	}
+
+	public Map<String, Set<AuditReferenceValue>> getReferences() {
+		return references;
+	}
+
+	public Set<AuditReferenceValue> getReferenceValues(String name) {
+		return references.get(name);
+	}
+
+	public void addPropertyValue(String key, String value) {
+		properties.computeIfAbsent(key, k -> new HashSet<>()).add(value);
+	}
+
+	public void addReferenceValue(String key, @NotNull AuditReferenceValue value) {
+		Validate.notNull(value, "Reference value must not be null");
+		references.computeIfAbsent(key, k -> new HashSet<>()).add(value);
+	}
+
+	public void checkConsistence() {
 		if (initiator != null) {
 			initiator.checkConsistence();
 		}
@@ -304,16 +331,13 @@ public class AuditEventRecord implements DebugDumpable {
 		if (targetOwner != null) {
 			targetOwner.checkConsistence();
 		}
-		if (deltas != null) {
-			ObjectDeltaOperation.checkConsistence(deltas);
-		}
-//        //TODO: should this be here?
+		ObjectDeltaOperation.checkConsistence(deltas);
+		//        //TODO: should this be here?
 //        if (result != null && result.getStatus() != null) {
 //            if (result.getStatus() != outcome) {
 //                throw new IllegalStateException("Status in result (" + result.getStatus() + ") differs from outcome (" + outcome + ")");
 //            }
 //        }
-		
 	}
     
     public AuditEventRecordType createAuditEventRecordType(){
@@ -407,7 +431,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public AuditEventRecord clone() {
 		AuditEventRecord clone = new AuditEventRecord();
 		clone.channel = this.channel;
-		clone.deltas = MiscSchemaUtil.cloneObjectDeltaOperationCollection(this.deltas);
+		clone.deltas.addAll(MiscSchemaUtil.cloneObjectDeltaOperationCollection(this.deltas));
 		clone.eventIdentifier = this.eventIdentifier;
 		clone.eventStage = this.eventStage;
 		clone.eventType = this.eventType;
@@ -423,6 +447,8 @@ public class AuditEventRecord implements DebugDumpable {
         clone.result = this.result;
         clone.parameter = this.parameter;
         clone.message = this.message;
+        clone.properties.putAll(properties);		// TODO deep clone?
+        clone.references.putAll(references);		// TODO deep clone?
 		return clone;
 	}
 
@@ -433,7 +459,9 @@ public class AuditEventRecord implements DebugDumpable {
 				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
 				+ ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
 				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
-                + ", m=" + message + "]";
+                + ", m=" + message
+                + ", prop=" + properties
+                + ", ref=" + references + "]";
 	}
 
 	private String formatResult(OperationResult result) {
@@ -504,8 +532,10 @@ public class AuditEventRecord implements DebugDumpable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Result", result, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Parameter", parameter, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Message", message, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Properties", properties, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "References", references, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
-		if (deltas == null || deltas.isEmpty()) {
+		if (deltas.isEmpty()) {
 			sb.append(" none");
 		} else {
 			sb.append(" ").append(deltas.size()).append(" deltas\n");
