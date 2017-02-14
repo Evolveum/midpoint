@@ -21,7 +21,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
@@ -89,30 +91,29 @@ public class CleanupTest extends BaseSQLRepoTest {
     }
     
     @AfterMethod
-    public void cleaup() {
-    	 Session session = getFactory().openSession();
-         try {
-             session.beginTransaction();
-             Query query = session.createQuery("delete from RObjectDeltaOperation");
-             query.executeUpdate();
+    public void cleanup() {
+        Session session = getFactory().openSession();
+        try {
+            session.beginTransaction();
+            session.createQuery("delete from RObjectDeltaOperation").executeUpdate();
+            session.createQuery("delete from RAuditPropertyValue").executeUpdate();
+            session.createQuery("delete from RAuditReferenceValue").executeUpdate();
+            session.createQuery("delete from RAuditEventRecord").executeUpdate();
 
-             query = session.createQuery("delete from RAuditEventRecord");
-             query.executeUpdate();
-             
-             query = session.createQuery("select count(*) from " + RAuditEventRecord.class.getSimpleName());
-             Long count = (Long) query.uniqueResult();
+            Query query = session.createQuery("select count(*) from " + RAuditEventRecord.class.getSimpleName());
+            Long count = (Long) query.uniqueResult();
 
-             AssertJUnit.assertEquals(0L, (long) count);
-             session.getTransaction().commit();
-         } finally {
-             session.close();
-         }
+            AssertJUnit.assertEquals(0L, (long) count);
+            session.getTransaction().commit();
+        } finally {
+            session.close();
+        }
     }
 
     @Test
     public void testAuditCleanupMaxAge() throws Exception {
         //GIVEN
-    	prepareAuditEventRecords();
+        prepareAuditEventRecords();
 
         //WHEN
         Calendar calendar = create_2013_07_12_12_00_Calendar();
@@ -127,15 +128,15 @@ public class CleanupTest extends BaseSQLRepoTest {
         result.recomputeStatus();
 
         //THEN
-       RAuditEventRecord record = assertAndReturnAuditEventRecord(result); 
+        RAuditEventRecord record = assertAndReturnAuditEventRecord(result);
 
-       Date finished = new Date(record.getTimestamp().getTime());
+        Date finished = new Date(record.getTimestamp().getTime());
 
-       Date mark = new Date(NOW);
-       Duration duration = policy.getMaxAge();
-       duration.addTo(mark);
+        Date mark = new Date(NOW);
+        Duration duration = policy.getMaxAge();
+        duration.addTo(mark);
 
-       AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
+        AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
     }
     
     @Test
@@ -186,6 +187,8 @@ public class CleanupTest extends BaseSQLRepoTest {
              AuditEventRecord record = new AuditEventRecord();
              record.addDelta(createObjectDeltaOperation(i));
              record.setTimestamp(timestamp);
+             record.addPropertyValue("prop1", "val1");
+             record.addReferenceValue("ref1", ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
              LOGGER.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
 
              auditService.audit(record, new SimpleTaskAdapter());

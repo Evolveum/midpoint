@@ -464,11 +464,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 			int count = recordsSelector.apply(session, tempTable);
 			LOGGER.trace("Inserted {} audit record ids ready for deleting.", count);
 
-			// drop records from m_audit_item, m_audit_event, m_audit_delta
+			// drop records from m_audit_item, m_audit_event, m_audit_delta, and others
 			session.createSQLQuery(createDeleteQuery(RAuditItem.TABLE_NAME, tempTable,
 					RAuditItem.COLUMN_RECORD_ID)).executeUpdate();
 			session.createSQLQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
 					RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
+			session.createSQLQuery(createDeleteQuery(RAuditPropertyValue.TABLE_NAME, tempTable,
+					RAuditPropertyValue.COLUMN_RECORD_ID)).executeUpdate();
+			session.createSQLQuery(createDeleteQuery(RAuditReferenceValue.TABLE_NAME, tempTable,
+					RAuditReferenceValue.COLUMN_RECORD_ID)).executeUpdate();
 			session.createSQLQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id"))
 					.executeUpdate();
 
