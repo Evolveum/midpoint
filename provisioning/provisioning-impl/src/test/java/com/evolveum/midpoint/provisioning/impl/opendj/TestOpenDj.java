@@ -1712,7 +1712,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		
 		assertEquals("Unexpected number of objects found", 0, objListType.size());
 		
-		assertConnectorOperationIncrement(1, 3);
+		assertConnectorOperationIncrement(1, 1);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 
