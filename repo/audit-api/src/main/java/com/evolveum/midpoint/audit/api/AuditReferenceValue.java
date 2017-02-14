@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.audit.api;
 
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceValueType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -42,6 +46,10 @@ public class AuditReferenceValue implements Serializable {
 		this.oid = oid;
 		this.type = type;
 		this.targetName = targetName;
+	}
+
+	public AuditReferenceValue(@NotNull PrismReferenceValue prv) {
+		this(prv.getOid(), prv.getTargetType(), PolyString.getOrig(prv.getTargetName()));
 	}
 
 	public String getOid() {
@@ -92,5 +100,21 @@ public class AuditReferenceValue implements Serializable {
 	@Override
 	public int hashCode() {
 		return Objects.hash(oid);
+	}
+
+	public AuditEventRecordReferenceValueType toXml() {
+		AuditEventRecordReferenceValueType rv = new AuditEventRecordReferenceValueType();
+		rv.setOid(oid);
+		rv.setType(type);
+		rv.setTargetName(targetName);
+		return rv;
+	}
+
+	public static AuditReferenceValue fromXml(AuditEventRecordReferenceValueType v) {
+		AuditReferenceValue rv = new AuditReferenceValue();
+		rv.setOid(v.getOid());
+		rv.setType(v.getType());
+		rv.setTargetName(v.getTargetName());
+		return rv;
 	}
 }

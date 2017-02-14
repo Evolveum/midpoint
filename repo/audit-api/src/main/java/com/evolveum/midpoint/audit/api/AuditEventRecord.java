@@ -32,6 +32,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -321,6 +323,11 @@ public class AuditEventRecord implements DebugDumpable {
 		references.computeIfAbsent(key, k -> new HashSet<>()).add(value);
 	}
 
+	public void addReferenceValue(String key, @NotNull PrismReferenceValue prv) {
+		Validate.notNull(prv, "Reference value must not be null");
+		addReferenceValue(key, new AuditReferenceValue(prv));
+	}
+
 	public void checkConsistence() {
 		if (initiator != null) {
 			initiator.checkConsistence();
@@ -344,7 +351,7 @@ public class AuditEventRecord implements DebugDumpable {
     	return createAuditEventRecordType(false);
 	}
     
-    public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies){
+    public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies) {
     	AuditEventRecordType auditRecordType = new AuditEventRecordType();
     	auditRecordType.setChannel(channel);
     	auditRecordType.setEventIdentifier(eventIdentifier);
@@ -362,7 +369,7 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setTaskIdentifier(taskIdentifier);
     	auditRecordType.setTaskOID(taskOID);
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
-    	for (ObjectDeltaOperation delta : deltas){
+    	for (ObjectDeltaOperation delta : deltas) {
     		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
     		try {
 				DeltaConvertor.toObjectDeltaOperationType(delta, odo, DeltaConversionOptions.createSerializeReferenceNames());
@@ -381,14 +388,24 @@ public class AuditEventRecord implements DebugDumpable {
 				} else {
 					throw new SystemException(e.getMessage(), e);
 				}
-				
 			}
     	}
-    	
-    	return auditRecordType;
+		for (Map.Entry<String, Set<String>> propertyEntry : properties.entrySet()) {
+			AuditEventRecordPropertyType propertyType = new AuditEventRecordPropertyType();
+			propertyType.setName(propertyEntry.getKey());
+			propertyType.getValue().addAll(propertyEntry.getValue());
+			auditRecordType.getProperty().add(propertyType);
+		}
+		for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : references.entrySet()) {
+			AuditEventRecordReferenceType referenceType = new AuditEventRecordReferenceType();
+			referenceType.setName(referenceEntry.getKey());
+			referenceEntry.getValue().forEach(v -> referenceType.getValue().add(v.toXml()));
+			auditRecordType.getReference().add(referenceType);
+		}
+		return auditRecordType;
 	}
     
-    public static AuditEventRecord createAuditEventRecord(AuditEventRecordType auditEventRecordType){
+    public static AuditEventRecord createAuditEventRecord(AuditEventRecordType auditEventRecordType) {
     	AuditEventRecord auditRecord = new AuditEventRecord();
     	auditRecord.setChannel(auditEventRecordType.getChannel());
     	auditRecord.setEventIdentifier(auditEventRecordType.getEventIdentifier());
@@ -406,7 +423,13 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecord.setTaskIdentifier(auditEventRecordType.getTaskIdentifier());
     	auditRecord.setTaskOID(auditEventRecordType.getTaskOID());
     	auditRecord.setTimestamp(MiscUtil.asLong(auditEventRecordType.getTimestamp()));
-    	return auditRecord;
+		for (AuditEventRecordPropertyType propertyType : auditEventRecordType.getProperty()) {
+			propertyType.getValue().forEach(v -> auditRecord.addPropertyValue(propertyType.getName(), v));
+		}
+		for (AuditEventRecordReferenceType referenceType : auditEventRecordType.getReference()) {
+			referenceType.getValue().forEach(v -> auditRecord.addReferenceValue(referenceType.getName(), AuditReferenceValue.fromXml(v)));
+		}
+		return auditRecord;
     }
     
     private static PrismReferenceValue getReferenceValueFromObjectReferenceType(ObjectReferenceType refType) {
