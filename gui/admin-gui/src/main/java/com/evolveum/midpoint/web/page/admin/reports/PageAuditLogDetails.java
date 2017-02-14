@@ -256,39 +256,39 @@ public class PageAuditLogDetails extends PageBase {
         eventDetailsPanel.setOutputMarkupId(true);
         eventPanel.addOrReplace(eventDetailsPanel);
 
-        final Label identifier = new Label(ID_PARAMETERS_EVENT_IDENTIFIER , new PropertyModel(recordModel,ID_PARAMETERS_EVENT_IDENTIFIER));
+        final Label identifier = new Label(ID_PARAMETERS_EVENT_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_EVENT_IDENTIFIER));
         identifier.setOutputMarkupId(true);
         eventDetailsPanel.add(identifier);
 
-        final Label timestamp = new Label(ID_PARAMETERS_TIMESTAMP , new PropertyModel(recordModel,ID_PARAMETERS_TIMESTAMP));
+        final Label timestamp = new Label(ID_PARAMETERS_TIMESTAMP, new PropertyModel(recordModel,ID_PARAMETERS_TIMESTAMP));
         timestamp.setOutputMarkupId(true);
         eventDetailsPanel.add(timestamp);
 
-        final Label sessionIdentifier = new Label(ID_PARAMETERS_SESSION_IDENTIFIER , new PropertyModel(recordModel,ID_PARAMETERS_SESSION_IDENTIFIER));
+        final Label sessionIdentifier = new Label(ID_PARAMETERS_SESSION_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_SESSION_IDENTIFIER));
         sessionIdentifier.setOutputMarkupId(true);
         eventDetailsPanel.add(sessionIdentifier);
 
-        final Label taskIdentifier = new Label(ID_PARAMETERS_TASK_IDENTIFIER , new PropertyModel(recordModel,ID_PARAMETERS_TASK_IDENTIFIER));
+        final Label taskIdentifier = new Label(ID_PARAMETERS_TASK_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_TASK_IDENTIFIER));
         taskIdentifier.setOutputMarkupId(true);
         eventDetailsPanel.add(taskIdentifier);
 
-        final Label taskOID = new Label(ID_PARAMETERS_TASK_OID , new PropertyModel(recordModel,ID_PARAMETERS_TASK_OID));
+        final Label taskOID = new Label(ID_PARAMETERS_TASK_OID, new PropertyModel(recordModel,ID_PARAMETERS_TASK_OID));
         taskOID.setOutputMarkupId(true);
         eventDetailsPanel.add(taskOID);
 
-        final Label hostIdentifier = new Label(ID_PARAMETERS_HOST_IDENTIFIER , new PropertyModel(recordModel,ID_PARAMETERS_HOST_IDENTIFIER));
+        final Label hostIdentifier = new Label(ID_PARAMETERS_HOST_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_HOST_IDENTIFIER));
         hostIdentifier.setOutputMarkupId(true);
         eventDetailsPanel.add(hostIdentifier);
 
         final Label initiatorRef = new Label(ID_PARAMETERS_EVENT_INITIATOR,
-                new Model(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getInitiatorRef(), this,
+                new Model<>(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getInitiatorRef(), this,
                         createSimpleTask(ID_PARAMETERS_EVENT_INITIATOR),
                         new OperationResult(ID_PARAMETERS_EVENT_INITIATOR))));
         initiatorRef.setOutputMarkupId(true);
         eventDetailsPanel.add(initiatorRef);
 
         final Label targetRef = new Label(ID_PARAMETERS_EVENT_TARGET,
-                new Model(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getTargetRef(), this,
+                new Model<>(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getTargetRef(), this,
                         createSimpleTask(ID_PARAMETERS_EVENT_TARGET),
                         new OperationResult(ID_PARAMETERS_EVENT_TARGET))));
         targetRef.setOutputMarkupId(true);

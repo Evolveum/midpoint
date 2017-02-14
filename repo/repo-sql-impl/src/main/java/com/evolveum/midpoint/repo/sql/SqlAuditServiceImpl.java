@@ -30,6 +30,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.repo.sql.data.audit.*;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FlushMode;
@@ -233,9 +235,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
 				AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext());
 
-				audit.setInitiator(resolve(session, (raudit.getInitiatorOid())));
-				audit.setTarget(resolve(session, (raudit.getTargetOid())));
-				audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid()));
+				// TODO what if original name (in audit log) differs from the current one (in repo) ?
+				audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), RObjectType.USER));
+				audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()));
+				audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), RObjectType.USER));
 				count++;
 				if (!handler.handle(audit)) {
 					LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
@@ -287,19 +290,24 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		}
 	}
 
-	private PrismObject resolve(Session session, String oid) throws SchemaException {
+	private PrismObject resolve(Session session, String oid, String defaultName, RObjectType defaultType) throws SchemaException {
+		if (oid == null) {
+			return null;
+		}
 		Query query = session.getNamedQuery("get.object");
 		query.setParameter("oid", oid);
 		query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-		GetObjectResult object = null;
-		object = (GetObjectResult) query.uniqueResult();
+		GetObjectResult object = (GetObjectResult) query.uniqueResult();
 
-		PrismObject result = null;
+		PrismObject result;
 		if (object != null) {
 			String xml = RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip());
 			result = getPrismContext().parserFor(xml).compat().parse();
+		} else {
+			result = getPrismContext().createObject(defaultType.getJaxbClass());
+			result.asObjectable().setName(PolyStringType.fromOrig(defaultName));
+			result.setOid(oid);
 		}
-
 		return result;
 	}
 
