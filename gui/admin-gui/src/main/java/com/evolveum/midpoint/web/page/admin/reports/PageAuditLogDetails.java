@@ -1,20 +1,17 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValueDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,8 +20,11 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -79,6 +78,10 @@ public class PageAuditLogDetails extends PageBase{
     private static final String ID_PARAMETERS_EVENT_RESULT = "result";
     private static final String ID_PARAMETERS_PARAMETER = "parameter";
     private static final String ID_PARAMETERS_MESSAGE = "message";
+	private static final String ID_ADDITIONAL_ITEMS = "additionalItems";
+    private static final String ID_ADDITIONAL_ITEM_LINE = "additionalItemLine";
+    private static final String ID_ITEM_NAME = "itemName";
+    private static final String ID_ITEM_VALUE = "itemValue";
     private static final String ID_HISTORY_PANEL = "historyPanel";
 
     private static final String ID_BUTTON_BACK = "back";
@@ -325,7 +328,84 @@ public class PageAuditLogDetails extends PageBase{
         final Label message = new Label(ID_PARAMETERS_MESSAGE , new PropertyModel(recordModel,ID_PARAMETERS_MESSAGE));
         message.setOutputMarkupId(true);
         eventDetailsPanel.add(message);
+
+//		AuditEventRecordPropertyType p = new AuditEventRecordPropertyType();
+//		p.setName("PageResetPasswordConfirmation");
+//		p.getValue().add("val1");
+//		p.getValue().add("val2");
+//		recordModel.getObject().getProperty().add(p);
+//		AuditEventRecordPropertyType q = new AuditEventRecordPropertyType();
+//		q.setName("property-q");
+//		q.getValue().add(null);
+//		recordModel.getObject().getProperty().add(q);
+//		AuditEventRecordPropertyType q2 = new AuditEventRecordPropertyType();
+//		q2.setName("ref");
+//		q2.getValue().add(null);
+//		recordModel.getObject().getProperty().add(q2);
+//		AuditEventRecordReferenceType r = new AuditEventRecordReferenceType();
+//		r.setName("ref");
+//		AuditEventRecordReferenceValueType v = new AuditEventRecordReferenceValueType();
+//		v.setOid("123");
+//		v.setTargetName(PolyStringType.fromOrig("object123"));
+//		r.getValue().add(v);
+//		recordModel.getObject().getReference().add(r);
+
+		ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<AuditEventRecordItemValueDto>(
+				ID_ADDITIONAL_ITEM_LINE,
+				new AbstractReadOnlyModel<List<AuditEventRecordItemValueDto>>() {
+					@Override
+					public List<AuditEventRecordItemValueDto> getObject() {
+						List<AuditEventRecordItemValueDto> rv = new ArrayList<>();
+						AuditEventRecordType record = recordModel.getObject();
+						// it is a multi map because there can be both property and reference with the same name
+						// (also, more properties/references can have the same display name)
+						// TODO take locale into account when sorting
+						TreeMap<String, List<AuditEventRecordItemType>> sortedItems = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+						record.getProperty().forEach(p -> put(sortedItems, getDisplayName(p.getName()), p));
+						record.getReference().forEach(p -> put(sortedItems, getDisplayName(p.getName()), p));
+						for (Map.Entry<String, List<AuditEventRecordItemType>> entry : sortedItems.entrySet()) {
+							for (AuditEventRecordItemType item : entry.getValue()) {
+								String currentName = entry.getKey();
+								if (item instanceof AuditEventRecordPropertyType) {
+									for (String value : ((AuditEventRecordPropertyType) item).getValue()) {
+										rv.add(new AuditEventRecordItemValueDto(currentName, value));
+										currentName = null;
+									}
+								} else if (item instanceof AuditEventRecordReferenceType) {
+									for (AuditEventRecordReferenceValueType value : ((AuditEventRecordReferenceType) item).getValue()) {
+										rv.add(new AuditEventRecordItemValueDto(currentName, value.getTargetName() != null ?
+												value.getTargetName().getOrig() : value.getOid()));
+										currentName = null;
+									}
+								} else {
+									// should not occur
+								}
+							}
+						}
+						return rv;
+					}
+
+					private void put(TreeMap<String, List<AuditEventRecordItemType>> items, String displayName, AuditEventRecordItemType item) {
+						items.computeIfAbsent(displayName, k -> new ArrayList<>()).add(item);
+					}
+
+					private String getDisplayName(String nameKey) {
+						// null should not occur so we don't try to be nice when displaying it
+						return nameKey != null ? createStringResource(nameKey).getString() : "(null)";
+					}
+				}) {
+            @Override
+            protected void populateItem(ListItem<AuditEventRecordItemValueDto> item) {
+                item.add(new Label(ID_ITEM_NAME, new PropertyModel<String>(item.getModel(), AuditEventRecordItemValueDto.F_NAME)));
+                item.add(new Label(ID_ITEM_VALUE, new PropertyModel<String>(item.getModel(), AuditEventRecordItemValueDto.F_VALUE)));
+            }
+        };
+		WebMarkupContainer additionalItemsContainer = new WebMarkupContainer(ID_ADDITIONAL_ITEMS);
+        additionalItemsContainer.add(additionalItemsList);
+		additionalItemsContainer.add(new VisibleBehaviour(() -> !additionalItemsList.getModelObject().isEmpty()));
+		eventDetailsPanel.add(additionalItemsContainer);
     }
+
     private void initDeltasPanel(WebMarkupContainer eventPanel){
         List<ObjectDeltaOperationType> deltas = recordModel.getObject().getDelta();
         RepeatingView deltaScene = new RepeatingView(ID_DELTA_LIST_PANEL);

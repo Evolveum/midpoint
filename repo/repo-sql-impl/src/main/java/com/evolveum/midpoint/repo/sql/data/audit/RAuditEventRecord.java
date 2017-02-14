@@ -18,11 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,6 +30,7 @@ import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -63,10 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @Entity
 @Table(name = RAuditEventRecord.TABLE_NAME, indexes = {
-		@Index(name = "iTimestampValue", columnList = RAuditEventRecord.COLUMN_TIMESTAMP) }) // TODO
-																								// correct
-																								// index
-																								// name
+		@Index(name = "iTimestampValue", columnList = RAuditEventRecord.COLUMN_TIMESTAMP) }) // TODO correct index name
 public class RAuditEventRecord implements Serializable {
 
 	public static final String TABLE_NAME = "m_audit_event";
@@ -101,6 +95,8 @@ public class RAuditEventRecord implements Serializable {
 	private String parameter;
 	private String message;
 	private Set<RAuditItem> changedItems;
+	private Set<RAuditPropertyValue> propertyValues;
+	private Set<RAuditReferenceValue> referenceValues;
 
 	private String result;
 
@@ -108,7 +104,7 @@ public class RAuditEventRecord implements Serializable {
 		return result;
 	}
 
-	@Column(length = 1024)
+	@Column(length = AuditService.MAX_MESSAGE_SIZE)
 	public String getMessage() {
 		return message;
 	}
@@ -126,7 +122,7 @@ public class RAuditEventRecord implements Serializable {
 	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
 	public Set<RObjectDeltaOperation> getDeltas() {
 		if (deltas == null) {
-			deltas = new HashSet<RObjectDeltaOperation>();
+			deltas = new HashSet<>();
 		}
 		return deltas;
 	}
@@ -136,9 +132,29 @@ public class RAuditEventRecord implements Serializable {
 	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
 	public Set<RAuditItem> getChangedItems() {
 		if (changedItems == null) {
-			changedItems = new HashSet<RAuditItem>();
+			changedItems = new HashSet<>();
 		}
 		return changedItems;
+	}
+
+	@ForeignKey(name = "fk_audit_prop_value")
+	@OneToMany(mappedBy = "record", orphanRemoval = true)
+	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
+	public Set<RAuditPropertyValue> getPropertyValues() {
+		if (propertyValues == null) {
+			propertyValues = new HashSet<>();
+		}
+		return propertyValues;
+	}
+
+	@ForeignKey(name = "fk_audit_ref_value")
+	@OneToMany(mappedBy = "record", orphanRemoval = true)
+	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
+	public Set<RAuditReferenceValue> getReferenceValues() {
+		if (referenceValues == null) {
+			referenceValues = new HashSet<>();
+		}
+		return referenceValues;
 	}
 
 	public String getEventIdentifier() {
@@ -239,6 +255,14 @@ public class RAuditEventRecord implements Serializable {
 		this.changedItems = changedItems;
 	}
 
+	public void setPropertyValues(Set<RAuditPropertyValue> propertyValues) {
+		this.propertyValues = propertyValues;
+	}
+
+	public void setReferenceValues(Set<RAuditReferenceValue> referenceValues) {
+		this.referenceValues = referenceValues;
+	}
+
 	public void setEventIdentifier(String eventIdentifier) {
 		this.eventIdentifier = eventIdentifier;
 	}
@@ -326,6 +350,10 @@ public class RAuditEventRecord implements Serializable {
 			return false;
 		
 		if (changedItems != null ? !MiscUtil.unorderedCollectionEquals(getChangedItems(), that.getChangedItems()) : that.changedItems != null)
+			return false;
+		if (propertyValues != null ? !MiscUtil.unorderedCollectionEquals(getPropertyValues(), that.getPropertyValues()) : that.propertyValues != null)
+			return false;
+		if (referenceValues != null ? !MiscUtil.unorderedCollectionEquals(getReferenceValues(), that.getReferenceValues()) : that.referenceValues != null)
 			return false;
 		if (eventIdentifier != null ? !eventIdentifier.equals(that.eventIdentifier)
 				: that.eventIdentifier != null)
@@ -424,7 +452,7 @@ public class RAuditEventRecord implements Serializable {
 		repo.setEventIdentifier(record.getEventIdentifier());
 		repo.setHostIdentifier(record.getHostIdentifier());
 		repo.setParameter(record.getParameter());
-		repo.setMessage(trimMessage(record.getMessage()));
+		repo.setMessage(RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
 		if (record.getOutcome() != null) {
 			repo.setOutcome(RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
 					ROperationResultStatus.class));
@@ -474,7 +502,18 @@ public class RAuditEventRecord implements Serializable {
 				rDelta.setRecord(repo);
 				repo.getDeltas().add(rDelta);
 			}
-			
+
+			for (Map.Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
+				for (String propertyValue : propertyEntry.getValue()) {
+					repo.getPropertyValues().add(RAuditPropertyValue.toRepo(
+							repo, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE)));
+				}
+			}
+			for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
+				for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
+					repo.getReferenceValues().add(RAuditReferenceValue.toRepo(repo, referenceEntry.getKey(), referenceValue));
+				}
+			}
 		} catch (Exception ex) {
 			throw new DtoTranslationException(ex.getMessage(), ex);
 		}
@@ -509,7 +548,7 @@ public class RAuditEventRecord implements Serializable {
 			audit.setTimestamp(repo.getTimestamp().getTime());
 		}
 
-		List<ObjectDeltaOperation> odos = new ArrayList<ObjectDeltaOperation>();
+		List<ObjectDeltaOperation> odos = new ArrayList<>();
 		for (RObjectDeltaOperation rodo : repo.getDeltas()) {
 			try {
 				ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(rodo, prismContext);
@@ -524,18 +563,19 @@ public class RAuditEventRecord implements Serializable {
 		}
 
 		audit.getDeltas().addAll((Collection) odos);
+
+		for (RAuditPropertyValue rPropertyValue : repo.getPropertyValues()) {
+			audit.addPropertyValue(rPropertyValue.getKey(), rPropertyValue.getValue());
+		}
+		for (RAuditReferenceValue rRefValue : repo.getReferenceValues()) {
+			audit.addReferenceValue(rRefValue.getKey(), rRefValue.fromRepo());
+		}
+
 		audit.setRepoId(repo.getId());
 		
 		return audit;
 		// initiator, target, targetOwner
 
-	}
-
-	private static String trimMessage(String message) {
-		if (message == null || message.length() <= AuditService.MAX_MESSAGE_SIZE) {
-			return message;
-		}
-		return message.substring(0, AuditService.MAX_MESSAGE_SIZE - 4) + "...";
 	}
 
 	private static String getOrigName(PrismObject object) {

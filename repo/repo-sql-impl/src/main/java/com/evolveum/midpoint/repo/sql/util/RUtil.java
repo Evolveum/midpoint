@@ -484,4 +484,11 @@ public final class RUtil {
 
         return null;
     }
+
+    public static String trimString(String message, int size) {
+		if (message == null || message.length() <= size) {
+			return message;
+		}
+		return message.substring(0, size - 4) + "...";
+	}
 }
