@@ -11,6 +11,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValu
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -52,7 +53,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_AUDIT_LOG_VIEWER_URL,
                 label = "PageAuditLogViewer.auth.auditLogViewer.label",
                 description = "PageAuditLogViewer.auth.auditLogViewer.description")})
-public class PageAuditLogDetails extends PageBase{
+public class PageAuditLogDetails extends PageBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAuditLogDetails.class);
 
@@ -88,9 +89,24 @@ public class PageAuditLogDetails extends PageBase{
     private static final String TASK_IDENTIFIER_PARAMETER = "taskIdentifier";
     private static final int TASK_EVENTS_TABLE_SIZE = 10;
 
-    private static final String OPERATION_RESOLVE_REFENRENCE_NAME = PageAuditLogDetails.class.getSimpleName()
+    private static final String OPERATION_RESOLVE_REFERENCE_NAME = PageAuditLogDetails.class.getSimpleName()
             + ".resolveReferenceName()";
     private IModel<AuditEventRecordType> recordModel;
+
+    // items that are not listed here are sorted according to their display name
+    private static final List<String> EXTENSION_ITEMS_ORDER =
+			Arrays.asList(
+					WorkflowConstants.AUDIT_OBJECT,
+					WorkflowConstants.AUDIT_TARGET,
+					WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE,
+					WorkflowConstants.AUDIT_CURRENT_ASSIGNEE,
+					WorkflowConstants.AUDIT_STAGE_NUMBER,
+					WorkflowConstants.AUDIT_STAGE_COUNT,
+					WorkflowConstants.AUDIT_STAGE_NAME,
+					WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME,
+					WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER,
+					WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME,
+					WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME);
 
     public PageAuditLogDetails() {
         AuditLogStorage storage = getSessionStorage().getAuditLog();
@@ -283,8 +299,8 @@ public class PageAuditLogDetails extends PageBase{
             public String getObject() {
                 return WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getTargetOwnerRef(),
                         PageAuditLogDetails.this,
-                        createSimpleTask(OPERATION_RESOLVE_REFENRENCE_NAME),
-                        new OperationResult(OPERATION_RESOLVE_REFENRENCE_NAME));
+                        createSimpleTask(OPERATION_RESOLVE_REFERENCE_NAME),
+                        new OperationResult(OPERATION_RESOLVE_REFERENCE_NAME));
             }
 
             @Override
@@ -329,64 +345,54 @@ public class PageAuditLogDetails extends PageBase{
         message.setOutputMarkupId(true);
         eventDetailsPanel.add(message);
 
-//		AuditEventRecordPropertyType p = new AuditEventRecordPropertyType();
-//		p.setName("PageResetPasswordConfirmation");
-//		p.getValue().add("val1");
-//		p.getValue().add("val2");
-//		recordModel.getObject().getProperty().add(p);
-//		AuditEventRecordPropertyType q = new AuditEventRecordPropertyType();
-//		q.setName("property-q");
-//		q.getValue().add(null);
-//		recordModel.getObject().getProperty().add(q);
-//		AuditEventRecordPropertyType q2 = new AuditEventRecordPropertyType();
-//		q2.setName("ref");
-//		q2.getValue().add(null);
-//		recordModel.getObject().getProperty().add(q2);
-//		AuditEventRecordReferenceType r = new AuditEventRecordReferenceType();
-//		r.setName("ref");
-//		AuditEventRecordReferenceValueType v = new AuditEventRecordReferenceValueType();
-//		v.setOid("123");
-//		v.setTargetName(PolyStringType.fromOrig("object123"));
-//		r.getValue().add(v);
-//		recordModel.getObject().getReference().add(r);
-
 		ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<AuditEventRecordItemValueDto>(
 				ID_ADDITIONAL_ITEM_LINE,
 				new AbstractReadOnlyModel<List<AuditEventRecordItemValueDto>>() {
 					@Override
 					public List<AuditEventRecordItemValueDto> getObject() {
 						List<AuditEventRecordItemValueDto> rv = new ArrayList<>();
-						AuditEventRecordType record = recordModel.getObject();
-						// it is a multi map because there can be both property and reference with the same name
-						// (also, more properties/references can have the same display name)
-						// TODO take locale into account when sorting
-						TreeMap<String, List<AuditEventRecordItemType>> sortedItems = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-						record.getProperty().forEach(p -> put(sortedItems, getDisplayName(p.getName()), p));
-						record.getReference().forEach(p -> put(sortedItems, getDisplayName(p.getName()), p));
-						for (Map.Entry<String, List<AuditEventRecordItemType>> entry : sortedItems.entrySet()) {
-							for (AuditEventRecordItemType item : entry.getValue()) {
-								String currentName = entry.getKey();
-								if (item instanceof AuditEventRecordPropertyType) {
-									for (String value : ((AuditEventRecordPropertyType) item).getValue()) {
-										rv.add(new AuditEventRecordItemValueDto(currentName, value));
-										currentName = null;
-									}
-								} else if (item instanceof AuditEventRecordReferenceType) {
-									for (AuditEventRecordReferenceValueType value : ((AuditEventRecordReferenceType) item).getValue()) {
-										rv.add(new AuditEventRecordItemValueDto(currentName, value.getTargetName() != null ?
-												value.getTargetName().getOrig() : value.getOid()));
-										currentName = null;
-									}
-								} else {
-									// should not occur
+						for (AuditEventRecordItemType item : getSortedItems()) {
+							String currentName = getDisplayName(item.getName());
+							if (item instanceof AuditEventRecordPropertyType) {
+								for (String value : ((AuditEventRecordPropertyType) item).getValue()) {
+									rv.add(new AuditEventRecordItemValueDto(currentName, value));
+									currentName = null;
 								}
+							} else if (item instanceof AuditEventRecordReferenceType) {
+								for (AuditEventRecordReferenceValueType value : ((AuditEventRecordReferenceType) item).getValue()) {
+									rv.add(new AuditEventRecordItemValueDto(currentName, value.getTargetName() != null ?
+											value.getTargetName().getOrig() : value.getOid()));
+									currentName = null;
+								}
+							} else {
+								// should not occur
 							}
 						}
 						return rv;
 					}
 
-					private void put(TreeMap<String, List<AuditEventRecordItemType>> items, String displayName, AuditEventRecordItemType item) {
-						items.computeIfAbsent(displayName, k -> new ArrayList<>()).add(item);
+					// TODO take locale into account when sorting
+					private List<AuditEventRecordItemType> getSortedItems() {
+						AuditEventRecordType record = recordModel.getObject();
+						List<AuditEventRecordItemType> rv = new ArrayList<>();
+						rv.addAll(record.getProperty());
+						rv.addAll(record.getReference());
+						rv.sort((a, b) -> {
+							// explicitly enumerated are shown first; others are sorted by display name
+							int index_a = EXTENSION_ITEMS_ORDER.indexOf(a.getName());
+							int index_b = EXTENSION_ITEMS_ORDER.indexOf(b.getName());
+							if (index_a != -1 && index_b != -1) {
+								return Integer.compare(index_a, index_b);
+							} else if (index_a != -1) {
+								return -1;
+							} else if (index_b != -1) {
+								return 1;
+							}
+							String name_a = getDisplayName(a.getName());
+							String name_b = getDisplayName(b.getName());
+							return String.CASE_INSENSITIVE_ORDER.compare(name_a, name_b);
+						});
+						return rv;
 					}
 
 					private String getDisplayName(String nameKey) {

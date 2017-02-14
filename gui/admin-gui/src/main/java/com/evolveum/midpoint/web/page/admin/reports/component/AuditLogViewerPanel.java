@@ -476,7 +476,7 @@ public class AuditLogViewerPanel extends BasePanel{
             @Override
             public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
                                      IModel<AuditEventRecordType> rowModel) {
-                AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
+                AuditEventRecordType auditEventRecordType = rowModel.getObject();
                 createReferenceColumn(auditEventRecordType.getInitiatorRef(), item, componentId);
             }
         };
