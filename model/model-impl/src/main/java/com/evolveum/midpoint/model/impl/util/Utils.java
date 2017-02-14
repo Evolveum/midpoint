@@ -26,11 +26,7 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensElementContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -491,6 +487,12 @@ public final class Utils {
 			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projCtx.getObjectDeltaObject());
 			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
 		}
+
+		variables.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, projCtx).getMap());
+		variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue());
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx));
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx));
+
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
 		return variables;
 	}
