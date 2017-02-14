@@ -19,6 +19,7 @@ import java.beans.Transient;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.DeltaConversionOptions;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
@@ -39,6 +41,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperation
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -582,4 +587,37 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 		return sb.toString();
 	}
+
+	// a bit of hack - TODO place appropriately
+	public static void adopt(AuditEventRecordType record, PrismContext prismContext) throws SchemaException {
+		for (ObjectDeltaOperationType odo : record.getDelta()) {
+			adopt(odo.getObjectDelta(), prismContext);
+		}
+	}
+
+	public static void adopt(ObjectDeltaType delta, PrismContext prismContext) throws SchemaException {
+		if (delta == null) {
+			return;
+		}
+		if (delta.getObjectToAdd() != null) {
+			prismContext.adopt(delta.getObjectToAdd().asPrismObject());
+		}
+		for (ItemDeltaType itemDelta : delta.getItemDelta()) {
+			adopt(itemDelta, prismContext);
+		}
+	}
+
+	private static void adopt(ItemDeltaType itemDelta, PrismContext prismContext) throws SchemaException {
+		for (RawType value : itemDelta.getValue()) {
+			if (value != null) {
+				value.revive(prismContext);
+			}
+		}
+		for (RawType value : itemDelta.getEstimatedOldValue()) {
+			if (value != null) {
+				value.revive(prismContext);
+			}
+		}
+	}
+
 }
