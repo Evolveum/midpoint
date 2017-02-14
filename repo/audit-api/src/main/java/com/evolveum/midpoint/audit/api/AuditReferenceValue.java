@@ -37,19 +37,19 @@ public class AuditReferenceValue implements Serializable {
 
 	private String oid;
 	private QName type;
-	private String targetName;
+	private PolyString targetName;
 
 	public AuditReferenceValue() {
 	}
 
-	public AuditReferenceValue(String oid, QName type, String targetName) {
+	public AuditReferenceValue(String oid, QName type, PolyString targetName) {
 		this.oid = oid;
 		this.type = type;
 		this.targetName = targetName;
 	}
 
 	public AuditReferenceValue(@NotNull PrismReferenceValue prv) {
-		this(prv.getOid(), prv.getTargetType(), PolyString.getOrig(prv.getTargetName()));
+		this(prv.getOid(), prv.getTargetType(), prv.getTargetName());
 	}
 
 	public String getOid() {
@@ -68,11 +68,11 @@ public class AuditReferenceValue implements Serializable {
 		this.type = type;
 	}
 
-	public String getTargetName() {
+	public PolyString getTargetName() {
 		return targetName;
 	}
 
-	public void setTargetName(String targetName) {
+	public void setTargetName(PolyString targetName) {
 		this.targetName = targetName;
 	}
 
@@ -106,7 +106,7 @@ public class AuditReferenceValue implements Serializable {
 		AuditEventRecordReferenceValueType rv = new AuditEventRecordReferenceValueType();
 		rv.setOid(oid);
 		rv.setType(type);
-		rv.setTargetName(targetName);
+		rv.setTargetName(PolyString.toPolyStringType(targetName));
 		return rv;
 	}
 
@@ -114,7 +114,7 @@ public class AuditReferenceValue implements Serializable {
 		AuditReferenceValue rv = new AuditReferenceValue();
 		rv.setOid(v.getOid());
 		rv.setType(v.getType());
-		rv.setTargetName(v.getTargetName());
+		rv.setTargetName(PolyString.toPolyString(v.getTargetName()));
 		return rv;
 	}
 }

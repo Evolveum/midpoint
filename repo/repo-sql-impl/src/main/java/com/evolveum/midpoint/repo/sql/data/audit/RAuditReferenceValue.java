@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
 import javax.persistence.*;
@@ -39,7 +40,7 @@ public class RAuditReferenceValue {
     private String key;
     private String oid;
     private String type;
-    private String targetName;
+    private RPolyString targetName;
 
 	@Id
 	@GeneratedValue
@@ -104,11 +105,11 @@ public class RAuditReferenceValue {
 		this.type = type;
 	}
 
-	public String getTargetName() {
+	public RPolyString getTargetName() {
 		return targetName;
 	}
 
-	public void setTargetName(String targetName) {
+	public void setTargetName(RPolyString targetName) {
 		this.targetName = targetName;
 	}
 
@@ -119,13 +120,13 @@ public class RAuditReferenceValue {
     	if (value != null) {
 			rValue.setOid(value.getOid());
 			rValue.setType(RUtil.qnameToString(value.getType()));
-			rValue.setTargetName(value.getTargetName());
+			rValue.setTargetName(RPolyString.toRepo(value.getTargetName()));
 		}
     	return rValue;
     }
 
 	public AuditReferenceValue fromRepo() {
-		return new AuditReferenceValue(oid, RUtil.stringToQName(type), targetName);
+		return new AuditReferenceValue(oid, RUtil.stringToQName(type), RPolyString.fromRepo(targetName));
 	}
 
 

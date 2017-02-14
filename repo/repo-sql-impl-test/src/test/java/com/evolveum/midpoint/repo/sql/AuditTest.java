@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
@@ -55,9 +56,9 @@ public class AuditTest extends BaseSQLRepoTest {
 		record.addPropertyValue("prop1", "val1.2");
 		record.addPropertyValue("prop2", "val2");
 		record.addPropertyValue("prop3", null);
-		AuditReferenceValue refVal1_1 = new AuditReferenceValue("oid1.1", UserType.COMPLEX_TYPE, "user1.1");
-		AuditReferenceValue refVal1_2 = new AuditReferenceValue("oid1.2", RoleType.COMPLEX_TYPE, "role1.2");
-		AuditReferenceValue refVal2 = new AuditReferenceValue("oid2", null, "object2");
+		AuditReferenceValue refVal1_1 = new AuditReferenceValue("oid1.1", UserType.COMPLEX_TYPE, new PolyString("user1.1"));
+		AuditReferenceValue refVal1_2 = new AuditReferenceValue("oid1.2", RoleType.COMPLEX_TYPE, new PolyString("role1.2"));
+		AuditReferenceValue refVal2 = new AuditReferenceValue("oid2", null, new PolyString("object2"));
 		AuditReferenceValue refVal3 = new AuditReferenceValue();
 		record.addReferenceValue("ref1", refVal1_1);
 		record.addReferenceValue("ref1", refVal1_2);

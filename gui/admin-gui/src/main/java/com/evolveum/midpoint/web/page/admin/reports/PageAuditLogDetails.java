@@ -346,7 +346,7 @@ public class PageAuditLogDetails extends PageBase{
 //		r.setName("ref");
 //		AuditEventRecordReferenceValueType v = new AuditEventRecordReferenceValueType();
 //		v.setOid("123");
-//		v.setTargetName("object123");
+//		v.setTargetName(PolyStringType.fromOrig("object123"));
 //		r.getValue().add(v);
 //		recordModel.getObject().getReference().add(r);
 
@@ -374,7 +374,7 @@ public class PageAuditLogDetails extends PageBase{
 								} else if (item instanceof AuditEventRecordReferenceType) {
 									for (AuditEventRecordReferenceValueType value : ((AuditEventRecordReferenceType) item).getValue()) {
 										rv.add(new AuditEventRecordItemValueDto(currentName, value.getTargetName() != null ?
-												value.getTargetName() : value.getOid()));
+												value.getTargetName().getOrig() : value.getOid()));
 										currentName = null;
 									}
 								} else {
