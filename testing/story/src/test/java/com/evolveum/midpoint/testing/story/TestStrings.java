@@ -25,10 +25,14 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -227,7 +231,7 @@ public class TestStrings extends AbstractStoryTest {
 	}
 
 	//region Basic approval
-	@Test(enabled = true)
+	@Test
     public void test100SimpleAssignmentStart() throws Exception {
 		final String TEST_NAME = "test100SimpleAssignmentStart";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -281,7 +285,7 @@ public class TestStrings extends AbstractStoryTest {
 		display("audit", dummyAuditService);
 	}
 
-	@Test(enabled = true)
+	@Test
 	public void test102SimpleAssignmentApproveByLechuck() throws Exception {
 		final String TEST_NAME = "test102SimpleAssignmentApproveByLechuck";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -305,7 +309,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
-		workItems.forEach(wi -> display("Work item after 1st approval", wi));
+		displayWorkItems("Work item after 1st approval", workItems);
 		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
 		display("wfTask after 1st approval", wfTask);
 
@@ -354,7 +358,7 @@ public class TestStrings extends AbstractStoryTest {
 		display("audit", dummyAuditService);
 	}
 
-	@Test(enabled = true)
+	@Test
 	public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
 		final String TEST_NAME = "test104SimpleAssignmentApproveByAdministrator";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -375,7 +379,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		// THEN
 		workItems = getWorkItems(task, result);
-		workItems.forEach(wi -> display("Work item after 2nd approval", wi));
+		displayWorkItems("Work item after 2nd approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 2, workItems.size());
 		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
 		display("wfTask after 2nd approval", wfTask);
@@ -430,7 +434,7 @@ public class TestStrings extends AbstractStoryTest {
 		display("audit", dummyAuditService);
 	}
 
-	@Test(enabled = true)
+	@Test
 	public void test106SimpleAssignmentApproveByCheese() throws Exception {
 		final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -452,7 +456,7 @@ public class TestStrings extends AbstractStoryTest {
 		// THEN
 		login(userAdministrator);
 		workItems = getWorkItems(task, result);
-		workItems.forEach(wi -> display("Work item after 3rd approval", wi));
+		displayWorkItems("Work item after 3rd approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 1, workItems.size());
 		workItemsMap = sortByOriginalAssignee(workItems);
 		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
@@ -487,7 +491,7 @@ public class TestStrings extends AbstractStoryTest {
 		display("audit", dummyAuditService);
 	}
 
-	@Test(enabled = true)
+	@Test
 	public void test108SimpleAssignmentApproveByChef() throws Exception {
 		final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -508,7 +512,7 @@ public class TestStrings extends AbstractStoryTest {
 		// THEN
 		login(userAdministrator);
 		workItems = getWorkItems(task, result);
-		workItems.forEach(wi -> display("Work item after 4th approval", wi));
+		displayWorkItems("Work item after 4th approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 0, workItems.size());
 		PrismObject<TaskType> wfTask = getTask(taskOid);
 		display("wfTask after 4th approval", wfTask);
@@ -657,7 +661,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		// THEN
 		List<WorkItemType> workItems = getWorkItems(task, result);
-		workItems.forEach(wi -> display("Work items after timed escalation", wi));
+		displayWorkItems("Work items after timed escalation", workItems);
 		assertEquals("Wrong # of work items after timed escalation", 1, workItems.size());
 		String taskOid = workItems.get(0).getTaskRef().getOid();
 		PrismObject<TaskType> wfTask = getTask(taskOid);
@@ -761,7 +765,7 @@ public class TestStrings extends AbstractStoryTest {
 		display("audit", dummyAuditService);
 	}
 
-	@Test(enabled = true)
+	@Test
 	public void test206ApproveByCheese() throws Exception {
 		final String TEST_NAME = "test206ApproveByCheese";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -786,7 +790,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
-		workItems.forEach(wi -> display("Work item after 1st approval", wi));
+		displayWorkItems("Work item after 1st approval", workItems);
 		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
 		display("wfTask after 1st approval", wfTask);
 
@@ -955,6 +959,149 @@ public class TestStrings extends AbstractStoryTest {
 				"^Result:");
 	}
 
+	@Test
+	public void test220FormRoleAssignmentStart() throws Exception {
+		final String TEST_NAME = "test220FormRoleAssignmentStart";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// WHEN
+		assignRole(userBobOid, roleATest4Oid, task, task.getResult());
+
+		// THEN
+		assertNotAssignedRole(getUser(userBobOid), roleATest4Oid);
+
+		List<WorkItemType> workItems = getWorkItems(task, result);
+		displayWorkItems("Work item after 1st approval", workItems);
+		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		display("wfTask", wfTask);
+		
+//		assertTriggers(wfTask, 2);
+
+		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
+		ApprovalSchemaType schema = info.getApprovalSchema();
+		assertEquals("Wrong # of approval levels", 1, schema.getLevel().size());
+		assertApprovalLevel(schema, 1, "Role approvers (all)", "P5D", 2);
+		assertStage(wfTask, 1, 1, "Role approvers (all)", null);
+//		assertAssignee(workItem, userLechuckOid, userLechuckOid);
+
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
+		display("processes notifications", processMessages);
+
+//		assertEquals("Wrong # of work items lifecycle messages", 1, lifecycleMessages.size());
+//		assertMessage(lifecycleMessages.get(0), "lechuck@evolveum.com", "A new work item has been created",
+//				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
+//
+//		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
+//		assertMessage(allocationMessages.get(0), "lechuck@evolveum.com", "Work item has been allocated to you",
+//				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
+//
+//		assertEquals("Wrong # of process messages", 1, processMessages.size());
+//		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
+//				"Process instance name: Assigning a-test-1 to bob", "Stage: Line managers (1/3)");
+
+		display("audit", dummyAuditService);
+	}
+
+	@Test
+	public void test222FormApproveByCheese() throws Exception {
+		final String TEST_NAME = "test222FormApproveByCheese";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// GIVEN
+		login(userAdministrator);
+		SearchResultList<WorkItemType> workItems = getWorkItems(task, result);
+		WorkItemType workItem = sortByOriginalAssignee(workItems).get(userCheeseOid);
+		assertNotNull("No work item for cheese", workItem);
+
+		// WHEN
+		PrismObject<UserType> cheese = getUserFromRepo(userCheeseOid);
+		login(cheese);
+		ObjectDelta formDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_DESCRIPTION).replace("Hello")
+				.asObjectDelta(userBobOid);
+		workflowService.completeWorkItem(workItem.getWorkItemId(), true, "OK. LeChuck", formDelta, result);
+
+		// THEN
+		login(userAdministrator);
+
+		workItems = getWorkItems(task, result);
+		displayWorkItems("Work item after 1st approval", workItems);
+		assertEquals("Wrong # of work items after 1st approval", 2, workItems.size());
+
+		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		display("wfTask after 1st approval", wfTask);
+
+		assertStage(wfTask, 1, 1, "Role approvers (all)", null);
+		// assertTriggers(wfTask, 4);
+
+		// notifications
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
+		display("processes notifications", processMessages);
+
+//		assertEquals("Wrong # of work items lifecycle messages", 3, lifecycleMessages.size());
+//		assertEquals("Wrong # of work items allocation messages", 3, allocationMessages.size());
+//		assertNull("process messages", processMessages);
+
+//		Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+//		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
+//				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
+//				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
+//		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created",
+//				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
+//				"Allocated to: Elaine Marley (elaine)", "(in 7 days)", "^Result:");
+//		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created",
+//				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
+//				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
+//
+//		Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
+//		assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
+//				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
+//				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
+//		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been allocated to you",
+//				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
+//				"(in 7 days)", "^Result:");
+//		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you",
+//				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
+//				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
+
+		// events
+//		List<WfProcessEventType> events = assertEvents(wfTask, 1);
+//		assertCompletionEvent(events.get(0), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
+
+		display("audit", dummyAuditService);
+		List<AuditEventRecord> records = dummyAuditService.getRecords();
+		assertEquals("Wrong # of audit records", 1, records.size());
+		AuditEventRecord record = records.get(0);
+		Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = record.getDeltas();
+		assertEquals("Wrong # of deltas in audit record", 1, deltas.size());
+		ObjectDeltaOperation<? extends ObjectType> delta = deltas.iterator().next();
+		assertEquals("Wrong # of modifications in audit record delta", 1, delta.getObjectDelta().getModifications().size());
+		ItemDelta<?, ?> itemDelta = delta.getObjectDelta().getModifications().iterator().next();
+		if (!new ItemPath(UserType.F_DESCRIPTION).equivalent(itemDelta.getPath())) {
+			fail("Wrong item path in delta: expected: "+new ItemPath(UserType.F_DESCRIPTION)+", found: "+itemDelta.getPath());
+		}
+		assertEquals("Wrong value in delta", "Hello", itemDelta.getValuesToReplace().iterator().next().getRealValue());
+	}
+
+
 	//endregion
 
 
@@ -965,6 +1112,11 @@ public class TestStrings extends AbstractStoryTest {
 
 
 	//region TODO deduplicate with AbstractWfTestPolicy
+
+	private void displayWorkItems(String title, List<WorkItemType> workItems) {
+		workItems.forEach(wi -> display(title, wi));
+	}
+
 	protected WorkItemType getWorkItem(Task task, OperationResult result) throws Exception {
 		SearchResultList<WorkItemType> itemsAll = getWorkItems(task, result);
 		if (itemsAll.size() != 1) {

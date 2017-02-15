@@ -380,9 +380,12 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             OperationResult result) throws WorkflowException {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, wfTask, result);
         try {
-        	// TODO TODO TODO
-            addDeltasToEventRecord(auditEventRecord,
-                    getWfTaskUtil().retrieveDeltasToProcess(wfTask.getTask()));
+        	// TODO - or merge with original deltas?
+        	if (workItem.getResult() != null && workItem.getResult().getOutcome() == WorkItemOutcomeType.APPROVE
+					&& workItem.getResult().getAdditionalDeltas() != null) {
+				addDeltasToEventRecord(auditEventRecord,
+						ObjectTreeDeltas.fromObjectTreeDeltasType(workItem.getResult().getAdditionalDeltas(), getPrismContext()));
+			}
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
         }
