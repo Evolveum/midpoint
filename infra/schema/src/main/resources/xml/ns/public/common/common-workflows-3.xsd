@@ -212,16 +212,32 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name given to this "timed actions" entry.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Display name given to this "timed actions" entry.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Description of this "timed actions" entry.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="time" type="tns:WfTimeSpecificationType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Time(s) at which these actions are to be executed. No time or zero time means
-						at the work item deadline. Positive time intervals are meant "after work item start".
-						Negative time intervals are meant "before work item deadline".
-						WILL BE CHANGED BEFORE RELEASE
-						TODO ability to specify e.g. "1 day after deadline"
+						Time(s) at which these actions are to be executed. No time or zero time means they are executed
+						at the work item deadline.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -235,21 +251,26 @@
 			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Should this action be scheduled?
+						Should these actions be scheduled?
+						NOT IMPLEMENTED YET.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="escalationLevelFrom" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Apply only for escalation levels greater or equal to this value.
+						Apply only if current escalation level is greater or equal to this value.
+						If both escalationLevelFrom and escalationLevelTo are missing, they are considered both to be 0.
+						If only escalationLevelFrom is missing, it is considered 0 (i.e. no restriction).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="escalationLevelTo" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Apply only for escalation levels not greater than this value.
+						Apply only if current escalation level is not greater than this value.
+						If both escalationLevelFrom and escalationLevelTo are missing, they are considered both to be 0.
+						If only escalationLevelTo is missing, it is considered "infinity" (i.e. no restriction).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -318,6 +339,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Should this action be executed?
+						NOT IMPLEMENTED YET
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -343,7 +365,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								If specified, sends a standard "action to be executed" notifications at given times.
-								(Unlike timed action interval, here specify a positive time: just like for
+								(Unlike in timed action interval, here a positive time must be specified: just like for
 								notifyBeforeDeadline in certification.)
 								TODO other time units, like business days?
 							</xsd:documentation>
@@ -445,7 +467,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Duration of the work item after delegation. If not specified, the deadline of the work item
-								is not changed (this is meaningful only if the delegation occurred before the original deadline).
+								is not changed (this is meaningful only if the delegation occurs before the original deadline).
 								TODO other time units, like business days?
 								TODO relative to original start time, original deadline, or current time?
 							</xsd:documentation>
@@ -462,7 +484,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								If specified, sends a standard "action to be executed" notifications at given times.
-								(Unlike timed action interval, here specify a positive time: just like for
+								(Unlike in timed action interval, here a positive time must be specified: just like for
 								notifyBeforeDeadline in certification.)
 								TODO other time units, like business days?
 							</xsd:documentation>
@@ -498,7 +520,6 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Display name for the new escalation level.
-								NOT SUPPORTED YET.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -2068,6 +2089,9 @@
 			<xsd:documentation>
 				TODO
 				EXPERIMENTAL
+
+				By default (when the base is not specified), positive time intervals are meant "after work item start".
+				Negative time intervals are meant "before work item deadline".
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
