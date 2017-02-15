@@ -488,7 +488,6 @@ public final class Utils {
 			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
 		}
 
-		variables.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, projCtx).getMap());
 		variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue());
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx));
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx));
