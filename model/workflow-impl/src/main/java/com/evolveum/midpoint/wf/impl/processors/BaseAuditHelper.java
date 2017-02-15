@@ -192,6 +192,7 @@ public class BaseAuditHelper {
 			message.append(answer);
 			if (itemResult.getComment() != null) {
 				message.append(" : ").append(itemResult.getComment());
+				record.addPropertyValue(WorkflowConstants.AUDIT_COMMENT, itemResult.getComment());
 			}
 		} else {
 			message.append("(no decision)");		// TODO
