@@ -155,11 +155,19 @@ public class MidpointUtil {
 			PrismContext prismContext = getPrismContext();
 			List<TriggerType> triggers = new ArrayList<>();
 			for (WorkItemTimedActionsType timedActionsEntry : timedActionsList) {
-				if (timedActionsEntry.getEscalationLevelFrom() != null && escalationLevel < timedActionsEntry.getEscalationLevelFrom()) {
+				Integer levelFrom;
+				Integer levelTo;
+				if (timedActionsEntry.getEscalationLevelFrom() == null && timedActionsEntry.getEscalationLevelTo() == null) {
+					levelFrom = levelTo = 0;
+				} else {
+					levelFrom = timedActionsEntry.getEscalationLevelFrom();
+					levelTo = timedActionsEntry.getEscalationLevelTo();
+				}
+				if (levelFrom != null && escalationLevel < levelFrom) {
 					LOGGER.trace("Current escalation level is before 'escalationFrom', skipping timed actions {}", timedActionsEntry);
 					continue;
 				}
-				if (timedActionsEntry.getEscalationLevelTo() != null && escalationLevel > timedActionsEntry.getEscalationLevelTo()) {
+				if (levelTo != null && escalationLevel > levelTo) {
 					LOGGER.trace("Current escalation level is after 'escalationTo', skipping timed actions {}", timedActionsEntry);
 					continue;
 				}

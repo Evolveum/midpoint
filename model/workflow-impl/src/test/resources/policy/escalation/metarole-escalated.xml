@@ -39,8 +39,6 @@
 								<actions>
 									<notify/>
 								</actions>
-								<escalationLevelFrom>0</escalationLevelFrom>		<!-- applies only to zero escalation level -->
-								<escalationLevelTo>0</escalationLevelTo>			<!-- applies only to zero escalation level -->
 							</timedActions>
 							<timedActions>
 								<name>2 days before deadline, escalate</name>
@@ -56,8 +54,6 @@
 										<escalationLevelDisplayName>Escalated to lead2</escalationLevelDisplayName>
 									</escalate>
 								</actions>
-								<escalationLevelFrom>0</escalationLevelFrom>
-								<escalationLevelTo>0</escalationLevelTo>
 							</timedActions>
 							<timedActions>
 								<name>Finally - approve</name>
@@ -66,8 +62,8 @@
 										<outcome>approve</outcome>
 									</complete>
 								</actions>
-								<escalationLevelFrom>0</escalationLevelFrom>		<!-- no need to reapply after escalation: the trigger is already there -->
-								<escalationLevelTo>0</escalationLevelTo>
+								<!-- Even when running at escalation level 1, the trigger is already there (from level 0).
+								 So there's no need to create it once more. Therefore, escalationLevelFrom/To need not be set here. -->
 							</timedActions>
 						</level>
 					</approvalSchema>

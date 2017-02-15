@@ -48,8 +48,6 @@
 										<escalationLevelName>Line manager escalation</escalationLevelName>
 									</escalate>
 								</actions>
-								<escalationLevelFrom>0</escalationLevelFrom>
-								<escalationLevelTo>0</escalationLevelTo>
 							</timedActions>
 							<timedActions>
 								<!-- no time set - executes at deadline -->
