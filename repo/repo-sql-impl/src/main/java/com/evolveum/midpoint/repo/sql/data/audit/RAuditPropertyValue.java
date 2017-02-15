@@ -27,7 +27,7 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.TABL
 
 @Entity
 @Table(name = TABLE_NAME, indexes = {
-		@Index(name = "iRecordId", columnList = COLUMN_RECORD_ID)})
+		@Index(name = "iAuditPropValRecordId", columnList = COLUMN_RECORD_ID)})
 public class RAuditPropertyValue {
 
 	public static final String TABLE_NAME = "m_audit_prop_value";

@@ -28,7 +28,7 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.TAB
 
 @Entity
 @Table(name = TABLE_NAME, indexes = {
-		@Index(name = "iRecordId", columnList = COLUMN_RECORD_ID)})
+		@Index(name = "iAuditRefValRecordId", columnList = COLUMN_RECORD_ID)})
 public class RAuditReferenceValue {
 
 	public static final String TABLE_NAME = "m_audit_ref_value";

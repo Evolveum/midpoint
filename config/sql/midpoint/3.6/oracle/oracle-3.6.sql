@@ -298,6 +298,25 @@ CREATE TABLE m_audit_item (
   PRIMARY KEY (changedItemPath, record_id)
 ) INITRANS 30;
 
+CREATE TABLE m_audit_prop_value (
+  id        NUMBER(19, 0) NOT NULL,
+  name      VARCHAR2(255 CHAR),
+  record_id NUMBER(19, 0),
+  value     VARCHAR2(1024 CHAR),
+  PRIMARY KEY (id)
+) INITRANS 30;
+
+CREATE TABLE m_audit_ref_value (
+  id              NUMBER(19, 0) NOT NULL,
+  name            VARCHAR2(255 CHAR),
+  oid             VARCHAR2(255 CHAR),
+  record_id       NUMBER(19, 0),
+  targetName_norm VARCHAR2(255 CHAR),
+  targetName_orig VARCHAR2(255 CHAR),
+  type            VARCHAR2(255 CHAR),
+  PRIMARY KEY (id)
+) INITRANS 30;
+
 CREATE TABLE m_connector (
   connectorBundle            VARCHAR2(255 CHAR),
   connectorHostRef_relation  VARCHAR2(157 CHAR),
@@ -812,6 +831,12 @@ CREATE INDEX iTimestampValue ON m_audit_event (timestampValue) INITRANS 30;
 
 CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath) INITRANS 30;
 
+CREATE INDEX iAuditPropValRecordId
+  ON m_audit_prop_value (record_id) INITRANS 30;
+
+CREATE INDEX iAuditRefValRecordId
+  ON m_audit_ref_value (record_id) INITRANS 30;
+
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm) INITRANS 30;
 
@@ -1022,6 +1047,16 @@ REFERENCES m_audit_event;
 
 ALTER TABLE m_audit_item
   ADD CONSTRAINT fk_audit_item
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event;
+
+ALTER TABLE m_audit_prop_value
+  ADD CONSTRAINT fk_audit_prop_value
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event;
+
+ALTER TABLE m_audit_ref_value
+  ADD CONSTRAINT fk_audit_ref_value
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
 
