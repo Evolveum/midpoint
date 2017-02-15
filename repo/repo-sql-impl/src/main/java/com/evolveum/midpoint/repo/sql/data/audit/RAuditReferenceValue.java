@@ -37,7 +37,7 @@ public class RAuditReferenceValue {
 	private long id;
     private RAuditEventRecord record;
     private Long recordId;
-    private String key;
+    private String name;
     private String oid;
     private String type;
     private RPolyString targetName;
@@ -81,12 +81,12 @@ public class RAuditReferenceValue {
 		this.recordId = recordId;
 	}
 
-	public String getKey() {
-		return key;
+	public String getName() {
+		return name;
 	}
 
-	public void setKey(String key) {
-		this.key = key;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getOid() {
@@ -113,10 +113,10 @@ public class RAuditReferenceValue {
 		this.targetName = targetName;
 	}
 
-	public static RAuditReferenceValue toRepo(RAuditEventRecord record, String key, AuditReferenceValue value) {
+	public static RAuditReferenceValue toRepo(RAuditEventRecord record, String name, AuditReferenceValue value) {
     	RAuditReferenceValue rValue = new RAuditReferenceValue();
     	rValue.setRecord(record);
-    	rValue.setKey(key);
+    	rValue.setName(name);
     	if (value != null) {
 			rValue.setOid(value.getOid());
 			rValue.setType(RUtil.qnameToString(value.getType()));
@@ -139,7 +139,7 @@ public class RAuditReferenceValue {
 		RAuditReferenceValue that = (RAuditReferenceValue) o;
 		return id == that.id &&
 				Objects.equals(recordId, that.recordId) &&
-				Objects.equals(key, that.key) &&
+				Objects.equals(name, that.name) &&
 				Objects.equals(oid, that.oid) &&
 				Objects.equals(type, that.type) &&
 				Objects.equals(targetName, that.targetName);
@@ -147,7 +147,7 @@ public class RAuditReferenceValue {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, recordId, key, oid);
+		return Objects.hash(id, recordId, name, oid);
 	}
 
 	@Override
@@ -155,7 +155,7 @@ public class RAuditReferenceValue {
 		return "RAuditReferenceValue{" +
 				"id=" + id +
 				", recordId=" + recordId +
-				", key='" + key + '\'' +
+				", name='" + name + '\'' +
 				", oid='" + oid + '\'' +
 				", type='" + type + '\'' +
 				", targetName='" + targetName + '\'' +

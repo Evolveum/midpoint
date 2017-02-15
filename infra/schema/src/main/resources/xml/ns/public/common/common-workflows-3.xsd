@@ -1842,6 +1842,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Internal identifier of a process instance, assigned by the underlying workflow engine
+                        (currently Activiti).
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="name" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>

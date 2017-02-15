@@ -565,10 +565,10 @@ public class RAuditEventRecord implements Serializable {
 		audit.getDeltas().addAll((Collection) odos);
 
 		for (RAuditPropertyValue rPropertyValue : repo.getPropertyValues()) {
-			audit.addPropertyValue(rPropertyValue.getKey(), rPropertyValue.getValue());
+			audit.addPropertyValue(rPropertyValue.getName(), rPropertyValue.getValue());
 		}
 		for (RAuditReferenceValue rRefValue : repo.getReferenceValues()) {
-			audit.addReferenceValue(rRefValue.getKey(), rRefValue.fromRepo());
+			audit.addReferenceValue(rRefValue.getName(), rRefValue.fromRepo());
 		}
 
 		audit.setRepoId(repo.getId());

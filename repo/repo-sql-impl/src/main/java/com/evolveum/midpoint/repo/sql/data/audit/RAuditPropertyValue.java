@@ -36,7 +36,7 @@ public class RAuditPropertyValue {
 	private long id;
     private RAuditEventRecord record;
     private Long recordId;
-    private String key;
+    private String name;
     private String value;
 
 	@Id
@@ -78,12 +78,12 @@ public class RAuditPropertyValue {
 		this.recordId = recordId;
 	}
 
-	public String getKey() {
-		return key;
+	public String getName() {
+		return name;
 	}
 
-	public void setKey(String key) {
-		this.key = key;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	@Column(length = AuditService.MAX_PROPERTY_SIZE)
@@ -95,10 +95,10 @@ public class RAuditPropertyValue {
 		this.value = value;
 	}
 
-	public static RAuditPropertyValue toRepo(RAuditEventRecord record, String key, String value) {
+	public static RAuditPropertyValue toRepo(RAuditEventRecord record, String name, String value) {
     	RAuditPropertyValue property = new RAuditPropertyValue();
     	property.setRecord(record);
-    	property.setKey(key);
+    	property.setName(name);
     	property.setValue(value);
     	return property;
     }
@@ -112,13 +112,13 @@ public class RAuditPropertyValue {
 		RAuditPropertyValue that = (RAuditPropertyValue) o;
 		return id == that.id &&
 				Objects.equals(recordId, that.recordId) &&
-				Objects.equals(key, that.key) &&
+				Objects.equals(name, that.name) &&
 				Objects.equals(value, that.value);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, recordId, key);
+		return Objects.hash(id, recordId, name);
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class RAuditPropertyValue {
 		return "RAuditPropertyValue{" +
 				"id=" + id +
 				", recordId=" + recordId +
-				", key='" + key + '\'' +
+				", name='" + name + '\'' +
 				", value='" + value + '\'' +
 				'}';
 	}

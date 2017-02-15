@@ -107,7 +107,9 @@ public class PageAuditLogDetails extends PageBase {
 					WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER,
 					WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME,
 					WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME,
-					WorkflowConstants.AUDIT_COMMENT);
+					WorkflowConstants.AUDIT_COMMENT,
+					WorkflowConstants.AUDIT_WORK_ITEM_ID,
+					WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
 
     public PageAuditLogDetails() {
         AuditLogStorage storage = getSessionStorage().getAuditLog();

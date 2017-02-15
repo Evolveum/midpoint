@@ -18,6 +18,7 @@ package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.test.DummyTransport;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -549,14 +550,18 @@ public class TestStrings extends AbstractStoryTest {
 
 		display("audit", dummyAuditService);
 
-		List<AuditEventRecord> workItemEvent = filterByStage(getObjectAuditRecords(workItemId), AuditEventStage.EXECUTION);
-		assertAuditReferenceValue(workItemEvent, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
-		assertAuditReferenceValue(workItemEvent, WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+		List<AuditEventRecord> workItemEvents = filter(getParamAuditRecords(
+				WorkflowConstants.AUDIT_WORK_ITEM_ID, workItemId, result), AuditEventStage.EXECUTION);
+		assertAuditReferenceValue(workItemEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+		assertAuditTarget(workItemEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
+		assertAuditReferenceValue(workItemEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
 		// TODO other items
-		List<AuditEventRecord> processEvent = filterByStage(
-				getObjectAuditRecords(wfTask.asObjectable().getWorkflowContext().getProcessInstanceId()), AuditEventStage.EXECUTION);
-		assertAuditReferenceValue(processEvent, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
-		assertAuditReferenceValue(processEvent, WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+		List<AuditEventRecord> processEvents = filter(getParamAuditRecords(
+				WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getWorkflowContext().getProcessInstanceId(), result),
+				AuditEventType.WORKFLOW_PROCESS_INSTANCE, AuditEventStage.EXECUTION);
+		assertAuditReferenceValue(processEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+		assertAuditTarget(processEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
+		assertAuditReferenceValue(processEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
 		// TODO other items
 	}
 

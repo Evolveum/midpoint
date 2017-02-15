@@ -67,20 +67,19 @@ public class BaseAuditHelper {
 
     public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, OperationResult result) {
 
-        AuditEventRecord record = new AuditEventRecord();
+		WfContextType wfc = wfTask.getTask().getWorkflowContext();
+
+		AuditEventRecord record = new AuditEventRecord();
         record.setEventType(WORKFLOW_PROCESS_INSTANCE);
         record.setEventStage(stage);
 		record.setInitiator(wfTask.getRequesterIfExists(result));
 
-		PrismObject<GenericObjectType> processInstanceObject = createGenericObject();
-        processInstanceObject.asObjectable().setName(new PolyStringType(wfTask.getProcessInstanceName()));
-        processInstanceObject.asObjectable().setOid(wfTask.getProcessInstanceId());
-        record.setTarget(processInstanceObject);
+		ObjectReferenceType objectRef = resolveIfNeeded(wfc.getObjectRef(), result);
+		record.setTarget(objectRef.asReferenceValue());
 
         record.setOutcome(OperationResultStatus.SUCCESS);
 
-		WfContextType wfc = wfTask.getTask().getWorkflowContext();
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, resolveIfNeeded(wfc.getObjectRef(), result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(wfc.getTargetRef(), result));
 		if (stage == EXECUTION) {
 			String stageInfo = wfTask.getCompleteStageInfo();
@@ -94,6 +93,7 @@ public class BaseAuditHelper {
 			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, wfc.getStageName());
 			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, wfc.getStageDisplayName());
 		}
+		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfc.getProcessInstanceId());
 		return record;
     }
 
@@ -120,15 +120,6 @@ public class BaseAuditHelper {
 				.collect(Collectors.toList());
 	}
 
-	@NotNull
-	private PrismObject<GenericObjectType> createGenericObject() {
-		try {
-			return prismContext.createObject(GenericObjectType.class);
-		} catch (SchemaException e) {
-			throw new IllegalStateException("Couldn't create generic object: " + e.getMessage(), e);
-		}
-	}
-
 	public AuditEventRecord prepareWorkItemAuditReportCommon(WorkItemType workItem, WfTask wfTask, AuditEventStage stage,
 			OperationResult result) throws WorkflowException {
 
@@ -136,19 +127,17 @@ public class BaseAuditHelper {
 		record.setEventType(AuditEventType.WORK_ITEM);
 		record.setEventStage(stage);
 
-		PrismObject<GenericObjectType> targetObject = createGenericObject();
-		targetObject.asObjectable().setName(new PolyStringType(workItem.getName()));
-		targetObject.asObjectable().setOid(workItem.getWorkItemId());
-		record.setTarget(targetObject);
+		ObjectReferenceType objectRef = resolveIfNeeded(workItem.getObjectRef(), result);
+		record.setTarget(objectRef.asReferenceValue());
 
-		@SuppressWarnings("unchecked")
-		PrismObject<UserType> targetOwner = (PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getOriginalAssigneeRef());
-		record.setTargetOwner(targetOwner);
+//		@SuppressWarnings("unchecked")
+//		PrismObject<UserType> targetOwner = (PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getOriginalAssigneeRef());
+//		record.setTargetOwner(targetOwner);
 
 		record.setOutcome(OperationResultStatus.SUCCESS);
 		record.setParameter(wfTask.getCompleteStageInfo());
 
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, resolveIfNeeded(workItem.getObjectRef(), result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(workItem.getTargetRef(), result));
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), result));
 		record.addReferenceValues(WorkflowConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), result));
@@ -159,6 +148,8 @@ public class BaseAuditHelper {
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, workItem.getEscalationLevelNumber());
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, workItem.getEscalationLevelName());
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, workItem.getEscalationLevelDisplayName());
+		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, workItem.getWorkItemId());
+		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, workItem.getProcessInstanceId());
 		return record;
 	}
 

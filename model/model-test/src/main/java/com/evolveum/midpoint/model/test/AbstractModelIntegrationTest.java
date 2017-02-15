@@ -22,6 +22,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -3738,7 +3739,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.targetOid = :targetOid) order by aer.timestamp asc", 
         		params, result);
 	}
-	
+
+	protected List<AuditEventRecord> getParamAuditRecords(String paramName, String paramValue, OperationResult result) throws SecurityViolationException, SchemaException {
+		Map<String,Object> params = new HashMap<>();
+		params.put("paramName", paramName);
+		params.put("paramValue", paramValue);
+		return modelAuditService.listRecords("from RAuditEventRecord as aer left join aer.propertyValues as pv where (pv.name = :paramName and pv.value = :paramValue) order by aer.timestamp asc",
+        		params, result);
+	}
+
 	protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to) throws SecurityViolationException, SchemaException {
 		OperationResult result = new OperationResult("getAuditRecordsFromTo");
 		return getAuditRecordsFromTo(from, to, result);
@@ -3884,9 +3893,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong name", name, PolyString.getOrig(value.getTargetName()));
 	}
 
-	protected List<AuditEventRecord> filterByStage(List<AuditEventRecord> records, AuditEventStage stage) {
+	protected void assertAuditTarget(AuditEventRecord event, String oid, QName type, String name) {
+		PrismReferenceValue target = event.getTarget();
+		assertNotNull("No target", target);
+		assertEquals("Wrong OID", oid, target.getOid());
+		assertEquals("Wrong type", type, target.getTargetType());
+		assertEquals("Wrong name", name, PolyString.getOrig(target.getTargetName()));
+	}
+
+	protected List<AuditEventRecord> filter(List<AuditEventRecord> records, AuditEventStage stage) {
 		return records.stream()
 				.filter(r -> r.getEventStage() == stage)
+				.collect(Collectors.toList());
+	}
+
+	protected List<AuditEventRecord> filter(List<AuditEventRecord> records, AuditEventType type, AuditEventStage stage) {
+		return records.stream()
+				.filter(r -> r.getEventType() == type && r.getEventStage() == stage)
 				.collect(Collectors.toList());
 	}
 }

@@ -443,6 +443,7 @@ public class WorkItemProvider {
 			final Map<String, Object> variables = task.getVariables();
 
 			wi.setWorkItemId(task.getId());
+			wi.setProcessInstanceId(task.getProcessInstanceId());
 			wi.setName(task.getName());
 			wi.setWorkItemCreatedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
 			wi.setProcessStartedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(ActivitiUtil.getRequiredVariable(
