@@ -496,7 +496,9 @@ public class DependencyProcessor {
 					for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
                         String dependencyResourceOid = dependency.getResourceRef() != null ?
                                 dependency.getResourceRef().getOid() : projectionContext.getResource().getOid();
-						if (dependencyResourceOid.equals(accountContext.getResource().getOid()) &&
+						// TODO what to do if dependencyResourceOid or accountContext.getResource() is null?
+						if (dependencyResourceOid != null && accountContext.getResource() != null &&
+						 		dependencyResourceOid.equals(accountContext.getResource().getOid()) &&
 								MiscSchemaUtil.equalsIntent(dependency.getIntent(), projectionContext.getResourceShadowDiscriminator().getIntent())) {
 							// Someone depends on us
 							if (ResourceTypeUtil.getDependencyStrictness(dependency) == ResourceObjectTypeDependencyStrictnessType.STRICT) {

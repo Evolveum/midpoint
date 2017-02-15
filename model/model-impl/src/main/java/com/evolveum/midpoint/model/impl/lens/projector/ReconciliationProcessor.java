@@ -30,9 +30,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +70,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -691,7 +688,13 @@ public class ReconciliationProcessor {
                 }
             }
 
-            decideIfTolerateAssociation(projCtx, associationDefinition, areCValues, shouldBeCValues, associationValueMatcher);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Before decideIfTolerateAssociation:");
+				LOGGER.trace("areCValues:\n{}", DebugUtil.debugDump(areCValues));
+				LOGGER.trace("shouldBeCValues:\n{}", DebugUtil.debugDump(shouldBeCValues));
+			}
+
+			decideIfTolerateAssociation(projCtx, associationDefinition, areCValues, shouldBeCValues, associationValueMatcher);
         }
     }
 
@@ -730,14 +733,19 @@ public class ReconciliationProcessor {
                                   Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> shouldBeCValues,
                                   ValueMatcher valueMatcher) throws SchemaException {
 
-        for (PrismContainerValue<ShadowAssociationType> isCValue : areCValues){
-            if (!associationDefinition.isTolerant()) {
-                if (!isInCvwoAssociationValues(valueMatcher, isCValue.getValue(), shouldBeCValues)) {
+		if (associationDefinition.isTolerant()) {
+			LOGGER.trace("Association is tolerant, not removing existing values.");
+			return;
+		}
+        for (PrismContainerValue<ShadowAssociationType> isCValue : areCValues) {
+			if (!isInCvwoAssociationValues(valueMatcher, isCValue.getValue(), shouldBeCValues)) {
+					LOGGER.trace("{} not in 'shouldBeCValues', adding it to delete delta", isCValue);
                     recordAssociationDelta(valueMatcher, accCtx, associationDefinition, ModificationType.DELETE,
                             isCValue.getValue(), null);
-                }
-            }
-        }
+            } else {
+				LOGGER.trace("{} in 'shouldBeCValues', keeping it", isCValue);
+			}
+		}
     }
 
 	private <T> void recordDelta(ValueMatcher<T> valueMatcher, LensProjectionContext projCtx, ItemPath parentPath,
