@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean addConnectorStateAttributes = false;
 	private boolean supportReturnDefaultAttributes = false;				// used e.g. for livesync vs. auxiliary object classes test
 	private boolean requireNameHint = false;
+	private boolean monsterized = false;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -351,6 +352,15 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setRequireNameHint(boolean requireNameHint) {
 		this.requireNameHint = requireNameHint;
+	}
+	
+	@ConfigurationProperty
+	public boolean isMonsterized() {
+		return monsterized;
+	}
+
+	public void setMonsterized(boolean monsterized) {
+		this.monsterized = monsterized;
 	}
 
 	/**

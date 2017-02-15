@@ -100,6 +100,20 @@ public class DummyResource implements DebugDumpable {
 	private int groupMembersReadCount = 0;
 	private Collection<String> forbiddenNames;
 
+	/**
+	 * There is a monster that loves to eat cookies.
+	 * If value "monster" is added to an attribute that
+	 * contain the "cookie" value, the monster will
+	 * eat that cookie. Then is goes to sleep. If more
+	 * cookies are added then the monster will not
+	 * eat them.
+	 * MID-3727
+	 */
+	private boolean monsterization = false;
+	
+	public static final String VALUE_MONSTER = "monster";
+	public static final String VALUE_COOKIE = "cookie";
+	
 	private BreakMode schemaBreakMode = BreakMode.NONE;
 	private BreakMode getBreakMode = BreakMode.NONE;
 	private BreakMode addBreakMode = BreakMode.NONE;
@@ -331,6 +345,14 @@ public class DummyResource implements DebugDumpable {
 
 	public void setForbiddenNames(Collection<String> forbiddenNames) {
 		this.forbiddenNames = forbiddenNames;
+	}
+
+	public boolean isMonsterization() {
+		return monsterization;
+	}
+
+	public void setMonsterization(boolean monsterization) {
+		this.monsterization = monsterization;
 	}
 
 	public int getConnectionCount() {

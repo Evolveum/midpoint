@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -49,57 +49,6 @@
 			<icfi:instanceId>hr</icfi:instanceId>
 		</icfc:configurationProperties>
 	</connectorConfiguration>
-	
-	<schema>
-		<definition>
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-            <xsd:complexType name="AccountObjectClass">
-               <xsd:annotation>
-                  <xsd:appinfo>
-                     <ra:resourceObject/>
-                     <ra:identifier>icfs:uid</ra:identifier>
-                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-                     <ra:account/>
-                     <ra:default/>
-                  </xsd:appinfo>
-               </xsd:annotation>
-               <xsd:sequence>
-                  <xsd:element ref="icfs:uid" minOccurs="0">
-                     <xsd:annotation>
-                        <xsd:appinfo>
-                           <a:displayName>ICF UID</a:displayName>
-                           <a:access>read</a:access>
-                        </xsd:appinfo>
-                     </xsd:annotation>
-                  </xsd:element>
-                  <xsd:element name="fullname" type="xsd:string"/>
-                  <xsd:element minOccurs="0" name="description" type="xsd:string"/>
-                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
-                  <xsd:element ref="icfs:name">
-                     <xsd:annotation>
-                        <xsd:appinfo>
-                           <a:displayName>ICF NAME</a:displayName>
-                        </xsd:appinfo>
-                     </xsd:annotation>
-                  </xsd:element>
-               </xsd:sequence>
-            </xsd:complexType>
-         </xsd:schema>
-		</definition>
-	</schema>
 
 	<schemaHandling>
 		<objectType>

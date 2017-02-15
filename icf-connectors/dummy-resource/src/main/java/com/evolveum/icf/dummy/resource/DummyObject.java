@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -224,6 +224,15 @@ public abstract class DummyObject implements DebugDumpable {
 					if (StringUtils.equalsIgnoreCase((String)currentValue, (String)valueToAdd)) {
 						throw new IllegalArgumentException("The value '"+valueToAdd+"' of attribute '"+attrName+"' conflicts with existing value: Attempt to add value that already exists");
 					}
+				}
+			}
+		}
+		
+		if (resource != null && resource.isMonsterization() && DummyResource.VALUE_MONSTER.equals(valueToAdd)) {
+			Iterator<Object> iterator = currentValues.iterator();
+			while (iterator.hasNext()) {
+				if (DummyResource.VALUE_COOKIE.equals(iterator.next())) {
+					iterator.remove();
 				}
 			}
 		}

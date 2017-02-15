@@ -4362,6 +4362,22 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="explosive">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPLOSIVE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        The object can change in insane ways as a reaction to changes made by midPoint.
+                        E.g. the attribute that was modified by midPoint can be modified in a different way
+                        by the resource (this sometimes happen for nested groups). There is no way how to
+                        handle such a volatile behavior other than to re-read the account and re-run
+                        reconciliation after every change that midPoint does.
+                        This really brutal solution. It is quite inefficient. But it may be the only option
+                        to reliably manage data in some resources.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
     

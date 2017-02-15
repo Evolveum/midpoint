@@ -1394,4 +1394,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			return null;
 		}
 	}
+	
+	public ResourceObjectVolatilityType getVolatility() throws SchemaException {
+		RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
+		if (structuralObjectClassDefinition == null) {
+			return null;
+		}
+		return structuralObjectClassDefinition.getVolatility();
+	}
 }

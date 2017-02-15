@@ -312,6 +312,14 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public void setKind(ShadowKindType kind) {
 		this.kind = kind;
 	}
+	
+	@Override
+	public ResourceObjectVolatilityType getVolatility() {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return null;
+		}
+		return schemaHandlingObjectTypeDefinitionType.getVolatility();
+	}
 
 	//endregion
 
