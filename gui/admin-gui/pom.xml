@@ -492,10 +492,6 @@
             <artifactId>wicket-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wicketstuff</groupId>
-            <artifactId>wicketstuff-serializer-fast2</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-request</artifactId>
         </dependency>

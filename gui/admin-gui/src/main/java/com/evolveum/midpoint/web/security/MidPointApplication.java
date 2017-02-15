@@ -225,8 +225,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     public void init() {
         super.init();
 
-        getFrameworkSettings().setSerializer(new Fast2WicketSerializer());
-
         getJavaScriptLibrarySettings().setJQueryReference(
                 new PackageResourceReference(MidPointApplication.class,
                         "../../../../../webjars/adminlte/2.3.0/plugins/jQuery/jQuery-2.1.4.min.js"));

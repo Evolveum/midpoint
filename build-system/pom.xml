@@ -161,11 +161,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.wicketstuff</groupId>
-                <artifactId>wicketstuff-serializer-fast2</artifactId>
-                <version>${wicket.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-email</artifactId>
                 <version>${commons-email.version}</version>
