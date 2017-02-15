@@ -56,7 +56,7 @@ public class DummyResourceCollection {
 		if (controllerInitLambda != null) {
 			controllerInitLambda.process(controller);
 		} else {
-			controller.extendSchemaPirate();
+			controller.populateWithDefaultSchema();
 		}
 		if (resourceFile != null) {
 			LOGGER.info("Importing {}", resourceFile);

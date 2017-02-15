@@ -108,7 +108,6 @@
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
-			<volatility>unpredictable</volatility>
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
@@ -140,6 +139,9 @@
 					</target>
 				</inbound>
 			</attribute>
+			
+			<volatility>unpredictable</volatility>
+			
             <protected>
             	<icfs:name>daviejones</icfs:name>
             </protected>
