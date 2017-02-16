@@ -144,5 +144,15 @@
     			</formSpecification>
     		</objectForm>
     	</objectForms>
+    	<userDashboard>
+    		<widget>
+    			<identifier>http://midpoint.evolveum.com/xml/ns/test#widget1</identifier>
+    			<visibility>automatic</visibility>
+    		</widget>
+    		<widget>
+    			<identifier>http://midpoint.evolveum.com/xml/ns/test#widget2</identifier>
+    			<visibility>vacant</visibility>
+    		</widget>
+    	</userDashboard>
     </adminGuiConfiguration>
 </role>
