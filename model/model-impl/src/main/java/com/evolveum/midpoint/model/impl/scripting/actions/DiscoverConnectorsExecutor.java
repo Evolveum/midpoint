@@ -75,6 +75,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
         Data output = Data.createEmpty();
 
         for (PrismValue value: input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ConnectorHostType) {
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 Set<ConnectorType> newConnectors;

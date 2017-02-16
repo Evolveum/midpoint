@@ -90,6 +90,7 @@ public class AssignExecutor extends BaseActionExecutor {
         }
 
         for (PrismValue value : input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof FocusType) {
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();

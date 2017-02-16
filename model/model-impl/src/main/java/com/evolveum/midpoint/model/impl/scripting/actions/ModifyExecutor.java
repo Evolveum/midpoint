@@ -62,6 +62,7 @@ public class ModifyExecutor extends BaseActionExecutor {
         Data deltaData = expressionHelper.evaluateParameter(deltaParameterValue, ObjectDeltaType.class, input, context, result);
 
         for (PrismValue value : input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue) {
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();

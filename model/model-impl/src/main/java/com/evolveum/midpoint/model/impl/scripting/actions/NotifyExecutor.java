@@ -93,6 +93,7 @@ public class NotifyExecutor extends BaseActionExecutor {
             eventCount++;
         } else {
             for (PrismValue value : input.getData()) {
+                context.checkTaskStop();
                 Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, value, operation, status, context.getChannel());
                 notificationManager.processEvent(event, context.getTask(), result);
                 eventCount++;

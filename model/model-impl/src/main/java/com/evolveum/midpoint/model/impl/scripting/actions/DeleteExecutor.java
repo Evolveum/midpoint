@@ -61,6 +61,7 @@ public class DeleteExecutor extends BaseActionExecutor {
         boolean dryRun = getParamDryRun(expression, input, context, result);
 
         for (PrismValue item : input.getData()) {
+            context.checkTaskStop();
             if (item instanceof PrismObjectValue) {
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) item).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();

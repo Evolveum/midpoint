@@ -67,6 +67,7 @@ public class TestResourceExecutor extends BaseActionExecutor {
         Data output = Data.createEmpty();
 
         for (PrismValue value: input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
                 PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 ResourceType resourceType = resourceTypePrismObject.asObjectable();
