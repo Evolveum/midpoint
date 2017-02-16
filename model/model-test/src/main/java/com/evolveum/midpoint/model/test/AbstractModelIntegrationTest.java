@@ -3547,15 +3547,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected void assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks, 
-			int expectedDashboardLinks, int expectedObjectForms) {
+	protected AdminGuiConfigurationType assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks, 
+			int expectedDashboardLinks, int expectedObjectForms, int expecteduserDashboardWidgets) {
 		AdminGuiConfigurationType adminGuiConfiguration = principal.getAdminGuiConfiguration();
 		display("Admin GUI config for "+principal.getUsername(), adminGuiConfiguration);
-		assertAdminGuiConfigurations(adminGuiConfiguration, expectedMenuLinks, expectedDashboardLinks, expectedObjectForms);
+		assertAdminGuiConfigurations(adminGuiConfiguration, 
+				expectedMenuLinks, expectedDashboardLinks, expectedObjectForms, expecteduserDashboardWidgets);
+		return adminGuiConfiguration;
 	}
 	
-	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration, int expectedMenuLinks, 
-			int expectedDashboardLinks, int expectedObjectForms) {
+	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration, 
+			int expectedMenuLinks, int expectedDashboardLinks, int expectedObjectForms, int expecteduserDashboardWidgets) {
 		assertNotNull("No admin GUI configuration", adminGuiConfiguration);
 		assertEquals("Wrong number of menu links in",
 				expectedMenuLinks, adminGuiConfiguration.getAdditionalMenuLink().size());
@@ -3563,6 +3565,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				expectedDashboardLinks, adminGuiConfiguration.getUserDashboardLink().size());
 		assertEquals("Wrong number of object forms in admin GUI configuration",
 				expectedObjectForms, adminGuiConfiguration.getObjectForms().getObjectForm().size());
+		if ( adminGuiConfiguration.getUserDashboard() == null) {
+			if (expecteduserDashboardWidgets != 0) {
+				AssertJUnit.fail("Wrong number of widgets in user dashboard admin GUI configuration, expected "
+						+ expecteduserDashboardWidgets + " but there was none");
+			}
+		} else {
+			assertEquals("Wrong number of widgets in user dashboard admin GUI configuration",
+				expectedObjectForms, adminGuiConfiguration.getUserDashboard().getWidget().size());
+		}
 	}
 
 	protected void createSecurityContext(MidPointPrincipal principal) {
