@@ -226,7 +226,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         getJavaScriptLibrarySettings().setJQueryReference(
                 new PackageResourceReference(MidPointApplication.class,
-                        "../../../../../webjars/adminlte/2.3.0/plugins/jQuery/jQuery-2.1.4.min.js"));
+                        "../../../../../webjars/adminlte/2.3.11/plugins/jQuery/jquery-2.2.3.min.js"));
 
         GuiComponents.init();
 
