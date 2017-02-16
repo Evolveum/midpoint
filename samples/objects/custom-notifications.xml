@@ -26,6 +26,12 @@
     <!-- Experimental. Use at your own risk. -->
     <notificationConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <handler>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>somebody@acme.org</value>
+                </recipientExpression>
+                <transport>custom:123</transport>
+            </simpleUserNotifier>
             <customNotifier>
                 <expression>
                     <script>
@@ -42,12 +48,6 @@
                 </expression>
                 <transport>mail</transport>
             </customNotifier>
-            <simpleUserNotifier>
-                <recipientExpression>
-                    <value>somebody@acme.org</value>
-                </recipientExpression>
-                <transport>custom:123</transport>
-            </simpleUserNotifier>
         </handler>
 
         <mail>
