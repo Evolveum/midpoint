@@ -34,4 +34,9 @@
 	<fullName>Carla the Swordmaster</fullName>
 	<givenName>Carla</givenName>
 	<emailAddress>carla@evolveum.com</emailAddress>
+	<credentials>
+		<password>
+			<value>a123456</value>
+		</password>
+	</credentials>  
 </user>

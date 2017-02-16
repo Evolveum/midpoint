@@ -119,7 +119,7 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.webjars</groupId>
+            <groupId>org.webjars.npm</groupId>
             <artifactId>ionicons</artifactId>
             <scope>runtime</scope>
         </dependency>
