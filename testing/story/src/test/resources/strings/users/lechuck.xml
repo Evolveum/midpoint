@@ -28,4 +28,9 @@
 	<fullName>Captain LeChuck</fullName>
 	<familyName>LeChuck</familyName>
 	<emailAddress>lechuck@evolveum.com</emailAddress>
+	<credentials>
+		<password>
+			<value>a123456</value>
+		</password>
+	</credentials>
 </user>
