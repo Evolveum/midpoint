@@ -83,6 +83,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 
 		Data output = Data.createEmpty();
         for (PrismValue value: input.getData()) {
+			context.checkTaskStop();
 			String valueDescription;
         	long started;
 			if (value instanceof PrismObjectValue) {

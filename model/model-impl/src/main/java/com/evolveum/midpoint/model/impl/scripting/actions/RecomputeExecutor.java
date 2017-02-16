@@ -66,6 +66,7 @@ public class RecomputeExecutor extends BaseActionExecutor {
         boolean dryRun = getParamDryRun(expression, input, context, result);
 
         for (PrismValue value : input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue && FocusType.class.isAssignableFrom(((PrismObjectValue) value).asPrismObject().getCompileTimeClass())) {
                 PrismObject<FocusType> focalPrismObject = ((PrismObjectValue) value).asPrismObject();
                 FocusType focusType = focalPrismObject.asObjectable();
