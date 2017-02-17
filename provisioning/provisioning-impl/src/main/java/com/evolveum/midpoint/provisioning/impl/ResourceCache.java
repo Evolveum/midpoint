@@ -57,17 +57,17 @@ public class ResourceCache {
 		
 		PrismObject<ResourceType> cachedResource = cache.get(oid);
 		if (cachedResource == null) {
-			cache.put(oid, resource.clone());
+			cache.put(oid, resource.createImmutableClone());
 		} else {
 			if (compareVersion(resource.getVersion(), cachedResource.getVersion())) {
 				// We already have equivalent resource, nothing to do
 				return;
 			} else {
-				cache.put(oid, resource.clone());
+				cache.put(oid, resource.createImmutableClone());
 			}
 		}
 	}
-	
+
 	private boolean compareVersion(String version1, String version2) {
 		if (version1 == null && version2 == null) {
 			return true;
@@ -97,7 +97,9 @@ public class ResourceCache {
 		}
 		
 		if (GetOperationOptions.isReadOnly(options)) {
-			// TODO: make sure it is immutable
+			if (!cachedResource.isImmutable()) {
+				throw new IllegalStateException("Cached resource is not immutable");
+			}
 			return cachedResource;
 		} else {
 			return cachedResource.clone();

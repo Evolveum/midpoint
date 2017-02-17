@@ -177,7 +177,7 @@
 			<attribute>
 				<ref>ri:drink</ref>
 				<displayName>Drink</displayName>
-				<tolerant>false</tolerant>
+				<tolerant>true</tolerant>		<!-- This could not be non-tolerant. There are (almost) no mappings for this attribute, so it gets erased very soon. -->
 				<inbound>
 					<authoritative>true</authoritative>
 					<strength>strong</strength>

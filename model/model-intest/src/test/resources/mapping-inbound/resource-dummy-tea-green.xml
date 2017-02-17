@@ -133,7 +133,7 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<tolerant>false</tolerant>
+				<tolerant>true</tolerant>
 				<inbound>
 					<strength>strong</strength>
 					<authoritative>true</authoritative>

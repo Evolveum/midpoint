@@ -146,11 +146,11 @@
     	</objectForms>
     	<userDashboard>
     		<widget>
-    			<identifier>http://midpoint.evolveum.com/xml/ns/test#widget1</identifier>
+    			<identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#search</identifier>
     			<visibility>automatic</visibility>
     		</widget>
     		<widget>
-    			<identifier>http://midpoint.evolveum.com/xml/ns/test#widget2</identifier>
+    			<identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#myWorkItems</identifier>
     			<visibility>vacant</visibility>
     		</widget>
     	</userDashboard>

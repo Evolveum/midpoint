@@ -526,33 +526,47 @@ public class ResourceManager {
 	 */
 	private void applyConnectorSchemaToResource(PrismObject<ResourceType> resource, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
-		
-		ConnectorType connectorType = connectorTypeManager.getConnectorTypeReadOnly(resource.asObjectable(), result);
-		PrismSchema connectorSchema = connectorTypeManager.getConnectorSchema(connectorType);
-		if (connectorSchema == null) {
-			throw new SchemaException("No connector schema in "+connectorType);
-		}
-		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = ConnectorTypeUtil
-				.findConfigurationContainerDefinition(connectorType, connectorSchema);
-		if (configurationContainerDefinition == null) {
-			throw new SchemaException("No configuration container definition in schema of " + connectorType);
-		}
 
-		configurationContainerDefinition = configurationContainerDefinition.clone();
-		PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil
-				.getConfigurationContainer(resource);
-		// We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
-		// the element is global in the connector schema. therefore it does not have correct maxOccurs
-		if (configurationContainer != null) {
-			configurationContainerDefinition.adoptElementDefinitionFrom(configurationContainer.getDefinition());
-			configurationContainer.applyDefinition(configurationContainerDefinition, true);
-		} else {
-			configurationContainerDefinition.adoptElementDefinitionFrom(resource.getDefinition().findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
-		}
+		synchronized (resource) {
+			boolean immutable = resource.isImmutable();
+			if (immutable) {
+				resource.setImmutable(false);
+			}
+			try {
+				ConnectorType connectorType = connectorTypeManager.getConnectorTypeReadOnly(resource.asObjectable(), result);
+				PrismSchema connectorSchema = connectorTypeManager.getConnectorSchema(connectorType);
+				if (connectorSchema == null) {
+					throw new SchemaException("No connector schema in " + connectorType);
+				}
+				PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = ConnectorTypeUtil
+						.findConfigurationContainerDefinition(connectorType, connectorSchema);
+				if (configurationContainerDefinition == null) {
+					throw new SchemaException("No configuration container definition in schema of " + connectorType);
+				}
 
-		PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
-		PrismObjectDefinition<ResourceType> clonedObjectDefinition = objectDefinition.cloneWithReplacedDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
-		resource.setDefinition(clonedObjectDefinition);
+				configurationContainerDefinition = configurationContainerDefinition.clone();
+				PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil
+						.getConfigurationContainer(resource);
+				// We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
+				// the element is global in the connector schema. therefore it does not have correct maxOccurs
+				if (configurationContainer != null) {
+					configurationContainerDefinition.adoptElementDefinitionFrom(configurationContainer.getDefinition());
+					configurationContainer.applyDefinition(configurationContainerDefinition, true);
+				} else {
+					configurationContainerDefinition.adoptElementDefinitionFrom(
+							resource.getDefinition().findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
+				}
+
+				PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
+				PrismObjectDefinition<ResourceType> clonedObjectDefinition = objectDefinition
+						.cloneWithReplacedDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
+				resource.setDefinition(clonedObjectDefinition);
+			} finally {
+				if (immutable) {
+					resource.setImmutable(true);
+				}
+			}
+		}
 	}
 
 	public void testConnection(PrismObject<ResourceType> resource, OperationResult parentResult) {
@@ -745,12 +759,20 @@ public class ResourceManager {
 						throw new SystemException(ex);
 					}
 				}
-				if (resourceType.getOperationalState() == null){
+				// ugly hack: change object even if it's immutable
+				boolean immutable = resource.isImmutable();
+				if (immutable) {
+					resource.setImmutable(false);
+				}
+				if (resourceType.getOperationalState() == null) {
 					OperationalStateType operationalState = new OperationalStateType();
 					operationalState.setLastAvailabilityStatus(status);
 					resourceType.setOperationalState(operationalState);
-				} else{
+				} else {
 					resourceType.getOperationalState().setLastAvailabilityStatus(status);
+				}
+				if (immutable) {
+					resource.setImmutable(true);
 				}
 			}
 		}

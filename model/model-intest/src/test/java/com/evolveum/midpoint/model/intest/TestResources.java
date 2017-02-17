@@ -483,7 +483,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
         
-        assertPrismObjectCloneIncrement(0);
+        assertPrismObjectCloneIncrement(4);
         
         assertResourceSchemaFetchIncrement(0);
         assertResourceSchemaParseCountIncrement(0);
@@ -553,7 +553,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
 
-        assertPrismObjectCloneIncrement(0);
+        assertPrismObjectCloneIncrement(2);
         
         assertResourceDummy(resource, true);
         

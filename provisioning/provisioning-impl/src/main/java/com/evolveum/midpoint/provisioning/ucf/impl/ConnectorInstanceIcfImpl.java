@@ -258,7 +258,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			// Make sure that the proper configuration schema is applied. This
 			// will cause that all the "raw" elements are parsed
-			configuration.applyDefinition(getConfigurationContainerDefinition());
+			boolean immutable = configuration.isImmutable();
+			try {
+				if (immutable) {
+					configuration.setImmutable(false);
+				}
+				configuration.applyDefinition(getConfigurationContainerDefinition());
+			} finally {
+				if (immutable) {
+					configuration.setImmutable(true);
+				}
+			}
 
 			IcfConfigurationTransformer configTransformer = new IcfConfigurationTransformer(connectorType, cinfo, protector);
 			// Transform XML configuration from the resource to the ICF connector configuration

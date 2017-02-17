@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 public class ComponentConstants {
 
     public static final String NS_COMPONENTS_PREFIX = SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX + "gui/component-3";
+    public static final String NS_DASHBOARD_WIDGET = NS_COMPONENTS_PREFIX + "/dashboard/widget";
 
     // UI - Tabs for focus objects
     public static final QName UI_FOCUS_TAB_BASIC = new QName(NS_COMPONENTS_PREFIX, "focusTabBasic");
@@ -60,5 +61,6 @@ public class ComponentConstants {
     public static final String UI_FOCUS_TAB_POLICY_CONSTRAINTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_POLICY_CONSTRAINTS);
 
     public static final QName UI_FOCUS_TAB_MEMBERS = new QName(NS_COMPONENTS_PREFIX, "focusTabMembers");
-    public static final String UI_FOCUS_TAB_MEMBERS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_MEMBERS);
+    public static final String UI_FOCUS_TAB_MEMBERS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_MEMBERS);    
+
 }

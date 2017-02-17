@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -66,8 +67,12 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		return construction;
 	}
 
+	public ObjectType getSource() {
+		return construction != null ? construction.getSource() : null;
+	}
+
 	public boolean isValid() {
-		return construction.isValid();
+		return construction == null || construction.isValid();
 	}
 	
 	public <T> boolean equalsRealValue(V pvalue, ValueMatcher<T> valueMatcher) throws SchemaException {
@@ -145,5 +150,4 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		return "ItemValueWithOrigin(" + itemValue + ", M="
 				+ mapping + ", C=" + construction + ")";
 	}
-
 }

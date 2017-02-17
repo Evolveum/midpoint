@@ -190,7 +190,7 @@ public class ConnectorManager {
 		// If it happens often, it may be an
 		// indication of a problem. Therefore it is good for admin to see it.
 		LOGGER.info("Created new connector instance for {}: {} v{}",
-				new Object[]{resourceType, connectorType.getConnectorType(), connectorType.getConnectorVersion()});
+				resourceType, connectorType.getConnectorType(), connectorType.getConnectorVersion());
 
 		return connector;
 	}
@@ -222,7 +222,16 @@ public class ConnectorManager {
 					connectorTypeCache.put(connOid, connectorType);
 				}
 			}
-			resourceType.setConnector(connectorType);
+			synchronized (resourceType.asPrismObject()) {
+				boolean immutable = resourceType.asPrismObject().isImmutable();
+				if (immutable) {
+					resourceType.asPrismObject().setImmutable(false);
+				}
+				resourceType.setConnector(connectorType);
+				if (immutable) {
+					resourceType.asPrismObject().setImmutable(true);
+				}
+			}
 		}
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() != null) {
 			// We need to resolve the connector host

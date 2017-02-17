@@ -182,7 +182,7 @@
 
 			<association>
 				<ref>ri:group</ref>
-				<tolerant>false</tolerant>
+				<tolerant>true</tolerant>
 				<kind>entitlement</kind>
 				<intent>group</intent>
 				<direction>objectToSubject</direction>
