@@ -1177,7 +1177,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Guybrush has an entitlement (swashbucklers), but after recomputation it should go away.
 	 */
-	@Test
+	@Test(enabled = false)			// disabled for 3.5-support, because "no squeezed associations" fix is not there (yet)
 	public void test700ReconcileGuybrush() throws Exception {
 		final String TEST_NAME = "test700ReconcileGuybrush";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -1202,7 +1202,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Add account to a group using model service (shadow operations) - preparation for next test (tolerantValuePatterns)
 	 */
-	@Test
+	@Test(enabled = false)			// disabled for 3.5-support, because "no squeezed associations" fix is not there (yet)
 	public void test710AssociateGuybrushToLandlubers() throws Exception {
 		final String TEST_NAME = "test710AssociateGuybrushToLandlubers";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -1232,7 +1232,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Tolerant entitlement (landlubers) should be kept.
 	 */
-	@Test
+	@Test(enabled = false)			// disabled for 3.5-support, because "no squeezed associations" fix is not there (yet)
 	public void test720ReconcileGuybrush() throws Exception {
 		final String TEST_NAME = "test720ReconcileGuybrush";
 		TestUtil.displayTestTile(this, TEST_NAME);
