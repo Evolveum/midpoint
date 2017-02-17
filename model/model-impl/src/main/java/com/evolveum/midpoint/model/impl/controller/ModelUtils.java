@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -24,6 +25,8 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -186,4 +189,21 @@ public class ModelUtils {
 		return null;
 	}
 
+	// If the object was retrieved as "not readonly", it was cloned on retrieval from cache.
+	// So it's not necessary to clone it now (before applying security and schema).
+	//
+	// However, if it was retrieved as readonly, it was _not_ cloned after retrieving from cache.
+	// So let's clone it now.
+	public static <T extends ObjectType> PrismObject<T> cloneIfReadOnly(PrismObject<T> object,
+			Collection<SelectorOptions<GetOperationOptions>> options) {
+		return cloneIfReadOnly(object, SelectorOptions.findRootOptions(options));
+	}
+
+	public static <O extends ObjectType> PrismObject<O> cloneIfReadOnly(PrismObject<O> object, GetOperationOptions options) {
+		if (GetOperationOptions.isReadOnly(options)) {
+			return object.clone();
+		} else {
+			return object;
+		}
+	}
 }

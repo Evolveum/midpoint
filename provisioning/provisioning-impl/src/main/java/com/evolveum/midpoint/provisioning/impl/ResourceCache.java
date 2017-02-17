@@ -67,7 +67,7 @@ public class ResourceCache {
 			}
 		}
 	}
-	
+
 	private boolean compareVersion(String version1, String version2) {
 		if (version1 == null && version2 == null) {
 			return true;
