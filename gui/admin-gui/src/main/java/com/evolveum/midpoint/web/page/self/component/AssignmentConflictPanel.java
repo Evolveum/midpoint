@@ -1,51 +1,94 @@
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * Created by honchar.
  */
-public class AssignmentConflictPanel extends BasePanel {
+public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
     private static final String ID_STATUS_ICON = "statusIcon";
     private static final String ID_EXISTING_ASSIGNMENT = "existingAssignment";
-    private static final String ID_CONFLICT_MESSAGE = "conflictMessage";
     private static final String ID_ADDED_ASSIGNMENT = "addedAssignment";
     private static final String ID_UNSELECT_BUTTON = "unselectButton";
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
+    private static final String STATUS_FIXED = GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED + " fa-lg";
+    private static final String STATUS_ERROR = GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED + " fa-lg";
 
-    private PageBase pageBase;
-    PrismObject<UserType> user;
-
-    public AssignmentConflictPanel(String id, PrismObject<UserType> user, PageBase pageBase){
-        super(id);
-        this.pageBase = pageBase;
-        this.user = user;
+    public AssignmentConflictPanel(String id, IModel<AssignmentConflictDto> model){
+        super(id, model);
         initLayout();
     }
 
     private void initLayout(){
-//        getAssignmentConflicts();
+        setOutputMarkupId(true);
 
+        Label statusIconLabel = new Label(ID_STATUS_ICON);
+        statusIconLabel.add(AttributeModifier.replace("class", getStatusIconClass()));
+        add(statusIconLabel);
+
+        Label existingAssignment = new Label(ID_EXISTING_ASSIGNMENT,
+                getExistingAssignmentLabelModel());
+        add(existingAssignment);
+
+        Label addedAssignment = new Label(ID_ADDED_ASSIGNMENT,
+                getAddedAssignmentLabelModel());
+        add(addedAssignment);
+
+        AjaxButton removeButton = new AjaxButton(ID_REMOVE_BUTTON,
+                createStringResource("AssignmentConflictPanel.removeButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        add(removeButton);
+
+        AjaxButton unselectButton = new AjaxButton(ID_UNSELECT_BUTTON,
+                createStringResource("AssignmentConflictPanel.unselectButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        add(unselectButton);
     }
+
+    private Model<String> getExistingAssignmentLabelModel(){
+        if (getModelObject() != null){
+            String name = getModelObject().getExistingAssignmentTargetObj().asObjectable().getName() != null ?
+                    getModelObject().getExistingAssignmentTargetObj().asObjectable().getName().getOrig() :
+                    getModelObject().getExistingAssignmentTargetObj().getOid();
+            return Model.of(name + " " + createStringResource("AssignmentConflictPanel.existingAssignmentLabelMessage").getString());
+        }
+        return Model.of("");
+    }
+
+    private Model<String> getAddedAssignmentLabelModel(){
+        if (getModelObject() != null){
+            String name = getModelObject().getAddedAssignmentTargetObj().asObjectable().getName() != null ?
+                    getModelObject().getAddedAssignmentTargetObj().asObjectable().getName().getOrig() :
+                    getModelObject().getAddedAssignmentTargetObj().getOid();
+            return Model.of(name + " " + createStringResource("AssignmentConflictPanel.addedAssignmentLabelMessage").getString());
+        }
+        return Model.of("");
+    }
+
+    private String getStatusIconClass(){
+        return getModelObject() != null ? (getModelObject().isSolved() ? STATUS_FIXED : STATUS_ERROR) : STATUS_ERROR;
+    }
+
 
 
 }
