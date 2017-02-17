@@ -203,6 +203,7 @@ public class OutboundProcessor {
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projectionOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION,

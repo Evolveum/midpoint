@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -67,6 +68,10 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     protected static final File RESOURCE_DUMMY_VOLATILE_FILE = new File(TEST_DIR, "resource-dummy-volatile.xml");
     protected static final String RESOURCE_DUMMY_VOLATILE_OID = "10000000-0000-0000-0000-00000000f104";
     protected static final String RESOURCE_DUMMY_VOLATILE_NAME = "volatile";
+    
+    protected static final File RESOURCE_DUMMY_MONSTERIZED_FILE = new File(TEST_DIR, "resource-dummy-monsterized.xml");
+    protected static final String RESOURCE_DUMMY_MONSTERIZED_OID = "67a954d2-f391-11e6-a1d7-078381fe0e6f";
+    protected static final String RESOURCE_DUMMY_MONSTERIZED_NAME = "monsterized";
 
     protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     protected static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";     //Guybrush Threepwood
@@ -78,14 +83,6 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     protected static final File USER_TEMPLATE_FILE = new File(TEST_DIR, "user-template-import-hr.xml");
     protected static final File USER_LARGO_WITH_ASSIGNMENT_FILE = new File(TEST_DIR, "user-largo-with-assignment.xml");
 
-    protected PrismObject<ResourceType> resourceDummyHr;
-    protected DummyResourceContoller dummyResourceCtlHr;
-    protected DummyResource dummyResourceHr;
-
-    protected PrismObject<ResourceType> resourceDummyVolatile;
-    protected DummyResourceContoller dummyResourceCtlVolatile;
-    protected DummyResource dummyResourceVolatile;
-
     @Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -93,19 +90,14 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         repoAddObjectFromFile(USER_TEMPLATE_FILE, initResult);
 
-        dummyResourceCtlHr = DummyResourceContoller.create(RESOURCE_DUMMY_HR_NAME, null);
-        dummyResourceHr = dummyResourceCtlHr.getDummyResource();
-        dummyResourceHr.setSyncStyle(DummySyncStyle.SMART);
-        dummyResourceHr.populateWithDefaultSchema();
-        resourceDummyHr = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_HR_FILE, RESOURCE_DUMMY_HR_OID, initTask, initResult);
-        dummyResourceCtlHr.setResource(resourceDummyHr);
-
-        dummyResourceCtlVolatile = DummyResourceContoller.create(RESOURCE_DUMMY_VOLATILE_NAME, null);
-        dummyResourceVolatile = dummyResourceCtlVolatile.getDummyResource();
-        dummyResourceVolatile.setSyncStyle(DummySyncStyle.SMART);
-        dummyResourceVolatile.populateWithDefaultSchema();
-        resourceDummyVolatile = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_VOLATILE_FILE, RESOURCE_DUMMY_VOLATILE_OID, initTask, initResult);
-        dummyResourceCtlVolatile.setResource(resourceDummyVolatile);
+        initDummyResource(RESOURCE_DUMMY_HR_NAME, RESOURCE_DUMMY_HR_FILE, RESOURCE_DUMMY_HR_OID, ctl -> {
+        	ctl.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
+        	ctl.getDummyResource().populateWithDefaultSchema();
+        }, initTask, initResult);
+        
+        initDummyResource(RESOURCE_DUMMY_VOLATILE_NAME, RESOURCE_DUMMY_VOLATILE_FILE, RESOURCE_DUMMY_VOLATILE_OID, initTask, initResult);
+        
+        initDummyResource(RESOURCE_DUMMY_MONSTERIZED_NAME, RESOURCE_DUMMY_MONSTERIZED_FILE, RESOURCE_DUMMY_MONSTERIZED_OID, initTask, initResult);        
     }
 
     @Test
@@ -146,21 +138,23 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         /// WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        dummyResourceHr.addAccount(account);
+        getDummyResource(RESOURCE_DUMMY_HR_NAME).addAccount(account);
 
         waitForSyncTaskNextRun();
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
-
-        PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyHr);
+       
+        PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, 
+        		getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
         display("Account mancomb on HR", accountMancombHr);
         assertNotNull("No mancomb HR account shadow", accountMancombHr);
         assertEquals("Wrong resourceRef in mancomb HR account", RESOURCE_DUMMY_HR_OID,
                 accountMancombHr.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountMancombHr, SynchronizationSituationType.LINKED, null);
 
-        PrismObject<ShadowType> accountMancombVolatileTarget = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyVolatile);
+        PrismObject<ShadowType> accountMancombVolatileTarget = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, 
+        		getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
         display("Account mancomb on target", accountMancombVolatileTarget);
         assertNotNull("No mancomb target account shadow", accountMancombVolatileTarget);
         assertEquals("Wrong resourceRef in mancomb target account", RESOURCE_DUMMY_VOLATILE_OID,
@@ -200,10 +194,10 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_HR_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         account.replaceAttributeValue(DummyAccount.ATTR_FULLNAME_NAME, "Sir Mancomb Seepgood");
 
-        display("Dummy HR resource", dummyResourceHr.debugDump());
+        display("Dummy HR resource", getDummyResource(RESOURCE_DUMMY_HR_NAME).debugDump());
 
         // Make sure we have steady state
         waitForSyncTaskNextRun();
@@ -211,7 +205,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
 
-        PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyHr);
+        PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, 
+        		getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
         display("Account mancomb on HR", accountMancombHr);
         assertNotNull("No mancomb HR account shadow", accountMancombHr);
         assertEquals("Wrong resourceRef in mancomb HR account", RESOURCE_DUMMY_HR_OID,
@@ -221,7 +216,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME));
         assertShadowOperationalData(accountMancombHr, SynchronizationSituationType.LINKED, null);
 
-        PrismObject<ShadowType> accountMancombVolatileTarget = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyVolatile);
+        PrismObject<ShadowType> accountMancombVolatileTarget = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, 
+        		getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
         display("Account mancomb on target", accountMancombVolatileTarget);
         assertNotNull("No mancomb target account shadow", accountMancombVolatileTarget);
         assertEquals("Wrong resourceRef in mancomb target account", RESOURCE_DUMMY_VOLATILE_OID,
@@ -282,7 +278,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         assertNotNull("User guybrush is not there", userGuybrush);
         assertLinks(userGuybrush, 1);
 
-        PrismObject<ShadowType> accountGuybrushVolatileTarget = findAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyVolatile);
+        PrismObject<ShadowType> accountGuybrushVolatileTarget = findAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
         display("Account guybrush on target", accountGuybrushVolatileTarget);
         assertNotNull("No guybrush target account shadow", accountGuybrushVolatileTarget);
         assertEquals("Wrong resourceRef in guybrush target account", RESOURCE_DUMMY_VOLATILE_OID,
@@ -333,7 +330,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         assertNotNull("User largo is not there", userLargo);
         assertLinks(userLargo, 1);
 
-        PrismObject<ShadowType> accountLargoVolatileTarget = findAccountByUsername(ACCOUNT_LARGO_DUMMY_USERNAME, resourceDummyVolatile);
+        PrismObject<ShadowType> accountLargoVolatileTarget = findAccountByUsername(ACCOUNT_LARGO_DUMMY_USERNAME,
+        		getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
         display("Account largo on target", accountLargoVolatileTarget);
         assertNotNull("No largo target account shadow", accountLargoVolatileTarget);
         assertEquals("Wrong resourceRef in largo target account", RESOURCE_DUMMY_VOLATILE_OID,
@@ -354,6 +352,82 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         // notifications
         notificationManager.setDisabled(true);
+    }
+    
+    /**
+     * MID-3727
+     */
+    @Test
+    public void test400AddHerman() throws Exception {
+        final String TEST_NAME = "test400AddHerman";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_HERMAN_FILE);
+        AssignmentType assignmentType = createAccountAssignment(RESOURCE_DUMMY_MONSTERIZED_OID, null);
+		userBefore.asObjectable().getAssignment().add(assignmentType);
+		userBefore.asObjectable().getOrganization().add(createPolyStringType("foo"));
+		userBefore.asObjectable().getOrganization().add(createPolyStringType(DummyResource.VALUE_COOKIE));
+		userBefore.asObjectable().getOrganization().add(createPolyStringType("bar"));
+		display("User before", userBefore);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		addObject(userBefore, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_HERMAN_OID);
+        display("User after", userAfter);
+        assertNotNull("User not there", userAfter);
+        assertLinks(userAfter, 1);
+
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME);
+        display("Dummy account", dummyAccount);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME, 
+        		DummyAccount.ATTR_INTERESTS_NAME, "foo", "bar", DummyResource.VALUE_COOKIE);
+    }
+    
+    /**
+     * Monsterized resource is volatile: Monster has eaten the cookie. But we still
+     * want the cookie to be in the values. The volatility=explosive should fix it.
+     * MID-3727
+     */
+    @Test
+    public void test402ModifyHermanMonster() throws Exception {
+        final String TEST_NAME = "test402ModifyHermanMonster";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modifyUserAdd(USER_HERMAN_OID, UserType.F_ORGANIZATION, task, result, 
+				createPolyString(DummyResource.VALUE_MONSTER));
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_HERMAN_OID);
+        display("User after", userAfter);
+        assertNotNull("User not there", userAfter);
+        assertLinks(userAfter, 1);
+
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME);
+        display("Dummy account", dummyAccount);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME, 
+        		DummyAccount.ATTR_INTERESTS_NAME, 
+        		"foo", "bar", DummyResource.VALUE_COOKIE, DummyResource.VALUE_MONSTER);
     }
 
     protected void importSyncTask() throws FileNotFoundException {
