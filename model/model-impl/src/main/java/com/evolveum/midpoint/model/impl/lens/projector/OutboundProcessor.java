@@ -189,13 +189,16 @@ public class OutboundProcessor {
 		}
 		
 		// TODO: check access
-		
+
 		// This is just supposed to be an optimization. The consolidation should deal with the weak mapping
 		// even if it is there. But in that case we do not need to evaluate it at all.
-		if (mappingBuilder.getStrength() == MappingStrengthType.WEAK && projCtx.hasValueForAttribute(mappingQName)) {
-			LOGGER.trace("Skipping outbound mapping for {} because it is weak", mappingQName);
-			return null;
-		}
+
+		// Edit 2017-02-16 pmed: It's not quite true. If the attribute is non-tolerant, it will get removed if we would
+		// skip evaluation of this mapping. So we really need to do this.
+//		if (mappingBuilder.getStrength() == MappingStrengthType.WEAK && projCtx.hasValueForAttribute(mappingQName)) {
+//			LOGGER.trace("Skipping outbound mapping for {} because it is weak", mappingQName);
+//			return null;
+//		}
 		
 		mappingBuilder.setDefaultTargetDefinition(targetDefinition);
 		mappingBuilder.setSourceContext(focusOdo);

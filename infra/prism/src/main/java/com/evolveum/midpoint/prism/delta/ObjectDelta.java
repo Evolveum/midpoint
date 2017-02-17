@@ -1651,4 +1651,26 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 		}
 		return modifications.stream().map(ItemDelta::getPath).collect(Collectors.toList());
 	}
+
+	public List<PrismValue> getNewValuesFor(ItemPath itemPath) {
+		if (isAdd()) {
+			Item<PrismValue, ItemDefinition> item = objectToAdd.findItem(itemPath);
+			return item != null ? item.getValues() : Collections.emptyList();
+		} else if (isDelete()) {
+			return Collections.emptyList();
+		} else {
+			ItemDelta itemDelta = ItemDelta.findItemDelta(modifications, itemPath, ItemDelta.class);
+			if (itemDelta != null) {
+				if (itemDelta.getValuesToReplace() != null) {
+					return (List<PrismValue>) itemDelta.getValuesToReplace();
+				} else if (itemDelta.getValuesToAdd() != null) {
+					return (List<PrismValue>) itemDelta.getValuesToAdd();
+				} else {
+					return Collections.emptyList();
+				}
+			} else {
+				return Collections.emptyList();
+			}
+		}
+	}
 }

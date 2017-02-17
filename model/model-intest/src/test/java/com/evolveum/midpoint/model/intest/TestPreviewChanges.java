@@ -22,9 +22,9 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
-
-import javax.xml.namespace.QName;
+import java.util.HashSet;
 
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -914,6 +914,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        display("elaine blue account before", getDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_ELAINE_DUMMY_BLUE_USERNAME));
         
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID);
         PropertyDelta<String> fullnameDelta = createAttributeAddDelta(resourceDummyBlue,
@@ -960,7 +962,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 				"Elaine Marley");
 		
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+		assertNotNull("Missing account secondary delta", accountSecondaryDelta);
+		// these are originally empty attributes with weak mappings
+        assertEquals("Wrong items in account secondary delta", new HashSet<>(
+				Arrays.asList(
+				dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME),
+        		dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+        		dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME))),
+				new HashSet<>(accountSecondaryDelta.getModifiedItems()));
 	}
 
 	
