@@ -190,7 +190,7 @@ public class ConnectorManager {
 		// If it happens often, it may be an
 		// indication of a problem. Therefore it is good for admin to see it.
 		LOGGER.info("Created new connector instance for {}: {} v{}",
-				new Object[]{resourceType, connectorType.getConnectorType(), connectorType.getConnectorVersion()});
+				resourceType, connectorType.getConnectorType(), connectorType.getConnectorVersion());
 
 		return connector;
 	}
