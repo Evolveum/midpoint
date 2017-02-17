@@ -356,6 +356,7 @@ public class RepositoryCache implements RepositoryService {
 		if (cache != null) {
 			PrismObject<ObjectType> objectToCache;
 			if (readOnly) {
+				object.setImmutable(true);
 				objectToCache = (PrismObject<ObjectType>) object;
 			} else {
 				objectToCache = (PrismObject<ObjectType>) object.clone();

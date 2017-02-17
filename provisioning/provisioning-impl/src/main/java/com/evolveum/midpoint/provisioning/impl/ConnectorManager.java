@@ -222,7 +222,16 @@ public class ConnectorManager {
 					connectorTypeCache.put(connOid, connectorType);
 				}
 			}
-			resourceType.setConnector(connectorType);
+			synchronized (resourceType.asPrismObject()) {
+				boolean immutable = resourceType.asPrismObject().isImmutable();
+				if (immutable) {
+					resourceType.asPrismObject().setImmutable(false);
+				}
+				resourceType.setConnector(connectorType);
+				if (immutable) {
+					resourceType.asPrismObject().setImmutable(true);
+				}
+			}
 		}
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() != null) {
 			// We need to resolve the connector host

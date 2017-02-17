@@ -243,7 +243,9 @@ public class InternalMonitor implements PrismMonitor {
 	@Override
 	public <O extends Objectable> void beforeObjectClone(PrismObject<O> orig) {
 		LOGGER.trace("MONITOR prism object clone start: {}", orig);
-		orig.setUserData(CLONE_START_TIMESTAMP_KEY, System.currentTimeMillis());
+		if (!orig.isImmutable()) {
+			orig.setUserData(CLONE_START_TIMESTAMP_KEY, System.currentTimeMillis());
+		}
 	}
 	
 	@Override

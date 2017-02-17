@@ -92,18 +92,24 @@ public class SchemaTransformer {
 	private PrismContext prismContext;
 
 	// TODO why are the following two methods distinct? Clarify their names.
-	public <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(Collection<T> objectTypes, 
+	public <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(List<T> objectTypes,
 			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
 					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
-		for (T objectType: objectTypes) {
-			applySchemasAndSecurity(objectType.asPrismObject(), options, phase, task, result);
+		for (int i = 0; i < objectTypes.size(); i++) {
+			PrismObject<T> object = objectTypes.get(i).asPrismObject();
+			object = object.cloneIfImmutable();
+			objectTypes.set(i, object.asObjectable());
+			applySchemasAndSecurity(object, options, phase, task, result);
 		}
 	}
 	
-	public <T extends ObjectType> void applySchemasAndSecurityToObjects(Collection<PrismObject<T>> objects, 
+	public <T extends ObjectType> void applySchemasAndSecurityToObjects(List<PrismObject<T>> objects,
 			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
 					throws SecurityViolationException, SchemaException {
-		for (PrismObject<T> object: objects) {
+		for (int i = 0; i < objects.size(); i++) {
+			PrismObject<T> object = objects.get(i);
+			object = object.cloneIfImmutable();
+			objects.set(i, object);
 			applySchemaAndSecurityToObject(object, options, phase, task);
 		}
 	}
@@ -136,6 +142,7 @@ public class SchemaTransformer {
 				wasProcessed = false;
 			}
 			if (!wasProcessed) {
+				// TODO what if parent is immutable?
 				applySchemasAndSecurity(parent, options, phase, task, result);
 				processedParents.put(parent, null);
 			}
