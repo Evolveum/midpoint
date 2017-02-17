@@ -51,4 +51,7 @@
 			</policyActions>
 		</policyRule>
 	</inducement>
+	<inducement>
+		<targetRef oid="1eee65d1-81d1-4cbb-81e0-4ba3022271db" type="RoleType"/>		<!-- rejection -->
+	</inducement>
 </role>

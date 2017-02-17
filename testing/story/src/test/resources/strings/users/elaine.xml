@@ -69,6 +69,7 @@
 	<givenName>Elaine</givenName>
 	<familyName>Marley</familyName>
 	<title>Governor</title>
+	<emailAddress>elaine@evolveum.com</emailAddress>
 	<credentials>
 		<password>
 			<value>a123456</value>

@@ -581,6 +581,19 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
 						executedDeltas.addAll(projectionContext.getExecutedDeltas());
 					}
+					
+					if (context.hasExplosiveProjection()) {
+						PrismObject<? extends ObjectType> focus = context.getFocusContext().getObjectAny();
+						
+						LOGGER.debug("Recomputing {} because there was explosive projection", focus);
+
+						LensContext<? extends ObjectType> recomputeContext = contextFactory.createRecomputeContext(focus, task, result);
+						recomputeContext.setDoReconciliationForAllProjections(true);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Recomputing {}, context:\n{}", focus, recomputeContext.debugDump());
+						}
+						clockwork.run(recomputeContext, task, result);
+					}
 
 					cleanupOperationResult(result);
 
@@ -675,10 +688,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             Utils.clearRequestee(task);
 			PrismObject<F> focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
 			
-			LOGGER.trace("Recomputing {}", focus);
+			LOGGER.debug("Recomputing {}", focus);
 
 			LensContext<F> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
-			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.debugDump());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.debugDump());
+			}
 			clockwork.run(syncContext, task, result);
 			
 			result.computeStatus();
@@ -903,7 +918,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return new SearchResultList(new ArrayList<>());
 		}
 
-		SearchResultList<T> list = null;
+		SearchResultList<T> list;
 		try {
 			RepositoryCache.enter();
 
@@ -1993,10 +2008,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //region Workflow-related operations
     @Override
-    public void approveOrRejectWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
+    public void completeWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
 			OperationResult parentResult)
 			throws SecurityViolationException, SchemaException {
-        getWorkflowManagerChecked().approveOrRejectWorkItem(workItemId, decision, comment, additionalDelta, parentResult);
+        getWorkflowManagerChecked().completeWorkItem(workItemId, decision, comment, additionalDelta, null, parentResult);
     }
 
     @Override
@@ -2029,7 +2044,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
+			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException {
         getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, parentResult);
     }
     //endregion

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaHelper;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
@@ -119,6 +120,9 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 	@Autowired
 	private MappingFactory mappingFactory;
 
+	@Autowired
+	protected ApprovalSchemaHelper approvalSchemaHelper;
+
 	@PostConstruct
     public void init() {
         changeProcessor.registerChangeAspect(this, isFirst());
@@ -144,7 +148,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
     @Override
     public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
-        return processInterfaceFinder.getProcessInterface(event.getVariables()).prepareApprovedBy(event);
+        return processInterfaceFinder.getProcessInterface(event.getVariables()).prepareApprovedBy(event, job, result);
     }
 
     public PrimaryChangeProcessor getChangeProcessor() {
@@ -210,7 +214,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 			if (ref == null) {
 				return Collections.emptyList();
 			} else if (ref.getOid() != null) {
-				return Collections.singletonList(ref);
+				return Collections.singletonList(ref.clone());
 			} else {
 				Class<? extends ObjectType> clazz;
 				if (ref.getType() != null) {

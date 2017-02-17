@@ -24,13 +24,14 @@ import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTe
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -59,6 +60,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
@@ -209,13 +211,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		// LEAD10 will be imported later!
 		userSecurityApproverOid = addAndRecomputeUser(USER_SECURITY_APPROVER_FILE, initTask, initResult);
 		userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);
-	}
-
-	protected String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
-		String oid = repoAddObjectFromFile(file, initResult).getOid();
-		recomputeUser(oid, initTask, initResult);
-		display("User " + file, getUser(oid));
-		return oid;
 	}
 
 	protected void importLead10(Task task, OperationResult result) throws Exception {
@@ -448,6 +443,38 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}, 1);
 	}
 
+	protected WorkItemType getWorkItem(Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+		//Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(WorkItemType.F_TASK_REF);
+		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		if (itemsAll.size() != 1) {
+			System.out.println("Unexpected # of work items: " + itemsAll.size());
+			for (WorkItemType workItem : itemsAll) {
+				System.out.println(PrismUtil.serializeQuietly(prismContext, workItem));
+			}
+		}
+		assertEquals("Wrong # of total work items", 1, itemsAll.size());
+		return itemsAll.get(0);
+	}
+
+	protected ObjectReferenceType ort(String oid) {
+		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER);
+	}
+
+	protected PrismReferenceValue prv(String oid) {
+		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue();
+	}
+
+	protected PrismReference ref(List<ObjectReferenceType> orts) {
+		PrismReference rv = new PrismReference(new QName("dummy"));
+		orts.forEach(ort -> rv.add(ort.asReferenceValue().clone()));
+		return rv;
+	}
+
+	protected PrismReference ref(ObjectReferenceType ort) {
+		return ref(Collections.singletonList(ort));
+	}
+
 	protected abstract class TestDetails {
 		protected LensContext createModelContext(OperationResult result) throws Exception {
 			return null;
@@ -536,6 +563,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				F_OBJECT_REF,
 				F_TARGET_REF,
 				F_ASSIGNEE_REF,
+				F_ORIGINAL_ASSIGNEE_REF,
 				new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
 
 		List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, modelTask, result);
@@ -569,7 +597,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				display("Execution id = " + executionId);
 				Boolean approve = testDetails.decideOnApproval(executionId, task);
 				if (approve != null) {
-					workflowManager.approveOrRejectWorkItem(task.getId(), approve, null, null, result);
+					workflowManager.completeWorkItem(task.getId(), approve, null, null, null, result);
 					login(userAdministrator);
 					break;
 				}
@@ -588,8 +616,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					for (WorkItemType workItem : currentWorkItems) {
 						if (approvalInstruction.matches(workItem)) {
 							login(getUser(approvalInstruction.approverOid));
-							workflowManager.approveOrRejectWorkItem(workItem.getWorkItemId(), approvalInstruction.approval, null,
-									null, result);
+							workflowManager.completeWorkItem(workItem.getWorkItemId(), approvalInstruction.approval, null,
+									null, null, result);
 							login(userAdministrator);
 							matched = true;
 							instructions.remove(approvalInstruction);
@@ -720,7 +748,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				WfTestUtil.assertRef("target reference", workItem.getTargetRef(), targetOid, true, true);
 			}
 			WfTestUtil
-					.assertRef("assignee reference", workItem.getAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
+					.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
 			// name is not known, as it is not stored in activiti (only OID is)
 			WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
 			final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
@@ -801,7 +829,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 
 		protected String getCompareKey(WorkItemType workItem) {
-			return workItem.getAssigneeRef().getOid();
+			return workItem.getOriginalAssigneeRef().getOid();
 		}
 
 		public List<ApprovalInstruction> getApprovalSequence() {

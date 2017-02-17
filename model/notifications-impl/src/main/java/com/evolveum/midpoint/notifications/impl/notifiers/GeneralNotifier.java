@@ -24,7 +24,7 @@ import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.cxf.common.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +66,7 @@ public class GeneralNotifier extends BaseHandler {
     protected NotificationManager notificationManager;
 
     @Autowired
-    protected NotificationFuctionsImpl notificationsUtil;
+    protected NotificationFunctionsImpl functions;
 
     @Autowired
     protected TextFormatter textFormatter;
@@ -152,7 +153,7 @@ public class GeneralNotifier extends BaseHandler {
 								message.setBcc(getCcBccAddresses(generalNotifierType.getBccExpression(), variables, "notification bcc-expression", task, result));
 
                                 getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-                                transport.send(message, transportName, task, result);
+                                transport.send(message, transportName, event, task, result);
                             } else {
                                 getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
                             }
@@ -188,7 +189,7 @@ public class GeneralNotifier extends BaseHandler {
     }
 
     protected UserType getDefaultRecipient(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        ObjectType objectType = notificationsUtil.getObjectType(event.getRequestee(), true, result);
+        ObjectType objectType = functions.getObjectType(event.getRequestee(), true, result);
         if (objectType instanceof UserType) {
             return (UserType) objectType;
         } else {
@@ -226,6 +227,7 @@ public class GeneralNotifier extends BaseHandler {
         return addresses;
     }
 
+    @NotNull
     protected List<String> getCcBccAddresses(List<ExpressionType> expressions, ExpressionVariables variables,
 			String shortDesc, Task task, OperationResult result) {
     	List<String> addresses = new ArrayList<>();
@@ -316,7 +318,7 @@ public class GeneralNotifier extends BaseHandler {
     protected boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {
 
         for (ItemDelta itemDelta : delta.getModifications()) {
-            if (!NotificationFuctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
+            if (!NotificationFunctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
                 return true;
             }
         }
@@ -331,7 +333,7 @@ public class GeneralNotifier extends BaseHandler {
 
         boolean showValues = !Boolean.FALSE.equals(showValuesBoolean);
         for (ItemDelta<?,?> itemDelta : delta.getModifications()) {
-            if (NotificationFuctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+            if (NotificationFunctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                 continue;
             }
             body.append(" - ");

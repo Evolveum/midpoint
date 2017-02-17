@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+					 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+
+    <name>dummy</name>
+
+        <!-- insert the following element into system configuration object (via debug pages)
+             before logging and cleanup policy items -->
+
+    <!-- Experimental. Use at your own risk. -->
+    <notificationConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        <handler>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>somebody@acme.org</value>
+                </recipientExpression>
+                <transport>custom:123</transport>
+            </simpleUserNotifier>
+            <customNotifier>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            m = new NotificationMessageType()
+                            m.getTo().add("test@evolveum.com")
+                            m.getBcc().add("test-bcc@evolveum.com")
+                            m.setSubject("Subject")
+                            m.setBody("Body: " + event)
+                            m
+                        </code>
+                    </script>
+                </expression>
+                <transport>mail</transport>
+            </customNotifier>
+        </handler>
+
+        <mail>
+            <redirectToFile>c:/midpoint/home/scratch/mail-notifications.log</redirectToFile>
+        </mail>
+        <customTransport name="123">
+            <expression>
+                <script>
+                    <code>
+                        log.info('custom transport got a message:\n{}\n\nEvent was:\n{}', message, event)
+                    </code>
+                </script>
+            </expression>
+        </customTransport>
+    </notificationConfiguration>
+
+</systemConfiguration>

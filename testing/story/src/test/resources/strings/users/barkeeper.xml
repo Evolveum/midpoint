@@ -44,6 +44,7 @@
 	<fullName>Horridly Scarred Barkeep</fullName>
 	<givenName>Barkeeper</givenName>
 	<familyName>Scumm</familyName>
+	<emailAddress>barkeeper@evolveum.com</emailAddress>
 	<credentials>
 		<password>
 			<value>a123456</value>

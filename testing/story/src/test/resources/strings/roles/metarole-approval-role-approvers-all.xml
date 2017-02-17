@@ -27,8 +27,7 @@
 				<approval>
 					<compositionStrategy>
 						<order>40</order>
-						<mergeable>true</mergeable>
-						<mergeOrder>1</mergeOrder>
+						<exclusive>true</exclusive>
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
@@ -41,5 +40,8 @@
 				</approval>
 			</policyActions>
 		</policyRule>
+	</inducement>
+	<inducement>
+		<targetRef oid="99828c23-40c1-4340-9fe4-8df2599a1691" type="RoleType"/>		<!-- escalation then rejection -->
 	</inducement>
 </role>

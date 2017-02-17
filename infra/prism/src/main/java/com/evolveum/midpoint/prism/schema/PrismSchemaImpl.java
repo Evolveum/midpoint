@@ -16,14 +16,9 @@
 
 package com.evolveum.midpoint.prism.schema;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,8 +26,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -48,6 +47,11 @@ public class PrismSchemaImpl implements PrismSchema {
 	@NotNull protected final Collection<Definition> definitions = new ArrayList<>();
 	protected String namespace;			// may be null if not properly initialized
 	protected PrismContext prismContext;
+
+	// Item definitions that couldn't be created when parsing the schema because of unresolvable CTD.
+	// (Caused by the fact that the type resides in another schema.)
+	// These definitions are to be resolved after parsing the set of schemas.
+	@NotNull private final List<DefinitionSupplier> delayedItemDefinitions = new ArrayList<>();
 
 	protected PrismSchemaImpl(PrismContext prismContext) {
 		this.prismContext = prismContext;
@@ -87,6 +91,15 @@ public class PrismSchemaImpl implements PrismSchema {
 				.collect(Collectors.toList());
 	}
 
+	void addDelayedItemDefinition(DefinitionSupplier supplier) {
+		delayedItemDefinitions.add(supplier);
+	}
+
+	@NotNull
+	List<DefinitionSupplier> getDelayedItemDefinitions() {
+		return delayedItemDefinitions;
+	}
+
 	@Override
 	public boolean isEmpty() {
 		return definitions.isEmpty();
@@ -105,18 +118,21 @@ public class PrismSchemaImpl implements PrismSchema {
 	//region XSD parsing and serialization
 	// TODO: cleanup this chaos
 	public static PrismSchema parse(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getEntityResolver(), new PrismSchemaImpl(prismContext), isRuntime, shortDescription, prismContext);
+		return parse(element, prismContext.getEntityResolver(), new PrismSchemaImpl(prismContext), isRuntime, shortDescription,
+				false, prismContext);
 	}
 	
-	public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, resolver, new PrismSchemaImpl(prismContext), isRuntime, shortDescription, prismContext);
+	public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription,
+			boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
+		return parse(element, resolver, new PrismSchemaImpl(prismContext), isRuntime, shortDescription, allowDelayedItemDefinitions, prismContext);
 	}
 	
 	protected static PrismSchema parse(Element element, PrismSchemaImpl schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getEntityResolver(), schema, isRuntime, shortDescription, prismContext);
+		return parse(element, prismContext.getEntityResolver(), schema, isRuntime, shortDescription, false, prismContext);
 	}
 	
-	protected static PrismSchema parse(Element element, EntityResolver resolver, PrismSchemaImpl schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
+	private static PrismSchema parse(Element element, EntityResolver resolver, PrismSchemaImpl schema, boolean isRuntime,
+			String shortDescription, boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema element must not be null in "+shortDescription);
 		}
@@ -126,6 +142,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		processor.setPrismContext(prismContext);
 		processor.setShortDescription(shortDescription);
 		processor.setRuntime(isRuntime);
+		processor.setAllowDelayedItemDefinitions(allowDelayedItemDefinitions);
 		processor.parseDom(schema, element);
 		return schema;
 	}

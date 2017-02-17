@@ -29,6 +29,7 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseForm"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpressionXsiType"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseWorkflowContext"/>
         </classes>
     </test>
     <test name="Parsing XML without namespaces" preserve-order="false" verbose="1">

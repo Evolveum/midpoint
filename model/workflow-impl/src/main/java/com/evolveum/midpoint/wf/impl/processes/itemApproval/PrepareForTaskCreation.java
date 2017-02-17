@@ -39,21 +39,20 @@ import static com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil.getReq
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getTaskManager;
 
-public class PrepareApprover implements JavaDelegate {
+public class PrepareForTaskCreation implements JavaDelegate {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrepareApprover.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrepareForTaskCreation.class);
 
     public void execute(DelegateExecution execution) {
 
     	PrismContext prismContext = getPrismContext();
-		OperationResult result = new OperationResult(PrepareApprover.class.getName() + ".execute");
+		OperationResult result = new OperationResult(PrepareForTaskCreation.class.getName() + ".execute");
 		Task wfTask = ActivitiUtil.getTask(execution, result);
 		Task opTask = getTaskManager().createTaskInstance();
+		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
 		LightweightObjectRef approverRef = getRequiredVariable(execution, ProcessVariableNames.APPROVER_REF, LightweightObjectRef.class,
-				null);
-		ApprovalLevelImpl level = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevelImpl.class,
-				null);
+				prismContext);
 
         String assignee = null;
         String candidateGroups = null;
@@ -67,6 +66,7 @@ public class PrepareApprover implements JavaDelegate {
             throw new IllegalStateException("Unsupported type of the approver: " + approverRef.getType());
         }
 
+        // TODO optimize by using setVariablesLocal
 		execution.setVariableLocal(ProcessVariableNames.ASSIGNEE, assignee);
 		execution.setVariableLocal(ProcessVariableNames.CANDIDATE_GROUPS, candidateGroups);
 
@@ -75,8 +75,8 @@ public class PrepareApprover implements JavaDelegate {
 			try {
 				WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
 				ExpressionVariables variables = evaluator.getDefaultVariables(execution, wfTask, result);
-				additionalInformation = evaluator.evaluateExpression(level.getAdditionalInformation(), variables, execution,
-								"additional information expression", Object.class, DOMUtil.XSD_STRING, opTask, result);
+				additionalInformation = evaluator.evaluateExpression(level.getAdditionalInformation(), variables,
+						"additional information expression", Object.class, DOMUtil.XSD_STRING, opTask, result);
 			} catch (Throwable t) {
         		throw new SystemException("Couldn't evaluate additional information expression in " + execution, t);
 			}

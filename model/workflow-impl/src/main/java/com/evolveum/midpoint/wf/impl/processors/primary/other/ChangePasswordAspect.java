@@ -115,9 +115,11 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         List<ObjectReferenceType> approvers = new ArrayList<ObjectReferenceType>();
         approvers.add(approverRef);
 
-        return new ApprovalRequestImpl<>("Password change", null, null, approvers,
-                null, null, prismContext, createRelationResolver((PrismObject) null, result),
-				createReferenceResolver(modelContext, taskFromModel, result));
+        ApprovalRequest<String> request = new ApprovalRequestImpl<>("Password change", null, null, approvers,
+                Collections.emptyList(), null, prismContext);
+        approvalSchemaHelper.prepareSchema(request.getApprovalSchemaType(), createRelationResolver((PrismObject) null, result),
+                createReferenceResolver(modelContext, taskFromModel, result));
+        return request;
     }
 
     private PcpChildWfTaskCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {

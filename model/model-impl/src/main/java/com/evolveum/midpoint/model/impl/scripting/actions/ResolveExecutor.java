@@ -57,6 +57,7 @@ public class ResolveExecutor extends BaseActionExecutor {
         Data output = Data.createEmpty();
 
         for (PrismValue value : input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismReferenceValue) {
                 PrismReferenceValue prismReferenceValue = (PrismReferenceValue) value;
                 String oid = prismReferenceValue.getOid();

@@ -72,6 +72,7 @@
 	<logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />
 	
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
+	<logger name="com.evolveum.midpoint.wf" level="TRACE" />
 
 	<root level="INFO">
 		<appender-ref ref="X" />

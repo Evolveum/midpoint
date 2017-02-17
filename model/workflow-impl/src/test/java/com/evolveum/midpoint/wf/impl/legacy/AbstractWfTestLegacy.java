@@ -381,7 +381,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
                 boolean approve = testDetails.decideOnApproval(executionId);
 
-                workflowManager.approveOrRejectWorkItem(t.getId(), approve, null, null, result);
+                workflowManager.completeWorkItem(t.getId(), approve, null, null, null, result);
                 login(userAdministrator);
             }
         }

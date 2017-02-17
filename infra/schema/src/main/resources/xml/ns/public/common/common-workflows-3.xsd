@@ -57,7 +57,7 @@
 			<xsd:element name="level" type="c:ApprovalLevelType" minOccurs="1" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Levels, or steps, of the approval process.
+						Levels, or stages, of the approval process.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -129,6 +129,9 @@
 						What is the outcome (of this level) if there are no approvers? E.g. there are no users that have
 						been assigned a role as an approver; or a user has no managers, etc.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupExpansion" type="c:GroupExpansionType" minOccurs="0">
@@ -146,13 +149,14 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Form to be displayed e.g. to present or request additional information.
-						HIGHLY EXPERIMENTAL
+						EXPERIMENTAL
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<!-- TODO some hooks to allow ad-hoc customizations like making a form field obligatory or optional depending on the stage etc. -->
 			<xsd:element name="additionalInformation" type="c:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -163,7 +167,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<!-- TODO some hooks to allow ad-hoc customizations like making a form field obligatory or optional depending on the stage etc. -->
 			<xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -176,6 +179,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Duration of work items created at this level.
+						TODO other time units, like business days?
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
@@ -199,7 +203,8 @@
 	<xsd:complexType name="WorkItemTimedActionsType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Actions that should be applied to a work item in given moments (relative to work item creation
+				or work item deadline).
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
@@ -207,12 +212,32 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="time" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Time(s) at which these actions are to be executed. No time or zero time means
-						at the work item deadline. Positive time intervals are meant "after work item start".
-						Negative time intervals are meant "before work item deadline".
+						Name given to this "timed actions" entry.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Display name given to this "timed actions" entry.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Description of this "timed actions" entry.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="time" type="tns:WfTimeSpecificationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Time(s) at which these actions are to be executed. No time or zero time means they are executed
+						at the work item deadline.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -223,13 +248,39 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Should these actions be scheduled?
+						NOT IMPLEMENTED YET.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="escalationLevelFrom" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Apply only if current escalation level is greater or equal to this value.
+						If both escalationLevelFrom and escalationLevelTo are missing, they are considered both to be 0.
+						If only escalationLevelFrom is missing, it is considered 0 (i.e. no restriction).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="escalationLevelTo" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Apply only if current escalation level is not greater than this value.
+						If both escalationLevelFrom and escalationLevelTo are missing, they are considered both to be 0.
+						If only escalationLevelTo is missing, it is considered "infinity" (i.e. no restriction).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:complexType name="WorkItemActionsType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Actions to execute.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
@@ -237,28 +288,39 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="complete" type="tns:WorkItemOutcomeType" minOccurs="0" maxOccurs="1">
+			<xsd:element name="complete" type="tns:CompleteWorkItemActionType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						Complete this work item with a given result.
-						TODO
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<!-- TODO maybe also completeLevel -->
-			<!-- TODO something like notify -->
-			<xsd:element name="delegate" type="tns:WorkItemDelegationType" minOccurs="0">
+			<xsd:element name="notify" type="tns:WorkItemNotificationActionType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Delegate (escalate) this work item.
-						TODO
+						Send a notification.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="delegate" type="tns:DelegateWorkItemActionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Delegate this work item.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="escalate" type="tns:EscalateWorkItemActionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Escalate this work item. Basically the same as "delegate" but increases the escalation level.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="WorkItemDelegationType">
+	<xsd:complexType name="AbstractWorkItemActionType">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO
@@ -270,55 +332,200 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Specific approver to replace the current one.
+						Should this action be executed?
+						NOT IMPLEMENTED YET
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Expression giving an approver to replace the current one.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						<p>
-							What relation(s) to use when determining approvers? E.g. "approver", "owner",
-							"securityApprover", and so on.
-						</p>
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="outcomeIfNoApprovers" type="c:WorkItemOutcomeType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						What is the outcome (of this work item) if there is no approver to delegate/escalate to?
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="duration" type="xsd:duration" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Duration of the work item after delegation. If not specified, the deadline of the work item
-						is not changed (this is meaningful only if the delegation occurred before the original deadline).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<!--<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">-->
-				<!--<xsd:annotation>-->
-					<!--<xsd:documentation>-->
-						<!--What actions are to be applied to work items when given timer(s) occur; they are relative-->
-						<!--to the moment of delegation (positive ones) and to the new deadline (zero or negative ones).-->
-						<!--EXPERIMENTAL-->
-					<!--</xsd:documentation>-->
-				<!--</xsd:annotation>-->
-			<!--</xsd:element>-->
 		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="CompleteWorkItemActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkItemActionType">
+				<xsd:sequence>
+					<xsd:element name="outcome" type="tns:WorkItemOutcomeType" minOccurs="0" />
+					<xsd:element name="notifyBeforeAction" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								If specified, sends a standard "action to be executed" notifications at given times.
+								(Unlike in timed action interval, here a positive time must be specified: just like for
+								notifyBeforeDeadline in certification.)
+								TODO other time units, like business days?
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemNotificationActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkItemActionType">
+				<xsd:sequence>
+					<xsd:element name="perAssignee" type="xsd:boolean" minOccurs="0" >
+						<xsd:annotation>
+							<xsd:documentation>
+								If true (the default) creates one notification event for each assignee. Otherwise,
+								creates a single notification event for the whole work item.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="handler" type="c:EventHandlerType" minOccurs="0" >
+						<xsd:annotation>
+							<xsd:documentation>
+								Ad-hoc event handler that will be used to process these event emitted. In addition to it,
+								a system-wide handler for workItemCustomEvent will be invoked.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="DelegateWorkItemActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkItemActionType">
+				<xsd:sequence>
+					<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specific approver to replace the current one.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									What relation(s) to use when determining approvers? E.g. "approver", "owner",
+									"securityApprover", and so on.
+									NOT SUPPORTED YET.
+								</p>
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Expression giving an approver to replace the current one.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<!-- Evaluation strategy is always "first decides", because we don't create new work items.
+					     So whoever decides first, closes this work item. -->
+					<xsd:element name="outcomeIfNoApprovers" type="c:WorkItemOutcomeType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								What is the outcome (of this work item) if there is no approver to delegate/escalate to?
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<!-- TODO group expansion. But we currently don't manipulate with candidate users/groups, so it's
+					     not possible to delegate to roles now. -->
+					<!-- "automaticallyApproved" is not supported yet. Can be simulated with approverExpression
+					     + outcomeIfNoApprovers. -->
+					<xsd:element name="duration" type="xsd:duration" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Duration of the work item after delegation. If not specified, the deadline of the work item
+								is not changed (this is meaningful only if the delegation occurs before the original deadline).
+								TODO other time units, like business days?
+								TODO relative to original start time, original deadline, or current time?
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								How to delegate the work item? Default is "replace assignees".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="notifyBeforeAction" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								If specified, sends a standard "action to be executed" notifications at given times.
+								(Unlike in timed action interval, here a positive time must be specified: just like for
+								notifyBeforeDeadline in certification.)
+								TODO other time units, like business days?
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="EscalateWorkItemActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:DelegateWorkItemActionType">
+				<xsd:sequence>
+					<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Name for the new escalation level.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0" >
+						<xsd:annotation>
+							<xsd:documentation>
+								Display name for the new escalation level.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:simpleType name="WorkItemDelegationMethodType">
@@ -332,28 +539,27 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="addDelegates">
+			<xsd:enumeration value="addAssignees">
 				<xsd:annotation>
 					<xsd:documentation>
-						Delegate(s) should be added to a dedicated process variable. This has two consequences:
-						(1) More than one delegate could be added. (2) Original assignee can still complete the work item.
+						Delegate(s) should be added as new assignees, keeping original assignees and original candidates.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ADD_DELEGATES"/>
+						<jaxb:typesafeEnumMember name="ADD_ASSIGNEES"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="reassign">
+			<xsd:enumeration value="replaceAssignees">
 				<xsd:annotation>
 					<xsd:documentation>
-						Assignee of the work item is changed. This method is limited to exactly one new assignee.
-						Also, the original assignee is no longer able to complete the work item.
+						Delegate(s) should replace existing assignee(s). Candidates are removed.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="REASSIGN"/>
+						<jaxb:typesafeEnumMember name="REPLACE_ASSIGNEES"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<!-- TODO something like "replaceCurrentAssignee" ? -->
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -404,6 +610,34 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:complexType name="WorkItemResultType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Overall output from a work item: outcome (approve/reject/...), comment, additional delta,
+				and probably other things in the future.
+
+				TODO devise an extension mechanism for this
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="outcome" type="tns:WorkItemOutcomeType" minOccurs="0" />
+			<xsd:element name="outcomeAsString" type="xsd:string" minOccurs="0" />
+			<xsd:element name="comment" type="xsd:string" minOccurs="0" />
+			<xsd:element name="additionalDeltas" type="tns:ObjectTreeDeltasType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Additional delta(s) resulting from this action.
+						Typically if the user filled-in some information into
+						custom form.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<xsd:simpleType name="WorkItemOutcomeType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -434,6 +668,8 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<!-- TODO something like CANCEL i.e. canceled work item without providing any answer
+				 (e.g. when replacing it with a set of other work items) -->
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -1080,17 +1316,24 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processorSpecificState" type="tns:WfProcessorSpecificStateType">
+            <xsd:element name="processorSpecificState" type="tns:WfProcessorSpecificStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         State that is specific to a given change processor.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processSpecificState" type="tns:WfProcessSpecificStateType">
+            <xsd:element name="processSpecificState" type="tns:WfProcessSpecificStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         State that is specific to a given BPMN process.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="event" type="tns:WfProcessEventType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Events that occurred during lifetime of this process instance.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1105,18 +1348,303 @@
     </xsd:complexType>
     <xsd:element name="wfContextType" type="tns:WfContextType" />
 
-    <xsd:complexType name="DecisionType">
+	<xsd:complexType name="WfProcessEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Any event occurring during process instance execution that needs to be recorded, e.g. a decision
+				done by a user.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="timestamp" type="xsd:dateTime">
+				<xsd:annotation>
+					<xsd:documentation>
+						Time in which the event occurred.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="initiatorRef" type="c:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						User who initiated this action. (Typically, a user who made a decision.)
+						Might be null if unknown.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of the stage at which this event occurred (if process can be conceptually divided into stages).
+						Starts at 1. Null if not applicable.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="stageName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the stage at which this event occurred (if process can be conceptually divided into stages).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Display name of the stage at which this event occurred was made (if process can be conceptually divided into stages).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+
+			<!--<xsd:element name="operational" type="xsd:boolean" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--A hint that this event needs not be displayed in GUI. -->
+					<!--</xsd:documentation>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemEventCauseInformationType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cause" type="tns:WorkItemEventCauseType" minOccurs="0" />
+			<xsd:element name="causeName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="causeDisplayName" type="xsd:string" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="WorkItemEventCauseType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Reason for automated decision.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="userAction">
+				<xsd:annotation>
+					<xsd:documentation>
+						This event was caused by a user action.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="USER_ACTION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="timedAction">
+				<xsd:annotation>
+					<xsd:documentation>
+						This event was caused by a timed action.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TIMED_ACTION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="WorkItemEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Process event related to a specific work item.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WfProcessEventType">
+				<xsd:sequence>
+					<xsd:element name="workItemId" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								ID of the work item (activiti task) this event is related to. May be empty for events
+								not related to any work item, e.g. some kinds of automated approvals.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="originalAssigneeRef" type="c:ObjectReferenceType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								User to which this work item was originally assigned.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Escalation level number (if applicable). Zero or null means no escalation.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Escalation level name (if applicable).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Escalation level display name (if applicable).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="cause" type="tns:WorkItemEventCauseInformationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Cause of the event occurring. E.g. user action, timed action (and which one).
+								EXPERIMENTAL; TO BE DECIDED ABOUT THIS BEFORE 3.6 RELEASE
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<!-- TODO reason? e.g. when doing escalation? -->
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemCompletionEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Event describing the work item completion.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WorkItemEventType">
+				<xsd:sequence>
+					<xsd:element name="result" type="tns:WorkItemResultType" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemDelegationEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Event describing the fact of delegation.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WorkItemEventType">
+				<xsd:sequence>
+					<xsd:element name="assigneeBefore" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="delegatedTo" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkItemEscalationEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Event describing the fact of escalation.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WorkItemDelegationEventType">
+				<xsd:sequence>
+					<xsd:element name="newEscalationLevelNumber" type="xsd:int" />
+					<xsd:element name="newEscalationLevelName" type="xsd:string" minOccurs="0" />
+					<xsd:element name="newEscalationLevelDisplayName" type="xsd:string" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WfStageCompletionEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Event describing the completion of a workflow process instance stage.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WfProcessEventType">
+				<xsd:sequence>
+					<xsd:element name="outcome" type="tns:ApprovalLevelOutcomeType" minOccurs="0" />
+					<xsd:element name="automatedDecisionReason" type="tns:AutomatedDecisionReasonType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reason for automated decision, if applicable.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WfProcessCompletionEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Event describing the completion of a workflow process instance.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WfProcessEventType">
+				<xsd:sequence>
+					<!-- TODO -->
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="DecisionType">
         <xsd:annotation>
             <xsd:documentation>
-                Basic information on a user decision in context of a work item.
+                Basic information on a user (or automated) decision in context of a work item.
 
                 This structure is meant to describe the outcome of a work items in various contexts,
                 although currently it is used only within the generalized item approval process.
+
+	            DEPRECATED. Use WorkItemCompletionEventType (or other kinds of wf events) instead.
             </xsd:documentation>
+	        <xsd:appinfo>
+		        <a:deprecated>true</a:deprecated>
+		        <a:deprecatedSince>3.6</a:deprecatedSince>
+	        </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="approverRef" type="c:ObjectReferenceType">
                 <xsd:annotation>
+					<xsd:documentation>
+						User who actually decided on this work item. May be empty in the case of automated decision.
+					</xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
                     </xsd:appinfo>
@@ -1139,38 +1667,43 @@
             </xsd:element>
             <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
             <xsd:element name="dateTime" type="xsd:dateTime" />
-			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Number of the stage at which this decision was made (if process can be conceptually divided into stages).
-						Starts at 1. Null if not applicable.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="stageName" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Name of the stage at which this decision was made (if process can be conceptually divided into stages).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Display name of the stage at which this decision was made (if process can be conceptually divided into stages).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="additionalDelta" type="t:ObjectDeltaType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
     <xsd:element name="decisionType" type="tns:DecisionType" />
+
+	<xsd:simpleType name="AutomatedDecisionReasonType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Reason for automated decision.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="autoApprovalCondition">
+				<xsd:annotation>
+					<xsd:documentation>
+						Approved automatically by the auto-approval condition.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="AUTO_APPROVAL_CONDITION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="noApproversFound">
+				<xsd:annotation>
+					<xsd:documentation>
+						Approved/rejected automatically because there were no approvers found.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NO_APPROVERS_FOUND"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
     <xsd:complexType name="WfProcessorSpecificStateType">
         <xsd:annotation>
@@ -1281,7 +1814,14 @@
 				<xsd:sequence>
 					<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
 					<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType"/>
-					<xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.6</a:deprecatedSince>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1323,6 +1863,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Internal identifier of a process instance, assigned by the underlying workflow engine
+                        (currently Activiti).
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="name" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1348,6 +1899,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="deadline" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When is this work to be done? May be moved via escalation(s).
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+            </xsd:element>
+			<!-- TODO original deadline? -->
             <xsd:element name="taskRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1358,49 +1920,40 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        User to which the work item is assigned. Other users do not see such a work item in their work lists.
+                        Users to which the work item is assigned. Other users do not see such a work item in their work lists.
+						Normally the work item is assigned to a single user. However, when delegating (directly or via escalation)
+						more assignees could be added.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="candidateUsersRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="originalAssigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Users to which the work item MAY BE assigned.
+                        Users to which the work item was originally assigned.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="candidateRolesRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Organizations/roles to users of which the work item MAY BE assigned.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="delegateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						User to which this work item was delegated, if the delegation was done without changing the assignee.
-						(If the delegation was done by changing the assignee, then this item is empty.)
-						EXPERIMENTAL
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
 						<a:since>3.6</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="candidateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Users and abstract roles to which the work item MAY BE assigned.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+						<a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1431,60 +1984,45 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="decision" type="tns:DecisionType" minOccurs="0">
+            <xsd:element name="result" type="tns:WorkItemResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Approver's decision (if known).
+                        Result of this work item (null if it was not completed).
                     </xsd:documentation>
+	                <xsd:appinfo>
+						<a:since>3.6</a:since>
+	                </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="completedByRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Who has completed this work item (null if unknown, not completed or completed automatically).
+                    </xsd:documentation>
+	                <xsd:appinfo>
+						<a:since>3.6</a:since>
+	                </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Information to be shown to the approver.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <!-- for work items without TaskType information -->
 			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0" />
 			<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
 			<xsd:element name="stageName" type="xsd:string" minOccurs="0" />
 			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0" />
+			<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0" />
 			<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
-
-            <!--<xsd:element name="contents" type="tns:ObjectType" minOccurs="0" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--Work item contents - i.e. the actual work that the user has-->
-                        <!--to do, along with all the necessary information.-->
-                        <!--It is stored as PrismObject, although, actually, it is always a-->
-                        <!--subtype of WorkItemContents, but this structure is defined in separate XSD file.-->
-                        <!--TODO consider moving all wf-related structures to that file-->
-                        <!--in order to allow correct references among them.-->
-                    <!--</xsd:documentation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReference>tns:contentsRef</a:objectReference>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
-            <!--<xsd:element name="contentsRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
-            <!--<xsd:element name="trackingData" type="tns:TrackingDataType" minOccurs="0" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--Various implementation-level (activiti) data useful for diagnostics.-->
-                    <!--</xsd:documentation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReference>tns:trackingDataRef</a:objectReference>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
-            <!--<xsd:element name="trackingDataRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReferenceTargetType>tns:TrackingDataType</a:objectReferenceTargetType>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1545,5 +2083,125 @@
 			<xsd:element name="rule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:complexType name="WfTimeSpecificationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL
+
+				By default (when the base is not specified), positive time intervals are meant "after work item start".
+				Negative time intervals are meant "before work item deadline".
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="value" type="xsd:duration" minOccurs="0" maxOccurs="unbounded" />
+			<!-- TODO other time units, like business days? -->
+			<xsd:element name="base" type="tns:WfTimeBaseType" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="WfTimeBaseType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="deadline">
+				<xsd:annotation>
+					<xsd:documentation>
+						Time will be taken relative to the deadline. (This is the default for zero or negative values.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DEADLINE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="workItemCreation">
+				<xsd:annotation>
+					<xsd:documentation>
+						Time will be taken relative to the work item creation timestamp. (This is the default for positive values.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WORK_ITEM_CREATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<!-- TODO process instance creation -->
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="WorkItemOperationKindType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Kind of (explicit) operation. Implicit operations like "work item deletion when process instance finishes"
+				are not covered here.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="complete">
+				<xsd:annotation>
+					<xsd:documentation>
+						Complete (approve/reject) operation. (Explicit or automated.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="COMPLETE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="delegate">
+				<xsd:annotation>
+					<xsd:documentation>
+						Delegate operation. (Explicit or automated.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DELEGATE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="escalate">
+				<xsd:annotation>
+					<xsd:documentation>
+						Escalate operation. (Explicit or automated.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ESCALATE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="claim">
+				<xsd:annotation>
+					<xsd:documentation>
+						Claim operation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CLAIM"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="release">
+				<xsd:annotation>
+					<xsd:documentation>
+						Claim operation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RELEASE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

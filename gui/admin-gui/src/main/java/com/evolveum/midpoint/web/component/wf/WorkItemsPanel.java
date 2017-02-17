@@ -83,7 +83,7 @@ public class WorkItemsPanel extends BasePanel {
 
 		if (view != ITEMS_FOR_PROCESS) {
 			if (view == FULL_LIST) {
-				columns.add(new CheckBoxHeaderColumn<WorkItemDto>());
+				columns.add(new CheckBoxHeaderColumn<>());
 			}
 			columns.add(createNameColumn());
 			columns.add(createStageColumn());
@@ -117,6 +117,19 @@ public class WorkItemsPanel extends BasePanel {
                         }, DateLabelComponent.LONG_MEDIUM_STYLE));
                     }
             });
+			columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.deadline")){
+                @Override
+                public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
+                        cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+                            @Override
+                            public Date getObject() {
+                                return rowModel.getObject().getDeadlineDate();
+                            }
+                        }, DateLabelComponent.LONG_MEDIUM_STYLE));
+                    }
+            });
+			columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.escalationLevel"),
+					WorkItemDto.F_ESCALATION_LEVEL_NUMBER));
 			if (view == FULL_LIST) {
 				columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
 			}
@@ -125,6 +138,9 @@ public class WorkItemsPanel extends BasePanel {
 			columns.add(createStageColumn());
 			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
             columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED_FORMATTED));
+            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.deadline"), WorkItemDto.F_DEADLINE_FORMATTED));
+			columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.escalationLevel"),
+					WorkItemDto.F_ESCALATION_LEVEL_NUMBER));
 		}
 
         BoxedTablePanel<WorkItemDto> workItemsTable = new BoxedTablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);

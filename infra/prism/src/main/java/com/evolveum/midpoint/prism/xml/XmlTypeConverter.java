@@ -494,7 +494,7 @@ public class XmlTypeConverter {
     }
     
     public static Duration createDuration(String lexicalRepresentation) {
-    	return getDatatypeFactory().newDuration(lexicalRepresentation);
+    	return lexicalRepresentation != null ? getDatatypeFactory().newDuration(lexicalRepresentation) : null;
     }
 
     public static Duration createDuration(boolean isPositive, int years, int months, int days, int hours, int minutes, int seconds) {

@@ -547,4 +547,19 @@ public class MiscUtil {
 			throw new IllegalArgumentException("Both objects are non-null");
 		}
 	}
+
+	@SafeVarargs
+	public static <T> T getFirstNonNull(T... values) {
+		for (T value : values) {
+			if (value != null) {
+				return value;
+			}
+		}
+		return null;
+	}
+
+	public static String getFirstNonNullString(Object... values) {
+		Object value = getFirstNonNull(values);
+		return value != null ? value.toString() : null;
+	}
 }

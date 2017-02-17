@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -41,6 +40,7 @@ import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -54,6 +54,7 @@ import org.activiti.engine.task.IdentityLinkType;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,12 +64,12 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.USER;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.FilterComponents;
-import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutOrFilter;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutQuery;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -81,9 +82,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 public class WorkItemProvider {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemProvider.class);
-
-	public static final String DELEGATE_VARIABLE_NAME = "delegate";
-	public static final String DELEGATE_SEPARATOR = ";";
 
 	@Autowired
     private ActivitiEngine activitiEngine;
@@ -128,44 +126,33 @@ public class WorkItemProvider {
 	// primitive 'query interpreter'
 	// returns null if no results should be returned
     private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_ROLES_REF, F_WORK_ITEM_ID);
-		FilterComponents orComponents = null;
+        FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_REF, F_WORK_ITEM_ID);
 		List<ObjectFilter> remainingClauses = components.getRemainderClauses();
-		if (remainingClauses.size() == 1 && remainingClauses.get(0) instanceof OrFilter) {
-			orComponents = factorOutOrFilter(remainingClauses.get(0), new ItemPath(F_ASSIGNEE_REF), new ItemPath(F_DELEGATE_REF));
-			remainingClauses = orComponents.getRemainderClauses();
-		}
 		if (!remainingClauses.isEmpty()) {
             throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);
         }
 
         final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_WORK_ITEM_ID);
         final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
-        final ItemPath DELEGATE_PATH = new ItemPath(F_DELEGATE_REF);
-        final ItemPath CANDIDATE_ROLES_PATH = new ItemPath(F_CANDIDATE_ROLES_REF);
+        final ItemPath CANDIDATE_PATH = new ItemPath(F_CANDIDATE_REF);
         final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP);
 
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
-        final Map.Entry<ItemPath, Collection<? extends PrismValue>> candidateRolesFilter = components.getKnownComponent(CANDIDATE_ROLES_PATH);
-		final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeOrFilter =
-				orComponents != null ? orComponents.getKnownComponent(ASSIGNEE_PATH) : null;
-		final Map.Entry<ItemPath, Collection<? extends PrismValue>> delegateOrFilter =
-				orComponents != null ? orComponents.getKnownComponent(DELEGATE_PATH) : null;
+        final Map.Entry<ItemPath, Collection<? extends PrismValue>> candidateRolesFilter = components.getKnownComponent(CANDIDATE_PATH);
 
         TaskQuery taskQuery = activitiEngine.getTaskService().createTaskQuery();
 
 		if (workItemIdFilter != null) {
-			taskQuery = taskQuery.taskId(((PrismPropertyValue<String>) workItemIdFilter.getValue().iterator().next()).getValue());
+			Collection<? extends PrismValue> filterValues = workItemIdFilter.getValue();
+			if (filterValues.size() > 1) {
+				throw new IllegalArgumentException("In a query there must be exactly one value for workItemId: " + filterValues);
+			}
+			taskQuery = taskQuery.taskId(((PrismPropertyValue<String>) filterValues.iterator().next()).getValue());
 		}
 
 		if (assigneeFilter != null) {
-			taskQuery = addAssignee(taskQuery, assigneeFilter);
-			if (assigneeOrFilter != null || delegateOrFilter != null) {
-				throw new SchemaException("Couldn't search for both assignee and assignee-or-delegate: " + query);
-			}
-		} else if (assigneeOrFilter != null || delegateOrFilter != null) {
-			taskQuery = addAssigneeOrDelegate(taskQuery, assigneeOrFilter, delegateOrFilter);
+			taskQuery = addAssignees(taskQuery, assigneeFilter);
 		}
 
         if (candidateRolesFilter != null) {
@@ -207,34 +194,20 @@ public class WorkItemProvider {
 		}
     }
 
-	private TaskQuery addAssignee(TaskQuery taskQuery, Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter) {
+	private TaskQuery addAssignees(TaskQuery taskQuery, Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter) {
 		@SuppressWarnings("unchecked")
 		Collection<PrismReferenceValue> assigneeRefs = (Collection<PrismReferenceValue>) assigneeFilter.getValue();
-		if (isNotEmpty(assigneeRefs)) {
-			List<String> oids = assigneeRefs.stream()
-					.map(PrismReferenceValue::getOid)
-					.collect(Collectors.toList());
-			taskQuery = taskQuery.taskAssignee(StringUtils.join(oids, ';'));
-		} else {
-			taskQuery = taskQuery.taskUnassigned();
+		if (isEmpty(assigneeRefs)) {
+			return taskQuery.taskUnassigned();
 		}
-		return taskQuery;
-	}
-
-	private TaskQuery addAssigneeOrDelegate(TaskQuery taskQuery, Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter,
-			Map.Entry<ItemPath, Collection<? extends PrismValue>> delegateFilter) throws SchemaException {
-		taskQuery = taskQuery.or();
-		if (assigneeFilter != null) {
-			taskQuery = addAssignee(taskQuery, assigneeFilter);
-		}
-		if (delegateFilter != null) {
-			for (PrismValue value : delegateFilter.getValue()) {
-				PrismReferenceValue refVal = (PrismReferenceValue) value;
-				if (StringUtils.isEmpty(refVal.getOid())) {
-					throw new SchemaException("Empty OID of delegate to be found");
-				}
-				taskQuery = taskQuery.taskVariableValueLike(DELEGATE_VARIABLE_NAME, "%[" + refVal.getOid() + "]%");
-			}
+		List<String> oids = assigneeRefs.stream()
+				.map(PrismReferenceValue::getOid)
+				.collect(Collectors.toList());
+		taskQuery = taskQuery.or()
+				.taskAssignee(StringUtils.join(oids, ';'));
+		for (String oid : oids) {
+			taskQuery = taskQuery.taskVariableValueLike(
+					VARIABLE_ADDITIONAL_ASSIGNEES, "%" + TYPE_NAME_SEPARATOR + oid + ADDITIONAL_ASSIGNEES_SUFFIX + "%");
 		}
 		return taskQuery.endOr();
 	}
@@ -292,17 +265,24 @@ public class WorkItemProvider {
         return retval;
     }
 
-	public List<PrismReferenceValue> getDelegates(Map<String, Object> variables, String contextDescription) {
-		List<PrismReferenceValue> rv = new ArrayList<>();
-		Object o = variables.get(DELEGATE_VARIABLE_NAME);
+    @NotNull
+	public List<ObjectReferenceType> getAdditionalAssignees(Map<String, Object> variables, String contextDescription) {
+		List<ObjectReferenceType> rv = new ArrayList<>();
+		Object o = variables.get(VARIABLE_ADDITIONAL_ASSIGNEES);
 		if (o instanceof String) {
 			String s = (String) o;
-			for (String wrappedOid : s.split(DELEGATE_SEPARATOR)) {
-				if (!wrappedOid.startsWith("[") || !wrappedOid.endsWith("]")) {
-					LOGGER.warn("Wrongly-formatted '"+DELEGATE_VARIABLE_NAME+"' variable contents: '{}' in {}", o, contextDescription);
-				} else {
-					String oid = wrappedOid.substring(1, wrappedOid.length()-1);
-					rv.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue());
+			if (!s.isEmpty()) {
+				for (String wrappedRef : s.split(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR)) {
+					if (!wrappedRef.startsWith(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_PREFIX)
+							|| !wrappedRef.endsWith(ADDITIONAL_ASSIGNEES_SUFFIX)) {
+						throw new IllegalStateException("Wrongly-formatted '"
+								+ VARIABLE_ADDITIONAL_ASSIGNEES + "' variable contents: '"
+								+ o + "' in " + contextDescription);
+					} else {
+						String stringRef = wrappedRef.substring(ADDITIONAL_ASSIGNEES_PREFIX.length(),
+								wrappedRef.length() - ADDITIONAL_ASSIGNEES_SUFFIX.length());
+						rv.add(MiscDataUtil.stringToRef(stringRef));
+					}
 				}
 			}
 		}
@@ -319,6 +299,7 @@ public class WorkItemProvider {
         private String name;
         private String processInstanceId;
         private Date createTime;
+        private Date dueDate;
         private String owner;
         private String executionId;
         private Map<String,Object> variables;
@@ -331,6 +312,7 @@ public class WorkItemProvider {
             name = task.getName();
             processInstanceId = task.getProcessInstanceId();
             createTime = task.getCreateTime();
+            dueDate = task.getDueDate();
             owner = task.getOwner();
             executionId = task.getExecutionId();
             variables = new HashMap<>();
@@ -362,6 +344,7 @@ public class WorkItemProvider {
             name = task.getTaskName();
             processInstanceId = task.getProcessInstanceId();
             createTime = task.getCreateTime();
+            dueDate = task.getDueDate();
             owner = task.getOwner();
             executionId = task.getExecutionId();
             variables = task.getVariables();
@@ -400,7 +383,11 @@ public class WorkItemProvider {
             return createTime;
         }
 
-        String getOwner() {
+		Date getDueDate() {
+			return dueDate;
+		}
+
+		String getOwner() {
             return owner;
         }
 
@@ -432,6 +419,9 @@ public class WorkItemProvider {
 
     private WorkItemType taskToWorkItem(Task task, Map<String, Object> processVariables, boolean resolveTask, boolean resolveAssignee,
             boolean resolveCandidates, boolean fetchAllVariables, OperationResult result) {
+    	if (task == null) {
+    		return null;
+		}
 		TaskExtract taskExtract = new TaskExtract(task, processVariables);
 		return taskExtractToWorkItem(taskExtract, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result);
     }
@@ -453,9 +443,13 @@ public class WorkItemProvider {
 			final Map<String, Object> variables = task.getVariables();
 
 			wi.setWorkItemId(task.getId());
+			wi.setProcessInstanceId(task.getProcessInstanceId());
 			wi.setName(task.getName());
 			wi.setWorkItemCreatedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
-			wi.setProcessStartedTimestamp(XmlTypeConverter.createXMLGregorianCalendar((Date) variables.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
+			wi.setProcessStartedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(ActivitiUtil.getRequiredVariable(
+					variables, CommonProcessVariableNames.VARIABLE_START_TIME, Date.class, prismContext)));
+			wi.setDeadline(XmlTypeConverter.createXMLGregorianCalendar(task.getDueDate()));
+
 			String taskOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
 			if (taskOid != null) {
 				wi.setTaskRef(createObjectRef(taskOid, TASK));
@@ -463,39 +457,50 @@ public class WorkItemProvider {
 					miscDataUtil.resolveAndStoreObjectReference(wi.getTaskRef(), result);
 				}
 			}
+
+			// assignees
 			if (task.getAssignee() != null) {
-				wi.setAssigneeRef(createObjectRef(task.getAssignee(), USER));
-				if (resolveAssignee) {
-					miscDataUtil.resolveAndStoreObjectReference(wi.getAssigneeRef(), result);
-				}
+				wi.getAssigneeRef().add(createObjectRef(task.getAssignee(), USER));
 			}
-			for (String candidateUser : task.getCandidateUsers()) {
-				wi.getCandidateUsersRef().add(createObjectRef(candidateUser, USER));
-				if (resolveCandidates) {
-					for (ObjectReferenceType ref : wi.getCandidateUsersRef()) {
-						miscDataUtil.resolveAndStoreObjectReference(ref, result);
-					}
-				}
+			wi.getAssigneeRef().addAll(getAdditionalAssignees(variables, "task " + task.getId()));
+			String originalAssigneeString = ActivitiUtil.getVariable(variables,
+					CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, String.class, prismContext);
+			if (originalAssigneeString != null) {
+				wi.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
 			}
-			for (String candidateGroup : task.getCandidateGroups()) {
-				wi.getCandidateRolesRef().add(miscDataUtil.groupIdToObjectReference(candidateGroup));
-				if (resolveCandidates) {
-					for (ObjectReferenceType ref : wi.getCandidateRolesRef()) {
-						miscDataUtil.resolveAndStoreObjectReference(ref, result);
-					}
-				}
+			if (resolveAssignee) {
+				miscDataUtil.resolveAndStoreObjectReferences(wi.getAssigneeRef(), result);
+				miscDataUtil.resolveAndStoreObjectReference(wi.getOriginalAssigneeRef(), result);
 			}
-			getDelegates(variables, "task " + task.getId()).forEach(prv -> wi.getDelegateRef().add(ObjectTypeUtil.createObjectRef(prv)));
+
+			// candidates
+			task.getCandidateUsers().forEach(s -> wi.getCandidateRef().add(createObjectRef(s, USER)));
+			task.getCandidateGroups().forEach(s -> wi.getCandidateRef().add(miscDataUtil.groupIdToObjectReference(s)));
+			if (resolveCandidates) {
+				miscDataUtil.resolveAndStoreObjectReferences(wi.getCandidateRef(), result);
+			}
+
+			// other
 			wi.setObjectRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_OBJECT_REF)));
 			wi.setTargetRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_TARGET_REF)));
 
 			ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
-			wi.setDecision(pmi.extractDecision(variables));
+			wi.setResult(pmi.extractWorkItemResult(variables));
+			String completedBy = ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_WORK_ITEM_COMPLETED_BY, String.class, prismContext);
+			if (completedBy != null) {
+				wi.setCompletedByRef(ObjectTypeUtil.createObjectRef(completedBy, ObjectTypes.USER));
+			}
 
 			wi.setStageNumber(pmi.getStageNumber(variables));
 			wi.setStageCount(pmi.getStageCount(variables));
 			wi.setStageName(pmi.getStageName(variables));
 			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
+			wi.setStageName(pmi.getStageName(variables));
+			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
+
+			wi.setEscalationLevelNumber(pmi.getEscalationLevelNumber(variables));
+			wi.setEscalationLevelName(pmi.getEscalationLevelName(variables));
+			wi.setEscalationLevelDisplayName(pmi.getEscalationLevelDisplayName(variables));
 
 			// This is just because 'variables' switches in task query DO NOT fetch all required variables...
 			if (fetchAllVariables) {		// TODO can we do this e.g. in the task completion listener?

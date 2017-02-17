@@ -25,4 +25,10 @@
 	</assignment>
 	<fullName>Ghost Pirate Bob</fullName>
 	<givenName>Bob</givenName>
+	<emailAddress>bob@evolveum.com</emailAddress>
+	<credentials>
+		<password>
+			<value>a123456</value>
+		</password>
+	</credentials>  
 </user>

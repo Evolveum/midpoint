@@ -46,7 +46,7 @@ public class PrettyPrinter {
 	
 	private static String defaultNamespacePrefix = null;
 	
-	private static List<Class<?>> prettyPrinters = new ArrayList<Class<?>>();
+	private static List<Class<?>> prettyPrinters = new ArrayList<>();
 
 	public static void setDefaultNamespacePrefix(String prefix) {
 		defaultNamespacePrefix = prefix;
@@ -272,7 +272,7 @@ public class PrettyPrinter {
 	private static String tryPrettyPrint(Object value) {
 		if (value instanceof Class) {
 			Class<?> c = (Class<?>)value;
-			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_2")) {
+			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_3")) {
 				return c.getSimpleName();
 			}
 			return c.getName();

@@ -150,7 +150,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		// Let's construct the approval schema plus supporting triggered approval policy rule information
 		ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules, plusMinusZero,
 				targetObject, ctx, result);
-		if (approvalSchemaResult.schema.shouldBeSkipped()) {
+		if (approvalSchemaHelper.shouldBeSkipped(approvalSchemaResult.schemaType)) {
 			return null;
 		}
 
@@ -186,7 +186,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	private ApprovalSchemaBuilder.Result createSchemaWithRules(List<EvaluatedPolicyRule> triggeredApprovalRules,
 			PlusMinusZero plusMinusZero, @NotNull PrismObject<?> targetObject, ModelInvocationContext ctx, OperationResult result) throws SchemaException {
 
-		ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(this);
+		ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(this, approvalSchemaHelper);
 
 		// (1) legacy approvers (only if adding)
 		LegacyApproversSpecificationUsageType configuredUseLegacyApprovers =
@@ -285,13 +285,14 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				}
 				key = affectedItems;
 			}
-			ApprovalSchemaBuilder builder = schemaBuilders.computeIfAbsent(key, k -> new ApprovalSchemaBuilder(this));
+			ApprovalSchemaBuilder builder = schemaBuilders.computeIfAbsent(key, k -> new ApprovalSchemaBuilder(this,
+					approvalSchemaHelper));
 			ApprovalPolicyActionType approvalAction = rule.getActions().getApproval();
 			builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, rule);
 		}
 		// default rule
 		if (approvalActionRules.isEmpty()) {
-			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(this);
+			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(this, approvalSchemaHelper);
 			if (builder.addPredefined(object, SchemaConstants.ORG_OWNER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found");
 				schemaBuilders.put(Collections.emptySet(), builder);
@@ -301,7 +302,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		Set<ItemPath> itemsProcessed = null;
 		for (Map.Entry<Set<ItemPath>, ApprovalSchemaBuilder> entry : schemaBuilders.entrySet()) {
 			ApprovalSchemaBuilder.Result builderResult = entry.getValue().buildSchema(ctx, result);
-			if (builderResult.schema.shouldBeSkipped()) {
+			if (approvalSchemaHelper.shouldBeSkipped(builderResult.schemaType)) {
 				continue;
 			}
 			Set<ItemPath> items = entry.getKey();

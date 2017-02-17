@@ -29,6 +29,7 @@ import java.util.List;
  */
 @FunctionalInterface
 public interface ReferenceResolver {
+	// must returns parent-less references
 	List<ObjectReferenceType> resolveReference(ObjectReferenceType reference, String sourceDescription)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
 }

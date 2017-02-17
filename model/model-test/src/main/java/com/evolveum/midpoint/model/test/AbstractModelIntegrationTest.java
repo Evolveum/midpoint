@@ -21,6 +21,9 @@ import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -47,6 +50,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -157,6 +161,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -289,7 +294,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			Task task, OperationResult result) throws Exception {
 		return dummyResourceCollection.initDummyResource(name, resourceFile, resourceOid, controllerInitLambda, task, result);
 	}
-	
+
+	protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid, 
+			Task task, OperationResult result) throws Exception {
+		return dummyResourceCollection.initDummyResource(name, resourceFile, resourceOid, null, task, result);
+	}
+
 	protected DummyResourceContoller initDummyResourcePirate(String name, File resourceFile, String resourceOid, 
 			Task task, OperationResult result) throws Exception {
 		return initDummyResource(name, resourceFile, resourceOid, controller -> controller.extendSchemaPirate(), task, result);
@@ -2429,19 +2439,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+		return waitForTaskNextRun(taskOid, checkSubresult, timeout, false);
+	}
+
+	protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
 		Task origTask = taskManager.getTask(taskOid, waitResult);
-		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult);
+		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult, kickTheTask);
 	}
 	
 	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout) throws Exception {
+		return waitForTaskNextRun(origTask, checkSubresult, timeout, false);
+	}
+
+	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, boolean kickTheTask) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
-		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult);
+		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult, kickTheTask);
 	}
 	
-	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult) throws Exception {
+	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult, boolean kickTheTask) throws Exception {
 		final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
 		final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
+		if (kickTheTask) {
+			taskManager.scheduleTaskNow(origTask, waitResult);
+		}
 		final Holder<OperationResult> taskResultHolder = new Holder<>();
 		Checker checker = new Checker() {
 			@Override
@@ -3526,15 +3547,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected void assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks, 
-			int expectedDashboardLinks, int expectedObjectForms) {
+	protected AdminGuiConfigurationType assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks, 
+			int expectedDashboardLinks, int expectedObjectForms, int expecteduserDashboardWidgets) {
 		AdminGuiConfigurationType adminGuiConfiguration = principal.getAdminGuiConfiguration();
 		display("Admin GUI config for "+principal.getUsername(), adminGuiConfiguration);
-		assertAdminGuiConfigurations(adminGuiConfiguration, expectedMenuLinks, expectedDashboardLinks, expectedObjectForms);
+		assertAdminGuiConfigurations(adminGuiConfiguration, 
+				expectedMenuLinks, expectedDashboardLinks, expectedObjectForms, expecteduserDashboardWidgets);
+		return adminGuiConfiguration;
 	}
 	
-	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration, int expectedMenuLinks, 
-			int expectedDashboardLinks, int expectedObjectForms) {
+	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration, 
+			int expectedMenuLinks, int expectedDashboardLinks, int expectedObjectForms, int expecteduserDashboardWidgets) {
 		assertNotNull("No admin GUI configuration", adminGuiConfiguration);
 		assertEquals("Wrong number of menu links in",
 				expectedMenuLinks, adminGuiConfiguration.getAdditionalMenuLink().size());
@@ -3542,6 +3565,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				expectedDashboardLinks, adminGuiConfiguration.getUserDashboardLink().size());
 		assertEquals("Wrong number of object forms in admin GUI configuration",
 				expectedObjectForms, adminGuiConfiguration.getObjectForms().getObjectForm().size());
+		if ( adminGuiConfiguration.getUserDashboard() == null) {
+			if (expecteduserDashboardWidgets != 0) {
+				AssertJUnit.fail("Wrong number of widgets in user dashboard admin GUI configuration, expected "
+						+ expecteduserDashboardWidgets + " but there was none");
+			}
+		} else {
+			assertEquals("Wrong number of widgets in user dashboard admin GUI configuration",
+				expectedObjectForms, adminGuiConfiguration.getUserDashboard().getWidget().size());
+		}
 	}
 
 	protected void createSecurityContext(MidPointPrincipal principal) {
@@ -3723,7 +3755,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.targetOid = :targetOid) order by aer.timestamp asc", 
         		params, result);
 	}
-	
+
+	protected List<AuditEventRecord> getParamAuditRecords(String paramName, String paramValue, OperationResult result) throws SecurityViolationException, SchemaException {
+		Map<String,Object> params = new HashMap<>();
+		params.put("paramName", paramName);
+		params.put("paramValue", paramValue);
+		return modelAuditService.listRecords("from RAuditEventRecord as aer left join aer.propertyValues as pv where (pv.name = :paramName and pv.value = :paramValue) order by aer.timestamp asc",
+        		params, result);
+	}
+
 	protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to) throws SecurityViolationException, SchemaException {
 		OperationResult result = new OperationResult("getAuditRecordsFromTo");
 		return getAuditRecordsFromTo(from, to, result);
@@ -3836,5 +3876,56 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (objectChangeItem != null) {
 			AssertJUnit.fail("Expected no postponed operation in "+shadow+", but found one: "+objectChangeItem);
 		}
+	}
+
+	protected String addAndRecomputeUser(File file, Task initTask, OperationResult initResult) throws Exception {
+		String oid = repoAddObjectFromFile(file, initResult).getOid();
+		recomputeUser(oid, initTask, initResult);
+		display("User " + file, getUser(oid));
+		return oid;
+	}
+
+	protected String addAndRecompute(File file, Task task, OperationResult result) throws Exception {
+		PrismObject<ObjectType> object = repoAddObjectFromFile(file, result);
+		modelService.recompute(object.asObjectable().getClass(), object.getOid(), task, result);
+		display("Object: " + file, getObject(object.asObjectable().getClass(), object.getOid()));
+		return object.getOid();
+	}
+
+	protected void assertAuditReferenceValue(List<AuditEventRecord> events, String refName, String oid, QName type, String name) {
+		if (events.size() != 1) {
+			display("Events", events);
+			assertEquals("Wrong # of events", 1, events.size());
+		}
+		assertAuditReferenceValue(events.get(0), refName, oid, type, name);
+	}
+
+	protected void assertAuditReferenceValue(AuditEventRecord event, String refName, String oid, QName type, String name) {
+		Set<AuditReferenceValue> values = event.getReferenceValues(refName);
+		assertEquals("Wrong # of reference values of '" + refName + "'", 1, values.size());
+		AuditReferenceValue value = values.iterator().next();
+		assertEquals("Wrong OID", oid, value.getOid());
+		assertEquals("Wrong type", type, value.getType());
+		assertEquals("Wrong name", name, PolyString.getOrig(value.getTargetName()));
+	}
+
+	protected void assertAuditTarget(AuditEventRecord event, String oid, QName type, String name) {
+		PrismReferenceValue target = event.getTarget();
+		assertNotNull("No target", target);
+		assertEquals("Wrong OID", oid, target.getOid());
+		assertEquals("Wrong type", type, target.getTargetType());
+		assertEquals("Wrong name", name, PolyString.getOrig(target.getTargetName()));
+	}
+
+	protected List<AuditEventRecord> filter(List<AuditEventRecord> records, AuditEventStage stage) {
+		return records.stream()
+				.filter(r -> r.getEventStage() == stage)
+				.collect(Collectors.toList());
+	}
+
+	protected List<AuditEventRecord> filter(List<AuditEventRecord> records, AuditEventType type, AuditEventStage stage) {
+		return records.stream()
+				.filter(r -> r.getEventType() == type && r.getEventStage() == stage)
+				.collect(Collectors.toList());
 	}
 }

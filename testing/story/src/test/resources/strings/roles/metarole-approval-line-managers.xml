@@ -27,6 +27,7 @@
 				<approval>
 					<compositionStrategy>
 						<order>10</order>
+						<exclusive>true</exclusive>
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
@@ -43,5 +44,8 @@
 				</approval>
 			</policyActions>
 		</policyRule>
+	</inducement>
+	<inducement>
+		<targetRef oid="99828c23-40c1-4340-9fe4-8df2599a1691" type="RoleType"/>		<!-- escalation then rejection -->
 	</inducement>
 </role>

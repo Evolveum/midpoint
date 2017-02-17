@@ -69,7 +69,7 @@ public class NotificationChangeHook implements ChangeHook {
     private transient RepositoryService cacheRepositoryService;
 
     @Autowired
-    private NotificationFuctionsImpl notificationsUtil;
+    private NotificationFunctionsImpl notificationsUtil;
 
     @PostConstruct
     public void init() {

@@ -27,30 +27,42 @@
                 </div>
                 <div class="box-body no-padding">
                     <table class="table table-condensed table-striped">
-                        <tr>
-                            <td><wicket:message key="workItemPanel.requestedBy" /></td>
-                            <td><b><span wicket:id="requestedBy" /></b> (<span
-                                    wicket:id="requestedByFullName" />)</td>
+                        <tr wicket:id="stageInfoContainer">
+                            <td><wicket:message key="workItemPanel.stage" /></td>
+                            <td><b><span wicket:id="stageInfo" /></b></td>
                         </tr>
-                        <tr>
-                            <td><wicket:message key="workItemPanel.requestedOn" /></td>
-                            <td><b><span wicket:id="requestedOn" /></b></td>
-                        </tr>
+                        <!--<tr>-->
+                            <!--<td><wicket:message key="workItemPanel.requestedBy" /></td>-->
+                            <!--<td><b><span wicket:id="requestedBy" /></b> (<span-->
+                                    <!--wicket:id="requestedByFullName" />)</td>-->
+                        <!--</tr>-->
+                        <!--<tr>-->
+                            <!--<td><wicket:message key="workItemPanel.requestedOn" /></td>-->
+                            <!--<td><b><span wicket:id="requestedOn" /></b></td>-->
+                        <!--</tr>-->
                         <tr>
                             <td><wicket:message key="workItemPanel.workItemCreatedOn" /></td>
                             <td><b><span wicket:id="workItemCreatedOn" /></b></td>
                         </tr>
                         <tr>
-                            <td><wicket:message key="workItemPanel.allocatedTo" /></td>
-                            <td><b><span wicket:id="assignee" /></b></td>
+                            <td><wicket:message key="workItemPanel.workItemDeadline" /></td>
+                            <td><b><span wicket:id="workItemDeadline" /></b></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="workItemPanel.originallyAllocatedTo" /></td>
+                            <td><b><span wicket:id="originallyAllocatedTo" /></b></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="workItemPanel.currentlyAllocatedTo" /></td>
+                            <td><b><span wicket:id="currentlyAllocatedTo" /></b></td>
                         </tr>
                         <tr>
                             <td><wicket:message key="workItemPanel.candidateActors" /></td>
                             <td><b><span wicket:id="candidates" /></b></td>
                         </tr>
-                        <tr wicket:id="stageInfoContainer">
-                            <td><wicket:message key="workItemPanel.stage" /></td>
-                            <td><b><span wicket:id="stageInfo" /></b></td>
+                        <tr wicket:id="escalationLevelInfoContainer">
+                            <td><wicket:message key="workItemPanel.escalationLevel" /></td>
+                            <td><b><span wicket:id="escalationLevelInfo" /></b></td>
                         </tr>
                     </table>
                 </div>

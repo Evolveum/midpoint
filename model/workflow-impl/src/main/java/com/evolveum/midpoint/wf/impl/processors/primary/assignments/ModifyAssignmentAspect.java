@@ -199,8 +199,6 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
 
         for (ApprovalRequest<AssignmentModification> approvalRequest : approvalRequestList) {
 
-            assert(approvalRequest.getPrismContext() != null);
-
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Approval request = {}", approvalRequest);
             }

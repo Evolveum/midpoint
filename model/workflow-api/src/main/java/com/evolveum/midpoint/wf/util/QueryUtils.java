@@ -30,8 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
 /**
  * @author mederly
@@ -45,7 +43,7 @@ public class QueryUtils {
 
 	public static S_FilterExit filterForGroups(S_FilterEntryOrEmpty q, String userOid, RepositoryService repositoryService, OperationResult result)
 			throws SchemaException {
-		return q.item(WorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(userOid, repositoryService, result));
+		return q.item(WorkItemType.F_CANDIDATE_REF).ref(getGroupsForUser(userOid, repositoryService, result));
 	}
 
 	private static List<PrismReferenceValue> getPotentialAssigneesForUser(String userOid, RepositoryService repositoryService,

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.notifications.api.events.AccessCertificationEvent;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignEvent;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignStageEvent;
 import com.evolveum.midpoint.notifications.api.events.CertReviewEvent;
-import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -44,7 +44,7 @@ public class CertEventFactory {
     private LightweightIdentifierGenerator idGenerator;
 
     @Autowired
-    private NotificationFuctionsImpl notificationsUtil;
+    private NotificationFunctionsImpl notificationsUtil;
 
     public CertCampaignEvent createOnCampaignStartEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertCampaignEvent event = new CertCampaignEvent(idGenerator, campaign, EventOperationType.ADD);

@@ -79,6 +79,7 @@ class DomToSchemaProcessor {
 	private XSSchemaSet xsSchemaSet;
 	private String shortDescription;
 	private boolean isRuntime = false;
+	private boolean allowDelayedItemDefinitions;
 
 	public EntityResolver getEntityResolver() {
 		return entityResolver;
@@ -126,6 +127,14 @@ class DomToSchemaProcessor {
 
 	public void setRuntime(boolean isRuntime) {
 		this.isRuntime = isRuntime;
+	}
+
+	public boolean isAllowDelayedItemDefinitions() {
+		return allowDelayedItemDefinitions;
+	}
+
+	public void setAllowDelayedItemDefinitions(boolean allowDelayedItemDefinitions) {
+		this.allowDelayedItemDefinitions = allowDelayedItemDefinitions;
 	}
 
 	/**
@@ -673,9 +682,22 @@ class DomToSchemaProcessor {
 				ItemDefinitionImpl definition;
 
 				if (isPropertyContainer(xsElementDecl) || isObjectDefinition(xsType)) {
-					ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeQName);
-					definition = createPropertyContainerDefinition(
-							xsType, xsElementDecl, complexTypeDefinition, annotation, null, true);
+					ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(typeQName);
+					if (complexTypeDefinition == null) {
+						if (!allowDelayedItemDefinitions) {
+							throw new SchemaException("Couldn't parse prism container " + elementName + " of type " + typeQName
+								+ " because complex type definition couldn't be found and delayed item definitions are not allowed.");
+						}
+						definition = null;
+						schema.addDelayedItemDefinition(() -> {
+							ComplexTypeDefinition ctd = findComplexTypeDefinition(typeQName);
+							// here we take the risk that ctd is null
+							return createPropertyContainerDefinition(xsType, xsElementDecl, ctd, annotation, null, true);
+						});
+					} else {
+						definition = createPropertyContainerDefinition(
+								xsType, xsElementDecl, complexTypeDefinition, annotation, null, true);
+					}
 				} else if (isObjectReference(xsElementDecl, xsType)) {
 					definition = processObjectReferenceDefinition(xsType, elementName,
 							annotation, null, null, false);
@@ -684,10 +706,12 @@ class DomToSchemaProcessor {
 					definition = createPropertyDefinition(xsType, elementName, typeQName,
 							null, annotation, null);
 				}
-				definition.setSubstitutionHead(getSubstitutionHead(xsElementDecl));
-				schema.getDefinitions().add(definition);
+				if (definition != null) {
+					definition.setSubstitutionHead(getSubstitutionHead(xsElementDecl));
+					schema.getDefinitions().add(definition);
+				}
 
-			} else if (xsElementDecl.getTargetNamespace().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
+			} else { //if (xsElementDecl.getTargetNamespace().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
 				// This is OK to ignore. These are imported elements from other
 				// schemas
 				// } else {
@@ -697,6 +721,15 @@ class DomToSchemaProcessor {
 				// "+schema.getNamespace());
 			}
 		}
+	}
+
+	// We first try to find the definition locally, because in schema registry we don't have the current schema yet.
+	private ComplexTypeDefinition findComplexTypeDefinition(QName typeQName) {
+		ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinitionByType(typeQName);
+		if (complexTypeDefinition == null) {
+			complexTypeDefinition = getSchemaRegistry().findComplexTypeDefinitionByType(typeQName);
+		}
+		return complexTypeDefinition;
 	}
 
 	private QName getSubstitutionHead(XSElementDecl element) {
@@ -931,19 +964,17 @@ class DomToSchemaProcessor {
 
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 
+		Class compileTimeClass = null;
+		if (getSchemaRegistry() != null && complexTypeDefinition != null) {
+			compileTimeClass = getSchemaRegistry().determineCompileTimeClass(complexTypeDefinition.getTypeName());
+		}
 		if (isObjectDefinition(xsType)) {
-			Class compileTimeClass = null;
-			if (getSchemaRegistry() != null) {
-				compileTimeClass = getSchemaRegistry().determineCompileTimeClass(complexTypeDefinition.getTypeName());
-			}
-			pcd = definitionFactory.createObjectDefinition(elementName, complexTypeDefinition, prismContext,
-					compileTimeClass, annotation, elementParticle);
+			pcd = definitionFactory.createObjectDefinition(elementName, complexTypeDefinition, prismContext, compileTimeClass);
 			// Multiplicity is fixed to a single-value here
 			pcd.setMinOccurs(1);
 			pcd.setMaxOccurs(1);
 		} else {
-			pcd = definitionFactory.createContainerDefinition(elementName, complexTypeDefinition,
-					prismContext, annotation, elementParticle);
+			pcd = definitionFactory.createContainerDefinition(elementName, complexTypeDefinition, prismContext, compileTimeClass);
 			setMultiplicity(pcd, elementParticle, elementDecl.getAnnotation(), topLevel);
 		}
 
@@ -1130,8 +1161,6 @@ class DomToSchemaProcessor {
 		if (annotation == null || annotation.getAnnotation() == null) {
 			return;
 		}
-
-		QName elementName = itemDef.getName();
 
 		// ignore
 		Boolean ignore = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_IGNORE);

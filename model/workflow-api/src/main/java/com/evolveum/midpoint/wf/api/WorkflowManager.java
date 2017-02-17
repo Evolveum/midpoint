@@ -64,21 +64,22 @@ public interface WorkflowManager {
 
 	/**
 	 * Approves or rejects a work item (without supplying any further information).
-	 *  @param taskId       identifier of activiti task backing the work item
+	 * @param taskId       identifier of activiti task backing the work item
 	 * @param decision     true = approve, false = reject
 	 * @param comment
 	 * @param additionalDelta
+	 * @param causeInformation
 	 * @param parentResult
 	 */
-	void approveOrRejectWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult) throws SecurityViolationException, SchemaException;
+	void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
+			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult) throws SecurityViolationException, SchemaException;
 
 	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
 
 	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
 	void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
 
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 

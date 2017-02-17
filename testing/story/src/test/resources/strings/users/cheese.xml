@@ -81,6 +81,7 @@
 	<fullName>Ignatius Cheese</fullName>
 	<givenName>Ignatius</givenName>
 	<familyName>Cheese</familyName>
+	<emailAddress>cheese@evolveum.com</emailAddress>
 	<credentials>
 		<password>
 			<value>a123456</value>

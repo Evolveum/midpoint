@@ -16,11 +16,13 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
@@ -28,17 +30,20 @@ import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 
 /**
  * @author mederly
@@ -61,26 +66,36 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 			LOGGER.debug("About to start approval process instance '{}'", instr.getProcessInstanceName());
 			if (instr.getProcessContent() instanceof ItemApprovalSpecificContent) {
 				ItemApprovalSpecificContent iasc = (ItemApprovalSpecificContent) instr.getProcessContent();
-				LOGGER.debug("Approval schema:\n{}", DebugUtil.debugDump(iasc.approvalSchema));
 				LOGGER.debug("Approval schema XML:\n{}", PrismUtil.serializeQuietlyLazily(prismContext, iasc.approvalSchemaType));
 				LOGGER.debug("Attached rules:\n{}", PrismUtil.serializeQuietlyLazily(prismContext, iasc.policyRules));
 			}
 		}
     }
 
-    @Override public DecisionType extractDecision(Map<String, Object> variables) {
-        DecisionType decision = new DecisionType();
-
-        decision.setResultAsString((String) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
-        decision.setApproved(ApprovalUtils.approvalBooleanValue(decision.getResultAsString()));
-        decision.setComment((String) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
-        decision.setStageNumber(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, Integer.class));
-        decision.setStageName(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_NAME, String.class));
-        decision.setStageDisplayName(ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, String.class));
-
-        // TODO - what with other fields (approver, dateTime)?
-
-        return decision;
+    @Override
+	public WorkItemResultType extractWorkItemResult(Map<String, Object> variables) {
+	    Boolean wasCompleted = ActivitiUtil.getVariable(variables, VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.class, prismContext);
+	    if (BooleanUtils.isNotTrue(wasCompleted)) {
+		    return null;
+	    }
+		WorkItemResultType result = new WorkItemResultType();
+		result.setOutcomeAsString(ActivitiUtil.getVariable(variables, FORM_FIELD_DECISION, String.class, prismContext));
+		result.setOutcome(ApprovalUtils.approvalOutcomeValue(result.getOutcomeAsString()));
+		result.setComment(ActivitiUtil.getVariable(variables, FORM_FIELD_COMMENT, String.class, prismContext));
+		String additionalDeltaString = ActivitiUtil.getVariable(variables, FORM_FIELD_ADDITIONAL_DELTA, String.class, prismContext);
+		boolean isApproved = ApprovalUtils.isApproved(result);
+		if (isApproved && StringUtils.isNotEmpty(additionalDeltaString)) {
+			try {
+				ObjectDeltaType additionalDelta = prismContext.parserFor(additionalDeltaString).parseRealValue(ObjectDeltaType.class);
+				ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
+				treeDeltas.setFocusPrimaryDelta(additionalDelta);
+				result.setAdditionalDeltas(treeDeltas);
+			} catch (SchemaException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse delta received from the activiti form:\n{}", e, additionalDeltaString);
+				throw new SystemException("Couldn't parse delta received from the activiti form: " + e.getMessage(), e);
+			}
+		}
+		return result;
     }
 
 	@Override
@@ -90,18 +105,18 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 	}
 
 	@Override
-    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event) {
-        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
-        if (!ApprovalUtils.isApproved(getAnswer(event.getVariables()))) {
-            return retval;
-        }
-        List<Decision> allDecisions = event.getVariable(ProcessVariableNames.ALL_DECISIONS, List.class);
-        for (Decision decision : allDecisions) {
-            if (decision.isApproved()) {
-                retval.add(MiscSchemaUtil.createObjectReference(decision.getApproverOid(), SchemaConstants.C_USER_TYPE));
-            }
-        }
-        return retval;
+    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
+    	WfContextType wfc = job.getTask().getWorkflowContext();
+		List<ObjectReferenceType> rv = new ArrayList<>();
+    	if (!ApprovalUtils.isApproved(event.getAnswer())) {		// wfc.approved is not filled in yet
+    		return rv;
+		}
+		for (WorkItemCompletionEventType completionEvent : WfContextUtil.getEvents(wfc, WorkItemCompletionEventType.class)) {
+			if (ApprovalUtils.isApproved(completionEvent.getResult()) && completionEvent.getInitiatorRef() != null) {
+				rv.add(completionEvent.getInitiatorRef().clone());
+			}
+		}
+		return rv;
     }
 
 

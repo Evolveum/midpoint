@@ -27,6 +27,7 @@ package com.evolveum.prism.xml.ns._public.types_3;
 import com.evolveum.midpoint.prism.Raw;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.activation.MimeType;
@@ -170,6 +171,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
      *     {@link ItemDeltaType.Value }
      *     
      */
+    @NotNull
     public List<RawType> getValue() {
     	if (value == null){
     		value = new ArrayList<>();
@@ -197,7 +199,8 @@ public class ItemDeltaType implements Serializable, Cloneable {
 //        this.value = value;
 //    }
 
-    
+
+	@NotNull
     public List<RawType> getEstimatedOldValue() {
     	if (estimatedOldValue == null){
     		estimatedOldValue = new ArrayList<>();

@@ -16,48 +16,30 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
+import java.io.Serializable;
 
 /**
+ * TODO throw away this class completely
+ *
  * @author mederly
  */
-public interface ApprovalLevel extends DebugDumpable {
+public class ApprovalLevel implements Serializable {
 
-    String getName();
+	private static final long serialVersionUID = -7425837742015830391L;
 
-	String getDisplayName();
+	private final int order;
 
-	String getDescription();
+	public ApprovalLevel(int order) {
+		this.order = order;
+	}
 
-    List<? extends LightweightObjectRef> getApproverRefs();
+	public int getOrder() {
+		return order;
+	}
 
-    List<ExpressionType> getApproverExpressions();
+	@Override
+	public String toString() {
+		return "ApprovalLevelImpl(" + order + ")";
+	}
 
-    LevelEvaluationStrategyType getEvaluationStrategy();
-
-    ExpressionType getAutomaticallyApproved();
-
-	ExpressionType getAdditionalInformation();
-
-	@NotNull
-    ApprovalLevelOutcomeType getOutcomeIfNoApprovers();
-
-	@NotNull
-	GroupExpansionType getGroupExpansion();
-
-	PrismContext getPrismContext();
-
-    void setPrismContext(PrismContext prismContext);
-
-    ApprovalLevelType toApprovalLevelType(PrismContext prismContext);
-
-    boolean shouldBeSkipped();
-
-	String getDebugName();
 }

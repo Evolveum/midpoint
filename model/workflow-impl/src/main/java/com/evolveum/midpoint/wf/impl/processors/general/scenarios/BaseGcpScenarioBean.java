@@ -86,14 +86,21 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
 
     @Override
     public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, WfTask wfTask, AuditEventStage stage, OperationResult result) {
-        return baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, variables, result);
+        return baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, result);
         // TODO what with missing data (delta, result)? We could at least attempt to determine them ...
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
 			OperationResult result) throws WorkflowException {
-        return baseAuditHelper.prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
+        return baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
+        // TODO fill-in missing delta somehow
+    }
+
+    @Override
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
+			OperationResult result) throws WorkflowException {
+        return baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, wfTask, result);
         // TODO fill-in missing delta somehow
     }
 

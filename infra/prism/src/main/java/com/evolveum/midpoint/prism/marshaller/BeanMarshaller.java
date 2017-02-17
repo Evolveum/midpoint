@@ -373,7 +373,7 @@ public class BeanMarshaller {
 			getterType = getterReturnType;
 		}
 		Class getterResultReturnType = getterResult.getClass();
-		if (getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)) {
+		if (node != null && getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)) {
 			node.setExplicitTypeDeclaration(true);
 			node.setTypeQName(typeName);
 		}

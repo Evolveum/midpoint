@@ -1,0 +1,70 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="99828c23-40c1-4340-9fe4-8df2599a1691">
+	<name>metarole-approval-escalation-then-rejection</name>
+	<description>Needs to be used along with some other approvals</description>
+	<displayName>Metarole: escalation feature for approvals</displayName>
+	<inducement>
+		<policyRule>
+			<policyConstraints>
+				<assignment/>		<!-- TODO is this really necessary? -->
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<mergeIntoOrder>10</mergeIntoOrder>
+						<mergeIntoOrder>40</mergeIntoOrder>
+					</compositionStrategy>
+					<approvalSchema>
+						<level>
+							<duration>P5D</duration>
+							<timedActions>
+								<actions>
+									<escalate>
+										<approverExpression>
+											<script>
+												<code>
+													midpoint.getManagersOidsExceptUser(workItem.assigneeRef)
+												</code>
+											</script>
+										</approverExpression>
+										<duration>P9D</duration>	<!-- using value different from original duration, just to test -->
+										<delegationMethod>addAssignees</delegationMethod>
+										<notifyBeforeAction>P1D</notifyBeforeAction>
+										<escalationLevelName>Line manager escalation</escalationLevelName>
+									</escalate>
+								</actions>
+							</timedActions>
+							<timedActions>
+								<!-- no time set - executes at deadline -->
+								<actions>
+									<complete>
+										<outcome>reject</outcome>
+										<notifyBeforeAction>P2D</notifyBeforeAction>
+										<notifyBeforeAction>P2DT12H</notifyBeforeAction>
+									</complete>
+								</actions>
+								<escalationLevelFrom>1</escalationLevelFrom>
+								<escalationLevelTo>1</escalationLevelTo>
+							</timedActions>
+						</level>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>

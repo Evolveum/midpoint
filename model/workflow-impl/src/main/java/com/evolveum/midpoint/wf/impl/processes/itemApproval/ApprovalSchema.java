@@ -16,30 +16,38 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * TODO throw away this class completely
+ *
  * @author mederly
  */
-public interface ApprovalSchema extends DebugDumpable {
+public class ApprovalSchema implements Serializable {
 
-    String getName();
+	private static final long serialVersionUID = 4756235518499474429L;
 
-    String getDescription();
+	@NotNull private final List<ApprovalLevel> levels = new ArrayList<>();
 
-    List<? extends ApprovalLevel> getLevels();
+	public ApprovalSchema(ApprovalSchemaType schema) {
+		WfContextUtil.checkLevelsOrderingStrict(schema);
+		schema.getLevel().forEach(level -> levels.add(new ApprovalLevel(level.getOrder())));
+	}
 
-    PrismContext getPrismContext();
+	@SuppressWarnings("WeakerAccess")
+	@NotNull
+	public List<ApprovalLevel> getLevels() {
+		return levels;
+	}
 
-    void setPrismContext(PrismContext prismContext);
-
-    void toApprovalSchemaType(ApprovalSchemaType approvalSchemaType);           // expects empty (newly created) ApprovalSchemaType instance
-
-    ApprovalSchemaType toApprovalSchemaType();
-
-	boolean shouldBeSkipped();
+	@Override
+	public String toString() {
+		return "ApprovalSchema{levels: " + levels.size() + '}';
+	}
 }

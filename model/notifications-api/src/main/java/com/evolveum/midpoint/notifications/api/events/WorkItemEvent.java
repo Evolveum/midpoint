@@ -20,14 +20,12 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
 import java.util.Map;
@@ -37,15 +35,30 @@ import java.util.Map;
  */
 public class WorkItemEvent extends WorkflowEvent {
 
-    @NotNull private final WorkItemType workItem;
-    private final SimpleObjectRef assignee;
+    @NotNull protected final WorkItemType workItem;
+    // (Currently) Each work item event is related to at most one assignee. So, if a work item has more assignees,
+	// more events will be generated. This might change in a future.
+	protected final SimpleObjectRef assignee;
+	/**
+	 * User who "pressed the button". I.e. the one that really approved, rejected or delegated/escalated a work item.
+	 * In case of automated actions (completion, delegation/escalation) this is not filled-in.
+	 */
+	protected final SimpleObjectRef initiator;
+	protected final WorkItemOperationKindType operationKind;
+	protected final Duration timeBefore;
 
-    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, @NotNull WorkItemType workItem,
-			@Nullable SimpleObjectRef assignee, WfContextType workflowContext) {
-        super(lightweightIdentifierGenerator, changeType, workflowContext);
-        Validate.notNull(workItem);
+    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
+                         @NotNull WorkItemType workItem,
+                         @Nullable SimpleObjectRef assignee, SimpleObjectRef initiator, WorkItemOperationKindType operationKind,
+                         WfContextType workflowContext,
+                         EventHandlerType handler, Duration timeBefore) {
+        super(lightweightIdentifierGenerator, changeType, workflowContext, handler);
+	    Validate.notNull(workItem);
         this.workItem = workItem;
 		this.assignee = assignee;
+		this.initiator = initiator;
+		this.operationKind = operationKind;
+	    this.timeBefore = timeBefore;
     }
 
     public String getWorkItemName() {
@@ -66,7 +79,19 @@ public class WorkItemEvent extends WorkflowEvent {
         return assignee;
     }
 
-    @Override
+	public SimpleObjectRef getInitiator() {
+		return initiator;
+	}
+
+	public WorkItemOperationKindType getOperationKind() {
+		return operationKind;
+	}
+
+	public Duration getTimeBefore() {
+		return timeBefore;
+	}
+
+	@Override
     public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
         variables.put(SchemaConstants.C_ASSIGNEE, assignee != null ? assignee.resolveObjectType(result, false) : null);
@@ -75,11 +100,8 @@ public class WorkItemEvent extends WorkflowEvent {
 
 	@Override
 	protected String getAnswer() {
-		DecisionType decision = workItem.getDecision();
-		if (decision == null) {
-			return null;
-		}
-		return decision.getResultAsString();
+		WorkItemResultType result = workItem.getResult();
+		return result != null ? result.getOutcomeAsString() : null;
 	}
 
 	@Override

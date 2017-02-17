@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
@@ -12,6 +13,8 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -454,7 +457,13 @@ public class AuditLogViewerPanel extends BasePanel{
             }
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AuditEventRecordType> rowModel) {
-                setResponsePage(new PageAuditLogDetails(rowModel.getObject()));
+                AuditEventRecordType record = rowModel.getObject();
+                try {
+                    AuditEventRecord.adopt(record, pageBase.getPrismContext());
+                } catch (SchemaException e) {
+                    throw new SystemException("Couldn't adopt event record: " + e, e);
+                }
+                setResponsePage(new PageAuditLogDetails(record));
             }
 
         };
@@ -467,7 +476,7 @@ public class AuditLogViewerPanel extends BasePanel{
             @Override
             public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
                                      IModel<AuditEventRecordType> rowModel) {
-                AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
+                AuditEventRecordType auditEventRecordType = rowModel.getObject();
                 createReferenceColumn(auditEventRecordType.getInitiatorRef(), item, componentId);
             }
         };

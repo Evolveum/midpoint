@@ -224,8 +224,6 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
         for (ApprovalRequest<AssociationAdditionType> approvalRequest : approvalRequestList) {
 
-            assert approvalRequest.getPrismContext() != null;
-
             LOGGER.trace("Approval request = {}", approvalRequest);
             AssociationAdditionType associationAddition = approvalRequest.getItemToApprove();
             ShadowAssociationType association = associationAddition.getAssociation();
@@ -311,9 +309,11 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     private ApprovalRequest<AssociationAdditionType>
     createApprovalRequest(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove, ModelContext<?> modelContext,
 			Task taskFromModel, OperationResult result) {
-        return new ApprovalRequestImpl<>(itemToApprove, config, prismContext,
-                createRelationResolver((PrismObject) null, result),		// TODO rel resolver
+        ApprovalRequest<AssociationAdditionType> request = new ApprovalRequestImpl<>(itemToApprove, config, prismContext);
+        approvalSchemaHelper.prepareSchema(request.getApprovalSchemaType(),
+                createRelationResolver((PrismObject<?>) null, result),		// TODO rel resolver
 				createReferenceResolver(modelContext, taskFromModel, result));
+        return request;
     }
 
     // retrieves the relevant target for a given assignment - a role, an org, or a resource

@@ -95,6 +95,8 @@ public class WfConfiguration implements BeanFactoryAware {
 
     private String[] autoDeploymentFrom;
 
+    boolean dropDatabase;
+
     @PostConstruct
     void initialize() {
 
@@ -111,6 +113,7 @@ public class WfConfiguration implements BeanFactoryAware {
         // activiti properties related to database connection will be taken from SQL repository
         SqlRepositoryConfiguration sqlConfig = null;
         String defaultJdbcUrlPrefix = null;
+        dropDatabase = false;
         try {
             RepositoryFactory repositoryFactory = (RepositoryFactory) beanFactory.getBean("repositoryFactory");
             if (!(repositoryFactory.getFactory() instanceof SqlRepositoryFactory)) {    // it may be null as well
@@ -123,6 +126,7 @@ public class WfConfiguration implements BeanFactoryAware {
                 sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
                 if (sqlConfig.isEmbedded()) {
                     defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
+                    dropDatabase = sqlConfig.isDropIfExists();
                 }
             }
         } catch(NoSuchBeanDefinitionException e) {
@@ -253,6 +257,10 @@ public class WfConfiguration implements BeanFactoryAware {
 
     public String[] getAutoDeploymentFrom() {
         return autoDeploymentFrom;
+    }
+
+    public boolean isDropDatabase() {
+        return dropDatabase;
     }
 
     public ChangeProcessor findChangeProcessor(String processorClassName) {

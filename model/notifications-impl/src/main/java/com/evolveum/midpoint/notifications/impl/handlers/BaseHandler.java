@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.EventHandler;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
-import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
@@ -52,6 +52,8 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
+ * TODO remove duplicate code
+ *
  * @author mederly
  */
 @Component
@@ -63,7 +65,7 @@ public abstract class BaseHandler implements EventHandler {
     protected NotificationManagerImpl notificationManager;
 
     @Autowired
-    protected NotificationFuctionsImpl notificationsUtil;
+    protected NotificationFunctionsImpl notificationsUtil;
 
     @Autowired
     protected PrismContext prismContext;
@@ -144,7 +146,7 @@ public abstract class BaseHandler implements EventHandler {
         return boolResult != null ? boolResult : false;
     }
 
-    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
@@ -182,7 +184,6 @@ public abstract class BaseHandler implements EventHandler {
     }
 
     protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
-
     	ExpressionVariables expressionVariables = new ExpressionVariables();
         Map<QName, Object> variables = new HashMap<QName, Object>();
 		event.createExpressionVariables(variables, result);

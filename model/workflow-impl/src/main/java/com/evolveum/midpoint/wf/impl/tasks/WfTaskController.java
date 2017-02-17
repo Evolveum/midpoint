@@ -39,21 +39,22 @@ import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.impl.messages.*;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import javax.xml.datatype.Duration;
+import java.util.*;
 
 import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
 
@@ -328,16 +329,36 @@ public class WfTaskController {
 
 		// auditing & notifications
         if (taskEvent instanceof TaskCreatedEvent) {
-            auditWorkItemEvent(workItem, wfTask, taskEvent, AuditEventStage.REQUEST, result);
+			AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemCreatedAuditRecord(workItem, wfTask, taskEvent, result);
+			auditService.audit(auditEventRecord, wfTask.getTask());
             try {
-                notifyWorkItemCreated(workItem, wfTask, result);
+                notifyWorkItemCreated(workItem, workItem.getOriginalAssigneeRef(), wfTask, result);
+                if (workItem.getAssigneeRef() != null) {
+					notifyWorkItemAllocationChangeNewActors(workItem, Collections.emptyList(), workItem.getAssigneeRef(),
+							null, null, null, null, wfTask.getTask(), result);
+				}
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
             }
-        } else if (taskEvent instanceof TaskCompletedEvent) {
-            auditWorkItemEvent(workItem, wfTask, taskEvent, AuditEventStage.EXECUTION, result);
+        } else if (taskEvent instanceof TaskDeletedEvent) {
+			AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemDeletedAuditRecord(workItem, wfTask, taskEvent, result);
+			auditService.audit(auditEventRecord, wfTask.getTask());
             try {
-                notifyWorkItemCompleted(workItem, wfTask, result);
+            	WorkItemOperationKindType operationKind = BooleanUtils.isTrue(ActivitiUtil.getVariable(taskEvent.getVariables(),
+						CommonProcessVariableNames.VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.class, prismContext)) ?
+						WorkItemOperationKindType.COMPLETE : null;
+            	if (workItem.getAssigneeRef().isEmpty()) {
+					notifyWorkItemDeleted(workItem, null, workItem.getCompletedByRef(), operationKind, wfTask, result);
+				} else {
+					for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
+						notifyWorkItemDeleted(workItem, assignee, workItem.getCompletedByRef(), operationKind, wfTask, result);
+					}
+				}
+                WorkItemEventCauseInformationType cause = ActivitiUtil.getVariable(taskEvent.getVariables(),
+						CommonProcessVariableNames.VARIABLE_CAUSE, WorkItemEventCauseInformationType.class, prismContext);
+				notifyWorkItemAllocationChangeCurrentActors(workItem, workItem.getAssigneeRef(),
+						null, operationKind, workItem.getCompletedByRef(), null, cause,
+						wfTask.getTask(), result);
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't audit work item complete event", e);
             }
@@ -371,22 +392,49 @@ public class WfTaskController {
         }
     }
 
-    private void notifyWorkItemCreated(WorkItemType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
+    private void notifyWorkItemCreated(WorkItemType workItem, ObjectReferenceType originalAssigneeRef, WfTask wfTask,
+			OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCreation(workItem, wfTask.getTask(), result);
+            workItemListener.onWorkItemCreation(workItem, originalAssigneeRef, wfTask.getTask(), result);
         }
     }
 
-    private void notifyWorkItemCompleted(WorkItemType workItem, WfTask wfTask, OperationResult result) throws SchemaException {
+    private void notifyWorkItemDeleted(WorkItemType workItem, ObjectReferenceType assignee,
+			ObjectReferenceType initiator, WorkItemOperationKindType operationKind, WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCompletion(workItem, wfTask.getTask(), result);
+            workItemListener.onWorkItemDeletion(workItem, assignee, initiator, operationKind, wfTask.getTask(), result);
         }
     }
 
-	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    private void auditWorkItemEvent(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemAuditRecord(workItem, wfTask, taskEvent, stage, result);
-        auditService.audit(auditEventRecord, wfTask.getTask());
+    public void notifyWorkItemAllocationChangeCurrentActors(WorkItemType workItem,
+			@NotNull List<ObjectReferenceType> originalActors,
+			Duration timeBefore, WorkItemOperationKindType operationKind, ObjectReferenceType initiator,
+			@Nullable AbstractWorkItemActionType source,
+			@Nullable WorkItemEventCauseInformationType cause,
+			Task wfTask, OperationResult result) throws SchemaException {
+        for (WorkItemListener workItemListener : workItemListeners) {
+            workItemListener.onWorkItemAllocationChangeCurrentActors(workItem, originalActors, timeBefore, operationKind,
+					initiator, source, cause, wfTask, result);
+        }
+    }
+
+    public void notifyWorkItemAllocationChangeNewActors(WorkItemType workItem, @NotNull List<ObjectReferenceType> originalActors,
+			@NotNull List<ObjectReferenceType> newActors, WorkItemOperationKindType operationKind,
+			ObjectReferenceType initiator, @Nullable AbstractWorkItemActionType source,
+			@Nullable WorkItemEventCauseInformationType cause,
+			Task wfTask, OperationResult result) throws SchemaException {
+        for (WorkItemListener workItemListener : workItemListeners) {
+            workItemListener.onWorkItemAllocationChangeNewActors(workItem, originalActors, newActors, operationKind,
+					initiator, source, cause, wfTask, result);
+        }
+    }
+
+    public void notifyWorkItemCustom(WorkItemType workItem, @Nullable ObjectReferenceType assignee, Task wfTask,
+			@NotNull WorkItemNotificationActionType notificationAction,
+			OperationResult result) throws SchemaException {
+        for (WorkItemListener workItemListener : workItemListeners) {
+            workItemListener.onWorkItemCustomEvent(workItem, assignee, notificationAction, wfTask, result);
+        }
     }
 
     public void registerProcessListener(ProcessListener processListener) {

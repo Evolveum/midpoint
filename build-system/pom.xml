@@ -161,11 +161,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.wicketstuff</groupId>
-                <artifactId>wicketstuff-serializer-fast2</artifactId>
-                <version>${wicket.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-email</artifactId>
                 <version>${commons-email.version}</version>
@@ -1156,7 +1151,7 @@
 	        <dependency>
 	            <groupId>org.webjars.bower</groupId>
 	            <artifactId>adminlte</artifactId>
-	            <version>2.3.0</version>
+	            <version>2.3.11</version>
 	        </dependency>
 	        <dependency>
 	            <groupId>org.webjars</groupId>
@@ -1171,12 +1166,12 @@
 	        <dependency>
 	            <groupId>org.webjars</groupId>
 	            <artifactId>font-awesome</artifactId>
-	            <version>4.3.0-2</version>
+	            <version>4.7.0</version>
 	        </dependency>
 	        <dependency>
-	            <groupId>org.webjars</groupId>
+	            <groupId>org.webjars.npm</groupId>
 	            <artifactId>ionicons</artifactId>
-	            <version>2.0.1</version>
+	            <version>3.0.0</version>
 	        </dependency>
         </dependencies>
     </dependencyManagement>

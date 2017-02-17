@@ -35,7 +35,7 @@ public class ExpectedWorkItem {
 	}
 
 	public boolean matches(WorkItemType actualWorkItem) {
-		if (!assigneeOid.equals(actualWorkItem.getAssigneeRef().getOid())) {
+		if (!assigneeOid.equals(actualWorkItem.getOriginalAssigneeRef().getOid())) {
 			return false;
 		}
 		if (targetOid != null && !targetOid.equals(actualWorkItem.getTargetRef().getOid())) {

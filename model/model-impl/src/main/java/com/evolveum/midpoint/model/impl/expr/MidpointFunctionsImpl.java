@@ -65,6 +65,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1119,7 +1120,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return orgStructFunctions.getManagersOidsExceptUser(user, false);
     }
 
-    @Override
+	@Override
+	public Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException {
+		return orgStructFunctions.getManagersOidsExceptUser(userRefList, false);
+	}
+
+	@Override
     public OrgType getOrgByName(String name) throws SchemaException, SecurityViolationException {
         return orgStructFunctions.getOrgByName(name, false);
     }

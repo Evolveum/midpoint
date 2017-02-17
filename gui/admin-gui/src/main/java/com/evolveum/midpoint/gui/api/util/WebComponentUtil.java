@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -42,7 +43,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
@@ -266,6 +267,27 @@ public final class WebComponentUtil {
 			return null;
 		}
 		return StringEscapeUtils.escapeHtml4(text).replace("\n", "<br/>");
+	}
+
+	public static String getTypeLocalized(ObjectReferenceType ref) {
+		ObjectTypes type = ref != null ? ObjectTypes.getObjectTypeFromTypeQName(ref.getType()) : null;
+		ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(type);
+		if (descriptor == null) {
+			return null;
+		}
+		return createStringResourceStatic(null, descriptor.getLocalizationKey()).getString();
+	}
+
+	public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes) {
+		return refs.stream()
+				.map(ref -> getName(ref) + (showTypes ? (" (" + getTypeLocalized(ref) + ")") : ""))
+				.collect(Collectors.joining(", "));
+	}
+
+	public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {
+		return refs.stream()
+				.map(ref -> getDisplayNameAndName(ref) + (showTypes ? (" (" + getTypeLocalized(ref) + ")") : ""))
+				.collect(Collectors.joining(", "));
 	}
 
 	public enum Channel {
@@ -770,20 +792,26 @@ public final class WebComponentUtil {
 		if (object == null) {
 			return null;
 		}
-		if (object.canRepresent(OrgType.class) ||
-				object.canRepresent(RoleType.class) ||
-				object.canRepresent(ServiceType.class)) {
-			PolyString displayName = getValue(object, AbstractRoleType.F_DISPLAY_NAME, PolyString.class);
-			if (displayName != null && displayName.getOrig() != null) {
-				return displayName.getOrig();
-			}
-		} else if (object.canRepresent(UserType.class)){
-			PolyString displayName = getValue(object, UserType.F_FULL_NAME, PolyString.class);
-			if (displayName != null && displayName.getOrig() != null) {
-				return displayName.getOrig();
-			}
+		String displayName = getDisplayName(object);
+		return displayName != null ? displayName : getName(object);
+	}
+
+	// <display-name> (<name>) OR simply <name> if there's no display name
+	private static String getDisplayNameAndName(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
 		}
-		return getName(object);
+		String displayName = getDisplayName(ref);
+		String name = getName(ref);
+		return displayName != null ? displayName + " (" + name + ")" : name;
+	}
+
+	public static String getDisplayName(ObjectReferenceType ref) {
+		return PolyString.getOrig(ObjectTypeUtil.getDisplayName(ref));
+	}
+
+	public static String getDisplayName(PrismObject object) {
+		return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
 	}
 
 	public static String getIdentification(ObjectType object) {

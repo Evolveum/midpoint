@@ -16,11 +16,10 @@
 
 package com.evolveum.midpoint.wf.impl.processes;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 import java.util.Map;
@@ -42,13 +41,19 @@ public interface ProcessMidPointInterface {
 
     String getStageDisplayName(Map<String, Object> variables);
 
+    Integer getEscalationLevelNumber(Map<String, Object> variables);
+
+    String getEscalationLevelName(Map<String, Object> variables);
+
+    String getEscalationLevelDisplayName(Map<String, Object> variables);
+
     List<InformationType> getAdditionalInformation(Map<String, Object> variables);
 
-    DecisionType extractDecision(Map<String, Object> variables);
+    WorkItemResultType extractWorkItemResult(Map<String, Object> variables);
 
     String getBeanName();
 
-    List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event);
+    List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result);
 
 	WfProcessSpecificWorkItemPartType extractProcessSpecificWorkItemPart(Map<String, Object> variables);
 }

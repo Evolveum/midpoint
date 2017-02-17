@@ -86,7 +86,7 @@ public class TaskWfChildPanel extends Panel {
 		add(changesPanel);
 
 		final ItemApprovalHistoryPanel history = new ItemApprovalHistoryPanel(ID_HISTORY,
-				new PropertyModel<WfContextType>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),
+				new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),
 				UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL,
 				(int) parentPage.getItemsPerPage(UserProfileStorage.TableId.PAGE_TASK_HISTORY_PANEL));
 		history.setOutputMarkupId(true);

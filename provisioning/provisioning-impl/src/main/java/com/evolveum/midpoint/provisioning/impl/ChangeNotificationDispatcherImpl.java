@@ -128,9 +128,6 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	}
 
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyChange(com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowChangeDescriptionType, com.evolveum.midpoint.common.result.OperationResult)
-	 */
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
 		Validate.notNull(change, "Change description of resource object shadow must not be null.");
@@ -147,9 +144,9 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 				try {
 					listener.notifyChange(change, task, parentResult);
 				} catch (RuntimeException e) {
-					LOGGER.error("Exception {} thrown by object change listener {}: {}", new Object[]{
-							e.getClass(), listener.getName(), e.getMessage(), e });
-                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyChange").recordWarning("Change listener has thrown unexpected exception", e);
+					LOGGER.error("Exception {} thrown by object change listener {}: {}", e.getClass(), listener.getName(),
+							e.getMessage(), e);
+					parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyChange").recordWarning("Change listener has thrown unexpected exception", e);
                     throw e;
 				}
 			}

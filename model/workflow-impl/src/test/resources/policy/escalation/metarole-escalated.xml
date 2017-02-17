@@ -1,0 +1,74 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="009516c6-98a3-469d-80b0-fbc059fad4bb">
+	<name>metarole-escalated</name>
+	<inducement>
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>1</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<level>
+							<approverRef oid="00000001-d34d-b33f-f00d-L00000000001" type="UserType"/>		<!-- lead1 -->
+							<duration>P14D</duration>
+							<timedActions>
+								<name>First, send a notification</name>
+								<time>
+									<value>P5D</value>
+								</time>
+								<actions>
+									<notify/>
+								</actions>
+							</timedActions>
+							<timedActions>
+								<name>2 days before deadline, escalate</name>
+								<time>
+									<value>-P2D</value>
+									<base>deadline</base>		<!-- the default, in this case -->
+								</time>
+								<actions>
+									<escalate>
+										<approverRef oid="00000001-d34d-b33f-f00d-L00000000002" type="UserType" />  <!-- lead2 -->
+										<delegationMethod>addAssignees</delegationMethod>
+										<escalationLevelName>escalation-to-lead2</escalationLevelName>
+										<escalationLevelDisplayName>Escalated to lead2</escalationLevelDisplayName>
+									</escalate>
+								</actions>
+							</timedActions>
+							<timedActions>
+								<name>Finally - approve</name>
+								<actions>
+									<complete>
+										<outcome>approve</outcome>
+									</complete>
+								</actions>
+								<!-- Even when running at escalation level 1, the trigger is already there (from level 0).
+								 So there's no need to create it once more. Therefore, escalationLevelFrom/To need not be set here. -->
+							</timedActions>
+						</level>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>

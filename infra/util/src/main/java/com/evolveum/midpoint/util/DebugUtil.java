@@ -42,7 +42,8 @@ import org.springframework.util.ReflectionUtils.FieldCallback;
 public class DebugUtil {
 	
 	private static boolean detailedDebugDump = false;
-	
+	private static String prettyPrintBeansAs = null;
+
 	public static boolean isDetailedDebugDump() {
 		return detailedDebugDump;
 	}
@@ -50,7 +51,17 @@ public class DebugUtil {
 	public static void setDetailedDebugDump(boolean detailedDebugDump) {
 		DebugUtil.detailedDebugDump = detailedDebugDump;
 	}
-	
+
+	public static String getPrettyPrintBeansAs() {
+		return prettyPrintBeansAs;
+	}
+
+	// Experimental. To be used e.g. in tests, for dumps to be easier to read. YAML looks like a good option here.
+	// (It would be nice to serialize it with some 'no namespaces' option.)
+	public static void setPrettyPrintBeansAs(String language) {
+		DebugUtil.prettyPrintBeansAs = language;
+	}
+
 	public static String formatElementName(QName elementName) {
 		if (elementName == null) {
 			return "null";
@@ -180,7 +191,7 @@ public class DebugUtil {
 			return sb.toString();
 		}
 	}
-	
+
 	public static void debugDumpLabel(StringBuilder sb, String label, int indent) {
 		indentDebugDump(sb, indent);
 		sb.append(label).append(":");
@@ -462,6 +473,9 @@ public class DebugUtil {
 	}
 
 	public static String fixIndentInMultiline(int indent, String indentString, String s) {
+		if (s == null) {
+			return null;
+		}
 		int cr = s.indexOf('\r');
 		int lf = s.indexOf('\n');
 		String searchFor;

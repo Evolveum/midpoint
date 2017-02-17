@@ -50,10 +50,12 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
     protected void initLayout(UserProfileStorage.TableId tableId, int pageSize) {
         List<IColumn<DecisionDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.user"), DecisionDto.F_USER));
+        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.originalActor"), DecisionDto.F_ORIGINAL_ACTOR));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.stage"), DecisionDto.F_STAGE));
 		columns.add(createOutcomeColumn());
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.comment"), DecisionDto.F_COMMENT));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.when"), DecisionDto.F_TIME));
+        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.escalation"), DecisionDto.F_ESCALATION_LEVEL_NUMBER));
 
         ISortableDataProvider provider = new ListDataProvider<>(this, getModel());
         BoxedTablePanel decisionsTable = new BoxedTablePanel<>(ID_DECISIONS_TABLE, provider, columns, tableId, pageSize);

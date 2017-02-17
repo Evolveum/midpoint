@@ -187,6 +187,7 @@ public class ScriptingExpressionEvaluator {
     }
 
     public Data evaluateExpression(ScriptingExpressionType value, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
+    	context.checkTaskStop();
         OperationResult result = parentResult.createMinorSubresult(DOT_CLASS + "evaluateExpression");
         Data output;
         if (value instanceof ExpressionPipelineType) {

@@ -24,7 +24,6 @@ import com.evolveum.midpoint.wf.impl.activiti.users.MidPointUserManagerFactory;
 import org.activiti.engine.*;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.activiti.engine.impl.history.HistoryLevel;
-import org.activiti.engine.impl.interceptor.SessionFactory;
 import org.activiti.engine.repository.Deployment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -36,7 +35,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -65,17 +64,22 @@ public class ActivitiEngine {
             return;
         }
 
-        List<SessionFactory> sessionFactories = new ArrayList<>();
-        sessionFactories.add(new MidPointUserManagerFactory());
+        String schemaUpdate;
+        if (wfConfiguration.isDropDatabase()) {
+        	schemaUpdate = ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP;
+		} else {
+        	schemaUpdate = wfConfiguration.isActivitiSchemaUpdate() ?
+					ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE :
+					ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE;
+		}
 
         ProcessEngineConfiguration pec =
                 new MidPointStandaloneProcessEngineConfiguration()         // ugly hack (to provide our own mybatis mapping for Task)
-                .setDatabaseSchemaUpdate(wfConfiguration.isActivitiSchemaUpdate() ?
-                        ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE :
-                        ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE);
+                .setDatabaseSchemaUpdate(schemaUpdate);
 
         pec = ((ProcessEngineConfigurationImpl) pec)
-                .setCustomSessionFactories(sessionFactories)            // ugly hack - in 5.13 they removed setCustomSessionFactories from ProcessEngineConfiguration abstract class
+				// ugly hack - in 5.13 they removed setCustomSessionFactories from ProcessEngineConfiguration abstract class
+                .setCustomSessionFactories(Collections.singletonList(new MidPointUserManagerFactory()))
                 .setJobExecutorActivate(false)
                 .setHistory(HistoryLevel.FULL.getKey());
 

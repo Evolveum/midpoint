@@ -236,6 +236,7 @@ public abstract class SchemaConstants {
 	public static final String NS_REPORT = NS_MIDPOINT_PUBLIC + "/report";
 	public static final String NS_REPORT_WS = NS_REPORT + "/report-3";
 	public static final String NS_CERTIFICATION = NS_MIDPOINT_PUBLIC + "/certification";
+	public static final String NS_WORKFLOW = NS_MIDPOINT_PUBLIC + "/workflow";
 
 	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-3";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
@@ -296,6 +297,11 @@ public abstract class SchemaConstants {
 
 	public static final QName MODEL_EXTENSION_CLEANUP_POLICIES = new QName(NS_MODEL_EXTENSION,
 			"cleanupPolicies");
+
+	public static final QName MODEL_EXTENSION_WORK_ITEM_ID = new QName(NS_MODEL_EXTENSION, "workItemId");
+	public static final QName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new QName(NS_MODEL_EXTENSION, "workItemActions");
+	public static final QName MODEL_EXTENSION_WORK_ITEM_ACTION = new QName(NS_MODEL_EXTENSION, "workItemAction");
+	public static final QName MODEL_EXTENSION_TIME_BEFORE_ACTION = new QName(NS_MODEL_EXTENSION, "timeBeforeAction");
 
 	public static final String NOOP_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/noop/handler-3";
 	public static final QName NOOP_DELAY_QNAME = new QName(NOOP_SCHEMA_URI, "delay");

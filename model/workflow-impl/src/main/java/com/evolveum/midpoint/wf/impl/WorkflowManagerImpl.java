@@ -151,10 +151,11 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public void approveOrRejectWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult)
+    public void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
+			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException {
-        workItemManager.completeWorkItem(taskId, ApprovalUtils.approvalStringValue(decision), comment, additionalDelta, parentResult);
+        workItemManager.completeWorkItem(taskId, ApprovalUtils.approvalStringValue(decision), comment, additionalDelta,
+				causeInformation, parentResult);
     }
 
     @Override
@@ -169,8 +170,8 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     @Override
     public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
-        workItemManager.delegateWorkItem(workItemId, delegates, method, parentResult);
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+        workItemManager.delegateWorkItem(workItemId, delegates, method, false, null, null, null, null, parentResult);
     }
 
     /*

@@ -72,7 +72,7 @@ public class AccountPasswordNotifier extends GeneralNotifier {
             LOGGER.trace("Object delta is null, exiting. Event = " + event);
             return false;
         }
-        return notificationsUtil.getPlaintextPasswordFromDelta(delta) != null;
+        return functions.getPlaintextPasswordFromDelta(delta) != null;
     }
 
     @Override

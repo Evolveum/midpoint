@@ -21,9 +21,7 @@ import com.evolveum.midpoint.notifications.api.NotificationFunctions;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.BaseEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.WorkflowEventCreator;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.events.workflow.DefaultWorkflowEventCreator;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,9 +53,6 @@ public class NotificationManagerImpl implements NotificationManager {
 	@Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private DefaultWorkflowEventCreator defaultWorkflowEventCreator;
 
 	@Autowired
 	private NotificationFunctions notificationFunctions;
@@ -102,12 +97,6 @@ public class NotificationManagerImpl implements NotificationManager {
         }
     }
 
-    @Override
-    public WorkflowEventCreator getWorkflowEventCreator(Task wfTask) {
-		// TODO
-        return defaultWorkflowEventCreator;
-    }
-
     public void processEvent(@Nullable Event event) {
 		Task task = taskManager.createTaskInstance(OPERATION_PROCESS_EVENT);
         processEvent(event, task, task.getResult());
@@ -128,7 +117,8 @@ public class NotificationManagerImpl implements NotificationManager {
             processEvent(event, event.getAdHocHandler(), task, result);
         }
 
-        SystemConfigurationType systemConfigurationType = NotificationFuctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
+        SystemConfigurationType systemConfigurationType = NotificationFunctionsImpl
+				.getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }

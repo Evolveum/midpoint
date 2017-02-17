@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.model.api.expr;
 
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -34,6 +34,10 @@ public interface OrgStructFunctions {
     Collection<String> getManagersOids(UserType user, boolean preAuthorized) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
     Collection<String> getManagersOidsExceptUser(UserType user, boolean preAuthorized) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+
+    Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList, boolean preAuthorized)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException;
 
     Collection<UserType> getManagers(UserType user, boolean preAuthorized) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 

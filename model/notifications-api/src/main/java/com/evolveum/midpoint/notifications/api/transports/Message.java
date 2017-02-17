@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.api.transports;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -28,15 +29,28 @@ import java.util.List;
  */
 public class Message implements DebugDumpable {
 
+	private String from;
     @NotNull private List<String> to = new ArrayList<>();
 	@NotNull private List<String> cc = new ArrayList<>();
 	@NotNull private List<String> bcc = new ArrayList<>();
     private String subject;
     private String body;         // todo
     private String contentType;
-    private String from;
 
-    public String getBody() {
+	public Message() {
+	}
+
+	public Message(NotificationMessageType message) {
+		from = message.getFrom();
+		to.addAll(message.getTo());
+		cc.addAll(message.getCc());
+		bcc.addAll(message.getBcc());
+		subject = message.getSubject();
+		body = message.getBody();
+		contentType = message.getContentType();
+	}
+
+	public String getBody() {
         return body;
     }
 
@@ -137,7 +151,7 @@ public class Message implements DebugDumpable {
 		DebugUtil.debugDumpWithLabel(rv, "Subject", subject, indent+1);
 		rv.append("\n");
 
-		DebugUtil.debugDumpWithLabel(rv, "Body", body, indent+1);
+		DebugUtil.debugDumpWithLabel(rv, "Body", DebugUtil.fixIndentInMultiline(indent+1, DebugDumpable.INDENT_STRING, body), indent+1);
 		return rv.toString();
 	}
 }

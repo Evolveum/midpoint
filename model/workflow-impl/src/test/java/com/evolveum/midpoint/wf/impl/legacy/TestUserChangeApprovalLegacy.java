@@ -187,6 +187,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 F_OBJECT_REF,
                 F_TARGET_REF,
                 F_ASSIGNEE_REF,
+                F_ORIGINAL_ASSIGNEE_REF,
                 new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
 
         List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, opTask, result);
@@ -197,7 +198,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             display("Task ref", workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
             WfTestUtil.assertRef("object reference", workItem.getObjectRef(), USER_JACK_OID, true, true);
             WfTestUtil.assertRef("target reference", workItem.getTargetRef(), ROLE_R1_OID, true, true);
-            WfTestUtil.assertRef("assignee reference", workItem.getAssigneeRef(), R1BOSS_OID, false, true);     // name is not known, as it is not stored in activiti (only OID is)
+            WfTestUtil.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), R1BOSS_OID, false, true);     // name is not known, as it is not stored in activiti (only OID is)
             WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
             final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
             checkTask(subtaskType, "task in workItem", processNames[i++]);

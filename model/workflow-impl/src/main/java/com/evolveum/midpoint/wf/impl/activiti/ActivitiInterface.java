@@ -28,16 +28,9 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.impl.messages.*;
+import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.messages.ProcessFinishedEvent;
-import com.evolveum.midpoint.wf.impl.messages.ProcessStartedEvent;
-import com.evolveum.midpoint.wf.impl.messages.QueryProcessCommand;
-import com.evolveum.midpoint.wf.impl.messages.QueryProcessResponse;
-import com.evolveum.midpoint.wf.impl.messages.StartProcessCommand;
-import com.evolveum.midpoint.wf.impl.messages.TaskCompletedEvent;
-import com.evolveum.midpoint.wf.impl.messages.TaskCreatedEvent;
-import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 
@@ -171,10 +164,7 @@ public class ActivitiInterface {
     private void notifyMidpointAboutProcessEvent(ProcessEvent event) {
 		OperationResult result = new OperationResult(DOT_CLASS + "notifyMidpointAboutProcessEvent");
 
-		String taskOid = event.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class);
-		if (taskOid == null) {
-			throw new IllegalStateException("No task OID in process variables for " + event.getProcessDebugInfo());
-		}
+		String taskOid = ActivitiUtil.getTaskOid(event.getVariables());
 		Task task;
 		try {
 			task = taskManager.getTask(taskOid, result);
@@ -197,9 +187,11 @@ public class ActivitiInterface {
 
         TaskEvent taskEvent;
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
-            taskEvent = new TaskCreatedEvent();
+            taskEvent = new TaskCreatedEvent();     // TODO distinguish created vs. assigned event
         } else if (TaskListener.EVENTNAME_COMPLETE.equals(delegateTask.getEventName())) {
             taskEvent = new TaskCompletedEvent();
+        } else if (TaskListener.EVENTNAME_DELETE.equals(delegateTask.getEventName())) {
+            taskEvent = new TaskDeletedEvent();
         } else {
             return;         // ignoring other events
         }
@@ -211,6 +203,7 @@ public class ActivitiInterface {
         taskEvent.setProcessInstanceName((String) delegateTask.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
         taskEvent.setProcessInstanceId(delegateTask.getProcessInstanceId());
         taskEvent.setCreateTime(delegateTask.getCreateTime());
+        taskEvent.setDueDate(delegateTask.getDueDate());
         taskEvent.setExecutionId(delegateTask.getExecutionId());
         taskEvent.setOwner(delegateTask.getOwner());
         for (IdentityLink identityLink : delegateTask.getCandidates()) {

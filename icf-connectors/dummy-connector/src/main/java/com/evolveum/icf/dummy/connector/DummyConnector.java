@@ -157,13 +157,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         if (uselessGuardedString == null) {
         	resource.setUselessGuardedString(null);
         } else {
-        	uselessGuardedString.access(new GuardedString.Accessor() {
-    			@Override
-    			public void access(char[] chars) {
-    				resource.setUselessGuardedString(new String(chars));
-    			}
-        	});
+        	uselessGuardedString.access(chars -> resource.setUselessGuardedString(new String(chars)));
         }
+        resource.setMonsterization(this.configuration.isMonsterized());
         
         resource.connect();
         

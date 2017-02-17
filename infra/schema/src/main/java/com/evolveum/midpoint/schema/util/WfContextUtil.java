@@ -17,7 +17,14 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * TODO clean up these formatting methods
@@ -43,7 +50,7 @@ public class WfContextUtil {
 	}
 
 	// wfc is used to retrieve approval schema (if needed)
-	private static String getStageInfo(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
+	public static String getStageInfo(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
 		String name = stageDisplayName != null ? stageDisplayName : stageName;
 		if (name == null && stageNumber == null) {
 			return null;
@@ -54,6 +61,26 @@ public class WfContextUtil {
 		}
 		appendNumber(stageNumber, stageCount, sb);
 		return sb.toString();
+	}
+
+	@Nullable
+	public static String getEscalationLevelInfo(WorkItemType workItem) {
+		if (workItem == null) {
+			return null;
+		}
+		return getEscalationLevelInfo(workItem.getEscalationLevelNumber(), workItem.getEscalationLevelName(), workItem.getEscalationLevelDisplayName());
+	}
+
+	private static String getEscalationLevelInfo(Integer levelNumber, String levelName, String levelDisplayName) {
+		if (levelNumber == null || levelNumber == 0) {
+			return null;
+		}
+		String name = levelDisplayName != null ? levelDisplayName : levelName;
+		if (name != null) {
+			return name + " (" + levelNumber + ")";
+		} else {
+			return String.valueOf(levelNumber);
+		}
 	}
 
 	public static boolean hasFinished(WfContextType wfc) {
@@ -122,29 +149,122 @@ public class WfContextUtil {
 				(ItemApprovalWorkItemPartType) workItem.getProcessSpecificPart() : null;
 	}
 
-	public static SchemaAttachedPolicyRuleType getAttachedPolicyRule(WfContextType workflowContext, int order) {
+	@NotNull
+	public static List<SchemaAttachedPolicyRuleType> getAttachedPolicyRules(WfContextType workflowContext, int order) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(workflowContext);
 		if (info == null || info.getPolicyRules() == null) {
-			return null;
+			return Collections.emptyList();
 		}
 		return info.getPolicyRules().getEntry().stream()
 				.filter(e -> e.getLevelMax() != null && e.getLevelMax() != null
 						&& order >= e.getLevelMin() && order <= e.getLevelMax())
-				.findFirst().orElse(null);
+				.collect(Collectors.toList());
 	}
 
 	public static ApprovalLevelType getCurrentApprovalLevel(WfContextType wfc) {
 		if (wfc == null || wfc.getStageNumber() == null) {
 			return null;
 		}
+		return getApprovalLevel(wfc, wfc.getStageNumber());
+	}
+
+	public static ApprovalLevelType getApprovalLevel(WfContextType wfc, int stageNumber) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
 		if (info == null || info.getApprovalSchema() == null) {
 			return null;
 		}
-		int level = wfc.getStageNumber()-1;
-		if (level < 0 || level >= info.getApprovalSchema().getLevel().size()) {
-			return null;		// TODO log something here? or leave it to the caller?
+		List<ApprovalLevelType> levels = info.getApprovalSchema().getLevel().stream()
+				.filter(level -> level.getOrder() != null && level.getOrder() == stageNumber)
+				.collect(Collectors.toList());
+		if (levels.size() > 1) {
+			throw new IllegalStateException("More than one level with order of " + stageNumber + ": " + levels);
+		} else if (levels.isEmpty()) {
+			return null;
+		} else {
+			return levels.get(0);
 		}
-		return info.getApprovalSchema().getLevel().get(level);
+	}
+
+
+	// we must be strict here; in case of suspicion, throw an exception
+	public static <T extends WfProcessEventType> List<T> getEventsForCurrentStage(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
+		if (wfc.getStageNumber() == null) {
+			throw new IllegalArgumentException("No stage number in workflow context; pid = " + wfc.getProcessInstanceId());
+		}
+		int stageNumber = wfc.getStageNumber();
+		return wfc.getEvent().stream()
+				.filter(e -> clazz.isAssignableFrom(e.getClass()) && e.getStageNumber() != null && stageNumber == e.getStageNumber())
+				.map(e -> (T) e)
+				.collect(Collectors.toList());
+	}
+
+	public static <T extends WfProcessEventType> List<T> getEvents(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
+		return wfc.getEvent().stream()
+				.filter(e -> clazz.isAssignableFrom(e.getClass()))
+				.map(e -> (T) e)
+				.collect(Collectors.toList());
+	}
+
+	public static <T extends WorkItemEventType> List<T> getWorkItemEvents(@NotNull WfContextType wfc, @NotNull String workItemId, Class<T> clazz) {
+		return wfc.getEvent().stream()
+				.filter(e -> clazz.isAssignableFrom(e.getClass()) && workItemId.equals(((WorkItemEventType) e).getWorkItemId()))
+				.map(e -> (T) e)
+				.collect(Collectors.toList());
+	}
+
+	public static String getBriefDiagInfo(WfContextType wfc) {
+		if (wfc == null) {
+			return "null";
+		}
+		return "pid: " + wfc.getProcessInstanceId() + ", name: " + wfc.getProcessInstanceName() + ", stage: " + wfc.getStageNumber();
+	}
+
+	@NotNull
+	public static ApprovalLevelOutcomeType getCurrentStageOutcome(WfContextType wfc, List<WfStageCompletionEventType> stageEvents) {
+		if (stageEvents.size() > 1) {
+			throw new IllegalStateException("More than one stage-level event in " + getBriefDiagInfo(wfc) + ": " + stageEvents);
+		}
+		WfStageCompletionEventType event = stageEvents.get(0);
+		if (event.getOutcome() == null) {
+			throw new IllegalStateException("No outcome for stage-level event in " + getBriefDiagInfo(wfc));
+		}
+		return event.getOutcome();
+	}
+
+	public static String getLevelDiagName(ApprovalLevelType level) {
+		return level.getOrder() + ":" + level.getName()
+				+ (level.getDisplayName() != null ? " (" + level.getDisplayName() + ")" : "");
+	}
+
+	public static void orderAndRenumberLevels(ApprovalSchemaType schema) {
+		// Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
+		List<ApprovalLevelType> levels = new ArrayList<>(schema.getLevel());
+		levels.sort(Comparator.comparing(level -> level.getOrder(), Comparator.nullsLast(Comparator.naturalOrder())));
+		for (int i = 0; i < levels.size(); i++) {
+			levels.get(i).setOrder(i+1);
+		}
+		schema.getLevel().clear();
+		schema.getLevel().addAll(levels);
+	}
+
+	public static void checkLevelsOrdering(ApprovalSchemaType schema) {
+		for (int i = 0; i < schema.getLevel().size(); i++) {
+			ApprovalLevelType level = schema.getLevel().get(i);
+			if (level.getOrder() == null) {
+				throw new IllegalStateException("Level without order: " + level);
+			}
+			if (i > 0 && schema.getLevel().get(i-1).getOrder() >= level.getOrder()) {
+				throw new IllegalStateException("Level #" + i + " is not before level #" + (i+1) + " in " + schema);
+			}
+		}
+	}
+
+	public static void checkLevelsOrderingStrict(ApprovalSchemaType schema) {
+		for (int i = 0; i < schema.getLevel().size(); i++) {
+			Integer order = schema.getLevel().get(i).getOrder();
+			if (order == null || order != i+1) {
+				throw new IllegalStateException("Level #" + (i+1) + " has an incorrect order: " + order + " in " + schema);
+			}
+		}
 	}
 }

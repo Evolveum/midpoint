@@ -16,10 +16,12 @@
 
 package com.evolveum.midpoint.wf.impl.processes;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ import java.util.Map;
 @Component
 public class DefaultProcessMidPointInterface extends BaseProcessMidPointInterface {
 
-    @Override public DecisionType extractDecision(Map<String, Object> variables) {
+    @Override public WorkItemResultType extractWorkItemResult(Map<String, Object> variables) {
         return null;
     }
 
@@ -44,7 +46,7 @@ public class DefaultProcessMidPointInterface extends BaseProcessMidPointInterfac
     }
 
     @Override
-    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event) {
-        return new ArrayList<ObjectReferenceType>();
+    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
+        return new ArrayList<>();
     }
 }

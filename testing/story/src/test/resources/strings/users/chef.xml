@@ -54,6 +54,7 @@
 	<fullName>Scumm Bar Chef</fullName>
 	<givenName>Chef</givenName>
 	<familyName>Scumm</familyName>
+	<emailAddress>chef@evolveum.com</emailAddress>
 	<credentials>
 		<password>
 			<value>a123456</value>

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
@@ -192,9 +193,9 @@ public class PrismMarshaller {
         } else if (itemValue instanceof PrismReferenceValue) {
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
         } else if (itemValue instanceof PrismPropertyValue<?>) {
-            xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition)definition, typeName);
+            xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition) definition, typeName);
         } else if (itemValue instanceof PrismContainerValue<?>) {
-            xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition)definition, ctx);
+            xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition) definition, ctx);
         } else {
             throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
         }
@@ -392,12 +393,15 @@ public class PrismMarshaller {
             return serializePolyString((PolyString) realValue);
         } else if (beanMarshaller.canProcess(typeName)) {
             XNode xnode = beanMarshaller.marshall(realValue);
-//			// why is this?
-//            if (realValue instanceof ProtectedDataType<?> && (definition == null || definition.isDynamic())) {
-//                xnode.setExplicitTypeDeclaration(true);
-//                xnode.setTypeQName(typeName);
-//            }
-            return xnode;
+            if (realValue.getClass().getPackage() != null) {
+				TypeDefinition typeDef = getSchemaRegistry()
+						.findTypeDefinitionByCompileTimeClass(realValue.getClass(), TypeDefinition.class);
+				if (xnode != null && typeDef != null && !QNameUtil.match(typeDef.getTypeName(), typeName)) {
+					xnode.setTypeQName(typeDef.getTypeName());
+					xnode.setExplicitTypeDeclaration(true);
+				}
+			}
+			return xnode;
         } else {
             // primitive value
             return createPrimitiveXNode(realValue, typeName);

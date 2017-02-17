@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -60,9 +61,9 @@ import java.util.*;
  * @author mederly
  */
 @Component
-public class NotificationFuctionsImpl implements NotificationFunctions {
+public class NotificationFunctionsImpl implements NotificationFunctions {
 
-    private static final Trace LOGGER = TraceManager.getTrace(NotificationFuctionsImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(NotificationFunctionsImpl.class);
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -166,23 +167,43 @@ public class NotificationFuctionsImpl implements NotificationFunctions {
             return null;
         }
 
-        ObjectType objectType;
-        try {
-            objectType = cacheRepositoryService.getObject(ObjectType.class, simpleObjectRef.getOid(), null, result).asObjectable();
-        } catch (ObjectNotFoundException e) {   // todo correct error handling
+		ObjectType objectType = getObjectFromRepo(simpleObjectRef.getOid(), allowNotFound, result);
+        simpleObjectRef.setObjectType(objectType);
+        return objectType;
+    }
+
+    public ObjectType getObjectType(ObjectReferenceType ref, boolean allowNotFound, OperationResult result) {
+        if (ref == null) {
+            return null;
+        }
+        if (ref.asReferenceValue().getObject() != null) {
+            return (ObjectType) ref.asReferenceValue().getObject().asObjectable();
+        }
+        if (ref.getOid() == null) {
+            return null;
+        }
+
+		return getObjectFromRepo(ref.getOid(), allowNotFound, result);
+    }
+
+	@Nullable
+	private ObjectType getObjectFromRepo(String oid, boolean allowNotFound, OperationResult result) {
+		ObjectType objectType;
+		try {
+			objectType = cacheRepositoryService.getObject(ObjectType.class, oid, null, result).asObjectable();
+		} catch (ObjectNotFoundException e) {   // todo correct error handling
 			if (allowNotFound) {
 				return null;
 			} else {
 				throw new SystemException(e);
 			}
-        } catch (SchemaException e) {
-            throw new SystemException(e);
-        }
-        simpleObjectRef.setObjectType(objectType);
-        return objectType;
-    }
+		} catch (SchemaException e) {
+			throw new SystemException(e);
+		}
+		return objectType;
+	}
 
-    public static boolean isAmongHiddenPaths(ItemPath path, List<ItemPath> hiddenPaths) {
+	public static boolean isAmongHiddenPaths(ItemPath path, List<ItemPath> hiddenPaths) {
         if (hiddenPaths == null) {
             return false;
         }

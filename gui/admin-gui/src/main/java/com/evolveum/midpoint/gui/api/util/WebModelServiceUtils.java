@@ -82,7 +82,12 @@ public class WebModelServiceUtils {
     private static final String OPERATION_LOAD_OBJECT_REFS = DOT_CLASS + "loadObjectReferences";
     private static final String OPERATION_COUNT_OBJECT = DOT_CLASS + "countObjects";
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
+	public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
+		Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
+		return resolveReferenceName(ref, page, task, task.getResult());
+	}
+
+	public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
 		if (ref == null) {
 			return null;
 		}
@@ -562,4 +567,5 @@ public class WebModelServiceUtils {
 						new RelationalValueSearchQuery(
 								ObjectPaging.createPaging(LookupTableRowType.F_LABEL, OrderDirection.ASCENDING))));
 	}
+
 }

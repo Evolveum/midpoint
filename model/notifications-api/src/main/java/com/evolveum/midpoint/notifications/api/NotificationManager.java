@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.notifications.api;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.WorkflowEventCreator;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,8 +30,6 @@ public interface NotificationManager {
 
     void registerTransport(String name, Transport transport);
     Transport getTransport(String name);
-
-    WorkflowEventCreator getWorkflowEventCreator(Task wfTask);
 
     // event may be null
     void processEvent(Event event);

@@ -85,7 +85,6 @@ import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
-import org.wicketstuff.pageserializer.fast2.Fast2WicketSerializer;
 
 /**
  * @author lazyman
@@ -225,11 +224,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     public void init() {
         super.init();
 
-        getFrameworkSettings().setSerializer(new Fast2WicketSerializer());
-
         getJavaScriptLibrarySettings().setJQueryReference(
                 new PackageResourceReference(MidPointApplication.class,
-                        "../../../../../webjars/adminlte/2.3.0/plugins/jQuery/jQuery-2.1.4.min.js"));
+                        "../../../../../webjars/adminlte/2.3.11/plugins/jQuery/jquery-2.2.3.min.js"));
 
         GuiComponents.init();
 

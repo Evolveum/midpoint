@@ -28,9 +28,7 @@
 			<policyActions>
 				<approval>
 					<compositionStrategy>
-						<order>40</order>
-						<mergeable>true</mergeable>
-						<mergeOrder>2</mergeOrder>
+						<mergeIntoOrder>40</mergeIntoOrder>
 					</compositionStrategy>
 					<approvalSchema>
 						<level>

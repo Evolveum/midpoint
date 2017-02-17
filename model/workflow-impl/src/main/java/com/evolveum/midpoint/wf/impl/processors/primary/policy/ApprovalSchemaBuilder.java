@@ -23,10 +23,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchema;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchemaImpl;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ReferenceResolver;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.RelationResolver;
+import com.evolveum.midpoint.wf.impl.processes.itemApproval.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -77,22 +74,47 @@ class ApprovalSchemaBuilder {
 					&& other.compositionStrategy != null && BooleanUtils.isTrue(other.compositionStrategy.isMergeable())
 					&& compositionStrategy.getOrder() != null && compositionStrategy.getOrder().equals(other.compositionStrategy.getOrder());
 		}
+
+		public boolean isExclusive() {
+			return compositionStrategy != null && BooleanUtils.isTrue(compositionStrategy.isExclusive());
+		}
+
+		public Integer getOrder() {
+			return compositionStrategy != null ? compositionStrategy.getOrder() : null;
+		}
 	}
 
 	private final List<Fragment> predefinedFragments = new ArrayList<>();
 	private final List<Fragment> standardFragments = new ArrayList<>();
+	private final List<Fragment> addOnFragments = new ArrayList<>();			// fragments to be merged into other ones
+
+	private final Set<Integer> exclusiveOrders = new HashSet<>();
+	private final Set<Integer> nonExclusiveOrders = new HashSet<>();
 
 	@NotNull private final BasePrimaryChangeAspect primaryChangeAspect;
+	@NotNull private final ApprovalSchemaHelper approvalSchemaHelper;
 
-	ApprovalSchemaBuilder(@NotNull BasePrimaryChangeAspect primaryChangeAspect) {
+	ApprovalSchemaBuilder(@NotNull BasePrimaryChangeAspect primaryChangeAspect, ApprovalSchemaHelper approvalSchemaHelper) {
 		this.primaryChangeAspect = primaryChangeAspect;
+		this.approvalSchemaHelper = approvalSchemaHelper;
 	}
 
 	// TODO target
 	void add(ApprovalSchemaType schema, ApprovalCompositionStrategyType compositionStrategy, PrismObject<?> defaultTarget,
-			EvaluatedPolicyRule policyRule) {
+			EvaluatedPolicyRule policyRule) throws SchemaException {
 		Fragment fragment = new Fragment(compositionStrategy, defaultTarget, schema, policyRule);
-		standardFragments.add(fragment);
+		if (isAddOnFragment(compositionStrategy)) {
+			if (compositionStrategy.getOrder() != null) {
+				throw new SchemaException("Both order and mergeIntoOrder/mergeIntoAll are set for " + schema);
+			}
+			addOnFragments.add(fragment);
+		} else {
+			standardFragments.add(fragment);
+		}
+	}
+
+	private boolean isAddOnFragment(ApprovalCompositionStrategyType cs) {
+		return cs != null && (!cs.getMergeIntoOrder().isEmpty() || BooleanUtils.isTrue(cs.isMergeIntoAll()));
 	}
 
 	// checks the existence of approvers beforehand, because we don't want to have an empty level
@@ -127,17 +149,33 @@ class ApprovalSchemaBuilder {
 		allFragments.addAll(standardFragments);
 
 		ApprovalSchemaType schemaType = new ApprovalSchemaType(ctx.prismContext);
-		ApprovalSchemaImpl schema = new ApprovalSchemaImpl(ctx.prismContext);
 		SchemaAttachedPolicyRulesType attachedRules = new SchemaAttachedPolicyRulesType();
 
 		int i = 0;
 		while(i < allFragments.size()) {
 			List<Fragment> fragmentMergeGroup = getMergeGroup(allFragments, i);
-			processFragmentGroup(fragmentMergeGroup, schemaType, schema, attachedRules, ctx, result);
 			i += fragmentMergeGroup.size();
+			checkExclusivity(fragmentMergeGroup);
+			processFragmentGroup(fragmentMergeGroup, schemaType, attachedRules, ctx, result);
 		}
 
-		return new Result(schemaType, schema, attachedRules);
+		return new Result(schemaType, new ApprovalSchema(schemaType), attachedRules);
+	}
+
+	private void checkExclusivity(List<Fragment> fragmentMergeGroup) {
+		boolean isExclusive = fragmentMergeGroup.stream().anyMatch(f -> f.isExclusive());
+		Integer order = fragmentMergeGroup.get(0).getOrder();
+		if (isExclusive) {
+			if (exclusiveOrders.contains(order) || nonExclusiveOrders.contains(order)) {
+				throw new IllegalStateException("Exclusivity violation for schema fragments with the order of " + order);
+			}
+			exclusiveOrders.add(order);
+		} else {
+			if (exclusiveOrders.contains(order)) {
+				throw new IllegalStateException("Exclusivity violation for schema fragments with the order of " + order);
+			}
+			nonExclusiveOrders.add(order);
+		}
 	}
 
 	private List<Fragment> getMergeGroup(List<Fragment> fragments, int i) {
@@ -145,13 +183,14 @@ class ApprovalSchemaBuilder {
 		while (j < fragments.size() && fragments.get(i).isMergeableWith(fragments.get(j))) {
 			j++;
 		}
-		return fragments.subList(i, j);
+		return new ArrayList<>(fragments.subList(i, j));		// result should be modifiable independently on the master list
 	}
 
-	private void processFragmentGroup(List<Fragment> fragments, ApprovalSchemaType resultingSchemaType, ApprovalSchemaImpl resultingSchema,
+	private void processFragmentGroup(List<Fragment> fragments, ApprovalSchemaType resultingSchemaType,
 			SchemaAttachedPolicyRulesType attachedRules, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException {
 		Fragment firstFragment = fragments.get(0);
+		appendAddOnFragments(fragments);
 		List<ApprovalLevelType> fragmentLevels = cloneAndMergeLevels(fragments);
 		if (fragmentLevels.isEmpty()) {
 			return;		// probably shouldn't occur
@@ -163,8 +202,8 @@ class ApprovalSchemaBuilder {
 		int i = from;
 		for (ApprovalLevelType level : fragmentLevels) {
 			level.setOrder(i++);
+			approvalSchemaHelper.prepareLevel(level, relationResolver, referenceResolver);
 			resultingSchemaType.getLevel().add(level);
-			resultingSchema.addLevel(level, relationResolver, referenceResolver);
 		}
 		if (firstFragment.policyRule != null) {
 			SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
@@ -175,12 +214,28 @@ class ApprovalSchemaBuilder {
 		}
 	}
 
+	private void appendAddOnFragments(List<Fragment> fragments) {
+		Integer order = fragments.get(0).getOrder();
+		if (order == null) {
+			return;
+		}
+		for (Fragment addOnFragment : addOnFragments) {
+			ApprovalCompositionStrategyType cs = addOnFragment.compositionStrategy;
+			if (BooleanUtils.isTrue(cs.isMergeIntoAll()) || cs.getMergeIntoOrder().contains(order)) {
+				fragments.add(addOnFragment);
+			}
+		}
+	}
+
 	private List<ApprovalLevelType> cloneAndMergeLevels(List<Fragment> fragments) throws SchemaException {
 		if (fragments.size() == 1) {
-			return (List<ApprovalLevelType>) CloneUtil.cloneCollectionMembers(fragments.get(0).schema.getLevel());
+			return CloneUtil.cloneCollectionMembers(fragments.get(0).schema.getLevel());
 		}
 		PrismContext prismContext = primaryChangeAspect.getChangeProcessor().getPrismContext();
 		ApprovalLevelType resultingLevel = new ApprovalLevelType(prismContext);
+		fragments.sort((f1, f2) ->
+			Comparator.nullsLast(Comparator.<Integer>naturalOrder())
+				.compare(f1.compositionStrategy.getMergePriority(), f2.compositionStrategy.getMergePriority()));
 		for (Fragment fragment : fragments) {
 			mergeLevelFromFragment(resultingLevel, fragment);
 		}
@@ -217,15 +272,13 @@ class ApprovalSchemaBuilder {
 			// non-mergeable first
 			boolean m1 = BooleanUtils.isTrue(s1.isMergeable());
 			boolean m2 = BooleanUtils.isTrue(s2.isMergeable());
-			if (!m1 && !m2) {
-				return 0;
-			} else if (m1 && !m2) {
+			if (m1 && !m2) {
 				return 1;
-			} else if (!m1) {
+			} else if (!m1 && m2) {
 				return -1;
+			} else {
+				return 0;
 			}
-			return Comparator.nullsLast(Comparator.<Integer>naturalOrder())
-					.compare(s1.getMergeOrder(), s2.getMergeOrder());
 		});
 	}
 

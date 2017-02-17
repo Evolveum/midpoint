@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -90,5 +91,16 @@ public class ExecutionContext {
 
     public String getChannel() {
         return task != null ? task.getChannel() : null;
+    }
+
+    public boolean canRun() {
+        return task == null || task.canRun();
+    }
+
+    public void checkTaskStop() {
+        if (!canRun()) {
+            // TODO do this is a nicer way
+            throw new SystemException("Stopping execution of a script because the task is stopping: " + task);
+        }
     }
 }

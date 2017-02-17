@@ -93,8 +93,10 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
     // creates an approval request for a given role create request
     private ApprovalRequest<T> createApprovalRequest(PcpAspectConfigurationType config, T objectType,
 			ModelContext<?> modelContext, Task taskFromModel, OperationResult result) {
-        return new ApprovalRequestImpl<>(objectType, config, prismContext, createRelationResolver(objectType, result),
+        ApprovalRequest<T> request = new ApprovalRequestImpl<>(objectType, config, prismContext);
+        approvalSchemaHelper.prepareSchema(request.getApprovalSchemaType(), createRelationResolver(objectType, result),
                 createReferenceResolver(modelContext, taskFromModel, result));
+        return request;
     }
 
     private List<PcpChildWfTaskCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result,
@@ -102,8 +104,6 @@ public abstract class AddObjectAspect<T extends ObjectType> extends BasePrimaryC
         List<PcpChildWfTaskCreationInstruction> instructions = new ArrayList<>();
 
         for (ApprovalRequest<T> approvalRequest : approvalRequestList) {     // there should be just one
-
-            assert approvalRequest.getPrismContext() != null;
 
             LOGGER.trace("Approval request = {}", approvalRequest);
 

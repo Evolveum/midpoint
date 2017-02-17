@@ -27,8 +27,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.activiti.engine.TaskService;
@@ -87,9 +87,9 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 
 		{
 			List<PrismReferenceValue> refs = new ArrayList<>();
-			refs.add(ObjectTypeUtil.createObjectRef("oid-number-1", ObjectTypes.USER).asReferenceValue());
-			refs.add(ObjectTypeUtil.createObjectRef(userLead1Oid, ObjectTypes.USER).asReferenceValue());
-			refs.add(ObjectTypeUtil.createObjectRef("oid-number-3", ObjectTypes.USER).asReferenceValue());
+			refs.add(prv("oid-number-1"));
+			refs.add(prv(userLead1Oid));
+			refs.add(prv("oid-number-3"));
 			ObjectQuery query3 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
 					.item(WorkItemType.F_ASSIGNEE_REF).ref(refs)
 					.build();
@@ -112,16 +112,16 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		assertNotNull("No task", task);
 
 		final String TASK_NAME = "Approve assigning Role1a to jack";
-		final String VAR = WorkItemProvider.DELEGATE_VARIABLE_NAME;
-		taskService.setVariableLocal(task.getId(), VAR, "[abc][def]["+userLead1Oid+"]");
+		final String VAR = CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES;
+		taskService.setVariableLocal(task.getId(), VAR, "[:abc];[:def];[UserType:"+userLead1Oid+"]");
 		TaskQuery tq1 = taskService.createTaskQuery().includeTaskLocalVariables()
-				.taskVariableValueLike(VAR, "%[def]%")
+				.taskVariableValueLike(VAR, "%:def]%")
 				.taskName(TASK_NAME);
 		org.activiti.engine.task.Task task1 = tq1.singleResult();
 		System.out.println("Task1 = " + task1);
 		assertNotNull("No task1", task1);
 
-		TaskQuery tq2 = taskService.createTaskQuery().includeTaskLocalVariables().taskVariableValueLike(VAR, "%[xyz]%");
+		TaskQuery tq2 = taskService.createTaskQuery().includeTaskLocalVariables().taskVariableValueLike(VAR, "%:xyz]%");
 		org.activiti.engine.task.Task task2 = tq2.singleResult();
 		System.out.println("Task2 = " + task2);
 		assertNull("Found task2 even if it shouldn't", task2);
@@ -129,9 +129,9 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		TaskQuery tq3 = taskService.createTaskQuery().includeTaskLocalVariables()
 				.taskName(TASK_NAME)
 				.or()
-					.taskVariableValueLike(VAR, "%[ghi]%")
-					.taskVariableValueLike(VAR, "%[xxx]%")
-					.taskVariableValueLike(VAR, "%["+userLead1Oid+"]%")
+					.taskVariableValueLike(VAR, "%:ghi]%")
+					.taskVariableValueLike(VAR, "%:xxx]%")
+					.taskVariableValueLike(VAR, "%:"+userLead1Oid+"]%")
 				.endOr();
 		org.activiti.engine.task.Task task3 = tq3.singleResult();
 		System.out.println("Task3 = " + task3);
@@ -140,8 +140,8 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		TaskQuery tq4 = taskService.createTaskQuery().includeTaskLocalVariables()
 				.taskName(TASK_NAME)
 				.or()
-					.taskVariableValueLike(VAR, "%["+userLead1Oid+"]%")
-					.taskVariableValueLike(VAR, "%[xxx]%")
+					.taskVariableValueLike(VAR, "%:"+userLead1Oid+"]%")
+					.taskVariableValueLike(VAR, "%:xxx]%")
 					.taskAssignee(userLead1Oid)
 				.endOr();
 		org.activiti.engine.task.Task task4 = tq4.singleResult();
@@ -151,8 +151,8 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		TaskQuery tq5 = taskService.createTaskQuery().includeTaskLocalVariables()
 				.taskName(TASK_NAME)
 				.or()
-					.taskVariableValueLike(VAR, "%["+userLead1Oid+"]%")
-					.taskVariableValueLike(VAR, "%[xxx]%")
+					.taskVariableValueLike(VAR, "%:"+userLead1Oid+"]%")
+					.taskVariableValueLike(VAR, "%:xxx]%")
 					.taskAssignee("xxx;" + userLead1Oid)
 				.endOr();
 		org.activiti.engine.task.Task task5 = tq5.singleResult();
@@ -162,8 +162,8 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		TaskQuery tq6 = taskService.createTaskQuery().includeTaskLocalVariables()
 				.taskName(TASK_NAME)
 				.or()
-					.taskVariableValueLike(VAR, "%[xxx]%")
-					.taskVariableValueLike(VAR, "%["+userLead1Oid+"]%")
+					.taskVariableValueLike(VAR, "%:xxx]%")
+					.taskVariableValueLike(VAR, "%:"+userLead1Oid+"]%")
 					.taskAssignee("xxx;yyy")
 				.endOr();
 		org.activiti.engine.task.Task task6 = tq6.singleResult();
@@ -173,8 +173,8 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		TaskQuery tq7 = taskService.createTaskQuery().includeTaskLocalVariables()
 				.taskName(TASK_NAME)
 				.or()
-					.taskVariableValueLike(VAR, "%[xxx]%")
-					.taskVariableValueLike(VAR, "%[yyy]%")
+					.taskVariableValueLike(VAR, "%:xxx]%")
+					.taskVariableValueLike(VAR, "%:yyy]%")
 					.taskAssignee("xxx;" + userLead1Oid)
 				.endOr();
 		org.activiti.engine.task.Task task7 = tq7.singleResult();
@@ -184,8 +184,8 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	}
 
 	@Test
-	public void test210SearchByAssigneeOrDelegate() throws Exception {
-		final String TEST_NAME = "test210SearchByAssigneeOrDelegate";
+	public void test210SearchByAssignee() throws Exception {
+		final String TEST_NAME = "test210SearchByAssignee";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);
 
@@ -193,72 +193,15 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		List<PrismReferenceValue> assigneeRefs = new ArrayList<>();
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-1", ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef(userLead1Oid, ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-3", ObjectTypes.USER).asReferenceValue());
-
-		List<PrismReferenceValue> delegateRefs = new ArrayList<>();
-		delegateRefs.add(ObjectTypeUtil.createObjectRef("oid-number-4", ObjectTypes.USER).asReferenceValue());
-		delegateRefs.add(ObjectTypeUtil.createObjectRef("oid-number-5", ObjectTypes.USER).asReferenceValue());
-		delegateRefs.add(ObjectTypeUtil.createObjectRef("oid-number-6", ObjectTypes.USER).asReferenceValue());
+		assigneeRefs.add(prv("oid-number-1"));
+		assigneeRefs.add(prv(userLead1Oid));
+		assigneeRefs.add(prv("oid-number-3"));
+		assigneeRefs.add(prv("oid-number-4"));
+		assigneeRefs.add(prv("oid-number-5"));
+		assigneeRefs.add(prv("oid-number-6"));
 
 		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
 				.item(WorkItemType.F_ASSIGNEE_REF).ref(assigneeRefs)
-				.or().item(WorkItemType.F_DELEGATE_REF).ref(delegateRefs)
-				.build();
-		SearchResultList<WorkItemType> items = modelService
-				.searchContainers(WorkItemType.class, query, null, task, result);
-		assertEquals("Wrong # of work items found using multi-assignee/multi-delegate query", 1, items.size());
-	}
-
-	@Test
-	public void test220SearchByAssigneeOrDelegate2() throws Exception {
-		final String TEST_NAME = "test220SearchByAssigneeOrDelegate2";
-		TestUtil.displayTestTile(this, TEST_NAME);
-		login(userAdministrator);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		List<PrismReferenceValue> assigneeRefs = new ArrayList<>();
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-1", ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-2", ObjectTypes.USER).asReferenceValue());
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef("oid-number-3", ObjectTypes.USER).asReferenceValue());
-
-		List<PrismReferenceValue> delegateRefs = new ArrayList<>();
-		delegateRefs.add(ObjectTypeUtil.createObjectRef("oid-number-4", ObjectTypes.USER).asReferenceValue());
-		delegateRefs.add(ObjectTypeUtil.createObjectRef(userLead1Oid, ObjectTypes.USER).asReferenceValue());
-		delegateRefs.add(ObjectTypeUtil.createObjectRef("oid-number-6", ObjectTypes.USER).asReferenceValue());
-
-		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
-				.item(WorkItemType.F_ASSIGNEE_REF).ref(assigneeRefs)
-				.or().item(WorkItemType.F_DELEGATE_REF).ref(delegateRefs)
-				.build();
-		SearchResultList<WorkItemType> items = modelService
-				.searchContainers(WorkItemType.class, query, null, task, result);
-		assertEquals("Wrong # of work items found using multi-assignee/multi-delegate query", 1, items.size());
-	}
-
-	@Test
-	public void test230SearchByAssigneeOrDelegate3() throws Exception {
-		final String TEST_NAME = "test230SearchByAssigneeOrDelegate3";
-		TestUtil.displayTestTile(this, TEST_NAME);
-		login(userAdministrator);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		List<PrismReferenceValue> assigneeRefs = new ArrayList<>();
-		assigneeRefs.add(ObjectTypeUtil.createObjectRef(userLead1Oid, ObjectTypes.USER).asReferenceValue());
-
-		List<PrismReferenceValue> delegateRefs = new ArrayList<>();
-		delegateRefs.add(ObjectTypeUtil.createObjectRef("oid-number-4", ObjectTypes.USER).asReferenceValue());
-		delegateRefs.add(ObjectTypeUtil.createObjectRef("oid-number-5", ObjectTypes.USER).asReferenceValue());
-		delegateRefs.add(ObjectTypeUtil.createObjectRef("oid-number-6", ObjectTypes.USER).asReferenceValue());
-
-		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
-				.item(WorkItemType.F_ASSIGNEE_REF).ref(assigneeRefs)
-				.or().item(WorkItemType.F_DELEGATE_REF).ref(delegateRefs)
 				.build();
 		SearchResultList<WorkItemType> items = modelService
 				.searchContainers(WorkItemType.class, query, null, task, result);

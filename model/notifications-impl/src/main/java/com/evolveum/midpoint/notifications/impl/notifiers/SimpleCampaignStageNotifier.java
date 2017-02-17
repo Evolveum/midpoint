@@ -133,7 +133,7 @@ public class SimpleCampaignStageNotifier extends GeneralNotifier {
         certHelper.appendStatistics(body, campaign, task, result);
 
         body.append("\n\n");
-        notificationsUtil.addRequesterAndChannelInformation(body, event, result);
+        functions.addRequesterAndChannelInformation(body, event, result);
 
         return body.toString();
     }

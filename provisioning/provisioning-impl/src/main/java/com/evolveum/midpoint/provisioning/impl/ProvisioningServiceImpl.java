@@ -1272,14 +1272,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return metadata;
 	}
 
-	/*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.evolveum.midpoint.provisioning.api.ProvisioningService#discoverConnectors
-     * (com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType,
-     * com.evolveum.midpoint.common.result.OperationResult)
-     */
 	@Override
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
 			throws CommunicationException {

@@ -186,7 +186,7 @@ public class SingleItemSerializationSafeContainerImpl<T> implements Serializatio
 		String stringValue = null;
 		if (value instanceof ExpressionType) {
 			// brutal hack...
-			String xml = null;
+			String xml;
 			try {
 				xml = prismContext.xmlSerializer().serializeRealValue(value, SchemaConstantsGenerated.C_EXPRESSION);
 				stringValue = DebugUtil.fixIndentInMultiline(indent, DebugDumpable.INDENT_STRING, xml);

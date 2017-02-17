@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.test;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -65,7 +66,7 @@ public class DummyTransport implements Transport, DebugDumpable {
     private Map<String,List<Message>> messages = new HashMap<>();
 
     @Override
-    public void send(Message message, String name, Task task, OperationResult parentResult) {
+    public void send(Message message, String name, Event event, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
 
@@ -89,7 +90,7 @@ public class DummyTransport implements Transport, DebugDumpable {
 
     @Override
     public String getDefaultRecipientAddress(UserType recipient) {
-        return "dummyAddress";
+        return recipient.getEmailAddress() != null ? recipient.getEmailAddress() : "dummyAddress";
     }
 
     @Override
@@ -104,6 +105,14 @@ public class DummyTransport implements Transport, DebugDumpable {
 
 	@Override
 	public String debugDump(int indent) {
-		return DebugUtil.debugDump(messages, indent);
+    	StringBuilder sb = new StringBuilder();
+    	DebugUtil.indentDebugDump(sb, indent);
+    	sb.append("(\n");
+		for (Map.Entry<String, List<Message>> entry : messages.entrySet()) {
+			DebugUtil.debugDumpWithLabelLn(sb, entry.getKey(), entry.getValue(), indent + 1);
+		}
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(")");
+		return sb.toString();
 	}
 }

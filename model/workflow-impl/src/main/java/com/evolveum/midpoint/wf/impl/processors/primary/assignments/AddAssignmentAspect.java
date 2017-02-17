@@ -226,8 +226,6 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
 
-            assert approvalRequest.getPrismContext() != null;
-
             LOGGER.trace("Approval request = {}", approvalRequest);
             AssignmentType assignmentType = approvalRequest.getItemToApprove();
             T target = getAssignmentApprovalTarget(assignmentType, result);

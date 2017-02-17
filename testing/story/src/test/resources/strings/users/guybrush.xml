@@ -32,4 +32,10 @@
 	<fullName>Guybrush Threepwood</fullName>
 	<givenName>Guybrush</givenName>
 	<familyName>Threepwood</familyName>
+	<emailAddress>guybrush@evolveum.com</emailAddress>
+	<credentials>
+		<password>
+			<value>a123456</value>
+		</password>
+	</credentials>  
 </user>

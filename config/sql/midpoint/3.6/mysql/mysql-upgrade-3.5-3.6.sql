@@ -15,3 +15,45 @@ ALTER TABLE m_form
   ADD CONSTRAINT fk_form
 FOREIGN KEY (oid)
 REFERENCES m_object (oid);
+
+CREATE TABLE m_audit_prop_value (
+  id        BIGINT NOT NULL,
+  name      VARCHAR(255),
+  record_id BIGINT,
+  value     VARCHAR(1024),
+  PRIMARY KEY (id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_audit_ref_value (
+  id              BIGINT NOT NULL,
+  name            VARCHAR(255),
+  oid             VARCHAR(255),
+  record_id       BIGINT,
+  targetName_norm VARCHAR(255),
+  targetName_orig VARCHAR(255),
+  type            VARCHAR(255),
+  PRIMARY KEY (id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE INDEX iAuditPropValRecordId
+  ON m_audit_prop_value (record_id);
+
+CREATE INDEX iAuditRefValRecordId
+  ON m_audit_ref_value (record_id);
+
+ALTER TABLE m_audit_prop_value
+  ADD CONSTRAINT fk_audit_prop_value
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event (id);
+
+ALTER TABLE m_audit_ref_value
+  ADD CONSTRAINT fk_audit_ref_value
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event (id);
+

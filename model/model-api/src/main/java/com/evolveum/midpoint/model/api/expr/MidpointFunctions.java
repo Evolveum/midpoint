@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -875,6 +876,10 @@ public interface MidpointFunctions {
     Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
     Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+
+    Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException;
 
     Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
     

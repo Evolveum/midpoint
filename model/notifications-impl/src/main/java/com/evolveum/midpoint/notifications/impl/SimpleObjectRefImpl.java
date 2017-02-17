@@ -31,32 +31,32 @@ import org.apache.commons.lang.Validate;
 public class SimpleObjectRefImpl implements SimpleObjectRef {
     private String oid;
     private ObjectType objectType;
-    private NotificationFuctionsImpl notificationsUtil;        // used to resolve object refs
+    private NotificationFunctionsImpl functions;        // used to resolve object refs
 
-    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, ObjectType objectType) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, ObjectType objectType) {
         this.oid = objectType.getOid();
         this.objectType = objectType;
-        this.notificationsUtil = notificationsUtil;
+        this.functions = functions;
     }
 
-    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, PrismObject object) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, PrismObject object) {
         this.oid = object.getOid();
         this.objectType = (ObjectType) object.asObjectable();
-        this.notificationsUtil = notificationsUtil;
+        this.functions = functions;
     }
 
-    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, ObjectReferenceType ref) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, ObjectReferenceType ref) {
         Validate.notNull(ref);
         this.oid = ref.getOid();
         if (ref.asReferenceValue().getObject() != null) {
             this.objectType = (ObjectType) ref.asReferenceValue().getObject().asObjectable();
         }
-        this.notificationsUtil = notificationsUtil;
+        this.functions = functions;
     }
 
-    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, String oid) {
+    public SimpleObjectRefImpl(NotificationFunctionsImpl functions, String oid) {
         this.oid = oid;
-        this.notificationsUtil = notificationsUtil;
+        this.functions = functions;
     }
 
     public String getOid() {
@@ -77,7 +77,7 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
 
     @Override
     public ObjectType resolveObjectType(OperationResult result, boolean allowNotFound) {
-        return notificationsUtil.getObjectType(this, allowNotFound, result);
+        return functions.getObjectType(this, allowNotFound, result);
     }
 
     @Override
@@ -86,5 +86,9 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
                 "oid='" + oid + '\'' +
                 ", objectType=" + objectType +
                 '}';
+    }
+
+    public static SimpleObjectRef create(NotificationFunctionsImpl functions, ObjectReferenceType ref) {
+        return ref != null ? new SimpleObjectRefImpl(functions, ref) : null;
     }
 }

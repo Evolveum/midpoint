@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,14 +39,12 @@ import java.util.stream.Stream;
  */
 class AdditionalInformationGenerator {
 
+	@NotNull
 	List<InformationType> getDefaultAdditionalInformation(Task wfTask, int order) {
 		// later here may be more rules (stage amalgamation)
-		SchemaAttachedPolicyRuleType attachedRule = WfContextUtil.getAttachedPolicyRule(wfTask.getWorkflowContext(), order);
-		if (attachedRule == null) {
-			return null;
-		}
+		List<SchemaAttachedPolicyRuleType> attachedRules = WfContextUtil.getAttachedPolicyRules(wfTask.getWorkflowContext(), order);
 		List<EvaluatedPolicyRuleTriggerType> triggers = new ArrayList<>();
-		collectPrimitiveTriggers(triggers, attachedRule.getRule());
+		attachedRules.forEach(rule -> collectPrimitiveTriggers(triggers, rule.getRule()));
 
 		List<InformationType> rv = new ArrayList<>();
 		generateAssignmentMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.ASSIGNMENT));

@@ -65,8 +65,8 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
             return true;
         }
 
-        boolean otherThanSyncPresent = deltaContainsOtherPathsThan(delta, notificationsUtil.getSynchronizationPaths());
-        boolean otherThanAuxPresent = deltaContainsOtherPathsThan(delta, notificationsUtil.getAuxiliaryPaths());
+        boolean otherThanSyncPresent = deltaContainsOtherPathsThan(delta, functions.getSynchronizationPaths());
+        boolean otherThanAuxPresent = deltaContainsOtherPathsThan(delta, functions.getAuxiliaryPaths());
         boolean watchSync = isWatchSynchronizationAttributes((SimpleResourceObjectNotifierType) generalNotifierType);
         boolean watchAux = isWatchAuxiliaryAttributes(generalNotifierType);
         if ((watchSync || otherThanSyncPresent) && (watchAux || otherThanAuxPresent)) {
@@ -177,7 +177,7 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
         }
 
         body.append("\n\n");
-        notificationsUtil.addRequesterAndChannelInformation(body, event, result);
+        functions.addRequesterAndChannelInformation(body, event, result);
 
         if (techInfo) {
             body.append("----------------------------------------\n");
