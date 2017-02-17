@@ -9958,6 +9958,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Application or shortcut links placed on end-user dashboard.
+                        TODO: align with userDashboard
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -9971,6 +9972,19 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="userDashboard" type="tns:DashboardLayoutType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the layout of the user dashboard (home screen): 
+							it defines which boxes should be visible, which should be hidden, etc.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -10007,6 +10021,125 @@
 			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+       <xsd:complexType name="DashboardLayoutType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies layout of a dashboard, such as the user dashboard (home screen)
+        		or administration dashboard. It specifies which boxes should be visible, which
+        		should be hidden and so on.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="DashboardWidgetType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Defines properties of a specific dashboard widget.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="identifier" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Widget identifier. It defines the identity of the widget and currently
+           					also the placement on the dashboard. The widget specifications that come
+           					from different roles will be merged if they have the same identifier.
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
+           		<!-- TODO: type
+           		<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Type of the widget. It is an identifier that specifies the content
+           					of the winget (e.g. what will be inside the box).
+           					THIS IS NOT USED YET. It is only for future use.
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
+           		 -->
+           		<!-- TODO: placement -->
+           		<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
+           		             minOccurs="0" maxOccurs="1" default="vacant">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Defines, whether this widget will be visible or it will be hidden.
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:simpleType name="UserInterfaceElementVisibilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines, whether a user interface element (form, widget) will be visible or it will be hidden.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="automatic">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTOMATIC"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        The element will be visible if the authorisations of the current user
+                        allows to see (at least a part) of the content that the element displays.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="visible">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VISIBLE"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        The element will be always visible.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="vacant">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VACANT"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        The element will not be visible. Not even if the authorizations allow
+                        to see its content. But if any other role specifies the element as visible
+                        or automatic then it will be visible. This setting is easily overridden.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hidden">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIDDEN"/>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        The element is never visible. Even if any other role specifies the element as
+                        visible then the element will still remain invisible. This setting cannot be
+                        overridden. 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 	<xsd:complexType name="RichHyperlinkType">
         <xsd:annotation>
@@ -12892,7 +13025,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="sequence" type="tns:SequenceType" />
-    
     
     
   <!-- ============================================================== -->
