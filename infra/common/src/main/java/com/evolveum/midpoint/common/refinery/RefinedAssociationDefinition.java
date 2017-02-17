@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 public class RefinedAssociationDefinition implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -81,6 +82,14 @@ public class RefinedAssociationDefinition implements Serializable {
     public boolean isTolerant() {
         return BooleanUtils.isNotFalse(resourceObjectAssociationType.isTolerant());
     }
+
+	public List<String> getTolerantValuePattern() {
+		return resourceObjectAssociationType.getTolerantValuePattern();
+	}
+
+	public List<String> getIntolerantValuePattern() {
+		return resourceObjectAssociationType.getIntolerantValuePattern();
+	}
 
 	public boolean requiresExplicitReferentialIntegrity() {
 		return !BooleanUtils.isFalse(getResourceObjectAssociationType().isExplicitReferentialIntegrity());	// because default is TRUE

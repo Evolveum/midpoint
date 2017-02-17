@@ -20,6 +20,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+		  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -251,6 +252,8 @@
             <association>
             	<ref>ri:group</ref>
             	<tolerant>false</tolerant>
+				<tolerantValuePattern>LaNdLuBeRs</tolerantValuePattern>
+				<tolerantValuePattern>mapmakers</tolerantValuePattern>
             	<kind>entitlement</kind>
             	<intent>group</intent>
             	<direction>objectToSubject</direction>
@@ -466,6 +469,7 @@
         	<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Groupname</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>		<!-- to test tolerantValuePatterns for associations -->
 				<exclusiveStrong>true</exclusiveStrong>
 				<outbound>
 				    <source>
