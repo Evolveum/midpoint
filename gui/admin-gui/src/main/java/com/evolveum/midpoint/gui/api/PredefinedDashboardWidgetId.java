@@ -27,7 +27,7 @@ public enum PredefinedDashboardWidgetId {
 
 	SEARCH("search"),
 	SHORTCUTS("shortcuts"),
-	MY_WORKITEMS("myWorkitems"),
+	MY_WORKITEMS("myWorkItems"),
 	MY_REQUESTS("myRequests"),
 	MY_ASSIGNMENTS("myAssignments"),
 	MY_ACCOUNTS("myAccounts");
