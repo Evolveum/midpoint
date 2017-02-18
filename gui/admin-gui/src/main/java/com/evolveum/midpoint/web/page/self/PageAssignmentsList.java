@@ -23,7 +23,6 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -36,7 +35,6 @@ import org.apache.wicket.model.Model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by honchar.
@@ -46,7 +44,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String ID_FORM = "mainForm";
     private static final String ID_BACK = "back";
     private static final String ID_REQUEST_BUTTON = "request";
-    private static final String ID_SUBMIT_BUTTON = "submit";
+    private static final String ID_RESOLVE_CONFLICTS_BUTTON = "resolveConflicts";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRequestRole.class);
     private static final String DOT_CLASS = PageAssignmentsList.class.getName() + ".";
@@ -125,8 +123,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         };
         mainForm.add(requestAssignments);
 
-            AjaxSubmitButton submitAssignments = new AjaxSubmitButton(ID_SUBMIT_BUTTON,
-                    createStringResource("PageAssignmentsList.submitButton")) {
+            AjaxSubmitButton resolveAssignments = new AjaxSubmitButton(ID_RESOLVE_CONFLICTS_BUTTON,
+                    createStringResource("PageAssignmentsList.resolveConflicts")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
@@ -140,7 +138,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
 
         };
-        mainForm.add(submitAssignments);
+        mainForm.add(resolveAssignments);
 
     }
 
