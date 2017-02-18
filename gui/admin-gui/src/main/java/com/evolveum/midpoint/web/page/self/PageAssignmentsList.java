@@ -2,9 +2,7 @@ package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -25,8 +23,8 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -41,12 +39,12 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class PageAssignmentsList extends PageBase{
+public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String ID_ASSIGNMENT_TABLE_PANEL = "assignmentTablePanel";
     private static final String ID_FORM = "mainForm";
     private static final String ID_BACK = "back";
     private static final String ID_REQUEST_BUTTON = "request";
-    private static final String ID_SUBMIT_BUTTON = "submit";
+    private static final String ID_RESOLVE_CONFLICTS_BUTTON = "resolveConflicts";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRequestRole.class);
     private static final String DOT_CLASS = PageAssignmentsList.class.getName() + ".";
@@ -125,8 +123,8 @@ public class PageAssignmentsList extends PageBase{
         };
         mainForm.add(requestAssignments);
 
-            AjaxSubmitButton submitAssignments = new AjaxSubmitButton(ID_SUBMIT_BUTTON,
-                    createStringResource("PageAssignmentsList.submitButton")) {
+            AjaxSubmitButton resolveAssignments = new AjaxSubmitButton(ID_RESOLVE_CONFLICTS_BUTTON,
+                    createStringResource("PageAssignmentsList.resolveConflicts")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
@@ -135,14 +133,12 @@ public class PageAssignmentsList extends PageBase{
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                getAssignmentConflicts();
-//                PageAssignmentsList.this.setResponsePage(PageAssignmentConflicts.class);
+                PageAssignmentConflicts assignmentsConflictsPage = new PageAssignmentConflicts(Model.ofList(getAssignmentConflicts(target)));
+                PageAssignmentsList.this.navigateToNext(assignmentsConflictsPage);
             }
 
         };
-        //TODO temporarily
-        submitAssignments.setVisible(false);
-        mainForm.add(submitAssignments);
+        mainForm.add(resolveAssignments);
 
     }
 
@@ -242,6 +238,16 @@ public class PageAssignmentsList extends PageBase{
         return;
     }
 
+    private List<String> getAssignmentsOidsList(){
+        List<String> oidsList = new ArrayList<>();
+        for (AssignmentType assignment : user.asObjectable().getAssignment()){
+            if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid() != null){
+                oidsList.add(assignment.getTargetRef().getOid());
+            }
+        }
+        return oidsList;
+    }
+
     private void handleModifyAssignmentDelta(AssignmentEditorDto assDto,
                                              PrismContainerDefinition assignmentDef, PrismContainerValue newValue, ObjectDelta<UserType> focusDelta)
             throws SchemaException {
@@ -278,7 +284,7 @@ public class PageAssignmentsList extends PageBase{
         return assignmentsList;
     }
 
-    private void getAssignmentConflicts(){
+    private List<AssignmentConflictDto> getAssignmentConflicts(AjaxRequestTarget target){
         ModelContext<UserType> modelContext = null;
 
         ObjectDelta<UserType> delta;
@@ -286,6 +292,7 @@ public class PageAssignmentsList extends PageBase{
 
         OperationResult result = new OperationResult(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         Task task = createSimpleTask(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
+        List<AssignmentConflictDto> conflictsList = new ArrayList<>();
         try {
             delta = user.createModifyDelta();
 
@@ -298,63 +305,31 @@ public class PageAssignmentsList extends PageBase{
                     .getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple
                     .getPlusSet();
+            List<String> userAssignmentsOidsList = getAssignmentsOidsList();
             if (addedAssignments != null) {
-                for (EvaluatedAssignment evaluatedAssignment : addedAssignments){
-                    Collection<EvaluatedPolicyRule> targetPolicyRules = evaluatedAssignment.getTargetPolicyRules();
-                    if (targetPolicyRules != null) {
-                        for (EvaluatedPolicyRule rule : targetPolicyRules){
-                            List<ExclusionPolicyConstraintType> exclusions = rule.getPolicyConstraints().getExclusion();
-                            if (exclusions != null){
-                                for (ExclusionPolicyConstraintType exclusion : exclusions){
-                                    ObjectReferenceType ref = exclusion.getTargetRef();
-                                    if (ref !=  null){
-
-                                    }
+                for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
+                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getTargetPolicyRules()) {
+                        for (EvaluatedPolicyRuleTrigger trigger : policyRule.getTriggers()) {
+                            if (PolicyConstraintKindType.EXCLUSION.equals(trigger.getConstraintKind()) &&
+                                    trigger instanceof EvaluatedExclusionTrigger) {
+                                PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
+                                PrismObject<F> exclusionTargetObj = (PrismObject<F>)((EvaluatedExclusionTrigger) trigger).getConflictingAssignment().getTarget();
+                                String exclusionOid = exclusionTargetObj.getOid();
+                                if (userAssignmentsOidsList.contains(exclusionOid)) {
+                                    AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
+                                    conflictsList.add(dto);
                                 }
                             }
                         }
                     }
-
                 }
-                    if (addedAssignments.isEmpty()) {
-//                info(getString("pageAdminFocus.message.noAssignmentsAvailable"));
-//                target.add(getFeedbackPanel());
-//                return null;
-                    }
             }
-
-//            for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
-//                if (!evaluatedAssignment.isValid()) {
-//                    continue;
-//                }
-//                // roles and orgs
-//                DeltaSetTriple<? extends EvaluatedAssignmentTarget> evaluatedRolesTriple = evaluatedAssignment
-//                        .getRoles();
-//                Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = evaluatedRolesTriple
-//                        .getNonNegativeValues();
-//                for (EvaluatedAssignmentTarget role : evaluatedRoles) {
-//                    if (role.isEvaluateConstructions()) {
-//                        assignmentDtoSet.add(createAssignmentsPreviewDto(role, task, result));
-//                    }
-//                }
-//
-//                // all resources
-//                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment
-//                        .getEvaluatedConstructions(task, result);
-//                Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple
-//                        .getNonNegativeValues();
-//                for (EvaluatedConstruction construction : evaluatedConstructions) {
-//                    assignmentDtoSet.add(createAssignmentsPreviewDto(construction));
-//                }
-//            }
-//
-//            return new ArrayList<>(assignmentDtoSet);
         } catch (Exception e) {
-//            target.add(getFeedbackPanel());
-//            return null;
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflics. Reason: ", e);
+            error("Couldn't get assignments conflics. Reason: " + e);
+            target.add(getFeedbackPanel());
         }
-
-
+        return conflictsList;
     }
 
 }

@@ -17,20 +17,38 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table class="row">
-        <tr class="col-md-1">
-            <td rowspan="3" wicket:id="statusIcon" />
-        </tr>
-        <tr class="col-md-8">
-            <td  wicket:id="existingAssignment" />
-            <td  wicket:id="conflictMessage" />
-            <td  wicket:id="addedAssignment" />
-        </tr>
-        <tr class="col-md-3" >
-            <td  wicket:id="unselectButton" />
-            <td />
-            <td  wicket:id="removeButton" />
-        </tr>
-    </table>
+    <h2>
+        <wicket:message key="PageAssignmentConflicts.title"/>
+    </h2>
+    <form wicket:id="panelContainer" class="form-horizontal">
+        <table>
+            <tr class="row">
+                <td rowspan="3" class="col-md-1"><i wicket:id="statusIcon" style="font-size: 30px;"></i></td>
+                <td class="col-md-7">
+                    <div wicket:id="existingAssignment"/>
+                </td>
+                <td class="col-md-3">
+                    <a wicket:id="removeButton" class="btn btn-primary btn-xs"></a>
+                </td>
+            </tr>
+            <tr class="row">
+                <td class="col-md-7">
+                    <label>
+                        <wicket:message key="AssignmentConflictPanel.conflictMessage"/>
+                    </label>
+                </td>
+                <td class="col-md-3">
+                </td>
+            </tr>
+            <tr class="row">
+                <td class="col-md-7">
+                    <div wicket:id="addedAssignment"/>
+                </td>
+                <td class="col-md-3">
+                    <a wicket:id="unselectButton" class="btn btn-primary btn-xs"></a>
+                </td>
+            </tr>
+        </table>
+    </form>
 </wicket:panel>
 </html>

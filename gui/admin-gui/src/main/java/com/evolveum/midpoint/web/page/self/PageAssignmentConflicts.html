@@ -19,7 +19,16 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div wicket:id="conflictsPanel"/>
+    <form wicket:id="mainForm" class="form-horizontal">
+        <div wicket:id="conflictsPanel"/>
+
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back"/>
+                <a class="btn btn-primary" wicket:id="submit"/>
+            </span>
+        </div>
+    </form>
 </wicket:extend>
 </body>
 </html>
