@@ -85,6 +85,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 	private static final String ID_DRY_RUN = "dryRun";
 
 	private PageTaskEdit parentPage;
+        protected VisibleEnableBehaviour enabledIfEdit;
 
 	public ResourceRelatedHandlerPanel(String id, IModel<D> handlerDtoModel, PageTaskEdit parentPage) {
 		super(id, handlerDtoModel);
@@ -106,7 +107,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 				return !parentPage.isEdit();
 			}
 		};
-		final VisibleEnableBehaviour enabledIfEdit = new VisibleEnableBehaviour() {
+		enabledIfEdit = new VisibleEnableBehaviour() {
 
 			@Override
 			public boolean isEnabled() {

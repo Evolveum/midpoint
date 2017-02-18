@@ -23,6 +23,14 @@
         <td><wicket:message key="pageTaskEdit.token"/></td>
         <td><span wicket:id="token"/> <div wicket:id="deleteToken"/></td>
     </tr>
+    <tr wicket:id="retryUnhandledErrContainer">
+        <td><wicket:message key="pageTaskEdit.retryUnhandledErr"/></td>
+        <td>
+            <label class="col-lg-2 checkbox-inline" wicket:id="retryUnhandledErrCheckboxContainer">
+                <input type="checkbox" wicket:id="retryUnhandledErrCheckbox">
+            </label>
+        </td>
+    </tr>
 </wicket:extend>
 </body>
 </html>

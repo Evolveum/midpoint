@@ -81,6 +81,22 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="retryLiveSyncErrors" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+               Indicates if the LiveSync retries non-handled errors in the next run. Handled-errors are always treated as success and never retried.
+               Retry is implemented by not refreshing LiveSync token to the new value. If set to false, sync token is always refreshed to the last processed entry. 
+               This is true by default.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Dry run</a:displayName>
+                <a:displayOrder>800</a:displayOrder>
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="finishOperationsOnly" type="xsd:boolean">
         <xsd:annotation>

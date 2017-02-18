@@ -46,6 +46,9 @@ public class InfoBoxPanel extends Panel{
 
 	public InfoBoxPanel(String id, IModel<InfoBoxType> model) {
 		super(id, model);
+
+		add(AttributeModifier.append("class", "dashboard-info-box"));
+
 		initLayout(model, null);
 	}
 	
