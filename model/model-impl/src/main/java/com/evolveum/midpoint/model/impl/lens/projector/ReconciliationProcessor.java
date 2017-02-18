@@ -785,10 +785,11 @@ public class ReconciliationProcessor {
 
 		RefinedAttributeDefinition<Object> targetNamingAttributeDef = associationDefinition.getAssociationTarget().getNamingAttribute();
 		QName matchingAttributeName;
-		QName matchingRuleName;
+		MatchingRule<Object> matchingRule;
 		if (targetNamingAttributeDef != null) {
 			matchingAttributeName = targetNamingAttributeDef.getName();
-			matchingRuleName = targetNamingAttributeDef.getMatchingRuleQName();
+			QName matchingRuleName = targetNamingAttributeDef.getMatchingRuleQName();
+			matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
 		} else {
 			if (evaluatePatterns) {
 				throw new IllegalStateException(
@@ -796,41 +797,49 @@ public class ReconciliationProcessor {
 								+ associationDefinition.getAssociationTarget());
 			}
 			matchingAttributeName = null;
-			matchingRuleName = null;
+			matchingRule = null;
 		}
-		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
 
 		for (PrismContainerValue<ShadowAssociationType> isCValue : areCValues) {
+			ResourceAttribute<String> namingIdentifier = null;
 			if (evaluatePatterns) {
 				ResourceAttributeContainer identifiersContainer = getIdentifiersForAssociationTarget(isCValue, task, result);
-				ResourceAttribute<String> namingIdentifier = identifiersContainer.getNamingAttribute();
+				namingIdentifier = identifiersContainer.getNamingAttribute();
 				if (namingIdentifier == null) {
-					LOGGER.warn("Couldn't check tolerant/intolerant patterns for {}, as there's no naming identifier for it", isCValue);
-				} else {
-					if (matchAssociationPattern(associationDefinition.getTolerantValuePattern(), namingIdentifier, matchingAttributeName,
-							matchingRule, isCValue)) {
-						LOGGER.trace("Reconciliation: KEEPING value {} of association {}: identifier {} matches with tolerant value pattern.",
-								isCValue, associationDefinition.getName().getLocalPart(), namingIdentifier);
-						continue;
-					}
-					if (matchAssociationPattern(associationDefinition.getIntolerantValuePattern(), namingIdentifier,
-							matchingAttributeName, matchingRule, isCValue)) {
-						recordAssociationDelta(valueMatcher, accCtx, associationDefinition, ModificationType.DELETE,
-								isCValue.getValue(), null, "identifier " + namingIdentifier + " matches with intolerant pattern");
-						continue;
-					}
+					LOGGER.warn("Couldn't check tolerant/intolerant patterns for {}, as there's no naming identifier for it",
+							isCValue);
+					evaluatePatterns = false;
 				}
 			}
+
+			String associationNameLocal = associationDefinition.getName().getLocalPart();
+			if (evaluatePatterns && matchAssociationPattern(associationDefinition.getTolerantValuePattern(), namingIdentifier,
+							matchingAttributeName, matchingRule, isCValue)) {
+				LOGGER.trace("Reconciliation: KEEPING value {} of association {}: identifier {} matches with tolerant value pattern.",
+						isCValue, associationNameLocal, namingIdentifier);
+				continue;
+			}
+
+			if (isInCvwoAssociationValues(valueMatcher, isCValue.getValue(), shouldBeCValues)) {
+				LOGGER.trace("Reconciliation: KEEPING value {} of association {}: it is in 'shouldBeCValues'",
+						isCValue, associationNameLocal);
+				continue;
+			}
+
+			if (evaluatePatterns && matchAssociationPattern(associationDefinition.getIntolerantValuePattern(), namingIdentifier,
+							matchingAttributeName, matchingRule, isCValue)) {
+				recordAssociationDelta(valueMatcher, accCtx, associationDefinition, ModificationType.DELETE,
+						isCValue.getValue(), null, "identifier " + namingIdentifier + " matches with intolerant pattern");
+				continue;
+			}
+
 			if (!associationDefinition.isTolerant()) {
-				if (!isInCvwoAssociationValues(valueMatcher, isCValue.getValue(), shouldBeCValues)) {
-					LOGGER.trace("{} not in 'shouldBeCValues', adding it to delete delta", isCValue);
-					recordAssociationDelta(valueMatcher, accCtx, associationDefinition, ModificationType.DELETE,
-							isCValue.getValue(), null, "it is not given by any mapping and the association is not tolerant");
-				} else {
-					LOGGER.trace("{} in 'shouldBeCValues', keeping it", isCValue);
-				}
+				LOGGER.trace("{} not in 'shouldBeCValues', adding it to delete delta", isCValue);
+				recordAssociationDelta(valueMatcher, accCtx, associationDefinition, ModificationType.DELETE,
+						isCValue.getValue(), null, "it is not given by any mapping and the association is not tolerant");
 			} else {
-				LOGGER.trace("keeping {}, as the association is tolerant and the value was not caught by any intolerantValuePattern", isCValue);
+				LOGGER.trace("Reconciliation: KEEPING value {} of association {}: the association is tolerant and the value"
+						+ " was not caught by any intolerantValuePattern", isCValue, associationNameLocal);
 			}
 		}
     }
@@ -1077,7 +1086,7 @@ public class ReconciliationProcessor {
 
     private boolean matchAssociationPattern(List<String> patterns, ResourceAttribute<?> identifier,
 			QName matchingAttributeName, MatchingRule<Object> matchingRule, PrismContainerValue<ShadowAssociationType> value) {
-		if (patterns == null || patterns.isEmpty()) {
+		if (patterns == null || patterns.isEmpty() || identifier == null) {
 			return false;
 		}
 		for (String pattern : patterns) {
