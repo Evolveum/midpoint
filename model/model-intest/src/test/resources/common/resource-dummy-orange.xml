@@ -209,7 +209,8 @@
             <association>
             	<ref>ri:group</ref>
             	<kind>entitlement</kind>
-            	<tolerant>false</tolerant>
+            	<tolerant>true</tolerant>
+				<intolerantValuePattern>.*-wannabe</intolerantValuePattern>
             	<intent>group</intent>
             	<intent>group-wannabe</intent>
             	<direction>objectToSubject</direction>

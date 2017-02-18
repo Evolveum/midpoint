@@ -15,10 +15,36 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
@@ -26,30 +52,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Test of account-entitlement association.
@@ -97,6 +102,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	public static final String GROUP_DUMMY_WIMPS_NAME = "wimps";
 	public static final String GROUP_DUMMY_MAPMAKERS_NAME = "mapmakers";
 
+	public static final String ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME = "guybrush";
+
 	private static final QName RESOURCE_DUMMY_GROUP_OBJECTCLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "GroupObjectClass");
 
 	private static final String USER_WALLY_NAME = "wally";
@@ -121,7 +128,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-
 
         PrismObject<ShadowType> group = prismContext.parseObject(SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE);
 
@@ -305,10 +311,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
-        assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
-        assertGroupMember(dummyGroup, USER_WALLY_NAME);
+		assertGroupMember(GROUP_DUMMY_MAPMAKERS_NAME, USER_WALLY_NAME, getDummyResource());
 	}
 
     @Test
@@ -442,12 +445,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
-        assertNotNull("No group on dummy resource", dummyGroupWimp);
-        display("Group", dummyGroupWimp);
-//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION,
-//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
-        assertGroupMember(dummyGroupWimp, USER_LARGO_USERNAME);
+		assertGroupMember(GROUP_DUMMY_WIMPS_NAME, USER_LARGO_USERNAME, getDummyResource());
 
         DummyGroup dummyGroupWimpAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
@@ -472,12 +470,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
-//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION,
-//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
-        assertGroupMember(dummyGroupBrute, USER_LARGO_USERNAME);
+		assertGroupMember(GROUP_BRUTE_NAME, USER_LARGO_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
@@ -512,12 +505,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Wannabe Group", dummyGroupBruteWannabe);
         assertNoGroupMembers(dummyGroupBruteWannabe);
 
-        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
-        assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
-//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION,
-//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
-        assertGroupMember(dummyGroup, USER_LARGO_USERNAME);
+		assertGroupMember(GROUP_DUMMY_WIMPS_NAME, USER_LARGO_USERNAME, getDummyResource());
 
         DummyGroup dummyGroupAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
@@ -542,10 +530,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupThug);
-        display("Group", dummyGroupThug);
-        assertGroupMember(dummyGroupThug, USER_LARGO_USERNAME);
+		assertGroupMember(GROUP_THUG_NAME, USER_LARGO_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
@@ -580,12 +565,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Wannabe Group", dummyGroupThugWannabe);
         assertNoGroupMembers(dummyGroupThugWannabe);
 
-        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
-        assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
-//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION,
-//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
-        assertGroupMember(dummyGroup, USER_LARGO_USERNAME);
+		assertGroupMember(GROUP_DUMMY_WIMPS_NAME, USER_LARGO_USERNAME, getDummyResource());
 
         DummyGroup dummyGroupAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
@@ -685,10 +665,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
-        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
@@ -713,20 +690,14 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
-        assertNotNull("No group on dummy resource", dummyGroupWimp);
-        display("Group", dummyGroupWimp);
-        assertGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_DUMMY_WIMPS_NAME, USER_RAPP_USERNAME, getDummyResource());
 
         DummyGroup dummyGroupWimpAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
         display("Group @orange", dummyGroupWimpAtOrange);
         assertGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
 
-        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
-        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
@@ -751,30 +722,21 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupThug);
-        display("Group", dummyGroupThug);
-        assertGroupMember(dummyGroupThug, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_THUG_NAME, USER_RAPP_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
         display("Wannabe Group", dummyGroupThugWannabe);
         assertGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
 
-        DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
-        assertNotNull("No group on dummy resource", dummyGroupWimp);
-        display("Group", dummyGroupWimp);
-        assertGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_DUMMY_WIMPS_NAME, USER_RAPP_USERNAME, getDummyResource());
 
         DummyGroup dummyGroupWimpAtOrange = dummyResourceOrange.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
         display("Group @orange", dummyGroupWimpAtOrange);
         assertGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
 
-        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
-        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
@@ -809,20 +771,14 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Group @orange", dummyGroupWimpAtOrange);
         assertNoGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
 
-        DummyGroup dummyGroupThug = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupThug);
-        display("Group", dummyGroupThug);
-        assertGroupMember(dummyGroupThug, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_THUG_NAME, USER_RAPP_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupThugWannabe = dummyResourceOrange.getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
         display("Wannabe Group", dummyGroupThugWannabe);
         assertGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
 
-        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
-        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
@@ -867,10 +823,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Group @orange", dummyGroupWimpAtOrange);
         assertNoGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
 
-        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
-        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
@@ -897,11 +850,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
 
-        DummyGroup dummyGroupBrute = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME);
-        assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
-        // Orange resource has explicit referential integrity switched off
-        assertGroupMember(dummyGroupBrute, USER_RAPP_USERNAME);
+		assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, dummyResourceOrange);
 
         DummyGroup dummyGroupBruteWannabe = dummyResourceOrange.getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
@@ -1187,6 +1136,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		clock.resetOverride();
 
 		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
+		dumpOrangeGroups(task, result);
 
 		// GIVEN
 		assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
@@ -1214,6 +1164,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 				IntegrationTestTools.createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID,
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
 				SHADOW_GROUP_DUMMY_LANDLUBERS_OID, prismContext);
+
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 		// WHEN
@@ -1223,14 +1174,56 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
-		DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_LANDLUBERS_NAME);
-		assertNotNull("No group present on dummy resource", dummyGroup);
-		display("Group", dummyGroup);
-		assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+		assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
+	}
+
+
+	/**
+	 * Add account to 2 groups using model service (shadow operations) - preparation for next test (intolerantValuePatterns)
+	 */
+	@Test
+	public void test715AssociateGuybrushToThugs() throws Exception {
+		final String TEST_NAME = "test715AssociateGuybrushToThugs";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+		assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, "default", task, result);
+		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
+
+		PrismObject<ShadowType> orangeAccount = findAccountShadowByUsername(USER_GUYBRUSH_USERNAME, resourceDummyOrange, result);
+		assertNotNull("No orange account for guybrush", orangeAccount);
+
+		ObjectDelta<ShadowType> delta1 =
+				IntegrationTestTools.createEntitleDelta(orangeAccount.getOid(),
+						dummyResourceCtlOrange.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+						getGroupShadow(dummyResourceCtlOrange, dummyResourceCtlOrange.getGroupObjectClass(), "thug", task, result).getOid(),
+								prismContext);
+
+		ObjectDelta<ShadowType> delta2 =
+				IntegrationTestTools.createEntitleDelta(orangeAccount.getOid(),
+						dummyResourceCtlOrange.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+						getGroupShadow(dummyResourceCtlOrange, dummyResourceCtlOrange.getGroupObjectClass(), "thug-wannabe", task, result) .getOid(),
+								prismContext);
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.summarize(delta1, delta2);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertGroupMember(GROUP_THUG_NAME, ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME, dummyResourceOrange);
+		assertGroupMember(GROUP_THUG_NAME+"-wannabe", ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME, dummyResourceOrange);
 	}
 
 	/**
-	 * Tolerant entitlement (landlubers) should be kept.
+	 * Tolerant entitlement (landlubers, thug) should be kept. Other (thug-wannabe) should not.
 	 */
 	@Test
 	public void test720ReconcileGuybrush() throws Exception {
@@ -1250,7 +1243,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 		// THEN
 		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
-		assertGroupMember(getDummyGroup(null, GROUP_DUMMY_LANDLUBERS_NAME), USER_GUYBRUSH_USERNAME);
+		assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
+		assertGroupMember(GROUP_THUG_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, dummyResourceOrange);
+		assertNoGroupMember(GROUP_THUG_NAME+"-wannabe", ACCOUNT_GUYBRUSH_DUMMY_USERNAME, dummyResourceOrange);
 	}
 
 	@SuppressWarnings("unused")
@@ -1287,6 +1282,50 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		return DummyResource.getInstance(dummyResourceName).listGroups().stream()
 				.filter(g -> g.containsMember(userName))
 				.collect(Collectors.toList());
+	}
+
+	private void dumpOrangeGroups(Task task, OperationResult result)
+			throws Exception {
+		System.out.println("--------------------------------------------- Orange --------------------");
+		display("Orange groups", dummyResourceOrange.listGroups());
+		SearchResultList<PrismObject<ShadowType>> orangeGroupsShadows = modelService
+				.searchObjects(ShadowType.class, ObjectQueryUtil.createResourceAndObjectClassQuery(
+						RESOURCE_DUMMY_ORANGE_OID, dummyResourceCtlOrange.getGroupObjectClass(), prismContext), null, task,
+						result);
+		display("Orange groups shadows", orangeGroupsShadows);
+		System.out.println("--------------------------------------------- Orange End ----------------");
+	}
+
+	private PrismObject<ShadowType> getGroupShadow(DummyResourceContoller dummyResourceCtl, QName objectClass, String name, Task task,
+			OperationResult result) throws Exception {
+		PrismObject<ResourceType> resource = dummyResourceCtl.getResource();
+		ObjectClassComplexTypeDefinition groupDef = RefinedResourceSchema.getRefinedSchema(resource)
+				.findObjectClassDefinition(dummyResourceCtl.getGroupObjectClass());
+		ResourceAttributeDefinition<Object> nameDef = groupDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+		assertNotNull("No icfs:name definition", nameDef);
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(resource.getOid(), objectClass, prismContext)
+				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), nameDef).eq(name)
+				.build();
+		SearchResultList<PrismObject<ShadowType>> shadows =
+				modelService.searchObjects(ShadowType.class, query, null, task, result);
+		assertEquals("Wrong # of results for " + name + " of " + objectClass + " at " + resource, 1, shadows.size());
+		return shadows.get(0);
+	}
+
+	private void assertGroupMember(String groupName, String accountName, DummyResource dummyResource)
+			throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyGroup dummyGroup = dummyResource.getGroupByName(groupName);
+		assertNotNull("No group " + dummyGroup + " on " + dummyResource, dummyGroup);
+		display("group", dummyGroup);
+		assertGroupMember(dummyGroup, accountName);
+	}
+
+	private void assertNoGroupMember(String groupName, String accountName, DummyResource dummyResource)
+			throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyGroup dummyGroup = dummyResource.getGroupByName(groupName);
+		assertNotNull("No group " + dummyGroup + " on " + dummyResource, dummyGroup);
+		display("group", dummyGroup);
+		assertNoGroupMember(dummyGroup, accountName);
 	}
 
 }
