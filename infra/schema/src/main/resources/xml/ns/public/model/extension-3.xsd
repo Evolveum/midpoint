@@ -90,8 +90,8 @@
                This is true by default.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:displayName>Dry run</a:displayName>
-                <a:displayOrder>800</a:displayOrder>
+                <a:displayName>Retry LiveSync Errors</a:displayName>
+                <a:displayOrder>801</a:displayOrder>
            	 	<a:minOccurs>0</a:minOccurs>
             	<a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
