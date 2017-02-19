@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
+import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -51,6 +52,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private AssignmentViewType viewType = AssignmentViewType.ROLE_CATALOG_VIEW;      //the current view type
     private PrismObject<UserType> targetUser = null;
     private PrismObject<UserType> assignmentsUserOwner = null;
+    private List<AssignmentConflictDto> conflictsList;
 
     private ObjectPaging roleCatalogPaging;
 
@@ -127,6 +129,13 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.collapsedItem = collapsedItem;
     }
 
+    public List<AssignmentConflictDto> getConflictsList() {
+        return conflictsList == null ? new ArrayList<>() : conflictsList;
+    }
+
+    public void setConflictsList(List<AssignmentConflictDto> conflictsList) {
+        this.conflictsList = conflictsList;
+    }
 
     public List<AssignmentEditorDto> getAssignmentShoppingCart() {
         return assignmentShoppingCart == null ? new ArrayList<AssignmentEditorDto>() : assignmentShoppingCart;

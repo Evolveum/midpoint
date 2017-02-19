@@ -19,11 +19,17 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,6 +46,7 @@ import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
+import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
@@ -61,10 +68,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by honchar.
@@ -92,7 +96,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private PageBase pageBase;
     private IModel<String> selectedTreeItemOidModel;
@@ -524,7 +527,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                setResponsePage(new PageAssignmentsList(loadUser()));
+                PageAssignmentsList assignmentsPanel = new PageAssignmentsList(true);
+                pageBase.navigateToNext(assignmentsPanel);
             }
         };
         cartButton.add(new VisibleEnableBehaviour(){
@@ -570,14 +574,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     public void reloadCartButton(AjaxRequestTarget target) {
         target.add(get(ID_HEADER_PANEL).get(ID_CART_BUTTON));
-    }
-
-    private PrismObject<UserType> loadUser() {
-        if (pageBase.getSessionStorage().getRoleCatalog().getTargetUser() != null){
-            return pageBase.getSessionStorage().getRoleCatalog().getTargetUser();
-        } else {
-            return pageBase.loadUserSelf(pageBase);
-        }
     }
 
     private QName getViewTypeClass(AssignmentViewType viewType) {

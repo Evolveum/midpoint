@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -56,9 +57,16 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private PrismObject<UserType> user;
     private OperationResult backgroundTaskOperationResult = null;
 
-    public PageAssignmentsList(PrismObject<UserType> user){
-        this.user = user;
+    public PageAssignmentsList() {
+        this(false);
+    }
+
+    public PageAssignmentsList(boolean setConflictsToSession){
+        user = loadUser();
         initAssignmentsModel();
+        if (setConflictsToSession) {
+            getSessionStorage().getRoleCatalog().setConflictsList(getAssignmentConflicts());
+        }
         initLayout();
     }
 
@@ -121,6 +129,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
 
         };
+        requestAssignments.add(new VisibleEnableBehaviour(){
+           @Override
+            public boolean isEnabled(){
+               return areConflictsResolved();
+           }
+        });
         mainForm.add(requestAssignments);
 
             AjaxSubmitButton resolveAssignments = new AjaxSubmitButton(ID_RESOLVE_CONFLICTS_BUTTON,
@@ -133,8 +147,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                PageAssignmentConflicts assignmentsConflictsPage = new PageAssignmentConflicts(Model.ofList(getAssignmentConflicts(target)));
-                PageAssignmentsList.this.navigateToNext(assignmentsConflictsPage);
+                PageAssignmentsList.this.navigateToNext(PageAssignmentConflicts.class);
             }
 
         };
@@ -284,7 +297,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         return assignmentsList;
     }
 
-    private List<AssignmentConflictDto> getAssignmentConflicts(AjaxRequestTarget target){
+    private List<AssignmentConflictDto> getAssignmentConflicts(){
         ModelContext<UserType> modelContext = null;
 
         ObjectDelta<UserType> delta;
@@ -327,9 +340,25 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflics. Reason: ", e);
             error("Couldn't get assignments conflics. Reason: " + e);
-            target.add(getFeedbackPanel());
         }
         return conflictsList;
     }
 
+    private boolean areConflictsResolved(){
+        List<AssignmentConflictDto> list = getSessionStorage().getRoleCatalog().getConflictsList();
+        for (AssignmentConflictDto dto : list){
+            if (!dto.isSolved()){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private PrismObject<UserType> loadUser() {
+        if (getSessionStorage().getRoleCatalog().getTargetUser() != null){
+            return getSessionStorage().getRoleCatalog().getTargetUser();
+        } else {
+            return loadUserSelf(PageAssignmentsList.this);
+        }
+    }
 }

@@ -29,31 +29,29 @@ import java.util.Map;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_ASSIGNMENTS_CONFLICTS_URL,
                 label = "PageAssignmentShoppingKart.auth.assignmentsConflicts.label",
                 description = "PageAssignmentShoppingKart.auth.assignmentsConflicts.description")})
-public class PageAssignmentConflicts extends PageSelf{
+public class PageAssignmentConflicts extends PageSelf {
     private static final String ID_CONFLICTS_PANEL = "conflictsPanel";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BACK = "back";
     private static final String ID_SUBMIT = "submit";
     private Map<String, FocusType> loadedObjectsMap = new HashMap<>();
 
-    public PageAssignmentConflicts(){}
-
-    public PageAssignmentConflicts(IModel<List<AssignmentConflictDto>> model){
-        initLayout(model);
+    public PageAssignmentConflicts() {
+        initLayout();
     }
 
-    private void initLayout(IModel<List<AssignmentConflictDto>> model){
+    private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
         RepeatingView conflictsPanel = new RepeatingView(ID_CONFLICTS_PANEL);
         conflictsPanel.setOutputMarkupId(true);
-        if (model != null && model.getObject() != null){
-            for (AssignmentConflictDto dto : model.getObject()){
-                AssignmentConflictPanel panel = new AssignmentConflictPanel(conflictsPanel.newChildId(), Model.of(dto));
-                conflictsPanel.add(panel);
-            }
+
+        List<AssignmentConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
+        for (AssignmentConflictDto dto : conflicts) {
+            AssignmentConflictPanel panel = new AssignmentConflictPanel(conflictsPanel.newChildId(), Model.of(dto));
+            conflictsPanel.add(panel);
         }
         mainForm.add(conflictsPanel);
 

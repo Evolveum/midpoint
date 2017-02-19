@@ -14,6 +14,8 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
+import java.util.List;
+
 /**
  * Created by honchar.
  */
