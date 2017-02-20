@@ -173,12 +173,18 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 	}
 
+	// The PRV (this object) should have a parent with a prism context
     public Class<Objectable> getTargetTypeCompileTimeClass() {
+		PrismContext prismContext = getPrismContext();
+		return prismContext != null ? getTargetTypeCompileTimeClass(prismContext) : null;
+	}
+
+    public Class<Objectable> getTargetTypeCompileTimeClass(PrismContext prismContext) {
         QName type = getTargetType();
         if (type == null) {
             return null;
         } else {
-			PrismObjectDefinition<Objectable> objDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(type);
+			PrismObjectDefinition<Objectable> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
 			return objDef != null ? objDef.getCompileTimeClass() : null;
         }
     }

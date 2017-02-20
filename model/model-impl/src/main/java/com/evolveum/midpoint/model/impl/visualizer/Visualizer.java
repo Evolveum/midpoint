@@ -827,7 +827,8 @@ public class Visualizer {
 		if (refValue.getObject() != null) {
 			return refValue;
 		}
-		PrismObject<? extends ObjectType> object = getObject(refValue.getOid(), (Class) refValue.getTargetTypeCompileTimeClass(), context, task, result);
+		PrismObject<? extends ObjectType> object = getObject(refValue.getOid(),
+				(Class) refValue.getTargetTypeCompileTimeClass(prismContext), context, task, result);
 		if (object == null) {
 			return refValue;
 		}
