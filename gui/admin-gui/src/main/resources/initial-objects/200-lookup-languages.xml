@@ -45,6 +45,10 @@
 		<label>Magyar</label>
 	</row>
 	<row>
+		<key>pl</key>
+		<label>Język polski</label>
+	</row>
+	<row>
 		<key>pt_BR</key>
 		<label>Português (Brasil)</label>
 	</row>
