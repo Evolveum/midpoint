@@ -219,6 +219,7 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
+        
 	// Synchronization constants
 	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
@@ -253,6 +254,7 @@ public abstract class SchemaConstants {
 			NS_MODEL_EXTENSION, "freshnessInterval"); // unused? TODO consider
 														// removing
 	public static final QName MODEL_EXTENSION_DRY_RUN = new QName(NS_MODEL_EXTENSION, "dryRun");
+        public static final QName SYNC_TOKEN_RETRY_UNHANDLED = new QName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
 	public static final QName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new QName(NS_MODEL_EXTENSION, "finishOperationsOnly");
 	public static final QName MODEL_EXTENSION_KIND = new QName(NS_MODEL_EXTENSION, "kind");
 	public static final QName MODEL_EXTENSION_INTENT = new QName(NS_MODEL_EXTENSION, "intent");

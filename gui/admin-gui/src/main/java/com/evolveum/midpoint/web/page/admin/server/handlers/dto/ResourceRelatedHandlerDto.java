@@ -41,6 +41,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 	public static final String F_INTENT = "intent";
 	public static final String F_OBJECT_CLASS = "objectClass";
 	public static final String F_RESOURCE_REFERENCE = "resourceRef";
+        public static final String F_TOKEN_RETRY_UNHANDLED_ERR = "retryUnhandledErr";
 
 	private static final String CLASS_DOT = ResourceRelatedHandlerDto.class.getName() + ".";
 	private static final String OPERATION_LOAD_RESOURCE = CLASS_DOT + "loadResource";
@@ -53,6 +54,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 	private String objectClass;
 	private List<QName> objectClassList;
 	private TaskAddResourcesDto resourceRef;
+        private boolean retryUnhandledErr;
 
 	private ResourceRelatedHandlerDto(TaskDto taskDto) {
 		super(taskDto);
@@ -93,6 +95,13 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 		if(objectClassItem != null && objectClassItem.getRealValue() != null){
 			objectClass = objectClassItem.getRealValue().getLocalPart();
 		}
+                
+                PrismProperty<Boolean> retrySyncItem = task.getExtension().findProperty(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED);
+		if (retrySyncItem == null || retrySyncItem.getRealValue() == null) {
+			retryUnhandledErr = true;
+		} else {
+			retryUnhandledErr = retrySyncItem.getRealValue();
+		}
 	}
 
 	public boolean isDryRun() {
@@ -101,6 +110,14 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 
 	public void setDryRun(boolean dryRun) {
 		this.dryRun = dryRun;
+	}
+        
+        public boolean isRetryUnhandledErr() {
+		return retryUnhandledErr;
+	}
+
+	public void setRetryUnhandledErr(boolean retryUnhandledErr) {
+		this.retryUnhandledErr = retryUnhandledErr;
 	}
 
 	public String getIntent() {
@@ -198,12 +215,16 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 			resourceObjectRef.setType(ResourceType.COMPLEX_TYPE);
 			rv.add(DeltaBuilder.deltaFor(TaskType.class, prismContext)
 					.item(TaskType.F_OBJECT_REF).replace(resourceObjectRef.asReferenceValue()).asItemDelta());
-		}
-
+		}                
+                
 		if (orig.isDryRun() != curr.isDryRun()) {
 			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_DRY_RUN, curr.isDryRun(), prismContext);
-		}
-
+		}      
+                
+                if (orig.isRetryUnhandledErr() != curr.isRetryUnhandledErr()) {
+			addExtensionDelta(rv, SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED, curr.isRetryUnhandledErr(), prismContext);
+		}   
+                
 		if (orig.getKind() != curr.getKind()) {
 			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_KIND, curr.getKind(), prismContext);
 		}
@@ -240,6 +261,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 	public ResourceRelatedHandlerDto clone() {
 		ResourceRelatedHandlerDto clone = new ResourceRelatedHandlerDto(taskDto);
 		clone.dryRun = dryRun;
+                clone.retryUnhandledErr = retryUnhandledErr;
 		clone.kind = kind;
 		clone.intent = intent;
 		clone.objectClass = objectClass;

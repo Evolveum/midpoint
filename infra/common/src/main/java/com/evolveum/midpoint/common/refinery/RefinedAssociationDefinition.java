@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -83,10 +84,12 @@ public class RefinedAssociationDefinition implements Serializable {
         return BooleanUtils.isNotFalse(resourceObjectAssociationType.isTolerant());
     }
 
+    @NotNull
 	public List<String> getTolerantValuePattern() {
 		return resourceObjectAssociationType.getTolerantValuePattern();
 	}
 
+	@NotNull
 	public List<String> getIntolerantValuePattern() {
 		return resourceObjectAssociationType.getIntolerantValuePattern();
 	}

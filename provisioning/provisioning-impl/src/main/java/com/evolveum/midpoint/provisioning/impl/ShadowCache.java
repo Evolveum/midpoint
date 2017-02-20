@@ -1288,8 +1288,17 @@ public abstract class ShadowCache {
 					continue;
 				}
 				boolean isSuccess = processSynchronization(shadowCtx, change, parentResult);
-
-				if (isSuccess) {
+                                
+                                boolean retryUnhandledError = true;
+                                if (task.getExtension() != null) {
+                                      PrismProperty tokenRetryUnhandledErrProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED);
+                                      
+                                      if (tokenRetryUnhandledErrProperty != null) {
+                                          retryUnhandledError = (boolean) tokenRetryUnhandledErrProperty.getRealValue(); 
+                                      }                                                                     
+                                }     
+                                
+				if (!retryUnhandledError || isSuccess) {                                    
 					// // get updated token from change,
 					// // create property modification from new token
 					// // and replace old token with the new one

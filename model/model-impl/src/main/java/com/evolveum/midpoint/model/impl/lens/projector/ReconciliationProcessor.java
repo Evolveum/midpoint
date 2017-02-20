@@ -773,67 +773,74 @@ public class ReconciliationProcessor {
 	}
 
 	private void decideIfTolerateAssociation(LensProjectionContext accCtx,
-			RefinedAssociationDefinition associationDefinition,
+			RefinedAssociationDefinition assocDef,
 			Collection<PrismContainerValue<ShadowAssociationType>> areCValues,
 			Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> shouldBeCValues,
 			ValueMatcher valueMatcher, Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
 			ObjectNotFoundException {
 
-		boolean evaluatePatterns = !associationDefinition.getTolerantValuePattern().isEmpty()
-				|| !associationDefinition.getIntolerantValuePattern().isEmpty();
+		boolean evaluatePatterns = !assocDef.getTolerantValuePattern().isEmpty() || !assocDef.getIntolerantValuePattern().isEmpty();
+		MatchingRule<Object> matchingRule = evaluatePatterns ? getMatchingRuleForTargetNamingIdentifier(assocDef) : null;
 
-		RefinedAttributeDefinition<Object> targetNamingAttributeDef = associationDefinition.getAssociationTarget().getNamingAttribute();
-		QName matchingAttributeName;
-		QName matchingRuleName;
-		if (targetNamingAttributeDef != null) {
-			matchingAttributeName = targetNamingAttributeDef.getName();
-			matchingRuleName = targetNamingAttributeDef.getMatchingRuleQName();
-		} else {
-			if (evaluatePatterns) {
-				throw new IllegalStateException(
-						"Couldn't evaluate tolerant/intolerant value patterns, because naming attribute is not known for "
-								+ associationDefinition.getAssociationTarget());
-			}
-			matchingAttributeName = null;
-			matchingRuleName = null;
-		}
-		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
-
+		// for each existing value we decide whether to keep it or delete it
 		for (PrismContainerValue<ShadowAssociationType> isCValue : areCValues) {
+			ResourceAttribute<String> targetNamingIdentifier = null;
 			if (evaluatePatterns) {
-				ResourceAttributeContainer identifiersContainer = getIdentifiersForAssociationTarget(isCValue, task, result);
-				ResourceAttribute<String> namingIdentifier = identifiersContainer.getNamingAttribute();
-				if (namingIdentifier == null) {
+				targetNamingIdentifier = getTargetNamingIdentifier(isCValue, task, result);
+				if (targetNamingIdentifier == null) {
 					LOGGER.warn("Couldn't check tolerant/intolerant patterns for {}, as there's no naming identifier for it", isCValue);
-				} else {
-					if (matchAssociationPattern(associationDefinition.getTolerantValuePattern(), namingIdentifier, matchingAttributeName,
-							matchingRule, isCValue)) {
-						LOGGER.trace("Reconciliation: KEEPING value {} of association {}: identifier {} matches with tolerant value pattern.",
-								isCValue, associationDefinition.getName().getLocalPart(), namingIdentifier);
-						continue;
-					}
-					if (matchAssociationPattern(associationDefinition.getIntolerantValuePattern(), namingIdentifier,
-							matchingAttributeName, matchingRule, isCValue)) {
-						recordAssociationDelta(valueMatcher, accCtx, associationDefinition, ModificationType.DELETE,
-								isCValue.getValue(), null, "identifier " + namingIdentifier + " matches with intolerant pattern");
-						continue;
-					}
+					evaluatePatterns = false;
 				}
 			}
-			if (!associationDefinition.isTolerant()) {
-				if (!isInCvwoAssociationValues(valueMatcher, isCValue.getValue(), shouldBeCValues)) {
-					LOGGER.trace("{} not in 'shouldBeCValues', adding it to delete delta", isCValue);
-					recordAssociationDelta(valueMatcher, accCtx, associationDefinition, ModificationType.DELETE,
-							isCValue.getValue(), null, "it is not given by any mapping and the association is not tolerant");
-				} else {
-					LOGGER.trace("{} in 'shouldBeCValues', keeping it", isCValue);
-				}
+
+			String assocNameLocal = assocDef.getName().getLocalPart();
+			if (evaluatePatterns && matchesAssociationPattern(assocDef.getTolerantValuePattern(), targetNamingIdentifier, matchingRule)) {
+				LOGGER.trace("Reconciliation: KEEPING value {} of association {}: identifier {} matches with tolerant value pattern.",
+						isCValue, assocNameLocal, targetNamingIdentifier);
+				continue;
+			}
+
+			if (isInCvwoAssociationValues(valueMatcher, isCValue.getValue(), shouldBeCValues)) {
+				LOGGER.trace("Reconciliation: KEEPING value {} of association {}: it is in 'shouldBeCValues'", isCValue, assocNameLocal);
+				continue;
+			}
+
+			if (evaluatePatterns && matchesAssociationPattern(assocDef.getIntolerantValuePattern(), targetNamingIdentifier, matchingRule)) {
+				recordAssociationDelta(valueMatcher, accCtx, assocDef, ModificationType.DELETE,
+						isCValue.getValue(), null, "identifier " + targetNamingIdentifier + " matches with intolerant pattern");
+				continue;
+			}
+
+			if (!assocDef.isTolerant()) {
+				recordAssociationDelta(valueMatcher, accCtx, assocDef, ModificationType.DELETE,
+						isCValue.getValue(), null, "it is not given by any mapping and the association is not tolerant");
 			} else {
-				LOGGER.trace("keeping {}, as the association is tolerant and the value was not caught by any intolerantValuePattern", isCValue);
+				LOGGER.trace("Reconciliation: KEEPING value {} of association {}: the association is tolerant and the value"
+						+ " was not caught by any intolerantValuePattern", isCValue, assocNameLocal);
 			}
 		}
     }
+
+	@NotNull
+	private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(RefinedAssociationDefinition associationDefinition) throws SchemaException {
+		RefinedAttributeDefinition<Object> targetNamingAttributeDef = associationDefinition.getAssociationTarget().getNamingAttribute();
+		if (targetNamingAttributeDef != null) {
+			QName matchingRuleName = targetNamingAttributeDef.getMatchingRuleQName();
+			return matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
+		} else {
+			throw new IllegalStateException(
+					"Couldn't evaluate tolerant/intolerant value patterns, because naming attribute is not known for "
+							+ associationDefinition.getAssociationTarget());
+		}
+	}
+
+	private ResourceAttribute<String> getTargetNamingIdentifier(
+			PrismContainerValue<ShadowAssociationType> associationValue, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException {
+		return getIdentifiersForAssociationTarget(associationValue, task, result).getNamingAttribute();
+	}
 
 	@NotNull
 	private ResourceAttributeContainer getIdentifiersForAssociationTarget(PrismContainerValue<ShadowAssociationType> isCValue,
@@ -1075,32 +1082,20 @@ public class ReconciliationProcessor {
 		return false;
 	}
 
-    private boolean matchAssociationPattern(List<String> patterns, ResourceAttribute<?> identifier,
-			QName matchingAttributeName, MatchingRule<Object> matchingRule, PrismContainerValue<ShadowAssociationType> value) {
-		if (patterns == null || patterns.isEmpty()) {
-			return false;
-		}
+    private boolean matchesAssociationPattern(@NotNull List<String> patterns, @NotNull ResourceAttribute<?> identifier,
+			@NotNull MatchingRule<Object> matchingRule) {
 		for (String pattern : patterns) {
-			try {
-				if (associationIdentifierMatches(identifier, pattern, matchingAttributeName, matchingRule)) {
-					return true;
+			for (PrismPropertyValue<?> identifierValue : identifier.getValues()) {
+				try {
+					if (identifierValue != null && matchingRule.matchRegex(identifierValue.getRealValue(), pattern)) {
+						return true;
+					}
+				} catch (SchemaException e) {
+					LOGGER.warn("Value '{}' is invalid: {}", identifierValue, e.getMessage(), e);
+					return false;
 				}
-			} catch (SchemaException e) {
-				LOGGER.warn("Value '{}' is invalid: {}", value.getValue(), e.getMessage(), e);
-				return false;
 			}
 		}
 		return false;
 	}
-
-	private boolean associationIdentifierMatches(ResourceAttribute<?> identifier, String pattern, QName matchingAttributeName,
-			MatchingRule<Object> matchingRule) throws SchemaException {
-		for (PrismPropertyValue<?> value : identifier.getValues()) {
-			if (value != null && matchingRule.matchRegex(value.getRealValue(), pattern)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 }
