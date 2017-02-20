@@ -444,6 +444,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setOptions(ModelExecuteOptions options) {
 		this.options = options;
 	}
+	
+	public PartialProcessingOptionsType getPartialProcessingOptions() {
+		if (options == null || options.getPartialProcessing() == null) {
+			return new PartialProcessingOptionsType();
+		} else {
+			return options.getPartialProcessing();
+		}
+	}
 
 	public MetadataType getRequestMetadata() {
 		return requestMetadata;

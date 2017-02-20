@@ -197,6 +197,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	 * TODO implement as non-transient.
 	 */
 	transient private boolean toBeArchived;
+	
+	transient private String humanReadableName;
 
 	LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
     	super(ShadowType.class, lensContext);
@@ -1100,29 +1102,32 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	}
 
 	public String getHumanReadableName() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("account(");
-		String humanReadableAccountIdentifier = getHumanReadableIdentifier();
-		if (StringUtils.isEmpty(humanReadableAccountIdentifier)) {
-			sb.append("no ID");
-		} else {
-			sb.append("ID ");
-			sb.append(humanReadableAccountIdentifier);
-		}
-		ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
-		if (discr != null) {
-			sb.append(", type '");
-			sb.append(discr.getIntent());
-			sb.append("', ");
-			if (discr.getOrder() != 0) {
-				sb.append("order ").append(discr.getOrder()).append(", ");
+		if (humanReadableName == null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("account(");
+			String humanReadableAccountIdentifier = getHumanReadableIdentifier();
+			if (StringUtils.isEmpty(humanReadableAccountIdentifier)) {
+				sb.append("no ID");
+			} else {
+				sb.append("ID ");
+				sb.append(humanReadableAccountIdentifier);
 			}
-		} else {
-			sb.append(" (no discriminator) ");
+			ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
+			if (discr != null) {
+				sb.append(", type '");
+				sb.append(discr.getIntent());
+				sb.append("', ");
+				if (discr.getOrder() != 0) {
+					sb.append("order ").append(discr.getOrder()).append(", ");
+				}
+			} else {
+				sb.append(" (no discriminator) ");
+			}
+			sb.append(getResource());
+			sb.append(")");
+			humanReadableName = sb.toString();
 		}
-		sb.append(getResource());
-		sb.append(")");
-		return sb.toString();
+		return humanReadableName;
 	}
 
 	private String getHumanReadableIdentifier() {

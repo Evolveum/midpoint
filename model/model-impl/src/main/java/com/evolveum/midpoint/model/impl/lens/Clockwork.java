@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,7 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -116,6 +117,8 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -507,18 +510,30 @@ public class Clockwork {
 		context.setState(ModelState.SECONDARY);
 	}
 	
-	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
 			context.setState(ModelState.FINAL);
 			return;
 		}
 		
-		boolean restartRequested = changeExecutor.executeChanges(context, task, result);
-
+		Holder<Boolean> restartRequestedHolder = new Holder<>();
+		
+		LensUtil.partialExecute("execution",
+				() -> { 
+					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
+					restartRequestedHolder.setValue(restartRequested);
+				}, 
+				context.getPartialProcessingOptions()::getExecution);
+		
 		audit(context, AuditEventStage.EXECUTION, task, result);
 		
 		rotContext(context);
 
+		boolean restartRequested = false;
+		if (restartRequestedHolder.getValue() != null) {
+			restartRequested = restartRequestedHolder.getValue();
+		}
+		
 		if (!restartRequested) {
 			// TODO what if restart is requested indefinitely?
 			context.incrementExecutionWave();

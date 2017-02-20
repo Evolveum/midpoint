@@ -16,8 +16,10 @@
 package com.evolveum.midpoint.model.api;
 
 
+import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -26,7 +28,7 @@ import java.util.List;
  * @author semancik
  *
  */
-public class ModelExecuteOptions implements Serializable, Cloneable {
+public class ModelExecuteOptions extends AbstractOptions implements Serializable, Cloneable {
 	
 	/**
 	 * Force the operation even if it would otherwise fail due to external failure. E.g. attempt to delete an account
@@ -96,6 +98,8 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 	private Boolean preAuthorized;
 	
 	private OperationBusinessContextType requestBusinessContext;
+	
+	private PartialProcessingOptionsType partialProcessing;
 
     public Boolean getForce() {
 		return force;
@@ -425,6 +429,27 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		return opts;
 	}
 
+	public PartialProcessingOptionsType getPartialProcessing() {
+		return partialProcessing;
+	}
+
+	public void setPartialProcessing(PartialProcessingOptionsType partialProcessing) {
+		this.partialProcessing = partialProcessing;
+	}
+	
+	public static PartialProcessingOptionsType getPartialProcessing(ModelExecuteOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.getPartialProcessing();
+	}
+	
+	public static ModelExecuteOptions createPartialProcessing(PartialProcessingOptionsType partialProcessing) {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setPartialProcessing(partialProcessing);
+		return opts;
+	}
+
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
@@ -515,35 +540,11 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     	appendFlag(sb, "reevaluateSearchFilters", reevaluateSearchFilters);
     	appendFlag(sb, "reconcileAffected", reconcileAffected);
     	appendFlag(sb, "requestBusinessContext", requestBusinessContext == null ? null : true);
-    	if (sb.charAt(sb.length() - 1) == ',') {
-			sb.deleteCharAt(sb.length() - 1);
-		}
+    	appendFlag(sb, "partialProcessing", partialProcessing == null ? null : true);
+    	removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();
     }
-    
-    private void appendFlag(StringBuilder sb, String name, Boolean val) {
-		if (val == null) {
-			return;
-		} else if (val) {
-			sb.append(name);
-			sb.append(",");
-		} else {
-			sb.append(name);
-			sb.append("=false,");
-		}
-	}
-	
-	private void appendVal(StringBuilder sb, String name, Object val) {
-		if (val == null) {
-			return;
-		} else {
-			sb.append(name);
-			sb.append("=");
-			sb.append(val);
-			sb.append(",");
-		}
-	}
 
     public ModelExecuteOptions clone() {
         // not much efficient, but...
