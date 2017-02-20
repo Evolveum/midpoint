@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -80,13 +81,11 @@ public class MappingDiagEvaluator {
 
 		Mapping<?,?> mapping = builder.build();
 
-		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
-		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {
 			mapping.evaluate(task, result);
 		} finally {
-			ModelExpressionThreadLocalHolder.popCurrentResult();
-			ModelExpressionThreadLocalHolder.popCurrentTask();
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 
 		StringBuilder sb = new StringBuilder();

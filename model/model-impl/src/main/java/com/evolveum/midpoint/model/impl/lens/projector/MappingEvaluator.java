@@ -29,10 +29,12 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -76,9 +78,17 @@ public class MappingEvaluator {
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
 			Mapping<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
-		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
-		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+    	evaluateMapping(mapping, lensContext, null, task, parentResult);
+    }
+    
+    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
+			Mapping<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
+		env.setLensContext(lensContext);
+		env.setProjectionContext(projContext);
+		env.setCurrentResult(parentResult);
+		env.setCurrentTask(task);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
 		ObjectType originObject = mapping.getOriginObject();
 		String objectOid, objectName, objectTypeName;
 		if (originObject != null) {
@@ -99,9 +109,7 @@ public class MappingEvaluator {
 			throw new IllegalArgumentException(e.getMessage()+" in "+mapping.getContextDescription(), e);
 		} finally {
 			task.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, System.currentTimeMillis() - start);
-			ModelExpressionThreadLocalHolder.popLensContext();
-			ModelExpressionThreadLocalHolder.popCurrentResult();
-			ModelExpressionThreadLocalHolder.popCurrentTask();
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 			if (lensContext.getDebugListener() != null) {
 				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -432,14 +433,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null,
 				resource, configuration, null);
 		try {
-			ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-			ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 			PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
 					conditionExpressionType, expressionFactory, desc, task, result);
 			return evaluateCondition.getValue();
 		} finally {
-			ModelExpressionThreadLocalHolder.popCurrentResult();
-			ModelExpressionThreadLocalHolder.popCurrentTask();
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 	}
 

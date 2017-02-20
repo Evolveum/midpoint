@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="10000000-0000-0000-0000-000000000003"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
+          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+
+    <name>Embedded Test OpenDJ</name>
+
+    <connectorRef type="ConnectorType">
+    	<description>Dummy description, just for the test</description>
+		<filter>
+            <q:equal>
+            	<q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+					   
+		<icfc:configurationProperties>
+			<icfcldap:port>10389</icfcldap:port>
+			<icfcldap:host>localhost</icfcldap:host>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+ 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+ 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+		</icfc:configurationProperties>
+		
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+		
+    </connectorConfiguration>
+
+	<schemaHandling>
+
+		<objectType>
+			<kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	basic.composeDnWithSuffix('uid', name, 'ou=people,dc=example,dc=com')
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+	                    <path>$user/fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+                <inbound>
+                 	<strength>weak</strength>
+                	<target>
+	                    <path>$user/familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+	                    <path>$user/givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:uid</ref>
+                <outbound>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+	                    <path>$user/name</path>
+                    </target>
+                </inbound>                
+            </attribute>
+
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>group</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership VIP</displayName>
+            	<kind>entitlement</kind>
+            	<intent>group-vip</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
+
+			<protected>
+       			<filter>
+	       			<q:equal>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+		            	<q:path>attributes/ri:dn</q:path>
+		                <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
+		            </q:equal>
+	            </filter>
+			</protected>
+            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                    <inbound/>
+                </administrativeStatus>
+            </activation>
+            			
+            <credentials>
+                <password>
+                    <outbound/>
+                    <inbound>
+                    	<strength>weak</strength>
+                    	<expression>
+                    		<generate/>
+                    	</expression>
+                    </inbound>
+                </password>
+            </credentials>
+
+        </objectType>
+        
+        <objectType>
+			<kind>generic</kind>
+			<intent>ou</intent>
+			<displayName>OU</displayName>
+			<objectClass>ri:organizationalUnit</objectClass>
+			<attribute>
+				<c:ref>ri:dn</c:ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								import javax.naming.ldap.LdapName
+								import javax.naming.ldap.Rdn
+								
+								def rdns = []
+								rdns.add(new Rdn('ou', name.getOrig()))
+								
+								object = focus
+								while (true) {
+									parent = midpoint.getParentOrgByOrgType(object, 'functional')
+									if (parent == null) {
+										break;
+									}
+									if (parent.getName().getOrig() == 'TOP') {
+										break;
+									}
+									rdns.add(new Rdn('ou', parent.getName().getOrig()))
+									object = parent;
+								}
+								dn = new LdapName('dc=example,dc=com')
+								rdns.reverse().each { rdn -> dn.add(rdn) }
+								return dn.toString();
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<c:ref>ri:ou</c:ref>
+				<outbound>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
+        <objectType>
+			<kind>generic</kind>
+			<intent>ou-vip</intent>
+			<displayName>OU</displayName>
+			<objectClass>ri:organizationalUnit</objectClass>
+			<attribute>
+				<c:ref>ri:dn</c:ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								import javax.naming.ldap.LdapName
+								import javax.naming.ldap.Rdn
+								
+								def rdns = []
+								rdns.add(new Rdn('ou', name.getOrig()+'-vip'))
+								
+								object = focus
+								while (true) {
+									parent = midpoint.getParentOrgByOrgType(object, 'functional')
+									if (parent == null) {
+										break;
+									}
+									if (parent.getName().getOrig() == 'TOP') {
+										break;
+									}
+									rdns.add(new Rdn('ou', parent.getName().getOrig()))
+									object = parent;
+								}
+								dn = new LdapName('dc=example,dc=com')
+								rdns.reverse().each { rdn -> dn.add(rdn) }
+								return dn.toString();
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<c:ref>ri:ou</c:ref>
+				<outbound>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								name.getOrig()+'-vip'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+		</objectType>
+
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>group</intent>
+			<displayName>LDAP Group</displayName>
+			<objectClass>ri:groupOfUniqueNames</objectClass>
+			<attribute>
+				<c:ref>ri:dn</c:ref>
+				<displayName>Distinguished Name</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								import javax.naming.ldap.LdapName
+								import javax.naming.ldap.Rdn
+								
+								def rdns = []
+								rdns.add(new Rdn('cn', name.getOrig()))
+								rdns.add(new Rdn('ou', name.getOrig()))
+								
+								object = focus
+								while (true) {
+									parent = midpoint.getParentOrgByOrgType(object, 'functional')
+									if (parent == null) {
+										break;
+									}
+									if (parent.getName().getOrig() == 'TOP') {
+										break;
+									}
+									rdns.add(new Rdn('ou', parent.getName().getOrig()))
+									object = parent;
+								}
+								dn = new LdapName('dc=example,dc=com')
+								rdns.reverse().each { rdn -> dn.add(rdn) }
+								return dn.toString();
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<c:ref>ri:cn</c:ref>
+				<displayName>Common Name</displayName>
+				<outbound>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+				</outbound>
+			</attribute>
+			<association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>group</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
+            <dependency>
+				<kind>generic</kind>
+				<intent>ou</intent>
+			</dependency>
+		</objectType>
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>group-vip</intent>
+			<displayName>LDAP Group VIP</displayName>
+			<objectClass>ri:groupOfUniqueNames</objectClass>
+			<attribute>
+				<c:ref>ri:dn</c:ref>
+				<displayName>Distinguished Name</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								import javax.naming.ldap.LdapName
+								import javax.naming.ldap.Rdn
+								
+								def rdns = []
+								rdns.add(new Rdn('cn', name.getOrig()+'-vip'))
+								rdns.add(new Rdn('ou', name.getOrig()+'-vip'))
+								
+								object = focus
+								while (true) {
+									parent = midpoint.getParentOrgByOrgType(object, 'functional')
+									if (parent == null) {
+										break;
+									}
+									if (parent.getName().getOrig() == 'TOP') {
+										break;
+									}
+									rdns.add(new Rdn('ou', parent.getName().getOrig()))
+									object = parent;
+								}
+								dn = new LdapName('dc=example,dc=com')
+								rdns.reverse().each { rdn -> dn.add(rdn) }
+								return dn.toString();
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<c:ref>ri:cn</c:ref>
+				<displayName>Common Name</displayName>
+				<outbound>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								name.getOrig()+'-vip'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>group-vip</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
+            <dependency>
+				<kind>generic</kind>
+				<intent>ou-vip</intent>
+			</dependency>
+		</objectType>
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>group-supervip</intent>
+			<displayName>LDAP Group SUPERVIP</displayName>
+			<objectClass>ri:groupOfUniqueNames</objectClass>
+			<attribute>
+				<c:ref>ri:dn</c:ref>
+				<displayName>Distinguished Name</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								import javax.naming.ldap.LdapName
+								import javax.naming.ldap.Rdn
+								
+								def rdns = []
+								rdns.add(new Rdn('cn', name.getOrig()+'-supervip'))
+								rdns.add(new Rdn('ou', name.getOrig()+'-vip'))
+								
+								object = focus
+								while (true) {
+									parent = midpoint.getParentOrgByOrgType(object, 'functional')
+									if (parent == null) {
+										break;
+									}
+									if (parent.getName().getOrig() == 'TOP') {
+										break;
+									}
+									rdns.add(new Rdn('ou', parent.getName().getOrig()))
+									object = parent;
+								}
+								dn = new LdapName('dc=example,dc=com')
+								rdns.reverse().each { rdn -> dn.add(rdn) }
+								return dn.toString();
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<c:ref>ri:cn</c:ref>
+				<displayName>Common Name</displayName>
+				<outbound>
+					<source>
+						<c:path>$focus/name</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								name.getOrig()+'-supervip'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>group-supervip</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
+            <dependency>
+				<kind>generic</kind>
+				<intent>ou-vip</intent>
+			</dependency>
+		</objectType>
+	</schemaHandling>
+	
+	<capabilities>
+		<configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+			<cap:activation>
+				<cap:status>
+					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+					<cap:enableValue/>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:status>
+			</cap:activation>
+		</configured>
+	</capabilities>
+
+</resource>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -109,8 +110,7 @@ public class ReportServiceImpl implements ReportService {
 		ObjectQuery parsedQuery = null;
 		try {
 			Task task = taskManager.createTaskInstance();
-			ModelExpressionThreadLocalHolder.pushCurrentResult(task.getResult());
-			ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
 			SearchFilterType filter = (SearchFilterType) prismContext.parseAtomicValue(query,
 					SearchFilterType.COMPLEX_TYPE);
 			LOGGER.trace("filter {}", filter);
@@ -137,8 +137,7 @@ public class ReportServiceImpl implements ReportService {
 			// TODO Auto-generated catch block
 			throw e;
 		} finally {
-			ModelExpressionThreadLocalHolder.popCurrentResult();
-			ModelExpressionThreadLocalHolder.popCurrentTask();
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 		return parsedQuery;
 
@@ -204,15 +203,13 @@ public class ReportServiceImpl implements ReportService {
 
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
 				prismContext.getDefaultProtector());
-		ModelExpressionThreadLocalHolder.pushCurrentResult(task.getResult());
-		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
 		Object o = null;
 		try{
 			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
 				parentResult);
 		} finally{
-			ModelExpressionThreadLocalHolder.popCurrentResult();
-			ModelExpressionThreadLocalHolder.popCurrentTask();
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 		if (o != null) {
 
@@ -260,15 +257,13 @@ public class ReportServiceImpl implements ReportService {
 
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
 				prismContext.getDefaultProtector());
-		ModelExpressionThreadLocalHolder.pushCurrentResult(task.getResult());
-		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
 		Object o = null;
 		try{
 			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
 				parentResult);
 		} finally {
-			ModelExpressionThreadLocalHolder.popCurrentResult();
-			ModelExpressionThreadLocalHolder.popCurrentTask();
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 		if (o != null) {
 

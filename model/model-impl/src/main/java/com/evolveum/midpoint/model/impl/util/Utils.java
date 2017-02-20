@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -631,15 +632,15 @@ public final class Utils {
 	
 	public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
             ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-        ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
-        ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
-        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
+		env.setLensContext(lensContext);
+		env.setCurrentResult(parentResult);
+		env.setCurrentTask(task);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
         try {
             return scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, useNew, shortDesc, task, parentResult);
         } finally {
-            ModelExpressionThreadLocalHolder.popLensContext();
-            ModelExpressionThreadLocalHolder.popCurrentResult();
-            ModelExpressionThreadLocalHolder.popCurrentTask();
+        	ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 //			if (lensContext.getDebugListener() != null) {
 //				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
 //			}
