@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -86,18 +87,17 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
                 List<InlineMenuItem> items = new ArrayList<>();
-                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
-                    InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
-                            new InlineMenuItemAction() {
-                                private static final long serialVersionUID = 1L;
+                InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
+                        new InlineMenuItemAction() {
+                            private static final long serialVersionUID = 1L;
 
-                                @Override
-                                public void onClick(AjaxRequestTarget target) {
-                                    deleteAssignmentPerformed(target);
-                                }
-                            });
-                    items.add(item);
-                }
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                deleteAssignmentPerformed(target);
+//                                target.add(PageAssignmentsList.this.getRequestButton());
+                            }
+                        });
+                items.add(item);
                 return items;
 
             }
@@ -282,17 +282,34 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private List<AssignmentEditorDto> addAssignmentsToUser(){
+        List<AssignmentConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
+        List<String> assignmentsToRemove = new ArrayList<>();
+        List<String> assignmentsToUnselect = new ArrayList<>();
+        for (AssignmentConflictDto dto : conflicts){
+            if (dto.isRemovedOld()){
+                assignmentsToRemove.add(dto.getExistingAssignmentTargetObj().getOid());
+            } else if (dto.isUnassignedNew()){
+                assignmentsToUnselect.add(dto.getAddedAssignmentTargetObj().getOid());
+            }
+        }
+
         List<AssignmentType> userAssignments = user.asObjectable().getAssignment();
         if (userAssignments == null){
             userAssignments = new ArrayList<>();
         }
         List<AssignmentEditorDto> assignmentsList = new ArrayList<>();
         for (AssignmentType assignment : userAssignments){
-            assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+            if (assignmentsToRemove.contains(assignment.getTargetRef().getOid())){
+                assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.DELETE, assignment, this));
+            } else {
+                assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+            }
         }
         for (AssignmentEditorDto assignmentsToAdd : assignmentsModel.getObject()){
-            assignmentsToAdd.setStatus(UserDtoStatus.ADD);
-            assignmentsList.add(assignmentsToAdd);
+            if (!assignmentsToUnselect.contains(assignmentsToAdd.getTargetRef().getOid())) {
+                assignmentsToAdd.setStatus(UserDtoStatus.ADD);
+                assignmentsList.add(assignmentsToAdd);
+            }
         }
         return assignmentsList;
     }
@@ -360,5 +377,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         } else {
             return loadUserSelf(PageAssignmentsList.this);
         }
+    }
+
+    private Component getRequestButton(){
+        return get(ID_FORM).get(ID_REQUEST_BUTTON);
     }
 }
