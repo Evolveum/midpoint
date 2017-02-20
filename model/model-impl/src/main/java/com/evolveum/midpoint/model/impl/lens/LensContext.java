@@ -497,6 +497,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.stats = stats;
 	}
 
+	public OperationBusinessContextType getRequestBusinessContext() {
+		if (options == null) {
+			return null;
+		}
+		return options.getRequestBusinessContext();
+	}
+
 	/**
      * Returns all changes, user and all accounts. Both primary and secondary changes are returned, but
      * these are not merged.

@@ -12095,8 +12095,47 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="requestBusinessContext" type="tns:OperationBusinessContextType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Business context that describes this request.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="OperationBusinessContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The business context of an operation. This structure contains data about the operation that bind it to the
+                business process or other non-information environment. It contains data such as free-form comment of the
+                affected user (requester, approver) it may contain references to other business documents that are outside
+                of the IDM scope (e.g. reference to the support contract or employee contact number), etc.
+                It is designed for future extensibility.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="tns:extension" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The extension for future dynamic extensibility.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form comment of the affected person. If this business context describe the request then
+                        this is the requestor comment. If the context describes approval step then this is approver
+                        comment. The comment is expected to be a short comment justifying the request, explaining
+                        the decision and so on. It is supposed to be few lines of text at the most.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: we may want to add more generic fields here in the future. E.g. contract reference (contract number) may be a good addition. -->
+        </xsd:sequence>
+   </xsd:complexType>
 
 	<xsd:complexType name="ModelCompareOptionsType">
 		<xsd:annotation>
