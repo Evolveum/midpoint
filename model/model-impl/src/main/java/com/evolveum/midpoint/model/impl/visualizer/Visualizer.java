@@ -228,6 +228,10 @@ public class Visualizer {
 			return object;
 		}
 		try {
+			if (objectTypeClass == null) {
+				LOGGER.warn("No object class for {}, using ObjectType", oid);
+				objectTypeClass = ObjectType.class;
+			}
 			object = modelService.getObject(objectTypeClass, oid, createCollection(createNoFetch()), task, result);
 			context.putObject(object);
 			return object;

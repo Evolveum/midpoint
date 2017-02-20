@@ -178,7 +178,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
         if (type == null) {
             return null;
         } else {
-            return getPrismContext().getSchemaRegistry().findObjectDefinitionByType(type).getCompileTimeClass();
+			PrismObjectDefinition<Objectable> objDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(type);
+			return objDef != null ? objDef.getCompileTimeClass() : null;
         }
     }
 	
