@@ -132,7 +132,7 @@ public class AdminGuiConfigTypeUtil {
 		return UserInterfaceElementVisibilityType.VACANT;
 	}
 
-	private static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
+	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
 		for (DashboardWidgetType widget: dashboard.getWidget()) {
 			if (widget.getIdentifier().equals(widgetIdentifier)) {
 				return widget;
