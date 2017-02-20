@@ -44,10 +44,18 @@
 		<key>hu</key>
 		<label>Magyar</label>
 	</row>
-	<!--row>
+	<row>
+		<key>pl</key>
+		<label>Język polski</label>
+	</row>
+	<row>
+		<key>pt_BR</key>
+		<label>Português (Brasil)</label>
+	</row>
+	<row>
 		<key>ru</key>
 		<label>Русский</label>
-	</row-->
+	</row>
 	<row>
 		<key>sk</key>
 		<label>Slovenčina</label>
