@@ -236,7 +236,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 				result.merge(delta);
 			}
 		}
-		LOGGER.trace ("Aggregated wave delta for wave {} = {}", wave, result != null ? result.debugDump() : "(null)");
+		LOGGER.trace("Aggregated wave delta for wave {} = {}", wave, result != null ? result.debugDump() : "(null)");
 		return result;
 	}
     

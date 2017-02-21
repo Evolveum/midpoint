@@ -15,20 +15,25 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -36,14 +41,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
@@ -449,4 +446,61 @@ public class PolicyRuleProcessor {
 				.collect(Collectors.toList());
 	}
 
+	public <F extends FocusType> void storeAssignmentPolicySituation(LensContext<F> context,
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, OperationResult result) throws SchemaException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return;
+		}
+		for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+			storeAssignmentPolicySituation(focusContext, evaluatedAssignment, result);
+		}
+	}
+
+	private <F extends FocusType> void storeAssignmentPolicySituation(LensFocusContext<F> focusContext,
+			EvaluatedAssignmentImpl<F> evaluatedAssignment,
+			OperationResult result) throws SchemaException {
+		Long id = evaluatedAssignment.getAssignmentType().getId();
+		if (id == null) {
+			throw new IllegalStateException("Help! Help! Assignment with no ID: " + evaluatedAssignment);
+		}
+		Set<String> currentSituations = new HashSet<>(evaluatedAssignment.getAssignmentType().getPolicySituation());
+		Set<String> newSituations = new HashSet<>(evaluatedAssignment.getPolicySituations());
+		PropertyDelta<String> situationsDelta = createSituationDelta(
+				new ItemPath(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION), currentSituations, newSituations);
+		if (situationsDelta != null) {
+			focusContext.swallowToProjectionWaveSecondaryDelta(situationsDelta);
+		}
+	}
+
+	public <F extends FocusType> void storeFocusPolicySituation(LensContext<F> context, Task task, OperationResult result)
+			throws SchemaException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return;
+		}
+		Set<String> currentSituations = focusContext.getObjectCurrent() != null ?
+				new HashSet<>(focusContext.getObjectCurrent().asObjectable().getPolicySituation()) : Collections.emptySet();
+		Set<String> newSituations = new HashSet<>(focusContext.getPolicySituations());
+		PropertyDelta<String> situationsDelta = createSituationDelta(
+				new ItemPath(FocusType.F_POLICY_SITUATION), currentSituations, newSituations);
+		if (situationsDelta != null) {
+			focusContext.swallowToProjectionWaveSecondaryDelta(situationsDelta);
+		}
+	}
+
+	@Nullable
+	private PropertyDelta<String> createSituationDelta(ItemPath path, Set<String> currentSituations, Set<String> newSituations)
+			throws SchemaException {
+		if (newSituations.equals(currentSituations)) {
+			return null;
+		}
+		PropertyDelta<String> situationsDelta = (PropertyDelta<String>) DeltaBuilder.deltaFor(FocusType.class, prismContext)
+				.item(path)
+						.add(CollectionUtils.subtract(newSituations, currentSituations))
+						.delete(CollectionUtils.subtract(currentSituations, newSituations))
+				.asItemDelta();
+		situationsDelta.setEstimatedOldValues(PrismPropertyValue.wrap(currentSituations));
+		return situationsDelta;
+	}
 }

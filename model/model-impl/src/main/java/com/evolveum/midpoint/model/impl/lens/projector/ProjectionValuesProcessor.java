@@ -418,26 +418,9 @@ public class ProjectionValuesProcessor {
 			
 	        iteration++;
 	        iterationToken = null;
-	        if (iteration > maxIterations) {
-	        	StringBuilder sb = new StringBuilder();
-	        	if (iteration == 1) {
-	        		sb.append("Error processing ");
-	        	} else {
-	        		sb.append("Too many iterations ("+iteration+") for ");
-	        	}
-	        	sb.append(projContext.getHumanReadableName());
-	        	if (iteration == 1) {
-	        		sb.append(": constraint violation: ");
-	        	} else {
-	        		sb.append(": cannot determine values that satisfy constraints: ");
-	        	}
-	        	if (conflictMessage != null) {
-	        		sb.append(conflictMessage);
-	        	}
-	        	throw new ObjectAlreadyExistsException(sb.toString());
-	        }
-	        
-	        cleanupContext(projContext);
+			LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, projContext.getHumanReadableName());
+
+			cleanupContext(projContext);
 	        if (consistencyChecks) context.checkConsistence();
 	        
 		}
@@ -448,7 +431,7 @@ public class ProjectionValuesProcessor {
 		
 					
 	}
-	
+
 	private boolean willResetIterationCounter(LensProjectionContext projectionContext) throws SchemaException {
 		ObjectDelta<ShadowType> accountDelta = projectionContext.getDelta();
 		if (accountDelta == null) {
