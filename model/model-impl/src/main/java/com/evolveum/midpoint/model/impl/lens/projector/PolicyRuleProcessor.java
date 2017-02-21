@@ -83,6 +83,7 @@ public class PolicyRuleProcessor {
         checkExclusionsRuleBased(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
         checkExclusionsRuleBased(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getZeroSet());
         checkExclusionsRuleBased(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
+        checkExclusionsRuleBased(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getZeroSet());
         checkAssigneeConstraints(context, evaluatedAssignmentTriple, result);
         checkSecondaryConstraints(context, evaluatedAssignmentTriple, result);
 	}
@@ -446,31 +447,33 @@ public class PolicyRuleProcessor {
 				.collect(Collectors.toList());
 	}
 
-	public <F extends FocusType> void storeAssignmentPolicySituation(LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, OperationResult result) throws SchemaException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return;
-		}
-		for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-			storeAssignmentPolicySituation(focusContext, evaluatedAssignment, result);
-		}
-	}
-
-	private <F extends FocusType> void storeAssignmentPolicySituation(LensFocusContext<F> focusContext,
-			EvaluatedAssignmentImpl<F> evaluatedAssignment,
-			OperationResult result) throws SchemaException {
+	private <F extends FocusType> PropertyDelta<String> getAssignmentModificationDelta(
+			EvaluatedAssignmentImpl<F> evaluatedAssignment) throws SchemaException {
 		Long id = evaluatedAssignment.getAssignmentType().getId();
 		if (id == null) {
-			throw new IllegalStateException("Help! Help! Assignment with no ID: " + evaluatedAssignment);
+			throw new IllegalArgumentException("Assignment with no ID: " + evaluatedAssignment);
 		}
 		Set<String> currentSituations = new HashSet<>(evaluatedAssignment.getAssignmentType().getPolicySituation());
 		Set<String> newSituations = new HashSet<>(evaluatedAssignment.getPolicySituations());
-		PropertyDelta<String> situationsDelta = createSituationDelta(
+		return createSituationDelta(
 				new ItemPath(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION), currentSituations, newSituations);
-		if (situationsDelta != null) {
-			focusContext.swallowToProjectionWaveSecondaryDelta(situationsDelta);
+	}
+
+	private <F extends FocusType> boolean shouldSituationBeUpdated(EvaluatedAssignment<F> evaluatedAssignment) {
+		Set<String> currentSituations = new HashSet<>(evaluatedAssignment.getAssignmentType().getPolicySituation());
+		// if the situations that were last synced (if they were) are the same as the current ones => OK
+		if (evaluatedAssignment.getPolicySituationsSynced() != null
+				&& evaluatedAssignment.getPolicySituationsSynced().equals(currentSituations)) {
+			LOGGER.trace("policy situations synced are the same as current situations: {}", evaluatedAssignment.debugDump());	// remove
+			return false;
 		}
+		// if the current situations are the same as the ones in the old assignment => OK
+		// (provided that the situations in the assignment were _not_ changed directly via a delta!!!) TODO check this
+		if (currentSituations.equals(new HashSet<>(evaluatedAssignment.getPolicySituations()))) {
+			LOGGER.trace("current policy situations are the same as computed ones: {}", evaluatedAssignment.debugDump());		// remove
+			return false;
+		}
+		return true;
 	}
 
 	public <F extends FocusType> void storeFocusPolicySituation(LensContext<F> context, Task task, OperationResult result)
@@ -495,12 +498,107 @@ public class PolicyRuleProcessor {
 		if (newSituations.equals(currentSituations)) {
 			return null;
 		}
+		@SuppressWarnings({ "unchecked", "raw" })
 		PropertyDelta<String> situationsDelta = (PropertyDelta<String>) DeltaBuilder.deltaFor(FocusType.class, prismContext)
 				.item(path)
-						.add(CollectionUtils.subtract(newSituations, currentSituations))
-						.delete(CollectionUtils.subtract(currentSituations, newSituations))
+						.add(CollectionUtils.subtract(newSituations, currentSituations).toArray())
+						.delete(CollectionUtils.subtract(currentSituations, newSituations).toArray())
 				.asItemDelta();
 		situationsDelta.setEstimatedOldValues(PrismPropertyValue.wrap(currentSituations));
 		return situationsDelta;
+	}
+
+	public <F extends FocusType, T extends FocusType> void applyAssignmentSituationOnAdd(LensContext<F> context,
+			PrismObject<T> objectToAdd) throws SchemaException {
+		T focus = objectToAdd.asObjectable();
+		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getNonNegativeValues()) {
+			if (!shouldSituationBeUpdated(evaluatedAssignment)) {
+				continue;
+			}
+			AssignmentType assignment = evaluatedAssignment.getAssignmentType();
+			if (assignment.getId() != null) {
+				PropertyDelta delta = getAssignmentModificationDelta(evaluatedAssignment);
+				if (delta != null) {
+					delta.applyTo(objectToAdd);
+				}
+			} else {
+				int i = focus.getAssignment().indexOf(assignment);
+				if (i < 0) {
+					throw new IllegalStateException("Assignment to be replaced not found in an object to add: " + assignment + " / " + objectToAdd);
+				}
+				copyPolicySituations(focus.getAssignment().get(i), evaluatedAssignment);
+			}
+			evaluatedAssignment.setPolicySituationsSynced(new HashSet<>(evaluatedAssignment.getPolicySituations()));
+		}
+	}
+
+	public <F extends FocusType, T extends ObjectType> ObjectDelta<T> applyAssignmentSituationOnModify(LensContext<F> context,
+			ObjectDelta<T> objectDelta) throws SchemaException {
+		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getNonNegativeValues()) {
+			if (!shouldSituationBeUpdated(evaluatedAssignment)) {
+				continue;
+			}
+			AssignmentType assignment = evaluatedAssignment.getAssignmentType();
+			if (assignment.getId() != null) {
+				objectDelta = swallow(context, objectDelta, getAssignmentModificationDelta(evaluatedAssignment));
+			} else {
+				if (objectDelta == null) {
+					throw new IllegalStateException("No object delta!");
+				}
+				ContainerDelta<Containerable> assignmentDelta = objectDelta.findContainerDelta(FocusType.F_ASSIGNMENT);
+				if (assignmentDelta == null) {
+					throw new IllegalStateException("Unnumbered assignment (" + assignment
+							+ ") couldn't be found in object delta (no assignment modification): " + objectDelta);
+				}
+				PrismContainerValue<AssignmentType> assignmentInDelta = assignmentDelta.findValueToAddOrReplace(assignment.asPrismContainerValue());
+				if (assignmentInDelta == null) {
+					throw new IllegalStateException("Unnumbered assignment (" + assignment
+							+ ") couldn't be found in object delta (no corresponding assignment value): " + objectDelta);
+				}
+				copyPolicySituations(assignmentInDelta.asContainerable(), evaluatedAssignment);
+			}
+			evaluatedAssignment.setPolicySituationsSynced(new HashSet<>(evaluatedAssignment.getPolicySituations()));
+		}
+		return objectDelta;
+	}
+
+	private <T extends ObjectType, F extends FocusType> ObjectDelta<T> swallow(LensContext<F> context, ObjectDelta<T> objectDelta,
+			PropertyDelta<String> delta1) throws SchemaException {
+		if (delta1 == null || delta1.isEmpty()) {
+			return objectDelta;
+		}
+		if (objectDelta == null) {
+			if (context.getFocusClass() == null) {
+				throw new IllegalStateException("No focus class in " + context);
+			}
+			if (context.getFocusContext() == null) {
+				throw new IllegalStateException("No focus context in " + context);
+			}
+			objectDelta = (ObjectDelta) new ObjectDelta<F>(context.getFocusClass(), ChangeType.MODIFY, prismContext);
+			objectDelta.setOid(context.getFocusContext().getOid());
+		}
+		objectDelta.swallow(delta1);
+		return objectDelta;
+	}
+
+	private void copyPolicySituations(AssignmentType targetAssignment, EvaluatedAssignmentImpl<?> evaluatedAssignment) {
+		targetAssignment.getPolicySituation().clear();
+		targetAssignment.getPolicySituation().addAll(evaluatedAssignment.getPolicySituations());
+	}
+
+	public <O extends ObjectType> ObjectDelta<O> applyAssignmentSituation(LensContext<O> context, ObjectDelta<O> focusDelta)
+			throws SchemaException {
+		if (context.getFocusClass() == null || !FocusType.class.isAssignableFrom(context.getFocusClass())) {
+			return focusDelta;
+		}
+		LensContext<? extends FocusType> contextOfFocus = (LensContext<FocusType>) context;
+		if (focusDelta != null && focusDelta.isAdd()) {
+			applyAssignmentSituationOnAdd(contextOfFocus, (PrismObject<? extends FocusType>) focusDelta.getObjectToAdd());
+			return focusDelta;
+		} else if (focusDelta == null || focusDelta.isModify()) {
+			return applyAssignmentSituationOnModify(contextOfFocus, focusDelta);
+		} else {
+			return focusDelta;
+		}
 	}
 }

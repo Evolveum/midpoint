@@ -1810,5 +1810,21 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		
 		return reverseDelta;
 	}
-	
+
+	public V findValueToAddOrReplace(V value) {
+		V found = findValue(valuesToAdd, value);
+		if (found == null) {
+			found = findValue(valuesToReplace, value);
+		}
+		return found;
+	}
+
+	private V findValue(Collection<V> values, V value) {
+		if (values == null) {
+			return null;
+		}
+		return values.stream()
+				.filter(v -> !differentIds(v, value) && v.equals(value, true))
+				.findFirst().orElse(null);
+	}
 }

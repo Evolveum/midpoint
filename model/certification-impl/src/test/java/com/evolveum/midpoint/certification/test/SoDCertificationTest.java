@@ -79,9 +79,9 @@ public class SoDCertificationTest extends AbstractCertificationTest {
 
 		assignRole(USER_JACK_OID, roleATest2aOid);
 		assignRole(USER_JACK_OID, roleATest2bOid);
-		display("jack", getUser(USER_JACK_OID));
 		assignRole(USER_JACK_OID, roleATest3aOid);
 		assignRole(USER_JACK_OID, roleATest3bOid);
+		display("jack", getUser(USER_JACK_OID));
 	}
 
 	@Test

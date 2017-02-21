@@ -34,6 +34,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
+import com.evolveum.midpoint.model.impl.lens.projector.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -70,7 +71,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -79,7 +79,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -133,6 +132,9 @@ public class ChangeExecutor {
 	@Autowired(required = true)
 	private OperationalDataManager metadataManager;
 
+	@Autowired
+	private PolicyRuleProcessor policyRuleProcessor;
+
 	private PrismObjectDefinition<UserType> userDefinition = null;
 	private PrismObjectDefinition<ShadowType> shadowDefinition = null;
 
@@ -160,6 +162,8 @@ public class ChangeExecutor {
 		LensFocusContext<O> focusContext = syncContext.getFocusContext();
 		if (focusContext != null) {
 			ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(syncContext.getExecutionWave());
+
+			focusDelta = policyRuleProcessor.applyAssignmentSituation(syncContext, focusDelta);
 
 			if (focusDelta != null) {
 
@@ -1233,10 +1237,6 @@ public class ChangeExecutor {
 			ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
 					SchemaException, ObjectAlreadyExistsException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		if (change.isEmpty()) {
-			// Nothing to do
-			return;
-		}
 		Class<T> objectTypeClass = change.getObjectTypeClass();
 
 		PrismObject<T> objectNew = objectContext.getObjectNew();
@@ -1247,6 +1247,11 @@ public class ChangeExecutor {
 
 			metadataManager.applyMetadataModify(change, objectContext, objectTypeClass,
 					clock.currentTimeXMLGregorianCalendar(), task, context, result);
+
+			if (change.isEmpty()) {
+				// Nothing to do
+				return;
+			}
 
 			if (TaskType.class.isAssignableFrom(objectTypeClass)) {
 				taskManager.modifyTask(change.getOid(), change.getModifications(), result);

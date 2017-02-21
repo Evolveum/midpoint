@@ -2235,6 +2235,7 @@
 		                    </xsd:documentation>
 		                    <xsd:appinfo>
 		                    	<a:since>3.5</a:since>
+								<a:operational>true</a:operational>
 		                    </xsd:appinfo>
 		                </xsd:annotation>
 		            </xsd:element>
@@ -3254,6 +3255,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.5</a:since>
+						<a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

@@ -15,9 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -79,6 +77,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private boolean presentInCurrentObject;
 	private boolean presentInOldObject;
 	private Collection<String> policySituations = new ArrayList<>();
+	// Values that were written to the respective assignment or assignment delta.
+	// It is easier to check the need for re-synchronization of them in this way
+	// than to (re)read the whole object and check on it.
+	private Set<String> policySituationsSynced = null;
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
 		return assignmentIdi;
@@ -472,5 +474,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		rv.addAll(roles.getZeroSet());
 		rv.addAll(roles.getPlusSet());
 		return rv;
+	}
+
+	@Override
+	public Set<String> getPolicySituationsSynced() {
+		return policySituationsSynced;
+	}
+
+	public void setPolicySituationsSynced(Set<String> policySituationsSynced) {
+		this.policySituationsSynced = policySituationsSynced;
 	}
 }

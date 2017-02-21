@@ -516,7 +516,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		}
 		return all;
 	}
-    
+
 	private Collection<PrismContainerValue<AssignmentType>> computeChangedAssignments(
 			ContainerDelta<AssignmentType> assignmentDelta, 
 			Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent) {
@@ -559,7 +559,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	 * But MID-2422 shows that we need to take deltas from waves 0..N (N=current execution wave) [that effectively means all the secondary deltas]
      */
 	private <F extends FocusType> ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta(LensFocusContext<F> focusContext) throws SchemaException {
-        ObjectDelta<? extends FocusType> focusDelta = (ObjectDelta<? extends FocusType>) focusContext.getAggregatedWaveDelta(focusContext.getLensContext().getExecutionWave());
+        ObjectDelta<? extends FocusType> focusDelta = focusContext.getAggregatedWaveDelta(focusContext.getLensContext().getExecutionWave());
         if (focusDelta == null) {
             return createEmptyAssignmentDelta(focusContext);
         }
