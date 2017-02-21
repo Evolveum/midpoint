@@ -12095,8 +12095,153 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="requestBusinessContext" type="tns:OperationBusinessContextType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Business context that describes this request.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="partialProcessing" type="tns:PartialProcessingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Business context that describes this request.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="OperationBusinessContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The business context of an operation. This structure contains data about the operation that bind it to the
+                business process or other non-information environment. It contains data such as free-form comment of the
+                affected user (requester, approver) it may contain references to other business documents that are outside
+                of the IDM scope (e.g. reference to the support contract or employee contact number), etc.
+                It is designed for future extensibility.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="tns:extension" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The extension for future dynamic extensibility.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form comment of the affected person. If this business context describe the request then
+                        this is the requestor comment. If the context describes approval step then this is approver
+                        comment. The comment is expected to be a short comment justifying the request, explaining
+                        the decision and so on. It is supposed to be few lines of text at the most.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: we may want to add more generic fields here in the future. E.g. contract reference (contract number) may be a good addition. -->
+        </xsd:sequence>
+   </xsd:complexType>
+
+	<xsd:complexType name="PartialProcessingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options that allows to select only some of the projector/clockwork parts to process. 
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="load" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focus" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="inbound" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusActivation" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="objectTemplateBeforeAssignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="assignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="assignmentsOrg" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="assignmentsMembershipAndDelegate" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="assignmentsConflicts" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="objectTemplateAfterAssignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusPolicyRules" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projection" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="outbound" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projectionValues" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projectionCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projectionReconciliation" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="approvals" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="execution" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="notification" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>            
+        </xsd:sequence>
+   </xsd:complexType>
+   <xsd:element name="partialProcessingOptions" type="tns:PartialProcessingOptionsType">
+       <xsd:annotation>
+           <xsd:documentation>
+               Business context that describes this request.
+               Global element - for use in task extension.
+           </xsd:documentation>
+       </xsd:annotation>
+   </xsd:element>
+
+    <xsd:simpleType name="PartialProcessingTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies whether a particular part should be processed or not.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="automatic">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Process the part if it would be processed normally.
+							This is automatic behavior that leaves the decision
+							to the code. This means that all usual parts of the
+							code will be processed. 
+							This is the default option.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTOMATIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="skip">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Skip processing of a particular part.
+							Do NOT process it. This setting can be
+							used to skip particular parts that would
+							be normally processed. However, using this
+							option may cause errors and/or wrong results.
+							Use with care.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="process">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+							Process particular part. This setting can be used
+							to turn on processing of optional parts of the code
+							or to override the automatic behavior.
+                		</p> 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 
 	<xsd:complexType name="ModelCompareOptionsType">
 		<xsd:annotation>

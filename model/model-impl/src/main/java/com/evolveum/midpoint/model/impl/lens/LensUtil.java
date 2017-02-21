@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -1358,6 +1359,19 @@ public class LensUtil {
 		}
 		((EvaluatedPolicyRuleImpl)rule).addPolicyException(policyException);
 
+	}
+
+	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
+			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+		PartialProcessingTypeType option = optionSupplier.get();
+		if (option == PartialProcessingTypeType.SKIP) {
+			LOGGER.debug("Skipping projector component {} because partial execution option is set to {}", componentName, option);
+		} else {
+			LOGGER.trace("Projector component started: {}", componentName);
+			runnable.run();
+			LOGGER.trace("Projector component finished: {}", componentName);
+		}
 	}
 
 	public static void checkMaxIterations(int iteration, int maxIterations, String conflictMessage, String humanReadableName)
