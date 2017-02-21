@@ -316,10 +316,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
             }
         }
-        for (AssignmentEditorDto assignmentsToAdd : assignmentsModel.getObject()){
-            if (!assignmentsToUnselect.contains(assignmentsToAdd.getTargetRef().getOid())) {
-                assignmentsToAdd.setStatus(UserDtoStatus.ADD);
-                assignmentsList.add(assignmentsToAdd);
+        if (assignmentsModel != null && assignmentsModel.getObject() != null) {
+            for (AssignmentEditorDto assignmentsToAdd : assignmentsModel.getObject()) {
+                if (!assignmentsToUnselect.contains(assignmentsToAdd.getTargetRef().getOid())) {
+                    assignmentsToAdd.setStatus(UserDtoStatus.ADD);
+                    assignmentsList.add(assignmentsToAdd);
+                }
             }
         }
         return assignmentsList;
