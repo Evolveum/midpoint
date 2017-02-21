@@ -277,7 +277,7 @@ public class FocusProcessor {
 		        // focus deltas so we can properly trigger the rules.
 		        evaluateFocusPolicyRules(context, activityDescription, now, task, result);
 
-		        policyRuleProcessor.storeFocusPolicySituation(context, task, result);
+		        //policyRuleProcessor.storeFocusPolicySituation(context, task, result);
 		        
 		        // Processing done, check for success
 

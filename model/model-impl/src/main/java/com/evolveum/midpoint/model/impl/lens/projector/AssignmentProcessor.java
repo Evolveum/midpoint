@@ -263,7 +263,7 @@ public class AssignmentProcessor {
         	policyRuleProcessor.processPolicies(context, evaluatedAssignmentTriple, result);
         }
 
-        policyRuleProcessor.storeAssignmentPolicySituation(context, evaluatedAssignmentTriple, result);
+        //policyRuleProcessor.storeAssignmentPolicySituation(context, evaluatedAssignmentTriple, result);
 
         // PROCESSING FOCUS
         
