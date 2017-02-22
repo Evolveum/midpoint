@@ -64,6 +64,7 @@ public class TestQueryConvertors {
 	private static final File FILTER_USER_AND_FILE = new File(TEST_DIR, "filter-user-and.xml");
 	private static final File FILTER_TYPE_USER_NONE = new File(TEST_DIR, "filter-type-user-none.xml");
 	private static final File FILTER_NOT_IN_OID = new File(TEST_DIR, "filter-not-in-oid.xml");
+	private static final File FILTER_NOT_FULL_TEXT = new File(TEST_DIR, "filter-not-full-text.xml");
 
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
@@ -228,6 +229,40 @@ public class TestQueryConvertors {
 		DomAsserts.assertElementQName(filterClauseElement, new QName(PrismConstants.NS_QUERY, "not"));
 		assertEquals("wrong # of inOid subfilters", 1, filterClauseElement.getElementsByTagNameNS(PrismConstants.NS_QUERY, "inOid").getLength());
 		assertEquals("wrong # of value subfilters", 4, filterClauseElement.getElementsByTagNameNS(PrismConstants.NS_QUERY, "value").getLength());
+	}
+
+	@Test
+	public void testFilterNotFullText() throws Exception {
+		displayTestTitle("testFilterNotFullText");
+
+		SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_NOT_FULL_TEXT);
+
+		ObjectQuery query = toObjectQuery(UserType.class, filterType);
+		displayQuery(query);
+
+		assertNotNull(query);
+
+		ObjectFilter filter = query.getFilter();
+		assertTrue("Filter is not of NOT type", filter instanceof NotFilter);
+
+		ObjectFilter subFilter = ((NotFilter) filter).getFilter();
+		assertTrue("Subfilter is not of FULL_TEXT type", subFilter instanceof FullTextFilter);
+
+		QueryType convertedQueryType = toQueryType(query);
+		System.out.println("Re-converted query type");
+		System.out.println(convertedQueryType.debugDump());
+
+		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext());
+		LOGGER.info(convertedQueryType.getFilter().getFilterClauseXNode().debugDump());
+
+		System.out.println("Serialized filter (JAXB->DOM)");
+		String filterAsString = DOMUtil.serializeDOMToString(filterClauseElement);
+		System.out.println(filterAsString);
+		LOGGER.info(filterAsString);
+
+		DomAsserts.assertElementQName(filterClauseElement, new QName(PrismConstants.NS_QUERY, "not"));
+		assertEquals("wrong # of fullText subfilters", 1, filterClauseElement.getElementsByTagNameNS(PrismConstants.NS_QUERY, "fullText").getLength());
+		assertEquals("wrong # of value subfilters", 2, filterClauseElement.getElementsByTagNameNS(PrismConstants.NS_QUERY, "value").getLength());
 	}
 
 	private ObjectQuery toObjectQuery(Class type, QueryType queryType) throws Exception {

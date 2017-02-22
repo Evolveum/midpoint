@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -111,9 +112,7 @@ public class QueryInterpreter2 {
         Validate.notNull(session, "Session must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Interpreting query for type '{}', query:\n{}", new Object[]{type, query});
-        }
+        LOGGER.trace("Interpreting query for type '{}', query:\n{}", type, query);
 
         InterpretationContext context = new InterpretationContext(this, type, prismContext, session);
 
@@ -158,11 +157,8 @@ public class QueryInterpreter2 {
         return condition;
     }
 
-    private <T extends ObjectFilter> Restriction findAndCreateRestriction(T filter, InterpretationContext context,
-                                                                          Restriction parent) throws QueryException {
-
-        Validate.notNull(filter, "filter");
-        Validate.notNull(context, "context");
+    private <T extends ObjectFilter> Restriction findAndCreateRestriction(@NotNull T filter,
+		    @NotNull InterpretationContext context, Restriction parent) throws QueryException {
 
         LOGGER.trace("Determining restriction for filter {}", filter);
 
@@ -181,7 +177,7 @@ public class QueryInterpreter2 {
 
     private <T extends ObjectFilter>
     Restriction findAndCreateRestrictionInternal(T filter, InterpretationContext context, Restriction parent,
-                                                 ItemPathResolver resolver, JpaEntityDefinition baseEntityDefinition) throws QueryException {
+		    ItemPathResolver resolver, JpaEntityDefinition baseEntityDefinition) throws QueryException {
 
         // the order of processing restrictions can be important, so we do the selection via handwritten code
 
@@ -191,6 +187,8 @@ public class QueryInterpreter2 {
             return new OrRestriction(context, (OrFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof NotFilter) {
             return new NotRestriction(context, (NotFilter) filter, baseEntityDefinition, parent);
+        } else if (filter instanceof FullTextFilter) {
+	        return new FullTextRestriction(context, (FullTextFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof InOidFilter) {
             return new InOidRestriction(context, (InOidFilter) filter, baseEntityDefinition, parent);
         } else if (filter instanceof OrgFilter) {
