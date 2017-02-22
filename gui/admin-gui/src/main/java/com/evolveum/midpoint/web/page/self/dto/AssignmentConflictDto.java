@@ -30,6 +30,7 @@ public class AssignmentConflictDto<F extends FocusType> implements Serializable 
     PrismObject<F>  addedAssignmentTargetObj;
     boolean isRemovedOld = false;
     boolean isUnassignedNew = false;
+    boolean isError = true;
 
     public AssignmentConflictDto(){
     }
@@ -74,5 +75,13 @@ public class AssignmentConflictDto<F extends FocusType> implements Serializable 
 
     public void setUnassignedNew(boolean unassignedNew) {
         isUnassignedNew = unassignedNew;
+    }
+
+    public boolean isError() {
+        return isError;
+    }
+
+    public void setError(boolean error) {
+        isError = error;
     }
 }
