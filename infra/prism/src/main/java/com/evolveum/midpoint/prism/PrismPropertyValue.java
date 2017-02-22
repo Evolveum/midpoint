@@ -36,12 +36,11 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
@@ -672,5 +671,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	@Override
 	public <T> T getRealValue() {
 		return (T) getValue();
+	}
+
+	public static <T> Collection<PrismPropertyValue<T>> wrap(@NotNull Collection<T> realValues) {
+		return realValues.stream()
+				.map(val -> new PrismPropertyValue<>(val))
+				.collect(Collectors.toList());
 	}
 }

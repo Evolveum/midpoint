@@ -1360,9 +1360,9 @@ public class LensUtil {
 		((EvaluatedPolicyRuleImpl)rule).addPolicyException(policyException);
 
 	}
-	
-	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier) 
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, 
+
+	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 		PartialProcessingTypeType option = optionSupplier.get();
 		if (option == PartialProcessingTypeType.SKIP) {
@@ -1374,4 +1374,25 @@ public class LensUtil {
 		}
 	}
 
+	public static void checkMaxIterations(int iteration, int maxIterations, String conflictMessage, String humanReadableName)
+			throws ObjectAlreadyExistsException {
+		if (iteration > maxIterations) {
+			StringBuilder sb = new StringBuilder();
+			if (iteration == 1) {
+				sb.append("Error processing ");
+			} else {
+				sb.append("Too many iterations (").append(iteration).append(") for ");
+			}
+			sb.append(humanReadableName);
+			if (iteration == 1) {
+				sb.append(": constraint violation: ");
+			} else {
+				sb.append(": cannot determine values that satisfy constraints: ");
+			}
+			if (conflictMessage != null) {
+				sb.append(conflictMessage);
+			}
+			throw new ObjectAlreadyExistsException(sb.toString());
+		}
+	}
 }

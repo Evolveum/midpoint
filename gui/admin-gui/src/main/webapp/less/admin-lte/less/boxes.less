@@ -28,7 +28,7 @@
     border-top-color: @green;
   }
   &.box-default {
-    border-top-color: @gray;
+    border-top-color: @gray-lte;
   }
 
   // collapsed mode
@@ -77,14 +77,14 @@
       .btn,
       a {
         &:hover {
-          background: rgba(0,0,0,0.1);
+          background: rgba(0, 0, 0, 0.1);
         }
       }
     }
 
     // Box color variations
     &.box-default {
-      .box-solid-variant(@gray, #444);
+      .box-solid-variant(@gray-lte, #444);
     }
     &.box-primary {
       .box-solid-variant(@light-blue);
@@ -122,7 +122,6 @@
       margin-bottom: 5px;
     }
   }
-
 
   // jQuery Knob in a box
   .knob-label {
@@ -217,6 +216,10 @@
         left: auto;
       }
     }
+
+    .dropdown-menu > li > a {
+      color: #444!important;
+    }
   }
 }
 
@@ -274,6 +277,7 @@
   padding: @box-padding;
   background-color: @box-footer-bg;
 }
+
 .chart-legend {
   &:extend(.list-unstyled);
   margin: 10px 0;
@@ -340,7 +344,7 @@
       margin-bottom: 0;
     }
 
-    > input[type='checkbox']  {
+    > input[type='checkbox'] {
       margin: 0 10px 0 5px;
     }
 
@@ -380,7 +384,7 @@
       }
 
       .label {
-        background: @gray!important;
+        background: @gray-lte !important;
       }
     }
   }
@@ -409,6 +413,7 @@
   }
 
 }
+
 // END TODO WIDGET
 
 /* Chat widget (DEPRECATED - this will be removed in the next major release. Use Direct Chat instead)*/
@@ -467,6 +472,7 @@
   }
 
 }
+
 //END CHAT WIDGET
 
 //Input in box

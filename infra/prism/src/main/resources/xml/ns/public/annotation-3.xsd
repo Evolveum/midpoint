@@ -361,7 +361,7 @@
     <xsd:element name="heterogeneousListItem" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
-                This substitutable element can be used in "polymorphic multivalued" items, i.e. items that can have
+                This substitutable element can be used in "heterogeneous list" items, i.e. items that can have
 				several values with different types. (All having a common declared supertype.) This annotation is necessary
 				to minimize "guesswork" that XML parser has to do when processing substitutable elements - in order to lower
 				the risk of accidentally merging two unrelated subsequent elements into one.

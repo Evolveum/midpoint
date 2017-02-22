@@ -338,15 +338,15 @@ public final class Utils {
 		if (filter == null){
 			return false;
 		}
-		
-		if (filter instanceof InOidFilter && ((InOidFilter) filter).getExpression() != null){
+		if (filter instanceof InOidFilter && ((InOidFilter) filter).getExpression() != null) {
 			return true;
 		}
-		
-		if (filter instanceof ValueFilter && ((ValueFilter) filter).getExpression() != null){
+		if (filter instanceof FullTextFilter && ((FullTextFilter) filter).getExpression() != null) {
 			return true;
 		}
-		
+		if (filter instanceof ValueFilter && ((ValueFilter) filter).getExpression() != null) {
+			return true;
+		}
 		return false;
 	}
 

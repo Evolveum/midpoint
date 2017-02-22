@@ -253,19 +253,16 @@ public class AccCertCaseOperationsHelper {
 
         // create certification cases by executing the query and caseExpression on its results
         // here the subclasses of this class come into play
-        ResultHandler<ObjectType> resultHandler = new ResultHandler<ObjectType>() {
-            @Override
-            public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
-                try {
-                    caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
-                } catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException e) {
-                    // TODO process the exception more intelligently
-                    throw new SystemException("Cannot create certification case for object " + ObjectTypeUtil.toShortString(object.asObjectable()) + ": " + e.getMessage(), e);
-                }
-                return true;
-            }
-        };
-        repositoryService.searchObjectsIterative(objectClass, query, (ResultHandler) resultHandler, null, false, result);
+        ResultHandler<ObjectType> resultHandler = (object, parentResult) -> {
+			try {
+				caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
+			} catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException e) {
+				// TODO process the exception more intelligently
+				throw new SystemException("Cannot create certification case for object " + ObjectTypeUtil.toShortString(object.asObjectable()) + ": " + e.getMessage(), e);
+			}
+			return true;
+		};
+        repositoryService.searchObjectsIterative(objectClass, query, resultHandler, null, false, result);
 
         AccessCertificationReviewerSpecificationType reviewerSpec =
                 reviewersHelper.findReviewersSpecification(campaign, 1, task, result);

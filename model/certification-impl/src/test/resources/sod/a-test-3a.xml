@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role oid="3dc7e7de-17a8-488d-ba98-402971999138"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	<name>a-test-3a</name>
+	<c:description>Testing SoD with induced role (test-3x)</c:description>
+	<inducement>
+		<targetRef oid="d3767689-cf26-4e2f-8a1e-5cd139fc4401" type="RoleType" />	<!--  3x -->
+	</inducement>
+</role>

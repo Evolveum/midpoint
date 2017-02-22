@@ -74,6 +74,7 @@ public class QueryConvertor {
 	private static final QName CLAUSE_REF = new QName(NS_QUERY, "ref");
 	private static final QName CLAUSE_ORG = new QName(NS_QUERY, "org");
 	private static final QName CLAUSE_IN_OID = new QName(NS_QUERY, "inOid");
+	private static final QName CLAUSE_FULL_TEXT = new QName(NS_QUERY, "fullText");
 
 	private static final QName CLAUSE_AND = new QName(NS_QUERY, "and");
 	private static final QName CLAUSE_OR = new QName(NS_QUERY, "or");
@@ -177,6 +178,8 @@ public class QueryConvertor {
 			return parseOrgFilter(clauseXMap, pcd, preliminaryParsingOnly, prismContext);
 		} else if (QNameUtil.match(clauseQName, CLAUSE_IN_OID)) {
 			return parseInOidFilter(clauseXMap, pcd, preliminaryParsingOnly, prismContext);
+		} else if (QNameUtil.match(clauseQName, CLAUSE_FULL_TEXT)) {
+			return parseFullTextFilter(clauseXMap, pcd, preliminaryParsingOnly, prismContext);
 		}
 
 		// logical filters
@@ -353,25 +356,10 @@ public class QueryConvertor {
 	}
 	
 	private static InOidFilter parseInOidFilter(MapXNode clauseXMap, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
-
 		boolean considerOwner = Boolean.TRUE.equals(clauseXMap.getParsedPrimitiveValue(ELEMENT_CONSIDER_OWNER, DOMUtil.XSD_BOOLEAN));
-
 		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
 		if (valueXnode != null) {
-			List<String> oids = new ArrayList<>();
-			if (valueXnode instanceof ListXNode) {
-				for (XNode subnode : (ListXNode) valueXnode) {
-					if (subnode instanceof PrimitiveXNode) {
-						oids.add(((PrimitiveXNode<String>) subnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
-					} else {
-						throw new SchemaException("The OID was expected to be present as primitive XNode, instead it is: " + subnode);
-					}
-				}
-			} else if (valueXnode instanceof PrimitiveXNode) {
-				oids.add(((PrimitiveXNode<String>) valueXnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
-			} else {
-				throw new SchemaException("The OID was expected to be present as primitive or list XNode, instead it is: " + valueXnode);
-			}
+			List<String> oids = getStringValues(valueXnode);
 			return InOidFilter.createInOid(considerOwner, oids);
 		} else {
 			ExpressionWrapper expression = parseExpression(clauseXMap, prismContext);
@@ -383,6 +371,42 @@ public class QueryConvertor {
 		}
 	}
 	
+	private static FullTextFilter parseFullTextFilter(MapXNode clauseXMap, PrismContainerDefinition pcd,
+			boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
+		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
+		if (valueXnode != null) {
+			List<String> values = getStringValues(valueXnode);
+			return FullTextFilter.createFullText(values);
+		} else {
+			ExpressionWrapper expression = parseExpression(clauseXMap, prismContext);
+			if (expression != null) {
+				return FullTextFilter.createFullText(expression);
+			} else {
+				throw new SchemaException("FullText filter with no values nor expression");
+			}
+		}
+	}
+
+	@NotNull
+	private static List<String> getStringValues(
+			XNode valueXnode) throws SchemaException {
+		List<String> values = new ArrayList<>();
+		if (valueXnode instanceof ListXNode) {
+			for (XNode subnode : (ListXNode) valueXnode) {
+				if (subnode instanceof PrimitiveXNode) {
+					values.add(((PrimitiveXNode<String>) subnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
+				} else {
+					throw new SchemaException("The value was expected to be present as primitive XNode, instead it is: " + subnode);
+				}
+			}
+		} else if (valueXnode instanceof PrimitiveXNode) {
+			values.add(((PrimitiveXNode<String>) valueXnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
+		} else {
+			throw new SchemaException("The value was expected to be present as primitive or list XNode, instead it is: " + valueXnode);
+		}
+		return values;
+	}
+
 	private static TypeFilter parseTypeFilter(MapXNode clauseXMap, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
 		QName type = clauseXMap.getParsedPrimitiveValue(ELEMENT_TYPE, DOMUtil.XSD_QNAME);
 		
@@ -682,6 +706,8 @@ public class QueryConvertor {
 			return serializeOrgFilter((OrgFilter) filter, xnodeSerializer);
 		} else if (filter instanceof InOidFilter) {
 			return serializeInOidFilter((InOidFilter) filter, xnodeSerializer);
+		} else if (filter instanceof FullTextFilter) {
+			return serializeFullTextFilter((FullTextFilter) filter, xnodeSerializer);
 		}
 
 		// complex filters
@@ -751,6 +777,23 @@ public class QueryConvertor {
 		}
 
 		return createFilter(CLAUSE_IN_OID, clauseMap);
+	}
+
+	private static MapXNode serializeFullTextFilter(FullTextFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
+		MapXNode clauseMap = new MapXNode();
+		if (filter.getValues() != null && !filter.getValues().isEmpty()) {
+			ListXNode valuesNode = new ListXNode();
+			for (String value : filter.getValues()) {
+				XNode val = createPrimitiveXNode(value, DOMUtil.XSD_STRING);
+				valuesNode.add(val);
+			}
+			clauseMap.put(ELEMENT_VALUE, valuesNode);
+		} else if (filter.getExpression() != null) {
+			// TODO serialize expression
+		} else {
+			throw new SchemaException("FullText filter with no values nor expression");
+		}
+		return createFilter(CLAUSE_FULL_TEXT, clauseMap);
 	}
 
 	private static <T> MapXNode serializeComparisonFilter(PropertyValueFilter<T> filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{

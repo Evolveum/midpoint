@@ -18,12 +18,8 @@ package com.evolveum.midpoint.certification.impl.handlers;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -44,7 +40,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -78,21 +73,17 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         }
         // TODO what if AccessCertificationObjectBasedScopeType?
 
-        ObjectType object = objectPrism.asObjectable();
-        if (!(object instanceof FocusType)) {
-            throw new IllegalStateException(DirectAssignmentCertificationHandler.class.getSimpleName() + " cannot be run against non-focal object: " + ObjectTypeUtil.toShortString(object));
-        }
-        FocusType focus = (FocusType) object;
+        FocusType focus = castToFocus(objectPrism);
 
         List<AccessCertificationCaseType> caseList = new ArrayList<>();
         if (isIncludeAssignments(assignmentScope)) {
             for (AssignmentType assignment : focus.getAssignment()) {
-                processAssignment(assignment, false, assignmentScope, campaign, object, caseList, task, parentResult);
+                processAssignment(assignment, false, assignmentScope, campaign, focus, caseList, task, parentResult);
             }
         }
-        if (object instanceof AbstractRoleType && isIncludeInducements(assignmentScope)) {
-            for (AssignmentType assignment : ((AbstractRoleType) object).getInducement()) {
-                processAssignment(assignment, true, assignmentScope, campaign, object, caseList, task, parentResult);
+        if (focus instanceof AbstractRoleType && isIncludeInducements(assignmentScope)) {
+            for (AssignmentType assignment : ((AbstractRoleType) focus).getInducement()) {
+                processAssignment(assignment, true, assignmentScope, campaign, focus, caseList, task, parentResult);
             }
         }
         return caseList;
@@ -190,29 +181,6 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         if (!(aCase instanceof AccessCertificationAssignmentCaseType)) {
             throw new IllegalStateException("Expected " + AccessCertificationAssignmentCaseType.class + ", got " + aCase.getClass() + " instead");
         }
-        AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) aCase;
-        String objectOid = assignmentCase.getObjectRef().getOid();
-        Long assignmentId = assignmentCase.getAssignment().getId();
-        if (assignmentId == null) {
-            throw new IllegalStateException("No ID for an assignment to remove: " + assignmentCase.getAssignment());
-        }
-        Class clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getObjectRef().getType()).getClassDefinition();
-        PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
-        cval.setId(assignmentId);
-
-        // quick "solution" - deleting without checking the assignment ID
-        ContainerDelta assignmentDelta;
-        if (Boolean.TRUE.equals(assignmentCase.isIsInducement())) {
-            assignmentDelta = ContainerDelta.createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz, prismContext, cval);
-        } else {
-            assignmentDelta = ContainerDelta.createModificationDelete(FocusType.F_ASSIGNMENT, clazz, prismContext, cval);
-        }
-        ObjectDelta objectDelta = ObjectDelta.createModifyDelta(objectOid, Arrays.asList(assignmentDelta), clazz, prismContext);
-        LOGGER.info("Going to execute delta: {}", objectDelta.debugDump());
-        modelService.executeChanges((Collection) Arrays.asList(objectDelta), null, task, caseResult);
-        LOGGER.info("Case {} in {} ({} {} of {}) was successfully revoked",
-                aCase.asPrismContainerValue().getId(), ObjectTypeUtil.toShortString(campaign),
-                Boolean.TRUE.equals(assignmentCase.isIsInducement()) ? "inducement":"assignment",
-                assignmentId, objectOid);
+        revokeAssignmentCase((AccessCertificationAssignmentCaseType) aCase, campaign, caseResult, task);
     }
 }

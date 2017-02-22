@@ -500,12 +500,6 @@ public class ExpressionUtil {
 		}
 
 		if (filter instanceof InOidFilter) {
-
-//			InOidFilter inOidFilter = (InOidFilter) filter;
-//			if (inOidFilter.getOids() != null && !inOidFilter.getOids().isEmpty()) {
-//				return inOidFilter.clone();
-//			}
-
 			ExpressionWrapper expressionWrapper = ((InOidFilter) filter).getExpression();
 			if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
 				LOGGER.warn("No valueExpression in filter in {}. Returning original filter", shortDesc);
@@ -516,12 +510,7 @@ public class ExpressionUtil {
 				return NoneFilter.createNone();
 			}
 
-			if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
-				throw new SchemaException("Unexpected expression type "
-						+ expressionWrapper.getExpression().getClass() + " in filter in " + shortDesc);
-			}
-
-			ExpressionType valueExpression = (ExpressionType) expressionWrapper.getExpression();
+			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
 
 			try {
 				Collection<String> expressionResult = evaluateStringExpression(variables, prismContext,
@@ -538,6 +527,35 @@ public class ExpressionUtil {
 
 				InOidFilter evaluatedFilter = (InOidFilter) filter.clone();
 				evaluatedFilter.setOids(expressionResult);
+				evaluatedFilter.setExpression(null);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Transformed filter to:\n{}", evaluatedFilter.debugDump());
+				}
+				return evaluatedFilter;
+			} catch (Exception ex) {
+				throw new ExpressionEvaluationException(ex);
+			}
+		} else if (filter instanceof FullTextFilter) {
+			ExpressionWrapper expressionWrapper = ((FullTextFilter) filter).getExpression();
+			if (expressionMissing(expressionWrapper, shortDesc)) {
+				return filter.clone();
+			}
+			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
+
+			try {
+				Collection<String> expressionResult = evaluateStringExpression(variables, prismContext,
+						valueExpression, expressionFactory, shortDesc, task, result);
+				if (expressionResult == null || expressionResult.isEmpty()) {
+					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
+							valueExpression);
+					return createFilterForNoValue(filter, valueExpression);
+				}
+				// TODO: log more context
+				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
+						shortDesc, expressionResult);
+
+				FullTextFilter evaluatedFilter = (FullTextFilter) filter.clone();
+				evaluatedFilter.setValues(expressionResult);
 				evaluatedFilter.setExpression(null);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Transformed filter to:\n{}", evaluatedFilter.debugDump());
@@ -565,16 +583,10 @@ public class ExpressionUtil {
 			}
 
 			ExpressionWrapper expressionWrapper = valueFilter.getExpression();
-			if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
-				LOGGER.warn("No valueExpression in filter in {}. Returning original filter", shortDesc);
+			if (expressionMissing(expressionWrapper, shortDesc)) {
 				return valueFilter.clone();
 			}
-			if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
-				throw new SchemaException("Unexpected expression type "
-						+ expressionWrapper.getExpression().getClass() + " in filter in " + shortDesc);
-			}
-
-			ExpressionType valueExpression = (ExpressionType) expressionWrapper.getExpression();
+			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
 
 			try {
 				PrismValue expressionResult = evaluateExpression(variables, prismContext, valueExpression,
@@ -643,6 +655,22 @@ public class ExpressionUtil {
 		}
 	}
 
+	private static boolean expressionMissing(ExpressionWrapper expressionWrapper, String shortDesc) {
+		if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
+			LOGGER.warn("No valueExpression in filter in {}. Returning original filter", shortDesc);
+			return true;
+		}
+		return false;
+	}
+
+	private static ExpressionType getExpression(ExpressionWrapper expressionWrapper, String shortDesc) throws SchemaException {
+		if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
+			throw new SchemaException("Unexpected expression type "
+					+ expressionWrapper.getExpression().getClass() + " in filter in " + shortDesc);
+		}
+		return (ExpressionType) expressionWrapper.getExpression();
+	}
+
 	private static ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression) throws ExpressionEvaluationException {
 		QueryInterpretationOfNoValueType queryInterpretationOfNoValue = valueExpression.getQueryInterpretationOfNoValue();
 		if (queryInterpretationOfNoValue == null) {
@@ -667,6 +695,8 @@ public class ExpressionUtil {
 					return evaluatedFilter;
 				} else if (filter instanceof InOidFilter) {
 					return NoneFilter.createNone();
+				} else if (filter instanceof FullTextFilter) {
+					return NoneFilter.createNone(); // because full text search for 'no value' is meaningless
 				} else {
 					throw new IllegalArgumentException("Unknown filter to evaluate: " + filter);
 				}

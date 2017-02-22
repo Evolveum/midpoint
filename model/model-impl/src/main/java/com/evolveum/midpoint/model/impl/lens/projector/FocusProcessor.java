@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -144,10 +143,13 @@ public class FocusProcessor {
 	@Autowired
     private MappingEvaluator mappingHelper;
 	
-	@Autowired(required = true)
+	@Autowired
     private OperationalDataManager metadataManager;
 
-	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription, 
+	@Autowired
+	private PolicyRuleProcessor policyRuleProcessor;
+
+	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -227,16 +229,16 @@ public class FocusProcessor {
 				// INBOUND
 				
 				if (consistencyChecks) context.checkConsistence();
-				
+
 				LensUtil.partialExecute("inbound",
-						() -> { 
+						() -> {
 							// Loop through the account changes, apply inbound expressions
 					        inboundProcessor.processInbound(context, now, task, result);
 					        if (consistencyChecks) context.checkConsistence();
 					        context.recomputeFocus();
 					        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 					        if (consistencyChecks) context.checkConsistence();
-						}, 
+						},
 						partialProcessingOptions::getInbound);
 				
 				
@@ -250,7 +252,7 @@ public class FocusProcessor {
 		        // OBJECT TEMPLATE (before assignments)
 		        
 				LensUtil.partialExecute("objectTemplateBeforeAssignments",
-						() -> objectTemplateProcessor.processTemplate(context, 
+						() -> objectTemplateProcessor.processTemplate(context,
 								ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, now, task, result),
 						partialProcessingOptions::getObjectTemplateBeforeAssignments);
 		        
@@ -270,12 +272,12 @@ public class FocusProcessor {
 		        LensUtil.partialExecute("assignmentsOrg",
 						() -> assignmentProcessor.processOrgAssignments(context, result),
 						partialProcessingOptions::getAssignmentsOrg);
-		        
-		        
+
+
 		        LensUtil.partialExecute("assignmentsMembershipAndDelegate",
 						() -> assignmentProcessor.processMembershipAndDelegatedRefs(context, result),
 						partialProcessingOptions::getAssignmentsMembershipAndDelegate);
-		        
+
 		        context.recompute();
 		        
 		        LensUtil.partialExecute("assignmentsConflicts",
@@ -285,10 +287,10 @@ public class FocusProcessor {
 		        // OBJECT TEMPLATE (after assignments)
 
 				LensUtil.partialExecute("objectTemplateAfterAssignments",
-						() -> objectTemplateProcessor.processTemplate(context, 
+						() -> objectTemplateProcessor.processTemplate(context,
 								ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS, now, task, result),
 						partialProcessingOptions::getObjectTemplateBeforeAssignments);
-		        
+
 		        context.recompute();
 
 		        // process activation again. Second pass through object template might have changed it.
@@ -305,7 +307,7 @@ public class FocusProcessor {
 		        
 		        // We need to evaluate this as a last step. We need to make sure we have all the
 		        // focus deltas so we can properly trigger the rules.
-		        
+
 		        LensUtil.partialExecute("focusPolicyRules",
 						() -> evaluateFocusPolicyRules(context, activityDescription, now, task, result),
 						partialProcessingOptions::getFocusPolicyRules);
@@ -380,32 +382,15 @@ public class FocusProcessor {
 	        // Next iteration
 			iteration++;
 	        iterationToken = null;
-	        if (iteration > maxIterations) {
-	        	StringBuilder sb = new StringBuilder();
-	        	if (iteration == 1) {
-	        		sb.append("Error processing ");
-	        	} else {
-	        		sb.append("Too many iterations ("+iteration+") for ");
-	        	}
-	        	sb.append(focusContext.getHumanReadableName());
-	        	if (iteration == 1) {
-	        		sb.append(": constraint violation: ");
-	        	} else {
-	        		sb.append(": cannot determine values that satisfy constraints: ");
-	        	}
-	        	if (conflictMessage != null) {
-	        		sb.append(conflictMessage);
-	        	}
-	        	throw new ObjectAlreadyExistsException(sb.toString());
-	        }
-	        cleanupContext(focusContext);
+			LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, focusContext.getHumanReadableName());
+			cleanupContext(focusContext);
 		}
 		
 		addIterationTokenDeltas(focusContext, iteration, iterationToken);
 		if (consistencyChecks) context.checkConsistence();
 		
 	}
-	
+
 	private <F extends FocusType> void evaluateFocusPolicyRules(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
 		triggerAssignmentFocusPolicyRules(context, activityDescription, now, task, result);
@@ -428,7 +413,6 @@ public class FocusProcessor {
 	}
 	
 	private <F extends FocusType> void triggerGlobalRules(LensContext<F> context) throws SchemaException, PolicyViolationException {
-		Collection<EvaluatedPolicyRule> evaluatedRules = new ArrayList<>();
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		if (systemConfiguration == null) {
 			return;

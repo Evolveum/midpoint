@@ -103,7 +103,11 @@
 			<groupId>javax.annotation</groupId>
 			<artifactId>javax.annotation-api</artifactId>
 		</dependency>
-        
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>

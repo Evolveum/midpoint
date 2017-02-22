@@ -232,6 +232,10 @@ public class Visualizer {
 			return object;
 		}
 		try {
+			if (objectTypeClass == null) {
+				LOGGER.warn("No object class for {}, using ObjectType", oid);
+				objectTypeClass = ObjectType.class;
+			}
 			object = modelService.getObject(objectTypeClass, oid, createCollection(createNoFetch()), task, result);
 			context.putObject(object);
 			return object;
@@ -837,7 +841,8 @@ public class Visualizer {
 		if (refValue.getObject() != null) {
 			return refValue;
 		}
-		PrismObject<? extends ObjectType> object = getObject(refValue.getOid(), (Class) refValue.getTargetTypeCompileTimeClass(), context, task, result);
+		PrismObject<? extends ObjectType> object = getObject(refValue.getOid(),
+				(Class) refValue.getTargetTypeCompileTimeClass(prismContext), context, task, result);
 		if (object == null) {
 			return refValue;
 		}
