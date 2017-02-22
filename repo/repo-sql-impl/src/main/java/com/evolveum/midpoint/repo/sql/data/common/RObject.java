@@ -186,6 +186,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Set<ROExtPolyString> polys;
     private Set<ROExtBoolean> booleans;
 
+    private Set<RObjectTextInfo> textInfoItems;
+
     @Id
     @GeneratedValue(generator = "ObjectOidGenerator")
     @GenericGenerator(name = "ObjectOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
@@ -558,6 +560,20 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.booleans = booleans;
     }
 
+    @NotQueryable
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectTextInfo> getTextInfoItems() {
+        if (textInfoItems == null) {
+            textInfoItems = new HashSet<>();
+        }
+        return textInfoItems;
+    }
+
+    public void setTextInfoItems(Set<RObjectTextInfo> textInfoItems) {
+        this.textInfoItems = textInfoItems;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -600,6 +616,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         if (booleans != null ? !booleans.equals(rObject.booleans) : rObject.booleans != null) return false;
         if (booleansCount != null ? !booleansCount.equals(rObject.booleansCount) : rObject.booleansCount != null)
             return false;
+        if (textInfoItems != null ? !textInfoItems.equals(rObject.textInfoItems) : rObject.textInfoItems != null) return false;
 
         return true;
     }
@@ -674,6 +691,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         if (jaxb.getExtension() != null) {
             copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, prismContext, RObjectExtensionType.EXTENSION);
         }
+
+        repo.getTextInfoItems().addAll(RObjectTextInfo.createSet(jaxb, repo));
     }
 
     @Deprecated

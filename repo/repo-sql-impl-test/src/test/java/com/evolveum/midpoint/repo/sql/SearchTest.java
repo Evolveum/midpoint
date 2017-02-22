@@ -628,7 +628,15 @@ public class SearchTest extends BaseSQLRepoTest {
 				1);
 	}
 
-    @SuppressWarnings("SameParameterValue")
+	@Test
+	public void fullTextSearch() throws Exception {
+		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.fullText("test userx00003")
+						.build(),
+				1);
+	}
+
+	@SuppressWarnings("SameParameterValue")
 	private void assertObjectsFound(ObjectQuery query, int expectedCount) throws Exception {
     	assertObjectsFoundBySearch(query, expectedCount);
     	assertObjectsFoundByCount(query, expectedCount);
