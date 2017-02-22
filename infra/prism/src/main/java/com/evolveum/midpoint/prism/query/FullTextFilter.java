@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,12 +49,24 @@ public class FullTextFilter extends ObjectFilter {
 		return new FullTextFilter(Arrays.asList(values));
 	}
 
+	public static FullTextFilter createFullText(@NotNull ExpressionWrapper expression) {
+		return new FullTextFilter(expression);
+	}
+
 	public Collection<String> getValues() {
 		return values;
 	}
 
+	public void setValues(Collection<String> values) {
+		this.values = values;
+	}
+
 	public ExpressionWrapper getExpression() {
 		return expression;
+	}
+
+	public void setExpression(ExpressionWrapper expression) {
+		this.expression = expression;
 	}
 
 	@Override

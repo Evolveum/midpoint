@@ -209,6 +209,7 @@
     <xsd:element name="ref" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
     <xsd:element name="org" substitutionGroup="tns:filterClause" type="tns:OrgFilterClauseType"/>
     <xsd:element name="inOid" substitutionGroup="tns:filterClause" type="tns:InOidFilterClauseType"/>
+    <xsd:element name="fullText" substitutionGroup="tns:filterClause" type="tns:FullTextFilterClauseType"/>
 
     <!-- currently not supported -->
     <!--
@@ -344,6 +345,32 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="FullTextFilterClauseType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:FilterClauseType">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Values to be found.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:any namespace="##other" processContents="strict">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Extensibility point for various expression languages and other
+                                    "value derivation" mechanisms.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:any>
+                    </xsd:choice>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
