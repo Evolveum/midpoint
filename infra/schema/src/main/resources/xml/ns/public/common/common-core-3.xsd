@@ -4173,12 +4173,25 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="avoidDuplicateValues" type="xsd:boolean" minOccurs="0" default="false"/>
+        	<xsd:element name="avoidDuplicateValues" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				When set to true, midPoint will try to avoid adding attribute values that are already
+        				there and remove values that are not there. Some resources do not tolerate such operations
+        				and they respond with errors. However midPoint cannot rely on transactions. MidPoint's
+        				﻿lock-free relativistic model﻿﻿ provides the necessary consistency, occasional redundant
+        				additions or deletions may happen. If this option is turned on then midPoint will read
+        				the data from resource right before the operation and filter our any redundant changes.
+        				This requires additional operation and it increases the risk of inconsistencies. However
+        				it is the only practical option for some resources.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="caseIgnoreAttributeNames" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Should we ignore casing of names of attributes retrieved from the connector?
-                        If yes, we normalize any attribute names with regard to the resource schema.
+                        If set to true then midPoint will ignore the case of the attribute names.
+                        In that case midpoint will normalize any attribute names with regard to the resource schema.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -10359,7 +10372,8 @@
     <xsd:complexType name="ProjectionPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Specification of the way how projections are handled on the resource. This defines the ways how
+                assignments are enforced and so on.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -14122,10 +14136,11 @@
 	<xsd:complexType name="CachingPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Definition of object attribute caching policies.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
+				<a:since>3.5</a:since>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
