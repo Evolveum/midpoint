@@ -13,7 +13,7 @@
       .content-wrapper,
       .right-side,
       .main-footer {
-        margin-left: 50px!important;
+        margin-left: 50px !important;
         z-index: 840;
       }
 
@@ -21,7 +21,7 @@
       .main-sidebar {
         //Don't go away! Just shrink
         .translate(0, 0);
-        width: 50px!important;
+        width: 50px !important;
         z-index: 850;
       }
 
@@ -53,9 +53,9 @@
             > a {
               //overflow: visible;
             }
-            > a > span:not(.pull-right),
-              > .treeview-menu {
-              display: block!important;
+            > a > span:not(.pull-right),//:not(.pull-right-container),
+            > .treeview-menu {
+              display: block !important;
               position: absolute;
               width: @sidebar-width - 50;
               left: 50px;
@@ -67,6 +67,18 @@
               margin-left: -3px;
               padding: 12px 5px 12px 20px;
               background-color: inherit;
+            }
+            > a > .pull-right-container {
+              //display: block!important;
+              position: relative!important;
+              float: right;
+              width: auto!important;
+              left: 200px - 20px!important;
+              top: -22px!important;
+              z-index: 900;
+              > .label:not(:first-of-type) {
+                display: none;
+              }
             }
             > .treeview-menu {
               top: 44px;
@@ -82,9 +94,9 @@
       .sidebar-form,
       .sidebar-menu > li > a > span,
       .sidebar-menu > li > .treeview-menu,
-      .sidebar-menu >li > a > .pull-right,
+      .sidebar-menu > li > a > .pull-right,
       .sidebar-menu li.header {
-        display: none!important;
+        display: none !important;
         -webkit-transform: translateZ(0);
       }
 
@@ -119,20 +131,23 @@
   white-space: nowrap;
   overflow: hidden;
 }
+
 .sidebar-menu:hover {
   overflow: visible;
 }
+
 .sidebar-form,
 .sidebar-menu > li.header {
   overflow: hidden;
   text-overflow: clip;
 }
+
 .sidebar-menu li > a {
   position: relative;
-  > .pull-right {
+  > .pull-right-container {
     position: absolute;
-    top: 50%;
     right: 10px;
+    top: 50%;
     margin-top: -7px;
   }
 }

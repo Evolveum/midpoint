@@ -16,10 +16,10 @@
   z-index: 810;
   //Using disposable variable to join statements with a comma
   @transition-rule: @transition-speed @transition-fn,
-    width @transition-speed @transition-fn;
+  width @transition-speed @transition-fn;
   .transition-transform(@transition-rule);
   @media (max-width: @screen-header-collapse) {
-      padding-top: 100px;
+    padding-top: 100px;
   }
   @media (max-width: @screen-xs-max) {
     .translate(-@sidebar-width, 0);
@@ -39,6 +39,7 @@
 .sidebar {
   padding-bottom: 10px;
 }
+
 // remove border from form
 .sidebar-form {
   input:focus {
@@ -102,23 +103,32 @@
     }
     .label,
     .badge {
-      margin-top: 3px;
       margin-right: 5px;
+    }
+    .badge {
+      margin-top: 3px;
     }
   }
   li.header {
     padding: 10px 25px 10px 15px;
     font-size: 12px;
   }
-  li > a > .fa-angle-left {
+  li > a > .fa-angle-left,
+  li > a > .pull-right-container > .fa-angle-left {
     width: auto;
     height: auto;
     padding: 0;
     margin-right: 10px;
-    margin-top: 3px;
+  }
+  li > a > .fa-angle-left {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    margin-top: -8px;
   }
   li.active {
-    > a > .fa-angle-left {
+    > a > .fa-angle-left,
+    > a > .pull-right-container > .fa-angle-left {
       .rotate(-90deg);
     }
     > .treeview-menu {
@@ -130,8 +140,8 @@
   .treeview-menu {
     display: none;
     list-style: none;
-    padding:0;
-    margin:0;
+    padding: 0;
+    margin: 0;
     padding-left: 5px;
     .treeview-menu {
       padding-left: 20px;
@@ -147,6 +157,8 @@
         > .ion {
           width: 20px;
         }
+        > .pull-right-container > .fa-angle-left,
+        > .pull-right-container > .fa-angle-down,
         > .fa-angle-left,
         > .fa-angle-down {
           width: auto;
