@@ -20,22 +20,14 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -565,94 +557,149 @@ public class SearchTest extends BaseSQLRepoTest {
         final String emailLowerCase = "testuserx00003@example.com";
         final String emailVariousCase = "TeStUsErX00003@EXAmPLE.com";
 
-        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
                         .item(UserType.F_FULL_NAME).eqPoly(existingNameNorm).matchingNorm()
                         .build(),
-                1);
+				false, 1);
 
-        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_FULL_NAME).eqPoly(existingNameOrig).matchingNorm()
                 .build(),
-                1);
+				false, 1);
 
-        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_EMAIL_ADDRESS).eq(emailLowerCase).matchingCaseIgnore()
                 .build(),
-                1);
+				false, 1);
 
-        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_EMAIL_ADDRESS).eq(emailVariousCase).matchingCaseIgnore()
                 .build(),
-                1);
+				false, 1);
 
         // comparing polystrings, but providing plain String
-		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
 						.item(UserType.F_FULL_NAME).eq(existingNameNorm).matchingNorm()
 						.build(),
-				1);
+				false, 1);
 
-		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
 						.item(UserType.F_FULL_NAME).eq(existingNameOrig).matchingNorm()
 						.build(),
-				1);
+				false, 1);
 
-		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
                         .item(UserType.F_FULL_NAME).containsPoly(existingNameNorm).matchingNorm()
                         .build(),
-                1);
+				false, 1);
 
-        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_FULL_NAME).containsPoly(existingNameOrig).matchingNorm()
                 .build(),
-                1);
+				false, 1);
 
-        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_EMAIL_ADDRESS).contains(emailLowerCase).matchingCaseIgnore()
                 .build(),
-                1);
+				false, 1);
 
-        assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_EMAIL_ADDRESS).contains(emailVariousCase).matchingCaseIgnore()
                 .build(),
-                1);
+				false, 1);
 
 		// comparing polystrings, but providing plain String
-		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
 						.item(UserType.F_FULL_NAME).contains(existingNameNorm).matchingNorm()
 						.build(),
-				1);
+				false, 1);
 
-		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
+		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
 						.item(UserType.F_FULL_NAME).contains(existingNameOrig).matchingNorm()
 						.build(),
-				1);
+				false, 1);
 	}
 
 	@Test
 	public void fullTextSearch() throws Exception {
-		assertObjectsFound(QueryBuilder.queryFor(UserType.class, prismContext)
-						.fullText("test userx00003")
+
+		OperationResult result = new OperationResult("fullTextSearch");
+
+		Collection<SelectorOptions<GetOperationOptions>> distinct =
+				SelectorOptions.createCollection(GetOperationOptions.createDistinct());
+
+		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.fullText("atestuserX00003")
 						.build(),
-				1);
+				false, 1);
+
+		List<PrismObject<UserType>> users = assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.fullText("Pellentesque")
+						.build(),
+				true, 1);
+
+		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
+						.fullText("sollicitudin")
+						.build(),
+				true, 0);
+
+		String newDescription = "\n"
+				+ "\t\t\tUt pellentesque massa elit, in varius justo pellentesque ac. Vivamus gravida lectus non odio tempus iaculis sed quis\n"
+				+ "\t\t\tenim. Praesent sed ante nunc. Etiam euismod urna sit amet mi commodo luctus. Morbi dictum suscipit mauris ac\n"
+				+ "\t\t\tfacilisis. Phasellus congue luctus nibh, eu gravida sem iaculis in. Fusce bibendum quam sit amet tortor venenatis\n"
+				+ "\t\t\tmalesuada. Nam non varius nibh. Ut porta sit amet dui ut mollis. Etiam tincidunt ex viverra purus condimentum\n"
+				+ "\t\t\tinterdum. Sed ornare lacinia finibus. Pellentesque ac tortor scelerisque, sagittis diam nec, vehicula ligula.\n"
+				+ "\t\t\tPhasellus sodales felis quis fermentum volutpat. Orci varius natoque penatibus et magnis dis parturient montes,\n"
+				+ "\t\t\tnascetur ridiculus mus. Suspendisse mattis efficitur ligula et pharetra. Morbi risus erat, mollis nec suscipit vel,\n"
+				+ "\t\t\tconvallis eu ex.\n"
+				+ "\n"
+				+ "\t\t\tPellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur cursus\n"
+				+ "\t\t\tplacerat nisl, quis egestas ante semper at. Aenean semper nulla in elit tincidunt fringilla. Proin tristique sapien ac\n"
+				+ "\t\t\tenim blandit, a faucibus dui maximus. Curabitur sodales eget nulla eget mattis. Sed mollis blandit sapien. Aenean\n"
+				+ "\t\t\tpulvinar condimentum condimentum. Ut et venenatis arcu. Nam a nisl at nibh aliquam luctus. Phasellus eleifend non\n"
+				+ "\t\t\ttellus eget varius.\n"
+				+ "\n"
+				+ "\t\t\tNunc tincidunt sed lacus congue iaculis. Donec vel orci nulla. Phasellus fringilla, erat ac elementum lacinia, ex enim\n"
+				+ "\t\t\tdictum magna, accumsan dignissim elit mauris vel quam. Fusce vel tellus magna. Quisque sed tellus lectus. Donec id\n"
+				+ "\t\t\tnibh a lorem rutrum pharetra. Vestibulum vehicula leo ac eros pulvinar, eget tristique purus porta. Aliquam cursus\n"
+				+ "\t\t\tturpis sed libero eleifend interdum. Sed ac nisi a turpis finibus consectetur. Sed a velit vel nisi semper commodo.\n"
+				+ "\t\t\tVestibulum vel pulvinar ligula, vitae rutrum leo. Sed efficitur dignissim augue in placerat. Aliquam dapibus mauris\n"
+				+ "\t\t\teget diam pharetra molestie. Morbi vitae nulla sollicitudin, dignissim tellus a, tincidunt neque.\n";
+
+		repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
+				DeltaBuilder.deltaFor(UserType.class, prismContext)
+						.item(UserType.F_DESCRIPTION).replace(newDescription)
+						.asItemDeltas(),
+				result);
+
+		assertUsersFoundBySearch(QueryBuilder.queryFor(UserType.class, prismContext)
+						.fullText("sollicitudin")
+						.build(),
+				distinct, 1);
 	}
 
 	@SuppressWarnings("SameParameterValue")
-	private void assertObjectsFound(ObjectQuery query, int expectedCount) throws Exception {
-    	assertObjectsFoundBySearch(query, expectedCount);
-    	assertObjectsFoundByCount(query, expectedCount);
+	private List<PrismObject<UserType>> assertUsersFound(ObjectQuery query, boolean distinct, int expectedCount) throws Exception {
+		Collection<SelectorOptions<GetOperationOptions>> options = distinct ?
+				SelectorOptions.createCollection(GetOperationOptions.createDistinct()) : null;
+		assertObjectsFoundByCount(query, options, expectedCount);
+    	return assertUsersFoundBySearch(query, options, expectedCount);
 	}
 
-    private void assertObjectsFoundBySearch(ObjectQuery query, int expectedCount) throws Exception {
+    private List<PrismObject<UserType>> assertUsersFoundBySearch(ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, int expectedCount) throws Exception {
         OperationResult result = new OperationResult("search");
-        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, options, result);
         result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Wrong # of results found: " + query, expectedCount, users.size());
+        return users;
     }
 
-    private void assertObjectsFoundByCount(ObjectQuery query, int expectedCount) throws Exception {
+    private void assertObjectsFoundByCount(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+			int expectedCount) throws Exception {
         OperationResult result = new OperationResult("count");
-		int count = repositoryService.countObjects(UserType.class, query, result);
+		int count = repositoryService.countObjects(UserType.class, query, options, result);
 		result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Wrong # of results found: " + query, expectedCount, count);

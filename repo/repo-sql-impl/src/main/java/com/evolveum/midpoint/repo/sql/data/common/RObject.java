@@ -145,8 +145,9 @@ import java.util.Set;
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
+	public static final String F_TEXT_INFO_ITEMS = "textInfoItems";
 
-    private Boolean trans;
+	private Boolean trans;
 
     private String oid;
     private int version;
@@ -692,7 +693,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, prismContext, RObjectExtensionType.EXTENSION);
         }
 
-        repo.getTextInfoItems().addAll(RObjectTextInfo.createSet(jaxb, repo));
+        repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, prismContext));
     }
 
     @Deprecated
