@@ -148,8 +148,18 @@
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>atestuserX00003</name>
+		<description>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut dapibus, felis tincidunt pellentesque
+			ullamcorper, nisi orci accumsan turpis, quis lobortis quam libero at lectus. Quisque auctor, urna ut elementum
+			volutpat, sapien neque imperdiet elit, luctus viverra arcu nisl sed nibh. Vestibulum justo lorem, rhoncus a faucibus
+			ac, pulvinar a justo. Nam tincidunt suscipit congue. Proin auctor dapibus lacus sit amet ultricies. Duis feugiat
+			viverra nibh, nec ultricies libero ultrices eleifend. Nullam sed quam consectetur, rutrum arcu eu, imperdiet nibh.
+			Pellentesque a molestie tortor, vitae elementum nulla. Morbi lacus ex, commodo quis aliquam eget, condimentum sed
+			lorem. Suspendisse maximus est euismod, porta est a, vulputate magna. Morbi blandit accumsan mattis. Cras commodo
+			cursus ante. Phasellus in nulla eget odio tristique dapibus. Pellentesque at orci at nisl blandit efficitur id ut leo.
+			Sed laoreet iaculis turpis quis scelerisque.
+		</description>
 
-        <linkRef oid="1234" />
+		<linkRef oid="1234" />
         <linkRef oid="11223344"/>
         <roleMembershipRef oid="r123" type="c:RoleType"/>
         <roleMembershipRef oid="r456" type="c:RoleType"/>
