@@ -126,7 +126,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 	private <F extends FocusType> void enforceTriggeredRules(StringBuilder compositeMessageSb, Collection<EvaluatedPolicyRule> policyRules) {
 		for (EvaluatedPolicyRule policyRule: policyRules) {
 
-			Collection<EvaluatedPolicyRuleTrigger> triggers = policyRule.getTriggers();
+			Collection<EvaluatedPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();
 			if (triggers.isEmpty()) {
 				continue;
 			}

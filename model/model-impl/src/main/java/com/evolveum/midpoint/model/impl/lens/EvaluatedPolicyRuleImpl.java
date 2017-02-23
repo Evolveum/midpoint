@@ -33,7 +33,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final PolicyRuleType policyRuleType;
-	private final Collection<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
+	private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 	private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
 
 	/**
@@ -91,10 +91,24 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	@NotNull
 	@Override
-	public Collection<EvaluatedPolicyRuleTrigger> getTriggers() {
+	public Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers() {
 		return triggers;
 	}
-	
+
+	@NotNull
+	@Override
+	public Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers() {
+		List<EvaluatedPolicyRuleTrigger<?>> rv = new ArrayList<>();
+		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+			if (trigger instanceof EvaluatedSituationTrigger) {
+				rv.addAll(((EvaluatedSituationTrigger) trigger).getAllTriggers());
+			} else {
+				rv.add(trigger);
+			}
+		}
+		return rv;
+	}
+
 	public void addTrigger(EvaluatedPolicyRuleTrigger trigger) {
 		triggers.add(trigger);
 	}
