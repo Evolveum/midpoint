@@ -317,8 +317,9 @@ public class ObjectRetriever {
         return userType;
     }
 
-    public <T extends ObjectType> int countObjectsAttempt(Class<T> type, ObjectQuery query, OperationResult result) {
-        LOGGER_PERFORMANCE.debug("> count objects {}", new Object[]{type.getSimpleName()});
+    public <T extends ObjectType> int countObjectsAttempt(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+        LOGGER_PERFORMANCE.debug("> count objects {}", type.getSimpleName());
 
         int count = 0;
 
@@ -329,6 +330,9 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             Number longCount;
             if (query == null || query.getFilter() == null) {
+            	if (GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options))) {
+            		throw new UnsupportedOperationException("Distinct option is not supported here");	// TODO
+				}
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
                 SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType));
@@ -337,7 +341,7 @@ public class ObjectRetriever {
                 RQuery rQuery;
                 if (isUseNewQueryInterpreter(query)) {
                     QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
-                    rQuery = engine.interpret(query, type, null, true, session);
+                    rQuery = engine.interpret(query, type, options, true, session);
                 } else {
                     QueryEngine engine = new QueryEngine(getConfiguration(), prismContext);
                     rQuery = engine.interpret(query, type, null, true, session);

@@ -227,6 +227,15 @@ public class RepositoryCache implements RepositoryService {
 		return repository.countObjects(type, query, parentResult);
 	}
 
+	@Override
+	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+			throws SchemaException {
+		// TODO use cached query result if applicable
+		log("Cache: PASS countObjects ({})", type.getSimpleName());
+		return repository.countObjects(type, query, options, parentResult);
+	}
+
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 													OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		modifyObject(type, oid, modifications, null, parentResult);

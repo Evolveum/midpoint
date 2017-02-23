@@ -98,11 +98,15 @@ public abstract class HibernateQuery {
         conditions.add(condition);
     }
 
-    public String getAsHqlText(int indent) {
+    public String getAsHqlText(int indent, boolean distinct) {
         StringBuilder sb = new StringBuilder();
 
         indent(sb, indent);
-        sb.append("select\n");
+        sb.append("select");
+        if (distinct) {
+        	sb.append(" distinct");
+		}
+        sb.append("\n");
         ProjectionElement.dumpToHql(sb, projectionElements, indent + 1);     // we finish at the end of the last line (not at the new line)
         sb.append("\n");
 

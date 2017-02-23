@@ -120,11 +120,19 @@ public class QueryInterpreter2 {
         interpretPagingAndSorting(context, query, countingObjects);
 
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+		boolean distinct = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
 
         if (countingObjects) {
-            hibernateQuery.addProjectionElement(new ProjectionElement("count(*)"));
+        	if (distinct) {
+				String rootAlias = hibernateQuery.getPrimaryEntityAlias();
+				hibernateQuery.addProjectionElement(new ProjectionElement("count(distinct " + rootAlias + ")"));
+			} else {
+				hibernateQuery.addProjectionElement(new ProjectionElement("count(*)"));
+			}
         } else {
-            String rootAlias = hibernateQuery.getPrimaryEntityAlias();
+			hibernateQuery.setDistinct(distinct);
+
+			String rootAlias = hibernateQuery.getPrimaryEntityAlias();
             hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".fullObject"));
             // TODO other objects if parent is requested?
             if (context.isObject()) {
