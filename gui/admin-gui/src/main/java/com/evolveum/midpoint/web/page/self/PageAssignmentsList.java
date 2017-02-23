@@ -310,7 +310,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         }
         List<AssignmentEditorDto> assignmentsList = new ArrayList<>();
         for (AssignmentType assignment : userAssignments){
-            if (assignmentsToRemove.contains(assignment.getTargetRef().getOid())){
+            if (assignment.getTargetRef() != null && assignmentsToRemove.contains(assignment.getTargetRef().getOid())){
                 assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.DELETE, assignment, this));
             } else {
                 assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
@@ -356,10 +356,36 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                             if (PolicyConstraintKindType.EXCLUSION.equals(trigger.getConstraintKind()) &&
                                     trigger instanceof EvaluatedExclusionTrigger) {
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
-                                PrismObject<F> exclusionTargetObj = (PrismObject<F>)((EvaluatedExclusionTrigger) trigger).getConflictingAssignment().getTarget();
+                                EvaluatedAssignment<F> conflictingAssignment = ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment();
+                                PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
                                 String exclusionOid = exclusionTargetObj.getOid();
                                 if (userAssignmentsOidsList.contains(exclusionOid)) {
                                     AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
+
+                                    //TODO very, very strange piece of code. but it works... leave it
+                                    //until more beautiful solution is found
+                                    PolicyActionsType actions = policyRule.getActions();
+                                    boolean isPolicyActionExist = actions != null && actions.getApproval() != null;
+                                    if (!isPolicyActionExist
+                                            && conflictingAssignment.getTargetPolicyRules() != null) {
+                                        for (EvaluatedPolicyRule conflictAssignmentRules : conflictingAssignment.getTargetPolicyRules()) {
+                                            for (EvaluatedPolicyRuleTrigger conflictAssignmentTrigger : conflictAssignmentRules.getTriggers()) {
+                                                if (conflictAssignmentTrigger instanceof EvaluatedExclusionTrigger
+                                                        && ((EvaluatedExclusionTrigger) conflictAssignmentTrigger).getConflictingAssignment() != null
+                                                        && ((EvaluatedExclusionTrigger) conflictAssignmentTrigger).getConflictingAssignment().getTargetPolicyRules() != null){
+                                                    for (EvaluatedPolicyRule r  : ((EvaluatedExclusionTrigger) conflictAssignmentTrigger).getConflictingAssignment().getTargetPolicyRules()){
+                                                        PolicyActionsType pat = r.getActions();
+                                                        if (pat != null && r.getActions().getApproval() != null){
+                                                            isPolicyActionExist = true;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    boolean isError = !isPolicyActionExist;
+                                    dto.setError(isError);
                                     conflictsList.add(dto);
                                 }
                             }
@@ -377,6 +403,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private boolean areConflictsResolved(){
         List<AssignmentConflictDto> list = getSessionStorage().getRoleCatalog().getConflictsList();
         for (AssignmentConflictDto dto : list){
+            if (!dto.isError()){
+                continue;
+            }
             if (!dto.isSolved()){
                 return false;
             }

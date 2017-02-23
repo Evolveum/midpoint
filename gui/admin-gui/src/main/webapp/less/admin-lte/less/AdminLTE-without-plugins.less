@@ -1,23 +1,17 @@
 /*!
- *   AdminLTE v2.3.8
+ *   AdminLTE v2.3.5 Without Third-Party Plugins
  *   Author: Almsaeed Studio
  *	 Website: Almsaeed Studio <http://almsaeedstudio.com>
  *   License: Open source - MIT
  *           Please visit http://opensource.org/licenses/MIT for more information
 !*/
 //google fonts
-//@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic);
-
+@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic);
 //Bootstrap Variables & Mixins
 //The core bootstrap code have not been modified. These files
 //are included only for reference.
-
-//@import (reference) "../bootstrap-less/mixins.less";
-//@import (reference) "../bootstrap-less/variables.less";
-
-@import "../bootstrap-less/mixins.less";
-@import "../bootstrap-less/variables.less";
-
+@import (reference) "../bootstrap-less/mixins.less";
+@import (reference) "../bootstrap-less/variables.less";
 //MISC
 //----
 @import "core.less";
@@ -55,10 +49,7 @@
 @import "login_and_register.less";
 @import "404_500_errors.less";
 @import "invoice.less";
-@import "profile.less";
-//Plugins
-//--------
-@import "plugins.less";
+@import "profile";
 //Miscellaneous
 //-------------
 @import "miscellaneous.less";
