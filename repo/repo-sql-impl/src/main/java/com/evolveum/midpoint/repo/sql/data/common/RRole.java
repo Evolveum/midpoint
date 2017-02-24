@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -92,9 +93,9 @@ public class RRole extends RAbstractRole<RoleType> {
         return result;
     }
 
-    public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RAbstractRole.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+    public static void copyFromJAXB(RoleType jaxb, RRole repo, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setRoleType(jaxb.getRoleType());
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));

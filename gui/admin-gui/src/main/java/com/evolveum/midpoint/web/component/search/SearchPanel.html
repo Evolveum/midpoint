@@ -27,6 +27,10 @@
             <span class="help-block" wicket:id="advancedError"/>
         </div>
 
+        <div class="form-group" wicket:id="fullTextContainer">
+            <div wicket:id="fullTextField" wicket:message="placeholder:SearchPanel.fullTextSearch"></div>
+        </div>
+
         <wicket:container wicket:id="items">
             <div wicket:id="item" class="form-group"/>
         </wicket:container>
@@ -62,8 +66,10 @@
             </div>
         </div>
 
-        <div class="form-group" style="vertical-align: top;">
+        <div class="form-group" wicket:id="linksContainer" style="vertical-align: top; margin-top: -5px;">
+            <a class="btn btn-sm btn-link" wicket:id="basic" style="display: table-cell; vertical-align: top;"/>
             <a class="btn btn-sm btn-link" wicket:id="advanced"/>
+            <a class="btn btn-sm btn-link" wicket:id="fullText" style=" margin-top: -20px;"/>
         </div>
     </form>
 

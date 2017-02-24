@@ -25,6 +25,10 @@
 	<bean name="infraInitialSetup" class="com.evolveum.midpoint.init.InfraInitialSetup" init-method="init">
     </bean>
 
+    <bean id="repoInitialSetup" class="com.evolveum.midpoint.init.RepoInitialSetup" init-method="init">
+        <constructor-arg name="repositoryService" ref="repositoryService"/>
+    </bean>
+
     <bean id="initialDataImport" class="com.evolveum.midpoint.init.InitialDataImport" init-method="init"
           scope="singleton">
         <property name="model" ref="modelController"/>

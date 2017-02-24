@@ -17,10 +17,12 @@
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.FullTextFilter;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.MatchMode;
 
 /**
@@ -35,15 +37,16 @@ public class FullTextRestriction extends Restriction<FullTextFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-        String hqlPath = getBaseHqlEntity().getHqlPath() + ".";
+		String textInfoItemsAlias = getItemPathResolver().addTextInfoJoin(getBaseHqlEntity().getHqlPath());
+		String textPath = textInfoItemsAlias + "." + RObjectTextInfo.F_TEXT;
 
-	    // TODO implement seriously
-	    hqlPath += "name.norm";
 	    // TODO implement multiple values
 	    if (filter.getValues().size() != 1) {
 		    throw new QueryException("FullText filter currently supports only a single string");
 	    }
 	    String text = filter.getValues().iterator().next();
-        return getContext().getHibernateQuery().createLike(hqlPath, text, MatchMode.ANYWHERE, true);
+	    String normalized = getContext().getPrismContext().getDefaultPolyStringNormalizer().normalize(text);
+		normalized = StringUtils.normalizeSpace(normalized);
+		return getContext().getHibernateQuery().createLike(textPath, normalized, MatchMode.ANYWHERE, false);
     }
 }
