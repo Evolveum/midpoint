@@ -51,8 +51,7 @@ import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.TABLE_N
  */
 @Entity
 @IdClass(RObjectTextInfoId.class)
-@Table(name = TABLE_NAME, indexes = {
-        @Index(name = "iTextInfoOid", columnList = COLUMN_OWNER_OID)})
+@Table(name = TABLE_NAME)
 public class RObjectTextInfo implements Serializable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(RObjectTextInfo.class);
@@ -76,7 +75,7 @@ public class RObjectTextInfo implements Serializable {
 		this.text = text;
 	}
 
-    @ForeignKey(name = "fk_reference_owner")
+    @ForeignKey(name = "fk_object_text_info_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
@@ -167,7 +166,7 @@ public class RObjectTextInfo implements Serializable {
 			}
 		}
 
-		List<String> allWords = new ArrayList<>();
+		List<String> allWords = new ArrayList<>();		// not a (hash) set in order to preserve order
 		for (PrismValue value : values) {
 			if (value == null) {
 				continue;
@@ -237,7 +236,9 @@ public class RObjectTextInfo implements Serializable {
 		String[] words = StringUtils.split(normalized);
 		for (String word : words) {
 			if (StringUtils.isNotBlank(word)) {
-				allWords.add(word);
+				if (!allWords.contains(word)) {
+					allWords.add(word);
+				}
 			}
 		}
 	}

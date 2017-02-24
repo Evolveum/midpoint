@@ -445,4 +445,9 @@ public class RepositoryCache implements RepositoryService {
 	public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
 		return repository.getFullTextSearchConfiguration();
 	}
+
+	@Override
+	public void postInit(OperationResult result) throws SchemaException {
+		repository.postInit(result);
+	}
 }
