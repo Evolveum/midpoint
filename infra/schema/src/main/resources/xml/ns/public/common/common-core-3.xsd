@@ -9921,13 +9921,75 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="fullTextSearch" type="tns:FullTextSearchConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the full text search feature.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
 
-    <xsd:complexType name="InternalsConfigurationType">
+	<xsd:complexType name="FullTextSearchConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration of the full text search feature.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether full text search indexing is enabled. The default is true, if there are any indexed entries defined.
+						(This property is to allow temporary disabling existing configuration.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="indexed" type="tns:FullTextSearchIndexedItemsConfigurationType" minOccurs="0" maxOccurs="unbounded">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="FullTextSearchIndexedItemsConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				What items to index.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="objectType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						To what object type(s) should this entry be applied.
+						Empty list means "all object types".
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						What items to index for the given object type(s).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Various internals configuration elements.

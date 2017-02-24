@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -33,10 +33,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.hibernate.annotations.*;
-import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Table;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -202,32 +200,32 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         return result;
     }
 
-    public static <T extends FocusType> void copyFromJAXB(FocusType jaxb, RFocus<T> repo, PrismContext prismContext,
-                                                          IdGeneratorResult generatorResult)
+    public static <T extends FocusType> void copyFromJAXB(FocusType jaxb, RFocus<T> repo, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult)
             throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.getLinkRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getLinkRef(), prismContext, repo, RReferenceOwner.USER_ACCOUNT));
+                RUtil.safeListReferenceToSet(jaxb.getLinkRef(), repositoryContext.prismContext, repo, RReferenceOwner.USER_ACCOUNT));
 
         repo.getRoleMembershipRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getRoleMembershipRef(), prismContext, repo, RReferenceOwner.ROLE_MEMBER));
+                RUtil.safeListReferenceToSet(jaxb.getRoleMembershipRef(), repositoryContext.prismContext, repo, RReferenceOwner.ROLE_MEMBER));
 
         repo.getDelegatedRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getDelegatedRef(), prismContext, repo, RReferenceOwner.DELEGATED));
+                RUtil.safeListReferenceToSet(jaxb.getDelegatedRef(), repositoryContext.prismContext, repo, RReferenceOwner.DELEGATED));
 
         repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
-            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext, generatorResult);
+            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, repositoryContext, generatorResult);
 
             repo.getAssignments().add(rAssignment);
         }
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+            RActivation.copyFromJAXB(jaxb.getActivation(), activation, repositoryContext);
             repo.setActivation(activation);
         }
 

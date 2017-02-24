@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExclusionPolicy;
@@ -178,8 +179,8 @@ public class RExclusion implements Container {
         }
     }
 
-    public static void copyFromJAXB(ExclusionPolicyConstraintType jaxb, RExclusion repo, ObjectType parent, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+    public static void copyFromJAXB(ExclusionPolicyConstraintType jaxb, RExclusion repo, ObjectType parent,
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -188,7 +189,7 @@ public class RExclusion implements Container {
         repo.setId(RUtil.toInteger(jaxb.getId()));
 
         repo.setPolicy(RUtil.getRepoEnumValue(jaxb.getPolicy(), RExclusionPolicy.class));
-        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
+        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), repositoryContext.prismContext));
     }
 
     public ExclusionPolicyConstraintType toJAXB(PrismContext prismContext) throws DtoTranslationException {

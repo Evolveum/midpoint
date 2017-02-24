@@ -37,7 +37,7 @@ public class ProfilingConfigurationManager {
     private static final String APPENDER_IDM_PROFILE = "IDM-PROFILE_LOG";
 
     /**
-     *  In this method, we perform the check of systemConfiguration object, searching for any changes
+     *  In this method, we perform the check of systemConfiguration object, searching for any data
      *  related to profilingConfiguration
      * */
     public static LoggingConfigurationType checkSystemProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism){
@@ -48,9 +48,9 @@ public class ProfilingConfigurationManager {
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
         boolean isSubsystemConfig;
 
-        if(profilingConfig == null || !profilingConfig.isEnabled())
+        if (profilingConfig == null || !profilingConfig.isEnabled()) {
             return systemConfig.getLogging();
-        else{
+        } else {
             isSubsystemConfig = applySubsystemProfiling(systemConfig);
             return applyProfilingConfiguration(systemConfigurationPrism, profilingConfig, isSubsystemConfig);
         }
@@ -61,8 +61,8 @@ public class ProfilingConfigurationManager {
 
         LoggingConfigurationType loggingConfig = systemConfig.getLogging();
 
-        if(loggingConfig != null){
-            if(checkXsdBooleanValue(profilingConfig.isRequestFilter())){
+        if (loggingConfig != null) {
+            if (checkXsdBooleanValue(profilingConfig.isRequestFilter())) {
                 ClassLoggerConfigurationType requestFilterLogger = new ClassLoggerConfigurationType();
                 requestFilterLogger.setPackage(REQUEST_FILTER_LOGGER_CLASS_NAME);
                 requestFilterLogger.setLevel(LoggingLevelType.TRACE);
@@ -71,7 +71,7 @@ public class ProfilingConfigurationManager {
 
                 loggingConfig.getClassLogger().add(requestFilterLogger);
             }
-            if(subsystemProfiling){
+            if (subsystemProfiling) {
                 ClassLoggerConfigurationType subsystemLogger = new ClassLoggerConfigurationType();
                 subsystemLogger.setPackage(SUBSYSTEM_PROFILING_LOGGER);
                 subsystemLogger.setLevel(LoggingLevelType.DEBUG);
@@ -83,10 +83,10 @@ public class ProfilingConfigurationManager {
         }
 
         LOGGER.info("Applying profiling configuration.");
-        return  loggingConfig;
+        return loggingConfig;
     }
 
-    private static boolean applySubsystemProfiling(SystemConfigurationType systemConfig){
+    private static boolean applySubsystemProfiling(SystemConfigurationType systemConfig) {
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
 
         Map<ProfilingDataManager.Subsystem, Boolean> profiledSubsystems = new HashMap<>();

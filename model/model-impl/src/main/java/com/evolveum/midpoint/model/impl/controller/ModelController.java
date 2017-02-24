@@ -162,16 +162,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private ChangeExecutor changeExecutor;
 
 	@Autowired(required = true)
-	SystemConfigurationHandler systemConfigurationHandler;
-
-	@Autowired(required = true)
 	private AuditService auditService;
 
 	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
-	
-	@Autowired(required = true)
-	private AuthenticationEvaluator authenticationEvaluator;
 
 	@Autowired(required = true)
 	private UserProfileService userProfileService;
@@ -1674,19 +1668,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		securityEnforcer.setUserProfileService(userProfileService);
 		// TODO: initialize repository
 
-		PrismObject<SystemConfigurationType> systemConfiguration;
-		try {
-			systemConfiguration = objectResolver.getSystemConfiguration(result);
-			systemConfigurationHandler.postInit(systemConfiguration, result);
-		} catch (ObjectNotFoundException e) {
-			String message = "No system configuration found, skipping application of initial system settings";
-			LOGGER.error(message + ": " + e.getMessage(), e);
-			result.recordWarning(message, e);
-		} catch (SchemaException e) {
-			String message = "Schema error in system configuration, skipping application of initial system settings";
-			LOGGER.error(message + ": " + e.getMessage(), e);
-			result.recordWarning(message, e);
-		}
+		// repository (including logging config) is initialized in its own method
 
         taskManager.postInit(result);
 

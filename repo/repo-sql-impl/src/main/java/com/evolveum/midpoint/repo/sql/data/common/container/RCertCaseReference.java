@@ -176,7 +176,7 @@ public class RCertCaseReference extends RContainerReference {
         RCertCaseReference repoRef = new RCertCaseReference();
         repoRef.setReferenceType(refOwner);
         repoRef.setOwner(owner);
-        RCertCaseReference.copyFromJAXB(reference, repoRef, prismContext);
+        RCertCaseReference.copyFromJAXB(reference, repoRef);
 //        repoRef.setTargetName(RPolyString.toRepo(reference.asReferenceValue().getTargetName()));
 
         return repoRef;

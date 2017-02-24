@@ -34,9 +34,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 @XmlType(name = "ObjectType", propOrder = {
 })
 
-public class ObjectType{
-
-	
+public class ObjectType {
 	public PrismObject asPrismObject(){
 		return null;
 	}

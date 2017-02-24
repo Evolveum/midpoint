@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -534,8 +535,8 @@ public class ObjectUpdater {
         try {
             rObject = clazz.newInstance();
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz,
-                    PrismContext.class, IdGeneratorResult.class);
-            method.invoke(clazz, object, rObject, prismContext, generatorResult);
+                    RepositoryContext.class, IdGeneratorResult.class);
+            method.invoke(clazz, object, rObject, new RepositoryContext(repositoryService, prismContext), generatorResult);
         } catch (Exception ex) {
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {

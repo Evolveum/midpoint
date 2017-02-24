@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.common.ProfilingConfigurationManager;
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
@@ -52,14 +56,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -106,23 +106,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
     private static final String DETAILS_HIBERNATE_HBM_2_DDL = "hibernateHbm2ddl";
 
-    @Autowired
-    private SequenceHelper sequenceHelper;
+    @Autowired private SequenceHelper sequenceHelper;
+    @Autowired private ObjectRetriever objectRetriever;
+    @Autowired private ObjectUpdater objectUpdater;
+    @Autowired private OrgClosureManager closureManager;
+    @Autowired private BaseHelper baseHelper;
+    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired private MidpointConfiguration midpointConfiguration;
 
-    @Autowired
-    private ObjectRetriever objectRetriever;
-
-    @Autowired
-    private ObjectUpdater objectUpdater;
-
-    @Autowired
-    private OrgClosureManager closureManager;
-
-    @Autowired
-    private BaseHelper baseHelper;
-    
-    @Autowired(required = true)
-	private MatchingRuleRegistry matchingRuleRegistry;
+    private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
@@ -1002,5 +994,46 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		} else {
 			return DefaultMatcher.getApproximateSupportedMatchingRule(originalMatchingRule);
 		}
+	}
+
+	@Override
+	public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+		LOGGER.info("Applying full text search configuration ({} entries)",
+				fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
+		fullTextSearchConfiguration = fullTextSearch;
+	}
+
+	@Override
+	public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
+		return fullTextSearchConfiguration;
+	}
+
+	@Override
+	public void postInit(OperationResult result) throws SchemaException {
+
+		SystemConfigurationType systemConfiguration;
+		try {
+			systemConfiguration = getObject(SystemConfigurationType.class,
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result).asObjectable();
+		} catch (ObjectNotFoundException e) {
+			// ok, no problem e.g. for tests or initial startup
+			LOGGER.debug("System configuration not found, exiting postInit method.");
+			return;
+		}
+
+		SystemConfigurationHolder.setCurrentConfiguration(systemConfiguration);
+
+		Configuration systemConfigFromFile = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
+		if (systemConfigFromFile != null && systemConfigFromFile
+				.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false)) {
+			LOGGER.warn("Skipping application of repository logging configuration because {}=true", LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS);
+		} else {
+			LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(
+					systemConfiguration.asPrismObject());
+			if (loggingConfig != null) {
+				LoggingConfigurationManager.configure(loggingConfig, systemConfiguration.getVersion(), result);
+			}
+		}
+		applyFullTextSearchConfiguration(systemConfiguration.getFullTextSearch());
 	}
 }

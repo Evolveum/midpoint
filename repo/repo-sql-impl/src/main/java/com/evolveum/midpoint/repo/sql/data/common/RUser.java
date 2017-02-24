@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -341,9 +342,9 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return result;
     }
 
-    public static void copyFromJAXB(UserType jaxb, RUser repo, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RFocus.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+    public static void copyFromJAXB(UserType jaxb, RUser repo, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));
@@ -365,7 +366,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
 
         ItemDefinition def = jaxb.asPrismObject().getDefinition();
-        RUtil.copyResultFromJAXB(def, jaxb.F_RESULT, jaxb.getResult(), repo, prismContext);
+        RUtil.copyResultFromJAXB(def, jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
 
         //sets
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));

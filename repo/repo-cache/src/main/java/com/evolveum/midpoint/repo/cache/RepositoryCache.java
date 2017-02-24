@@ -30,13 +30,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 
@@ -441,5 +435,20 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule) {
 		return repository.getApproximateSupportedMatchingRule(dataType, originalMatchingRule);
+	}
+
+	@Override
+	public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+		repository.applyFullTextSearchConfiguration(fullTextSearch);
+	}
+
+	@Override
+	public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
+		return repository.getFullTextSearchConfiguration();
+	}
+
+	@Override
+	public void postInit(OperationResult result) throws SchemaException {
+		repository.postInit(result);
 	}
 }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -72,9 +73,9 @@ public class RForm extends RObject<FormType> {
         return Objects.hash(super.hashCode(), name);
     }
 
-	public static void copyFromJAXB(FormType jaxb, RForm repo, PrismContext prismContext,
+	public static void copyFromJAXB(FormType jaxb, RForm repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
-		RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 	}
 
 
