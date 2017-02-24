@@ -310,7 +310,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         }
         List<AssignmentEditorDto> assignmentsList = new ArrayList<>();
         for (AssignmentType assignment : userAssignments){
-            if (assignmentsToRemove.contains(assignment.getTargetRef().getOid())){
+            if (assignment.getTargetRef() != null && assignmentsToRemove.contains(assignment.getTargetRef().getOid())){
                 assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.DELETE, assignment, this));
             } else {
                 assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
@@ -352,11 +352,14 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             if (addedAssignments != null) {
                 for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
                     for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getTargetPolicyRules()) {
-                        for (EvaluatedPolicyRuleTrigger trigger : policyRule.getTriggers()) {
-                            if (PolicyConstraintKindType.EXCLUSION.equals(trigger.getConstraintKind()) &&
-                                    trigger instanceof EvaluatedExclusionTrigger) {
+                    	if (policyRule.getActions() == null || policyRule.getActions().getApproval() == null) {
+                    		continue;
+						}
+                        for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getAllTriggers()) {
+                            if (trigger instanceof EvaluatedExclusionTrigger) {
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
-                                PrismObject<F> exclusionTargetObj = (PrismObject<F>)((EvaluatedExclusionTrigger) trigger).getConflictingAssignment().getTarget();
+                                EvaluatedAssignment<F> conflictingAssignment = ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment();
+                                PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
                                 String exclusionOid = exclusionTargetObj.getOid();
                                 if (userAssignmentsOidsList.contains(exclusionOid)) {
                                     AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
@@ -364,12 +367,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                                 }
                             }
                         }
+
                     }
                 }
             }
         } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflics. Reason: ", e);
-            error("Couldn't get assignments conflics. Reason: " + e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
+            error("Couldn't get assignments conflicts. Reason: " + e);
         }
         return conflictsList;
     }
@@ -377,6 +381,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private boolean areConflictsResolved(){
         List<AssignmentConflictDto> list = getSessionStorage().getRoleCatalog().getConflictsList();
         for (AssignmentConflictDto dto : list){
+            if (!dto.isError()){
+                continue;
+            }
             if (!dto.isSolved()){
                 return false;
             }

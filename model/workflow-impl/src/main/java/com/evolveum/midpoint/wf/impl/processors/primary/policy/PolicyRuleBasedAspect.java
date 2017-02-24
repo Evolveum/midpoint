@@ -320,7 +320,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		}
 	}
 
-	private Set<ItemPath> getAffectedItems(Collection<EvaluatedPolicyRuleTrigger> triggers) {
+	private Set<ItemPath> getAffectedItems(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 		Set<ItemPath> rv = new HashSet<>();
 		for (EvaluatedPolicyRuleTrigger trigger : triggers) {
 			if (trigger.getConstraint() instanceof ModificationPolicyConstraintType) {

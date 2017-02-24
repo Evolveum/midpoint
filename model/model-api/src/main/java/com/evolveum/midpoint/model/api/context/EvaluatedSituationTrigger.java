@@ -23,7 +23,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -43,6 +45,28 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	@NotNull
 	public Collection<EvaluatedPolicyRule> getSourceRules() {
 		return sourceRules;
+	}
+
+	// lists all source rules (recursively)
+	@NotNull
+	public Collection<EvaluatedPolicyRule> getAllSourceRules() {
+		List<EvaluatedPolicyRule> rv = new ArrayList<>();
+		for (EvaluatedPolicyRule sourceRule : sourceRules) {
+			rv.add(sourceRule);
+			for (EvaluatedPolicyRuleTrigger trigger : sourceRule.getTriggers()) {
+				if (trigger instanceof EvaluatedSituationTrigger) {
+					rv.addAll(((EvaluatedSituationTrigger) trigger).getAllSourceRules());
+				}
+			}
+		}
+		return rv;
+	}
+
+	public Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers() {
+		List<EvaluatedPolicyRuleTrigger<?>> rv = new ArrayList<>();
+		rv.add(this);
+		getAllSourceRules().forEach(r -> rv.addAll(r.getTriggers()));
+		return rv;
 	}
 
 	@Override
