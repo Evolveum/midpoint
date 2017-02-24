@@ -48,4 +48,6 @@
     <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-configuration-test.xml"/>
 
+<bean id="testProvider" class="com.evolveum.midpoint.testing.rest.TestProvider"/>
+
 </beans>

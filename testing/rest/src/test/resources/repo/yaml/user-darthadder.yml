@@ -1,0 +1,32 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+user:
+  oid: "1696229e-d90a-11e4-9ce6-001e8c717e5b"
+  version: "0"
+  name: "darthadder"
+  metadata:
+    createTimestamp: "2017-02-23T15:41:57.734Z"
+    creatorRef:
+      oid: "00000000-0000-0000-0000-000000000002"
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+    createChannel: "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport"
+  assignment:
+  - targetRef:
+      oid: "20bbf2f2-d48d-11e4-a091-001e8c717e5b"
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleType"
+  - targetRef:
+      oid: "eb243068-d48d-11e4-a83a-001e8c717e5b"
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleType"
+  - targetRef:
+      oid: "8a48a97e-d909-11e4-8413-001e8c717e5b"
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#RoleType"
+  activation:
+    administrativeStatus: "enabled"
+  fullName: "Darth Adder"
+  givenName: "Darth"
+  familyName: "Adder"
+  credentials:
+    password:
+      value:
+        '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+        clearValue: "iamyouruncle"

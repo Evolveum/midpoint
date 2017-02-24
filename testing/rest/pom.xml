@@ -232,6 +232,12 @@
 		   <groupId>javax.ws.rs</groupId>
 		   <artifactId>javax.ws.rs-api</artifactId>
 		</dependency>
+		<dependency>
+		  <groupId>org.codehaus.jackson</groupId>
+		  <artifactId>jackson-jaxrs</artifactId>
+		  <version>1.9.0</version>
+		  <scope>test</scope>
+		</dependency>
 	</dependencies>
   	<profiles>
 		<profile>

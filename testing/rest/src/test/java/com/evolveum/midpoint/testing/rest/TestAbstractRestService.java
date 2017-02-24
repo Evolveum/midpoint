@@ -15,15 +15,16 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.util.TestUtil.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 
@@ -38,7 +39,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -74,93 +74,107 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-rest-test.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestRestService {
-
-	private static final File BASE_DIR = new File("src/test/resources");
-	private static final File REPO_DIR = new File("src/test/resources/repo/");
-	private static final File REQ_DIR = new File("src/test/resources/req/");
-
-	public static final File USER_ADMINISTRATOR_FILE = new File(REPO_DIR, "user-administrator.xml");
+public abstract class TestAbstractRestService {
+	
+//	protected static final File BASE_DIR = new File("src/test/resources");
+	protected static final File BASE_REPO_DIR = new File("src/test/resources/repo/");
+	protected static final File BASE_REQ_DIR = new File("src/test/resources/req/");
+	
+	public static final File USER_ADMINISTRATOR_FILE = new File(BASE_REPO_DIR, "user-administrator.xml");
 	public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 	public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
 
 	// No authorization
-	public static final File USER_NOBODY_FILE = new File(REPO_DIR, "user-nobody.xml");
+	public static final File USER_NOBODY_FILE = new File(BASE_REPO_DIR, "user-nobody.xml");
 	public static final String USER_NOBODY_USERNAME = "nobody";
 	public static final String USER_NOBODY_PASSWORD = "nopassword";
 
 	// REST authorization only
-	public static final File USER_CYCLOPS_FILE = new File(REPO_DIR, "user-cyclops.xml");
+	public static final File USER_CYCLOPS_FILE = new File(BASE_REPO_DIR, "user-cyclops.xml");
 	public static final String USER_CYCLOPS_USERNAME = "cyclops";
 	public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
 	
 	// REST and reader authorization
-	public static final File USER_SOMEBODY_FILE = new File(REPO_DIR, "user-somebody.xml");
+	public static final File USER_SOMEBODY_FILE = new File(BASE_REPO_DIR, "user-somebody.xml");
 	public static final String USER_SOMEBODY_USERNAME = "somebody";
 	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
 	
 	// REST, reader and adder authorization
- 	public static final File USER_DARTHADDER_FILE = new File(REPO_DIR, "user-darthadder.xml");
+ 	public static final String USER_DARTHADDER_FILE = "user-darthadder";//new File(REPO_DIR, "user-darthadder.xml");
  	public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
  	public static final String USER_DARTHADDER_USERNAME = "darthadder";
  	public static final String USER_DARTHADDER_PASSWORD = "iamyouruncle";
  	
  	// Authorizations, but no password
- 	public static final File USER_NOPASSWORD_FILE = new File(REPO_DIR, "user-nopassword.xml");
+ 	public static final String USER_NOPASSWORD_FILE = "user-nopassword"; //new File(REPO_DIR, "user-nopassword.xml");
  	public static final String USER_NOPASSWORD_USERNAME = "nopassword";
 
-	public static final File ROLE_SUPERUSER_FILE = new File(REPO_DIR, "role-superuser.xml");
-	public static final File ROLE_REST_FILE = new File(REPO_DIR, "role-rest.xml");
-	public static final File ROLE_READER_FILE = new File(REPO_DIR, "role-reader.xml");
-	public static final File ROLE_ADDER_FILE = new File(REPO_DIR, "role-adder.xml");
+	public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
+	public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
+	public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
+	public static final String ROLE_ADDER_FILE = "role-adder";//new File(REPO_DIR, "role-adder.xml");
 	
-	public static final File ROLE_MODIFIER_FILE = new File(REPO_DIR, "role-modifier.xml");
+	public static final String ROLE_MODIFIER_FILE = "role-modifier"; //new File(REPO_DIR, "role-modifier.xml");
 	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
 
-	public static final File RESOURCE_OPENDJ_FILE = new File(REPO_DIR, "reosurce-opendj.xml");
+	public static final File RESOURCE_OPENDJ_FILE = new File(BASE_REPO_DIR, "reosurce-opendj.xml");
 	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
-	public static final File USER_TEMPLATE_FILE = new File(REPO_DIR, "user-template.xml");
+	public static final String USER_TEMPLATE_FILE = "user-template";//new File(REPO_DIR, "user-template.xml");
 	public static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 
-	public static final File ACCOUT_CHUCK_FILE = new File(REPO_DIR, "account-chuck.xml");
-	public static final String ACCOUT_CHUCK_OID = REPO_DIR + "a0c010c0-d34d-b33f-f00d-111111111666";
+	public static final String ACCOUT_CHUCK_FILE = "account-chuck"; //new File(BASE_REPO_DIR, "account-chuck.xml");
+	public static final String ACCOUT_CHUCK_OID = BASE_REPO_DIR + "a0c010c0-d34d-b33f-f00d-111111111666";
 
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(REPO_DIR, "system-configuration.xml");
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestRestService.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestAbstractRestService.class);
 
 	private final static String ENDPOINT_ADDRESS = "http://localhost:18080/rest";
 
-	private static final File MODIFICATION_DISABLE = new File(REQ_DIR, "modification-disable.xml");
-	private static final File MODIFICATION_ENABLE = new File(REQ_DIR, "modification-enable.xml");
-	private static final File MODIFICATION_ASSIGN_ROLE_MODIFIER = new File(REQ_DIR, "modification-assign-role-modifier.xml");
+	private static final String MODIFICATION_DISABLE = "modification-disable"; //new File(REQ_DIR, "modification-disable.xml");
+	private static final String MODIFICATION_ENABLE = "modification-enable"; //new File(REQ_DIR, "modification-enable.xml");
+	private static final String MODIFICATION_ASSIGN_ROLE_MODIFIER = "modification-assign-role-modifier"; //new File(REQ_DIR, "modification-assign-role-modifier.xml");
 
-	private static PrismContext prismContext;
-	private static TaskManager taskManager;
-	private static ModelService modelService;
+	private  PrismContext prismContext;
+	private  TaskManager taskManager;
+	private  ModelService modelService;
 
-	private static Server server;
+	private  Server server;
 
-	private static RepositoryService repositoryService;
-	private static ProvisioningService provisioning;
-	private static DummyAuditService dummyAuditService;
+	private  RepositoryService repositoryService;
+	private  ProvisioningService provisioning;
+	private  DummyAuditService dummyAuditService;
+	
+	private  TestProvider readWriteProvider;
+	protected abstract String getAcceptHeader();
+	protected abstract String getContentType();
+	
+	protected abstract File getRepoFile(String fileBaseName);
+	protected abstract File getRequestFile(String fileBaseName);
 
+	ApplicationContext applicationContext = null;
+	
 	@BeforeClass
-	public static void initialize() throws Exception {
+	public void initialize() throws Exception {
 		startServer();
 	}
-
-	private static void startServer() throws Exception {
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("ctx-rest-test-main.xml");
+	
+	@AfterClass
+	public void shutDown() {
+		((ClassPathXmlApplicationContext)applicationContext).close();
+	}
+	
+	
+	private void startServer() throws Exception {
+		applicationContext = new ClassPathXmlApplicationContext("ctx-rest-test-main.xml");
 		LOGGER.info("Spring context initialized.");
-
+		
 		JAXRSServerFactoryBean sf = (JAXRSServerFactoryBean) applicationContext.getBean("restService");
 
 		sf.setAddress(ENDPOINT_ADDRESS);
@@ -171,8 +185,9 @@ public class TestRestService {
 		provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
 		taskManager = (TaskManager) applicationContext.getBean("taskManager");
 		modelService = (ModelService) applicationContext.getBean("modelController");
+		readWriteProvider = (TestProvider) applicationContext.getBean("testProvider");
 
-		Task initTask = taskManager.createTaskInstance(TestRestService.class.getName() + ".startServer");
+		Task initTask = taskManager.createTaskInstance(TestAbstractRestService.class.getName() + ".startServer");
 		OperationResult result = initTask.getResult();
 
 		InternalsConfig.encryptionChecks = false;
@@ -197,20 +212,15 @@ public class TestRestService {
 		TestUtil.assertSuccessOrWarning("startServer failed (result)", result, 1);
 	}
 	
-	private static <O extends ObjectType> PrismObject<O> addObject(File file, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
+	private <O extends ObjectType> PrismObject<O> addObject(File file, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
 		PrismObject<O> object = prismContext.parseObject(file);
 		String oid = repositoryService.addObject(object, null, result);
 		object.setOid(oid);
 		return object;
 	}
 
-	@AfterClass
-	public static void destroy() throws Exception {
-		server.stop();
-		server.destroy();
-	}
-
-	public TestRestService() {
+	
+	public TestAbstractRestService() {
 		super();
 	}
 	
@@ -226,7 +236,7 @@ public class TestRestService {
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
-
+		
 		TestUtil.displayThen(TEST_NAME);
 		assertStatus(response, 200);
 		UserType userType = response.readEntity(UserType.class);
@@ -464,7 +474,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(USER_TEMPLATE_FILE);
+		Response response = client.post(getRepoFile(USER_TEMPLATE_FILE));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -488,7 +498,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(USER_ADMINISTRATOR_FILE);
+		Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -512,7 +522,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(ACCOUT_CHUCK_FILE);
+		Response response = client.post(getRepoFile(ACCOUT_CHUCK_FILE));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -548,7 +558,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(ROLE_ADDER_FILE);
+		Response response = client.post(getRepoFile(ROLE_ADDER_FILE));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -571,7 +581,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(USER_DARTHADDER_FILE);
+		Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -595,7 +605,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(ROLE_MODIFIER_FILE);
+		Response response = client.post(getRepoFile(ROLE_MODIFIER_FILE));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -618,7 +628,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(MiscUtil.readFile(MODIFICATION_ASSIGN_ROLE_MODIFIER));
+		Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ASSIGN_ROLE_MODIFIER)));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -641,7 +651,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(MiscUtil.readFile(MODIFICATION_ASSIGN_ROLE_MODIFIER));
+		Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ASSIGN_ROLE_MODIFIER)));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -668,7 +678,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(MiscUtil.readFile(MODIFICATION_DISABLE));
+		Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_DISABLE)));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -717,7 +727,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(MiscUtil.readFile(MODIFICATION_ENABLE));
+		Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ENABLE)));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -768,7 +778,7 @@ public class TestRestService {
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(USER_NOPASSWORD_FILE);
+		Response response = client.post(getRepoFile(USER_NOPASSWORD_FILE));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
@@ -826,32 +836,33 @@ public class TestRestService {
 	
 
 	@Test
-	public void test401AddSystemConfigurationOverwrite() throws Exception {
-		final String TEST_NAME = "test401AddSystemConfigurationOverwrite";
+	public void test401AddUserTemplateOverwrite() throws Exception {
+		final String TEST_NAME = "test401AddUserTemplateOverwrite";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient();
-		client.path("/systemConfigurations");
+		client.path("/objectTemplates");
 		client.query("options", "overwrite");
 		
 		dummyAuditService.clear();
 
 		TestUtil.displayWhen(TEST_NAME);
-		Response response = client.post(SYSTEM_CONFIGURATION_FILE);
+		Response response = client.post(getRepoFile(USER_TEMPLATE_FILE));
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
 		assertEquals("Expected 201 but got " + response.getStatus(), 201, response.getStatus());
 		String location = response.getHeaderString("Location");
-		assertEquals(
-				ENDPOINT_ADDRESS + "/systemConfigurations/" + SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+		String expected = ENDPOINT_ADDRESS + "/objectTemplates/" + USER_TEMPLATE_OID;
+		assertEquals("Unexpected location, expected: " + expected + " but was " + location, 
+				expected,
 				location);
 		
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(4);
 		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
-		dummyAuditService.assertHasDelta(1, ChangeType.ADD, SystemConfigurationType.class);
+		dummyAuditService.assertHasDelta(1, ChangeType.ADD, ObjectTemplateType.class);
 
 	}
 
@@ -860,13 +871,17 @@ public class TestRestService {
 	}
 	
 	private WebClient prepareClient(String username, String password) {
-		WebClient client = WebClient.create(ENDPOINT_ADDRESS);
+		
+		List providers = new ArrayList<>();
+		providers.add(readWriteProvider);
+		WebClient client = WebClient.create(ENDPOINT_ADDRESS, providers);//, provider);
 
 		ClientConfiguration clientConfig = WebClient.getConfig(client);
 
 		clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
-
-		client.accept("application/xml");
+		
+		client.accept(getAcceptHeader());
+		client.type(getContentType());
 
 		if (username != null) {
 			String authorizationHeader = "Basic "
@@ -890,4 +905,7 @@ public class TestRestService {
 		LOGGER.info("response : {} ", response.getStatus());
 		LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
 	}
+	
+	
+	
 }

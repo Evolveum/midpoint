@@ -1,0 +1,15 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+role:
+  oid: "82005ae4-d90b-11e4-bdcc-001e8c717e5b"
+  version: "0"
+  name: "Modifier"
+  metadata:
+    createTimestamp: "2017-02-23T16:41:52.974+01:00"
+    creatorRef:
+      oid: "00000000-0000-0000-0000-000000000002"
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+    createChannel: "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport"
+  authorization:
+    id: 1
+    action: "http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify"

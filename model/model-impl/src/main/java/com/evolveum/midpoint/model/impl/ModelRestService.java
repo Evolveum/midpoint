@@ -29,6 +29,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -181,6 +182,7 @@ public class ModelRestService {
 
 	@GET
 	@Path("/{type}/{id}")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response getObject(@PathParam("type") String type, @PathParam("id") String id,
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
@@ -231,7 +233,7 @@ public class ModelRestService {
 	@POST
 	@Path("/{type}")
 //	@Produces({"text/html", "application/xml"})
-	@Consumes({"application/xml", "application/json"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object,
 													 @QueryParam("options") List<String> options,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
@@ -292,6 +294,7 @@ public class ModelRestService {
 	@PUT
 	@Path("/{type}/{id}")
 //	@Produces({"text/html", "application/xml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id,
 			PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo,
 			@Context Request request, @Context MessageContext mc){
@@ -380,6 +383,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}/{oid}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 		return modifyObjectPatch(type, oid, modificationType, options, mc);
@@ -387,7 +391,7 @@ public class ModelRestService {
 
 	@PATCH
 	@Path("/{type}/{oid}")
-//	@Produces({"text/html", "application/xml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 
@@ -414,6 +418,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/notifyChange")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.debug("model rest service for notify change operation start");
@@ -447,7 +452,7 @@ public class ModelRestService {
 
 	@GET
 	@Path("/shadows/{oid}/owner")
-//	@Produces({"text/html", "application/xml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response findShadowOwner(@PathParam("oid") String shadowOid, @Context MessageContext mc){
 
 		Task task = RestServiceUtil.initRequest(mc);
@@ -470,7 +475,8 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}/search")
-//	@Produces({"text/html", "application/xml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response searchObjects(@PathParam("type") String type, QueryType queryType,
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
@@ -514,7 +520,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/resources/{resourceOid}/import/{objectClass}")
-//	@Produces({"text/html", "application/xml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response importFromResource(@PathParam("resourceOid") String resourceOid, @PathParam("objectClass") String objectClass,
 			@Context MessageContext mc, @Context UriInfo uriInfo) {
 		LOGGER.debug("model rest service for import from resource operation start");
