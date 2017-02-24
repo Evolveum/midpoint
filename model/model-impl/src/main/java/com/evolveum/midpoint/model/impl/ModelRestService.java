@@ -29,6 +29,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -37,51 +38,69 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.validator.ResourceValidator;
-import com.evolveum.midpoint.model.api.validator.Scope;
-import com.evolveum.midpoint.model.api.validator.ValidationResult;
-import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.model.api.ModelCompareOptions;
+import com.evolveum.midpoint.model.api.ModelDiagnosticService;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.ScriptExecutionResult;
+import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.validator.ResourceValidator;
+import com.evolveum.midpoint.model.api.validator.Scope;
+import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ScriptOutputsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LogFileContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author katkav
@@ -181,6 +200,7 @@ public class ModelRestService {
 
 	@GET
 	@Path("/{type}/{id}")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response getObject(@PathParam("type") String type, @PathParam("id") String id,
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
@@ -231,7 +251,7 @@ public class ModelRestService {
 	@POST
 	@Path("/{type}")
 //	@Produces({"text/html", "application/xml"})
-	@Consumes({"application/xml", "application/json"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object,
 													 @QueryParam("options") List<String> options,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
@@ -292,6 +312,7 @@ public class ModelRestService {
 	@PUT
 	@Path("/{type}/{id}")
 //	@Produces({"text/html", "application/xml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id,
 			PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo,
 			@Context Request request, @Context MessageContext mc){
@@ -380,6 +401,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}/{oid}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 		return modifyObjectPatch(type, oid, modificationType, options, mc);
@@ -387,7 +409,7 @@ public class ModelRestService {
 
 	@PATCH
 	@Path("/{type}/{oid}")
-//	@Produces({"text/html", "application/xml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 
@@ -414,6 +436,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/notifyChange")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.debug("model rest service for notify change operation start");
@@ -447,7 +470,7 @@ public class ModelRestService {
 
 	@GET
 	@Path("/shadows/{oid}/owner")
-//	@Produces({"text/html", "application/xml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response findShadowOwner(@PathParam("oid") String shadowOid, @Context MessageContext mc){
 
 		Task task = RestServiceUtil.initRequest(mc);
@@ -470,7 +493,8 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}/search")
-//	@Produces({"text/html", "application/xml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response searchObjects(@PathParam("type") String type, QueryType queryType,
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
@@ -514,7 +538,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/resources/{resourceOid}/import/{objectClass}")
-//	@Produces({"text/html", "application/xml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public Response importFromResource(@PathParam("resourceOid") String resourceOid, @PathParam("objectClass") String objectClass,
 			@Context MessageContext mc, @Context UriInfo uriInfo) {
 		LOGGER.debug("model rest service for import from resource operation start");
