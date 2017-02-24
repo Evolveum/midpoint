@@ -58,14 +58,14 @@ public class SystemConfigurationHandler implements ChangeHook {
 
     public static final String HOOK_URI = "http://midpoint.evolveum.com/model/sysconfig-hook-1";
 
-    @Autowired(required = true)
+    @Autowired
     private HookRegistry hookRegistry;
 
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
     
-    @Autowired(required = true)
+    @Autowired
     private MidpointConfiguration startupConfiguration;
 
     @PostConstruct
@@ -77,19 +77,15 @@ public class SystemConfigurationHandler implements ChangeHook {
         SystemConfigurationHolder.setCurrentConfiguration(systemConfiguration.asObjectable());
 
     	Configuration systemConfigFromFile = startupConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
-    	boolean skip = false;
-    	if (systemConfigFromFile != null) {
-    		skip = systemConfigFromFile.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false);
-    	}
-    	if (skip) {
+    	if (systemConfigFromFile != null && systemConfigFromFile
+				.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false)) {
     		LOGGER.warn("Skipping application of repository logging configuration because {}=true", LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS);
     	} else {
 	        LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(systemConfiguration);
-	        if (loggingConfig != null) {
-	        	applyLoggingConfiguration(loggingConfig, systemConfiguration.asObjectable().getVersion(), parentResult);
-	        	//applyLoggingConfiguration(systemConfiguration.asObjectable().getLogging(), systemConfiguration.asObjectable().getVersion(), parentResult);
-	        }
+            applyLoggingConfiguration(loggingConfig, systemConfiguration.asObjectable().getVersion(), parentResult);
     	}
+
+    	cacheRepositoryService.applyFullTextSearchConfiguration(systemConfiguration.asObjectable().getFullTextSearch());
     }
 
     private void applyLoggingConfiguration(LoggingConfigurationType loggingConfig, String version, OperationResult parentResult) {
@@ -152,8 +148,10 @@ public class SystemConfigurationHandler implements ChangeHook {
 
             SystemConfigurationHolder.setCurrentConfiguration(config.asObjectable());
 
-            //ProfilingConfigurationManager.checkSystemProfilingConfiguration(config);
             applyLoggingConfiguration(ProfilingConfigurationManager.checkSystemProfilingConfiguration(config), config.asObjectable().getVersion(), result);
+
+			cacheRepositoryService.applyFullTextSearchConfiguration(config.asObjectable().getFullTextSearch());
+
             result.recordSuccessIfUnknown();
 
         } catch (ObjectNotFoundException e) {

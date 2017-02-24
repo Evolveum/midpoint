@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -182,24 +183,24 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     }
 
     public static void copyFromJAXB(AccessCertificationCampaignType jaxb, RAccessCertificationCampaign repo,
-                                    PrismContext prismContext, IdGeneratorResult generatorResult)
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setDefinitionRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getDefinitionRef(), prismContext));
+        repo.setDefinitionRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getDefinitionRef(), repositoryContext.prismContext));
 
         List<AccessCertificationCaseType> cases = jaxb.getCase();
         if (!cases.isEmpty()) {
             for (AccessCertificationCaseType case1 : cases) {
                 case1.setCampaignRef(ObjectTypeUtil.createObjectRef(jaxb));
-                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(repo, case1, prismContext);
+                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(repo, case1, repositoryContext);
                 rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));     // redundant?
                 repo.getCase().add(rCase);
             }
         }
 
-        repo.setOwnerRefCampaign(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
+        repo.setOwnerRefCampaign(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setStart(jaxb.getStart());
         repo.setEnd(jaxb.getEnd());

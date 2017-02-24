@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
@@ -60,7 +61,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -355,33 +355,33 @@ public class RAccessCertificationCase implements Container {
         this.trans = trans;
     }
 
-    public static RAccessCertificationCase toRepo(RAccessCertificationCampaign owner, AccessCertificationCaseType case1, PrismContext prismContext) throws DtoTranslationException {
-        RAccessCertificationCase rCase = toRepo(case1, prismContext);
+    public static RAccessCertificationCase toRepo(RAccessCertificationCampaign owner, AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
+        RAccessCertificationCase rCase = toRepo(case1, context);
         rCase.setOwner(owner);
         return rCase;
     }
 
-    public static RAccessCertificationCase toRepo(String ownerOid, AccessCertificationCaseType case1, PrismContext prismContext) throws DtoTranslationException {
-        RAccessCertificationCase rCase = toRepo(case1, prismContext);
+    public static RAccessCertificationCase toRepo(String ownerOid, AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
+        RAccessCertificationCase rCase = toRepo(case1, context);
         rCase.setOwnerOid(ownerOid);
         return rCase;
     }
 
-    private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, PrismContext prismContext) throws DtoTranslationException {
+    private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
         RAccessCertificationCase rCase = new RAccessCertificationCase();
         rCase.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         rCase.setId(RUtil.toInteger(case1.getId()));
-        rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), prismContext));
-        rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), prismContext));
-        rCase.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTenantRef(), prismContext));
-        rCase.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getOrgRef(), prismContext));
+        rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), context.prismContext));
+        rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), context.prismContext));
+        rCase.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTenantRef(), context.prismContext));
+        rCase.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getOrgRef(), context.prismContext));
         if (case1.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.copyFromJAXB(case1.getActivation(), activation, prismContext);
+            RActivation.copyFromJAXB(case1.getActivation(), activation, context);
             rCase.setActivation(activation);
         }
         rCase.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
-                case1.getCurrentReviewerRef(), prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
+                case1.getCurrentReviewerRef(), context.prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
         rCase.setReviewRequestedTimestamp(case1.getCurrentReviewRequestedTimestamp());
         rCase.setReviewDeadline(case1.getCurrentReviewDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
@@ -389,14 +389,14 @@ public class RAccessCertificationCase implements Container {
         rCase.setCurrentStageNumber(case1.getCurrentStageNumber());
         rCase.setOverallOutcome(RUtil.getRepoEnumValue(case1.getOverallOutcome(), RAccessCertificationResponse.class));
         for (AccessCertificationDecisionType decision : case1.getDecision()) {
-            RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, prismContext);
+            RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, context);
             rCase.getDecision().add(rDecision);
         }
 
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {
-            xml = prismContext.xmlSerializer().serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
+            xml = context.prismContext.xmlSerializer().serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }

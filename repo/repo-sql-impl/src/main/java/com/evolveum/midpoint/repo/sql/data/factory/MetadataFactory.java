@@ -148,7 +148,7 @@ public class MetadataFactory {
         RAssignmentReference repoRef = new RAssignmentReference();
         repoRef.setReferenceType(refOwner);
         repoRef.setOwner(owner);
-        RAssignmentReference.copyFromJAXB(reference, repoRef, prismContext);
+        RAssignmentReference.copyFromJAXB(reference, repoRef);
 
         return repoRef;
     }

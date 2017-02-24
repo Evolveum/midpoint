@@ -28,11 +28,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 
@@ -605,4 +601,8 @@ public interface RepositoryService {
 	 * on PolyString), the result may be arbitrary. TODO think again also about this
 	 */
 	QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule);
+
+	void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch);
+
+	FullTextSearchConfigurationType getFullTextSearchConfiguration();
 }

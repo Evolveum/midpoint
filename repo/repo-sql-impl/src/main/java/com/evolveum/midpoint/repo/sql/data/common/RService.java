@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -111,9 +112,9 @@ public class RService extends RAbstractRole<ServiceType> {
         return Arrays.hashCode(new Object[]{name, serviceType, locality, displayOrder});
     }
 
-    public static void copyFromJAXB(ServiceType jaxb, RService repo, PrismContext prismContext,
+    public static void copyFromJAXB(ServiceType jaxb, RService repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RAbstractRole.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+        RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setDisplayOrder(jaxb.getDisplayOrder());
         repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import org.hibernate.annotations.Persister;
@@ -99,9 +100,9 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         return result;
     }
 
-    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+    public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHostname(jaxb.getHostname());
