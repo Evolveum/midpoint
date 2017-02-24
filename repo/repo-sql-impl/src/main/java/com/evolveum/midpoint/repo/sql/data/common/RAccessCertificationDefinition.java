@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -135,14 +136,14 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
     }
 
     public static void copyFromJAXB(AccessCertificationDefinitionType jaxb, RAccessCertificationDefinition repo,
-                                    PrismContext prismContext, IdGeneratorResult generatorResult)
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHandlerUri(jaxb.getHandlerUri());
-        repo.setOwnerRefDefinition(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
+        repo.setOwnerRefDefinition(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
         repo.setLastCampaignStartedTimestamp(jaxb.getLastCampaignStartedTimestamp());
         repo.setLastCampaignClosedTimestamp(jaxb.getLastCampaignClosedTimestamp());
     }

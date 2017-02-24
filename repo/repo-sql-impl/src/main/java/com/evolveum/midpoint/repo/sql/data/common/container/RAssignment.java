@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
@@ -419,7 +419,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return result;
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext,
+    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -438,12 +438,12 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
             repo.setExtension(extension);
             RAssignmentExtension.copyFromJAXB(jaxb.getExtension(), extension, RAssignmentExtensionType.EXTENSION,
-                    prismContext);
+                    repositoryContext);
         }
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
+            RActivation.copyFromJAXB(jaxb.getActivation(), activation, repositoryContext);
             repo.setActivation(activation);
         }
 
@@ -451,17 +451,17 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
             LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
 
-        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
+        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), repositoryContext.prismContext));
 
-        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
+        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.prismContext));
 
-        repo.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOrgRef(), prismContext));
+        repo.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOrgRef(), repositoryContext.prismContext));
 
         if (jaxb.getConstruction() != null) {
-            repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConstruction().getResourceRef(), prismContext));
+            repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConstruction().getResourceRef(), repositoryContext.prismContext));
         }
 
-        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
+        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, repositoryContext.prismContext);
     }
 
     @Override

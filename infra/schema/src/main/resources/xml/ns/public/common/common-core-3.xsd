@@ -8849,7 +8849,7 @@
 		    </xsd:extension>
 		</xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="MultiplicityPolicyConstraintType">
     	<xsd:annotation>
     		<xsd:documentation>
@@ -8874,7 +8874,7 @@
 		    </xsd:extension>
 		</xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="ModificationPolicyConstraintType">
     	<xsd:annotation>
     		<xsd:documentation>
@@ -8911,7 +8911,7 @@
           </xsd:extension>
        </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="AssignmentPolicyConstraintType">
     	<xsd:annotation>
     		<xsd:documentation>
@@ -8953,7 +8953,7 @@
           	</xsd:extension>
        </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:simpleType name="PolicyConstraintEnforcementType">
         <xsd:annotation>
             <xsd:documentation>
@@ -8981,7 +8981,7 @@
                 	<xsd:documentation>
                 		The operation that attempts to violate the policy will be suspended.
                 		Remediation action will take place. This may be used e.g. to approve the
-                		exceptions from the policy. 
+                		exceptions from the policy.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="REMEDIATE"/>
@@ -9001,7 +9001,7 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="ExclusionPolicyType">
         <xsd:annotation>
             <xsd:documentation>
@@ -9027,7 +9027,7 @@
             <xsd:enumeration value="approve">
                 <xsd:annotation>
                 	<xsd:documentation>
-                		Exceptions to the policy are possible but are subject to an approval. 
+                		Exceptions to the policy are possible but are subject to an approval.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="APPROVE"/>
@@ -9047,7 +9047,7 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:complexType name="PolicyActionsType">
     	<xsd:annotation>
     		<xsd:documentation>
@@ -9058,7 +9058,7 @@
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
     	</xsd:annotation>
-    	<xsd:sequence>    	
+    	<xsd:sequence>
 	   		<xsd:element name="enforcement" type="tns:EnforcementPolicyActionType" minOccurs="0" maxOccurs="1">
 	   			<xsd:annotation>
 	   				<xsd:documentation>
@@ -9142,7 +9142,7 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="EnforcementPolicyActionType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -9298,7 +9298,7 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="CertificationPolicyActionType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -9318,7 +9318,7 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="NotificationPolicyActionType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -9338,7 +9338,7 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="PolicyExceptionType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -10618,14 +10618,76 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    
+
+                    <xsd:element name="fullTextSearch" type="tns:FullTextSearchConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the full text search feature.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
 
-    <xsd:complexType name="InternalsConfigurationType">
+	<xsd:complexType name="FullTextSearchConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration of the full text search feature.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether full text search indexing is enabled. The default is true, if there are any indexed entries defined.
+						(This property is to allow temporary disabling existing configuration.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="indexed" type="tns:FullTextSearchIndexedItemsConfigurationType" minOccurs="0" maxOccurs="unbounded">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="FullTextSearchIndexedItemsConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				What items to index.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="objectType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						To what object type(s) should this entry be applied.
+						Empty list means "all object types".
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						What items to index for the given object type(s).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Various internals configuration elements.
@@ -14554,7 +14616,7 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:complexType name="DeploymentInformationType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -14598,7 +14660,7 @@
 						The color can be used as a form of easy look and feel customization to match the
 						customer corporate identity. But perhaps more often the color will be used to
 						distinguish different midPoint environments in the same organization, e.g.
-						green color for devel environment, blue color for testing, etc. 
+						green color for devel environment, blue color for testing, etc.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -14616,7 +14678,7 @@
 					<xsd:documentation>
 						Short name of the organization that is end user of the midPoint deployment.
 						It is supposed to be a company name, such as "ExAmPLE, Inc."
-						It will be displayed together with subscription information. 
+						It will be displayed together with subscription information.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -14624,7 +14686,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						URL of the customer web site. It will be used as a link target in case
-						that the customer name is displayed as hyperlink. 
+						that the customer name is displayed as hyperlink.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -14634,7 +14696,7 @@
 						Short name of the organization that deployed this midPoint instance.
 						It is usually the name of Evolveum partner.
 						It is supposed to be a company name, such as "ExAmPLE, Inc."
-						It will be displayed together with subscription information. 
+						It will be displayed together with subscription information.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -14642,7 +14704,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						URL of the partner web site. It will be used as a link target in case
-						that the partner name is displayed as hyperlink. 
+						that the partner name is displayed as hyperlink.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

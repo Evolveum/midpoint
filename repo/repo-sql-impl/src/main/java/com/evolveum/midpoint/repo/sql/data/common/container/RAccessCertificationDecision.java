@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RL2ContainerId;
@@ -183,13 +183,13 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
         this.trans = trans;
     }
 
-    public static RAccessCertificationDecision toRepo(RAccessCertificationCase owningCase, AccessCertificationDecisionType decision, PrismContext prismContext) {
-        RAccessCertificationDecision rDecision = toRepo(decision, prismContext);
+    public static RAccessCertificationDecision toRepo(RAccessCertificationCase owningCase, AccessCertificationDecisionType decision, RepositoryContext context) {
+        RAccessCertificationDecision rDecision = toRepo(decision, context);
         rDecision.setOwner(owningCase);
         return rDecision;
     }
 
-    private static RAccessCertificationDecision toRepo(AccessCertificationDecisionType decision, PrismContext prismContext) {
+    private static RAccessCertificationDecision toRepo(AccessCertificationDecisionType decision, RepositoryContext context) {
         RAccessCertificationDecision rDecision = new RAccessCertificationDecision();
         rDecision.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         Integer idInt = RUtil.toInteger(decision.getId());
@@ -201,7 +201,7 @@ public class RAccessCertificationDecision implements L2Container<RAccessCertific
             throw new IllegalArgumentException("No stage number for access certification decision: " + decision);
         }
         rDecision.setStageNumber(decision.getStageNumber());
-        rDecision.setReviewerRef(RUtil.jaxbRefToEmbeddedRepoRef(decision.getReviewerRef(), prismContext));
+        rDecision.setReviewerRef(RUtil.jaxbRefToEmbeddedRepoRef(decision.getReviewerRef(), context.prismContext));
         rDecision.setResponse(RUtil.getRepoEnumValue(decision.getResponse(), RAccessCertificationResponse.class));
         rDecision.setComment(decision.getComment());
         rDecision.setTimestamp(decision.getTimestamp());

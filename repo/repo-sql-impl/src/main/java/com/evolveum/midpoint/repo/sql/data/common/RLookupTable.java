@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -50,15 +51,15 @@ public class RLookupTable extends RObject<LookupTableType> {
         this.name = name;
     }
 
-    public static void copyFromJAXB(LookupTableType jaxb, RLookupTable repo, PrismContext prismContext,
+    public static void copyFromJAXB(LookupTableType jaxb, RLookupTable repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException, SchemaException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
         List<LookupTableRowType> rows = jaxb.getRow();
         if (!rows.isEmpty()) {
-            repo.setRows(new HashSet<RLookupTableRow>());
+            repo.setRows(new HashSet<>());
             for (LookupTableRowType row : rows) {
                 RLookupTableRow rRow = RLookupTableRow.toRepo(repo, row);
                 rRow.setTransient(generatorResult.isTransient(row.asPrismContainerValue()));

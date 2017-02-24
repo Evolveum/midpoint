@@ -151,7 +151,7 @@ public final class RUtil {
         List<ObjectReferenceType> list = new ArrayList<>();
         for (RObjectReference str : set) {
             ObjectReferenceType ort = new ObjectReferenceType();
-            RObjectReference.copyToJAXB(str, ort, prismContext);
+            RObjectReference.copyToJAXB(str, ort);
             list.add(ort);
         }
         return list;
@@ -185,7 +185,7 @@ public final class RUtil {
         RObjectReference repoRef = new RObjectReference();
         repoRef.setReferenceType(refOwner);
         repoRef.setOwner(owner);
-        RObjectReference.copyFromJAXB(reference, repoRef, prismContext);
+        RObjectReference.copyFromJAXB(reference, repoRef);
 
         return repoRef;
     }
@@ -196,17 +196,17 @@ public final class RUtil {
             return null;
         }
         REmbeddedReference ref = new REmbeddedReference();
-        REmbeddedReference.copyFromJAXB(jaxb, ref, prismContext);
+        REmbeddedReference.copyFromJAXB(jaxb, ref);
 
         return ref;
     }
 
-    public static REmbeddedNamedReference jaxbRefToEmbeddedNamedRepoRef(ObjectReferenceType jaxb, PrismContext prismContext) {
+    public static REmbeddedNamedReference jaxbRefToEmbeddedNamedRepoRef(ObjectReferenceType jaxb) {
         if (jaxb == null) {
             return null;
         }
         REmbeddedNamedReference ref = new REmbeddedNamedReference();
-        REmbeddedNamedReference.copyFromJAXB(jaxb, ref, prismContext);
+        REmbeddedNamedReference.copyFromJAXB(jaxb, ref);
 
         return ref;
     }

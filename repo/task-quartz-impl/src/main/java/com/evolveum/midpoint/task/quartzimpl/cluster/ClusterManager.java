@@ -274,22 +274,24 @@ public class ClusterManager {
 
             // we do not try to determine which one is "newer" - we simply use the one from repo
             if (!versionInRepo.equals(versionApplied)) {
-            	
-            	Configuration systemConfigFromFile = taskManager.getMidpointConfiguration().getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
-            	boolean skip = false;
-            	if (systemConfigFromFile != null && versionApplied == null) {
-            		skip = systemConfigFromFile.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false);
-            	}
-            	if (skip) {
-            		LOGGER.warn("Skipping application of repository logging configuration because {}=true (version={})", LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, versionInRepo);
-            		// But pretend that this was applied so the next update works normally
-            		LoggingConfigurationManager.setCurrentlyUsedVersion(versionInRepo);
-            	} else {
-	                LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(config);
-	                LoggingConfigurationManager.configure(loggingConfig, versionInRepo, result);
-            	}
+                Configuration systemConfigFromFile = taskManager.getMidpointConfiguration()
+                        .getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
+                if (systemConfigFromFile != null && versionApplied == null && systemConfigFromFile
+						.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false)) {
+                    LOGGER.warn("Skipping application of repository logging configuration because {}=true (version={})",
+                            LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, versionInRepo);
+                    // But pretend that this was applied so the next update works normally
+                    LoggingConfigurationManager.setCurrentlyUsedVersion(versionInRepo);
+                } else {
+                    LoggingConfigurationType loggingConfig = ProfilingConfigurationManager
+                            .checkSystemProfilingConfiguration(config);
+                    LoggingConfigurationManager.configure(loggingConfig, versionInRepo, result);
+                }
 
-                SystemConfigurationHolder.setCurrentConfiguration(config.asObjectable());       // we rely on LoggingConfigurationManager to correctly record the current version
+                SystemConfigurationHolder.setCurrentConfiguration(
+                        config.asObjectable());       // we rely on LoggingConfigurationManager to correctly record the current version
+
+				getRepositoryService().applyFullTextSearchConfiguration(config.asObjectable().getFullTextSearch());
             } else {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("System configuration change check: version in repo = version currently applied = {}", versionApplied);

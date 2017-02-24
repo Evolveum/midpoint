@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
@@ -109,15 +110,15 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         return result;
     }
 
-    public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+    public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
         repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
-                jaxb.getIncludeRef(), prismContext, repo, RReferenceOwner.INCLUDE));
+                jaxb.getIncludeRef(), repositoryContext.prismContext, repo, RReferenceOwner.INCLUDE));
     }
 
     @Override

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBoolean;
@@ -653,8 +654,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
     }
 
-    public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, PrismContext prismContext,
-                                                           IdGeneratorResult generatorResult)
+    public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, RepositoryContext repositoryContext,
+			IdGeneratorResult generatorResult)
             throws DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
@@ -671,24 +672,24 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
                 .getVersion()) : 0;
         repo.setVersion(version);
 
-        repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext,
+        repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), repositoryContext.prismContext,
                 repo, RReferenceOwner.OBJECT_PARENT_ORG));
 
         for (TriggerType trigger : jaxb.getTrigger()) {
             RTrigger rTrigger = new RTrigger(null);
-            RTrigger.copyFromJAXB(trigger, rTrigger, jaxb, prismContext, generatorResult);
+            RTrigger.copyFromJAXB(trigger, rTrigger, jaxb, repositoryContext, generatorResult);
 
             repo.getTrigger().add(rTrigger);
         }
 
-        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
-        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
+        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, repositoryContext.prismContext);
+        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.prismContext));
 
         if (jaxb.getExtension() != null) {
-            copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, prismContext, RObjectExtensionType.EXTENSION);
+            copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION);
         }
 
-        repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, prismContext));
+        repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
     }
 
     @Deprecated
@@ -700,9 +701,9 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return RUtil.getDebugString(this);
     }
 
-    public static void copyFromJAXB(PrismContainerValue containerValue, RObject repo, PrismContext prismContext,
-                                    RObjectExtensionType ownerType) throws DtoTranslationException {
-        RAnyConverter converter = new RAnyConverter(prismContext);
+    public static void copyFromJAXB(PrismContainerValue containerValue, RObject repo, RepositoryContext repositoryContext,
+			RObjectExtensionType ownerType) throws DtoTranslationException {
+        RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
 
         Set<RAnyValue> values = new HashSet<RAnyValue>();
         try {

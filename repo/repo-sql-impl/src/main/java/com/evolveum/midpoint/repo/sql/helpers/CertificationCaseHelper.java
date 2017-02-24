@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
@@ -49,6 +51,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -69,17 +72,11 @@ public class CertificationCaseHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertificationCaseHelper.class);
 
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private GeneralHelper generalHelper;
-
-    @Autowired
-    private NameResolutionHelper nameResolutionHelper;
-
-    @Autowired
-    private ObjectRetriever objectRetriever;
+    @Autowired private PrismContext prismContext;
+    @Autowired private GeneralHelper generalHelper;
+    @Autowired private NameResolutionHelper nameResolutionHelper;
+    @Autowired private ObjectRetriever objectRetriever;
+    @Autowired private RepositoryService repositoryService;
 
     public void addCertificationCampaignCases(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RAccessCertificationCampaign)) {
@@ -112,11 +109,16 @@ public class CertificationCaseHelper {
             PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
             generator.generate(caseType, PrismIdentifierGenerator.Operation.MODIFY);
 
-            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, prismContext);
+            RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, createRepositoryContext());
             row.setId(RUtil.toInteger(caseType.getId()));
             affectedIds.add(caseType.getId());
             session.save(row);
         }
+    }
+
+    @NotNull
+    private RepositoryContext createRepositoryContext() {
+        return new RepositoryContext(repositoryService, prismContext);
     }
 
     public void deleteCertificationCampaignCases(Session session, String oid) {
@@ -253,7 +255,7 @@ public class CertificationCaseHelper {
                 PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
                 generator.generate(aCase, PrismIdentifierGenerator.Operation.MODIFY);
 
-                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, prismContext);
+                RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
                 session.merge(rCase);
 
                 LOGGER.trace("Access certification case {} merged", rCase);
@@ -274,7 +276,7 @@ public class CertificationCaseHelper {
 				AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
 				Long id = aCase.getId();
 				if (id != null && casesAddedOrDeleted != null && !casesAddedOrDeleted.contains(id) && !casesModified.contains(id)) {
-					RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, prismContext);
+					RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
 					session.merge(rCase);
 					LOGGER.trace("Access certification case {} refreshed", rCase);
 				}

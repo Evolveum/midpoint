@@ -20,10 +20,13 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -96,8 +99,22 @@ public enum ObjectTypes {
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
-    
-    public static enum ObjectManager {
+
+	public List<ObjectTypes> thisAndSupertypes() {
+		List<ObjectTypes> rv = new ArrayList<>();
+		rv.add(this);
+		ObjectTypes superType = superType();
+		if (superType != null) {
+			rv.addAll(superType.thisAndSupertypes());
+		}
+		return rv;
+	}
+
+	public ObjectTypes superType() {
+		return getObjectTypeIfKnown(classDefinition.getSuperclass());
+	}
+
+	public static enum ObjectManager {
         PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY;
     }
 
@@ -212,7 +229,16 @@ public enum ObjectTypes {
     }
 
     @SuppressWarnings("unchecked")
+    @NotNull
     public static ObjectTypes getObjectType(Class<? extends ObjectType> objectType) {
+		ObjectTypes rv = getObjectTypeIfKnown(objectType);
+		if (rv == null) {
+			throw new IllegalArgumentException("Unsupported object type " + objectType);
+		}
+		return rv;
+	}
+
+    public static ObjectTypes getObjectTypeIfKnown(Class<?> objectType) {
         for (ObjectTypes type : values()) {
             if (type.getClassDefinition().equals(objectType)) {
                 return type;
@@ -220,11 +246,10 @@ public enum ObjectTypes {
         }
         // No match. Try with superclass.
         Class<?> superclass = objectType.getSuperclass();
-        if (superclass != null && !superclass.equals(ObjectType.class)) {
-            return getObjectType((Class<? extends ObjectType>) superclass);
+        if (superclass != null) {
+            return getObjectTypeIfKnown(superclass);
         }
-
-        throw new IllegalArgumentException("Unsupported object type " + objectType);
+        return null;
     }
 
     public static boolean isManagedByProvisioning(ObjectType object) {

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -194,11 +194,10 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     }
 
     public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
-                                                                 PrismContext prismContext,
-                                                                 IdGeneratorResult generatorResult)
-            throws DtoTranslationException {
+			RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
+			throws DtoTranslationException {
 
-        RFocus.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+        RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setRequestable(jaxb.isRequestable());
 
 		repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
@@ -207,20 +206,20 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
 		for (AssignmentType inducement : jaxb.getInducement()) {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
-            RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext, generatorResult);
+            RAssignment.copyFromJAXB(inducement, rInducement, jaxb, repositoryContext, generatorResult);
 
             repo.getAssignments().add(rInducement);
         }
 
         for (ExclusionPolicyConstraintType exclusion : jaxb.getExclusion()) {
             RExclusion rExclusion = new RExclusion(repo);
-            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext, generatorResult);
+            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, repositoryContext, generatorResult);
 
             repo.getExclusion().add(rExclusion);
         }
 
         for (ObjectReferenceType approverRef : jaxb.getApproverRef()) {
-            RObjectReference ref = RUtil.jaxbRefToRepo(approverRef, prismContext, repo, RReferenceOwner.ROLE_APPROVER);
+            RObjectReference ref = RUtil.jaxbRefToRepo(approverRef, repositoryContext.prismContext, repo, RReferenceOwner.ROLE_APPROVER);
             if (ref != null) {
                 repo.getApproverRef().add(ref);
             }
@@ -230,6 +229,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
         repo.setApprovalProcess(jaxb.getApprovalProcess());
 
-        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
+        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
     }
 }

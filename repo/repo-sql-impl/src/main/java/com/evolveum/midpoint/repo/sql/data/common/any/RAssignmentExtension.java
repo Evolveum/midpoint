@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
@@ -265,17 +265,17 @@ public class RAssignmentExtension implements Serializable {
     }
 
     public static void copyFromJAXB(ExtensionType jaxb, RAssignmentExtension repo, RAssignmentExtensionType type,
-                                    PrismContext prismContext) throws DtoTranslationException {
+                                    RepositoryContext repositoryContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        copyFromJAXB(jaxb.asPrismContainerValue(), repo, type, prismContext);
+        copyFromJAXB(jaxb.asPrismContainerValue(), repo, type, repositoryContext);
     }
 
     private static void copyFromJAXB(PrismContainerValue containerValue, RAssignmentExtension repo,
-                                     RAssignmentExtensionType type, PrismContext prismContext) throws
+                                     RAssignmentExtensionType type, RepositoryContext repositoryContext) throws
             DtoTranslationException {
-        RAnyConverter converter = new RAnyConverter(prismContext);
+        RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext);
 
         Set<RAnyValue> values = new HashSet<RAnyValue>();
         try {

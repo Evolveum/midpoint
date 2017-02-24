@@ -135,7 +135,7 @@ public class REmbeddedReference implements ObjectReference {
         }
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, REmbeddedReference repo, PrismContext prismContext) {
+    public static void copyFromJAXB(ObjectReferenceType jaxb, REmbeddedReference repo) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
         if (jaxb.getFilter() == null){

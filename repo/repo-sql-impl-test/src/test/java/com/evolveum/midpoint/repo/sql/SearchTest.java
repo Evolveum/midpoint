@@ -64,7 +64,15 @@ public class SearchTest extends BaseSQLRepoTest {
 
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
-        List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
+		FullTextSearchConfigurationType fullTextConfig = new FullTextSearchConfigurationType();
+		FullTextSearchIndexedItemsConfigurationType entry = new FullTextSearchIndexedItemsConfigurationType();
+		entry.getItem().add(new ItemPath(ObjectType.F_NAME).asItemPathType());
+		entry.getItem().add(new ItemPath(ObjectType.F_DESCRIPTION).asItemPathType());
+		fullTextConfig.getIndexed().add(entry);
+		repositoryService.applyFullTextSearchConfiguration(fullTextConfig);
+		LOGGER.info("Applying full text search configuration: {}", fullTextConfig);
+
+		List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         objects.addAll(prismContext.parserFor(new File(FOLDER_BASIC, "objects-2.xml")).parseObjects());
 
         OperationResult result = new OperationResult("add objects");

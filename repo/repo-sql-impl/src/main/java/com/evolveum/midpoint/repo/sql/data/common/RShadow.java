@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationType;
@@ -237,9 +238,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
     }
 
     public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow<T> repo,
-                                                           PrismContext prismContext, IdGeneratorResult generatorResult)
-            throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectClass(RUtil.qnameToString(jaxb.getObjectClass()));
@@ -248,7 +248,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());
 
         ItemDefinition def = jaxb.asPrismObject().getDefinition();
-        RUtil.copyResultFromJAXB(def, ShadowType.F_RESULT, jaxb.getResult(), repo, prismContext);
+        RUtil.copyResultFromJAXB(def, ShadowType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
 
         if (jaxb.getSynchronizationSituation() != null) {
             repo.setSynchronizationSituation(RUtil.getRepoEnumValue(jaxb.getSynchronizationSituation(),
@@ -256,7 +256,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         }
 
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
-        repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), prismContext));
+        repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), repositoryContext.prismContext));
 
         repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setExists(jaxb.isExists());
@@ -269,7 +269,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         }
 
         if (jaxb.getAttributes() != null) {
-            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, prismContext, RObjectExtensionType.ATTRIBUTES);
+            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES);
         }
     }
 

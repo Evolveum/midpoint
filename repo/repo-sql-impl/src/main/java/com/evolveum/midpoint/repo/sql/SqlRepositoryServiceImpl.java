@@ -52,12 +52,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
@@ -121,8 +116,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired
     private BaseHelper baseHelper;
     
-    @Autowired(required = true)
+    @Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
+
+    private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
@@ -1002,5 +999,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		} else {
 			return DefaultMatcher.getApproximateSupportedMatchingRule(originalMatchingRule);
 		}
+	}
+
+	@Override
+	public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+		LOGGER.info("Applying full text search configuration ({} entries)",
+				fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
+		fullTextSearchConfiguration = fullTextSearch;
+	}
+
+	@Override
+	public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
+		return fullTextSearchConfiguration;
 	}
 }

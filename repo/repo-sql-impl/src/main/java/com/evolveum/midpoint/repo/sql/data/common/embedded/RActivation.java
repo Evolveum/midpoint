@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTimeIntervalStatus;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -193,7 +194,7 @@ public class RActivation {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyFromJAXB(ActivationType jaxb, RActivation repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ActivationType jaxb, RActivation repo, RepositoryContext repositoryContext) throws
             DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
