@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-
 public class RepositoryFactory implements ApplicationContextAware, RuntimeConfiguration {
 
     private static final String REPOSITORY_CONFIGURATION = "midpoint.repository";
@@ -45,7 +44,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     MidpointConfiguration midpointConfiguration;
     @Autowired
     private PrismContext prismContext;
-    //Repository factory
+	//Repository factory
     private RepositoryServiceFactory factory;
     private RepositoryServiceFactory cacheFactory;
     //Repository services
@@ -113,14 +112,11 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
             try {
             	LOGGER.debug("Creating repository service using factory {}", factory);
                 repositoryService = factory.getRepositoryService();
-            } catch (RepositoryServiceFactoryException ex) {
-                LoggingUtils.logException(LOGGER, "Failed to get repository service from factory " + factory, ex);
-                throw new SystemException("Failed to get repository service from factory " + factory, ex);
-            } catch (RuntimeException ex) {
-            	LoggingUtils.logException(LOGGER, "Failed to get repository service from factory " + factory, ex);
+            } catch (RepositoryServiceFactoryException | RuntimeException ex) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
                 throw new SystemException("Failed to get repository service from factory " + factory, ex);
             } catch (Error ex) {
-            	LoggingUtils.logException(LOGGER, "Failed to get repository service from factory " + factory, ex);
+            	LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
                 throw ex;
             }
         }
@@ -154,4 +150,5 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
+
 }

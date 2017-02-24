@@ -605,4 +605,6 @@ public interface RepositoryService {
 	void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch);
 
 	FullTextSearchConfigurationType getFullTextSearchConfiguration();
+
+	void postInit(OperationResult result) throws SchemaException;
 }

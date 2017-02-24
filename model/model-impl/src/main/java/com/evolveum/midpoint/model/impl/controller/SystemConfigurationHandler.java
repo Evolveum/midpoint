@@ -65,27 +65,9 @@ public class SystemConfigurationHandler implements ChangeHook {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
     
-    @Autowired
-    private MidpointConfiguration startupConfiguration;
-
     @PostConstruct
     public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
-    }
-
-    public void postInit(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
-        SystemConfigurationHolder.setCurrentConfiguration(systemConfiguration.asObjectable());
-
-    	Configuration systemConfigFromFile = startupConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
-    	if (systemConfigFromFile != null && systemConfigFromFile
-				.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false)) {
-    		LOGGER.warn("Skipping application of repository logging configuration because {}=true", LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS);
-    	} else {
-	        LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(systemConfiguration);
-            applyLoggingConfiguration(loggingConfig, systemConfiguration.asObjectable().getVersion(), parentResult);
-    	}
-
-    	cacheRepositoryService.applyFullTextSearchConfiguration(systemConfiguration.asObjectable().getFullTextSearch());
     }
 
     private void applyLoggingConfiguration(LoggingConfigurationType loggingConfig, String version, OperationResult parentResult) {
