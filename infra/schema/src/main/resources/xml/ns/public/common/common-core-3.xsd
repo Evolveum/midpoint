@@ -10735,6 +10735,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectLists" type="tns:GuiObjectListsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the set of pages that are used for displaying lists of objects
+      						such as Users, Roles, Orgs, ...
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="objectForms" type="tns:ObjectFormsType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -10761,6 +10774,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<!-- TODO: role catalog views: define collections (additional views), default search type, etc. -->
 			<xsd:element name="defaultTimezone" type="xsd:string" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -13781,7 +13795,110 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="sequence" type="tns:SequenceType" />
+
+    <xsd:complexType name="GuiObjectListsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the set of pages that are used for displaying lists of objects
+      			such as Users, Roles, Orgs, ...
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="objectList" type="tns:GuiObjectListType" minOccurs="0" maxOccurs="unbounded"/>
+           		<xsd:element name="includeDefaultLists" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					If set to true then all the default lists will be displayed (all users, all roles, ...)
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
+           	</xsd:sequence>	
+    </xsd:complexType>
+
+	<!-- Note: ObjectListType already defined in API types -->
+    <xsd:complexType name="GuiObjectListType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the page used to list specific object type or object collection.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
+       			           add name, label (display name) and menu label for this list.
+       			           We will also need a reference to which menu section we want to display it. E.g. We would
+       			           like to display role catalog under "roles", even though it is in fact org tree. -->
+       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
+       			<!-- TODO: refernce to object collection (MID-3517) -->
+           		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1"/>
+           		<!-- TODO: columns to display -->
+           		<!-- TODO: number of results per page (MID-1931) -->
+           	</xsd:sequence>
+    </xsd:complexType>
     
+    <xsd:complexType name="SearchBoxConfigurationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Configuration of the search box (the set of input fields that control definition of search query).
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="defaultMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="1" default="basic"/>
+       			<!-- TODO: default items to display for basic search -->
+           	</xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:simpleType name="SearchBoxModeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				The mode of the search box.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="basic">
+				<xsd:annotation>
+					<xsd:documentation>
+						Basic search mode. Ability to select the items and specify values for them.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="BASIC"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="advanced">
+				<xsd:annotation>
+					<xsd:documentation>
+						Advanced search mode. Ability to create complex query using a query language.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ADVANCED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="fulltext">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fulltext search mode. Single input field used to search over several fields.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULLTEXT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
     
   <!-- ============================================================== -->
   <!--  FORMS                                                         -->

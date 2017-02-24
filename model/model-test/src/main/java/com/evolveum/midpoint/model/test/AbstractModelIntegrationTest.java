@@ -3487,21 +3487,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected AdminGuiConfigurationType assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks, 
-			int expectedDashboardLinks, int expectedObjectForms, int expecteduserDashboardWidgets) {
+			int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
 		AdminGuiConfigurationType adminGuiConfiguration = principal.getAdminGuiConfiguration();
 		display("Admin GUI config for "+principal.getUsername(), adminGuiConfiguration);
 		assertAdminGuiConfigurations(adminGuiConfiguration, 
-				expectedMenuLinks, expectedDashboardLinks, expectedObjectForms, expecteduserDashboardWidgets);
+				expectedMenuLinks, expectedDashboardLinks, expectedObjectLists, expectedObjectForms, expecteduserDashboardWidgets);
 		return adminGuiConfiguration;
 	}
 	
 	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration, 
-			int expectedMenuLinks, int expectedDashboardLinks, int expectedObjectForms, int expecteduserDashboardWidgets) {
+			int expectedMenuLinks, int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
 		assertNotNull("No admin GUI configuration", adminGuiConfiguration);
 		assertEquals("Wrong number of menu links in",
 				expectedMenuLinks, adminGuiConfiguration.getAdditionalMenuLink().size());
 		assertEquals("Wrong number of menu links in",
 				expectedDashboardLinks, adminGuiConfiguration.getUserDashboardLink().size());
+		if ( adminGuiConfiguration.getObjectLists() == null ) {
+			if (expectedObjectLists != 0) {
+				AssertJUnit.fail("Wrong number of object lists in user dashboard admin GUI configuration, expected "
+						+ expectedObjectLists + " but there was none");
+			}
+		} else {
+			assertEquals("Wrong number of object lists in admin GUI configuration",
+				expectedObjectLists, adminGuiConfiguration.getObjectLists().getObjectList().size());
+		}
 		assertEquals("Wrong number of object forms in admin GUI configuration",
 				expectedObjectForms, adminGuiConfiguration.getObjectForms().getObjectForm().size());
 		if ( adminGuiConfiguration.getUserDashboard() == null) {

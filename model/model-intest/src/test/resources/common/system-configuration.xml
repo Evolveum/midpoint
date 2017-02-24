@@ -218,6 +218,26 @@
 	    	<targetUrl>/foo</targetUrl>
 	    	<label>Foo</label>
 	    </userDashboardLink>
+	    <objectLists>
+	    	<objectList>
+	    		<type>UserType</type>
+	    		<searchBoxConfiguration>
+	    			<defaultMode>basic</defaultMode>
+	    		</searchBoxConfiguration>
+	    	</objectList>
+	    	<objectList>
+	    		<type>RoleType</type>
+	    		<searchBoxConfiguration>
+	    			<defaultMode>fulltext</defaultMode>
+	    		</searchBoxConfiguration>
+	    	</objectList>
+	    	<objectList>
+	    		<type>ServiceType</type>
+	    		<searchBoxConfiguration>
+	    			<defaultMode>advanced</defaultMode>
+	    		</searchBoxConfiguration>
+	    	</objectList>
+	    </objectLists>
 	    <objectForms>
     		<objectForm>
     			<type>RoleType</type>
