@@ -30,7 +30,13 @@ import org.jetbrains.annotations.Nullable;
 public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 
 	@NotNull
-	Collection<EvaluatedPolicyRuleTrigger> getTriggers();
+	Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
+
+	/**
+	 * Returns all triggers, even those that were indirectly "collected" via situation policy rules.
+	 */
+	@NotNull
+	Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
 
 	String getName();
 	

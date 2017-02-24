@@ -350,6 +350,10 @@ public interface RepositoryService {
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException;
 
+	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			OperationResult parentResult) throws SchemaException;
+
 	boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
 	
 	<O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException;

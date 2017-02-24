@@ -128,6 +128,47 @@ public class ItemPathResolver {
         return joinedItemAlias;
     }
 
+//    String addTextInfoJoin(String currentHqlPath) throws QueryException {
+//        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+//        String joinedItemJpaName = "textInfoItems";
+//        String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
+//        String joinedItemAlias;
+//        if (!joinedItemDefinition.isMultivalued()) {
+//            /*
+//             * Let's check if we were already here i.e. if we had already created this join.
+//             * This is to avoid useless creation of redundant joins for singleton items.
+//             *
+//             * But how can we be sure that item is singleton if we look only at the last segment (which is single-valued)?
+//             * Imagine we are creating join for single-valued entity of u.abc.(...).xyz.ent where
+//             * ent is single-valued and not embedded (so we are to create something like "left join u.abc.(...).xyz.ent e").
+//             * Then "u" is certainly a single value: either the root object, or some value pointed to by Exists restriction.
+//             * Also, abc, ..., xyz are surely single-valued: otherwise they would be connected by a join. So,
+//             * u.abc.(...).xyz.ent is a singleton.
+//             *
+//             * Look at it in other way: if e.g. xyz was multivalued, then we would have something like:
+//             * left join u.abc.(...).uvw.xyz x
+//             * left join x.ent e
+//             * And, therefore we would not be looking for u.abc.(...).xyz.ent.
+//             */
+//
+//            JoinSpecification existingJoin = hibernateQuery.getPrimaryEntity().findJoinFor(joinedItemFullPath);
+//            if (existingJoin != null) {
+//                // but let's check the condition as well
+//                String existingAlias = existingJoin.getAlias();
+//                // we have to create condition for existing alias, to be matched to existing condition
+//                Condition conditionForExistingAlias = createJoinCondition(existingAlias, joinedItemDefinition, hibernateQuery);
+//                if (ObjectUtils.equals(conditionForExistingAlias, existingJoin.getCondition())) {
+//                    LOGGER.trace("Reusing alias '{}' for joined path '{}'", existingAlias, joinedItemFullPath);
+//                    return existingAlias;
+//                }
+//            }
+//        }
+//        joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
+//        Condition condition = createJoinCondition(joinedItemAlias, joinedItemDefinition, hibernateQuery);
+//        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
+//        return joinedItemAlias;
+//    }
+
     private Condition createJoinCondition(String joinedItemAlias, JpaLinkDefinition joinedItemDefinition, RootHibernateQuery hibernateQuery) throws QueryException {
         Condition condition = null;
         if (joinedItemDefinition instanceof JpaAnyPropertyLinkDefinition) {
