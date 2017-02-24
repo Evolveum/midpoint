@@ -666,9 +666,18 @@ public class SearchTest extends BaseSQLRepoTest {
 				+ "\t\t\tVestibulum vel pulvinar ligula, vitae rutrum leo. Sed efficitur dignissim augue in placerat. Aliquam dapibus mauris\n"
 				+ "\t\t\teget diam pharetra molestie. Morbi vitae nulla sollicitudin, dignissim tellus a, tincidunt neque.\n";
 
+		LOGGER.info("## changing description ##");
 		repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
 				DeltaBuilder.deltaFor(UserType.class, prismContext)
 						.item(UserType.F_DESCRIPTION).replace(newDescription)
+						.asItemDeltas(),
+				result);
+
+		// just to see SQL used
+		LOGGER.info("## changing telephoneNumber ##");
+		repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
+				DeltaBuilder.deltaFor(UserType.class, prismContext)
+						.item(UserType.F_TELEPHONE_NUMBER).replace("123456")
 						.asItemDeltas(),
 				result);
 

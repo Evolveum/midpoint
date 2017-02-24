@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.id.RObjectTextInfoId;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,6 +41,7 @@ import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.TABLE_N
  * @author mederly
  */
 @Entity
+@IdClass(RObjectTextInfoId.class)
 @Table(name = TABLE_NAME, indexes = {
         @Index(name = "iTextInfoOid", columnList = COLUMN_OWNER_OID)})
 public class RObjectTextInfo implements Serializable {
@@ -51,8 +53,6 @@ public class RObjectTextInfo implements Serializable {
     public static final String F_TEXT = "text";
 
     public static final int MAX_TEXT_SIZE = 255;
-
-    private Integer id;
 
     private RObject owner;
     private String ownerOid;
@@ -66,16 +66,6 @@ public class RObjectTextInfo implements Serializable {
 		this.owner = owner;
 		this.text = text;
 	}
-
-	@Id
-    @GeneratedValue
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     @ForeignKey(name = "fk_reference_owner")
     @MapsId("owner")
@@ -103,6 +93,8 @@ public class RObjectTextInfo implements Serializable {
         this.ownerOid = ownerOid;
     }
 
+	@Id
+	@Column(name = "text", length = MAX_TEXT_SIZE)
     public String getText() {
         return text;
     }
@@ -111,23 +103,23 @@ public class RObjectTextInfo implements Serializable {
         this.text = text;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RObjectTextInfo that = (RObjectTextInfo) o;
-        return Objects.equals(owner, that.owner) &&
-                Objects.equals(ownerOid, that.ownerOid) &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(text, that.text);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof RObjectTextInfo))
+			return false;
+		RObjectTextInfo that = (RObjectTextInfo) o;
+		return Objects.equals(getOwnerOid(), that.getOwnerOid()) &&
+				Objects.equals(getText(), that.getText());
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(owner, ownerOid, id, text);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(getOwnerOid(), getText());
+	}
 
-    public static <T extends ObjectType> Set<RObjectTextInfo> createItemsSet(@NotNull ObjectType object, @NotNull RObject repo,
+	public static <T extends ObjectType> Set<RObjectTextInfo> createItemsSet(@NotNull ObjectType object, @NotNull RObject repo,
 			@NotNull PrismContext prismContext) {
         List<String> allWords = new ArrayList<>();
         append(allWords, object.getName(), prismContext);
@@ -194,10 +186,11 @@ public class RObjectTextInfo implements Serializable {
 		}
 	}
 
-	private static RObjectTextInfo create(RObject repo, String text) {
-        RObjectTextInfo rv = new RObjectTextInfo();
-        rv.setOwner(repo);
-        rv.setText(text);
-        return rv;
-    }
+	@Override
+	public String toString() {
+		return "RObjectTextInfo{" +
+				"ownerOid='" + getOwnerOid()+ '\'' +
+				", text='" + text + '\'' +
+				'}';
+	}
 }
