@@ -14,21 +14,27 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.io.IOUtils;
 
+import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider;
+import com.evolveum.midpoint.model.impl.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 @Consumes("*/*")
 @Produces("*/*")
-public class TestProvider<T> extends MidpointXmlProvider<T> {
+public class TestYamlProvider<T> extends MidpointYamlProvider<T> {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(TestYamlProvider.class);
 	
 	@Override
 	public void writeTo(T object, Class<?> type, Type genericType, Annotation[] annotations,
 			MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
 					throws IOException, WebApplicationException {
 		// TODO Auto-generated method stub
+		LOGGER.trace("Object to write: {},\ntype: {},\ngenericType: {},\nhttpHeaders: {}", new Object[]{object, type, genericType, httpHeaders});
 		super.writeTo(object, type, genericType, annotations, mediaType, httpHeaders, entityStream);
 	}
-	
 	
 	@Override
 	public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType,

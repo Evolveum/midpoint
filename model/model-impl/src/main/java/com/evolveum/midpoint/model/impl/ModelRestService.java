@@ -107,7 +107,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * @author semancik
  */
 @Service
-@Produces({"application/xml", "application/json"})
+@Produces({"application/xml", "application/json", "application/yaml"})
 public class ModelRestService {
 
 	public static final String CLASS_DOT = ModelRestService.class.getName() + ".";
@@ -250,7 +250,6 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}")
-//	@Produces({"text/html", "application/xml"})
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object,
 													 @QueryParam("options") List<String> options,
@@ -311,7 +310,6 @@ public class ModelRestService {
 
 	@PUT
 	@Path("/{type}/{id}")
-//	@Produces({"text/html", "application/xml"})
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id,
 			PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo,

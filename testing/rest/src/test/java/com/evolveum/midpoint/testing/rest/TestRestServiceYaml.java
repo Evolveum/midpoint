@@ -11,11 +11,11 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
 import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 
 import jdk.nashorn.internal.ir.annotations.Ignore;
 
-@Ignore
 public class TestRestServiceYaml extends TestAbstractRestService {
 
 	@Override
@@ -37,6 +37,11 @@ public class TestRestServiceYaml extends TestAbstractRestService {
 	@Override
 	protected File getRequestFile(String fileBaseName) {
 		return new File(BASE_REQ_DIR + "/yaml", fileBaseName + ".yml");
+	}
+
+	@Override
+	protected MidpointAbstractProvider getProvider() {
+		return yamlProvider;
 	}
 	
 }
