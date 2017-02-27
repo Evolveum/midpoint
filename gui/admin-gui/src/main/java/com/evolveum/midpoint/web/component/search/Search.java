@@ -60,9 +60,10 @@ public class Search implements Serializable, DebugDumpable {
         FULL_TEXT_SEARCH
     };
 
-    private SearchViewType searchType = SearchViewType.FULL_TEXT_SEARCH;
+    private SearchViewType searchType;
 
     private boolean showAdvanced = false;
+    private boolean isFullTextSearchEnabled = false;
 
     private String advancedQuery;
     private String advancedError;
@@ -75,9 +76,19 @@ public class Search implements Serializable, DebugDumpable {
     private List<SearchItem> items = new ArrayList<>();
 
     public Search(Class<? extends ObjectType> type, Map<ItemPath, ItemDefinition> allDefinitions) {
+        this(type, allDefinitions, false);
+    }
+
+    public Search(Class<? extends ObjectType> type, Map<ItemPath, ItemDefinition> allDefinitions, boolean isFullTextSearchEnabled) {
         this.type = type;
         this.allDefinitions = allDefinitions;
 
+        this.isFullTextSearchEnabled = isFullTextSearchEnabled;
+        if (isFullTextSearchEnabled ){
+            searchType = SearchViewType.FULL_TEXT_SEARCH;
+        } else {
+            searchType = SearchViewType.BASIC_SEARCH;
+        }
         availableDefinitions.addAll(allDefinitions.values());
     }
 
@@ -341,6 +352,14 @@ public class Search implements Serializable, DebugDumpable {
 
     public void setSearchType(SearchViewType searchType) {
         this.searchType = searchType;
+    }
+
+    public boolean isFullTextSearchEnabled() {
+        return isFullTextSearchEnabled;
+    }
+
+    public void setFullTextSearchEnabled(boolean fullTextSearchEnabled) {
+        isFullTextSearchEnabled = fullTextSearchEnabled;
     }
 
     private String createErrorMessage(Exception ex) {

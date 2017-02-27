@@ -40,6 +40,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -138,6 +139,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_ZIP_CHECK = "zipCheck";
 	private static final String ID_TABLE = "table";
+	private static final String ID_CHOICE_CONTAINER = "choiceContainer";
 	private static final String ID_CHOICE = "choice";
 	private static final String ID_EXPORT = "export";
 	private static final String ID_EXPORT_ALL = "exportAll";
@@ -980,9 +982,22 @@ public class PageDebugList extends PageAdminConfiguration {
 				}
 			};
 
+			WebMarkupContainer choiceContainer = new WebMarkupContainer(ID_CHOICE_CONTAINER);
+			choiceContainer.setOutputMarkupId(true);
+			choiceContainer.add(new AttributeAppender("style", new LoadableModel<String>() {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public String load(){
+					PageDebugList page = (PageDebugList) getPage();
+					return page.searchModel.getObject().getSearch().isFullTextSearchEnabled() ?
+							"margin-top: -15px;" : "";
+				}
+			}));
+			searchForm.add(choiceContainer);
+
 			DropDownChoice choice = new DropDownChoice(ID_CHOICE,
 					new PropertyModel(model, DebugSearchDto.F_TYPE), createChoiceModel(renderer), renderer);
-			searchForm.add(choice);
+			choiceContainer.add(choice);
 			choice.add(new OnChangeAjaxBehavior() {
 
 				@Override
