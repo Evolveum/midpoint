@@ -526,7 +526,7 @@ public class ResourceManager {
 	 */
 	private void applyConnectorSchemaToResource(PrismObject<ResourceType> resource, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
-		
+
 		ConnectorType connectorType = connectorTypeManager.getConnectorTypeReadOnly(resource.asObjectable(), result);
 		PrismSchema connectorSchema = connectorTypeManager.getConnectorSchema(connectorType);
 		if (connectorSchema == null) {

@@ -16,6 +16,7 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * A class used to hold raw XNodes until the definition for such an object is known.
@@ -233,7 +234,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 
     private boolean xnodeSerializationsAreEqual(RawType other) {
         try {
-            return serializeToXNode().equals(other.serializeToXNode());
+            return Objects.equals(serializeToXNode(), other.serializeToXNode());
         } catch (SchemaException e) {
             // or should we silently return false?
             throw new SystemException("Couldn't serialize RawType to XNode when comparing them", e);

@@ -129,6 +129,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	ResourceObjectReferenceType getBaseContext();
 
 	String getHumanReadableName();
+	
+	ResourceObjectVolatilityType getVolatility();
 	//endregion
 
 

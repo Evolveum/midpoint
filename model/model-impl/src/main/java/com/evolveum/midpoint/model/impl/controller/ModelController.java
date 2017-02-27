@@ -83,10 +83,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
@@ -254,6 +251,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
 
+            object = ModelUtils.cloneIfReadOnly(object, options);
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, result);
 			resolve(object, options, task, result);
 
@@ -353,6 +351,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				PrismObject<O> refObject = refVal.getObject();
 				if (refObject == null) {
 					refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
+					refObject = ModelUtils.cloneIfReadOnly(refObject, option.getOptions());
 					schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(), null, task, result);
 					refVal.setObject(refObject);
 				}
@@ -581,6 +580,19 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
 						executedDeltas.addAll(projectionContext.getExecutedDeltas());
 					}
+					
+					if (context.hasExplosiveProjection()) {
+						PrismObject<? extends ObjectType> focus = context.getFocusContext().getObjectAny();
+						
+						LOGGER.debug("Recomputing {} because there was explosive projection", focus);
+
+						LensContext<? extends ObjectType> recomputeContext = contextFactory.createRecomputeContext(focus, task, result);
+						recomputeContext.setDoReconciliationForAllProjections(true);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Recomputing {}, context:\n{}", focus, recomputeContext.debugDump());
+						}
+						clockwork.run(recomputeContext, task, result);
+					}
 
 					cleanupOperationResult(result);
 
@@ -675,10 +687,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             Utils.clearRequestee(task);
 			PrismObject<F> focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
 			
-			LOGGER.trace("Recomputing {}", focus);
+			LOGGER.debug("Recomputing {}", focus);
 
 			LensContext<F> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
-			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.debugDump());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.debugDump());
+			}
 			clockwork.run(syncContext, task, result);
 			
 			result.computeStatus();
@@ -1099,6 +1113,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             @Override
 			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
                 try {
+					object = ModelUtils.cloneIfReadOnly(object, options);
                     if (hookRegistry != null) {
                         for (ReadHook hook : hookRegistry.getAllReadHooks()) {
                             hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
@@ -1333,6 +1348,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		if (focus != null) {
 			try {
+				focus = ModelUtils.cloneIfReadOnly(focus, options);
 				schemaTransformer.applySchemasAndSecurity(focus, null, null, task, result);
 			} catch (SchemaException | SecurityViolationException | ConfigurationException
 					| ObjectNotFoundException ex) {
@@ -1630,11 +1646,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			RepositoryCache.exit();
 			throw e;
 		}
-		schemaTransformer.applySchemasAndSecurityToObjectTypes(discoverConnectors, null, null, task, result);
+		List<ConnectorType> connectorList = new ArrayList<>(discoverConnectors);
+		schemaTransformer.applySchemasAndSecurityToObjectTypes(connectorList, null, null, task, result);
 		result.computeStatus("Connector discovery failed");
 		RepositoryCache.exit();
 		result.cleanupResult();
-		return discoverConnectors;
+		return new HashSet<>(connectorList);
 	}
 	
 
@@ -1891,6 +1908,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
         PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		task = ModelUtils.cloneIfReadOnly(task, options);
 		schemaTransformer.applySchemasAndSecurity(task, rootOptions, null, null, parentResult);
 		return task;
     }

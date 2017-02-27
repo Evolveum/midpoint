@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1103,5 +1103,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public void clearConflictingProjectionContexts() {
 		conflictingProjectionContexts.clear();
+	}
+	
+	public boolean hasExplosiveProjection() throws SchemaException {
+		for (LensProjectionContext projectionContext: projectionContexts) {
+			if (projectionContext.getVolatility() == ResourceObjectVolatilityType.EXPLOSIVE) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

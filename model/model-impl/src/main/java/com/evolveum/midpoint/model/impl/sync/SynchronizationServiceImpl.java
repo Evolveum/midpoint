@@ -293,7 +293,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				}
 				subResult.recordSuccess();
 				eventInfo.record(task);
-				LOGGER.debug("SYNCHRONIZATION: DONE (dry run) for {}", object);
+				LOGGER.debug("SYNCHRONIZATION: DONE (dry run/unrelated) for {}", object);
 				return;
 			}
 

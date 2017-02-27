@@ -418,4 +418,15 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 		super.setImmutable(immutable);
 	}
+
+	public PrismObject<O> cloneIfImmutable() {
+        return isImmutable() ? clone() : this;
+	}
+
+	public PrismObject<O> createImmutableClone() {
+		PrismObject<O> clone = clone();
+		clone.setImmutable(true);
+		return clone;
+	}
+
 }

@@ -697,11 +697,22 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         return matching;
     }
 
+    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createImmutableSubItem(QName name, Class<I> type, ID itemDefinition) throws SchemaException {
+		I newItem = createNewItemInternal(name, type, itemDefinition);
+		newItem.setImmutable(true);
+		return newItem;
+	}
+
 	private <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createSubItem(QName name, Class<I> type, ID itemDefinition) throws SchemaException {
 		checkMutability();
-    	// the item with specified name does not exist, create it now
-		I newItem = null;
-		
+		I newItem = createNewItemInternal(name, type, itemDefinition);
+		add(newItem);
+		return newItem;
+    }
+
+	private <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createNewItemInternal(QName name, Class<I> type,
+			ID itemDefinition) throws SchemaException {
+		I newItem;
 		if (itemDefinition == null) {
 			ComplexTypeDefinition ctd = getComplexTypeDefinition();
 			itemDefinition = determineItemDefinition(name, ctd);
@@ -709,7 +720,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				throw new SchemaException("No definition for item "+name+" in "+getParent());
 			}
 		}
-		
+
 		if (itemDefinition != null) {
 			if (StringUtils.isNotBlank(name.getNamespaceURI())){
 				newItem = (I) itemDefinition.instantiate(name);
@@ -726,17 +737,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				throw new IllegalStateException("PrismObject instantiated as a subItem in "+this+" as definitionless instance of class "+type);
 			}
 		}
-		
 		if (type.isAssignableFrom(newItem.getClass())) {
-			add(newItem);
 			return newItem;
-    	} else {
+		} else {
 			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because the item should be of type "
 					+ newItem.getClass().getSimpleName() + " ("+newItem.getElementName()+")");
-    	}
-    }
+		}
+	}
 
-    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException {
+	public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException {
     	return findCreateItem(containerName, PrismContainer.class, null, true);
     }
     
