@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -349,6 +350,7 @@ public class CertDefinitionDto implements Serializable {
             if (reviewerDto.isUseObjectManagerPresent()) {
 				reviewerObject.setUseObjectManager(createManagerSearchType(reviewerDto.getUseObjectManager()));
 			}
+			reviewerObject.getReviewerExpression().addAll(CloneUtil.cloneCollectionMembers(reviewerDto.getReviewerExpressionList()));
             reviewerObject.getDefaultReviewerRef().clear();
             reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
             reviewerObject.getAdditionalReviewerRef().clear();

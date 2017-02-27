@@ -823,7 +823,7 @@ public class LensUtil {
 			return true;
 		}
 		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELMENT_NAME,
+				ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, context.getPrismContext());
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, task, result);
 		

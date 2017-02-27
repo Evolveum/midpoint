@@ -723,7 +723,7 @@ public class ExpressionUtil {
 		}
 
 		if (outputDefinition == null) {
-			outputDefinition = new PrismPropertyDefinitionImpl(ExpressionConstants.OUTPUT_ELMENT_NAME,
+			outputDefinition = new PrismPropertyDefinitionImpl(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 					DOMUtil.XSD_STRING, prismContext);
 		}
 
@@ -770,7 +770,7 @@ public class ExpressionUtil {
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
 		outputDefinition.setMaxOccurs(-1);
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
 				.makeExpression(expressionType, outputDefinition, shortDesc, task, parentResult);
@@ -798,7 +798,7 @@ public class ExpressionUtil {
 			OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN,
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				expressionFactory.getPrismContext());
 		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,
 				expressionFactory, shortDesc, task, parentResult);
