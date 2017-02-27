@@ -44,6 +44,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -151,9 +152,13 @@ public abstract class TestAbstractRestService {
 	private  ProvisioningService provisioning;
 	private  DummyAuditService dummyAuditService;
 	
-	private  TestProvider readWriteProvider;
+	protected  TestXmlProvider xmlProvider;
+	protected  TestJsonProvider jsonProvider;
+	protected  TestYamlProvider yamlProvider;
+	
 	protected abstract String getAcceptHeader();
 	protected abstract String getContentType();
+	protected abstract MidpointAbstractProvider getProvider();
 	
 	protected abstract File getRepoFile(String fileBaseName);
 	protected abstract File getRequestFile(String fileBaseName);
@@ -185,7 +190,9 @@ public abstract class TestAbstractRestService {
 		provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
 		taskManager = (TaskManager) applicationContext.getBean("taskManager");
 		modelService = (ModelService) applicationContext.getBean("modelController");
-		readWriteProvider = (TestProvider) applicationContext.getBean("testProvider");
+		xmlProvider = (TestXmlProvider) applicationContext.getBean("testXmlProvider");
+		jsonProvider = (TestJsonProvider) applicationContext.getBean("testJsonProvider");
+		yamlProvider = (TestYamlProvider) applicationContext.getBean("testYamlProvider");
 
 		Task initTask = taskManager.createTaskInstance(TestAbstractRestService.class.getName() + ".startServer");
 		OperationResult result = initTask.getResult();
@@ -469,7 +476,7 @@ public abstract class TestAbstractRestService {
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient();
-		client.path("/objectTemplates");
+		client.path("/objectTemplates/");
 		
 		dummyAuditService.clear();
 
@@ -873,7 +880,7 @@ public abstract class TestAbstractRestService {
 	private WebClient prepareClient(String username, String password) {
 		
 		List providers = new ArrayList<>();
-		providers.add(readWriteProvider);
+		providers.add(getProvider());
 		WebClient client = WebClient.create(ENDPOINT_ADDRESS, providers);//, provider);
 
 		ClientConfiguration clientConfig = WebClient.getConfig(client);

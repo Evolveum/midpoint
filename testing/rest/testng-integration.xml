@@ -21,7 +21,7 @@
 		<classes>
 			<class name="com.evolveum.midpoint.testing.rest.TestRestServiceXml"/>
 			<class name="com.evolveum.midpoint.testing.rest.TestRestServiceJson"/>
-<!-- 			<class name="com.evolveum.midpoint.testing.rest.TestRestServiceYaml"/> -->
+			<class name="com.evolveum.midpoint.testing.rest.TestRestServiceYaml"/>
 		</classes>
 	</test>
 </suite>
