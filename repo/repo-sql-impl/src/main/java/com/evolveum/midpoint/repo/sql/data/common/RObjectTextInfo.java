@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RObjectTextInfoId;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -131,7 +132,7 @@ public class RObjectTextInfo implements Serializable {
 			@NotNull RepositoryContext repositoryContext) {
 
 		FullTextSearchConfigurationType config = repositoryContext.repositoryService.getFullTextSearchConfiguration();
-		if (config == null || config.getIndexed().isEmpty() || Boolean.FALSE.equals(config.isEnabled())) {
+		if (!SystemConfigurationTypeUtil.isFullTextSearchEnabled(config)) {
 			return Collections.emptySet();
 		}
 		List<QName> types =
