@@ -323,11 +323,11 @@
             <xsd:element name="reviewerExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The most general way of specifying the reviewer. TODO describe inputs for such an expression
-                        If present, takes precedence over useXXX settings as well as over defaultReviewerRef;
-                        additionalReviewerRef still applies.
-
-                        NOT IMPLEMENTED YET
+                        The most general way of specifying the reviewer. Inputs for such expressions are:
+                        - certificationCase (current certification case),
+						- campaign (certification campaign object),
+						- reviewerSpecification (current reviewer specification).
+						Output is a collection of parent-less reviewer references (of type ObjectReferenceType).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

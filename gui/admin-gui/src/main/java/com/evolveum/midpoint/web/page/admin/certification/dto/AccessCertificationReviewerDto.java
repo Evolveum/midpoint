@@ -7,10 +7,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
 import java.util.List;
@@ -44,6 +41,7 @@ public class AccessCertificationReviewerDto implements Serializable {
     private boolean useObjectManagerPresent;
     private ReferenceWrapper defaultReviewers;
     private ReferenceWrapper additionalReviewers;
+    private List<ExpressionType> reviewerExpressionList;
 
 	public AccessCertificationReviewerDto(AccessCertificationReviewerSpecificationType reviewerType, PrismContext prismContext) throws SchemaException {
 		final PrismReference defaultReviewersReference;
@@ -57,6 +55,7 @@ public class AccessCertificationReviewerDto implements Serializable {
 			useObjectApprover = Boolean.TRUE.equals(reviewerType.isUseObjectApprover());
 			useObjectManager = new ManagerSearchDto(reviewerType.getUseObjectManager());
 			useObjectManagerPresent = reviewerType.getUseObjectManager() != null;
+			reviewerExpressionList = reviewerType.getReviewerExpression();
 			defaultReviewersReference = reviewerType.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF);
 			additionalReviewersReference = reviewerType.asPrismContainerValue().findOrCreateReference(AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF);
 		} else {
@@ -139,7 +138,16 @@ public class AccessCertificationReviewerDto implements Serializable {
         this.useObjectManager = useObjectManager;
     }
 
-    public ReferenceWrapper getDefaultReviewers() {
+	public List<ExpressionType> getReviewerExpressionList() {
+		return reviewerExpressionList;
+	}
+
+	public void setReviewerExpressionList(
+			List<ExpressionType> reviewerExpressionList) {
+		this.reviewerExpressionList = reviewerExpressionList;
+	}
+
+	public ReferenceWrapper getDefaultReviewers() {
         return defaultReviewers;
     }
 

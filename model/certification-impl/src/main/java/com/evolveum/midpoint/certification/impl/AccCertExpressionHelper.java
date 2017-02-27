@@ -21,10 +21,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -38,6 +35,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -87,6 +85,40 @@ public class AccCertExpressionHelper {
         List<T> retval = new ArrayList<>();
         for (PrismPropertyValue<T> item : exprResult.getZeroSet()) {
             retval.add(item.getValue());
+        }
+        return retval;
+    }
+
+    public List<ObjectReferenceType> evaluateRefExpressionChecked(ExpressionType expressionType,
+			ExpressionVariables expressionVariables, String shortDesc, Task task, OperationResult result) {
+
+        try {
+            return evaluateRefExpression(expressionType, expressionVariables, shortDesc, task, result);
+        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+            throw new SystemException(e);
+        }
+    }
+
+    private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+			String shortDesc, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+
+        QName resultName = new QName(SchemaConstants.NS_C, "result");
+        PrismReferenceDefinition resultDef = new PrismReferenceDefinitionImpl(resultName, ObjectReferenceType.COMPLEX_TYPE, prismContext);
+
+        Expression<PrismReferenceValue,PrismReferenceDefinition> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
+
+        PrismValueDeltaSetTriple<PrismReferenceValue> exprResult =
+                ModelExpressionThreadLocalHolder.evaluateRefExpressionInContext(expression, params, task, result);
+
+        List<ObjectReferenceType> retval = new ArrayList<>();
+        for (PrismReferenceValue value : exprResult.getZeroSet()) {
+        	ObjectReferenceType ort = new ObjectReferenceType();
+        	ort.setupReferenceValue(value);
+            retval.add(ort);
         }
         return retval;
     }

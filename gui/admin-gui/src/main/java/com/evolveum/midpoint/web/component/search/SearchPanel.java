@@ -190,10 +190,7 @@ public class SearchPanel extends BasePanel<Search> {
                     return true;
                 }
                 return false;
-//                Search search = getModelObject();
-//                PrismContext ctx = getPageBase().getPrismContext();
-//                return search.isAdvancedQueryValid(ctx);
-            }
+           }
 
 			@Override
 			public boolean isVisible() {
@@ -303,7 +300,8 @@ public class SearchPanel extends BasePanel<Search> {
         fullTextButton.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible() {
-                return !Search.SearchViewType.FULL_TEXT_SEARCH.equals(getModelObject().getSearchType());
+                return isFullTextSearchEnabled() &&
+                        !Search.SearchViewType.FULL_TEXT_SEARCH.equals(getModelObject().getSearchType());
             }
         });
         linksContainer.add(fullTextButton);
@@ -333,7 +331,14 @@ public class SearchPanel extends BasePanel<Search> {
         initPopover();
 
         WebMarkupContainer fullTextContainer = new WebMarkupContainer(ID_FULL_TEXT_CONTAINER);
-        fullTextContainer.add(createVisibleBehaviour(Search.SearchViewType.FULL_TEXT_SEARCH));
+        fullTextContainer.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible(){
+                return isFullTextSearchEnabled()
+                        && getModelObject().getSearchType().equals(Search.SearchViewType.FULL_TEXT_SEARCH);
+            }
+        });
         fullTextContainer.setOutputMarkupId(true);
         form.add(fullTextContainer);
 
@@ -662,5 +667,9 @@ public class SearchPanel extends BasePanel<Search> {
         target.add(
                 get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP)),
                 get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
+    }
+
+    private boolean isFullTextSearchEnabled(){
+        return getModelObject().isFullTextSearchEnabled();
     }
 }

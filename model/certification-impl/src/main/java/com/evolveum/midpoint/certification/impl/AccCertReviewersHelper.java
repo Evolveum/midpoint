@@ -17,11 +17,13 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.model.api.expr.OrgStructFunctions;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -46,14 +48,12 @@ import java.util.List;
 public class AccCertReviewersHelper {
 
     @Autowired
-    private OrgStructFunctions orgStructFunctions;
-
-    @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired
-    private PrismContext prismContext;
+	@Autowired private OrgStructFunctions orgStructFunctions;
+	@Autowired private PrismContext prismContext;
+	@Autowired private AccCertExpressionHelper expressionHelper;
 
     public AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign,
                                                                                    int stage, Task task, OperationResult result) {
@@ -84,7 +84,15 @@ public class AccCertReviewersHelper {
         if (reviewerSpec.getUseObjectManager() != null) {
             cloneAndMerge(_case.getCurrentReviewerRef(), getObjectManagers(_case, reviewerSpec.getUseObjectManager(), task, result));
         }
-        // TODO evaluate reviewer expressions
+        for (ExpressionType reviewerExpression : reviewerSpec.getReviewerExpression()) {
+			ExpressionVariables variables = new ExpressionVariables();
+			variables.addVariableDefinition(ExpressionConstants.VAR_CERTIFICATION_CASE, _case);
+			variables.addVariableDefinition(ExpressionConstants.VAR_CAMPAIGN, campaign);
+			variables.addVariableDefinition(ExpressionConstants.VAR_REVIEWER_SPECIFICATION, reviewerSpec);
+			List<ObjectReferenceType> refList = expressionHelper
+					.evaluateRefExpressionChecked(reviewerExpression, variables, "reviewer expression", task, result);
+			cloneAndMerge(_case.getCurrentReviewerRef(), refList);
+		}
         if (_case.getCurrentReviewerRef().isEmpty()) {
             cloneAndMerge(_case.getCurrentReviewerRef(), reviewerSpec.getDefaultReviewerRef());
         }

@@ -76,7 +76,7 @@ public class ExpressionHandler {
 		
 		ExpressionVariables variables = getDefaultXPathVariables(null, shadow, resource);
 		
-		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELMENT_NAME,
+		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, shortDesc, task, result);
@@ -108,7 +108,7 @@ public class ExpressionHandler {
 		ExpressionVariables variables = getDefaultXPathVariables(user, shadow, resource);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELMENT_NAME,
+		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
 				outputDefinition, shortDesc, task, result);

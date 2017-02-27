@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,6 +43,7 @@ public class SearchFactory {
 
     private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
     private static final String LOAD_OBJECT_DEFINITION = DOT_CLASS + "loadObjectDefinition";
+    private static final String LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
 
     private static final Map<Class, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
 
@@ -132,8 +135,9 @@ public class SearchFactory {
         PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, ctx, modelInteractionService);
 
         Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
+        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelInteractionService);
 
-        Search search = new Search(type, availableDefs);
+        Search search = new Search(type, availableDefs, isFullTextSearchEnabled);
 
         SchemaRegistry registry = ctx.getSchemaRegistry();
         PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
@@ -199,6 +203,16 @@ public class SearchFactory {
         }
 
         return map;
+    }
+
+    private static boolean isFullTextSearchEnabled(ModelInteractionService modelInteractionService) {
+        OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
+        try {
+            return FullTextSearchConfigurationUtil.isEnabled(modelInteractionService.getSystemConfiguration(result)
+                    .getFullTextSearch());
+        } catch (SchemaException | ObjectNotFoundException ex) {
+                throw new SystemException(ex);
+        }
     }
 
     private static <T extends ObjectType> Map<ItemPath, ItemDefinition> createExtensionDefinitionList(

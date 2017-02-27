@@ -155,7 +155,7 @@ public class CorrelationConfirmationEvaluator {
 		ExpressionType condition = conditionalFilter.getCondition();
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null,currentShadow, resourceType, configurationType);
 		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN,
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				prismContext);
 		PrismPropertyValue<Boolean> satisfy = (PrismPropertyValue) ExpressionUtil.evaluateExpression(variables,
 				outputDefinition, condition, expressionFactory, shortDesc, task, parentResult);
@@ -386,7 +386,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow, resource, configuration);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELMENT_NAME,
+		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
 				outputDefinition, shortDesc, task, result);

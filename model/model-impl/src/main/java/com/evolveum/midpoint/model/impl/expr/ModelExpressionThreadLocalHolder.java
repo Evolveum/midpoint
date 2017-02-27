@@ -24,6 +24,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -99,14 +101,22 @@ public class ModelExpressionThreadLocalHolder {
 	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
 			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext params, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(task, result);
-		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
-		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {
-			exprResultTriple = expression.evaluate(params);
+			return expression.evaluate(params);
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
-		return exprResultTriple;
+	}
+
+	public static PrismValueDeltaSetTriple<PrismReferenceValue> evaluateRefExpressionInContext(Expression<PrismReferenceValue,
+			PrismReferenceDefinition> expression, ExpressionEvaluationContext params, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+		try {
+			return expression.evaluate(params);
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
 	}
 }

@@ -78,7 +78,14 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         <number>1</number>
         <duration>P14D</duration>
         <reviewerSpecification>
-            <useObjectOwner>true</useObjectOwner>
+            <reviewerExpression>
+                <script>
+                    <code>
+                        role = midpoint.resolveReference(certificationCase.objectRef)
+                        role.ownerRef?.clone()
+                    </code>
+                </script>
+            </reviewerExpression>
         </reviewerSpecification>
         <outcomeStrategy>acceptedIfNotDenied</outcomeStrategy>
         <outcomeIfNoReviewers>accept</outcomeIfNoReviewers>

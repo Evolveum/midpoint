@@ -186,6 +186,8 @@ public interface ModelInteractionService {
      */
     AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    SystemConfigurationType getSystemConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
 	DeploymentInformationType getDeploymentInformationConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	AccessCertificationConfigurationType getCertificationConfiguration(OperationResult parentResult)
