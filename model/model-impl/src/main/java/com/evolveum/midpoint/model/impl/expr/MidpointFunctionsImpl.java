@@ -45,10 +45,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -86,6 +83,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -1225,5 +1223,22 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			LOGGER.trace("Input xml string null or empty.");
 		}
 		return resultingMap;
+	}
+
+	@Override
+	public List<ObjectReferenceType> getMembersAsReferences(String orgOid) throws SchemaException, SecurityViolationException,
+			CommunicationException, ConfigurationException, ObjectNotFoundException {
+		return getMembers(orgOid).stream()
+				.map(obj -> ObjectTypeUtil.createObjectRef(obj))
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<UserType> getMembers(String orgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+			CommunicationException, ConfigurationException {
+		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+				.isDirectChildOf(orgOid)
+				.build();
+		return searchObjects(UserType.class, query, null);
 	}
 }

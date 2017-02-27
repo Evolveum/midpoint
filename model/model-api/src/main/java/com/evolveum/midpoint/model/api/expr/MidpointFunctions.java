@@ -1029,4 +1029,12 @@ public interface MidpointFunctions {
 	Map<String, String> parseXmlToMap(String xml);
 	
 	boolean isFullShadow();
+
+	List<UserType> getMembers(String orgOid)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ObjectNotFoundException;
+
+	List<ObjectReferenceType> getMembersAsReferences(String orgOid)
+			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+			ObjectNotFoundException;
 }
