@@ -178,7 +178,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference {
         return result;
     }
 
-    public static void copyToJAXB(RObjectReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(RObjectReference repo, ObjectReferenceType jaxb) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -187,7 +187,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference {
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReference repo, PrismContext prismContext) {
+    public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReference repo) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
@@ -200,7 +200,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference {
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
         ObjectReferenceType ref = new ObjectReferenceType();
-        copyToJAXB(this, ref, prismContext);
+        copyToJAXB(this, ref);
 
         return ref;
     }

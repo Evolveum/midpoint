@@ -4175,12 +4175,25 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="avoidDuplicateValues" type="xsd:boolean" minOccurs="0" default="false"/>
+        	<xsd:element name="avoidDuplicateValues" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				When set to true, midPoint will try to avoid adding attribute values that are already
+        				there and remove values that are not there. Some resources do not tolerate such operations
+        				and they respond with errors. However midPoint cannot rely on transactions. MidPoint's
+        				﻿lock-free relativistic model﻿﻿ provides the necessary consistency, occasional redundant
+        				additions or deletions may happen. If this option is turned on then midPoint will read
+        				the data from resource right before the operation and filter our any redundant changes.
+        				This requires additional operation and it increases the risk of inconsistencies. However
+        				it is the only practical option for some resources.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="caseIgnoreAttributeNames" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Should we ignore casing of names of attributes retrieved from the connector?
-                        If yes, we normalize any attribute names with regard to the resource schema.
+                        If set to true then midPoint will ignore the case of the attribute names.
+                        In that case midpoint will normalize any attribute names with regard to the resource schema.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -9910,13 +9923,75 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="fullTextSearch" type="tns:FullTextSearchConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the full text search feature.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
 
-    <xsd:complexType name="InternalsConfigurationType">
+	<xsd:complexType name="FullTextSearchConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration of the full text search feature.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether full text search indexing is enabled. The default is true, if there are any indexed entries defined.
+						(This property is to allow temporary disabling existing configuration.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="indexed" type="tns:FullTextSearchIndexedItemsConfigurationType" minOccurs="0" maxOccurs="unbounded">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="FullTextSearchIndexedItemsConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				What items to index.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="objectType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						To what object type(s) should this entry be applied.
+						Empty list means "all object types".
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						What items to index for the given object type(s).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Various internals configuration elements.
@@ -9964,6 +10039,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectLists" type="tns:GuiObjectListsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the set of pages that are used for displaying lists of objects
+      						such as Users, Roles, Orgs, ...
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="objectForms" type="tns:ObjectFormsType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -9990,6 +10078,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<!-- TODO: role catalog views: define collections (additional views), default search type, etc. -->
 			<xsd:element name="defaultTimezone" type="xsd:string" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -10361,7 +10450,8 @@
     <xsd:complexType name="ProjectionPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Specification of the way how projections are handled on the resource. This defines the ways how
+                assignments are enforced and so on.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -12097,8 +12187,153 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="requestBusinessContext" type="tns:OperationBusinessContextType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Business context that describes this request.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="partialProcessing" type="tns:PartialProcessingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Business context that describes this request.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="OperationBusinessContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The business context of an operation. This structure contains data about the operation that bind it to the
+                business process or other non-information environment. It contains data such as free-form comment of the
+                affected user (requester, approver) it may contain references to other business documents that are outside
+                of the IDM scope (e.g. reference to the support contract or employee contact number), etc.
+                It is designed for future extensibility.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="tns:extension" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The extension for future dynamic extensibility.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form comment of the affected person. If this business context describe the request then
+                        this is the requestor comment. If the context describes approval step then this is approver
+                        comment. The comment is expected to be a short comment justifying the request, explaining
+                        the decision and so on. It is supposed to be few lines of text at the most.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: we may want to add more generic fields here in the future. E.g. contract reference (contract number) may be a good addition. -->
+        </xsd:sequence>
+   </xsd:complexType>
+
+	<xsd:complexType name="PartialProcessingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options that allows to select only some of the projector/clockwork parts to process. 
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="load" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focus" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="inbound" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusActivation" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="objectTemplateBeforeAssignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="assignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="assignmentsOrg" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="assignmentsMembershipAndDelegate" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="assignmentsConflicts" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="objectTemplateAfterAssignments" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="focusPolicyRules" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projection" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="outbound" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projectionValues" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projectionCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projectionReconciliation" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="approvals" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="execution" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="notification" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>            
+        </xsd:sequence>
+   </xsd:complexType>
+   <xsd:element name="partialProcessingOptions" type="tns:PartialProcessingOptionsType">
+       <xsd:annotation>
+           <xsd:documentation>
+               Business context that describes this request.
+               Global element - for use in task extension.
+           </xsd:documentation>
+       </xsd:annotation>
+   </xsd:element>
+
+    <xsd:simpleType name="PartialProcessingTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies whether a particular part should be processed or not.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="automatic">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Process the part if it would be processed normally.
+							This is automatic behavior that leaves the decision
+							to the code. This means that all usual parts of the
+							code will be processed. 
+							This is the default option.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTOMATIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="skip">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Skip processing of a particular part.
+							Do NOT process it. This setting can be
+							used to skip particular parts that would
+							be normally processed. However, using this
+							option may cause errors and/or wrong results.
+							Use with care.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="process">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+							Process particular part. This setting can be used
+							to turn on processing of optional parts of the code
+							or to override the automatic behavior.
+                		</p> 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROCESS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 
 	<xsd:complexType name="ModelCompareOptionsType">
 		<xsd:annotation>
@@ -13027,7 +13262,110 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="sequence" type="tns:SequenceType" />
+
+    <xsd:complexType name="GuiObjectListsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the set of pages that are used for displaying lists of objects
+      			such as Users, Roles, Orgs, ...
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="objectList" type="tns:GuiObjectListType" minOccurs="0" maxOccurs="unbounded"/>
+           		<xsd:element name="includeDefaultLists" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					If set to true then all the default lists will be displayed (all users, all roles, ...)
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
+           	</xsd:sequence>	
+    </xsd:complexType>
+
+	<!-- Note: ObjectListType already defined in API types -->
+    <xsd:complexType name="GuiObjectListType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the page used to list specific object type or object collection.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
+       			           add name, label (display name) and menu label for this list.
+       			           We will also need a reference to which menu section we want to display it. E.g. We would
+       			           like to display role catalog under "roles", even though it is in fact org tree. -->
+       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
+       			<!-- TODO: refernce to object collection (MID-3517) -->
+           		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1"/>
+           		<!-- TODO: columns to display -->
+           		<!-- TODO: number of results per page (MID-1931) -->
+           	</xsd:sequence>
+    </xsd:complexType>
     
+    <xsd:complexType name="SearchBoxConfigurationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Configuration of the search box (the set of input fields that control definition of search query).
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="defaultMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="1" default="basic"/>
+       			<!-- TODO: default items to display for basic search -->
+           	</xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:simpleType name="SearchBoxModeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				The mode of the search box.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="basic">
+				<xsd:annotation>
+					<xsd:documentation>
+						Basic search mode. Ability to select the items and specify values for them.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="BASIC"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="advanced">
+				<xsd:annotation>
+					<xsd:documentation>
+						Advanced search mode. Ability to create complex query using a query language.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ADVANCED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="fulltext">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fulltext search mode. Single input field used to search over several fields.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULLTEXT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
     
   <!-- ============================================================== -->
   <!--  FORMS                                                         -->
@@ -13979,10 +14317,11 @@
 	<xsd:complexType name="CachingPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Definition of object attribute caching policies.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
+				<a:since>3.5</a:since>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>

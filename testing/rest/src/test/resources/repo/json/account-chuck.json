@@ -1,0 +1,18 @@
+{
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "account" : {
+    "oid" : "a0c010c0-d34d-b33f-f00d-111111111666",
+    "version" : "1",
+    "name" : "uid=chuck,ou=people,dc=example,dc=com",
+    "resourceRef" : {
+      "oid" : "ef2bc95b-76e0-48e2-86d6-3d4f02d3ffff",
+      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType"
+    },
+    "objectClass" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff#AccountObjectClass",
+    "attributes" : {
+      "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3",
+      "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowAttributesType",
+      "name" : "uid=chuck,ou=people,dc=example,dc=com"
+    }
+  }
+}

@@ -48,4 +48,8 @@
     <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-configuration-test.xml"/>
 
+<bean id="testXmlProvider" class="com.evolveum.midpoint.testing.rest.TestXmlProvider"/>
+<bean id="testJsonProvider" class="com.evolveum.midpoint.testing.rest.TestJsonProvider"/>
+<bean id="testYamlProvider" class="com.evolveum.midpoint.testing.rest.TestYamlProvider"/>
+
 </beans>

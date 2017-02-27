@@ -136,8 +136,9 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 		
 		// WHEN
+		repositoryService.postInit(result);
 		modelService.postInit(result);
-		
+
 		// THEN
 		tailer.logAndTail();
 		

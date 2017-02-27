@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 package com.evolveum.midpoint.model.api;
 
 
+import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -25,31 +28,31 @@ import java.util.List;
  * @author semancik
  *
  */
-public class ModelExecuteOptions implements Serializable, Cloneable {
+public class ModelExecuteOptions extends AbstractOptions implements Serializable, Cloneable {
 	
 	/**
 	 * Force the operation even if it would otherwise fail due to external failure. E.g. attempt to delete an account
 	 * that no longer exists on resource may fail without a FORCE option. If FORCE option is used then the operation is
 	 * finished even if the account does not exist (e.g. at least shadow is removed from midPoint repository).
 	 */
-	Boolean force;
+	private Boolean force;
 	
 	/**
 	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
 	 * any expressions, etc.
 	 */
-	Boolean raw;
+	private Boolean raw;
 	
 	/**
 	 * Encrypt any cleartext data on write, decrypt any encrypted data on read. Applies only to the encrypted
 	 * data formats (ProtectedString, ProtectedByteArray).
 	 */
-	Boolean noCrypt;
+	private Boolean noCrypt;
 	
 	/**
 	 * Option to reconcile focus while executing changes.
 	 */
-	Boolean reconcile;
+	private Boolean reconcile;
 
     /**
      * Option to reconcile affected objects after executing changes.
@@ -63,36 +66,40 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
      * Also, because of time complexity, the reconciliation may be executed in
      * a separate background task.
      */
-    Boolean reconcileAffected;
+	private Boolean reconcileAffected;
 
     /**
      * Option to execute changes as soon as they are approved. (For the primary stage approvals, the default behavior
      * is to wait until all changes are approved/rejected and then execute the operation as a whole.)
      */
-    Boolean executeImmediatelyAfterApproval;
+	private Boolean executeImmediatelyAfterApproval;
 
     /**
      * Option to user overwrite flag. It can be used from web service, if we want to re-import some object
      */
-    Boolean overwrite;
+	private Boolean overwrite;
     
-    Boolean isImport;
+	private Boolean isImport;
 
 	/**
 	 * Causes reevaluation of search filters (producing partial errors on failure).
 	 */
-	Boolean reevaluateSearchFilters;
+	private Boolean reevaluateSearchFilters;
     
     /**
      * Option to limit propagation only for the source resource
      */
-    Boolean limitPropagation;
+	private Boolean limitPropagation;
 
 	/**
 	 * Is this operation already authorized, i.e. should it be executed without any further authorization checks?
 	 * EXPERIMENTAL. Currently supported only for raw executions.
 	 */
-	Boolean preAuthorized;
+	private Boolean preAuthorized;
+	
+	private OperationBusinessContextType requestBusinessContext;
+	
+	private PartialProcessingOptionsType partialProcessing;
 
     public Boolean getForce() {
 		return force;
@@ -401,6 +408,48 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
 		return this;
 	}
 
+	public OperationBusinessContextType getRequestBusinessContext() {
+		return requestBusinessContext;
+	}
+
+	public void setRequestBusinessContext(OperationBusinessContextType requestBusinessContext) {
+		this.requestBusinessContext = requestBusinessContext;
+	}
+	
+	public static OperationBusinessContextType getRequestBusinessContext(ModelExecuteOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.getRequestBusinessContext();
+	}
+	
+	public static ModelExecuteOptions createRequestBusinessContext(OperationBusinessContextType requestBusinessContext) {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setRequestBusinessContext(requestBusinessContext);
+		return opts;
+	}
+
+	public PartialProcessingOptionsType getPartialProcessing() {
+		return partialProcessing;
+	}
+
+	public void setPartialProcessing(PartialProcessingOptionsType partialProcessing) {
+		this.partialProcessing = partialProcessing;
+	}
+	
+	public static PartialProcessingOptionsType getPartialProcessing(ModelExecuteOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.getPartialProcessing();
+	}
+	
+	public static ModelExecuteOptions createPartialProcessing(PartialProcessingOptionsType partialProcessing) {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setPartialProcessing(partialProcessing);
+		return opts;
+	}
+
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
@@ -413,6 +462,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setLimitPropagation(limitPropagation);
 		retval.setReevaluateSearchFilters(reevaluateSearchFilters);
 		// preAuthorized is purposefully omitted (security reasons)
+		retval.setRequestBusinessContext(requestBusinessContext);
         return retval;
     }
 
@@ -431,6 +481,7 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
         retval.setLimitPropagation(type.isLimitPropagation());
 		retval.setReevaluateSearchFilters(type.isReevaluateSearchFilters());
 		// preAuthorized is purposefully omitted (security reasons)
+		retval.setRequestBusinessContext(type.getRequestBusinessContext());
         return retval;
     }
     
@@ -488,35 +539,12 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     	appendFlag(sb, "reconcile", reconcile);
     	appendFlag(sb, "reevaluateSearchFilters", reevaluateSearchFilters);
     	appendFlag(sb, "reconcileAffected", reconcileAffected);
-    	if (sb.charAt(sb.length() - 1) == ',') {
-			sb.deleteCharAt(sb.length() - 1);
-		}
+    	appendFlag(sb, "requestBusinessContext", requestBusinessContext == null ? null : true);
+    	appendFlag(sb, "partialProcessing", partialProcessing == null ? null : true);
+    	removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();
     }
-    
-    private void appendFlag(StringBuilder sb, String name, Boolean val) {
-		if (val == null) {
-			return;
-		} else if (val) {
-			sb.append(name);
-			sb.append(",");
-		} else {
-			sb.append(name);
-			sb.append("=false,");
-		}
-	}
-	
-	private void appendVal(StringBuilder sb, String name, Object val) {
-		if (val == null) {
-			return;
-		} else {
-			sb.append(name);
-			sb.append("=");
-			sb.append(val);
-			sb.append(",");
-		}
-	}
 
     public ModelExecuteOptions clone() {
         // not much efficient, but...

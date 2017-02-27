@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
@@ -85,9 +86,9 @@ public class RGenericObject extends RObject<GenericObjectType> {
         return result;
     }
 
-    public static void copyFromJAXB(GenericObjectType jaxb, RGenericObject repo, PrismContext prismContext,
+    public static void copyFromJAXB(GenericObjectType jaxb, RGenericObject repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectType(jaxb.getObjectType());

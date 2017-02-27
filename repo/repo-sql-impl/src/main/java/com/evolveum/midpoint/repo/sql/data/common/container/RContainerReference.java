@@ -155,7 +155,7 @@ public abstract class RContainerReference implements ObjectReference {
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, RContainerReference repo, PrismContext prismContext) {
+    public static void copyFromJAXB(ObjectReferenceType jaxb, RContainerReference repo) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");

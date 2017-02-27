@@ -84,6 +84,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -148,7 +149,7 @@ public class FocusProcessor {
 	@Autowired
 	private PolicyRuleProcessor policyRuleProcessor;
 
-	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription, 
+	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -171,6 +172,7 @@ public class FocusProcessor {
 		            SchemaException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		ObjectTemplateType objectTemplate = context.getFocusTemplate();
+		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
 
 		boolean resetOnRename = true; // This is fixed now. TODO: make it configurable
 		int maxIterations = 0;
@@ -227,57 +229,88 @@ public class FocusProcessor {
 				// INBOUND
 				
 				if (consistencyChecks) context.checkConsistence();
-		        // Loop through the account changes, apply inbound expressions
-		        inboundProcessor.processInbound(context, now, task, result);
-		        if (consistencyChecks) context.checkConsistence();
-		        context.recomputeFocus();
-		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
-		        if (consistencyChecks) context.checkConsistence();
+
+				LensUtil.partialExecute("inbound",
+						() -> {
+							// Loop through the account changes, apply inbound expressions
+					        inboundProcessor.processInbound(context, now, task, result);
+					        if (consistencyChecks) context.checkConsistence();
+					        context.recomputeFocus();
+					        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
+					        if (consistencyChecks) context.checkConsistence();
+						},
+						partialProcessingOptions::getInbound);
 				
 				
 		        // ACTIVATION
 		        
-		        processActivation(context, now, result);
+				LensUtil.partialExecute("focusActivation",
+						() -> processActivation(context, now, result),
+						partialProcessingOptions::getFocusActivation);
 				
 				
 		        // OBJECT TEMPLATE (before assignments)
 		        
-		        objectTemplateProcessor.processTemplate(context, ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS,
-		        		now, task, result);
+				LensUtil.partialExecute("objectTemplateBeforeAssignments",
+						() -> objectTemplateProcessor.processTemplate(context,
+								ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, now, task, result),
+						partialProcessingOptions::getObjectTemplateBeforeAssignments);
 		        
 		        
 		        // process activation again. Object template might have changed it.
 		        context.recomputeFocus();
-		        processActivation(context, now, result);
+		        LensUtil.partialExecute("focusActivation",
+						() -> processActivation(context, now, result),
+						partialProcessingOptions::getFocusActivation);
 		        
 		        // ASSIGNMENTS
 		        
-		        assignmentProcessor.processAssignmentsProjections(context, now, task, result);
-		        assignmentProcessor.processOrgAssignments(context, result);
-		        assignmentProcessor.processMembershipAndDelegatedRefs(context, result);
+		        LensUtil.partialExecute("assignments",
+						() -> assignmentProcessor.processAssignmentsProjections(context, now, task, result),
+						partialProcessingOptions::getAssignments);
+
+		        LensUtil.partialExecute("assignmentsOrg",
+						() -> assignmentProcessor.processOrgAssignments(context, result),
+						partialProcessingOptions::getAssignmentsOrg);
+
+
+		        LensUtil.partialExecute("assignmentsMembershipAndDelegate",
+						() -> assignmentProcessor.processMembershipAndDelegatedRefs(context, result),
+						partialProcessingOptions::getAssignmentsMembershipAndDelegate);
+
 		        context.recompute();
 		        
-		        assignmentProcessor.checkForAssignmentConflicts(context, result);
+		        LensUtil.partialExecute("assignmentsConflicts",
+						() -> assignmentProcessor.checkForAssignmentConflicts(context, result),
+						partialProcessingOptions::getAssignmentsConflicts);
 		        
 		        // OBJECT TEMPLATE (after assignments)
-		        
-		        objectTemplateProcessor.processTemplate(context, ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS,
-		        		now, task, result);
+
+				LensUtil.partialExecute("objectTemplateAfterAssignments",
+						() -> objectTemplateProcessor.processTemplate(context,
+								ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS, now, task, result),
+						partialProcessingOptions::getObjectTemplateBeforeAssignments);
+
 		        context.recompute();
 
 		        // process activation again. Second pass through object template might have changed it.
 		        context.recomputeFocus();
-		        processActivation(context, now, result);
+		        LensUtil.partialExecute("focusActivation",
+						() -> processActivation(context, now, result),
+						partialProcessingOptions::getFocusActivation);
 		        
 		        // CREDENTIALS (including PASSWORD POLICY)
 				
-		        credentialsProcessor.processFocusCredentials(context, now, task, result);
+		        LensUtil.partialExecute("focusCredentials",
+						() -> credentialsProcessor.processFocusCredentials(context, now, task, result),
+						partialProcessingOptions::getFocusCredentials);
 		        
 		        // We need to evaluate this as a last step. We need to make sure we have all the
 		        // focus deltas so we can properly trigger the rules.
-		        evaluateFocusPolicyRules(context, activityDescription, now, task, result);
 
-		        policyRuleProcessor.storeFocusPolicySituation(context, task, result);
+		        LensUtil.partialExecute("focusPolicyRules",
+						() -> evaluateFocusPolicyRules(context, activityDescription, now, task, result),
+						partialProcessingOptions::getFocusPolicyRules);
 		        
 		        // Processing done, check for success
 

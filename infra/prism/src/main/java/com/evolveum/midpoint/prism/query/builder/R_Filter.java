@@ -258,6 +258,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_AtomicFilterExit fullText(String... words) {
+        FullTextFilter fullTextFilter = FullTextFilter.createFullText(words);
+        return addSubfilter(fullTextFilter);
+    }
+
+    @Override
     public S_FilterEntryOrEmpty block() {
         return new R_Filter(queryBuilder, currentClass, OrFilter.createOr(), null, false, this, null, null, null, null, null);
     }

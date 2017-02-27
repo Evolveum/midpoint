@@ -19,6 +19,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardLayoutType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -66,12 +68,21 @@ public class AdminGuiConfigTypeUtil {
 		if (adminGuiConfiguration.getPreferredDataLanguage() != null) {
 			composite.setPreferredDataLanguage(adminGuiConfiguration.getPreferredDataLanguage());
 		}
+		if (adminGuiConfiguration.getObjectLists() != null) {
+			if (composite.getObjectLists() == null) {
+				composite.setObjectLists(adminGuiConfiguration.getObjectLists().clone());
+			} else {
+				for (GuiObjectListType objectList: adminGuiConfiguration.getObjectLists().getObjectList()) {
+					mergeList(composite.getObjectLists(), objectList);
+				}
+			}
+		}
 		if (adminGuiConfiguration.getObjectForms() != null) {
 			if (composite.getObjectForms() == null) {
 				composite.setObjectForms(adminGuiConfiguration.getObjectForms().clone());
 			} else {
 				for (ObjectFormType objectForm: adminGuiConfiguration.getObjectForms().getObjectForm()) {
-					replaceForm(composite.getObjectForms(), objectForm.clone());
+					replaceForm(composite.getObjectForms(), objectForm);
 				}
 			}
 		}
@@ -94,9 +105,22 @@ public class AdminGuiConfigTypeUtil {
 				iterator.remove();
 			}
 		}
-		objectForms.getObjectForm().add(newForm);
+		objectForms.getObjectForm().add(newForm.clone());
 	}
 
+	private static void mergeList(GuiObjectListsType objectLists, GuiObjectListType newList) {
+		// We support only the default object lists now, so simply replace the existing definition with the
+		// latest definition. We will need a more sophisticated merging later.
+		Iterator<GuiObjectListType> iterator = objectLists.getObjectList().iterator();
+		while (iterator.hasNext()) {
+			GuiObjectListType currentList = iterator.next();
+			if (currentList.getType().equals(newList.getType())) {
+				iterator.remove();
+			}
+		}
+		objectLists.getObjectList().add(newList.clone());
+	}
+	
 	private static void mergeWidget(DashboardLayoutType compositeDashboard, DashboardWidgetType newWidget) {
 		String newWidgetIdentifier = newWidget.getIdentifier();
 		DashboardWidgetType compositeWidget = findWidget(compositeDashboard, newWidgetIdentifier);
@@ -132,7 +156,7 @@ public class AdminGuiConfigTypeUtil {
 		return UserInterfaceElementVisibilityType.VACANT;
 	}
 
-	private static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
+	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
 		for (DashboardWidgetType widget: dashboard.getWidget()) {
 			if (widget.getIdentifier().equals(widgetIdentifier)) {
 				return widget;

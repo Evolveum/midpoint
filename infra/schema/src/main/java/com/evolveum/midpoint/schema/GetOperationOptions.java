@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author semancik
  *
  */
-public class GetOperationOptions implements Serializable, Cloneable {
+public class GetOperationOptions extends AbstractOptions implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -123,6 +124,18 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	 * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
 	 */
 	private Long staleness;
+
+	/**
+	 * Should the results be made distinct.
+	 * Not all providers support this option.
+	 *
+	 * BEWARE:
+	 *  - may bring a potentially huge performance penalty
+	 *  - may interfere with paging (!)
+	 *
+	 * So please consider this option an EXPERIMENTAL, for now.
+	 */
+	private Boolean distinct;
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -436,6 +449,30 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return GetOperationOptions.getStaleness(options) == Long.MAX_VALUE;
 	}
 
+	public Boolean getDistinct() {
+		return distinct;
+	}
+
+	public void setDistinct(Boolean distinct) {
+		this.distinct = distinct;
+	}
+
+	public static boolean isDistinct(GetOperationOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.distinct == null) {
+			return false;
+		}
+		return options.distinct;
+	}
+
+	public static GetOperationOptions createDistinct() {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setDistinct(true);
+		return opts;
+	}
+
 
 	public RelationalValueSearchQuery getRelationalValueSearchQuery() {
 		return relationalValueSearchQuery;
@@ -446,110 +483,31 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((allowNotFound == null) ? 0 : allowNotFound.hashCode());
-		result = prime * result + ((doNotDiscovery == null) ? 0 : doNotDiscovery.hashCode());
-		result = prime * result + ((noFetch == null) ? 0 : noFetch.hashCode());
-		result = prime * result + ((raw == null) ? 0 : raw.hashCode());
-		result = prime * result + ((readOnly == null) ? 0 : readOnly.hashCode());
-		result = prime * result
-				+ ((relationalValueSearchQuery == null) ? 0 : relationalValueSearchQuery.hashCode());
-		result = prime * result + ((resolve == null) ? 0 : resolve.hashCode());
-		result = prime * result + ((resolveNames == null) ? 0 : resolveNames.hashCode());
-		result = prime * result + ((retrieve == null) ? 0 : retrieve.hashCode());
-		result = prime * result + ((staleness == null) ? 0 : staleness.hashCode());
-		result = prime * result + ((tolerateRawData == null) ? 0 : tolerateRawData.hashCode());
-		return result;
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof GetOperationOptions))
+			return false;
+		GetOperationOptions that = (GetOperationOptions) o;
+		return retrieve == that.retrieve &&
+				Objects.equals(resolve, that.resolve) &&
+				Objects.equals(resolveNames, that.resolveNames) &&
+				Objects.equals(noFetch, that.noFetch) &&
+				Objects.equals(raw, that.raw) &&
+				Objects.equals(tolerateRawData, that.tolerateRawData) &&
+				Objects.equals(doNotDiscovery, that.doNotDiscovery) &&
+				Objects.equals(relationalValueSearchQuery, that.relationalValueSearchQuery) &&
+				Objects.equals(allowNotFound, that.allowNotFound) &&
+				Objects.equals(readOnly, that.readOnly) &&
+				Objects.equals(staleness, that.staleness) &&
+				Objects.equals(distinct, that.distinct);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		GetOperationOptions other = (GetOperationOptions) obj;
-		if (allowNotFound == null) {
-			if (other.allowNotFound != null) {
-				return false;
-			}
-		} else if (!allowNotFound.equals(other.allowNotFound)) {
-			return false;
-		}
-		if (doNotDiscovery == null) {
-			if (other.doNotDiscovery != null) {
-				return false;
-			}
-		} else if (!doNotDiscovery.equals(other.doNotDiscovery)) {
-			return false;
-		}
-		if (noFetch == null) {
-			if (other.noFetch != null) {
-				return false;
-			}
-		} else if (!noFetch.equals(other.noFetch)) {
-			return false;
-		}
-		if (raw == null) {
-			if (other.raw != null) {
-				return false;
-			}
-		} else if (!raw.equals(other.raw)) {
-			return false;
-		}
-		if (readOnly == null) {
-			if (other.readOnly != null) {
-				return false;
-			}
-		} else if (!readOnly.equals(other.readOnly)) {
-			return false;
-		}
-		if (relationalValueSearchQuery == null) {
-			if (other.relationalValueSearchQuery != null) {
-				return false;
-			}
-		} else if (!relationalValueSearchQuery.equals(other.relationalValueSearchQuery)) {
-			return false;
-		}
-		if (resolve == null) {
-			if (other.resolve != null) {
-				return false;
-			}
-		} else if (!resolve.equals(other.resolve)) {
-			return false;
-		}
-		if (resolveNames == null) {
-			if (other.resolveNames != null) {
-				return false;
-			}
-		} else if (!resolveNames.equals(other.resolveNames)) {
-			return false;
-		}
-		if (retrieve != other.retrieve) {
-			return false;
-		}
-		if (staleness == null) {
-			if (other.staleness != null) {
-				return false;
-			}
-		} else if (!staleness.equals(other.staleness)) {
-			return false;
-		}
-		if (tolerateRawData == null) {
-			if (other.tolerateRawData != null) {
-				return false;
-			}
-		} else if (!tolerateRawData.equals(other.tolerateRawData)) {
-			return false;
-		}
-		return true;
+	public int hashCode() {
+		return Objects
+				.hash(retrieve, resolve, resolveNames, noFetch, raw, tolerateRawData, doNotDiscovery, relationalValueSearchQuery,
+						allowNotFound, readOnly, staleness, distinct);
 	}
 
 	public GetOperationOptions clone() {
@@ -563,6 +521,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
         clone.allowNotFound = this.allowNotFound;
         clone.readOnly = this.readOnly;
         clone.staleness = this.staleness;
+        clone.distinct = this.distinct;
         if (this.relationalValueSearchQuery != null) {
         	clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
         }
@@ -581,36 +540,13 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		appendFlag(sb, "allowNotFound", allowNotFound);
 		appendFlag(sb, "readOnly", readOnly);
 		appendVal(sb, "staleness", staleness);
+		appendVal(sb, "distinct", distinct);
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
-		if (sb.charAt(sb.length() - 1) == ',') {
-			sb.deleteCharAt(sb.length() - 1);
-		}
+		removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();
 	}
 
-	private void appendFlag(StringBuilder sb, String name, Boolean val) {
-		if (val == null) {
-			return;
-		} else if (val) {
-			sb.append(name);
-			sb.append(",");
-		} else {
-			sb.append(name);
-			sb.append("=false,");
-		}
-	}
-	
-	private void appendVal(StringBuilder sb, String name, Object val) {
-		if (val == null) {
-			return;
-		} else {
-			sb.append(name);
-			sb.append("=");
-			sb.append(val);
-			sb.append(",");
-		}
-	}
 
 	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include, List<String> exclude) {
 		if (CollectionUtils.isEmpty(options) && CollectionUtils.isEmpty(include) && CollectionUtils.isEmpty(exclude)) {
@@ -630,7 +566,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return rv;
 	}
 
-	public static GetOperationOptions fromRestOptions(List<String> options){
+	public static GetOperationOptions fromRestOptions(List<String> options) {
 		if (options == null || options.isEmpty()){
 			return null;
 		}

@@ -50,6 +50,7 @@ public class RootHibernateQuery extends HibernateQuery {
     private Integer maxResults;
     private Integer firstResult;
     private ResultTransformer resultTransformer;
+    private boolean distinct;
 
     public RootHibernateQuery(JpaEntityDefinition primaryEntityDef) {
         super(primaryEntityDef);
@@ -81,7 +82,7 @@ public class RootHibernateQuery extends HibernateQuery {
     }
 
     public Query getAsHqlQuery(Session session) {
-        String text = getAsHqlText(0);
+        String text = getAsHqlText(0, distinct);
         LOGGER.trace("HQL text generated:\n{}", text);
         Query query = session.createQuery(text);
         for (Map.Entry<String,QueryParameterValue> parameter : parameters.entrySet()) {
@@ -132,7 +133,11 @@ public class RootHibernateQuery extends HibernateQuery {
         this.resultTransformer = resultTransformer;
     }
 
-    public Condition createIsNull(String propertyPath) {
+	public void setDistinct(boolean distinct) {
+		this.distinct = distinct;
+	}
+
+	public Condition createIsNull(String propertyPath) {
         return new IsNullCondition(this, propertyPath);
     }
 

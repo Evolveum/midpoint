@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.query2.resolution;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
@@ -125,6 +126,15 @@ public class ItemPathResolver {
         joinedItemAlias = hibernateQuery.createAlias(joinedItemDefinition);
         Condition condition = createJoinCondition(joinedItemAlias, joinedItemDefinition, hibernateQuery);
         hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, condition));
+        return joinedItemAlias;
+    }
+
+    public String addTextInfoJoin(String currentHqlPath) throws QueryException {
+        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+        String joinedItemJpaName = RObject.F_TEXT_INFO_ITEMS;
+        String joinedItemFullPath = currentHqlPath + "." + joinedItemJpaName;
+        String joinedItemAlias = hibernateQuery.createAlias(joinedItemJpaName, false);
+        hibernateQuery.getPrimaryEntity().addJoin(new JoinSpecification(joinedItemAlias, joinedItemFullPath, null));
         return joinedItemAlias;
     }
 

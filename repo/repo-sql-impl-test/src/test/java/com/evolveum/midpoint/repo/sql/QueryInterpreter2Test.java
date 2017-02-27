@@ -3341,6 +3341,35 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void test940FullTextSimple() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .fullText("Peter")
+                    .build();
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+                    + "  u.fullObject,\n"
+                    + "  u.stringsCount,\n"
+                    + "  u.longsCount,\n"
+                    + "  u.datesCount,\n"
+                    + "  u.referencesCount,\n"
+                    + "  u.polysCount,\n"
+                    + "  u.booleansCount\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.textInfoItems t\n"
+                    + "where\n"
+                    + "  t.text like :text";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
 	@Test
 	public void testAdHoc100ProcessStartTimestamp() throws Exception {
 		Session session = open();

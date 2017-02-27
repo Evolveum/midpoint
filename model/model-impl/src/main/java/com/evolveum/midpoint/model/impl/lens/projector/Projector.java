@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -173,6 +174,8 @@ public class Projector {
 		result.addContext("projectionWave", context.getProjectionWave());
 		result.addContext("executionWave", context.getExecutionWave());
 		
+		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
+		
 		// Projector is using a set of "processors" to do parts of its work. The processors will be called in sequence
 		// in the following code.
 		
@@ -181,10 +184,14 @@ public class Projector {
             context.reportProgress(new ProgressInformation(PROJECTOR, ENTERING));
 
 			if (fromStart) {
-				contextLoader.load(context, activityDescription, task, result);
-				// Set the "fresh" mark now so following consistency check will be stricter
-				context.setFresh(true);
-				if (consistencyChecks) context.checkConsistence();
+				LensUtil.partialExecute("load",
+					() -> { 
+						contextLoader.load(context, activityDescription, task, result);
+						// Set the "fresh" mark now so following consistency check will be stricter
+						context.setFresh(true);
+						if (consistencyChecks) context.checkConsistence();
+					}, 
+					partialProcessingOptions::getLoad);
 			}
 	        // For now let's pretend to do just one wave. The maxWaves number will be corrected in the
 			// first wave when dependencies are sorted out for the first time.
@@ -211,10 +218,15 @@ public class Projector {
 	        	
 	        	// Process the focus-related aspects of the context. That means inbound, focus activation,
 	        	// object template and assignments.
-		        focusProcessor.processFocus(context, activityDescription, now, task, result);
-		        context.recomputeFocus();
-		        if (consistencyChecks) context.checkConsistence();
-
+				
+				LensUtil.partialExecute("focus",
+						() -> { 
+							focusProcessor.processFocus(context, activityDescription, now, task, result);
+					        context.recomputeFocus();
+					        if (consistencyChecks) context.checkConsistence();
+						}, 
+						partialProcessingOptions::getFocus);
+				
 				LensUtil.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
 				LensUtil.checkContextSanity(context, "focus processing", result);
 
@@ -241,9 +253,14 @@ public class Projector {
 		        LOGGER.trace("Continuing wave {}, maxWaves={}", context.getProjectionWave(), maxWaves);
 
 		        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-		        		
-	        		projectProjection(context, projectionContext, now, activityDescription, task, result);
-			        
+		        	
+		        	LensUtil.partialExecute("projection "+projectionContext.getHumanReadableName(),
+							() -> projectProjection(context, projectionContext, 
+									partialProcessingOptions, now, activityDescription, task, result),
+							partialProcessingOptions::getProjection);
+		        			// TODO: make this condition more complex in the future. We may want the ability
+		        	        // to select only some projections to process
+		        	
 		        }
 		        
 		        // if there exists some conflicting projection contexts, add them to the context so they will be recomputed in the next wave..
@@ -283,7 +300,8 @@ public class Projector {
 		
 	}
 
-	private <F extends ObjectType> void projectProjection(LensContext<F> context, LensProjectionContext projectionContext, 
+	private <F extends ObjectType> void projectProjection(LensContext<F> context, LensProjectionContext projectionContext,
+			PartialProcessingOptionsType partialProcessingOptions,
 			XMLGregorianCalendar now, String activityDescription, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 		
 		if (projectionContext.getWave() != context.getProjectionWave()) {
@@ -318,28 +336,41 @@ public class Projector {
 	    	
 	    	// TODO: decide if we need to continue
 	    	
-	    	// This is a "composite" processor. it contains several more processor invocations inside
-	    	projectionValuesProcessor.process(context, projectionContext, activityDescription, task, result);
+	    	LensUtil.partialExecute("projectionValues",
+					() -> {
+						// This is a "composite" processor. it contains several more processor invocations inside
+						projectionValuesProcessor.process(context, projectionContext, activityDescription, task, result);
+				    	if (consistencyChecks) context.checkConsistence();
+				    	
+				    	projectionContext.recompute();
+				    	//SynchronizerUtil.traceContext("values", context, false);
+				    	if (consistencyChecks) context.checkConsistence();
+					},
+					partialProcessingOptions::getProjectionValues);
 	    	
-	    	if (consistencyChecks) context.checkConsistence();
 	    	
-	    	projectionContext.recompute();
-	    	//SynchronizerUtil.traceContext("values", context, false);
-	    	if (consistencyChecks) context.checkConsistence();
+	    	LensUtil.partialExecute("projectionCredentials",
+					() -> {
+						credentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result);
+						//SynchronizerUtil.traceContext("credentials", context, false);
+				    	if (consistencyChecks) context.checkConsistence();
+				        
+				    	projectionContext.recompute();
+				    	LensUtil.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionDesc, false, context, true);
+				        if (consistencyChecks) context.checkConsistence();
+					},
+					partialProcessingOptions::getProjectionCredentials);
 	    	
-	    	credentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result);
-	    	
-	    	//SynchronizerUtil.traceContext("credentials", context, false);
-	    	if (consistencyChecks) context.checkConsistence();
-	        
-	    	projectionContext.recompute();
-	    	LensUtil.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionDesc, false, context, true);
-	        if (consistencyChecks) context.checkConsistence();
 	
-	        reconciliationProcessor.processReconciliation(context, projectionContext, task, result);
-	        projectionContext.recompute();
-	        LensUtil.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionDesc, false, context, false);
-	        if (consistencyChecks) context.checkConsistence();
+	        LensUtil.partialExecute("projectionReconciliation",
+					() -> {
+						reconciliationProcessor.processReconciliation(context, projectionContext, task, result);
+						projectionContext.recompute();
+				        LensUtil.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionDesc, false, context, false);
+				        if (consistencyChecks) context.checkConsistence();
+					},
+					partialProcessingOptions::getProjectionReconciliation);
+	        
 	        
 	        result.recordSuccess();
 	        

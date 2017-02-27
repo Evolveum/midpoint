@@ -571,8 +571,8 @@ public class TestPolicyRules extends AbstractLensTest {
 	
 	private void forTriggeredRule(LensContext<UserType> context, String targetOid, Consumer<EvaluatedPolicyRuleTrigger> handler) {
 		forEvaluatedRule(context, targetOid, rule -> {
-			Collection<EvaluatedPolicyRuleTrigger> triggers = rule.getTriggers();
-    		for (EvaluatedPolicyRuleTrigger trigger: triggers) {
+			Collection<EvaluatedPolicyRuleTrigger<?>> triggers = rule.getTriggers();
+    		for (EvaluatedPolicyRuleTrigger<?> trigger: triggers) {
     			handler.accept(trigger);
     		}
 		});

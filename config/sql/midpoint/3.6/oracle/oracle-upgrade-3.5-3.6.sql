@@ -48,3 +48,14 @@ ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
+
+CREATE TABLE m_object_text_info (
+  owner_oid VARCHAR2(36 CHAR)  NOT NULL,
+  text      VARCHAR2(255 CHAR) NOT NULL,
+  PRIMARY KEY (owner_oid, text)
+) INITRANS 30;
+
+ALTER TABLE m_object_text_info
+  ADD CONSTRAINT fk_object_text_info_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;

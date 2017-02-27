@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -31,12 +32,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by honchar.
@@ -47,6 +49,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String ID_BACK = "back";
     private static final String ID_REQUEST_BUTTON = "request";
     private static final String ID_RESOLVE_CONFLICTS_BUTTON = "resolveConflicts";
+    private static final String ID_DESCRIPTION = "description";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRequestRole.class);
     private static final String DOT_CLASS = PageAssignmentsList.class.getName() + ".";
@@ -57,6 +60,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
     private PrismObject<UserType> user;
     private OperationResult backgroundTaskOperationResult = null;
+    IModel<String> descriptionModel = new Model<String>("");
 
     public PageAssignmentsList() {
         this(false);
@@ -94,7 +98,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                             @Override
                             public void onClick(AjaxRequestTarget target) {
                                 deleteAssignmentPerformed(target);
-//                                target.add(PageAssignmentsList.this.getRequestButton());
                             }
                         });
                 items.add(item);
@@ -103,6 +106,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
         };
         mainForm.add(panel);
+
+        mainForm.add(new TextArea<String>(ID_DESCRIPTION, descriptionModel));
 
         AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageAssignmentDetails.backButton")) {
 
@@ -114,7 +119,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         };
         mainForm.add(back);
 
-            AjaxSubmitButton requestAssignments = new AjaxSubmitButton(ID_REQUEST_BUTTON, createStringResource("PageAssignmentsList.requestButton")) {
+        AjaxSubmitButton requestAssignments = new AjaxSubmitButton(ID_REQUEST_BUTTON, createStringResource("PageAssignmentsList.requestButton")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
@@ -130,15 +135,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
         };
         requestAssignments.add(new VisibleEnableBehaviour(){
-           @Override
+            @Override
             public boolean isEnabled(){
-               return areConflictsResolved();
-           }
+                return areConflictsResolved();
+            }
         });
         mainForm.add(requestAssignments);
 
-            AjaxSubmitButton resolveAssignments = new AjaxSubmitButton(ID_RESOLVE_CONFLICTS_BUTTON,
-                    createStringResource("PageAssignmentsList.resolveConflicts")) {
+        AjaxSubmitButton resolveAssignments = new AjaxSubmitButton(ID_RESOLVE_CONFLICTS_BUTTON,
+                createStringResource("PageAssignmentsList.resolveConflicts")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
@@ -164,11 +169,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             deltas.add(delta);
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
             handleAssignmentDeltas(delta, addAssignmentsToUser(), def);
-            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
+
+            OperationBusinessContextType businessContextType = new OperationBusinessContextType();
+            businessContextType.setComment(descriptionModel.getObject() != null ?
+                    descriptionModel.getObject() : "");
+
+            getModelService().executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContextType),
+                    createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
 
             result.recordSuccess();
-
-
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
             error("Could not save assignments. Reason: " + e);
@@ -194,7 +203,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> focusDelta,
-                                                    List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
+                                                  List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
         ContainerDelta assDelta = new ContainerDelta(new ItemPath(), def.getName(), def, getPrismContext());
 
         for (AssignmentEditorDto assDto : assignments) {
@@ -299,16 +308,18 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         }
         List<AssignmentEditorDto> assignmentsList = new ArrayList<>();
         for (AssignmentType assignment : userAssignments){
-            if (assignmentsToRemove.contains(assignment.getTargetRef().getOid())){
+            if (assignment.getTargetRef() != null && assignmentsToRemove.contains(assignment.getTargetRef().getOid())){
                 assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.DELETE, assignment, this));
             } else {
                 assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
             }
         }
-        for (AssignmentEditorDto assignmentsToAdd : assignmentsModel.getObject()){
-            if (!assignmentsToUnselect.contains(assignmentsToAdd.getTargetRef().getOid())) {
-                assignmentsToAdd.setStatus(UserDtoStatus.ADD);
-                assignmentsList.add(assignmentsToAdd);
+        if (assignmentsModel != null && assignmentsModel.getObject() != null) {
+            for (AssignmentEditorDto assignmentsToAdd : assignmentsModel.getObject()) {
+                if (!assignmentsToUnselect.contains(assignmentsToAdd.getTargetRef().getOid())) {
+                    assignmentsToAdd.setStatus(UserDtoStatus.ADD);
+                    assignmentsList.add(assignmentsToAdd);
+                }
             }
         }
         return assignmentsList;
@@ -335,28 +346,34 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     .getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple
                     .getPlusSet();
-            List<String> userAssignmentsOidsList = getAssignmentsOidsList();
+            Map<String, AssignmentConflictDto> conflictOidsMap = new HashMap<>();
             if (addedAssignments != null) {
                 for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
                     for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getTargetPolicyRules()) {
-                        for (EvaluatedPolicyRuleTrigger trigger : policyRule.getTriggers()) {
-                            if (PolicyConstraintKindType.EXCLUSION.equals(trigger.getConstraintKind()) &&
-                                    trigger instanceof EvaluatedExclusionTrigger) {
+                        for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getAllTriggers()) {
+                            if (trigger instanceof EvaluatedExclusionTrigger) {
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
-                                PrismObject<F> exclusionTargetObj = (PrismObject<F>)((EvaluatedExclusionTrigger) trigger).getConflictingAssignment().getTarget();
-                                String exclusionOid = exclusionTargetObj.getOid();
-                                if (userAssignmentsOidsList.contains(exclusionOid)) {
-                                    AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
-                                    conflictsList.add(dto);
+                                EvaluatedAssignment<F> conflictingAssignment = ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment();
+                                PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
+                                AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
+                                boolean isWarning = policyRule.getActions() != null
+                                        && policyRule.getActions().getApproval() != null;
+                                    dto.setError(!isWarning);
+                                if (conflictOidsMap.containsKey(exclusionTargetObj.getOid()) && isWarning){
+                                    conflictOidsMap.replace(exclusionTargetObj.getOid(), dto);
+                                } else {
+                                    conflictOidsMap.put(exclusionTargetObj.getOid(), dto);
                                 }
                             }
                         }
+
                     }
                 }
             }
+            conflictsList.addAll(conflictOidsMap.values());
         } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflics. Reason: ", e);
-            error("Couldn't get assignments conflics. Reason: " + e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
+            error("Couldn't get assignments conflicts. Reason: " + e);
         }
         return conflictsList;
     }
@@ -364,6 +381,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private boolean areConflictsResolved(){
         List<AssignmentConflictDto> list = getSessionStorage().getRoleCatalog().getConflictsList();
         for (AssignmentConflictDto dto : list){
+            if (!dto.isError()){
+                continue;
+            }
             if (!dto.isSolved()){
                 return false;
             }

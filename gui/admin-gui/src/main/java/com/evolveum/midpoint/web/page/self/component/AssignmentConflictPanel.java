@@ -28,6 +28,7 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
     private static final String ID_PANEL_CONTAINER = "panelContainer";
 
     private static final String STATUS_FIXED = GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED + " fa-lg";
+    private static final String STATUS_WARNING = GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED + " fa-lg";
     private static final String STATUS_ERROR = GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED + " fa-lg";
 
     public AssignmentConflictPanel(String id, IModel<AssignmentConflictDto> model) {
@@ -48,7 +49,9 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
 
             @Override
             public String getObject() {
-                return getModelObject() != null ? (getModelObject().isSolved() ? STATUS_FIXED : STATUS_ERROR) : STATUS_ERROR;
+                return getModelObject() != null ?
+                        (getModelObject().isSolved() ? STATUS_FIXED :
+                                (getModelObject().isError() ? STATUS_ERROR : STATUS_WARNING)) : STATUS_ERROR;
             }
         }));
         container.add(statusIconLabel);

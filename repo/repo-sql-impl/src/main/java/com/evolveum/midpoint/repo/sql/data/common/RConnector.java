@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -153,16 +154,16 @@ public class RConnector extends RObject<ConnectorType> {
         return result;
     }
 
-    public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
+    public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());
         repo.setConnectorVersion(jaxb.getConnectorVersion());
         repo.setFramework(jaxb.getFramework());
-        repo.setConnectorHostRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorHostRef(), prismContext));
+        repo.setConnectorHostRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorHostRef(), repositoryContext.prismContext));
 
         if (jaxb.getConnectorHost() != null) {
             LOGGER.warn("Connector host from connector type won't be saved. It should be " +
