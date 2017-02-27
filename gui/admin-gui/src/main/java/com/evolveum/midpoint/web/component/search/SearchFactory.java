@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -207,7 +208,7 @@ public class SearchFactory {
     private static boolean isFullTextSearchEnabled(ModelInteractionService modelInteractionService) {
         OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
         try {
-            return SystemConfigurationTypeUtil.isFullTextSearchEnabled(modelInteractionService.getSystemConfiguration(result)
+            return FullTextSearchConfigurationUtil.isEnabled(modelInteractionService.getSystemConfiguration(result)
                     .getFullTextSearch());
         } catch (SchemaException | ObjectNotFoundException ex) {
                 throw new SystemException(ex);
