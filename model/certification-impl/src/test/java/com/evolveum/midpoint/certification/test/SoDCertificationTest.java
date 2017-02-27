@@ -16,28 +16,23 @@
 
 package com.evolveum.midpoint.certification.test;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
-import static org.testng.AssertJUnit.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author mederly
@@ -193,23 +188,23 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         assertAfterCampaignStart(campaign, certificationDefinition, 4);
         checkAllCases(campaign.getCase(), campaignOid);
 
-//        List<AccessCertificationCaseType> caseList = campaign.getCase();
-//        assertCaseOutcome(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
-//        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
-//        assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
-//        assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
-//        assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
-//        assertPercentComplete(campaign, 20, 100, 0);     // preliminary outcomes for all aases are "ACCEPT"
+        List<AccessCertificationCaseType> caseList = campaign.getCase();
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest2bOid, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest3aOid, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, null);
+        assertPercentComplete(campaign, 0, 100, 0);     // preliminary outcomes for all cases are "ACCEPT"
     }
 
-    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
+    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid)
+			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
+			SecurityViolationException {
         assertEquals("Wrong number of certification cases", 4, caseList.size());
-//        checkCase(caseList, USER_JACK_OID, roleATest2aOid, , )
-//        checkCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo, campaignOid);
-//        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo, campaignOid);
-//        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo, campaignOid);
-//        checkCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo, campaignOid);
-//        checkCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, roleSuperuser, campaignOid);
+        UserType jack = getUser(USER_JACK_OID).asObjectable();
+        checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);
+        checkCase(caseList, USER_JACK_OID, roleATest2bOid, jack, campaignOid);
+        checkCase(caseList, USER_JACK_OID, roleATest3aOid, jack, campaignOid);
+        checkCase(caseList, USER_JACK_OID, roleATest3bOid, jack, campaignOid);
     }
 //
 //    @Test

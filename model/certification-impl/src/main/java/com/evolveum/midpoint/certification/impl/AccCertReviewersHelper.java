@@ -22,6 +22,8 @@ import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,17 +31,15 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author mederly
@@ -63,26 +63,26 @@ public class AccCertReviewersHelper {
 
     public void setupReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
                                       AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-
         _case.getCurrentReviewerRef().clear();
         if (reviewerSpec == null) {
             return;     // TODO issue a warning here?
         }
 
-        if (Boolean.TRUE.equals(reviewerSpec.isUseTargetOwner())) {
-            cloneAndMerge(_case.getCurrentReviewerRef(), getTargetObjectOwners(_case, task, result));
+		List<ObjectReferenceType> reviewers = new ArrayList<>();
+		if (Boolean.TRUE.equals(reviewerSpec.isUseTargetOwner())) {
+            cloneAndMerge(reviewers, getTargetObjectOwners(_case, task, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseTargetApprover())) {
-            cloneAndMerge(_case.getCurrentReviewerRef(), getTargetObjectApprovers(_case, task, result));
+            cloneAndMerge(reviewers, getTargetObjectApprovers(_case, task, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseObjectOwner())) {
-            cloneAndMerge(_case.getCurrentReviewerRef(), getObjectOwners(_case, task, result));
+            cloneAndMerge(reviewers, getObjectOwners(_case, task, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseObjectApprover())) {
-            cloneAndMerge(_case.getCurrentReviewerRef(), getObjectApprovers(_case, task, result));
+            cloneAndMerge(reviewers, getObjectApprovers(_case, task, result));
         }
         if (reviewerSpec.getUseObjectManager() != null) {
-            cloneAndMerge(_case.getCurrentReviewerRef(), getObjectManagers(_case, reviewerSpec.getUseObjectManager(), task, result));
+            cloneAndMerge(reviewers, getObjectManagers(_case, reviewerSpec.getUseObjectManager(), task, result));
         }
         for (ExpressionType reviewerExpression : reviewerSpec.getReviewerExpression()) {
 			ExpressionVariables variables = new ExpressionVariables();
@@ -91,15 +91,48 @@ public class AccCertReviewersHelper {
 			variables.addVariableDefinition(ExpressionConstants.VAR_REVIEWER_SPECIFICATION, reviewerSpec);
 			List<ObjectReferenceType> refList = expressionHelper
 					.evaluateRefExpressionChecked(reviewerExpression, variables, "reviewer expression", task, result);
-			cloneAndMerge(_case.getCurrentReviewerRef(), refList);
+			cloneAndMerge(reviewers, refList);
 		}
-        if (_case.getCurrentReviewerRef().isEmpty()) {
-            cloneAndMerge(_case.getCurrentReviewerRef(), reviewerSpec.getDefaultReviewerRef());
+		resolveRoleReviewers(reviewers, task, result);
+        if (reviewers.isEmpty()) {
+            cloneAndMerge(reviewers, reviewerSpec.getDefaultReviewerRef());
         }
-        cloneAndMerge(_case.getCurrentReviewerRef(), reviewerSpec.getAdditionalReviewerRef());
+        cloneAndMerge(reviewers, reviewerSpec.getAdditionalReviewerRef());
+		resolveRoleReviewers(reviewers, task, result);
+
+		_case.getCurrentReviewerRef().addAll(reviewers);
     }
 
-    private void cloneAndMerge(List<ObjectReferenceType> reviewers, Collection<ObjectReferenceType> newReviewers) {
+	private void resolveRoleReviewers(List<ObjectReferenceType> reviewers, Task task, OperationResult result)
+			throws SchemaException {
+    	List<ObjectReferenceType> resolved = new ArrayList<>();
+		for (Iterator<ObjectReferenceType> iterator = reviewers.iterator(); iterator.hasNext(); ) {
+			ObjectReferenceType reviewer = iterator.next();
+			if (QNameUtil.match(reviewer.getType(), RoleType.COMPLEX_TYPE) ||
+					QNameUtil.match(reviewer.getType(), OrgType.COMPLEX_TYPE) ||
+					QNameUtil.match(reviewer.getType(), ServiceType.COMPLEX_TYPE)) {
+				iterator.remove();
+				resolved.addAll(getMembers(reviewer, task, result));
+			}
+		}
+		for (ObjectReferenceType ref : resolved) {
+			if (!containsOid(reviewers, ref.getOid())) {
+				reviewers.add(ref);
+			}
+		}
+	}
+
+	private List<ObjectReferenceType> getMembers(ObjectReferenceType abstractRoleRef, Task task, OperationResult result)
+			throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleRef.getOid())
+				.build();
+		return repositoryService.searchObjects(UserType.class, query, null, result).stream()
+				.map(obj -> ObjectTypeUtil.createObjectRef(obj))
+				.collect(Collectors.toList());
+	}
+
+	private void cloneAndMerge(List<ObjectReferenceType> reviewers, Collection<ObjectReferenceType> newReviewers) {
         if (newReviewers == null) {
             return;
         }

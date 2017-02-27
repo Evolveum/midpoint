@@ -36,6 +36,9 @@
     <assignment id="3">
         <targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="c:RoleType"/>		<!-- reviewer -->
     </assignment>
+    <assignment id="4">
+        <targetRef oid="e015eb10-1426-4104-86c0-eb0cf9dc423f" type="c:OrgType"/>		<!-- Security Team -->
+    </assignment>
 
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
