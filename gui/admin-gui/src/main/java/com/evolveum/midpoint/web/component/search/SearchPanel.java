@@ -340,6 +340,8 @@ public class SearchPanel extends BasePanel<Search> {
         TextPanel fullTextInput = new TextPanel(ID_FULL_TEXT_FIELD, new PropertyModel<String>(getModel(),
                 Search.F_FULL_TEXT));
         fullTextInput.setOutputMarkupId(true);
+        fullTextInput.getBaseFormComponent().add(new AttributeAppender("placeholder",
+                createStringResource("SearchPanel.fullTextSearch")));
         fullTextInput.add(createVisibleBehaviour(Search.SearchViewType.FULL_TEXT_SEARCH));
         fullTextContainer.add(fullTextInput);
 
