@@ -38,9 +38,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by honchar.
@@ -348,22 +346,23 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     .getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple
                     .getPlusSet();
-            List<String> userAssignmentsOidsList = getAssignmentsOidsList();
+            Map<String, AssignmentConflictDto> conflictOidsMap = new HashMap<>();
             if (addedAssignments != null) {
                 for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
                     for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getTargetPolicyRules()) {
-                    	if (policyRule.getActions() == null || policyRule.getActions().getApproval() == null) {
-                    		continue;
-						}
                         for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getAllTriggers()) {
                             if (trigger instanceof EvaluatedExclusionTrigger) {
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
                                 EvaluatedAssignment<F> conflictingAssignment = ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment();
                                 PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
-                                String exclusionOid = exclusionTargetObj.getOid();
-                                if (userAssignmentsOidsList.contains(exclusionOid)) {
-                                    AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
-                                    conflictsList.add(dto);
+                                AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
+                                boolean isWarning = policyRule.getActions() != null
+                                        && policyRule.getActions().getApproval() != null;
+                                    dto.setError(!isWarning);
+                                if (conflictOidsMap.containsKey(exclusionTargetObj.getOid()) && isWarning){
+                                    conflictOidsMap.replace(exclusionTargetObj.getOid(), dto);
+                                } else {
+                                    conflictOidsMap.put(exclusionTargetObj.getOid(), dto);
                                 }
                             }
                         }
@@ -371,6 +370,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     }
                 }
             }
+            conflictsList.addAll(conflictOidsMap.values());
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
             error("Couldn't get assignments conflicts. Reason: " + e);
