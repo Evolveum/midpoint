@@ -26,25 +26,19 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectTextInfoId;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.ForeignKey;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.COLUMN_OWNER_OID;
 import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.TABLE_NAME;
 
 /**
@@ -132,26 +126,10 @@ public class RObjectTextInfo implements Serializable {
 			@NotNull RepositoryContext repositoryContext) {
 
 		FullTextSearchConfigurationType config = repositoryContext.repositoryService.getFullTextSearchConfiguration();
-		if (!SystemConfigurationTypeUtil.isFullTextSearchEnabled(config)) {
+		if (!FullTextSearchConfigurationUtil.isEnabled(config)) {
 			return Collections.emptySet();
 		}
-		List<QName> types =
-				ObjectTypes.getObjectType(object.getClass()).thisAndSupertypes().stream()
-						.map(ot -> ot.getTypeQName())
-						.collect(Collectors.toList());
-		Set<ItemPath> paths = new HashSet<>();
-		for (FullTextSearchIndexedItemsConfigurationType indexed : config.getIndexed()) {
-			if (isApplicable(indexed, types)) {
-				for (ItemPathType itemPathType : indexed.getItem()) {
-					ItemPath path = itemPathType.getItemPath();
-					if (path.isEmpty()) {
-						LOGGER.debug("Empty path in full time index configuration; skipping.");
-					} else if (!ItemPath.containsEquivalent(paths, path)) {
-						paths.add(path);
-					}
-				}
-			}
-		}
+		Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, object.getClass());
 
 		List<PrismValue> values = new ArrayList<>();
 		for (ItemPath path : paths) {
@@ -188,18 +166,6 @@ public class RObjectTextInfo implements Serializable {
 		LOGGER.trace("Indexing {}:\n  items: {}\n  values: {}\n  words:  {}", object, paths, values, allWords);
 		return createItemsSet(repo, allWords);
     }
-
-	private static boolean isApplicable(FullTextSearchIndexedItemsConfigurationType indexed, List<QName> types) {
-		if (indexed.getObjectType().isEmpty()) {
-			return true;
-		}
-		for (QName type : types) {
-			if (QNameUtil.matchAny(type, indexed.getObjectType())) {
-				return true;
-			}
-		}
-		return false;
-	}
 
 	private static Set<RObjectTextInfo> createItemsSet(RObject repo, List<String> allWords) {
 		Set<RObjectTextInfo> rv = new HashSet<>();
