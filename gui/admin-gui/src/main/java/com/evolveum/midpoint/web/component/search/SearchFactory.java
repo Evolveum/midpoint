@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -134,7 +135,7 @@ public class SearchFactory {
         PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, ctx, modelInteractionService);
 
         Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
-        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelInteractionService);
+        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelInteractionService, type);
 
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled);
 
@@ -204,11 +205,11 @@ public class SearchFactory {
         return map;
     }
 
-    private static boolean isFullTextSearchEnabled(ModelInteractionService modelInteractionService) {
+    private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelInteractionService modelInteractionService, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
         try {
-            return SystemConfigurationTypeUtil.isFullTextSearchEnabled(modelInteractionService.getSystemConfiguration(result)
-                    .getFullTextSearch());
+            return FullTextSearchConfigurationUtil.isEnabledFor(modelInteractionService.getSystemConfiguration(result)
+                    .getFullTextSearch(), type);
         } catch (SchemaException | ObjectNotFoundException ex) {
                 throw new SystemException(ex);
         }
