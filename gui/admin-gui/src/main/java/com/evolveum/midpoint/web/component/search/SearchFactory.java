@@ -135,7 +135,7 @@ public class SearchFactory {
         PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, ctx, modelInteractionService);
 
         Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
-        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelInteractionService);
+        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelInteractionService, type);
 
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled);
 
@@ -205,11 +205,11 @@ public class SearchFactory {
         return map;
     }
 
-    private static boolean isFullTextSearchEnabled(ModelInteractionService modelInteractionService) {
+    private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelInteractionService modelInteractionService, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
         try {
-            return FullTextSearchConfigurationUtil.isEnabled(modelInteractionService.getSystemConfiguration(result)
-                    .getFullTextSearch());
+            return FullTextSearchConfigurationUtil.isEnabledFor(modelInteractionService.getSystemConfiguration(result)
+                    .getFullTextSearch(), type);
         } catch (SchemaException | ObjectNotFoundException ex) {
                 throw new SystemException(ex);
         }
