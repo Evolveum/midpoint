@@ -99,11 +99,18 @@ import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1321,5 +1328,24 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				}
 			})
 			.collect(Collectors.joining(", "));
+	}
+	
+	protected void logTrustManagers() throws NoSuchAlgorithmException, KeyStoreException {
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		trustManagerFactory.init((KeyStore)null);
+		for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
+		    if (trustManager instanceof X509TrustManager) {
+		        X509TrustManager x509TrustManager = (X509TrustManager)trustManager;
+		        LOGGER.debug("TrustManager(X509): {}", x509TrustManager);
+		        X509Certificate[] acceptedIssuers = x509TrustManager.getAcceptedIssuers();
+		        if (acceptedIssuers != null) {
+		        	for (X509Certificate acceptedIssuer: acceptedIssuers) {
+		        		LOGGER.debug("    acceptedIssuer: {}", acceptedIssuer);
+		        	}
+		        }
+		    } else {
+		    	LOGGER.debug("TrustManager: {}", trustManager);
+		    }
+		}
 	}
 }

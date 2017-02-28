@@ -47,7 +47,10 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -181,6 +184,7 @@ public class SearchPanel extends BasePanel<Search> {
                 searchPerformed(target);
             }
         };
+        searchSimple.setMarkupId(ID_SEARCH_SIMPLE);
         searchSimple.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -198,7 +202,6 @@ public class SearchPanel extends BasePanel<Search> {
                         Search.SearchViewType.FULL_TEXT_SEARCH.equals(getModelObject().getSearchType());
 			}
 		});
-        form.setDefaultButton(searchSimple);
         searchSimple.setOutputMarkupId(true);
         searchContainer.add(searchSimple);
 
@@ -342,10 +345,26 @@ public class SearchPanel extends BasePanel<Search> {
         fullTextContainer.setOutputMarkupId(true);
         form.add(fullTextContainer);
 
-        TextPanel fullTextInput = new TextPanel(ID_FULL_TEXT_FIELD, new PropertyModel<String>(getModel(),
+        TextField fullTextInput = new TextField(ID_FULL_TEXT_FIELD, new PropertyModel<String>(getModel(),
                 Search.F_FULL_TEXT));
+
+        fullTextInput.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+        fullTextInput.add(new Behavior() {
+            @Override
+            public void bind(Component component) {
+                super.bind( component );
+
+                component.add( AttributeModifier.replace( "onkeydown", Model.of("if(event.keyCode == 13) {document.getElementById('"+
+                        ID_SEARCH_SIMPLE +"').click();}") ) );
+            }
+        });
         fullTextInput.setOutputMarkupId(true);
-        fullTextInput.getBaseFormComponent().add(new AttributeAppender("placeholder",
+        fullTextInput.add(new AttributeAppender("placeholder",
                 createStringResource("SearchPanel.fullTextSearch")));
         fullTextInput.add(createVisibleBehaviour(Search.SearchViewType.FULL_TEXT_SEARCH));
         fullTextContainer.add(fullTextInput);

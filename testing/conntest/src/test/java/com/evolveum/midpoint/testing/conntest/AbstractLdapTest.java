@@ -361,6 +361,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         ciMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
         dnMatchingRule = matchingRuleRegistry.getMatchingRule(DistinguishedNameMatchingRule.NAME, DOMUtil.XSD_STRING);
         
+        logTrustManagers();
+        
         if (isAssertOpenFiles()) {
         	lsof = new Lsof(TestUtil.getPid());
         }
