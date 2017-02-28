@@ -252,7 +252,7 @@ public class TestQueryConvertors {
 		System.out.println("Re-converted query type");
 		System.out.println(convertedQueryType.debugDump());
 
-		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext());
+		Element filterClauseElement = convertedQueryType.getFilter().getFilterClauseAsElement();
 		LOGGER.info(convertedQueryType.getFilter().getFilterClauseXNode().debugDump());
 
 		System.out.println("Serialized filter (JAXB->DOM)");
