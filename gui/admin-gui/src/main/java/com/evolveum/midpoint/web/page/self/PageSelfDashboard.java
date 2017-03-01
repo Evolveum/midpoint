@@ -19,6 +19,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
+import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
@@ -73,6 +75,8 @@ import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author Viliam Repan (lazyman)
  * @author Kate Honchar
@@ -106,8 +110,10 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_REQUESTS = 1000;
 
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
+    private AdminGuiConfigurationType adminGuiConfig;
 
     public PageSelfDashboard() {
+        adminGuiConfig = getPrincipal().getAdminGuiConfiguration();
         principalModel.setObject(loadUser());
         setTimeZone(PageSelfDashboard.this);
         initLayout();
@@ -125,29 +131,25 @@ public class PageSelfDashboard extends PageSelf {
 
     private void initLayout(){
         DashboardSearchPanel dashboardSearchPanel = new DashboardSearchPanel(ID_SEARCH_PANEL, null);
-        add(dashboardSearchPanel);
-        if (! WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+        List<String> searchPanelActions = Arrays.asList(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_TASKS_URL)) {
-            dashboardSearchPanel.setVisible(false);
-        }
-        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, new IModel<List<RichHyperlinkType>>() {
-        	private static final long serialVersionUID = 1L;
-        	
+                AuthorizationConstants.AUTZ_UI_TASKS_URL);
+        dashboardSearchPanel.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
             @Override
-            public List<RichHyperlinkType> getObject() {
-                return loadLinksList();
+            public boolean isVisible(){
+                return isWidgetVisible(PredefinedDashboardWidgetId.SEARCH, searchPanelActions);
             }
+        });
+        add(dashboardSearchPanel);
 
+        LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, Model.ofList(loadLinksList()));
+        linksPanel.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
             @Override
-            public void setObject(List<RichHyperlinkType> richHyperlinkTypes) {
-
-            }
-
-            @Override
-            public void detach() {
-
+            public boolean isVisible(){
+                return isWidgetVisible(PredefinedDashboardWidgetId.SHORTCUTS);
             }
         });
         add(linksPanel);
@@ -193,7 +195,7 @@ public class PageSelfDashboard extends PageSelf {
         workItemsPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return getWorkflowManager().isEnabled();
+                return getWorkflowManager().isEnabled() && isWidgetVisible(PredefinedDashboardWidgetId.MY_WORKITEMS);
             }
         });
         add(workItemsPanel);
@@ -235,7 +237,7 @@ public class PageSelfDashboard extends PageSelf {
         	
             @Override
             public boolean isVisible() {
-                return getWorkflowManager().isEnabled();
+                return getWorkflowManager().isEnabled() && isWidgetVisible(PredefinedDashboardWidgetId.MY_REQUESTS);
             }
         });
         add(myRequestsPanel);
@@ -391,6 +393,14 @@ public class PageSelfDashboard extends PageSelf {
                         }
                     }
                 };
+        accounts.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isWidgetVisible(PredefinedDashboardWidgetId.MY_ACCOUNTS);
+            }
+        });
         add(accounts);
     }
     
@@ -474,6 +484,14 @@ public class PageSelfDashboard extends PageSelf {
                                 new PropertyModel<List<AssignmentItemDto>>(getModel(), CallableResult.F_VALUE));
                     }
                 };
+        assignedOrgUnits.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isWidgetVisible(PredefinedDashboardWidgetId.MY_ASSIGNMENTS);
+            }
+        });
         add(assignedOrgUnits);
 
     }
@@ -561,5 +579,45 @@ public class PageSelfDashboard extends PageSelf {
 
 		return new AssignmentItemDto(type, name, description, relation);
 	}
+
+	private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
+        if (adminGuiConfig == null || adminGuiConfig.getUserDashboard() == null) {
+            return UserInterfaceElementVisibilityType.AUTOMATIC;
+        }
+        List<DashboardWidgetType> widgetsList = adminGuiConfig.getUserDashboard().getWidget();
+        if (widgetsList == null || widgetsList.size() == 0){
+            return UserInterfaceElementVisibilityType.VACANT;
+        }
+        DashboardWidgetType widget = AdminGuiConfigTypeUtil.findWidget(adminGuiConfig.getUserDashboard(),
+                componentId.getUri());
+        if (widget == null || widget.getVisibility() == null){
+            return UserInterfaceElementVisibilityType.HIDDEN;
+        } else {
+            return widget.getVisibility();
+        }
+    }
+
+    private boolean isWidgetVisible(PredefinedDashboardWidgetId componentId) {
+        return isWidgetVisible(componentId, new ArrayList<>());
+    }
+
+    private boolean isWidgetVisible(PredefinedDashboardWidgetId componentId, List<String> requiredAuthorizations){
+        UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(componentId);
+        if (UserInterfaceElementVisibilityType.HIDDEN.equals(visibilityType) ||
+                UserInterfaceElementVisibilityType.VACANT.equals(visibilityType)){
+            return false;
+        }
+        if (UserInterfaceElementVisibilityType.VISIBLE.equals(visibilityType)){
+            return true;
+        }
+        if (UserInterfaceElementVisibilityType.AUTOMATIC.equals(visibilityType)){
+            if (WebComponentUtil.isAuthorized(requiredAuthorizations)){
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,13 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardLayoutType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -71,6 +75,15 @@ public class AdminGuiConfigTypeUtil {
 				}
 			}
 		}
+		if (adminGuiConfiguration.getUserDashboard() != null) {
+			if (composite.getUserDashboard() == null) {
+				composite.setUserDashboard(adminGuiConfiguration.getUserDashboard().clone());
+			} else {
+				for (DashboardWidgetType widget: adminGuiConfiguration.getUserDashboard().getWidget()) {
+					mergeWidget(composite.getUserDashboard(), widget);
+				}
+			}
+		}
 	}
 
 	private static void replaceForm(ObjectFormsType objectForms, ObjectFormType newForm) {
@@ -83,5 +96,49 @@ public class AdminGuiConfigTypeUtil {
 		}
 		objectForms.getObjectForm().add(newForm);
 	}
-	
+
+	private static void mergeWidget(DashboardLayoutType compositeDashboard, DashboardWidgetType newWidget) {
+		String newWidgetIdentifier = newWidget.getIdentifier();
+		DashboardWidgetType compositeWidget = findWidget(compositeDashboard, newWidgetIdentifier);
+		if (compositeWidget == null) {
+			compositeDashboard.getWidget().add(newWidget.clone());
+		} else {
+			mergeWidget(compositeWidget, newWidget);
+		}
+	}
+
+	private static void mergeWidget(DashboardWidgetType compositeWidget, DashboardWidgetType newWidget) {
+		UserInterfaceElementVisibilityType newCompositeVisibility = mergeVisibility(compositeWidget.getVisibility(), newWidget.getVisibility());
+		compositeWidget.setVisibility(newCompositeVisibility);
+	}
+
+	private static UserInterfaceElementVisibilityType mergeVisibility(
+			UserInterfaceElementVisibilityType compositeVisibility, UserInterfaceElementVisibilityType newVisibility) {
+		if (compositeVisibility == null) {
+			compositeVisibility = UserInterfaceElementVisibilityType.VACANT;
+		}
+		if (newVisibility == null) {
+			newVisibility = UserInterfaceElementVisibilityType.VACANT;
+		}
+		if (compositeVisibility == UserInterfaceElementVisibilityType.HIDDEN || newVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+			return UserInterfaceElementVisibilityType.HIDDEN;
+		}
+		if (compositeVisibility == UserInterfaceElementVisibilityType.VISIBLE || newVisibility == UserInterfaceElementVisibilityType.VISIBLE) {
+			return UserInterfaceElementVisibilityType.VISIBLE;
+		}
+		if (compositeVisibility == UserInterfaceElementVisibilityType.AUTOMATIC || newVisibility == UserInterfaceElementVisibilityType.AUTOMATIC) {
+			return UserInterfaceElementVisibilityType.AUTOMATIC;
+		}
+		return UserInterfaceElementVisibilityType.VACANT;
+	}
+
+	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
+		for (DashboardWidgetType widget: dashboard.getWidget()) {
+			if (widget.getIdentifier().equals(widgetIdentifier)) {
+				return widget;
+			}
+		}
+		return null;
+	}
+
 }

@@ -230,8 +230,10 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			protected void onModelChanged() {
 				super.onModelChanged();
 
-				Set<SelectableBean<OrgType>> items = getModelObject();
-				OrgTreePanel.this.setExpandedItems((TreeStateSet<SelectableBean<OrgType>>) items);
+				TreeStateSet<SelectableBean<OrgType>> items = (TreeStateSet) getModelObject();
+				if (!items.isInverse()) {
+					OrgTreePanel.this.setExpandedItems(items);
+				}
 			}
 		};
 		tree.setItemReuseStrategy(new ReuseIfModelsEqualStrategy());
