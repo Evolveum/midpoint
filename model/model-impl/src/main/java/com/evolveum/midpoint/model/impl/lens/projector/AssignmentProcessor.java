@@ -239,6 +239,7 @@ public class AssignmentProcessor {
         // Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
         // This is where most of the assignment-level action happens.
         DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+        policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
         
         if (LOGGER.isTraceEnabled()) {
@@ -246,7 +247,7 @@ public class AssignmentProcessor {
         }
         
         // PROCESSING POLICIES
-        
+
         policyRuleProcessor.processPolicies(context, evaluatedAssignmentTriple, result);
         
         boolean needToReevaluateAssignments = policyRuleProcessor.processPruning(context, evaluatedAssignmentTriple, result);
@@ -255,7 +256,10 @@ public class AssignmentProcessor {
         	LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
         	
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
-        	
+        	// TODO shouldn't we store this re-evaluated triple back into the context?
+
+			policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple);
+
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
             }

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -38,9 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
@@ -502,5 +499,42 @@ public class PolicyRuleProcessor {
 				.asItemDelta();
 		situationsDelta.setEstimatedOldValues(PrismPropertyValue.wrap(currentSituations));
 		return situationsDelta;
+	}
+
+	public <F extends FocusType> void addGlobalPoliciesToAssignments(LensContext<F> context,
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple) throws SchemaException {
+
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+		if (systemConfiguration == null) {
+			return;
+		}
+		// We need to consider object before modification here.
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		PrismObject<F> focus = focusContext.getObjectCurrent();
+		if (focus == null) {
+			focus = focusContext.getObjectNew();
+		}
+
+		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
+			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
+			if (!repositoryService.selectorMatches(focusSelector, focus, LOGGER,
+					"Global policy rule "+globalPolicyRule.getName()+" focus selector: ")) {
+				continue;
+			}
+			for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
+				for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) {
+					if (!repositoryService.selectorMatches(globalPolicyRule.getTargetSelector(),
+							target.getTarget(), LOGGER, "Global policy rule "+globalPolicyRule.getName()+" target selector: ")) {
+						continue;
+					}
+					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule,
+							target.getAssignmentPath() != null ? target.getAssignmentPath().clone() : null);
+					evaluatedAssignment.addTargetPolicyRule(evaluatedRule);
+					if (target.getAssignmentPath() != null && target.getAssignmentPath().size() == 1) {
+						evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);
+					}
+				}
+			}
+		}
 	}
 }
