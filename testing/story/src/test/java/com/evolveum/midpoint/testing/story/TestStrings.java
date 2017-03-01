@@ -59,6 +59,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValues;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -96,22 +97,12 @@ public class TestStrings extends AbstractStoryTest {
 
 	private static final File FORM_USER_DETAILS_FILE = new File(ROLES_DIR, "form-user-details.xml");
 	private static String formUserDetailsOid;
-	private static final File METAROLE_APPROVAL_LINE_MANAGERS_FILE = new File(ROLES_DIR, "metarole-approval-line-managers.xml");
-	private static String metaroleApprovalLineManagersOid;
-	private static final File METAROLE_APPROVAL_ROLE_APPROVERS_ALL_FILE = new File(ROLES_DIR, "metarole-approval-role-approvers-all.xml");
-	private static String metaroleApprovalRoleApproversAllOid;
 	private static final File METAROLE_APPROVAL_ROLE_APPROVERS_FIRST_FILE = new File(ROLES_DIR, "metarole-approval-role-approvers-first.xml");
 	private static String metaroleApprovalRoleApproversFirstOid;
 	private static final File METAROLE_APPROVAL_ROLE_APPROVERS_FORM_FILE = new File(ROLES_DIR, "metarole-approval-role-approvers-form.xml");
 	private static String metaroleApprovalRoleApproversFormOid;
 	private static final File METAROLE_APPROVAL_SECURITY_FILE = new File(ROLES_DIR, "metarole-approval-security.xml");
 	private static String metaroleApprovalSecurityOid;
-	private static final File METAROLE_APPROVAL_SOD_FILE = new File(ROLES_DIR, "metarole-approval-sod.xml");
-	private static String metaroleApprovalSodOid;
-	private static final File METAROLE_ESCALATION_THEN_REJECTION_FILE = new File(ROLES_DIR, "metarole-approval-escalation-then-rejection.xml");
-	private static String metaroleEscalationThenRejectionOid;
-	private static final File METAROLE_REJECTION_FILE = new File(ROLES_DIR, "metarole-approval-rejection.xml");
-	private static String metaroleRejectionOid;
 
 	private static final File ROLE_A_TEST_1 = new File(ROLES_SPECIFIC_DIR, "a-test-1.xml");
 	private static String roleATest1Oid;
@@ -147,6 +138,8 @@ public class TestStrings extends AbstractStoryTest {
 	private static final File USER_LECHUCK_FILE = new File(USERS_DIR, "lechuck.xml");
 	private static String userLechuckOid;
 
+	private static final File CONFIG_WITH_GLOBAL_RULES_FILE = new File(ROLES_DIR, "global-policy-rules.xml");
+
 	public static final String NS_STRINGS_EXT = "http://midpoint.evolveum.com/xml/ns/strings";
 
 	private static final String DUMMY_WORK_ITEM_LIFECYCLE = "dummy:workItemLifecycle";
@@ -157,6 +150,16 @@ public class TestStrings extends AbstractStoryTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+
+		// copy rules from the file into live system config object
+		PrismObject<SystemConfigurationType> rules = prismContext.parserFor(CONFIG_WITH_GLOBAL_RULES_FILE).parse();
+		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+				DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+						.item(SystemConfigurationType.F_GLOBAL_POLICY_RULE).add(
+								rules.asObjectable().getGlobalPolicyRule().stream()
+										.map(r -> r.clone().asPrismContainerValue())
+										.collect(Collectors.toList()))
+						.asItemDeltas(), initResult);
 
 		// we prefer running trigger scanner by hand
 		resetTriggerTask(initResult);
@@ -174,14 +177,9 @@ public class TestStrings extends AbstractStoryTest {
 		orgSodApproversOid = repoAddObjectFromFile(ORG_SOD_APPROVERS_FILE, initResult).getOid();
 
 		formUserDetailsOid = repoAddObjectFromFile(FORM_USER_DETAILS_FILE, initResult).getOid();
-		metaroleApprovalLineManagersOid = repoAddObjectFromFile(METAROLE_APPROVAL_LINE_MANAGERS_FILE, initResult).getOid();
-		metaroleApprovalRoleApproversAllOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_ALL_FILE, initResult).getOid();
 		metaroleApprovalRoleApproversFirstOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_FIRST_FILE, initResult).getOid();
 		metaroleApprovalRoleApproversFormOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_FORM_FILE, initResult).getOid();
 		metaroleApprovalSecurityOid = repoAddObjectFromFile(METAROLE_APPROVAL_SECURITY_FILE, initResult).getOid();
-		metaroleApprovalSodOid = repoAddObjectFromFile(METAROLE_APPROVAL_SOD_FILE, initResult).getOid();
-		metaroleEscalationThenRejectionOid = repoAddObjectFromFile(METAROLE_ESCALATION_THEN_REJECTION_FILE, initResult).getOid();
-		metaroleRejectionOid = repoAddObjectFromFile(METAROLE_REJECTION_FILE, initResult).getOid();
 
 		roleATest1Oid = addAndRecompute(ROLE_A_TEST_1, initTask, initResult);
 		roleATest2aOid = addAndRecompute(ROLE_A_TEST_2A, initTask, initResult);
@@ -981,7 +979,7 @@ public class TestStrings extends AbstractStoryTest {
 		assertNotAssignedRole(getUser(userBobOid), roleATest4Oid);
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
-		displayWorkItems("Work item after 1st approval", workItems);
+		displayWorkItems("Work item after start", workItems);
 		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
 		display("wfTask", wfTask);
 		
@@ -989,10 +987,10 @@ public class TestStrings extends AbstractStoryTest {
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
-		assertEquals("Wrong # of approval levels", 1, schema.getLevel().size());
-		assertApprovalLevel(schema, 1, "Role approvers (all)", "P5D", 2);
-		assertStage(wfTask, 1, 1, "Role approvers (all)", null);
-//		assertAssignee(workItem, userLechuckOid, userLechuckOid);
+		assertEquals("Wrong # of approval levels", 2, schema.getLevel().size());
+		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
+		assertApprovalLevel(schema, 2, "Role approvers (first)", "P5D", 2);
+		assertStage(wfTask, 1, 2, "Line managers", null);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -1001,20 +999,50 @@ public class TestStrings extends AbstractStoryTest {
 		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 
-//		assertEquals("Wrong # of work items lifecycle messages", 1, lifecycleMessages.size());
-//		assertMessage(lifecycleMessages.get(0), "lechuck@evolveum.com", "A new work item has been created",
-//				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
-//
-//		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
-//		assertMessage(allocationMessages.get(0), "lechuck@evolveum.com", "Work item has been allocated to you",
-//				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
-//
-//		assertEquals("Wrong # of process messages", 1, processMessages.size());
-//		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
-//				"Process instance name: Assigning a-test-1 to bob", "Stage: Line managers (1/3)");
+		display("audit", dummyAuditService);
+	}
+
+	@Test
+	public void test221FormApproveByLechuck() throws Exception {
+		final String TEST_NAME = "test221FormApproveByLechuck";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// GIVEN
+		login(userAdministrator);
+		WorkItemType workItem = getWorkItem(task, result);
+
+		// WHEN
+		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
+		login(lechuck);
+		workflowService.completeWorkItem(workItem.getWorkItemId(), true, "OK. LeChuck", null, result);
+
+		// THEN
+		login(userAdministrator);
+		List<WorkItemType> workItems = getWorkItems(task, result);
+		displayWorkItems("Work item after 1st approval", workItems);
+		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
+
+		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.asObjectable().getWorkflowContext());
+		assertEquals("Wrong evaluation strategy", LevelEvaluationStrategyType.FIRST_DECIDES, level.getEvaluationStrategy());
+
+		// notifications
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
+		display("processes notifications", processMessages);
+		dummyTransport.clearMessages();
 
 		display("audit", dummyAuditService);
 	}
+
 
 	@Test
 	public void test222FormApproveByCheese() throws Exception {
@@ -1044,13 +1072,13 @@ public class TestStrings extends AbstractStoryTest {
 		login(userAdministrator);
 
 		workItems = getWorkItems(task, result);
-		displayWorkItems("Work item after 1st approval", workItems);
-		assertEquals("Wrong # of work items after 1st approval", 2, workItems.size());
+		displayWorkItems("Work item after 2nd approval", workItems);
+		assertEquals("Wrong # of work items after 2nd approval", 0, workItems.size());
 
 		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
-		display("wfTask after 1st approval", wfTask);
+		display("wfTask after 2nd approval", wfTask);
 
-		assertStage(wfTask, 1, 1, "Role approvers (all)", null);
+		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
 		// assertTriggers(wfTask, 4);
 
 		// notifications
@@ -1061,39 +1089,10 @@ public class TestStrings extends AbstractStoryTest {
 		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 
-//		assertEquals("Wrong # of work items lifecycle messages", 3, lifecycleMessages.size());
-//		assertEquals("Wrong # of work items allocation messages", 3, allocationMessages.size());
-//		assertNull("process messages", processMessages);
-
-//		Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
-//		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
-//				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
-//				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
-//		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created",
-//				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
-//				"Allocated to: Elaine Marley (elaine)", "(in 7 days)", "^Result:");
-//		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "A new work item has been created",
-//				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
-//				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
-//
-//		Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
-//		assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
-//				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
-//				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
-//		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been allocated to you",
-//				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)", "Allocated to: Elaine Marley (elaine)",
-//				"(in 7 days)", "^Result:");
-//		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been allocated to you",
-//				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
-//				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
-
-		// events
-//		List<WfProcessEventType> events = assertEvents(wfTask, 1);
-//		assertCompletionEvent(events.get(0), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
-
+		// audit
 		display("audit", dummyAuditService);
 		List<AuditEventRecord> records = dummyAuditService.getRecords();
-		assertEquals("Wrong # of audit records", 1, records.size());
+		assertEquals("Wrong # of audit records", 4, records.size());
 		AuditEventRecord record = records.get(0);
 		Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = record.getDeltas();
 		assertEquals("Wrong # of deltas in audit record", 1, deltas.size());
@@ -1104,6 +1103,9 @@ public class TestStrings extends AbstractStoryTest {
 			fail("Wrong item path in delta: expected: "+new ItemPath(UserType.F_DESCRIPTION)+", found: "+itemDelta.getPath());
 		}
 		assertEquals("Wrong value in delta", "Hello", itemDelta.getValuesToReplace().iterator().next().getRealValue());
+
+		// record #1, #2: cancellation of work items of other approvers
+		// record #3: finishing process execution
 	}
 
 

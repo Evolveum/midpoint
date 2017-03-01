@@ -1,0 +1,232 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+					 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+					 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+	<!-- automated approvals -->
+
+	<globalPolicyRule>
+		<name>sod-approval</name>
+		<description>Approval action for (existing) exclusion violations</description>
+		<policyConstraints>
+			<situation>
+				<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+			</situation>
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<order>30</order>
+				</compositionStrategy>
+				<approvalSchema>
+					<level>
+						<name>SoD</name>
+						<approverRef type="OrgType">
+							<filter>
+								<q:equal>
+									<q:path>name</q:path>
+									<q:value>SoD Approvers</q:value>
+								</q:equal>
+							</filter>
+							<resolutionTime>run</resolutionTime>
+						</approverRef>
+						<evaluationStrategy>firstDecides</evaluationStrategy>
+					</level>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>		<!-- no need to filter on roleType, as each role has to have SoD defined -->
+		</targetSelector>
+	</globalPolicyRule>
+
+	<globalPolicyRule>
+		<name>role-approvers-all-approval</name>
+		<description>Approval of role assignment by all the role approvers</description>
+		<policyConstraints>
+			<assignment/>
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<order>40</order>
+					<mergeable>true</mergeable>
+					<mergePriority>1</mergePriority>
+				</compositionStrategy>
+				<approvalSchema>
+					<level>
+						<name>Role approvers (all)</name>
+						<approverRelation>approver</approverRelation>
+						<evaluationStrategy>allMustApprove</evaluationStrategy>
+						<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+					</level>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+			<filter>
+				<q:equal>
+					<q:path>roleType</q:path>
+					<q:value>test</q:value>
+				</q:equal>
+			</filter>
+		</targetSelector>
+	</globalPolicyRule>
+
+	<globalPolicyRule>
+		<name>line-manager-approval</name>
+		<description>Approval of role assignment by the line manager(s)</description>
+		<policyConstraints>
+			<assignment/>
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<order>10</order>
+					<exclusive>true</exclusive>
+				</compositionStrategy>
+				<approvalSchema>
+					<level>
+						<name>Line managers</name>
+						<approverExpression>
+							<script>
+								<code>midpoint.getManagersOidsExceptUser(object)</code>
+							</script>
+						</approverExpression>
+						<evaluationStrategy>allMustApprove</evaluationStrategy>
+						<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+					</level>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+			<filter>
+				<q:equal>
+					<q:path>roleType</q:path>
+					<q:value>test</q:value>
+				</q:equal>
+			</filter>
+		</targetSelector>
+	</globalPolicyRule>
+
+	<!-- escalation and auto-rejection strategies -->
+
+	<globalPolicyRule>
+		<name>escalate-then-reject-for-levels-20-30</name>
+		<description>Automatic escalation followed by rejection for levels 10 and 40 (LM, role approvers)</description>
+		<policyConstraints>
+			<assignment/>		<!-- TODO is this really necessary? -->
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<mergeIntoOrder>10</mergeIntoOrder>
+					<mergeIntoOrder>40</mergeIntoOrder>
+				</compositionStrategy>
+				<approvalSchema>
+					<level>
+						<duration>P5D</duration>
+						<timedActions>
+							<actions>
+								<escalate>
+									<approverExpression>
+										<script>
+											<code>
+												midpoint.getManagersOidsExceptUser(workItem.assigneeRef)
+											</code>
+										</script>
+									</approverExpression>
+									<duration>P9D</duration>	<!-- using value different from original duration, just to test -->
+									<delegationMethod>addAssignees</delegationMethod>
+									<notifyBeforeAction>P1D</notifyBeforeAction>
+									<escalationLevelName>Line manager escalation</escalationLevelName>
+								</escalate>
+							</actions>
+						</timedActions>
+						<timedActions>
+							<!-- no time set - executes at deadline -->
+							<actions>
+								<complete>
+									<outcome>reject</outcome>
+									<notifyBeforeAction>P2D</notifyBeforeAction>
+									<notifyBeforeAction>P2DT12H</notifyBeforeAction>
+								</complete>
+							</actions>
+							<escalationLevelFrom>1</escalationLevelFrom>
+							<escalationLevelTo>1</escalationLevelTo>
+						</timedActions>
+					</level>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+		</targetSelector>
+	</globalPolicyRule>
+
+	<globalPolicyRule>
+		<name>auto-reject-for-levels-20-30</name>
+		<description>Automatic rejection for levels 20 and 30 (security, SoD)</description>
+		<policyConstraints>
+			<assignment/>		<!-- TODO is this really necessary? -->
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<mergeIntoOrder>20</mergeIntoOrder>
+					<mergeIntoOrder>30</mergeIntoOrder>
+				</compositionStrategy>
+				<approvalSchema>
+					<level>
+						<duration>P7D</duration>
+						<timedActions>
+							<!-- no time set - executes at deadline -->
+							<actions>
+								<complete>
+									<outcome>reject</outcome>
+									<notifyBeforeAction>P2D</notifyBeforeAction>
+								</complete>
+							</actions>
+						</timedActions>
+					</level>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+		</targetSelector>
+	</globalPolicyRule>
+
+</systemConfiguration>
