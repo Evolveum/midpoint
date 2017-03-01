@@ -37,8 +37,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-@Consumes("*/*")
-@Produces("*/*")
+
 public class TestYamlProvider<T> extends MidpointYamlProvider<T> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestYamlProvider.class);

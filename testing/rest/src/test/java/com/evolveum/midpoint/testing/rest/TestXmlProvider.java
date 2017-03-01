@@ -34,8 +34,6 @@ import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider;
 import com.evolveum.midpoint.prism.PrismObject;
 
-@Consumes("*/*")
-@Produces("*/*")
 public class TestXmlProvider<T> extends MidpointXmlProvider<T> {
 	
 	
