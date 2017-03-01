@@ -396,7 +396,9 @@ public class FocusProcessor {
 		triggerAssignmentFocusPolicyRules(context, activityDescription, now, task, result);
 		triggerGlobalRules(context);
 	}
-	
+
+	// TODO: should we really do this? Focus policy rules (e.g. forbidden modifications) are irrelevant in this situation,
+	// TODO: i.e. if we are assigning the object into some other object [med]
 	private <F extends FocusType> void triggerAssignmentFocusPolicyRules(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
