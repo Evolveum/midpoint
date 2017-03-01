@@ -59,7 +59,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	private final ChangeProcessor changeProcessor;
 
-    private final WfContextType wfContext = new WfContextType();    // workflow context to be put into the task
+    protected final WfContextType wfContext = new WfContextType();    // workflow context to be put into the task
 	private ModelContext taskModelContext;   						// model context to be put into the task
 
 	private final Date processCreationTimestamp = new Date();

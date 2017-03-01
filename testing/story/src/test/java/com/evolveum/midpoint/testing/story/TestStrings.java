@@ -351,8 +351,8 @@ public class TestStrings extends AbstractStoryTest {
 				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
 		// events
-		List<WfProcessEventType> events = assertEvents(wfTask, 1);
-		assertCompletionEvent(events.get(0), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
+		List<WfProcessEventType> events = assertEvents(wfTask, 2);
+		assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
 
 		display("audit", dummyAuditService);
 	}
@@ -687,8 +687,8 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong escalation level #", (Integer) 1, workItem.getEscalationLevelNumber());
 		assertEquals("Wrong escalation level name", "Line manager escalation", workItem.getEscalationLevelName());
 
-		List<WfProcessEventType> events = assertEvents(wfTask, 1);
-		assertEscalationEvent(events.get(0), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
+		List<WfProcessEventType> events = assertEvents(wfTask, 2);
+		assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
 				Collections.singletonList(userGuybrushOid), Collections.singletonList(userCheeseOid), WorkItemDelegationMethodType.ADD_ASSIGNEES,
 				1, "Line manager escalation");
 

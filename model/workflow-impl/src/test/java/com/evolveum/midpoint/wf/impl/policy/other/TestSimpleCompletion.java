@@ -16,8 +16,12 @@
 
 package com.evolveum.midpoint.wf.impl.policy.other;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
@@ -28,6 +32,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -59,7 +64,14 @@ public class TestSimpleCompletion extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		// GIVEN
-		assignRole(userJackOid, roleRole1aOid, task, result);				// should start approval process
+
+		OperationBusinessContextType businessContext = new OperationBusinessContextType();
+		businessContext.setComment("req.comment");
+
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userJackOid, roleRole1aOid, RoleType.COMPLEX_TYPE, null, null, null, true);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContext), task, result);
+
 		assertNotAssignedRole(userJackOid, roleRole1aOid, task, result);
 
 		WorkItemType workItem = getWorkItem(task, result);
@@ -72,12 +84,17 @@ public class TestSimpleCompletion extends AbstractWfTestPolicy {
 		TaskType wfTask = getTask(workItem.getTaskRef().getOid()).asObjectable();
 		display("workflow context", wfTask.getWorkflowContext());
 		List<WfProcessEventType> events = wfTask.getWorkflowContext().getEvent();
-		assertEquals("Wrong # of events", 1, events.size());
-		WorkItemEventType event = (WorkItemEventType) events.get(0);
-		display("Event", event);
+		assertEquals("Wrong # of events", 2, events.size());
 
-		assertNotNull("Original assignee is null", event.getOriginalAssigneeRef());
-		assertEquals("Wrong original assignee OID", userLead1Oid, event.getOriginalAssigneeRef().getOid());
+		WfProcessCreationEventType event1 = (WfProcessCreationEventType) events.get(0);
+		display("Event 1", event1);
+		assertEquals("Wrong requester comment", "req.comment", WfContextUtil.getBusinessContext(wfTask.getWorkflowContext()).getComment());
+
+		WorkItemEventType event2 = (WorkItemEventType) events.get(1);
+		display("Event 2", event2);
+
+		assertNotNull("Original assignee is null", event2.getOriginalAssigneeRef());
+		assertEquals("Wrong original assignee OID", userLead1Oid, event2.getOriginalAssigneeRef().getOid());
 	}
 
 }
