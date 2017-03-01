@@ -44,7 +44,7 @@
     </test>
     <test name="Policy (explicit, global)" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <!-- global policy for assignments is not implemented yet -->
+            <class name="com.evolveum.midpoint.wf.impl.policy.assignments.global.TestAssignmentApprovalGlobal"/>
             <class name="com.evolveum.midpoint.wf.impl.policy.lifecycle.global.TestLifecycleGlobal"/>
         </classes>
     </test>
