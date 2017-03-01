@@ -1,0 +1,7 @@
+<query xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+    <paging>
+        <orderBy>name</orderBy>
+        <offset>0</offset>
+        <maxSize>5</maxSize>
+    </paging>
+</query>
