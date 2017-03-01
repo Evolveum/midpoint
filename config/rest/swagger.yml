@@ -224,7 +224,7 @@ paths:
     post:
       summary: "Validate value according to value policy"
       description: "Validate value of some attribute according to value policy. Value policy is chosen according to the object identification provided in the path {type}, {oid}."
-      operationId: "getValuePolicyForUser"
+      operationId: "validateValue"
       consumes:
       - "application/json"
       - "application/xml"
@@ -252,6 +252,62 @@ paths:
           description: "Successful operation"
           schema:
             description: "TODO"
+            type: "object"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /users/{id}/policy:
+    get:
+      summary: "Get value policy specific for user"
+      description: "Get value policy specific for users. There might exist more value policies, e.g. different value policies for different tenants/organization units etc. "
+      operationId: "getValuePolicyForUser"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+        description: "oid of the user for which the value policy is returned"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            description: "see CredentialsPolicyType"
             type: "object"
         404:
           description: "Requested object was not found."
