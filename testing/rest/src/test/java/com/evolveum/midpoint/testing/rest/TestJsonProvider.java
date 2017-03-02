@@ -35,8 +35,6 @@ import com.evolveum.midpoint.model.impl.rest.MidpointJsonProvider;
 import com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider;
 import com.evolveum.midpoint.prism.PrismObject;
 
-@Consumes("*/*")
-@Produces("*/*")
 public class TestJsonProvider<T> extends MidpointJsonProvider<T> {
 	
 	

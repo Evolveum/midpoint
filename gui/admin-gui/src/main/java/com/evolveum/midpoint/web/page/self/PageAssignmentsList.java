@@ -11,7 +11,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -32,9 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -60,7 +58,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
     private PrismObject<UserType> user;
     private OperationResult backgroundTaskOperationResult = null;
-    IModel<String> descriptionModel = new Model<String>("");
+    IModel<String> descriptionModel;
 
     public PageAssignmentsList() {
         this(false);
@@ -68,15 +66,16 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     public PageAssignmentsList(boolean setConflictsToSession){
         user = loadUser();
-        initAssignmentsModel();
+        initModels();
         if (setConflictsToSession) {
             getSessionStorage().getRoleCatalog().setConflictsList(getAssignmentConflicts());
         }
         initLayout();
     }
 
-    private void initAssignmentsModel() {
+    private void initModels() {
         assignmentsModel = Model.ofList(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart());
+        descriptionModel = Model.of(getSessionStorage().getRoleCatalog().getRequestDescription());
     }
 
     public void initLayout() {
@@ -107,7 +106,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         };
         mainForm.add(panel);
 
-        mainForm.add(new TextArea<String>(ID_DESCRIPTION, descriptionModel));
+        TextArea descriptionInput = new TextArea<String>(ID_DESCRIPTION, descriptionModel);
+        descriptionInput.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                getSessionStorage().getRoleCatalog().setRequestDescription(getDescriptionComponent().getValue());
+            }
+        });
+        mainForm.add(descriptionInput);
 
         AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageAssignmentDetails.backButton")) {
 
@@ -156,6 +163,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
 
         };
+        resolveAssignments.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return getSessionStorage().getRoleCatalog().getConflictsList() != null &&
+                        getSessionStorage().getRoleCatalog().getConflictsList().size() > 0;
+            }
+        });
         mainForm.add(resolveAssignments);
 
     }
@@ -170,10 +184,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
             handleAssignmentDeltas(delta, addAssignmentsToUser(), def);
 
-            OperationBusinessContextType businessContextType = new OperationBusinessContextType();
-            businessContextType.setComment(descriptionModel.getObject() != null ?
-                    descriptionModel.getObject() : "");
-
+            OperationBusinessContextType businessContextType;
+            if (descriptionModel.getObject() != null) {
+				businessContextType = new OperationBusinessContextType();
+				businessContextType.setComment(descriptionModel.getObject());
+			} else {
+            	businessContextType = null;
+			}
             getModelService().executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContextType),
                     createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
 
@@ -401,5 +418,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private Component getRequestButton(){
         return get(ID_FORM).get(ID_REQUEST_BUTTON);
+    }
+
+    private TextArea getDescriptionComponent(){
+        return (TextArea) get(ID_FORM).get(ID_DESCRIPTION);
     }
 }

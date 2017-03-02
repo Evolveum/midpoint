@@ -1,0 +1,1232 @@
+---
+swagger: "2.0"
+info:
+  description: "The Application"
+  version: "3.6-SNAPSHOT"
+  title: "MidPoint REST API"
+  contact:
+    name: "support@evolveum.com"
+  license:
+    name: "Apache 2.0 License"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+basePath: "/midpoint/ws/rest"
+securityDefinitions:
+  m_basic: 
+    type: "basic"
+security:
+- m_basic: []
+paths:
+  /rpc/executeScript:
+    post:
+      summary: "Bulk-like operations"
+      description: "Bulk-like operations. Body represents search filter and action description which will be executed. It can be run in both, synchronous and asynchronous way. While running in asynchronous way, new task is created."
+      operationId: "executeScript"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      consumes:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      security:
+      - m_basic: []
+      parameters:
+      - name: "asynchronous"
+        in: "query"
+        required: false
+        type: "boolean"
+        default: false
+        description: "specify if the operation will run asynchronous. When set to true, new task is created."
+      - in: "body"
+        name: "body"
+        required: true
+        description: "search filter and action definition see"
+        schema:
+          type: "object"
+          description: "see ScriptingExpressionType"
+      responses:
+        200:
+          description: "If run sucessfully with asynchronous=false"
+          schema:
+            type: "object"
+        201:
+          description: "If started sucessfully with asynchronous=true."
+          headers: 
+            Location: 
+              description: "Location for the newly created task"
+              type: "string"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /executeScriptResults/{oid}:
+    get:
+      summary: "Results for execute script operation"
+      description: "Return results for execute script operation. When /rpc/executeScript operation is called in asynchronous mode, new task is created and the oid of this task is returned to the user. Using returned oid from /rpc/executeScript operation as a parameter for /rpc/executeScriptResults operation shown an actual result of running/closed script execution"
+      operationId: "executeScriptResults"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      security:
+      - m_basic: []
+      parameters:
+      - name: "oid"
+        in: "path"
+        required: true
+        description: "Oid of the task created for bulk action"
+        type: "string"
+      responses:
+        200:
+          description: "If run sucessfully with asynchronous=false"
+          schema:
+            description: "See ScriptExecutionResultType"
+            type: "object"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /{type}/{id}/generate:
+    post:
+      summary: "Generate value according to value policy"
+      description: "Generate new value for item specified in the request according to the value policy related to the object of {type} type identifier with {oid}"
+      operationId: "generateValue"
+      consumes:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        description: "type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        type: "string"
+      - name: "id"
+        in: "path"
+        required: true
+        description: "oid of the object for which the value will be generated"
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          type: "object"
+        description: "path to the property which will be generated"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            description: "TODO"
+            type: "object"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /{type}/{id}/validate:
+    post:
+      summary: "Validate value according to value policy"
+      description: "Validate value of some attribute according to value policy. Value policy is chosen according to the object identification provided in the path {type}, {oid}."
+      operationId: "validateValue"
+      consumes:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        description: "type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        type: "string"
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+        description: "oid of the object for which the value will be generated"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          type: "object"
+          description: "TODO"
+        description: "path to the property which will be generated"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            description: "TODO"
+            type: "object"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /users/{id}/policy:
+    get:
+      summary: "Get value policy specific for user"
+      description: "Get value policy specific for users. There might exist more value policies, e.g. different value policies for different tenants/organization units etc. "
+      operationId: "getValuePolicyForUser"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+        description: "oid of the user for which the value policy is returned"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            description: "see CredentialsPolicyType"
+            type: "object"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /{type}:
+    post:
+      summary: "Add"
+      description: "Create a new object of a specified {type}, body represents object to be created in XML, JSON or YAML format"
+      operationId: "addObject"
+      consumes:
+      - "application/xml"
+      - "application/json"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        description: "type of the object to be created. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          type: "object"
+          description: "Any subtype of ObjectType, e.g. UserType, RoleType, OrgType,..."
+      - name: "options"
+        in: "query"
+        required: false
+        description: "Additional options for operation, see ModelExecuteOptionsType"
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      responses:
+        201:
+          description: "Object successfully created"
+          headers:
+            Location: 
+              description: "Oid of the newly created object"
+              type: "string"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /{type}/{oid}:
+    put:
+      summary: "Create or update"
+      description: "Create or update an object of a specified {type} identified with {id}, body represents object to be created or updated in XML, JSON or YAML format. If the object already exists option overwrite is automatically set to true"
+      operationId: "addOrUpdateObject"
+      consumes:
+      - "application/xml"
+      - "application/json"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        type: "string"
+        description: "type of the object to be created or updated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+      - name: "oid"
+        in: "path"
+        required: true
+        type: "string"
+        description: "Oid of the object, either existing or new one. If the object already exists it will be overwritten. If the object doesn't exist, it will be created with given oid"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          type: "object"
+          description: "Any subtype of ObjectType, e.g. UserType, RoleType, OrgType,..."
+      - name: "options"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      responses:
+        201:
+          description: "Object successfully created"
+          headers:
+            Location: 
+              description: "Oid of the newly created object"
+              type: "string"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+    get:
+      summary: "Get operation"
+      description: "Get object with {id} of a specified {type}"
+      operationId: "getObject"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        description: "type of the object to get. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        type: "string"
+      - name: "oid"
+        in: "path"
+        required: true
+        description: "Oid of the object to get"
+        type: "string"
+      - name: "options"
+        in: "query"
+        required: true
+        type: "array"
+        description: "Additional options for operation, see ModelExecuteOptionsType"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      - name: "include"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      - name: "exclude"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      responses:
+        200:
+          description: "Object returned successfully"
+          schema:
+            type: "object"
+            description: "Any subtype of ObjectType"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+    delete:
+      summary: "Delete operation"
+      description: "Delete an object with {id} of a specified {type}"
+      operationId: "deleteObject"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        description: "type of the object to delete. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        type: "string"
+      - name: "oid"
+        in: "path"
+        required: true
+        description: "Oid of the object to delete"
+        type: "string"
+      - name: "options"
+        in: "query"
+        required: false
+        description: "Additional options for operation, see ModelExecuteOptionsType"
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      - name: "include"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      - name: "exclude"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      responses:
+        200:
+          description: "Object deleted successfully"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+          
+    post:
+      summary: "Modify operation"
+      description: "Modify an object with {id} of a specified {type}"
+      operationId: "modifyObjectPost"
+      consumes:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        description: "type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        type: "string"
+      - name: "oid"
+        in: "path"
+        required: true
+        description: "Oid of the object to modify"
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          type: "object"
+          description: "Object modification description, see ObjectModificationType"
+      - name: "options"
+        in: "query"
+        required: false
+        description: "Additional options for operation, see ModelExecuteOptionsType"
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      responses:
+        204:
+          description: "Object modified successfully"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+    patch:
+      summary: "Modify operation"
+      description: "Modify an object with {id} of a specified {type}"
+      operationId: "modifyObjectPatch"
+      consumes:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        description: "type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        type: "string"
+      - name: "oid"
+        in: "path"
+        required: true
+        description: "Oid of the object to modify"
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          type: "object"
+          description: "Object modification description, see ObjectModificationType"
+      - name: "options"
+        in: "query"
+        required: false
+        description: "Additional options for operation, see ModelExecuteOptionsType"
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      responses:
+        204:
+          description: "Object modified successfully"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /notifyChange:
+    post:
+      summary: "Notify"
+      description: "Synchronization-like operation."
+      operationId: "notifyChange"
+      consumes:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - in: "body" 
+        name: "body"
+        required: true
+        schema:
+          type: "object"
+          description: "see ResourceObjectShadowChangeDescriptionType"
+      responses:
+        200:
+          description: "Operation run successfully"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /shadows/{oid}/owner:
+    get:
+      summary: "Get shadow owner"
+      description: "Get the (focus) owner of a shadow identifier by {oid}"
+      operationId: "searchShadowOwner"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "oid"
+        in: "path"
+        required: true
+        description: "Oid of the shadow for which the owner will be searched"
+        type: "string"
+      responses:
+        200:
+          description: "Shadow owner found successfully"
+          schema:
+            type: "object"
+            description: "Any subtype of FocusType (UserType, RoleType, ServiceType, OrgType)"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /{type}/search:
+    post:
+      summary: "Search objects"
+      description: "Search object according to provided query in the body of a specified {type}"
+      operationId: "searchObjects"
+      consumes:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "type"
+        in: "path"
+        required: true
+        description: "type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          description: "Search filter, see QueryType"
+        required: true
+      - name: "options"
+        in: "query"
+        required: false
+        type: "array"
+        description: "Additional options for operation, see ModelExecuteOptionsType"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      - name: "include"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      - name: "exclude"
+        in: "query"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      responses:
+        200:
+          description: "Objects found successfully"
+          schema:
+            type: "object"
+            description: "List of the found objects, see ObjectListType"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /resources/{resourceOid}/import/{objectClass}:
+    post:
+      summary: "Import from resource"
+      description: "Import object of {objectClass} from the resource identified by {resourceOid}"
+      operationId: "importFromResource"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "resourceOid"
+        in: "path"
+        required: true
+        description: "Resource from which the objects are imported"
+        type: "string"
+      - name: "objectClass"
+        in: "path"
+        required: true
+        description: "Object class of the object being imported"
+        type: "string"
+      responses:
+        303:
+          description: "Import task was created succesfully"
+          headers:
+            Location: 
+              description: "Oid of the created task"
+              type: "string"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        406:
+          description: "Bad request, e.g. bad object in the request, missing mandatory fields, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        409:
+          description: "The same object already exists"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /resources/{resourceOid}/test:
+    post:
+      summary: "Test"
+      description: "Test connection and configuration for resource identifed by {resourceOid}"
+      operationId: "testResource"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "resourceOid"
+        in: "path"
+        required: true
+        description: "Oid of the resource to test"
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "object"
+            description: "See OperationResultType"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        503: 
+          description: "Communication problem while provisioning"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+  /tasks/{oid}/suspend:
+    post:
+      summary: "Suspend task"
+      description: "Suspend task identified by {oid}"
+      operationId: "suspendTasks"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "oid"
+        in: "path"
+        description: "Oid of the task to suspend"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Task suspended successfully"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType"  
+  /tasks/{oid}/resume:
+    post:
+      summary: "Resume task"
+      description: "Resume task identified by {oid}"
+      operationId: "resumeTasks"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "oid"
+        in: "path"
+        required: true
+        description: "Oid of the task to be resumed"
+        type: "string"
+      responses:
+        200:
+          description: "Task resumed successfully"
+          schema:
+            type: "string"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType" 
+  /tasks/{oid}/run:
+    post:
+      summary: "Run task now"
+      description: "Run now task identified by {oid}"
+      operationId: "scheduleTasksNow"
+      produces:
+      - "application/json"
+      - "application/xml"
+      - "application/yaml"
+      parameters:
+      - name: "oid"
+        in: "path"
+        description: "Oid of the task to run"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Task run successfully"
+          schema:
+            type: "string"
+        404:
+          description: "Requested object was not found."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        403:
+          description: "Any of the security violations, e.g. insufficient access rights, ..."
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        502:
+          description: "Configuration problems"
+          schema:
+            type: "object"
+            description: "see OperationResultType"
+        500:
+          description: "Any unknown error, mostly runtuime/unchecked exceptions"
+          schema:
+            type: "object"
+            description: "see OperationResultType" 

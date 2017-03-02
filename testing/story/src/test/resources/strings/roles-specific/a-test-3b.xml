@@ -20,17 +20,8 @@
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 	<name>a-test-3b</name>
 	<c:description>Testing SoD with induced role (test-3y)</c:description>
-	<c:assignment id="100">
-		<c:targetRef type="c:RoleType">
-			<filter>
-				<q:equal>
-					<q:path>name</q:path>
-					<q:value>metarole-approval-sod</q:value>
-				</q:equal>
-			</filter>
-		</c:targetRef>
-	</c:assignment>
 	<inducement>
 		<targetRef oid="1e422483-997c-4808-bebd-0151d18a391e" type="RoleType" />		<!-- 3y -->
 	</inducement>
+	<roleType>test</roleType>
 </role>

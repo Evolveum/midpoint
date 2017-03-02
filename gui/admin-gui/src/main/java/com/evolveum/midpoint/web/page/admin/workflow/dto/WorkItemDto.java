@@ -94,6 +94,8 @@ public class WorkItemDto extends Selectable {
 	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
 	public static final String F_CHANGES = "changes";
 
+	public static final String F_REQUESTER_COMMENT = "requesterComment";
+
 	// workItem may or may not contain resolved taskRef;
     // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
     //
@@ -232,11 +234,7 @@ public class WorkItemDto extends Selectable {
 
     public WfContextType getWorkflowContext() {
         TaskType task = getTaskType();
-        if (task == null || task.getWorkflowContext() == null) {
-            return null;
-        } else {
-            return task.getWorkflowContext();
-        }
+        return task != null ? task.getWorkflowContext() : null;
     }
 
     public String getRequesterName() {
@@ -400,5 +398,10 @@ public class WorkItemDto extends Selectable {
 			}
 		}
 		return focus;
+	}
+
+	public String getRequesterComment() {
+		OperationBusinessContextType businessContext = WfContextUtil.getBusinessContext(getWorkflowContext());
+		return businessContext != null ? businessContext.getComment() : null;
 	}
 }

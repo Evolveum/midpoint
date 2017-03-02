@@ -20,16 +20,6 @@
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 	<name>a-test-3y</name>
 	<c:description>Embedded role, conflicting with 3x</c:description>
-	<c:assignment id="3">
-		<c:targetRef type="c:RoleType">
-			<filter>
-				<q:equal>
-					<q:path>name</q:path>
-					<q:value>metarole-approval-sod</q:value>
-				</q:equal>
-			</filter>
-		</c:targetRef>
-	</c:assignment>
 	<assignment>
 		<policyRule>
 			<policyConstraints>

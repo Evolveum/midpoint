@@ -53,7 +53,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private PrismObject<UserType> targetUser = null;
     private PrismObject<UserType> assignmentsUserOwner = null;
     private List<AssignmentConflictDto> conflictsList;
-
+    private String requestDescription = "";
     private ObjectPaging roleCatalogPaging;
 
     public Search getSearch() {
@@ -72,6 +72,14 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     @Override
     public void setPaging(ObjectPaging roleCatalogPaging) {
         this.roleCatalogPaging = roleCatalogPaging;
+    }
+
+    public String getRequestDescription() {
+        return requestDescription;
+    }
+
+    public void setRequestDescription(String requestDescription) {
+        this.requestDescription = requestDescription;
     }
 
     @Override

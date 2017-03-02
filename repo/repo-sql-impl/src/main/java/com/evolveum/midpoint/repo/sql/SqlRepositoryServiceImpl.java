@@ -932,7 +932,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		
 		// Type
 		if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
-			logger.trace("{} type mismatch, expected {}, was {}", specTypeQName, objectDefinition.getTypeName());
+			logger.trace("{} type mismatch, expected {}, was {}", logMessagePrefix, specTypeQName, objectDefinition.getTypeName());
 			return false;
 		}
 		

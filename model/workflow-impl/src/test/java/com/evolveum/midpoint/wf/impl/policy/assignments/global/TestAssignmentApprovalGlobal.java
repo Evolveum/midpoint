@@ -18,10 +18,13 @@ package com.evolveum.midpoint.wf.impl.policy.assignments.global;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -66,24 +69,56 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
 		/*
 			<globalPolicyRule>
 				<policyConstraints>
-					<assignment/>
+					<assignment>
+						<operation>add</operation>
+					</assignment>
 				</policyConstraints>
 				<policyActions>
 					<approval>
 						<approverRelation>approver</approverRelation>
 					</approval>
 				</policyActions>
+				<focusSelector>
+					<type>UserType</type>
+				</focusSelector>
+				<targetSelector>
+					<type>RoleType</type>
+					<!-- ...and not Role4 -->
+				</targetSelector>
 			</globalPolicyRule>
 		 */
 
+		/*
+		 * Role4 has no approvers. By default, no workflow process(es) are created for roles that have no approvers.
+		 * But if we would include Role4 in the global policy rule, a workflow process would be created (even if it
+		 * would be automatically approved/rejected, based on setting). But the tests expect there's no process for this role.
+		 * So we have to exclude it from the global policy rule.
+		 */
+
+
 		GlobalPolicyRuleType rule = new GlobalPolicyRuleType(prismContext);
 		PolicyConstraintsType constraints = new PolicyConstraintsType(prismContext);
-		constraints.getAssignment().add(new AssignmentPolicyConstraintType(prismContext));
+		AssignmentPolicyConstraintType assignmentConstraint = new AssignmentPolicyConstraintType(prismContext);
+		assignmentConstraint.getOperation().add(ModificationTypeType.ADD);
+		constraints.getAssignment().add(assignmentConstraint);
 		rule.setPolicyConstraints(constraints);
 		PolicyActionsType actions = new PolicyActionsType(prismContext);
 		ApprovalPolicyActionType approvalAction = new ApprovalPolicyActionType(prismContext);
-		approvalAction.getApproverRelation().add(new QName("approverXX"));		// intentionally wrong (tests should fail with this setting)
+		approvalAction.getApproverRelation().add(new QName("approver"));
 		actions.setApproval(approvalAction);
+		ObjectSelectorType users = new ObjectSelectorType(prismContext);
+		users.setType(UserType.COMPLEX_TYPE);
+		rule.setFocusSelector(users);
+		ObjectSelectorType roles = new ObjectSelectorType(prismContext);
+		roles.setType(RoleType.COMPLEX_TYPE);
+		roles.setFilter(
+				QueryConvertor.createSearchFilterType(
+						QueryBuilder.queryFor(RoleType.class, prismContext)
+								.not().item(RoleType.F_NAME).eqPoly("Role4")
+								.buildFilter(),
+						prismContext)
+		);
+		rule.setTargetSelector(roles);
 		rule.setPolicyActions(actions);
 
 		List<ItemDelta<?, ?>> deltas =

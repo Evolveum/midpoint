@@ -20,36 +20,6 @@
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 	<name>a-test-2b</name>
 	<c:description>Approved by managers and role approvers (first) - exclusive with test-2a</c:description>
-	<c:assignment id="1">
-		<c:targetRef type="c:RoleType">
-			<filter>
-				<q:equal>
-					<q:path>name</q:path>
-					<q:value>metarole-approval-line-managers</q:value>
-				</q:equal>
-			</filter>
-		</c:targetRef>
-	</c:assignment>
-	<c:assignment id="2">
-		<c:targetRef type="c:RoleType">
-			<filter>
-				<q:equal>
-					<q:path>name</q:path>
-					<q:value>metarole-approval-role-approvers-all</q:value>
-				</q:equal>
-			</filter>
-		</c:targetRef>
-	</c:assignment>
-	<c:assignment id="3">
-		<c:targetRef type="c:RoleType">
-			<filter>
-				<q:equal>
-					<q:path>name</q:path>
-					<q:value>metarole-approval-sod</q:value>
-				</q:equal>
-			</filter>
-		</c:targetRef>
-	</c:assignment>
 	<assignment>
 		<policyRule>
 			<policyConstraints>
@@ -64,5 +34,5 @@
 	<assignment id="20">
 		<targetRef oid="b77c512a-85b9-470e-a7ab-a55b8f187674" type="OrgType" />
 	</assignment>
-	
+	<roleType>test</roleType>
 </role>

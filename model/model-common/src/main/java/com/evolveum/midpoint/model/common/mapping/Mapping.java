@@ -386,9 +386,9 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				recomputeValues();
 				setOrigin();
 				// TODO: output filter
-			}
 
-			checkRange(task, result);
+				checkRange(task, result);
+			}
 
 			result.recordSuccess();
 			traceSuccess(conditionResultOld, conditionResultNew);
@@ -424,18 +424,22 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			if (!setDef.contains(originalValue)) {
 				continue;
 			}
-			if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
-				continue;
-			}
-			// remove it!
-			if (outputTriple == null) {
-				outputTriple = new PrismValueDeltaSetTriple<>();
-			}
-			LOGGER.trace("Original value is not in the mapping range, adding it to minus set: {}", originalValue);
-			outputTriple.addToMinusSet(originalValue);
+			addToMinusIfNecessary(originalValue);
 		}
 	}
-	
+
+	private void addToMinusIfNecessary(V originalValue) {
+		if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
+			return;
+		}
+		// remove it!
+		if (outputTriple == null) {
+			outputTriple = new PrismValueDeltaSetTriple<>();
+		}
+		LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
+		outputTriple.addToMinusSet(originalValue);
+	}
+
 	private void checkRangeLegacy(Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (originalTargetValues == null) {
@@ -445,15 +449,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			if (!isInRange(originalValue, task, result)) {
 				continue;
 			}
-			if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
-				continue;
-			}
-			// remove it!
-			if (outputTriple == null) {
-				outputTriple = new PrismValueDeltaSetTriple<>();
-			}
-			LOGGER.trace("Original value is not in the mapping range, adding it to minus set: {}", originalValue);
-			outputTriple.addToMinusSet(originalValue);
+			addToMinusIfNecessary(originalValue);
 		}
 	}
 

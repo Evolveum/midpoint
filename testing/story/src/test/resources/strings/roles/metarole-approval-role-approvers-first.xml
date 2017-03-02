@@ -26,8 +26,12 @@
 			<policyActions>
 				<approval>
 					<compositionStrategy>
+						<!-- mergeIntoOrder (40) would be OK as well, but mergeable is better because we are sure the approval level
+						will be there, even if the base one would not exist. But beware when modifying these two levels (all, first),
+						keep in mind that for the "first" case, they are really merged. -->
 						<order>40</order>
-						<exclusive>true</exclusive>
+						<mergeable>true</mergeable>
+						<mergePriority>2</mergePriority>
 					</compositionStrategy>
 					<approvalSchema>
 						<level>

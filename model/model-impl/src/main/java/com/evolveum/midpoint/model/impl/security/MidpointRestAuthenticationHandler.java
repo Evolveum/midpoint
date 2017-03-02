@@ -79,14 +79,14 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         AuthorizationPolicy policy = (AuthorizationPolicy)m.get(AuthorizationPolicy.class);
         
         if (policy == null){
-        	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
+        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic").build());
         	return;
         }
         
         String enteredUsername = policy.getUserName();
         
         if (enteredUsername == null){
-        	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic").build());
+        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic").build());
         	return;
         }
         
@@ -104,12 +104,12 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         	token = authenticationEvaluator.authenticateUserPassword(connEnv, enteredUsername, enteredPassword);
         } catch (UsernameNotFoundException | BadCredentialsException e) {
         	LOGGER.trace("Exception while authenticating username '{}' to REST service: {}", enteredUsername, e.getMessage(), e);
-        	requestCtx.abortWith(Response.status(401).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());
+        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());
 			return;
         } catch (DisabledException | LockedException | CredentialsExpiredException | AccessDeniedException
         		| AuthenticationCredentialsNotFoundException | AuthenticationServiceException e) {
         	LOGGER.trace("Exception while authenticating username '{}' to REST service: {}", enteredUsername, e.getMessage(), e);
-        	requestCtx.abortWith(Response.status(403).build());
+        	requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());
 			return;
         }
         
@@ -128,7 +128,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_REST_ALL_URL, null, null, null, null, null, authorizeResult);
 		} catch (SecurityViolationException e){
 			securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");
-			requestCtx.abortWith(Response.status(403).build());
+			requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());
 			return;
 		} catch (SchemaException e) {
 			securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Schema error: "+e.getMessage());

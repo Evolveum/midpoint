@@ -187,7 +187,7 @@ public class ModelRestService {
 			builder.entity(policy);
 			response = builder.build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -239,7 +239,7 @@ public class ModelRestService {
 			builder.entity(object);
 			response = builder.build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -262,8 +262,9 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			finishRequest(task);
-			return RestServiceUtil.createErrorResponseBuilder(Status.BAD_REQUEST, "Request to add object of type "
-					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type).build();
+			parentResult.recordFatalError("Request to add object of type "
+					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
+			return RestServiceUtil.createErrorResponseBuilder(Status.BAD_REQUEST, parentResult).build();
 		}
 
 
@@ -289,7 +290,7 @@ public class ModelRestService {
 			//validateIfRequested(object, options, builder, task, parentResult);
 			response = builder.build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -323,9 +324,10 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			finishRequest(task);
-			return RestServiceUtil.createErrorResponseBuilder(Status.BAD_REQUEST, "Request to add object of type "
+			parentResult.recordFatalError("Request to add object of type "
 					+ object.getCompileTimeClass().getSimpleName()
-					+ " to the collection of " + type).build();
+					+ " to the collection of " + type);
+			return RestServiceUtil.createErrorResponseBuilder(Status.BAD_REQUEST, parentResult).build();
 		}
 
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
@@ -346,10 +348,8 @@ public class ModelRestService {
 					Response.accepted().location(resourceURI) : Response.created(resourceURI);
 			// (not used currently)
 			//validateIfRequested(object, options, builder, task, parentResult);
-		} catch (ObjectAlreadyExistsException e) {
-			builder = Response.serverError().entity(e.getMessage());
 		} catch (Exception ex) {
-			builder = RestServiceUtil.createErrorResponseBuilder(ex);
+			builder = RestServiceUtil.createErrorResponseBuilder(parentResult, ex);
 		}
 		parentResult.computeStatus();
 		Response response = RestServiceUtil.createResultHeaders(builder, parentResult).build();
@@ -389,7 +389,7 @@ public class ModelRestService {
 			model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
 			response = Response.noContent().build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -424,7 +424,7 @@ public class ModelRestService {
 			model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, parentResult);
 			response = Response.noContent().build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -456,7 +456,7 @@ public class ModelRestService {
 //			}
 //			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject").build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -478,10 +478,8 @@ public class ModelRestService {
 		try {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
 			response = Response.ok().entity(user).build();
-		} catch (ConfigurationException e) {
-			response = RestServiceUtil.createErrorResponseBuilder(Status.INTERNAL_SERVER_ERROR, e.getMessage()).build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -517,7 +515,7 @@ public class ModelRestService {
 
 			response = Response.ok().entity(listType).build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -551,7 +549,7 @@ public class ModelRestService {
 			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
 					.build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		parentResult.computeStatus();
@@ -574,7 +572,7 @@ public class ModelRestService {
 			testResult = model.testResource(resourceOid, task);
 			response = Response.ok(testResult).build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		if (testResult != null) {
@@ -603,7 +601,7 @@ public class ModelRestService {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		finishRequest(task);
@@ -629,7 +627,7 @@ public class ModelRestService {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		finishRequest(task);
@@ -656,7 +654,7 @@ public class ModelRestService {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		finishRequest(task);
@@ -685,7 +683,7 @@ public class ModelRestService {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		finishRequest(task);
@@ -729,7 +727,7 @@ public class ModelRestService {
 
 			response = builder.build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(result, ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script.", ex);
 		}
 
@@ -777,7 +775,7 @@ public class ModelRestService {
 
 			response = builder.build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(result, ex);
 		}
 
 		result.computeStatus();
@@ -801,7 +799,7 @@ public class ModelRestService {
 			builder.entity(String.valueOf(size));
 			response = builder.build();
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(result, ex);
 		}
 
 		result.computeStatus();
@@ -830,7 +828,7 @@ public class ModelRestService {
 			response = builder.build();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get log file content: fromPosition={}, maxSize={}", ex, fromPosition, maxSize);
-			response = RestServiceUtil.handleException(ex);
+			response = RestServiceUtil.handleException(result, ex);
 		}
 
 		result.computeStatus();
