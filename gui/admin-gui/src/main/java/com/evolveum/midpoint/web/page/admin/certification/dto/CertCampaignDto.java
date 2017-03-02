@@ -108,8 +108,13 @@ public class CertCampaignDto extends Selectable {
             case REVIEW_STAGE_DONE:
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
                 String stageName = stage != null ? stage.getName() : null;
-                String key = createEnumResourceKey(state) + "_FULL";
-                return createStringResourceStatic(page, key, stageNumber, stageName).getString();
+                if (stageName != null) {
+					String key = createEnumResourceKey(state) + "_FULL";
+					return createStringResourceStatic(page, key, stageNumber, stageName).getString();
+				} else {
+					String key = createEnumResourceKey(state);
+					return createStringResourceStatic(page, key).getString() + " " + stageNumber;
+				}
             default:
                 return null;        // todo warning/error?
         }
