@@ -46,6 +46,7 @@
 							<resolutionTime>run</resolutionTime>
 						</approverRef>
 						<evaluationStrategy>firstDecides</evaluationStrategy>
+						<groupExpansion>onWorkItemCreation</groupExpansion>
 					</level>
 				</approvalSchema>
 			</approval>

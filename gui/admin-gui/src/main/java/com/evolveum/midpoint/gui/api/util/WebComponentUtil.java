@@ -280,13 +280,17 @@ public final class WebComponentUtil {
 
 	public static String getReferencedObjectNames(List<ObjectReferenceType> refs, boolean showTypes) {
 		return refs.stream()
-				.map(ref -> getName(ref) + (showTypes ? (" (" + getTypeLocalized(ref) + ")") : ""))
+				.map(ref -> emptyIfNull(getName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
 				.collect(Collectors.joining(", "));
+	}
+
+	private static String emptyIfNull(String s) {
+		return s != null ? s : "";
 	}
 
 	public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {
 		return refs.stream()
-				.map(ref -> getDisplayNameAndName(ref) + (showTypes ? (" (" + getTypeLocalized(ref) + ")") : ""))
+				.map(ref -> emptyIfNull(getDisplayNameAndName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
 				.collect(Collectors.joining(", "));
 	}
 
