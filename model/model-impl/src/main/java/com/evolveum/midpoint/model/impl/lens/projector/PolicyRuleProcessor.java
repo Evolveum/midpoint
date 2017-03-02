@@ -544,6 +544,9 @@ public class PolicyRuleProcessor {
 
 	public <F extends FocusType, T extends FocusType> void applyAssignmentSituationOnAdd(LensContext<F> context,
 			PrismObject<T> objectToAdd) throws SchemaException {
+		if (context.getEvaluatedAssignmentTriple() == null) {
+			return;
+		}
 		T focus = objectToAdd.asObjectable();
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getNonNegativeValues()) {
 			if (!shouldSituationBeUpdated(evaluatedAssignment)) {
@@ -568,6 +571,9 @@ public class PolicyRuleProcessor {
 
 	public <F extends FocusType, T extends ObjectType> ObjectDelta<T> applyAssignmentSituationOnModify(LensContext<F> context,
 			ObjectDelta<T> objectDelta) throws SchemaException {
+		if (context.getEvaluatedAssignmentTriple() == null) {
+			return objectDelta;
+		}
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getNonNegativeValues()) {
 			if (!shouldSituationBeUpdated(evaluatedAssignment)) {
 				continue;
