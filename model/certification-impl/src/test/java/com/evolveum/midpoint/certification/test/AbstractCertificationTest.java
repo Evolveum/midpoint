@@ -394,7 +394,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected void assertSingleDecision(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
 										int stageNumber, String reviewerOid, AccessCertificationResponseType currentStageOutcome, boolean checkHistory) {
 		List<AccessCertificationDecisionType> currentDecisions = getCurrentDecisions(_case, stageNumber, false);
-		assertEquals("wrong # of decisions for stage " + stageNumber, 1, currentDecisions.size());
+		assertEquals("wrong # of decisions for stage " + stageNumber + " for case #" + _case.getId(), 1, currentDecisions.size());
 		AccessCertificationDecisionType storedDecision = currentDecisions.get(0);
 		assertEquals("wrong response", response, storedDecision.getResponse());
 		assertEquals("wrong comment", comment, storedDecision.getComment());
