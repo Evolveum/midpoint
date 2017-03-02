@@ -183,7 +183,7 @@ paths:
         200:
           description: "Successful operation"
           schema:
-            description: "TODO"
+            description: "see PolicyItemsDefinitionType"
             type: "object"
         404:
           description: "Requested object was not found."
@@ -245,7 +245,7 @@ paths:
         required: true
         schema:
           type: "object"
-          description: "TODO"
+          description: "see PolicyItemsDefinitionType"
         description: "path to the property which will be generated"
       responses:
         200:
