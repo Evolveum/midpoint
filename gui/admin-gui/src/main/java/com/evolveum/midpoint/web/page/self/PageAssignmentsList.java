@@ -184,10 +184,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
             handleAssignmentDeltas(delta, addAssignmentsToUser(), def);
 
-            OperationBusinessContextType businessContextType = new OperationBusinessContextType();
-            businessContextType.setComment(descriptionModel.getObject() != null ?
-                    descriptionModel.getObject() : "");
-
+            OperationBusinessContextType businessContextType;
+            if (descriptionModel.getObject() != null) {
+				businessContextType = new OperationBusinessContextType();
+				businessContextType.setComment(descriptionModel.getObject());
+			} else {
+            	businessContextType = null;
+			}
             getModelService().executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContextType),
                     createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
 

@@ -92,6 +92,9 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_APPROVER_COMMENT = "approverComment";
 	private static final String ID_SHOW_REQUEST = "showRequest";
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
+	private static final String ID_REQUESTER_COMMENT_CONTAINER = "requesterCommentContainer";
+	private static final String ID_REQUESTER_COMMENT_MESSAGE = "requesterCommentMessage";
+
 
 	public WorkItemPanel(String id, IModel<WorkItemDto> model, Form mainForm, PageBase pageBase) {
         super(id, model);
@@ -175,6 +178,11 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		primaryInfoColumn.add(escalationLevelInfoContainer);
 		escalationLevelInfoContainer.add(new Label(ID_ESCALATION_LEVEL_INFO, new PropertyModel<String>(getModel(), WorkItemDto.F_ESCALATION_LEVEL_INFO)));
 		escalationLevelInfoContainer.add(new VisibleBehaviour(() -> getModelObject().getEscalationLevelInfo() != null));
+
+		WebMarkupContainer requesterCommentContainer = new WebMarkupContainer(ID_REQUESTER_COMMENT_CONTAINER);
+		requesterCommentContainer.setOutputMarkupId(true);
+		primaryInfoColumn.add(requesterCommentContainer);
+		requesterCommentContainer.add(new Label(ID_REQUESTER_COMMENT_MESSAGE, new PropertyModel<String>(getModel(), WorkItemDto.F_REQUESTER_COMMENT)));
 
 		//primaryInfoColumn.add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<SceneDto>(getModel(), WorkItemDto.F_DELTAS)));
 		primaryInfoColumn.add(new TaskChangesPanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<>(getModel(), WorkItemDto.F_CHANGES)));
