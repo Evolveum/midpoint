@@ -44,6 +44,7 @@ import java.util.List;
 public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
     @Override
     public String getCaseInfoButtonTitle(IModel<? extends CertCaseOrDecisionDto> rowModel, PageBase page) {
+
         CertCaseOrDecisionDto dto = rowModel.getObject();
         AccessCertificationCaseType _case = dto.getCertCase();
         if (!(_case instanceof AccessCertificationAssignmentCaseType)) {
