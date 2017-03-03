@@ -269,6 +269,10 @@ class ApprovalSchemaBuilder {
 			if (o1 == null || o2 == null) {
 				return MiscUtil.compareNullLast(o1, o2);
 			}
+			int c = Integer.compare(o1, o2);
+			if (c != 0) {
+				return c;
+			}
 			// non-mergeable first
 			boolean m1 = BooleanUtils.isTrue(s1.isMergeable());
 			boolean m2 = BooleanUtils.isTrue(s2.isMergeable());

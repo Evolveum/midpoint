@@ -38,6 +38,8 @@ public class CertGuiHandlerRegistry {
         switch (uri) {
             case AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI:
                 return new DirectAssignmentCertGuiHandler();
+            case AccessCertificationApiConstants.EXCLUSION_HANDLER_URI:
+                return new DirectAssignmentCertGuiHandler();        // TODO
             default:
                 throw new IllegalArgumentException("Unknown handler URI: " + uri);
         }

@@ -21,7 +21,9 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -33,11 +35,10 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaAttachedPolicyRulesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Date;
 
 /**
  * @author mederly
@@ -77,6 +78,14 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
             setTaskModelContext(((PrimaryChangeProcessor) getChangeProcessor()).contextCopyWithNoDelta((LensContext) modelContext));
             setExecuteModelOperationHandler(true);
         }
+
+		WfProcessCreationEventType event = new WfProcessCreationEventType();
+        event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        if (requester != null) {
+			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester));
+		}
+		event.setBusinessContext(((LensContext) modelContext).getRequestBusinessContext());
+        wfContext.getEvent().add(event);
     }
 
     public <F extends FocusType> void setDeltasToProcess(ObjectDelta<F> delta) {

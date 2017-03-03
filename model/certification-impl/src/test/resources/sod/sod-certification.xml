@@ -32,9 +32,7 @@
         <number>1</number>
         <duration>P14D</duration>
         <reviewerSpecification>
-            <useObjectManager>
-                <allowSelf>false</allowSelf>
-            </useObjectManager>
+            <defaultReviewerRef oid="e015eb10-1426-4104-86c0-eb0cf9dc423f" type="OrgType" />
         </reviewerSpecification>
         <outcomeStrategy>acceptedIfNotDenied</outcomeStrategy>
         <outcomeIfNoReviewers>accept</outcomeIfNoReviewers>

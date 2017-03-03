@@ -66,7 +66,7 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		if (type.getPackage().getName().startsWith("com.evolveum.midpoint")){
+		if (type.getPackage().getName().startsWith("com.evolveum.midpoint") || type.getPackage().getName().startsWith("com.evolveum.prism")){
 			return true;
 		}
 		return false;
@@ -113,7 +113,7 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		if (type.getPackage().getName().startsWith("com.evolveum.midpoint")){
+		if (type.getPackage().getName().startsWith("com.evolveum.midpoint") || type.getPackage().getName().startsWith("com.evolveum.prism")){
 			return true;
 		}
 		return false;

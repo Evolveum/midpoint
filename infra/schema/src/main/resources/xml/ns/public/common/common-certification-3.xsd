@@ -193,7 +193,14 @@
             <xsd:element name="duration" type="xsd:duration" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How long should the stage last? The resulting time is rounded up to 23:59:59 of the resulting day.
+                        How long should the stage last?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadlineRounding" type="c:DeadlineRoundingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to round the deadline (if at all)? The default is to 23:59:59 of the computed day.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -337,7 +344,7 @@
                         If no reviewer(s) are computed by other means, this/these should be used.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -347,7 +354,7 @@
                         These reviewers are always used.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

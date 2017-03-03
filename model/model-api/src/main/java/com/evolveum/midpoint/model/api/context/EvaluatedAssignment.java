@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import java.util.Collection;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -86,4 +87,6 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	Collection<String> getPolicySituations();
 	
 	void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;
+
+	Set<String> getPolicySituationsSynced();
 }

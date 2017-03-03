@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -141,11 +142,11 @@ public class SearchPanel extends BasePanel<Search> {
                 item.add(searchItem);
             }
         };
-        items.add(createVisibleBehaviour(Search.SearchViewType.BASIC_SEARCH));
+        items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
         form.add(items);
 
         WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-        moreGroup.add(createVisibleBehaviour(Search.SearchViewType.BASIC_SEARCH));
+        moreGroup.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
         form.add(moreGroup);
 
         AjaxLink more = new AjaxLink(ID_MORE) {
@@ -189,8 +190,8 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public boolean isEnabled() {
-                if (Search.SearchViewType.BASIC_SEARCH.equals(getModelObject().getSearchType()) ||
-                        Search.SearchViewType.FULL_TEXT_SEARCH.equals(getModelObject().getSearchType())) {
+                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ||
+                        SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
                     return true;
                 }
                 return false;
@@ -198,8 +199,8 @@ public class SearchPanel extends BasePanel<Search> {
 
 			@Override
 			public boolean isVisible() {
-				return Search.SearchViewType.BASIC_SEARCH.equals(getModelObject().getSearchType()) ||
-                        Search.SearchViewType.FULL_TEXT_SEARCH.equals(getModelObject().getSearchType());
+				return SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ||
+                        SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType());
 			}
 		});
         searchSimple.setOutputMarkupId(true);
@@ -209,7 +210,7 @@ public class SearchPanel extends BasePanel<Search> {
 		searchDropdown.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return Search.SearchViewType.ADVANCED_SEARCH.equals(getModelObject().getSearchType())
+				return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
                         && queryPlagroundAccessible;
 			}
 		});
@@ -228,8 +229,8 @@ public class SearchPanel extends BasePanel<Search> {
 		searchButtonBeforeDropdown.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-                if (Search.SearchViewType.BASIC_SEARCH.equals(getModelObject().getSearchType()) ||
-                        Search.SearchViewType.FULL_TEXT_SEARCH.equals(getModelObject().getSearchType())) {
+                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ||
+                        SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
                     return true;
                 }
 
@@ -282,13 +283,13 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, Search.SearchViewType.ADVANCED_SEARCH);
+                searchTypeUpdated(target, SearchBoxModeType.ADVANCED);
             }
         };
         advanced.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible() {
-                return !Search.SearchViewType.ADVANCED_SEARCH.equals(getModelObject().getSearchType());
+                return !SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType());
             }
         });
         linksContainer.add(advanced);
@@ -297,14 +298,14 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-               searchTypeUpdated(target, Search.SearchViewType.FULL_TEXT_SEARCH);
+               searchTypeUpdated(target, SearchBoxModeType.FULLTEXT);
             }
         };
         fullTextButton.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible() {
                 return isFullTextSearchEnabled() &&
-                        !Search.SearchViewType.FULL_TEXT_SEARCH.equals(getModelObject().getSearchType());
+                        !SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType());
             }
         });
         linksContainer.add(fullTextButton);
@@ -313,13 +314,13 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, Search.SearchViewType.BASIC_SEARCH);
+                searchTypeUpdated(target, SearchBoxModeType.BASIC);
             }
         };
         basicSearchButton.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible() {
-                return !Search.SearchViewType.BASIC_SEARCH.equals(getModelObject().getSearchType());
+                return !SearchBoxModeType.BASIC.equals(getModelObject().getSearchType());
             }
         });
         linksContainer.add(basicSearchButton);
@@ -339,7 +340,7 @@ public class SearchPanel extends BasePanel<Search> {
             @Override
             public boolean isVisible(){
                 return isFullTextSearchEnabled()
-                        && getModelObject().getSearchType().equals(Search.SearchViewType.FULL_TEXT_SEARCH);
+                        && getModelObject().getSearchType().equals(SearchBoxModeType.FULLTEXT);
             }
         });
         fullTextContainer.setOutputMarkupId(true);
@@ -366,11 +367,11 @@ public class SearchPanel extends BasePanel<Search> {
         fullTextInput.setOutputMarkupId(true);
         fullTextInput.add(new AttributeAppender("placeholder",
                 createStringResource("SearchPanel.fullTextSearch")));
-        fullTextInput.add(createVisibleBehaviour(Search.SearchViewType.FULL_TEXT_SEARCH));
+        fullTextInput.add(createVisibleBehaviour(SearchBoxModeType.FULLTEXT));
         fullTextContainer.add(fullTextInput);
 
         WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
-        advancedGroup.add(createVisibleBehaviour(Search.SearchViewType.ADVANCED_SEARCH));
+        advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
         advancedGroup.add(AttributeAppender.append("class", createAdvancedGroupStyle()));
         advancedGroup.setOutputMarkupId(true);
         form.add(advancedGroup);
@@ -483,7 +484,7 @@ public class SearchPanel extends BasePanel<Search> {
         };
     }
 
-    private VisibleEnableBehaviour createVisibleBehaviour(Search.SearchViewType searchType) {
+    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType searchType) {
         return new VisibleEnableBehaviour() {
 
             @Override
@@ -668,7 +669,7 @@ public class SearchPanel extends BasePanel<Search> {
         target.appendJavaScript(script.toString());
     }
 
-    private void searchTypeUpdated(AjaxRequestTarget target, Search.SearchViewType searchType) {
+    private void searchTypeUpdated(AjaxRequestTarget target, SearchBoxModeType searchType) {
         getModelObject().setSearchType(searchType);
 
         refreshSearchForm(target);

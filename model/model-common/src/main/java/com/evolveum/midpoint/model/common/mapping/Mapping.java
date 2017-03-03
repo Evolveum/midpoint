@@ -386,9 +386,9 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				recomputeValues();
 				setOrigin();
 				// TODO: output filter
-			}
 
-			checkRange(task, result);
+				checkRange(task, result);
+			}
 
 			result.recordSuccess();
 			traceSuccess(conditionResultOld, conditionResultNew);

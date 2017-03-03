@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -54,13 +55,7 @@ public class Search implements Serializable, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
-    public static enum SearchViewType{
-        BASIC_SEARCH,
-        ADVANCED_SEARCH,
-        FULL_TEXT_SEARCH
-    };
-
-    private SearchViewType searchType;
+    private SearchBoxModeType searchType;
 
     private boolean showAdvanced = false;
     private boolean isFullTextSearchEnabled = false;
@@ -76,18 +71,22 @@ public class Search implements Serializable, DebugDumpable {
     private List<SearchItem> items = new ArrayList<>();
 
     public Search(Class<? extends ObjectType> type, Map<ItemPath, ItemDefinition> allDefinitions) {
-        this(type, allDefinitions, false);
+        this(type, allDefinitions, false, null);
     }
 
-    public Search(Class<? extends ObjectType> type, Map<ItemPath, ItemDefinition> allDefinitions, boolean isFullTextSearchEnabled) {
+    public Search(Class<? extends ObjectType> type, Map<ItemPath, ItemDefinition> allDefinitions,
+                  boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType) {
         this.type = type;
         this.allDefinitions = allDefinitions;
 
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
-        if (isFullTextSearchEnabled ){
-            searchType = SearchViewType.FULL_TEXT_SEARCH;
+
+        if (searchBoxModeType != null){
+            searchType = searchBoxModeType;
+        } else if (isFullTextSearchEnabled ){
+            searchType = SearchBoxModeType.FULLTEXT;
         } else {
-            searchType = SearchViewType.BASIC_SEARCH;
+            searchType = SearchBoxModeType.BASIC;
         }
         availableDefinitions.addAll(allDefinitions.values());
     }
@@ -154,9 +153,9 @@ public class Search implements Serializable, DebugDumpable {
 
     public ObjectQuery createObjectQuery(PrismContext ctx) {
         LOGGER.debug("Creating query from {}", this);
-        if (SearchViewType.ADVANCED_SEARCH.equals(searchType)){
+        if (SearchBoxModeType.ADVANCED.equals(searchType)){
             return createObjectQueryAdvanced(ctx);
-        } else if (SearchViewType.FULL_TEXT_SEARCH.equals(searchType)){
+        } else if (SearchBoxModeType.FULLTEXT.equals(searchType)){
             return createObjectQueryFullText(ctx);
         } else {
             return createObjectQuerySimple(ctx);
@@ -346,11 +345,11 @@ public class Search implements Serializable, DebugDumpable {
     }
 
 
-    public SearchViewType getSearchType() {
+    public SearchBoxModeType getSearchType() {
         return searchType;
     }
 
-    public void setSearchType(SearchViewType searchType) {
+    public void setSearchType(SearchBoxModeType searchType) {
         this.searchType = searchType;
     }
 

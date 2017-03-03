@@ -156,7 +156,7 @@ public class DebugUtil {
 		}
 	}
 
-    public static Object debugDump(DebugDumpable dd) {
+    public static String debugDump(DebugDumpable dd) {
         return debugDump(dd, 0);
     }
 

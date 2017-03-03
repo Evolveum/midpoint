@@ -20,10 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -266,5 +263,17 @@ public class WfContextUtil {
 				throw new IllegalStateException("Level #" + (i+1) + " has an incorrect order: " + order + " in " + schema);
 			}
 		}
+	}
+
+	public static OperationBusinessContextType getBusinessContext(WfContextType wfc) {
+		if (wfc == null) {
+			return null;
+		}
+		for (WfProcessEventType event : wfc.getEvent()) {
+			if (event instanceof WfProcessCreationEventType) {
+				return ((WfProcessCreationEventType) event).getBusinessContext();
+			}
+		}
+		return null;
 	}
 }

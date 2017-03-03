@@ -526,6 +526,89 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="PolicyItemsDefinitionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defined items and rules for generating/validating values
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="policyItemDefinition" type="tns:PolicyItemDefinitionType" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition for the item to be generated/validated
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="policyItemsDefinition" type="tns:PolicyItemsDefinitionType"/>
+	
+	<xsd:complexType name="PolicyItemDefinitionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="target" type="tns:PolicyItemTargetType" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition of item for which the value will be generated/validated
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			
+			<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to the value policy that should be used to generate/validate the value. 
+	                    If not specified, system defined policy is used
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	        			<a:objectReferenceTargetType>c:ValuePolicyType</a:objectReferenceTargetType>
+	        		</xsd:appinfo>
+	            </xsd:annotation>
+        	</xsd:element>
+        	
+        	<xsd:element name="value" type="xsd:anyType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Contains either generated value or value which will be validated
+	                </xsd:documentation>
+	            </xsd:annotation>
+        	</xsd:element>
+        	
+        	<xsd:element name="execute" type="xsd:boolean" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Specifies if the generated value should be set immediately to the object. 
+	                    Relevant only for generate operation.
+	                </xsd:documentation>	                
+	            </xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="policyItemDefinition" type="tns:PolicyItemDefinitionType"/>
+
+   <xsd:complexType name="PolicyItemTargetType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defined items and rules for generating/validating values
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="path" type="t:ItemPathType" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition for the item to be generated/validated
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="policyItemTarget" type="tns:PolicyItemTargetType"/>
 
 </xsd:schema>
 

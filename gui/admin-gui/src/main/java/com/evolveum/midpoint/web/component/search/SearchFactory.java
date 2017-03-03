@@ -44,6 +44,7 @@ public class SearchFactory {
     private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
     private static final String LOAD_OBJECT_DEFINITION = DOT_CLASS + "loadObjectDefinition";
     private static final String LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
+    private static final String LOAD_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "loadAdminGuiConfiguration";
 
     private static final Map<Class, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
 
@@ -137,7 +138,8 @@ public class SearchFactory {
         Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelInteractionService, type);
 
-        Search search = new Search(type, availableDefs, isFullTextSearchEnabled);
+        Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
+                getDefaultSearchType(modelInteractionService, type));
 
         SchemaRegistry registry = ctx.getSchemaRegistry();
         PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
@@ -210,6 +212,29 @@ public class SearchFactory {
         try {
             return FullTextSearchConfigurationUtil.isEnabledFor(modelInteractionService.getSystemConfiguration(result)
                     .getFullTextSearch(), type);
+        } catch (SchemaException | ObjectNotFoundException ex) {
+                throw new SystemException(ex);
+        }
+    }
+
+    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType (ModelInteractionService modelInteractionService, Class<T> type) {
+        OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
+        try {
+            AdminGuiConfigurationType guiConfig = modelInteractionService.getAdminGuiConfiguration(null, result);
+            if (guiConfig != null){
+                GuiObjectListsType objectLists = guiConfig.getObjectLists();
+                if (objectLists != null && objectLists.getObjectList() != null){
+                    for (GuiObjectListType objectList : objectLists.getObjectList()){
+                        if (objectList.getType() != null
+                                && type.getSimpleName().equals(objectList.getType().getLocalPart())
+                                && objectList.getSearchBoxConfiguration() != null) {
+                            SearchBoxConfigurationType searchBoxConfig = objectList.getSearchBoxConfiguration();
+                            return searchBoxConfig.getDefaultMode();
+                        }
+                    }
+                }
+            }
+            return null;
         } catch (SchemaException | ObjectNotFoundException ex) {
                 throw new SystemException(ex);
         }

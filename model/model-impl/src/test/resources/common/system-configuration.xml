@@ -16,8 +16,9 @@
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+					 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+					 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+					 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
     <logging>
     	<rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -33,6 +34,29 @@
         </appender>
     </logging>
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
+	<globalPolicyRule>
+		<name>global-assignment-notification</name>
+		<policyConstraints>
+			<assignment>
+				<operation>add</operation>
+			</assignment>
+		</policyConstraints>
+		<policyActions>
+			<notification/>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+			<filter>
+				<q:equal>
+					<q:path>name</q:path>
+					<q:value>Judge</q:value>
+				</q:equal>
+			</filter>
+		</targetSelector>
+	</globalPolicyRule>
     <adminGuiConfiguration>
 	    <userDashboardLink>
 	    	<targetUrl>/foo</targetUrl>

@@ -427,6 +427,29 @@ public class IntegrationTestTools {
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" + dump);
 	}
 
+	public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		for (PrismValue v : collection) {
+			System.out.println(DebugUtil.debugDump(v));
+			LOGGER.debug("{}", DebugUtil.debugDump(v));
+			System.out.println(OBJECT_LIST_SEPARATOR);
+			LOGGER.debug(OBJECT_LIST_SEPARATOR);
+		}
+	}
+
+	public static void displayContainerablesCollection(String message, Collection<? extends Containerable> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		for (Containerable c : collection) {
+			String s = DebugUtil.debugDump(c.asPrismContainerValue());
+			System.out.println(s);
+			LOGGER.debug("{}", s);
+			System.out.println(OBJECT_LIST_SEPARATOR);
+			LOGGER.debug(OBJECT_LIST_SEPARATOR);
+		}
+	}
+
 	public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);

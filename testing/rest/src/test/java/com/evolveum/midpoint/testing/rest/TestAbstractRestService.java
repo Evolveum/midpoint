@@ -73,6 +73,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -270,6 +272,10 @@ public abstract class TestAbstractRestService {
 
 		TestUtil.displayThen(TEST_NAME);
 		assertStatus(response, 404);
+		OperationResultType result = response.readEntity(OperationResultType.class);
+		assertNotNull("Error response must contain operation result", result);
+		LOGGER.info("Returned result: {}", result);
+		assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(2);
@@ -511,6 +517,10 @@ public abstract class TestAbstractRestService {
 		displayResponse(response);
 
 		assertStatus(response, 400);
+		OperationResultType result = response.readEntity(OperationResultType.class);
+		assertNotNull("Error response must contain operation result", result);
+		LOGGER.info("Returned result: {}", result);
+		assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(2);
@@ -640,6 +650,10 @@ public abstract class TestAbstractRestService {
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 		assertStatus(response, 403);
+		OperationResultType result = response.readEntity(OperationResultType.class);
+		assertNotNull("Error response must contain operation result", result);
+		LOGGER.info("Returned result: {}", result);
+		assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
 		IntegrationTestTools.display("Audit", dummyAuditService);
 		dummyAuditService.assertRecords(4);

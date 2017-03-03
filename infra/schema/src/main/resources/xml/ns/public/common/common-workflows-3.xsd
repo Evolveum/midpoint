@@ -1399,14 +1399,6 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-
-			<!--<xsd:element name="operational" type="xsd:boolean" minOccurs="0">-->
-				<!--<xsd:annotation>-->
-					<!--<xsd:documentation>-->
-						<!--A hint that this event needs not be displayed in GUI. -->
-					<!--</xsd:documentation>-->
-				<!--</xsd:annotation>-->
-			<!--</xsd:element>-->
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -1619,6 +1611,31 @@
 			<xsd:extension base="tns:WfProcessEventType">
 				<xsd:sequence>
 					<!-- TODO -->
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="WfProcessCreationEventType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Event describing the creation of a workflow process instance.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:WfProcessEventType">
+				<xsd:sequence>
+					<xsd:element name="businessContext" type="tns:OperationBusinessContextType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Business context of the operation, if provided.
+								TODO move to WfProcessEventType?
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
