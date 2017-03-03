@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.certification.test;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -59,6 +61,8 @@ public class SoDCertificationTest extends AbstractCertificationTest {
 	private static String roleATest2aOid;
 	private static final File ROLE_A_TEST_2B = new File(TEST_DIR, "a-test-2b.xml");
 	private static String roleATest2bOid;
+	private static final File ROLE_A_TEST_2C = new File(TEST_DIR, "a-test-2c.xml");
+	private static String roleATest2cOid;
 	private static final File ROLE_A_TEST_3A = new File(TEST_DIR, "a-test-3a.xml");
 	private static String roleATest3aOid;
 	private static final File ROLE_A_TEST_3B = new File(TEST_DIR, "a-test-3b.xml");
@@ -73,6 +77,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
 		super.initSystem(initTask, initResult);
 		roleATest2aOid = addAndRecompute(ROLE_A_TEST_2A, initTask, initResult);
 		roleATest2bOid = addAndRecompute(ROLE_A_TEST_2B, initTask, initResult);
+		roleATest2cOid = addAndRecompute(ROLE_A_TEST_2C, initTask, initResult);
 		roleATest3aOid = addAndRecompute(ROLE_A_TEST_3A, initTask, initResult);
 		roleATest3bOid = addAndRecompute(ROLE_A_TEST_3B, initTask, initResult);
 		roleATest3xOid = addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
@@ -82,9 +87,12 @@ public class SoDCertificationTest extends AbstractCertificationTest {
 
 		assignRole(USER_JACK_OID, roleATest2aOid);
 		assignRole(USER_JACK_OID, roleATest2bOid);
+		assignRole(USER_JACK_OID, roleATest2cOid);
 		assignRole(USER_JACK_OID, roleATest3aOid);
 		assignRole(USER_JACK_OID, roleATest3bOid);
 		display("jack", getUser(USER_JACK_OID));
+
+		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
 	@Test
@@ -193,12 +201,13 @@ public class SoDCertificationTest extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
-        assertAfterCampaignStart(campaign, certificationDefinition, 4);
+        assertAfterCampaignStart(campaign, certificationDefinition, 5);
         checkAllCases(campaign.getCase(), campaignOid);
 
         List<AccessCertificationCaseType> caseList = campaign.getCase();
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest2bOid, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest2cOid, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest3aOid, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, null);
         assertPercentComplete(campaign, 0, 100, 0);     // preliminary outcomes for all cases are "ACCEPT"
@@ -207,10 +216,11 @@ public class SoDCertificationTest extends AbstractCertificationTest {
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid)
 			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
 			SecurityViolationException {
-        assertEquals("Wrong number of certification cases", 4, caseList.size());
+        assertEquals("Wrong number of certification cases", 5, caseList.size());
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);
         checkCase(caseList, USER_JACK_OID, roleATest2bOid, jack, campaignOid);
+        checkCase(caseList, USER_JACK_OID, roleATest2cOid, jack, campaignOid);
         checkCase(caseList, USER_JACK_OID, roleATest3aOid, jack, campaignOid);
         checkCase(caseList, USER_JACK_OID, roleATest3bOid, jack, campaignOid);
     }
@@ -256,11 +266,13 @@ public class SoDCertificationTest extends AbstractCertificationTest {
 
         AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
         AccessCertificationCaseType test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
+        AccessCertificationCaseType test2cCase = findCase(caseList, USER_JACK_OID, roleATest2cOid);
         AccessCertificationCaseType test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
         AccessCertificationCaseType test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
         recordDecision(campaignOid, test2aCase, REVOKE, "no way", 1, USER_JACK_OID, task, result);
         recordDecision(campaignOid, test2bCase, ACCEPT, null, 1, USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test2cCase, ACCEPT, null, 1, USER_JACK_OID, task, result);
         recordDecision(campaignOid, test3aCase, ACCEPT, "OK", 1, USER_JACK_OID, task, result);
         recordDecision(campaignOid, test3bCase, NOT_DECIDED, "dunno", 1, USER_JACK_OID, task, result);
 
@@ -275,16 +287,19 @@ public class SoDCertificationTest extends AbstractCertificationTest {
 
 		test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
 		test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
+		test2cCase = findCase(caseList, USER_JACK_OID, roleATest2cOid);
 		test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
 		test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
         assertSingleDecision(test2aCase, REVOKE, "no way", 1, USER_JACK_OID, REVOKE, false);
         assertSingleDecision(test2bCase, ACCEPT, null, 1, USER_JACK_OID, ACCEPT, false);
+        assertSingleDecision(test2cCase, ACCEPT, null, 1, USER_JACK_OID, ACCEPT, false);
         assertSingleDecision(test3aCase, ACCEPT, "OK", 1, USER_JACK_OID, ACCEPT, false);
         assertSingleDecision(test3bCase, NOT_DECIDED, "dunno", 1, USER_JACK_OID, ACCEPT, false);
 
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, REVOKE, REVOKE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest2bOid, ACCEPT, ACCEPT, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest2cOid, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest3aOid, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, null);
 
@@ -318,16 +333,19 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 		AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
 		AccessCertificationCaseType test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
+		AccessCertificationCaseType test2cCase = findCase(caseList, USER_JACK_OID, roleATest2cOid);
 		AccessCertificationCaseType test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
 		AccessCertificationCaseType test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
 		assertSingleDecision(test2aCase, REVOKE, "no way", 1, USER_JACK_OID, REVOKE, true);
 		assertSingleDecision(test2bCase, ACCEPT, null, 1, USER_JACK_OID, ACCEPT, true);
+		assertSingleDecision(test2cCase, ACCEPT, null, 1, USER_JACK_OID, ACCEPT, true);
 		assertSingleDecision(test3aCase, ACCEPT, "OK", 1, USER_JACK_OID, ACCEPT, true);
 		assertSingleDecision(test3bCase, NOT_DECIDED, "dunno", 1, USER_JACK_OID, ACCEPT, true);
 
 		assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, REVOKE, REVOKE, 1);
 		assertCaseOutcome(caseList, USER_JACK_OID, roleATest2bOid, ACCEPT, ACCEPT, 1);
+		assertCaseOutcome(caseList, USER_JACK_OID, roleATest2cOid, ACCEPT, ACCEPT, 1);
 		assertCaseOutcome(caseList, USER_JACK_OID, roleATest3aOid, ACCEPT, ACCEPT, 1);
 		assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, 1);
 
@@ -373,7 +391,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
-        assertEquals("wrong # of cases", 4, caseList.size());
+        assertEquals("wrong # of cases", 5, caseList.size());
 		AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
         assertApproximateTime("test2aCase.remediedTimestamp", new Date(), test2aCase.getRemediedTimestamp());
 
