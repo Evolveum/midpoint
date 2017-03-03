@@ -15,3 +15,5 @@ velocity.log
 dependency-reduced-pom.xml
 /nb-configuration.xml
 /nbactions.xml
+
+.DS_Store
