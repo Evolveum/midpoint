@@ -75,7 +75,7 @@
         <jdbc.postgres>9.4.1212.jre7</jdbc.postgres>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
         <jdbc.mysql>6.0.5</jdbc.mysql>
-        <wicket.version>7.5.0</wicket.version>
+        <wicket.version>7.6.0</wicket.version>
         <groovy.version>2.4.0</groovy.version>
         <activiti-engine.version>5.22.0</activiti-engine.version>
         <activiti-spring.version>5.22.0</activiti-spring.version>

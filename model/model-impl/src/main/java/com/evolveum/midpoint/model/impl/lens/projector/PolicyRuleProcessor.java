@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -461,13 +462,13 @@ public class PolicyRuleProcessor {
 		// if the situations that were last synced (if they were) are the same as the current ones => OK
 		if (evaluatedAssignment.getPolicySituationsSynced() != null
 				&& evaluatedAssignment.getPolicySituationsSynced().equals(currentSituations)) {
-			LOGGER.trace("policy situations synced are the same as current situations: {}", evaluatedAssignment.debugDump());	// remove
+			LOGGER.trace("policy situations synced are the same as current situations: {}", DebugUtil.debugDumpLazily(evaluatedAssignment));	// TODO remove
 			return false;
 		}
 		// if the current situations are the same as the ones in the old assignment => OK
 		// (provided that the situations in the assignment were _not_ changed directly via a delta!!!) TODO check this
 		if (currentSituations.equals(new HashSet<>(evaluatedAssignment.getPolicySituations()))) {
-			LOGGER.trace("current policy situations are the same as computed ones: {}", evaluatedAssignment.debugDump());		// remove
+			LOGGER.trace("current policy situations are the same as computed ones: {}", DebugUtil.debugDumpLazily(evaluatedAssignment));		// TODO remove
 			return false;
 		}
 		return true;
@@ -549,6 +550,7 @@ public class PolicyRuleProcessor {
 		}
 		T focus = objectToAdd.asObjectable();
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getNonNegativeValues()) {
+			LOGGER.trace("Applying assignment situation on object ADD for {}", evaluatedAssignment);
 			if (!shouldSituationBeUpdated(evaluatedAssignment)) {
 				continue;
 			}
@@ -575,6 +577,7 @@ public class PolicyRuleProcessor {
 			return objectDelta;
 		}
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getNonNegativeValues()) {
+			LOGGER.trace("Applying assignment situation on object MODIFY for {}", evaluatedAssignment);
 			if (!shouldSituationBeUpdated(evaluatedAssignment)) {
 				continue;
 			}

@@ -78,6 +78,8 @@ public class SoDCertificationTest extends AbstractCertificationTest {
 		roleATest3xOid = addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
 		roleATest3yOid = addAndRecompute(ROLE_A_TEST_3Y, initTask, initResult);
 
+		assignOrg(USER_JACK_OID, ORG_SECURITY_TEAM_OID, initTask, initResult);
+
 		assignRole(USER_JACK_OID, roleATest2aOid);
 		assignRole(USER_JACK_OID, roleATest2bOid);
 		assignRole(USER_JACK_OID, roleATest3aOid);

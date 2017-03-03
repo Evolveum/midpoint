@@ -923,7 +923,7 @@
     <xsd:simpleType name="BeforeAfterType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that defines when the activity will be excuted.
+                An enumeration that defines when the activity will be executed.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -950,6 +950,45 @@
         </xsd:restriction>
     </xsd:simpleType>
     
+	<xsd:simpleType name="DeadlineRoundingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Way of rounding deadline(s) e.g. for certification or approval stages.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The deadline will not be rounded.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hour">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The deadline will be rounded to 59:59 of the computed hour.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HOUR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="day">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The deadline will be rounded to 23:59:59 of the computed day.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DAY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 	<xsd:complexType name="NodeType">
         <xsd:annotation>

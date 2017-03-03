@@ -51,15 +51,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -282,10 +274,18 @@ public class AccCertUpdateHelper {
         if (stageDef.getDuration() != null) {
             deadline.add(stageDef.getDuration());
         }
-        deadline.setHour(23);
-        deadline.setMinute(59);
-        deadline.setSecond(59);
-        deadline.setMillisecond(999);
+		DeadlineRoundingType rounding = stageDef.getDeadlineRounding() != null ?
+				stageDef.getDeadlineRounding() : DeadlineRoundingType.DAY;
+        switch (rounding) {
+			case DAY:
+				deadline.setHour(23);
+			case HOUR:
+				deadline.setMinute(59);
+				deadline.setSecond(59);
+				deadline.setMillisecond(999);
+			case NONE:
+				// nothing here
+		}
         stage.setDeadline(deadline);
 
         stage.setName(stageDef.getName());
