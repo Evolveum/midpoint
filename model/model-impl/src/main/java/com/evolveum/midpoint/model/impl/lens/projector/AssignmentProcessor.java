@@ -113,35 +113,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class AssignmentProcessor {
 
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired(required = true)
+    @Autowired
     private ObjectResolver objectResolver;
     
-    @Autowired(required = true)
+    @Autowired
 	private SystemObjectCache systemObjectCache;
 
-    @Autowired(required = true)
+    @Autowired
     private PrismContext prismContext;
 
-    @Autowired(required = true)
+    @Autowired
     private MappingFactory mappingFactory;
     
-    @Autowired(required = true)
+    @Autowired
     private MappingEvaluator mappingEvaluator;
     
-    @Autowired(required = true)
+    @Autowired
     private ProvisioningService provisioningService;
     
-    @Autowired(required = true)
+    @Autowired
 	private ActivationComputer activationComputer;
     
-    @Autowired(required = true)
+    @Autowired
     private ObjectTemplateProcessor objectTemplateProcessor;
     
-    @Autowired(required = true)
+    @Autowired
     private PolicyRuleProcessor policyRuleProcessor;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
@@ -256,7 +256,7 @@ public class AssignmentProcessor {
         	LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
         	
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
-        	// TODO shouldn't we store this re-evaluated triple back into the context?
+			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
 			policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple);
 

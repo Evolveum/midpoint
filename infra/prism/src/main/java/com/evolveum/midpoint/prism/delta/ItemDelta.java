@@ -1194,6 +1194,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	 * Applies delta to item were path of the delta and path of the item matches (skips path checks).
 	 */
 	public void applyToMatchingPath(Item item) throws SchemaException {
+		if (item == null) {
+			return;
+		}
 		if (item.getDefinition() == null && getDefinition() != null){
 			item.applyDefinition(getDefinition());
 		}
