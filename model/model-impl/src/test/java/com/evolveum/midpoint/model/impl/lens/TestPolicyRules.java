@@ -344,9 +344,10 @@ public class TestPolicyRules extends AbstractLensTest {
         dumpPolicyRules(context);
         
         assertEvaluatedRules(context, 5);
-		EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
-        assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
-        assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, trigger.getConflictingAssignment().getTarget().getOid());
+        // conflicting assignment was pruned, so the exclusion is no longer present here
+//		EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
+//        assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
+//        assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, trigger.getConflictingAssignment().getTarget().getOid());
         
         ObjectDelta<UserType> focusSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         PrismAsserts.assertIsModify(focusSecondaryDelta);
