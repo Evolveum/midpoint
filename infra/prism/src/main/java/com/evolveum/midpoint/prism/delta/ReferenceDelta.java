@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,11 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue,PrismReference
     		PrismReferenceValue refValue) {
     	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(path, PrismReferenceDefinition.class);
     	ReferenceDelta referenceDelta = new ReferenceDelta(path, referenceDefinition, objectDefinition.getPrismContext());             // hoping the prismContext is there
-    	referenceDelta.setValueToReplace(refValue);
+    	if (refValue == null) {
+    		referenceDelta.setValueToReplace();
+    	} else {
+    		referenceDelta.setValueToReplace(refValue);
+    	}
     	return referenceDelta;
     }
 

@@ -1508,7 +1508,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         clock.override(crrentNow);
         
         // WHEN
-        modelService.recompute(UserType.class, USER_LARGO_OID, task, result);
+        recomputeUser(USER_LARGO_OID, task, result);
         
         // THEN
         PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
@@ -1551,7 +1551,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         clock.override(crrentNow);
         
         // WHEN
-        modelService.recompute(UserType.class, USER_LARGO_OID, task, result);
+        modelService.recompute(UserType.class, USER_LARGO_OID, null, task, result);
         
         // THEN
         PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
@@ -1651,7 +1651,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Delete assignment from repo. Model should not notice. The change should be applied after recompute.
+	 * Delete assignment from repo. Model should not notice. 
+	 * The change should be NOT applied after recompute.
+	 * Accounts are not retrieved, therefore the change is not noticed.
 	 */
 	@Test
     public void test230JackUnassignRepoRecompute() throws Exception {
@@ -1659,7 +1661,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        long startMillis = clock.currentTimeMillis();
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -1681,9 +1682,34 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+	}
+
+	/**
+	 * Deleted assignment from the repo (previous test). Model haven't noticed.
+	 * Now recompute with reconcile. The change should be applied after recompute.
+	 */
+	@Test
+    public void test231JackRecomputeReconcile() throws Exception {
+		final String TEST_NAME = "test231JackRecomputeReconcile";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
 	}
-	
+
 	/**
 	 * Add draft user with a role assignment.
 	 * Even though Pirate role gives dummy account the user is in the draft
@@ -2256,7 +2282,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
 		// WHEN
-        modelService.recompute(type, oid, task, result);
+        modelService.recompute(type, oid, null, task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -2347,7 +2373,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
 		// WHEN
-        modelService.recompute(type, oid, task, result);
+        modelService.recompute(type, oid, null, task, result);
 		
 		// THEN
 		result.computeStatus();

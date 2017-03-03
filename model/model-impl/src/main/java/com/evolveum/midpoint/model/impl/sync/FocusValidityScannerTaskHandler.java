@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
@@ -38,6 +39,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,7 +180,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 				if (oidAlreadySeen(coordinatorTask, object.getOid())) {
 					LOGGER.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));
 				} else {
-					recomputeUser(object, workerTask, result);
+					reconcileUser(object, workerTask, result);
 				}
 				return true;
 			}
@@ -186,14 +189,15 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		return handler;
 	}
 
-	private void recomputeUser(PrismObject<UserType> user, Task workerTask, OperationResult result) throws SchemaException,
+	private void reconcileUser(PrismObject<UserType> user, Task workerTask, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing user {}", user);
-
-		LensContext<UserType> syncContext = contextFactory.createRecomputeContext(user, workerTask, result);
-		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.debugDump());
-		clockwork.run(syncContext, workerTask, result);
+		// We want reconcile option here. There may be accounts that are in wrong activation state. 
+		// We will not notice that unless we go with reconcile.
+		LensContext<UserType> lensContext = contextFactory.createRecomputeContext(user, ModelExecuteOptions.createReconcile(), workerTask, result);
+		LOGGER.trace("Recomputing of user {}: context:\n{}", user, lensContext.debugDump());
+		clockwork.run(lensContext, workerTask, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 	}
 	

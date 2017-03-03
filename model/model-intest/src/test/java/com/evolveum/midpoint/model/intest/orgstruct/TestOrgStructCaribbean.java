@@ -19,6 +19,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -128,7 +129,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modelService.recompute(OrgType.class, ORG_CARIBBEAN_JAMAICA_OID, task, result);
+        modelService.recompute(OrgType.class, ORG_CARIBBEAN_JAMAICA_OID, null, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -190,7 +191,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modelService.recompute(OrgType.class, ORG_GOVERNOR_OFFICE_OID, task, result);
+        modelService.recompute(OrgType.class, ORG_GOVERNOR_OFFICE_OID, null, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -255,7 +256,8 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, task, result);
+        modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, 
+        		ModelExecuteOptions.createReconcileFocus(), task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -331,7 +333,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, task, result);
+        modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, null, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);

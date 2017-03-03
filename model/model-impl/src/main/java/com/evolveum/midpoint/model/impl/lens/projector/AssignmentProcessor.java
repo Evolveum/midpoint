@@ -892,7 +892,7 @@ public class AssignmentProcessor {
 		ItemPath orgRefPath = new ItemPath(FocusType.F_PARENT_ORG_REF);
 
         // check if parentOrgRef recon is needed - it is when something inside OrgType assignment has changed
-        boolean forceRecon = context.isDoReconciliationForAllProjections();		// this is directly influenced by Reconcile model execution option
+        boolean forceRecon = context.isReconcileFocus(); // this is directly influenced by Reconcile model execution option
 		if (!forceRecon) {
 			for (EvaluatedAssignmentImpl assignment : evaluatedAssignmentTriple.getAllValues()) {
 				if (assignment.isForceRecon() &&

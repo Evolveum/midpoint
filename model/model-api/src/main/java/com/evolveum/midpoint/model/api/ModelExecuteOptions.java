@@ -50,9 +50,18 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	private Boolean noCrypt;
 	
 	/**
-	 * Option to reconcile focus while executing changes.
+	 * Option to reconcile focus and all projections while executing changes.
+	 * (implies reconcileFocus)
 	 */
 	private Boolean reconcile;
+	
+	/**
+	 * Option to reconcile focus while executing changes.
+	 * If this option is set and the reconcile option is not set then the projections
+	 * reconciliation will not be forced (but it may still happen if other configuration
+	 * loads full projection).
+	 */
+	private Boolean reconcileFocus;
 
     /**
      * Option to reconcile affected objects after executing changes.
@@ -196,7 +205,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		this.reconcile = reconcile;
 	}
 	
-	public static boolean isReconcile(ModelExecuteOptions options){
+	public static boolean isReconcile(ModelExecuteOptions options) {
 		if (options == null){
 			return false;
 		}
@@ -206,15 +215,39 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		return options.reconcile;
 	}
 	
-	public static ModelExecuteOptions createReconcile(){
+	public static ModelExecuteOptions createReconcile() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setReconcile(true);
 		return opts;
 	}
 
-	public ModelExecuteOptions setReconcile(){
+	public ModelExecuteOptions setReconcile() {
 		setReconcile(true);
 		return this;
+	}
+	
+	public Boolean getReconcileFocus() {
+		return reconcileFocus;
+	}
+
+	public void setReconcileFocus(Boolean reconcileFocus) {
+		this.reconcileFocus = reconcileFocus;
+	}
+
+	public static ModelExecuteOptions createReconcileFocus() {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setReconcileFocus(true);
+		return opts;
+	}
+	
+	public static boolean isReconcileFocus(ModelExecuteOptions options) {
+		if (options == null){
+			return false;
+		}
+		if (options.reconcileFocus == null){
+			return false;
+		}
+		return options.reconcileFocus;
 	}
 
     public Boolean getReconcileAffected() {
@@ -456,6 +489,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         retval.setRaw(raw);
         retval.setNoCrypt(noCrypt);
         retval.setReconcile(reconcile);
+        retval.setReconcileFocus(reconcileFocus);
         retval.setExecuteImmediatelyAfterApproval(executeImmediatelyAfterApproval);
         retval.setOverwrite(overwrite);
         retval.setIsImport(isImport);
@@ -463,6 +497,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		retval.setReevaluateSearchFilters(reevaluateSearchFilters);
 		// preAuthorized is purposefully omitted (security reasons)
 		retval.setRequestBusinessContext(requestBusinessContext);
+		retval.setPartialProcessing(partialProcessing);
         return retval;
     }
 
@@ -475,6 +510,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         retval.setRaw(type.isRaw());
         retval.setNoCrypt(type.isNoCrypt());
         retval.setReconcile(type.isReconcile());
+        retval.setReconcileFocus(type.isReconcileFocus());
         retval.setExecuteImmediatelyAfterApproval(type.isExecuteImmediatelyAfterApproval());
         retval.setOverwrite(type.isOverwrite());
         retval.setIsImport(type.isIsImport());
@@ -482,6 +518,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		retval.setReevaluateSearchFilters(type.isReevaluateSearchFilters());
 		// preAuthorized is purposefully omitted (security reasons)
 		retval.setRequestBusinessContext(type.getRequestBusinessContext());
+		retval.setPartialProcessing(type.getPartialProcessing());
         return retval;
     }
     
@@ -537,6 +574,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     	appendFlag(sb, "preAuthorized", preAuthorized);
     	appendFlag(sb, "raw", raw);
     	appendFlag(sb, "reconcile", reconcile);
+    	appendFlag(sb, "reconcileFocus", reconcileFocus);
     	appendFlag(sb, "reevaluateSearchFilters", reevaluateSearchFilters);
     	appendFlag(sb, "reconcileAffected", reconcileAffected);
     	appendFlag(sb, "requestBusinessContext", requestBusinessContext == null ? null : true);

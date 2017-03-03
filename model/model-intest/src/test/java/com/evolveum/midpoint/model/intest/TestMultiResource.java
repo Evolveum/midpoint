@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.rbac.TestRbac;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -578,7 +579,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 	/**
 	 * Delete account on beige dummy resource (but keep it assigned and keep the shadow).
-	 * The recompute the user. The account should be re-created.
+	 * Then recompute the user. The account should be re-created.
 	 * MID-2134, MID-3093
 	 */
 	@Test
@@ -595,7 +596,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		recomputeUser(USER_JACK_OID, task, result);
+		recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -638,7 +639,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		recomputeUser(USER_JACK_OID, task, result);
+		recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -2109,7 +2110,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyResourceGoliath.setBreakMode(BreakMode.NONE);
         
         // WHEN
-        modelService.recompute(UserType.class, userBefore.getOid(), task, result);
+        recomputeUser(userBefore.getOid(), task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);

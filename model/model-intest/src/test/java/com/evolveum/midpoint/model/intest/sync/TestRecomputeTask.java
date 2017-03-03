@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,9 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 	private static final File TASK_USER_RECOMPUTE_FILE = new File(TEST_DIR, "task-user-recompute.xml");
 	private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
 	
+	private static final File TASK_USER_RECOMPUTE_LIGHT_FILE = new File(TEST_DIR, "task-user-recompute-light.xml");
+	private static final String TASK_USER_RECOMPUTE_LIGHT_OID = "b7b6af78-fffe-11e6-ac04-2fdd62641ce2";
+	
 	private static final File TASK_USER_RECOMPUTE_CAPTAIN_FILE = new File(TEST_DIR, "task-user-recompute-captain.xml");
 	private static final String TASK_USER_RECOMPUTE_CAPTAIN_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaac";
 		
@@ -97,7 +100,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestRecomputeTask.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // Preconditions
@@ -257,7 +260,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestRecomputeTask.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // Preconditions
@@ -309,8 +312,6 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
 	/**
 	 * Here we recompute herman as well.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void test120RecomputeByExpression() throws Exception {
@@ -318,7 +319,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = createTask(TestRecomputeTask.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// Preconditions
@@ -363,6 +364,94 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Wrong success count", 1, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
 		assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
 
+		assertUsers(6);
+
+	}
+	
+	/**
+	 * Light recompute. Very efficient, no resource operations, just fix the focus.
+	 * MID-3384
+	 */
+	@Test
+	public void test130RecomputeLight() throws Exception {
+		final String TEST_NAME = "test130RecomputeLight";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// Preconditions
+		assertUsers(6);
+
+		PrismObject<UserType> usetJackBefore = getUser(USER_JACK_OID);
+		display("User jack before", usetJackBefore);
+		assertAssignedRole(usetJackBefore, ROLE_JUDGE_OID);
+		assertRoleMembershipRef(usetJackBefore, ROLE_JUDGE_OID);
+		
+		assignOrg(USER_GUYBRUSH_OID, ORG_MINISTRY_OF_OFFENSE_OID, null);
+		PrismObject<UserType> usetGuybrushBefore = getUser(USER_GUYBRUSH_OID);
+		display("User guybrush before", usetGuybrushBefore);
+		assertAssignedRole(usetGuybrushBefore, ROLE_PIRATE_OID);
+		assertRoleMembershipRef(usetGuybrushBefore, ROLE_PIRATE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+		assertAssignedOrgs(usetGuybrushBefore, ORG_MINISTRY_OF_OFFENSE_OID);
+	    assertHasOrgs(usetGuybrushBefore, ORG_MINISTRY_OF_OFFENSE_OID);
+		
+		clearUserOrgAndRoleRefs(USER_JACK_OID);
+		clearUserOrgAndRoleRefs(USER_GUYBRUSH_OID);
+		
+		rememberShadowFetchOperationCount();
+		rememberConnectorOperationCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		addObject(TASK_USER_RECOMPUTE_LIGHT_FILE);
+
+		dummyAuditService.clear();
+
+		waitForTaskStart(TASK_USER_RECOMPUTE_LIGHT_OID, false);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		waitForTaskFinish(TASK_USER_RECOMPUTE_LIGHT_OID, true, 40000);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+		display("Users after recompute", users);
+
+		assertShadowFetchOperationCountIncrement(0);
+		assertConnectorOperationIncrement(0);
+		
+		assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+		assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
+		assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+
+		// Red resource does not delete accounts on deprovision, it disables them
+		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
+
+		// Herman should be recomputed now
+		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
+
+		TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_LIGHT_OID).asObjectable();
+		assertEquals("Wrong success count", 6, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
+		assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
+
+		PrismObject<UserType> usetJackAfter = getUser(USER_JACK_OID);
+		display("User jack after", usetJackAfter);
+		assertAssignedRole(usetJackAfter, ROLE_JUDGE_OID);
+		assertRoleMembershipRef(usetJackAfter, ROLE_JUDGE_OID);
+		
+		PrismObject<UserType> usetGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+		display("User guybrush after", usetGuybrushAfter);
+		assertAssignedRole(usetGuybrushAfter, ROLE_PIRATE_OID);
+		assertRoleMembershipRef(usetGuybrushAfter, ROLE_PIRATE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+		assertAssignedOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
+	    assertHasOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
+		
 		assertUsers(6);
 
 	}

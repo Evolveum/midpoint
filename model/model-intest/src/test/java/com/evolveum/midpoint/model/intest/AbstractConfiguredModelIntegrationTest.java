@@ -22,6 +22,8 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -56,6 +58,8 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -599,5 +603,22 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     
     protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		assertPasswordMetadata(user, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+	}
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	protected void clearUserOrgAndRoleRefs(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	OperationResult result = new OperationResult("clearUserOrgAndRoleRefs");
+    	Collection modifications = new ArrayList<>();
+    	ReferenceDelta parentOrgRefDelta = ReferenceDelta.createModificationReplace(
+    			UserType.F_PARENT_ORG_REF, getUserDefinition(), (PrismReferenceValue)null);
+    	modifications.add(parentOrgRefDelta);
+    	ReferenceDelta roleMembershipRefDelta = ReferenceDelta.createModificationReplace(
+    			UserType.F_ROLE_MEMBERSHIP_REF, getUserDefinition(), (PrismReferenceValue)null);
+    	modifications.add(roleMembershipRefDelta);
+		repositoryService.modifyObject(UserType.class, userOid, modifications, result);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userBefore = getUser(userOid);
+        display("User before", userBefore);
 	}
 }

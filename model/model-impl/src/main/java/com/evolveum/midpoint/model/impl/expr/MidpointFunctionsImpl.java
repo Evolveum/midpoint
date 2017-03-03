@@ -910,7 +910,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
-		modelService.recompute(type, oid, getCurrentTask(), getCurrentResult());
+		modelService.recompute(type, oid, null, getCurrentTask(), getCurrentResult());
 	}
 
 	@Override

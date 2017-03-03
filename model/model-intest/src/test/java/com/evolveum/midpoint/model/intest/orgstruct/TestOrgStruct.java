@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
@@ -64,6 +65,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import javax.xml.namespace.QName;
@@ -504,8 +507,126 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // Postcondition
         assertMonkeyIslandOrgSanity();
     }
+    
+    
+    /**
+     * Recompute jack. Make sure nothing is changed.
+     * MID-3384
+     */
+    @Test
+    public void test230JackRecompute() throws Exception {
+        final String TEST_NAME = "test230JackRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
-    private Long findAssignmentIdForTarget(PrismObject<UserType> user, String targetOid) {
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        rememberShadowFetchOperationCount();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertRefs23x();
+        assertShadowFetchOperationCountIncrement(1);
+    }
+    
+    /**
+     * Destroy parentOrgRef and roleMembershipRef in the repo. Then recompute.
+     * Make sure that the refs are fixed.
+     * MID-3384
+     */
+    @Test
+    public void test232JackDestroyRefsAndRecompute() throws Exception {
+        final String TEST_NAME = "test232JackDestroyRefsAndRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        clearUserOrgAndRoleRefs(USER_JACK_OID);
+        
+        rememberShadowFetchOperationCount();
+        rememberConnectorOperationCount();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertRefs23x();
+        assertShadowFetchOperationCountIncrement(1);
+        assertConnectorOperationIncrement(4);
+    }
+    
+    /**
+     * Destroy parentOrgRef and roleMembershipRef in the repo. Then light recompute.
+     * Make sure that the refs are fixed and that the resources were not touched.
+     * MID-3384
+     */
+    @Test
+    public void test234JackDestroyRefsAndLightRecompute() throws Exception {
+        final String TEST_NAME = "test234JackDestroyRefsAndLightRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        clearUserOrgAndRoleRefs(USER_JACK_OID);
+        
+        rememberShadowFetchOperationCount();
+        rememberConnectorOperationCount();
+
+        PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
+        partialProcessing.setInbound(PartialProcessingTypeType.SKIP);
+        partialProcessing.setObjectTemplateBeforeAssignments(PartialProcessingTypeType.SKIP);
+        partialProcessing.setObjectTemplateAfterAssignments(PartialProcessingTypeType.SKIP);
+        partialProcessing.setProjection(PartialProcessingTypeType.SKIP);
+        partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
+		ModelExecuteOptions options = ModelExecuteOptions.createPartialProcessing(partialProcessing);
+		options.setReconcileFocus(true);
+        
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+        modelService.recompute(UserType.class, USER_JACK_OID, options, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertRefs23x();
+        assertShadowFetchOperationCountIncrement(0);
+        assertConnectorOperationIncrement(0);
+    }
+
+    
+    
+    private void assertRefs23x() throws Exception {
+    	PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignedOrgs(userAfter, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID);
+        assertHasOrgs(userAfter, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrg(userAfter, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrg(userAfter, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertAssignedOrg(userAfter, ORG_SCUMM_BAR_OID, null);
+        assertHasOrg(userAfter, ORG_SCUMM_BAR_OID, null);
+        assertAssignedOrg(userAfter, ORG_SAVE_ELAINE_OID, null);
+        assertHasOrg(userAfter, ORG_SAVE_ELAINE_OID, null);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+
+	private Long findAssignmentIdForTarget(PrismObject<UserType> user, String targetOid) {
         for (AssignmentType assignmentType : user.asObjectable().getAssignment()) {
             if (assignmentType.getTargetRef() != null && targetOid.equals(assignmentType.getTargetRef().getOid())) {
                 return assignmentType.getId();

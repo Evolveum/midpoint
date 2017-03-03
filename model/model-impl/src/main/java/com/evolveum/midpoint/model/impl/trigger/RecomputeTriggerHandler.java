@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
@@ -82,11 +83,12 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 		try {
 			
 			LOGGER.trace("Recomputing {}", object);
-			LensContext<UserType> syncContext = contextFactory.createRecomputeContext(object, task, result);
+			// Reconcile option used for compatibility. TODO: do we need it?
+			LensContext<UserType> lensContext = contextFactory.createRecomputeContext(object, ModelExecuteOptions.createReconcile(), task, result);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recomputing of {}: context:\n{}", object, syncContext.debugDump());
+				LOGGER.trace("Recomputing of {}: context:\n{}", object, lensContext.debugDump());
 			}
-			clockwork.run(syncContext, task, result);
+			clockwork.run(lensContext, task, result);
 			LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());
 			
 		} catch (SchemaException e) {

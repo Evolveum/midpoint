@@ -36,6 +36,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -2185,7 +2186,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
+        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -2452,10 +2453,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         addObject(ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE);
         
-        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
+        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);

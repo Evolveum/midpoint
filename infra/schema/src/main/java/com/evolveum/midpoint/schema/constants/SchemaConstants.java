@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,6 +127,7 @@ public abstract class SchemaConstants {
 	public static final QName C_ITEM_PATH_FIELD = new QName(NS_C, "itemPathField");
 	public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
 	public static final QName C_SECURITY_POLICY = new QName(NS_C, "securityPolicy");
+	public static final QName C_MODEL_EXECUTE_OPTIONS = new QName(NS_C, "modelExecuteOptions");
 
 	public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES,
 			"PolyStringType");

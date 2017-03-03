@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -110,20 +112,32 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
 			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException {
-				recompute(object, workerTask, result);
+				recompute(object, getOptions(coordinatorTask), workerTask, result);
 				return true;
 			}
+
 		};
         handler.setStopOnError(false);
         return handler;
 	}
 
-	private void recompute(PrismObject<FocusType> focalObject, Task task, OperationResult result) throws SchemaException,
+	private ModelExecuteOptions getOptions(Task coordinatorTask) throws SchemaException {
+		ModelExecuteOptions modelExecuteOptions = Utils.getModelExecuteOptions(coordinatorTask);
+		if (modelExecuteOptions == null) {
+			// Make reconcile the default (for compatibility). If there are no options
+			// then assume reconcile.
+			modelExecuteOptions =  ModelExecuteOptions.createReconcile();
+		}
+		LOGGER.trace("ModelExecuteOptions: {}", modelExecuteOptions);
+		return modelExecuteOptions;
+	}
+	
+	private void recompute(PrismObject<FocusType> focalObject, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing object {}", focalObject);
 
-		LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalObject, task, result);
+		LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalObject, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Recomputing object {}: context:\n{}", focalObject, syncContext.debugDump());
 		}

@@ -241,8 +241,15 @@ public interface ModelService {
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 
     /**
+     * <p>
 	 * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
 	 * mapping and tries to re-apply them as necessary.
+	 * </p>
+	 * <p>
+	 * This method is DEPRECATED. It is provided for compatibility only. Please use the version with options
+	 * instead of this one. This method will assume the reconcile option to keep compatible behavior with
+	 * previous versions.
+	 * </p>
 	 * 
 	 * @param type type (class) of an object to recompute
 	 * @param oid OID of the object to recompute
@@ -252,7 +259,26 @@ public interface ModelService {
 	 * 			  Task instance. It gives context to the execution (e.g. security context)
 	 * @param parentResult parent OperationResult (in/out)
 	 */
+    @Deprecated
 	<F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
+			 throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+	
+	/**
+	 * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
+	 * mapping and tries to re-apply them as necessary.
+	 * 
+	 * @since 3.6
+	 * 
+	 * @param type type (class) of an object to recompute
+	 * @param oid OID of the object to recompute
+	 * @param options execute options
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
+	 * @param parentResult parent OperationResult (in/out)
+	 */
+	<F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			 throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	/**

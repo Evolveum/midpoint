@@ -12135,6 +12135,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="reconcileFocus" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Option to reconcile focus while executing changes.
+						If this option is set and the reconcile option is not set then the projections
+						reconciliation will not be forced (but it may still happen if other configuration
+						loads full projection).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="reconcileAffected" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -12203,6 +12213,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="modelExecuteOptions" type="tns:ModelExecuteOptionsType"/>
     
     <xsd:complexType name="OperationBusinessContextType">
         <xsd:annotation>

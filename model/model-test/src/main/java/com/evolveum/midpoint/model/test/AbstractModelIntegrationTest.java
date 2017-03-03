@@ -814,7 +814,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void recomputeUser(String userOid, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
-		modelService.recompute(UserType.class, userOid, task, result);
+		modelService.recompute(UserType.class, userOid, null, task, result);
+	}
+	
+	protected void recomputeUser(String userOid, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
+		modelService.recompute(UserType.class, userOid, options, task, result);
 	}
 	
 	protected void assignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -3896,7 +3900,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected String addAndRecompute(File file, Task task, OperationResult result) throws Exception {
 		PrismObject<ObjectType> object = repoAddObjectFromFile(file, result);
-		modelService.recompute(object.asObjectable().getClass(), object.getOid(), task, result);
+		modelService.recompute(object.asObjectable().getClass(), object.getOid(), null, task, result);
 		display("Object: " + file, getObject(object.asObjectable().getClass(), object.getOid()));
 		return object.getOid();
 	}

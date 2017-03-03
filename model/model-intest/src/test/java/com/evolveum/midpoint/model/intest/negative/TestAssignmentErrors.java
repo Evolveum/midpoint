@@ -505,7 +505,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
 		
 		// WHEN
-        modelService.recompute(UserType.class, user.getOid(), task, result);
+        recomputeUser(user.getOid(), task, result);
         
 		// THEN
         result.computeStatus();
@@ -527,7 +527,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         result = task.getResult();
 		
 		// WHEN
-        modelService.recompute(UserType.class, user.getOid(), task, result);
+        recomputeUser(user.getOid(), task, result);
         
 		// THEN
         result.computeStatus();
@@ -561,7 +561,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         
         try {
 	        // WHEN
-	        modelService.recompute(UserType.class, user.getOid(), task, result);
+        	recomputeUser(user.getOid(), task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (ObjectAlreadyExistsException e) {
@@ -581,7 +581,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         
         try {
 	        // WHEN
-	        modelService.recompute(UserType.class, user.getOid(), task, result);
+        	recomputeUser(user.getOid(), task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (ObjectAlreadyExistsException e) {
@@ -616,7 +616,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
 		
 		// WHEN
-        modelService.recompute(UserType.class, user.getOid(), task, result);
+        recomputeUser(user.getOid(), task, result);
         
 		// THEN
         result.computeStatus();
@@ -638,7 +638,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         result = task.getResult();
 		
 		// WHEN
-        modelService.recompute(UserType.class, user.getOid(), task, result);
+        recomputeUser(user.getOid(), task, result);
         
 		// THEN
         result.computeStatus();

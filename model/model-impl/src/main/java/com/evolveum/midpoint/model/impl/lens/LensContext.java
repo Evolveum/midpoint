@@ -47,155 +47,163 @@ import java.util.stream.Collectors;
  */
 public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
-    private static final long serialVersionUID = -778283437426659540L;
-    private static final String DOT_CLASS = LensContext.class.getName() + ".";
+	private static final long serialVersionUID = -778283437426659540L;
+	private static final String DOT_CLASS = LensContext.class.getName() + ".";
 
-    private ModelState state = ModelState.INITIAL;
-	
+	private ModelState state = ModelState.INITIAL;
+
 	/**
-     * Channel that is the source of primary change (GUI, live sync, import, ...)
-     */
-    private String channel;
-    
+	 * Channel that is the source of primary change (GUI, live sync, import,
+	 * ...)
+	 */
+	private String channel;
+
 	private LensFocusContext<F> focusContext;
 	private Collection<LensProjectionContext> projectionContexts = new ArrayList<LensProjectionContext>();
 
 	/**
-	 * EXPERIMENTAL. A trace of resource objects that once existed but were unlinked or deleted,
-	 * and the corresponding contexts were rotten and removed afterwards.
+	 * EXPERIMENTAL. A trace of resource objects that once existed but were
+	 * unlinked or deleted, and the corresponding contexts were rotten and
+	 * removed afterwards.
 	 *
 	 * Necessary to evaluate old state of hasLinkedAccount.
 	 *
-	 * TODO implement as non-transient.
-	 * TODO consider storing whole projection contexts here.
- 	 */
+	 * TODO implement as non-transient. TODO consider storing whole projection
+	 * contexts here.
+	 */
 	transient private Collection<ResourceShadowDiscriminator> historicResourceObjects;
 
 	private Class<F> focusClass;
-	
-	private boolean lazyAuditRequest = false;		// should be the request audited just before the execution is audited?
-	private boolean requestAudited = false;			// was the request audited?
-	private boolean executionAudited = false;		// was the execution audited?
+
+	private boolean lazyAuditRequest = false; // should be the request audited
+												// just before the execution is
+												// audited?
+	private boolean requestAudited = false; // was the request audited?
+	private boolean executionAudited = false; // was the execution audited?
 	private LensContextStatsType stats = new LensContextStatsType();
-	
+
 	/**
-	 * Metadata of the request. Metadata recorded when the operation has started.
-	 * Currently only the requestTimestamp and requestorRef are meaningful. But
-	 * later other metadata may be used.
+	 * Metadata of the request. Metadata recorded when the operation has
+	 * started. Currently only the requestTimestamp and requestorRef are
+	 * meaningful. But later other metadata may be used.
 	 */
 	private MetadataType requestMetadata;
 
 	/*
-	 *  Executed deltas from rotten contexts.
+	 * Executed deltas from rotten contexts.
 	 */
 	private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<LensObjectDeltaOperation<?>>();
 
 	transient private ObjectTemplateType focusTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 	transient private ValuePolicyType globalPasswordPolicy;
-	
+
 	transient private DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple;
-	
+
 	/**
-	 * Just a cached copy. Keep it in context so we do not need to reload it all the time.
+	 * Just a cached copy. Keep it in context so we do not need to reload it all
+	 * the time.
 	 */
 	transient private PrismObject<SystemConfigurationType> systemConfiguration;
-	
+
 	/**
-     * True if we want to reconcile all accounts in this context.
-     */
-    private boolean doReconciliationForAllProjections = false;
-    
-    /**
+	 * True if we want to reconcile all accounts in this context.
+	 */
+	private boolean doReconciliationForAllProjections = false;
+
+	/**
 	 * Current wave of computation and execution.
 	 */
 	int projectionWave = 0;
 
-    /**
+	/**
 	 * Current wave of execution.
 	 */
 	int executionWave = 0;
-	
+
 	private String triggeredResourceOid;
 
 	/**
-	 * At this level, isFresh == false means that deeper recomputation has to be carried out.
+	 * At this level, isFresh == false means that deeper recomputation has to be
+	 * carried out.
 	 */
 	transient private boolean isFresh = false;
 	transient private boolean isRequestAuthorized = false;
-	
+
 	/**
-     * Cache of resource instances. It is used to reduce the number of read (getObject) calls for ResourceType objects.
-     */
-    transient private Map<String, ResourceType> resourceCache;
-	
+	 * Cache of resource instances. It is used to reduce the number of read
+	 * (getObject) calls for ResourceType objects.
+	 */
+	transient private Map<String, ResourceType> resourceCache;
+
 	transient private PrismContext prismContext;
 
-    transient private ProvisioningService provisioningService;
-	
+	transient private ProvisioningService provisioningService;
+
 	private ModelExecuteOptions options;
-	
+
 	/**
 	 * Used mostly in unit tests.
 	 */
 	transient private LensDebugListener debugListener;
 
-    /**
-     * User feedback.
-     */
-    transient private Collection<ProgressListener> progressListeners;
-    
-    private Map<String,Long> sequences = new HashMap<>();
+	/**
+	 * User feedback.
+	 */
+	transient private Collection<ProgressListener> progressListeners;
+
+	private Map<String, Long> sequences = new HashMap<>();
 
 	/**
-	 * Moved from ProjectionValuesProcessor
-	 * TODO consider if necessary to serialize to XML
+	 * Moved from ProjectionValuesProcessor TODO consider if necessary to
+	 * serialize to XML
 	 */
 	private List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
-    public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
+	public LensContext(Class<F> focusClass, PrismContext prismContext,
+			ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
-		
-        this.prismContext = prismContext;
-        this.provisioningService = provisioningService;
-        this.focusClass = focusClass;
-    }
-	
+
+		this.prismContext = prismContext;
+		this.provisioningService = provisioningService;
+		this.focusClass = focusClass;
+	}
+
 	protected LensContext(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
-	
+
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
-	
+
 	protected PrismContext getNotNullPrismContext() {
 		if (prismContext == null) {
-			throw new IllegalStateException("Null prism context in "+this+"; the context was not adopted (most likely)");
+			throw new IllegalStateException(
+					"Null prism context in " + this + "; the context was not adopted (most likely)");
 		}
 		return prismContext;
 	}
 
-    public ProvisioningService getProvisioningService() {
-        return provisioningService;
-    }
-    
-    public void setTriggeredResource(String triggeredResourceOid) {
+	public ProvisioningService getProvisioningService() {
+		return provisioningService;
+	}
+
+	public void setTriggeredResource(String triggeredResourceOid) {
 		this.triggeredResourceOid = triggeredResourceOid;
 	}
-    
-    public void setTriggeredResource(ResourceType triggeredResource) {
-    	if (triggeredResource != null){
-    		this.triggeredResourceOid = triggeredResource.getOid();
-    	}
+
+	public void setTriggeredResource(ResourceType triggeredResource) {
+		if (triggeredResource != null) {
+			this.triggeredResourceOid = triggeredResource.getOid();
+		}
 	}
-    
-    public String getTriggeredResourceOid() {
+
+	public String getTriggeredResourceOid() {
 		return triggeredResourceOid;
 	}
 
-
-    @Override
+	@Override
 	public ModelState getState() {
 		return state;
 	}
@@ -208,15 +216,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public LensFocusContext<F> getFocusContext() {
 		return focusContext;
 	}
-	
+
 	public void setFocusContext(LensFocusContext<F> focusContext) {
 		this.focusContext = focusContext;
 	}
-	
+
 	public LensFocusContext<F> createFocusContext() {
 		return createFocusContext(null);
 	}
-	
+
 	public LensFocusContext<F> createFocusContext(Class<F> explicitFocusClass) {
 		if (explicitFocusClass != null) {
 			this.focusClass = explicitFocusClass;
@@ -224,11 +232,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		focusContext = new LensFocusContext<F>(focusClass, this);
 		return focusContext;
 	}
-	
+
 	public LensFocusContext<F> getOrCreateFocusContext() {
 		return getOrCreateFocusContext(null);
 	}
-	
+
 	public LensFocusContext<F> getOrCreateFocusContext(Class<F> explicitFocusClass) {
 		if (focusContext == null) {
 			createFocusContext(explicitFocusClass);
@@ -240,27 +248,27 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public Collection<LensProjectionContext> getProjectionContexts() {
 		return projectionContexts;
 	}
-	
+
 	public Iterator<LensProjectionContext> getProjectionContextsIterator() {
 		return projectionContexts.iterator();
 	}
-	
+
 	public void addProjectionContext(LensProjectionContext projectionContext) {
 		projectionContexts.add(projectionContext);
 	}
-	
+
 	public LensProjectionContext findProjectionContextByOid(String oid) {
-		for (LensProjectionContext projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
 			if (oid.equals(projCtx.getOid())) {
 				return projCtx;
 			}
 		}
 		return null;
 	}
-		
+
 	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat) {
 		Validate.notNull(rat);
-		for (LensProjectionContext projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
 			if (projCtx.compareResourceShadowDiscriminator(rat, true)) {
 				return projCtx;
 			}
@@ -275,22 +283,23 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 		return projectionContext;
 	}
-	
+
 	public ObjectTemplateType getFocusTemplate() {
 		return focusTemplate;
 	}
-	
+
 	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
 		this.focusTemplate = focusTemplate;
 	}
-	
+
 	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
 		LensProjectionContext projectionContext = findProjectionContext(rat);
-		
-		if (projectionContext == null || projectionContext.getOid() == null || !oid.equals(projectionContext.getOid())) {
+
+		if (projectionContext == null || projectionContext.getOid() == null
+				|| !oid.equals(projectionContext.getOid())) {
 			return null;
 		}
-		 
+
 		return projectionContext;
 	}
 
@@ -298,8 +307,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return systemConfiguration;
 	}
 
-	public void setSystemConfiguration(
-			PrismObject<SystemConfigurationType> systemConfiguration) {
+	public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
 		this.systemConfiguration = systemConfiguration;
 	}
 
@@ -307,19 +315,18 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return accountSynchronizationSettings;
 	}
 
-	public void setAccountSynchronizationSettings(
-			ProjectionPolicyType accountSynchronizationSettings) {
+	public void setAccountSynchronizationSettings(ProjectionPolicyType accountSynchronizationSettings) {
 		this.accountSynchronizationSettings = accountSynchronizationSettings;
 	}
-	
+
 	public ValuePolicyType getGlobalPasswordPolicy() {
 		return globalPasswordPolicy;
 	}
-	
+
 	public void setGlobalPasswordPolicy(ValuePolicyType globalPasswordPolicy) {
 		this.globalPasswordPolicy = globalPasswordPolicy;
 	}
-	
+
 	public int getProjectionWave() {
 		return projectionWave;
 	}
@@ -327,15 +334,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setProjectionWave(int wave) {
 		this.projectionWave = wave;
 	}
-	
+
 	public void incrementProjectionWave() {
 		projectionWave++;
 	}
-	
+
 	public void resetProjectionWave() {
 		projectionWave = executionWave;
 	}
-	
+
 	public int getExecutionWave() {
 		return executionWave;
 	}
@@ -350,14 +357,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public int getMaxWave() {
 		int maxWave = 0;
-		for (LensProjectionContext projContext: projectionContexts) {
+		for (LensProjectionContext projContext : projectionContexts) {
 			if (projContext.getWave() > maxWave) {
 				maxWave = projContext.getWave();
 			}
 		}
 		return maxWave;
 	}
-	
+
 	public boolean isFresh() {
 		return isFresh;
 	}
@@ -365,7 +372,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setFresh(boolean isFresh) {
 		this.isFresh = isFresh;
 	}
-	
+
 	public boolean isRequestAuthorized() {
 		return isRequestAuthorized;
 	}
@@ -382,45 +389,48 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (focusContext != null) {
 			focusContext.setFresh(false);
 		}
-		for (LensProjectionContext projectionContext: projectionContexts) {
+		for (LensProjectionContext projectionContext : projectionContexts) {
 			projectionContext.setFresh(false);
 			projectionContext.setFullShadow(false);
 		}
 	}
-	
-//	/**
-//	 * Make the context as clean as new. Except for the executed deltas and other "traces" of
-//	 * what was already done and cannot be undone. Also the configuration items that were loaded may remain.
-//	 * This is used to restart the context computation but keep the trace of what was already done.
-//	 */
-//	public void reset() {
-//		state = ModelState.INITIAL;
-//		evaluatedAssignmentTriple = null;
-//		projectionWave = 0;
-//		executionWave = 0;
-//		isFresh = false;
-//		if (focusContext != null) {
-//			focusContext.reset();
-//		}
-//		if (projectionContexts != null) {
-//			for (LensProjectionContext projectionContext: projectionContexts) {
-//				projectionContext.reset();
-//			}
-//		}
-//	}
+
+	// /**
+	// * Make the context as clean as new. Except for the executed deltas and
+	// other "traces" of
+	// * what was already done and cannot be undone. Also the configuration
+	// items that were loaded may remain.
+	// * This is used to restart the context computation but keep the trace of
+	// what was already done.
+	// */
+	// public void reset() {
+	// state = ModelState.INITIAL;
+	// evaluatedAssignmentTriple = null;
+	// projectionWave = 0;
+	// executionWave = 0;
+	// isFresh = false;
+	// if (focusContext != null) {
+	// focusContext.reset();
+	// }
+	// if (projectionContexts != null) {
+	// for (LensProjectionContext projectionContext: projectionContexts) {
+	// projectionContext.reset();
+	// }
+	// }
+	// }
 
 	public String getChannel() {
-        return channel;
-    }
+		return channel;
+	}
 
-    public void setChannel(String channelUri) {
-        this.channel = channelUri;
-    }
-    
-    public void setChannel(QName channelQName) {
-        this.channel = QNameUtil.qNameToUri(channelQName);
-    }
+	public void setChannel(String channelUri) {
+		this.channel = channelUri;
+	}
 
+	public void setChannel(QName channelQName) {
+		this.channel = QNameUtil.qNameToUri(channelQName);
+	}
+	
 	public boolean isDoReconciliationForAllProjections() {
 		return doReconciliationForAllProjections;
 	}
@@ -429,22 +439,27 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.doReconciliationForAllProjections = doReconciliationForAllProjections;
 	}
 	
+	public boolean isReconcileFocus() {
+		return doReconciliationForAllProjections ||  ModelExecuteOptions.isReconcileFocus(options);
+	}
+
 	public DeltaSetTriple<EvaluatedAssignmentImpl> getEvaluatedAssignmentTriple() {
 		return evaluatedAssignmentTriple;
 	}
 
-	public void setEvaluatedAssignmentTriple(DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple) {
+	public void setEvaluatedAssignmentTriple(
+			DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple) {
 		this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
 	}
-	
+
 	public ModelExecuteOptions getOptions() {
 		return options;
 	}
-	
+
 	public void setOptions(ModelExecuteOptions options) {
 		this.options = options;
 	}
-	
+
 	public PartialProcessingOptionsType getPartialProcessingOptions() {
 		if (options == null || options.getPartialProcessing() == null) {
 			return new PartialProcessingOptionsType();
@@ -488,7 +503,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setRequestAudited(boolean requestAudited) {
 		this.requestAudited = requestAudited;
 	}
-	
+
 	public boolean isExecutionAudited() {
 		return executionAudited;
 	}
@@ -513,22 +528,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	/**
-     * Returns all changes, user and all accounts. Both primary and secondary changes are returned, but
-     * these are not merged.
-     * TODO: maybe it would be better to merge them.
-     */
-    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException {
-        Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        if (focusContext != null) {
-	        addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
-	        addChangeIfNotNull(allChanges, focusContext.getSecondaryDelta());
-        }
-        for (LensProjectionContext projCtx: getProjectionContexts()) {
-            addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
-            addChangeIfNotNull(allChanges, projCtx.getSecondaryDelta());
-        }
-        return allChanges;
-    }
+	 * Returns all changes, user and all accounts. Both primary and secondary
+	 * changes are returned, but these are not merged. TODO: maybe it would be
+	 * better to merge them.
+	 */
+	public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException {
+		Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		if (focusContext != null) {
+			addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
+			addChangeIfNotNull(allChanges, focusContext.getSecondaryDelta());
+		}
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
+			addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
+			addChangeIfNotNull(allChanges, projCtx.getSecondaryDelta());
+		}
+		return allChanges;
+	}
 
 	public boolean hasAnyPrimaryChange() throws SchemaException {
 		if (focusContext != null) {
@@ -536,129 +551,134 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 				return true;
 			}
 		}
-		for (LensProjectionContext projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
 			if (!ObjectDelta.isNullOrEmpty(projCtx.getPrimaryDelta())) {
 				return true;
 			}
 		}
 		return false;
 	}
-    
-    public Collection<ObjectDelta<? extends ObjectType>> getPrimaryChanges() throws SchemaException {
-        Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        if (focusContext != null) {
-	        addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
-        }
-        for (LensProjectionContext projCtx: getProjectionContexts()) {
-            addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
-        }
-        return allChanges;
-    }
 
-	private <T extends ObjectType> void addChangeIfNotNull(Collection<ObjectDelta<? extends ObjectType>> changes,
-            ObjectDelta<T> change) {
-        if (change != null) {
-            changes.add(change);
-        }
-    }
+	public Collection<ObjectDelta<? extends ObjectType>> getPrimaryChanges() throws SchemaException {
+		Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		if (focusContext != null) {
+			addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
+		}
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
+			addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
+		}
+		return allChanges;
+	}
 
-    public void replacePrimaryFocusDelta(ObjectDelta<F> newDelta) {
-        focusContext.setPrimaryDelta(newDelta);
-        // todo any other changes have to be done?
-    }
+	private <T extends ObjectType> void addChangeIfNotNull(
+			Collection<ObjectDelta<? extends ObjectType>> changes, ObjectDelta<T> change) {
+		if (change != null) {
+			changes.add(change);
+		}
+	}
 
-    public void replacePrimaryFocusDeltas(List<ObjectDelta<F>> deltas) throws SchemaException {
-        replacePrimaryFocusDelta(null);
-        if (deltas != null) {
-            for (ObjectDelta<F> delta : deltas) {
-                focusContext.addPrimaryDelta(delta);
-            }
-        }
-        // todo any other changes have to be done?
-    }
+	public void replacePrimaryFocusDelta(ObjectDelta<F> newDelta) {
+		focusContext.setPrimaryDelta(newDelta);
+		// todo any other changes have to be done?
+	}
 
-
-    /**
-     * Returns all executed deltas, user and all accounts.
-     */
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas() throws SchemaException {
-    	return getExecutedDeltas(null);
-    }
+	public void replacePrimaryFocusDeltas(List<ObjectDelta<F>> deltas) throws SchemaException {
+		replacePrimaryFocusDelta(null);
+		if (deltas != null) {
+			for (ObjectDelta<F> delta : deltas) {
+				focusContext.addPrimaryDelta(delta);
+			}
+		}
+		// todo any other changes have to be done?
+	}
 
 	/**
-     * Returns all executed deltas, user and all accounts.
-     */
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> getUnauditedExecutedDeltas() throws SchemaException {
-    	return getExecutedDeltas(false);
-    }
+	 * Returns all executed deltas, user and all accounts.
+	 */
+	public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas() throws SchemaException {
+		return getExecutedDeltas(null);
+	}
 
-    /**
-     * Returns all executed deltas, user and all accounts.
-     */
-    Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas(Boolean audited) throws SchemaException {
-        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
-        if (focusContext != null) {
-	        executedDeltas.addAll(focusContext.getExecutedDeltas(audited));
-        }
-        for (LensProjectionContext projCtx: getProjectionContexts()) {
-        	executedDeltas.addAll(projCtx.getExecutedDeltas(audited));
-        }
-        if (audited == null) {
-        	executedDeltas.addAll(getRottenExecutedDeltas());
-        }
-        return executedDeltas;
-    }
-    
-    public void markExecutedDeltasAudited()  {
-        if (focusContext != null) {
-        	focusContext.markExecutedDeltasAudited();
-        }
-        for (LensProjectionContext projCtx: getProjectionContexts()) {
-        	projCtx.markExecutedDeltasAudited();
-        }
-    }
- 
+	/**
+	 * Returns all executed deltas, user and all accounts.
+	 */
+	public Collection<ObjectDeltaOperation<? extends ObjectType>> getUnauditedExecutedDeltas()
+			throws SchemaException {
+		return getExecutedDeltas(false);
+	}
+
+	/**
+	 * Returns all executed deltas, user and all accounts.
+	 */
+	Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas(Boolean audited)
+			throws SchemaException {
+		Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
+		if (focusContext != null) {
+			executedDeltas.addAll(focusContext.getExecutedDeltas(audited));
+		}
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
+			executedDeltas.addAll(projCtx.getExecutedDeltas(audited));
+		}
+		if (audited == null) {
+			executedDeltas.addAll(getRottenExecutedDeltas());
+		}
+		return executedDeltas;
+	}
+
+	public void markExecutedDeltasAudited() {
+		if (focusContext != null) {
+			focusContext.markExecutedDeltasAudited();
+		}
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
+			projCtx.markExecutedDeltasAudited();
+		}
+	}
+
 	public List<LensObjectDeltaOperation<?>> getRottenExecutedDeltas() {
 		return rottenExecutedDeltas;
 	}
-    
+
 	public void recompute() throws SchemaException {
 		recomputeFocus();
 		recomputeProjections();
 	}
 
-    // mainly computes new state based on old state and delta(s)
+	// mainly computes new state based on old state and delta(s)
 	public void recomputeFocus() throws SchemaException {
 		if (focusContext != null) {
 			focusContext.recompute();
 		}
 	}
-	
+
 	public void recomputeProjections() throws SchemaException {
-		for (LensProjectionContext projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
 			projCtx.recompute();
 		}
 	}
-	
+
 	public void refreshAuxiliaryObjectClassDefinitions() throws SchemaException {
-		for (LensProjectionContext projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
 			projCtx.refreshAuxiliaryObjectClassDefinitions();
-		}		
+		}
 	}
 
-    public void checkAbortRequested() {
-        if (isAbortRequested()) {
-            throw new RuntimeException("Aborted on user request");             // TODO more meaningful exception + message
-        }
-    }
+	public void checkAbortRequested() {
+		if (isAbortRequested()) {
+			throw new RuntimeException("Aborted on user request"); // TODO more
+																	// meaningful
+																	// exception
+																	// + message
+		}
+	}
 
 	public void checkConsistence() {
-        checkAbortRequested();
+		checkAbortRequested();
 		if (focusContext != null) {
 			focusContext.checkConsistence();
 		}
-		for (LensProjectionContext projectionContext: projectionContexts) {
-			projectionContext.checkConsistence(this.toString(), isFresh, ModelExecuteOptions.isForce(options));
+		for (LensProjectionContext projectionContext : projectionContexts) {
+			projectionContext.checkConsistence(this.toString(), isFresh,
+					ModelExecuteOptions.isForce(options));
 		}
 	}
 
@@ -666,23 +686,23 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (focusContext != null && !focusContext.isDelete()) {
 			focusContext.checkEncrypted();
 		}
-		for (LensProjectionContext projectionContext: projectionContexts) {
+		for (LensProjectionContext projectionContext : projectionContexts) {
 			if (!projectionContext.isDelete()) {
 				projectionContext.checkEncrypted();
 			}
 		}
 	}
-	
+
 	public LensProjectionContext createProjectionContext() {
 		return createProjectionContext(null);
 	}
-	
+
 	public LensProjectionContext createProjectionContext(ResourceShadowDiscriminator rat) {
 		LensProjectionContext projCtx = new LensProjectionContext(this, rat);
 		addProjectionContext(projCtx);
 		return projCtx;
 	}
-	
+
 	private Map<String, ResourceType> getResourceCache() {
 		if (resourceCache == null) {
 			resourceCache = new HashMap<String, ResourceType>();
@@ -691,186 +711,190 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	/**
-     * Returns a resource for specified account type.
-     * This is supposed to be efficient, taking the resource from the cache. It assumes the resource is in the cache.
-     *
-     * @see SyncContext#rememberResource(ResourceType)
-     */
-    public ResourceType getResource(ResourceShadowDiscriminator rat) {
-        return getResource(rat.getResourceOid());
-    }
-    
-    /**
-     * Returns a resource for specified account type.
-     * This is supposed to be efficient, taking the resource from the cache. It assumes the resource is in the cache.
-     *
-     * @see SyncContext#rememberResource(ResourceType)
-     */
-    public ResourceType getResource(String resourceOid) {
-        return getResourceCache().get(resourceOid);
-    }
-	
-	/**
-     * Puts resources in the cache for later use. The resources should be fetched from provisioning
-     * and have pre-parsed schemas. So the next time just reuse them without the other overhead.
-     */
-    public void rememberResources(Collection<ResourceType> resources) {
-        for (ResourceType resourceType : resources) {
-            rememberResource(resourceType);
-        }
-    }
+	 * Returns a resource for specified account type. This is supposed to be
+	 * efficient, taking the resource from the cache. It assumes the resource is
+	 * in the cache.
+	 *
+	 * @see SyncContext#rememberResource(ResourceType)
+	 */
+	public ResourceType getResource(ResourceShadowDiscriminator rat) {
+		return getResource(rat.getResourceOid());
+	}
 
-    /**
-     * Puts resource in the cache for later use. The resource should be fetched from provisioning
-     * and have pre-parsed schemas. So the next time just reuse it without the other overhead.
-     */
-    public void rememberResource(ResourceType resourceType) {
-    	getResourceCache().put(resourceType.getOid(), resourceType);
-    }
-    
 	/**
-	 * Cleans up the contexts by removing some of the working state.
-	 * The current wave number is retained. Otherwise it ends up in endless loop.
+	 * Returns a resource for specified account type. This is supposed to be
+	 * efficient, taking the resource from the cache. It assumes the resource is
+	 * in the cache.
+	 *
+	 * @see SyncContext#rememberResource(ResourceType)
+	 */
+	public ResourceType getResource(String resourceOid) {
+		return getResourceCache().get(resourceOid);
+	}
+
+	/**
+	 * Puts resources in the cache for later use. The resources should be
+	 * fetched from provisioning and have pre-parsed schemas. So the next time
+	 * just reuse them without the other overhead.
+	 */
+	public void rememberResources(Collection<ResourceType> resources) {
+		for (ResourceType resourceType : resources) {
+			rememberResource(resourceType);
+		}
+	}
+
+	/**
+	 * Puts resource in the cache for later use. The resource should be fetched
+	 * from provisioning and have pre-parsed schemas. So the next time just
+	 * reuse it without the other overhead.
+	 */
+	public void rememberResource(ResourceType resourceType) {
+		getResourceCache().put(resourceType.getOid(), resourceType);
+	}
+
+	/**
+	 * Cleans up the contexts by removing some of the working state. The current
+	 * wave number is retained. Otherwise it ends up in endless loop.
 	 */
 	public void cleanup() throws SchemaException {
 		if (focusContext != null) {
 			focusContext.cleanup();
 		}
-		for (LensProjectionContext projectionContext: projectionContexts) {
+		for (LensProjectionContext projectionContext : projectionContexts) {
 			projectionContext.cleanup();
 		}
 		recompute();
 	}
-    
-    public void adopt(PrismContext prismContext) throws SchemaException {
-    	this.prismContext = prismContext;
-    	
-    	if (focusContext != null) {
-    		focusContext.adopt(prismContext);
-    	}
-    	for (LensProjectionContext projectionContext: projectionContexts) {
-    		projectionContext.adopt(prismContext);
-    	}
-    }
-    
-    public void normalize() {
-    	if (focusContext != null) {
-    		focusContext.normalize();
-    	}
-    	if (projectionContexts != null) {
-    		for (LensProjectionContext projectionContext: projectionContexts) {
-    			projectionContext.normalize();
-    		}
-    	}
-    }
-    
-    public LensContext<F> clone() {
-    	LensContext<F> clone = new LensContext<F>(focusClass, prismContext, provisioningService);
-    	copyValues(clone);
-    	return clone;
-    }
-    
-    protected void copyValues(LensContext<F> clone) {
-    	clone.state = this.state;
-    	clone.channel = this.channel;
-    	clone.doReconciliationForAllProjections = this.doReconciliationForAllProjections;
-    	clone.focusClass = this.focusClass;
-    	clone.isFresh = this.isFresh;
-    	clone.prismContext = this.prismContext;
-    	clone.resourceCache = cloneResourceCache();
-    	// User template is de-facto immutable, OK to just pass reference here.
-    	clone.focusTemplate = this.focusTemplate;
-    	clone.projectionWave = this.projectionWave;
-        if (options != null) {
-            clone.options = this.options.clone();
-        }
-    	
-    	if (this.focusContext != null) {
-    		clone.focusContext = this.focusContext.clone(this);
-    	}
-    	
-    	for (LensProjectionContext thisProjectionContext: this.projectionContexts) {
-    		clone.projectionContexts.add(thisProjectionContext.clone(this));
-    	}
-    }
+
+	public void adopt(PrismContext prismContext) throws SchemaException {
+		this.prismContext = prismContext;
+
+		if (focusContext != null) {
+			focusContext.adopt(prismContext);
+		}
+		for (LensProjectionContext projectionContext : projectionContexts) {
+			projectionContext.adopt(prismContext);
+		}
+	}
+
+	public void normalize() {
+		if (focusContext != null) {
+			focusContext.normalize();
+		}
+		if (projectionContexts != null) {
+			for (LensProjectionContext projectionContext : projectionContexts) {
+				projectionContext.normalize();
+			}
+		}
+	}
+
+	public LensContext<F> clone() {
+		LensContext<F> clone = new LensContext<F>(focusClass, prismContext, provisioningService);
+		copyValues(clone);
+		return clone;
+	}
+
+	protected void copyValues(LensContext<F> clone) {
+		clone.state = this.state;
+		clone.channel = this.channel;
+		clone.doReconciliationForAllProjections = this.doReconciliationForAllProjections;
+		clone.focusClass = this.focusClass;
+		clone.isFresh = this.isFresh;
+		clone.prismContext = this.prismContext;
+		clone.resourceCache = cloneResourceCache();
+		// User template is de-facto immutable, OK to just pass reference here.
+		clone.focusTemplate = this.focusTemplate;
+		clone.projectionWave = this.projectionWave;
+		if (options != null) {
+			clone.options = this.options.clone();
+		}
+
+		if (this.focusContext != null) {
+			clone.focusContext = this.focusContext.clone(this);
+		}
+
+		for (LensProjectionContext thisProjectionContext : this.projectionContexts) {
+			clone.projectionContexts.add(thisProjectionContext.clone(this));
+		}
+	}
 
 	private Map<String, ResourceType> cloneResourceCache() {
 		if (resourceCache == null) {
 			return null;
 		}
 		Map<String, ResourceType> clonedMap = new HashMap<String, ResourceType>();
-		for (Entry<String, ResourceType> entry: resourceCache.entrySet()) {
+		for (Entry<String, ResourceType> entry : resourceCache.entrySet()) {
 			clonedMap.put(entry.getKey(), entry.getValue());
 		}
 		return clonedMap;
 	}
-	
+
 	public void distributeResource() {
-		for (LensProjectionContext projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx : getProjectionContexts()) {
 			projCtx.distributeResource();
 		}
 	}
 
-    @Override
-    public Class<F> getFocusClass() {
-        return focusClass;
-    }
+	@Override
+	public Class<F> getFocusClass() {
+		return focusClass;
+	}
 
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-    
-    public String dump(boolean showTriples) {
-        return debugDump(0, showTriples);
-    }
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
 
-    @Override
-    public String debugDump(int indent) {
-    	return debugDump(indent, true);
-    }
+	public String dump(boolean showTriples) {
+		return debugDump(0, showTriples);
+	}
 
-    public String debugDump(int indent, boolean showTriples) {
-        StringBuilder sb = new StringBuilder();
-        DebugUtil.indentDebugDump(sb, indent);
-        sb.append("LensContext: state=").append(state);
-        sb.append(", Wave(e=").append(executionWave);
-        sb.append(",p=").append(projectionWave);
-        sb.append(",max=").append(getMaxWave());
-        sb.append("), ");
-        if (focusContext != null) {
-        	sb.append("focus, ");
-        }
-        sb.append(projectionContexts.size());
-        sb.append(" projections, ");
-        try {
+	@Override
+	public String debugDump(int indent) {
+		return debugDump(indent, true);
+	}
+
+	public String debugDump(int indent, boolean showTriples) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("LensContext: state=").append(state);
+		sb.append(", Wave(e=").append(executionWave);
+		sb.append(",p=").append(projectionWave);
+		sb.append(",max=").append(getMaxWave());
+		sb.append("), ");
+		if (focusContext != null) {
+			sb.append("focus, ");
+		}
+		sb.append(projectionContexts.size());
+		sb.append(" projections, ");
+		try {
 			Collection<ObjectDelta<? extends ObjectType>> allChanges = getAllChanges();
 			sb.append(allChanges.size());
 		} catch (SchemaException e) {
 			sb.append("[ERROR]");
 		}
-        sb.append(" changes, ");
-        sb.append("fresh=").append(isFresh);
-        if (systemConfiguration == null) {
-        	sb.append(" null-system-configuration");
-        }
-        sb.append("\n");
+		sb.append(" changes, ");
+		sb.append("fresh=").append(isFresh);
+		if (systemConfiguration == null) {
+			sb.append(" null-system-configuration");
+		}
+		sb.append("\n");
 
-        DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);
-        sb.append(" ").append(channel).append("\n");
-        DebugUtil.debugDumpLabel(sb, "Options", indent + 1);
-        sb.append(" ").append(options).append("\n");
-        DebugUtil.debugDumpLabel(sb, "Settings", indent + 1);
-        sb.append(" ");
-        if (accountSynchronizationSettings != null) {
-            sb.append("assignments=");
-            sb.append(accountSynchronizationSettings.getAssignmentPolicyEnforcement());
-        } else {
-            sb.append("null");
-        }
-        sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);
+		sb.append(" ").append(channel).append("\n");
+		DebugUtil.debugDumpLabel(sb, "Options", indent + 1);
+		sb.append(" ").append(options).append("\n");
+		DebugUtil.debugDumpLabel(sb, "Settings", indent + 1);
+		sb.append(" ");
+		if (accountSynchronizationSettings != null) {
+			sb.append("assignments=");
+			sb.append(accountSynchronizationSettings.getAssignmentPolicyEnforcement());
+		} else {
+			sb.append("null");
+		}
+		sb.append("\n");
 
-        DebugUtil.debugDumpWithLabel(sb, "FOCUS", focusContext, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "FOCUS", focusContext, indent + 1);
 
 		sb.append("\n");
 		if (DebugUtil.isDetailedDebugDump()) {
@@ -879,34 +903,39 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			DebugUtil.indentDebugDump(sb, indent + 3);
 			sb.append("Evaluated assignments:");
 			if (evaluatedAssignmentTriple != null) {
-				dumpEvaluatedAssignments(sb, "Zero", (Collection) evaluatedAssignmentTriple.getZeroSet(), indent + 4);
-				dumpEvaluatedAssignments(sb, "Plus", (Collection) evaluatedAssignmentTriple.getPlusSet(), indent + 4);
-				dumpEvaluatedAssignments(sb, "Minus", (Collection) evaluatedAssignmentTriple.getMinusSet(), indent + 4);
+				dumpEvaluatedAssignments(sb, "Zero", (Collection) evaluatedAssignmentTriple.getZeroSet(),
+						indent + 4);
+				dumpEvaluatedAssignments(sb, "Plus", (Collection) evaluatedAssignmentTriple.getPlusSet(),
+						indent + 4);
+				dumpEvaluatedAssignments(sb, "Minus", (Collection) evaluatedAssignmentTriple.getMinusSet(),
+						indent + 4);
 			} else {
 				sb.append(" (null)");
 			}
 		}
 		sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent + 1);
-        sb.append("PROJECTIONS:");
-        if (projectionContexts.isEmpty()) {
-            sb.append(" none");
-        } else {
-        	sb.append(" (").append(projectionContexts.size()).append("):");
-            for (LensProjectionContext projCtx : projectionContexts) {
+		DebugUtil.indentDebugDump(sb, indent + 1);
+		sb.append("PROJECTIONS:");
+		if (projectionContexts.isEmpty()) {
+			sb.append(" none");
+		} else {
+			sb.append(" (").append(projectionContexts.size()).append("):");
+			for (LensProjectionContext projCtx : projectionContexts) {
 				sb.append("\n");
-            	sb.append(projCtx.debugDump(indent + 2, showTriples));
-            }
-        }
+				sb.append(projCtx.debugDump(indent + 2, showTriples));
+			}
+		}
 		if (historicResourceObjects != null && !historicResourceObjects.isEmpty()) {
 			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "Deleted/unlinked resource objects", historicResourceObjects.toString(), indent + 1);	// temporary impl
+			DebugUtil.debugDumpWithLabel(sb, "Deleted/unlinked resource objects",
+					historicResourceObjects.toString(), indent + 1); // temporary
+																		// impl
 		}
 
-        return sb.toString();
-    }
+		return sb.toString();
+	}
 
-    @Override
+	@Override
 	public String dumpPolicyRules(int indent) {
 		if (evaluatedAssignmentTriple == null) {
 			return "";
@@ -915,31 +944,33 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		evaluatedAssignmentTriple.debugDumpSets(sb, assignment -> {
 			DebugUtil.indentDebugDump(sb, indent);
 			sb.append(assignment.toHumanReadableString());
-			@SuppressWarnings({"unchecked", "raw"})
+			@SuppressWarnings({ "unchecked", "raw" })
 			Collection<EvaluatedPolicyRule> targetPolicyRules = assignment.getTargetPolicyRules();
 			@SuppressWarnings("unchecked")
 			Collection<EvaluatedPolicyRule> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
-			for (EvaluatedPolicyRule rule: targetPolicyRules) {
+			for (EvaluatedPolicyRule rule : targetPolicyRules) {
 				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent+1);
+				DebugUtil.indentDebugDump(sb, indent + 1);
 				if (thisTargetPolicyRules.stream().anyMatch(d -> d == rule)) {
 					sb.append("local ");
 				}
 				sb.append("rule: ").append(rule.getName());
-				for (EvaluatedPolicyRuleTrigger trigger: rule.getTriggers()) {
+				for (EvaluatedPolicyRuleTrigger trigger : rule.getTriggers()) {
 					sb.append("\n");
-					DebugUtil.indentDebugDump(sb, indent+2);
+					DebugUtil.indentDebugDump(sb, indent + 2);
 					sb.append("trigger: ").append(trigger);
 					if (trigger instanceof EvaluatedExclusionTrigger
 							&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
 						sb.append("\n");
-						DebugUtil.indentDebugDump(sb, indent+3);
-						sb.append("conflict: ").append(((EvaluatedAssignmentImpl)((EvaluatedExclusionTrigger) trigger).getConflictingAssignment()).toHumanReadableString());
+						DebugUtil.indentDebugDump(sb, indent + 3);
+						sb.append("conflict: ")
+								.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
+										.getConflictingAssignment()).toHumanReadableString());
 					}
 				}
-				for (PolicyExceptionType exc: rule.getPolicyExceptions()) {
+				for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
 					sb.append("\n");
-					DebugUtil.indentDebugDump(sb, indent+2);
+					DebugUtil.indentDebugDump(sb, indent + 2);
 					sb.append("exception: ").append(exc);
 				}
 			}
@@ -947,7 +978,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return sb.toString();
 	}
 
-	private <F extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label, Collection<EvaluatedAssignmentImpl<F>> set, int indent) {
+	private <F extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label,
+			Collection<EvaluatedAssignmentImpl<F>> set, int indent) {
 		sb.append("\n");
 		DebugUtil.debugDumpLabel(sb, label, indent);
 		for (EvaluatedAssignmentImpl<F> assignment : set) {
@@ -955,12 +987,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append(" -> " + assignment.getTarget());
 			dumpRules(sb, "focus rules", assignment.getFocusPolicyRules(), null);
-			dumpRules(sb, "target rules", assignment.getTargetPolicyRules(), assignment.getThisTargetPolicyRules());
+			dumpRules(sb, "target rules", assignment.getTargetPolicyRules(),
+					assignment.getThisTargetPolicyRules());
 		}
 	}
 
-	private <F extends FocusType> void dumpRules(StringBuilder sb, String label, Collection<EvaluatedPolicyRule> policyRules,
-			Collection<EvaluatedPolicyRule> directPolicyRules) {
+	private <F extends FocusType> void dumpRules(StringBuilder sb, String label,
+			Collection<EvaluatedPolicyRule> policyRules, Collection<EvaluatedPolicyRule> directPolicyRules) {
 		sb.append(" [").append(label).append("(").append(policyRules.size()).append("): ");
 		boolean first = true;
 		for (EvaluatedPolicyRule rule : policyRules) {
@@ -969,16 +1002,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			} else {
 				sb.append("; ");
 			}
-			if (directPolicyRules != null && directPolicyRules.stream().anyMatch(d -> d==rule)) {
-				sb.append("L");		// L for Local
+			if (directPolicyRules != null && directPolicyRules.stream().anyMatch(d -> d == rule)) {
+				sb.append("L"); // L for Local
 			}
 			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
 			sb.append("->");
 			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getActions())).append(")");
 			if (!rule.getTriggers().isEmpty()) {
 				sb.append("=>T:(");
-				sb.append(rule.getTriggers().stream()
-						.map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+				sb.append(rule.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
 						.collect(Collectors.joining(", ")));
 				sb.append(")");
 			}
@@ -991,147 +1023,161 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return pc.getValue().asContainerable();
 	}
 
-    public PrismContainer<LensContextType> toPrismContainer() throws SchemaException {
+	public PrismContainer<LensContextType> toPrismContainer() throws SchemaException {
 
-        PrismContainer<LensContextType> lensContextTypeContainer = PrismContainer.newInstance(getPrismContext(), LensContextType.COMPLEX_TYPE);
-        LensContextType lensContextType = lensContextTypeContainer.createNewValue().asContainerable();
+		PrismContainer<LensContextType> lensContextTypeContainer = PrismContainer
+				.newInstance(getPrismContext(), LensContextType.COMPLEX_TYPE);
+		LensContextType lensContextType = lensContextTypeContainer.createNewValue().asContainerable();
 
-        lensContextType.setState(state != null ? state.toModelStateType() : null);
-        lensContextType.setChannel(channel);
+		lensContextType.setState(state != null ? state.toModelStateType() : null);
+		lensContextType.setChannel(channel);
 
-        if (focusContext != null) {
-            PrismContainer<LensFocusContextType> lensFocusContextTypeContainer = lensContextTypeContainer.findOrCreateContainer(LensContextType.F_FOCUS_CONTEXT);
-            focusContext.addToPrismContainer(lensFocusContextTypeContainer);
-        }
+		if (focusContext != null) {
+			PrismContainer<LensFocusContextType> lensFocusContextTypeContainer = lensContextTypeContainer
+					.findOrCreateContainer(LensContextType.F_FOCUS_CONTEXT);
+			focusContext.addToPrismContainer(lensFocusContextTypeContainer);
+		}
 
-        PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer = lensContextTypeContainer.findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
-        for (LensProjectionContext lensProjectionContext : projectionContexts) {
-            lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer);
-        }
-        lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
-        lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
-        lensContextType.setProjectionWave(projectionWave);
-        lensContextType.setExecutionWave(executionWave);
-        lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
-        lensContextType.setLazyAuditRequest(lazyAuditRequest);
-        lensContextType.setRequestAudited(requestAudited);
-        lensContextType.setExecutionAudited(executionAudited);
-        lensContextType.setStats(stats);
-        lensContextType.setRequestMetadata(requestMetadata);
-        
-        for (LensObjectDeltaOperation executedDelta : rottenExecutedDeltas) {
-        	lensContextType.getRottenExecutedDeltas().add(executedDelta.toLensObjectDeltaOperationType());
-        }
+		PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer = lensContextTypeContainer
+				.findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
+		for (LensProjectionContext lensProjectionContext : projectionContexts) {
+			lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer);
+		}
+		lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
+		lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
+		lensContextType.setProjectionWave(projectionWave);
+		lensContextType.setExecutionWave(executionWave);
+		lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
+		lensContextType.setLazyAuditRequest(lazyAuditRequest);
+		lensContextType.setRequestAudited(requestAudited);
+		lensContextType.setExecutionAudited(executionAudited);
+		lensContextType.setStats(stats);
+		lensContextType.setRequestMetadata(requestMetadata);
 
-        return lensContextTypeContainer;
-    }
+		for (LensObjectDeltaOperation executedDelta : rottenExecutedDeltas) {
+			lensContextType.getRottenExecutedDeltas().add(executedDelta.toLensObjectDeltaOperationType());
+		}
 
+		return lensContextTypeContainer;
+	}
 
-    public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext, ProvisioningService provisioningService, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+	public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext,
+			ProvisioningService provisioningService, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
-        OperationResult result = parentResult.createSubresult(DOT_CLASS + "fromLensContextType");
+		OperationResult result = parentResult.createSubresult(DOT_CLASS + "fromLensContextType");
 
-        String focusClassString = lensContextType.getFocusClass();
+		String focusClassString = lensContextType.getFocusClass();
 
-        if (StringUtils.isEmpty(focusClassString)) {
-            throw new SystemException("Focus class is undefined in LensContextType");
-        }
+		if (StringUtils.isEmpty(focusClassString)) {
+			throw new SystemException("Focus class is undefined in LensContextType");
+		}
 
-        LensContext lensContext;
-        try {
-            lensContext = new LensContext(Class.forName(focusClassString), prismContext, provisioningService);
-        } catch (ClassNotFoundException e) {
-            throw new SystemException("Couldn't instantiate LensContext because focus or projection class couldn't be found", e);
-        }
+		LensContext lensContext;
+		try {
+			lensContext = new LensContext(Class.forName(focusClassString), prismContext, provisioningService);
+		} catch (ClassNotFoundException e) {
+			throw new SystemException(
+					"Couldn't instantiate LensContext because focus or projection class couldn't be found",
+					e);
+		}
 
-        lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
-        lensContext.setChannel(lensContextType.getChannel());
-        lensContext.setFocusContext(LensFocusContext.fromLensFocusContextType(lensContextType.getFocusContext(), lensContext, result));
-        for (LensProjectionContextType lensProjectionContextType : lensContextType.getProjectionContext()) {
-            lensContext.addProjectionContext(LensProjectionContext.fromLensProjectionContextType(lensProjectionContextType, lensContext, result));
-        }
-        lensContext.setDoReconciliationForAllProjections(lensContextType.isDoReconciliationForAllProjections() != null ?
-				lensContextType.isDoReconciliationForAllProjections() : false);
-        lensContext.setProjectionWave(lensContextType.getProjectionWave() != null ?
-				lensContextType.getProjectionWave() : 0);
-        lensContext.setExecutionWave(lensContextType.getExecutionWave() != null ?
-				lensContextType.getExecutionWave() : 0);
-        lensContext.setOptions(ModelExecuteOptions.fromModelExecutionOptionsType(lensContextType.getOptions()));
-        if (lensContextType.isLazyAuditRequest() != null) {
-        	lensContext.setLazyAuditRequest(lensContextType.isLazyAuditRequest());
-        }
-        if (lensContextType.isRequestAudited() != null) {
-        	lensContext.setRequestAudited(lensContextType.isRequestAudited());
-        }
-        if (lensContextType.isExecutionAudited() != null) {
-        	lensContext.setExecutionAudited(lensContextType.isExecutionAudited());
-        }
-        lensContext.setStats(lensContextType.getStats());
-        lensContext.setRequestMetadata(lensContextType.getRequestMetadata());
+		lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
+		lensContext.setChannel(lensContextType.getChannel());
+		lensContext.setFocusContext(LensFocusContext
+				.fromLensFocusContextType(lensContextType.getFocusContext(), lensContext, result));
+		for (LensProjectionContextType lensProjectionContextType : lensContextType.getProjectionContext()) {
+			lensContext.addProjectionContext(LensProjectionContext
+					.fromLensProjectionContextType(lensProjectionContextType, lensContext, result));
+		}
+		lensContext.setDoReconciliationForAllProjections(
+				lensContextType.isDoReconciliationForAllProjections() != null
+						? lensContextType.isDoReconciliationForAllProjections() : false);
+		lensContext.setProjectionWave(
+				lensContextType.getProjectionWave() != null ? lensContextType.getProjectionWave() : 0);
+		lensContext.setExecutionWave(
+				lensContextType.getExecutionWave() != null ? lensContextType.getExecutionWave() : 0);
+		lensContext
+				.setOptions(ModelExecuteOptions.fromModelExecutionOptionsType(lensContextType.getOptions()));
+		if (lensContextType.isLazyAuditRequest() != null) {
+			lensContext.setLazyAuditRequest(lensContextType.isLazyAuditRequest());
+		}
+		if (lensContextType.isRequestAudited() != null) {
+			lensContext.setRequestAudited(lensContextType.isRequestAudited());
+		}
+		if (lensContextType.isExecutionAudited() != null) {
+			lensContext.setExecutionAudited(lensContextType.isExecutionAudited());
+		}
+		lensContext.setStats(lensContextType.getStats());
+		lensContext.setRequestMetadata(lensContextType.getRequestMetadata());
 
-        for (LensObjectDeltaOperationType eDeltaOperationType : lensContextType.getRottenExecutedDeltas()) {
-            LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());
-            if (objectDeltaOperation.getObjectDelta() != null) {
-            	lensContext.fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), result);
-            }
-            lensContext.rottenExecutedDeltas.add(objectDeltaOperation);
-        }
-        
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
-        return lensContext;
-    }
-    
-    protected void fixProvisioningTypeInDelta(ObjectDelta delta, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        if (delta != null && delta.getObjectTypeClass() != null && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass()) || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
-            getProvisioningService().applyDefinition(delta, result);
-        }
-    }
+		for (LensObjectDeltaOperationType eDeltaOperationType : lensContextType.getRottenExecutedDeltas()) {
+			LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation
+					.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());
+			if (objectDeltaOperation.getObjectDelta() != null) {
+				lensContext.fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), result);
+			}
+			lensContext.rottenExecutedDeltas.add(objectDeltaOperation);
+		}
+
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		return lensContext;
+	}
+
+	protected void fixProvisioningTypeInDelta(ObjectDelta delta, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		if (delta != null && delta.getObjectTypeClass() != null
+				&& (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())
+						|| ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
+			getProvisioningService().applyDefinition(delta, result);
+		}
+	}
 
 	@Override
 	public String toString() {
-		return "LensContext(s=" + state + ", W(e=" + executionWave + ",p=" + projectionWave + "): "+focusContext+", "+projectionContexts+")";
+		return "LensContext(s=" + state + ", W(e=" + executionWave + ",p=" + projectionWave + "): "
+				+ focusContext + ", " + projectionContexts + ")";
 	}
-	
-	
-	public ValuePolicyType getEffectivePasswordPolicy(){
-		if (getFocusContext().getOrgPasswordPolicy() != null){
+
+	public ValuePolicyType getEffectivePasswordPolicy() {
+		if (getFocusContext().getOrgPasswordPolicy() != null) {
 			return getFocusContext().getOrgPasswordPolicy();
 		}
 		return globalPasswordPolicy;
 	}
 
-    public void setProgressListeners(Collection<ProgressListener> progressListeners) {
-        this.progressListeners = progressListeners;
-    }
+	public void setProgressListeners(Collection<ProgressListener> progressListeners) {
+		this.progressListeners = progressListeners;
+	}
 
-    public Collection<ProgressListener> getProgressListeners() {
-        return progressListeners;
-    }
+	public Collection<ProgressListener> getProgressListeners() {
+		return progressListeners;
+	}
 
-    @Override
-    public void reportProgress(ProgressInformation progress) {
-        if (progressListeners == null) {
-            return;
-        }
+	@Override
+	public void reportProgress(ProgressInformation progress) {
+		if (progressListeners == null) {
+			return;
+		}
 
-        for (ProgressListener listener : progressListeners) {
-            listener.onProgressAchieved(this, progress);
-        }
-    }
+		for (ProgressListener listener : progressListeners) {
+			listener.onProgressAchieved(this, progress);
+		}
+	}
 
-    public boolean isAbortRequested() {
-        if (progressListeners == null) {
-            return false;
-        }
-        for (ProgressListener progressListener : progressListeners) {
-            if (progressListener.isAbortRequested()) {
-                return true;
-            }
-        }
-        return false;
-    }
+	public boolean isAbortRequested() {
+		if (progressListeners == null) {
+			return false;
+		}
+		for (ProgressListener progressListener : progressListeners) {
+			if (progressListener.isAbortRequested()) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public Collection<ResourceShadowDiscriminator> getHistoricResourceObjects() {
 		if (historicResourceObjects == null) {
@@ -1139,7 +1185,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 		return historicResourceObjects;
 	}
-	
+
 	public Map<String, Long> getSequences() {
 		return sequences;
 	}
@@ -1147,7 +1193,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public Long getSequenceCounter(String sequenceOid) {
 		return sequences.get(sequenceOid);
 	}
-	
+
 	public void setSequenceCounter(String sequenceOid, long counter) {
 		sequences.put(sequenceOid, counter);
 	}
@@ -1163,9 +1209,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void clearConflictingProjectionContexts() {
 		conflictingProjectionContexts.clear();
 	}
-	
+
 	public boolean hasExplosiveProjection() throws SchemaException {
-		for (LensProjectionContext projectionContext: projectionContexts) {
+		for (LensProjectionContext projectionContext : projectionContexts) {
 			if (projectionContext.getVolatility() == ResourceObjectVolatilityType.EXPLOSIVE) {
 				return true;
 			}

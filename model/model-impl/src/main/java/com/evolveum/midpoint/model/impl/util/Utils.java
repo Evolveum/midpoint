@@ -452,7 +452,7 @@ public final class Utils {
         setRequestee(task, (PrismObject) null);
     }
     
-    public static boolean isDryRun(Task task) throws SchemaException{
+    public static boolean isDryRun(Task task) throws SchemaException {
 		Boolean dryRun = isDryRunInternal(task);
 		if (dryRun == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
 			dryRun = isDryRunInternal(task.getParentForLightweightAsynchronousTask());
@@ -473,6 +473,30 @@ public final class Utils {
 			throw new SchemaException("Unexpected number of values for option 'dry run'.");
 		}
 		return item.getValues().iterator().next().getValue();
+    }
+    
+    public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
+    	Validate.notNull(task, "Task must not be null.");
+    	if (task.getExtension() == null) {
+    		return null;
+    	}
+    	LOGGER.info("Task:\n{}",task.debugDump(1));
+    	PrismProperty<ModelExecuteOptionsType> item = task.getExtensionProperty(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
+		if (item == null || item.isEmpty()) {
+			return null;
+		}
+		LOGGER.info("Item:\n{}",item.debugDump(1));
+		if (item.getValues().size() > 1) {
+			throw new SchemaException("Unexpected number of values for option 'modelExecuteOptions'.");
+		}
+		ModelExecuteOptionsType modelExecuteOptionsType = item.getValues().iterator().next().getValue();
+		if (modelExecuteOptionsType == null) {
+			return null;
+		}
+		LOGGER.info("modelExecuteOptionsType: {}",modelExecuteOptionsType);
+		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
+		LOGGER.info("modelExecuteOptions: {}",modelExecuteOptions);
+		return modelExecuteOptions;
     }
 
 	public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context, @Nullable LensProjectionContext projCtx) throws SchemaException {

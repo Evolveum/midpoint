@@ -580,7 +580,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 						
 						LOGGER.debug("Recomputing {} because there was explosive projection", focus);
 
-						LensContext<? extends ObjectType> recomputeContext = contextFactory.createRecomputeContext(focus, task, result);
+						LensContext<? extends ObjectType> recomputeContext = contextFactory.createRecomputeContext(focus, options, task, result);
 						recomputeContext.setDoReconciliationForAllProjections(true);
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace("Recomputing {}, context:\n{}", focus, recomputeContext.debugDump());
@@ -670,6 +670,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public <F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+		recompute(type, oid, options, task, parentResult);
+	}
+	
+	@Override
+	public <F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 			
 		OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
 		result.addParams(new String[] { "oid", "type" }, oid, type);
@@ -683,11 +689,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			
 			LOGGER.debug("Recomputing {}", focus);
 
-			LensContext<F> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
+			LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result); 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.debugDump());
+				LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDump());
 			}
-			clockwork.run(syncContext, task, result);
+			clockwork.run(lensContext, task, result);
 			
 			result.computeStatus();
 			
