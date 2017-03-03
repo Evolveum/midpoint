@@ -70,6 +70,7 @@
             <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicyProcessor"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicy"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyRules"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyMetadata"/>
         </classes>
     </test>
     <test name="Misc" preserve-order="true" parallel="false" verbose="10">

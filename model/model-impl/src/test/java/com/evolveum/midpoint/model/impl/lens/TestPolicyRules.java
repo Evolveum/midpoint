@@ -73,6 +73,8 @@ public class TestPolicyRules extends AbstractLensTest {
 		
 		InternalMonitor.reset();
 //		InternalMonitor.setTraceShadowFetchOperation(true);
+
+//		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
 	@Test
