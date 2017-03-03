@@ -10240,7 +10240,7 @@
                         <jaxb:typesafeEnumMember name="VISIBLE"/>
                     </xsd:appinfo>
                     <xsd:documentation>
-                        The element will be always visible.
+                        The element will be always visible (if not hidden).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -13355,7 +13355,7 @@
        			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
        			<!-- TODO: refernce to object collection (MID-3517) -->
            		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1"/>
-           		<!-- TODO: columns to display -->
+           		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
            		<!-- TODO: number of results per page (MID-1931) -->
            	</xsd:sequence>
     </xsd:complexType>
@@ -13415,6 +13415,88 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<xsd:complexType name="GuiObjectColumnType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Configuration of the object list column.
+        		This is supposed to be universal mergeable configuration. It may be specified
+        		in global configuration, roles but also in user's preferences. Therefore it may
+        		refer to the columns specified by the "higher" configuration and override some
+        		parts of that (e.g. hide/show columns, change ordering, etc.).
+        		When merging the configurations there is no way how to remove columns. New columns
+        		may be added, setting of the existing columns may be changed, but the columns may not
+        		be removed. If the columns should not be displayed then it may be hidden.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Column name (identifier). This element is not displayed to the user. It is used
+       						for identification of the column and referencing (e.g. previous column). The column definitions
+       						that have the same name in different layers (global, role, user) will be merged together.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Free-form description. It is not displayed to the user. It is supposed to be used by system
+       						administrators to explain the purpose of the configuration.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+	           		<xsd:annotation>
+	           			<xsd:documentation>
+	           				Path of the item (property) that this form display or that is taken
+	           				as an primary input for the expression (planned for future).
+	           				Even if expression is used to display the column value, we need some reference
+	           				field that will be used to sort the table when sorting by this column is selected.
+	           				We cannot sorty by the output of the expression as that is not stored in the repo.
+	           			</xsd:documentation>
+	           		</xsd:annotation>
+	           	</xsd:element>
+       			<xsd:element name="display" type="tns:AbstractDisplayType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Specification of column display properties. This can be used to override the default column
+       						label or presentation style.
+       						(Only label is implemented in midPoint 3.6)
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
+           		             minOccurs="0" maxOccurs="1" default="automatic">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Defines, whether this column will be visible or it will be hidden.
+           					If not specified then it defaults to automatic visibility.
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
+       			<xsd:element name="previousColumn" type="xsd:string" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Name of the column that has to be displayed before this column. This value
+       						defines ordering in which the columns should be displayed. 
+       						The first column has no value in this element.
+       						If there are multiple columns that specify the same preceding columns then
+       						the implementation may choose any ordering of such columns. However, the
+       						algorithm should be deterministic: the same ordring should be used every
+       						time (alphabeting ordering based on "path" or displayOrder from the schema
+       						are good candidates for deterministic ordering).
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<!-- TODO later: sorting, expression -->
+           	</xsd:sequence>
+    </xsd:complexType>
 
     
   <!-- ============================================================== -->
