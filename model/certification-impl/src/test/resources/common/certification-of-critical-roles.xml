@@ -69,6 +69,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     <stageDefinition>
         <number>1</number>
         <duration>P3D</duration>
+        <deadlineRounding>hour</deadlineRounding>
         <reviewerSpecification>
             <useObjectManager>
                 <orgType>functional</orgType>
@@ -82,6 +83,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     <stageDefinition>
         <number>2</number>
         <duration>P7D</duration>
+        <deadlineRounding>none</deadlineRounding>
         <reviewerSpecification>
             <useTargetOwner>true</useTargetOwner>
         </reviewerSpecification>
