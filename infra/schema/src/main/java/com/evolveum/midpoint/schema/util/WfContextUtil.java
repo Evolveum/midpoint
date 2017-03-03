@@ -269,9 +269,11 @@ public class WfContextUtil {
 		if (wfc == null) {
 			return null;
 		}
-		return wfc.getEvent().stream()
-				.filter(e -> e instanceof WfProcessCreationEventType && ((WfProcessCreationEventType) e).getBusinessContext() != null)
-				.map(e -> ((WfProcessCreationEventType) e).getBusinessContext())
-				.findFirst().orElse(null);
+		for (WfProcessEventType event : wfc.getEvent()) {
+			if (event instanceof WfProcessCreationEventType) {
+				return ((WfProcessCreationEventType) event).getBusinessContext();
+			}
+		}
+		return null;
 	}
 }
