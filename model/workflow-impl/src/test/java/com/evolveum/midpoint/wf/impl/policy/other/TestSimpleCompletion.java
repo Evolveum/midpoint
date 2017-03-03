@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.wf.impl.policy.other;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -65,8 +69,11 @@ public class TestSimpleCompletion extends AbstractWfTestPolicy {
 
 		// GIVEN
 
+		dummyAuditService.clear();
+
 		OperationBusinessContextType businessContext = new OperationBusinessContextType();
-		businessContext.setComment("req.comment");
+		final String REQUESTER_COMMENT = "req.comment";
+		businessContext.setComment(REQUESTER_COMMENT);
 
 		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userJackOid, roleRole1aOid, RoleType.COMPLEX_TYPE, null, null, null, true);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -88,13 +95,22 @@ public class TestSimpleCompletion extends AbstractWfTestPolicy {
 
 		WfProcessCreationEventType event1 = (WfProcessCreationEventType) events.get(0);
 		display("Event 1", event1);
-		assertEquals("Wrong requester comment", "req.comment", WfContextUtil.getBusinessContext(wfTask.getWorkflowContext()).getComment());
+		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(wfTask.getWorkflowContext()).getComment());
 
 		WorkItemEventType event2 = (WorkItemEventType) events.get(1);
 		display("Event 2", event2);
 
 		assertNotNull("Original assignee is null", event2.getOriginalAssigneeRef());
 		assertEquals("Wrong original assignee OID", userLead1Oid, event2.getOriginalAssigneeRef().getOid());
+
+		display("audit", dummyAuditService);
+		List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
+		assertEquals("Wrong # of process instance audit records", 2, records.size());
+		for (int i = 0; i < records.size(); i++) {
+			AuditEventRecord record = records.get(i);
+			assertEquals("Wrong requester comment in audit record #" + i, Collections.singleton(REQUESTER_COMMENT),
+					record.getPropertyValues(WorkflowConstants.AUDIT_REQUESTER_COMMENT));
+		}
 	}
 
 }
