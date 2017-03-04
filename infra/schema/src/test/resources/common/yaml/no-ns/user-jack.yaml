@@ -44,6 +44,7 @@ object: !UserType
     construction:
       resourceRef:
         oid: 2f9b9299-5555-5555-5555-000000001111
+        targetName: resource1
   activation:
     administrativeStatus: enabled
   fullName: Jack Sparrow
