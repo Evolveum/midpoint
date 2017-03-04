@@ -76,12 +76,23 @@
     </linkRef>
 
    <assignment id="111">
-    	<extension>
-    		<ext:intType>42</ext:intType>
-    	</extension>
-    	<construction>
-			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType"/>    		
-    	</construction>
+	   <extension>
+		   <ext:intType>42</ext:intType>
+	   </extension>
+	   <construction>
+		   <resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType">
+			   <targetName>resource1</targetName>
+		   </resourceRef>
+	   </construction>
+	   <trigger>
+		   <assignmentPath>
+			   <segment>
+				   <sourceRef oid="123">
+					   <targetName>source123</targetName>
+				   </sourceRef>
+			   </segment>
+		   </assignmentPath>
+	   </trigger>
     </assignment>
     
     <activation>

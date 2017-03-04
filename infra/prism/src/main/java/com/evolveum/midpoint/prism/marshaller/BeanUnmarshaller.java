@@ -125,6 +125,14 @@ public class BeanUnmarshaller {
 						+ actual + ") which is not of requested type (" + requested + ")");
 			}
 		}
+		if (value == null) {
+			try {
+				// BRUTAL HACK
+				value = beanClass.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				throw new IllegalStateException("Cannot instantiate " + beanClass + ": " + e);
+			}
+		}
 		return value;
 	}
 
@@ -222,6 +230,9 @@ public class BeanUnmarshaller {
 			for (Entry<QName, XNode> entry : map.entrySet()) {
 				QName key = entry.getKey();
 				if (keysToParse != null && !keysToParse.contains(key.getLocalPart())) {
+					continue;
+				}
+				if (entry.getValue() == null) {
 					continue;
 				}
 				unmarshalEntry(bean, beanClass, entry.getKey(), entry.getValue(), mapOrList, false, pc);
@@ -471,6 +482,8 @@ public class BeanUnmarshaller {
 			}
 		}
 
+		propValue = adaptPropertyValue(propValue, paramType);
+
 		if (setter != null) {
 			try {
 				setter.invoke(bean, propValue);
@@ -507,11 +520,27 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private Class<?> specializeNodeType(@NotNull XNode node, @NotNull Class<?> expectedType,@NotNull ParsingContext pc)
+	// a bit of hack
+	// TODO generalize... and perhaps merge with similar conversion methods elsewhere
+	private Object adaptPropertyValue(Object propValue, Class<?> paramType) {
+		if (propValue == null || paramType == null || paramType.isAssignableFrom(propValue.getClass())) {
+			return propValue;
+		}
+		if (PolyStringType.class.equals(paramType) && propValue instanceof String) {
+			return PolyStringType.fromOrig((String) propValue);
+		}
+		return propValue;		// expect a class cast exception later
+	}
+
+	private Class<?> specializeNodeType(@NotNull XNode node, @NotNull Class<?> expectedType, @NotNull ParsingContext pc)
 			throws SchemaException {
 		if (node.getTypeQName() != null) {
 			Class explicitType = getSchemaRegistry().determineClassForType(node.getTypeQName());
-			return explicitType != null ? explicitType : expectedType;		//check for subclasses???
+//			if (explicitType != null && !expectedType.isAssignableFrom(explicitType)) {
+//				System.out.println("Hi!");
+//			}
+			return explicitType != null && expectedType.isAssignableFrom(explicitType) ? explicitType : expectedType;
+			// (if not assignable, we hope the adaptation will do it)
 		} else if (node.getElementName() != null) {
 			Collection<TypeDefinition> candidateTypes = getSchemaRegistry()
 					.findTypeDefinitionsByElementName(node.getElementName(), TypeDefinition.class);
