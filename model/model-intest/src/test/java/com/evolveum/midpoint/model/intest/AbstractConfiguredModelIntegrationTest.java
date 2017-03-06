@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -247,6 +247,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_JACK_FAMILY_NAME = "Sparrow";
 	protected static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
 	protected static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
+	protected static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
 	protected static final String USER_JACK_LOCALITY = "Caribbean";
 	protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
 

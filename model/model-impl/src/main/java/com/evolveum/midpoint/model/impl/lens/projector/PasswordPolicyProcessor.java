@@ -385,14 +385,15 @@ public class PasswordPolicyProcessor {
 			password = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 		}
 
-		ValuePolicyType passwordPolicy;
+		ValuePolicyType passwordPolicy = null;
 		if (isCheckOrgPolicy(context)){
 			passwordPolicy = determineValuePolicy(context.getFocusContext().getObjectAny(), task, result);
 			context.getFocusContext().setOrgPasswordPolicy(passwordPolicy);
-		} else {
+		}
+		if (passwordPolicy == null) {
 			passwordPolicy = projectionContext.getEffectivePasswordPolicy();
 		}
-		
+
 		processPasswordPolicy(passwordPolicy, null, password, result);
 	}
 	
