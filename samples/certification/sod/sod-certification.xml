@@ -32,7 +32,7 @@
         <number>1</number>
         <duration>P14D</duration>
         <reviewerSpecification>
-            <defaultReviewerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" />
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />       <!-- administrator -->
         </reviewerSpecification>
         <outcomeStrategy>acceptedIfNotDenied</outcomeStrategy>
         <outcomeIfNoReviewers>accept</outcomeIfNoReviewers>

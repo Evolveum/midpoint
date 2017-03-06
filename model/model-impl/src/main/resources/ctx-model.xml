@@ -143,6 +143,7 @@
           scope="singleton">
           <constructor-arg ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
+          <constructor-arg ref="valuePolicyGenerator"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     

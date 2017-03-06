@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.AESProtector;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -50,7 +51,8 @@ public class ExpressionTestUtil {
         return protector;
 	}
 	
-	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, AESProtector protector, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
+	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, AESProtector protector, 
+			PrismContext prismContext, SecurityEnforcer securityEnforcer) {
     	ExpressionFactory expressionFactory = new ExpressionFactory(resolver, prismContext);
     	
     	// asIs
@@ -67,7 +69,9 @@ public class ExpressionTestUtil {
     	expressionFactory.addEvaluatorFactory(pathFactory);
     	
     	// generate
-    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, resolver, prismContext);
+    	ValuePolicyGenerator valuePolicyGenerator = new ValuePolicyGenerator();
+    	valuePolicyGenerator.setExpressionFactory(expressionFactory);
+    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, resolver, valuePolicyGenerator, prismContext);
     	expressionFactory.addEvaluatorFactory(generateFactory);
 
     	// script

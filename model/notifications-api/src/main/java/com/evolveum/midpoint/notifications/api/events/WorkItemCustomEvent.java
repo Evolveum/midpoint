@@ -19,10 +19,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,14 +31,11 @@ import java.util.Map;
  */
 public class WorkItemCustomEvent extends WorkItemEvent {
 
-	private WorkItemNotificationActionType notificationAction;
-
 	public WorkItemCustomEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
-			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, WfContextType workflowContext,
-			@NotNull WorkItemNotificationActionType notificationAction) {
-        super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null, workflowContext,
-				notificationAction.getHandler(), null);
-		this.notificationAction = notificationAction;
+			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, @NotNull WorkItemNotificationActionType source,
+			WorkItemEventCauseInformationType cause, WfContextType workflowContext) {
+        super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null, null, source,
+				cause, workflowContext, source.getHandler(), null);
 	}
 
 	@Override
@@ -55,6 +49,10 @@ public class WorkItemCustomEvent extends WorkItemEvent {
     public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
     }
+
+	public WorkItemNotificationActionType getNotificationAction() {
+		return (WorkItemNotificationActionType) getSource();
+	}
 
 	@Override
 	public String toString() {

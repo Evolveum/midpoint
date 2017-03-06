@@ -15,11 +15,13 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -41,7 +43,7 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPolicySituations extends AbstractLensTest {
+public class TestPolicyMetadata extends AbstractLensTest {
 		
 	private static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME = "criminal exclusion";
 
@@ -61,6 +63,8 @@ public class TestPolicySituations extends AbstractLensTest {
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		
 		InternalMonitor.reset();
+
+		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
 	@Test
@@ -69,7 +73,7 @@ public class TestPolicySituations extends AbstractLensTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicySituations.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -96,7 +100,7 @@ public class TestPolicySituations extends AbstractLensTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicySituations.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -126,7 +130,7 @@ public class TestPolicySituations extends AbstractLensTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicySituations.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN

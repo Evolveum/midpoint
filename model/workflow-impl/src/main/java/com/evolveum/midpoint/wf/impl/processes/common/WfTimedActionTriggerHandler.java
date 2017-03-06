@@ -129,13 +129,13 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 			operationKind = null;
 		}
 		WorkItemEventCauseInformationType cause = new WorkItemEventCauseInformationType();
-		cause.setCause(WorkItemEventCauseType.TIMED_ACTION);
+		cause.setType(WorkItemEventCauseTypeType.TIMED_ACTION);
 		if (action != null) {
-			cause.setCauseName(action.getName());
-			cause.setCauseDisplayName(action.getDisplayName());
+			cause.setName(action.getName());
+			cause.setDisplayName(action.getDisplayName());
 		}
 		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, workItem.getAssigneeRef(), timeBeforeAction,
-				operationKind, null, action, cause, wfTask, result);
+				operationKind, null, null, action, cause, wfTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, WorkItemType workItem, Task wfTask, Task triggerScannerTask,
@@ -202,21 +202,22 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeNotificationAction(WorkItemType workItem, @NotNull WorkItemNotificationActionType notificationAction, Task wfTask,
 			OperationResult result) throws SchemaException {
+		WorkItemEventCauseInformationType cause = createCauseInformation(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-				wfTaskController.notifyWorkItemCustom(workItem, assignee, wfTask, notificationAction, result);
+				wfTaskController.notifyWorkItemCustom(workItem, assignee, cause, wfTask, notificationAction, result);
 			}
 		} else {
-			wfTaskController.notifyWorkItemCustom(workItem, null, wfTask, notificationAction, result);
+			wfTaskController.notifyWorkItemCustom(workItem, null, cause, wfTask, notificationAction, result);
 		}
 
 	}
 
 	private WorkItemEventCauseInformationType createCauseInformation(AbstractWorkItemActionType action) {
 		WorkItemEventCauseInformationType cause = new WorkItemEventCauseInformationType();
-		cause.setCause(WorkItemEventCauseType.TIMED_ACTION);
-		cause.setCauseName(action.getName());
-		cause.setCauseDisplayName(action.getDisplayName());
+		cause.setType(WorkItemEventCauseTypeType.TIMED_ACTION);
+		cause.setName(action.getName());
+		cause.setDisplayName(action.getDisplayName());
 		return cause;
 	}
 

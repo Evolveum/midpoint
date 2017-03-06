@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,23 @@ import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -41,6 +44,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
@@ -58,14 +62,16 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	private Protector protector;
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
+	private ValuePolicyGenerator valuePolicyGenerator;
 	private StringPolicyType elementStringPolicy;
 
 	GenerateExpressionEvaluator(GenerateExpressionEvaluatorType generateEvaluatorType, D outputDefinition,
-			Protector protector, ObjectResolver objectResolver, PrismContext prismContext) {
+			Protector protector, ObjectResolver objectResolver, ValuePolicyGenerator valuePolicyGenerator, PrismContext prismContext) {
 		this.generateEvaluatorType = generateEvaluatorType;
 		this.outputDefinition = outputDefinition;
 		this.protector = protector;
 		this.objectResolver = objectResolver;
+		this.valuePolicyGenerator = valuePolicyGenerator;
 		this.prismContext = prismContext;
 	}
 
@@ -127,14 +133,16 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		GenerateExpressionEvaluatorModeType mode = generateEvaluatorType.getMode();
 		if (mode == null || mode == GenerateExpressionEvaluatorModeType.POLICY) {
 
+			PrismObject<? extends ObjectType> object = getObject(params);
+
 			// TODO: generate value based on stringPolicyType (if not null)
 			if (stringPolicyType != null) {
 				if (isNotEmptyMinLength(stringPolicyType)) {
-					stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true,
-							params.getResult());
+					stringValue = valuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, object,
+							params.getContextDescription(), params.getTask(), params.getResult());
 				} else {
-					stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false,
-							params.getResult());
+					stringValue = valuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, object,
+							params.getContextDescription(), params.getTask(), params.getResult());
 				}
 				params.getResult().computeStatus();
 				if (params.getResult().isError()) {
@@ -169,6 +177,21 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		}
 
 		return ItemDelta.toDeltaSetTriple(output, null);
+	}
+
+	// determine object from the variables
+	@SuppressWarnings("unchecked")
+	private <O extends ObjectType> PrismObject<O> getObject(ExpressionEvaluationContext params) throws SchemaException {
+		ExpressionVariables variables = params.getVariables();
+		if (variables == null) {
+			return null;
+		}
+		PrismObject<O> object = variables.getObjectNew(ExpressionConstants.VAR_PROJECTION);
+		if (object != null) {
+			return object;
+		}
+		object = variables.getObjectNew(ExpressionConstants.VAR_FOCUS);
+		return object;
 	}
 
 	/*

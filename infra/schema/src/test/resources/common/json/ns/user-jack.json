@@ -67,7 +67,8 @@
      "construction" : {
          "resourceRef" : {
           "oid" : "2f9b9299-5555-5555-5555-000000001111",
-          "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType"
+          "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType",
+          "targetName" : "resource1"
         }
       }
     } ],

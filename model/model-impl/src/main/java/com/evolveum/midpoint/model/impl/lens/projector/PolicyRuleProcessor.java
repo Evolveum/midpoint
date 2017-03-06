@@ -438,40 +438,47 @@ public class PolicyRuleProcessor {
 			EvaluatedAssignmentImpl<F> evaluatedAssignment, List<String> situations) {
 		// We consider all rules here, i.e. also those that are triggered on targets induced by this one.
 		// Decision whether to trigger such rules lies on "primary" policy constraints. (E.g. approvals would
-		// not trigger, whereas exclusions probably yes.) Overall, our responsibility is simply to collect
+		// not trigger, whereas exclusions probably would.) Overall, our responsibility is simply to collect
 		// all triggered rules.
 		return evaluatedAssignment.getTargetPolicyRules().stream()
 				.filter(r -> !r.getTriggers().isEmpty() && situations.contains(r.getPolicySituation()))
 				.collect(Collectors.toList());
 	}
 
-	private <F extends FocusType> PropertyDelta<String> getAssignmentModificationDelta(
-			EvaluatedAssignmentImpl<F> evaluatedAssignment) throws SchemaException {
+	@NotNull
+	private <F extends FocusType> List<ItemDelta<?, ?>> getAssignmentModificationDelta(
+			EvaluatedAssignmentImpl<F> evaluatedAssignment, List<EvaluatedPolicyRuleTriggerType> triggers) throws SchemaException {
 		Long id = evaluatedAssignment.getAssignmentType().getId();
 		if (id == null) {
 			throw new IllegalArgumentException("Assignment with no ID: " + evaluatedAssignment);
 		}
+		List<ItemDelta<?, ?>> deltas = new ArrayList<>();
 		Set<String> currentSituations = new HashSet<>(evaluatedAssignment.getAssignmentType().getPolicySituation());
 		Set<String> newSituations = new HashSet<>(evaluatedAssignment.getPolicySituations());
-		return createSituationDelta(
-				new ItemPath(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION), currentSituations, newSituations);
+		CollectionUtils.addIgnoreNull(deltas, createSituationDelta(
+				new ItemPath(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION), currentSituations, newSituations));
+		Set<EvaluatedPolicyRuleTriggerType> currentTriggers = new HashSet<>(evaluatedAssignment.getAssignmentType().getTrigger());
+		Set<EvaluatedPolicyRuleTriggerType> newTriggers = new HashSet<>(triggers);
+		CollectionUtils.addIgnoreNull(deltas, createTriggerDelta(
+				new ItemPath(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGER), currentTriggers, newTriggers));
+		return deltas;
 	}
 
-	private <F extends FocusType> boolean shouldSituationBeUpdated(EvaluatedAssignment<F> evaluatedAssignment) {
+	private <F extends FocusType> boolean shouldSituationBeUpdated(EvaluatedAssignment<F> evaluatedAssignment,
+			List<EvaluatedPolicyRuleTriggerType> triggers) {
 		Set<String> currentSituations = new HashSet<>(evaluatedAssignment.getAssignmentType().getPolicySituation());
-		// if the situations that were last synced (if they were) are the same as the current ones => OK
-		if (evaluatedAssignment.getPolicySituationsSynced() != null
-				&& evaluatedAssignment.getPolicySituationsSynced().equals(currentSituations)) {
-			LOGGER.trace("policy situations synced are the same as current situations: {}", DebugUtil.debugDumpLazily(evaluatedAssignment));	// TODO remove
-			return false;
-		}
-		// if the current situations are the same as the ones in the old assignment => OK
+		Set<EvaluatedPolicyRuleTriggerType> currentTriggers = new HashSet<>(evaluatedAssignment.getAssignmentType().getTrigger());
+		// if the current situations different from the ones in the old assignment => update
 		// (provided that the situations in the assignment were _not_ changed directly via a delta!!!) TODO check this
-		if (currentSituations.equals(new HashSet<>(evaluatedAssignment.getPolicySituations()))) {
-			LOGGER.trace("current policy situations are the same as computed ones: {}", DebugUtil.debugDumpLazily(evaluatedAssignment));		// TODO remove
-			return false;
+		if (!currentSituations.equals(new HashSet<>(evaluatedAssignment.getPolicySituations()))) {
+			LOGGER.trace("computed policy situations are different from the current ones");
+			return true;
 		}
-		return true;
+		if (!currentTriggers.equals(new HashSet<>(triggers))) {
+			LOGGER.trace("computed policy rules triggers are different from the current ones");
+			return true;
+		}
+		return false;
 	}
 
 	public <F extends FocusType> void storeFocusPolicySituation(LensContext<F> context, Task task, OperationResult result)
@@ -504,6 +511,21 @@ public class PolicyRuleProcessor {
 				.asItemDelta();
 		situationsDelta.setEstimatedOldValues(PrismPropertyValue.wrap(currentSituations));
 		return situationsDelta;
+	}
+
+	private PropertyDelta<EvaluatedPolicyRuleTriggerType> createTriggerDelta(ItemPath path, Set<EvaluatedPolicyRuleTriggerType> currentTriggers, Set<EvaluatedPolicyRuleTriggerType> newTriggers)
+			throws SchemaException {
+		if (newTriggers.equals(currentTriggers)) {
+			return null;
+		}
+		@SuppressWarnings({ "unchecked", "raw" })
+		PropertyDelta<EvaluatedPolicyRuleTriggerType> triggersDelta = (PropertyDelta<EvaluatedPolicyRuleTriggerType>)
+				DeltaBuilder.deltaFor(FocusType.class, prismContext)
+						.item(path)
+						.replace(newTriggers.toArray())			// TODO or add + delete?
+						.asItemDelta();
+		triggersDelta.setEstimatedOldValues(PrismPropertyValue.wrap(currentTriggers));
+		return triggersDelta;
 	}
 
 	public <F extends FocusType> void addGlobalPoliciesToAssignments(LensContext<F> context,
@@ -551,23 +573,56 @@ public class PolicyRuleProcessor {
 		T focus = objectToAdd.asObjectable();
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getNonNegativeValues()) {
 			LOGGER.trace("Applying assignment situation on object ADD for {}", evaluatedAssignment);
-			if (!shouldSituationBeUpdated(evaluatedAssignment)) {
+			List<EvaluatedPolicyRuleTriggerType> triggers = getTriggers(evaluatedAssignment);
+			if (!shouldSituationBeUpdated(evaluatedAssignment, triggers)) {
 				continue;
 			}
 			AssignmentType assignment = evaluatedAssignment.getAssignmentType();
 			if (assignment.getId() != null) {
-				PropertyDelta delta = getAssignmentModificationDelta(evaluatedAssignment);
-				if (delta != null) {
-					delta.applyTo(objectToAdd);
-				}
+				ItemDelta.applyTo(getAssignmentModificationDelta(evaluatedAssignment, triggers), objectToAdd);
 			} else {
 				int i = focus.getAssignment().indexOf(assignment);
 				if (i < 0) {
 					throw new IllegalStateException("Assignment to be replaced not found in an object to add: " + assignment + " / " + objectToAdd);
 				}
-				copyPolicySituations(focus.getAssignment().get(i), evaluatedAssignment);
+				copyPolicyData(focus.getAssignment().get(i), evaluatedAssignment, triggers);
 			}
-			evaluatedAssignment.setPolicySituationsSynced(new HashSet<>(evaluatedAssignment.getPolicySituations()));
+		}
+	}
+
+	private List<EvaluatedPolicyRuleTriggerType> getTriggers(EvaluatedAssignmentImpl<?> evaluatedAssignment) {
+		List<EvaluatedPolicyRuleTriggerType> rv = new ArrayList<>();
+		for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getTargetPolicyRules()) {
+			for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getTriggers()) {
+				EvaluatedPolicyRuleTriggerType triggerType = trigger.toEvaluatedPolicyRuleTriggerType(policyRule).clone();
+				simplifyTrigger(triggerType);
+				rv.add(triggerType);
+			}
+		}
+		return rv;
+	}
+
+	private void simplifyTrigger(EvaluatedPolicyRuleTriggerType trigger) {
+		deleteAssignments(trigger.getAssignmentPath());
+		if (trigger instanceof EvaluatedExclusionTriggerType) {
+			EvaluatedExclusionTriggerType exclusionTrigger = (EvaluatedExclusionTriggerType) trigger;
+			deleteAssignments(exclusionTrigger.getConflictingObjectPath());
+			exclusionTrigger.setConflictingAssignment(null);
+		} else if (trigger instanceof EvaluatedSituationTriggerType) {
+			for (EvaluatedPolicyRuleType sourceRule : ((EvaluatedSituationTriggerType) trigger).getSourceRule()) {
+				for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
+					simplifyTrigger(sourceTrigger);
+				}
+			}
+		}
+	}
+
+	private void deleteAssignments(AssignmentPathType path) {
+		if (path == null) {
+			return;
+		}
+		for (AssignmentPathSegmentType segment : path.getSegment()) {
+			segment.setAssignment(null);
 		}
 	}
 
@@ -578,12 +633,13 @@ public class PolicyRuleProcessor {
 		}
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getNonNegativeValues()) {
 			LOGGER.trace("Applying assignment situation on object MODIFY for {}", evaluatedAssignment);
-			if (!shouldSituationBeUpdated(evaluatedAssignment)) {
+			List<EvaluatedPolicyRuleTriggerType> triggers = getTriggers(evaluatedAssignment);
+			if (!shouldSituationBeUpdated(evaluatedAssignment, triggers)) {
 				continue;
 			}
 			AssignmentType assignment = evaluatedAssignment.getAssignmentType();
 			if (assignment.getId() != null) {
-				objectDelta = swallow(context, objectDelta, getAssignmentModificationDelta(evaluatedAssignment));
+				objectDelta = swallow(context, objectDelta, getAssignmentModificationDelta(evaluatedAssignment, triggers));
 			} else {
 				if (objectDelta == null) {
 					throw new IllegalStateException("No object delta!");
@@ -598,16 +654,15 @@ public class PolicyRuleProcessor {
 					throw new IllegalStateException("Unnumbered assignment (" + assignment
 							+ ") couldn't be found in object delta (no corresponding assignment value): " + objectDelta);
 				}
-				copyPolicySituations(assignmentInDelta.asContainerable(), evaluatedAssignment);
+				copyPolicyData(assignmentInDelta.asContainerable(), evaluatedAssignment, triggers);
 			}
-			evaluatedAssignment.setPolicySituationsSynced(new HashSet<>(evaluatedAssignment.getPolicySituations()));
 		}
 		return objectDelta;
 	}
 
 	private <T extends ObjectType, F extends FocusType> ObjectDelta<T> swallow(LensContext<F> context, ObjectDelta<T> objectDelta,
-			PropertyDelta<String> delta1) throws SchemaException {
-		if (delta1 == null || delta1.isEmpty()) {
+			List<ItemDelta<?,?>> deltas) throws SchemaException {
+		if (deltas.isEmpty()) {
 			return objectDelta;
 		}
 		if (objectDelta == null) {
@@ -620,13 +675,16 @@ public class PolicyRuleProcessor {
 			objectDelta = (ObjectDelta) new ObjectDelta<F>(context.getFocusClass(), ChangeType.MODIFY, prismContext);
 			objectDelta.setOid(context.getFocusContext().getOid());
 		}
-		objectDelta.swallow(delta1);
+		objectDelta.swallow(deltas);
 		return objectDelta;
 	}
 
-	private void copyPolicySituations(AssignmentType targetAssignment, EvaluatedAssignmentImpl<?> evaluatedAssignment) {
+	private void copyPolicyData(AssignmentType targetAssignment, EvaluatedAssignmentImpl<?> evaluatedAssignment,
+			List<EvaluatedPolicyRuleTriggerType> triggers) {
 		targetAssignment.getPolicySituation().clear();
 		targetAssignment.getPolicySituation().addAll(evaluatedAssignment.getPolicySituations());
+		targetAssignment.getTrigger().clear();
+		targetAssignment.getTrigger().addAll(triggers);
 	}
 
 	public <O extends ObjectType> ObjectDelta<O> applyAssignmentSituation(LensContext<O> context, ObjectDelta<O> focusDelta)

@@ -31,6 +31,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -49,6 +50,38 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObje
  */
 public class CertDecisionHelper implements Serializable {
 
+    public enum WhichObject {
+        OBJECT, TARGET
+    }
+
+    IColumn createTypeColumn(final WhichObject which, final PageBase page) {
+        IColumn column;
+        column = new IconColumn<CertCaseOrDecisionDto>(page.createStringResource("")) {
+            @Override
+            protected IModel<String> createIconModel(IModel<CertCaseOrDecisionDto> rowModel) {
+                ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(which, rowModel);
+                String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+                return new Model<>(icon);
+            }
+
+            private ObjectTypeGuiDescriptor getObjectTypeDescriptor(WhichObject which, IModel<CertCaseOrDecisionDto> rowModel) {
+                QName targetType = rowModel.getObject().getObjectType(which);
+                return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<CertCaseOrDecisionDto>> item, String componentId, IModel<CertCaseOrDecisionDto> rowModel) {
+                super.populateItem(item, componentId, rowModel);
+                ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(which, rowModel);
+                if (guiDescriptor != null) {
+                    item.add(AttributeModifier.replace("title", page.createStringResource(guiDescriptor.getLocalizationKey())));
+                    item.add(new TooltipBehavior());
+                }
+            }
+        };
+        return column;
+    }
+
     IColumn createObjectNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
         column = new LinkColumn<CertCaseOrDecisionDto>(page.createStringResource(headerKey),
@@ -63,38 +96,10 @@ public class CertDecisionHelper implements Serializable {
         return column;
     }
 
-    public IColumn createObjectOrTargetTypeColumn(final boolean isObject, final PageBase page) {		// isObject = true for object, false for target
-        IColumn column;
-        column = new IconColumn<CertCaseOrDecisionDto>(page.createStringResource("")) {
-            @Override
-            protected IModel<String> createIconModel(IModel<CertCaseOrDecisionDto> rowModel) {
-                ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(isObject, rowModel);
-                String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-                return new Model<>(icon);
-            }
-
-            private ObjectTypeGuiDescriptor getObjectTypeDescriptor(boolean isObject, IModel<CertCaseOrDecisionDto> rowModel) {
-                QName targetType = isObject ? rowModel.getObject().getObjectType() : rowModel.getObject().getTargetType();
-                return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<CertCaseOrDecisionDto>> item, String componentId, IModel<CertCaseOrDecisionDto> rowModel) {
-                super.populateItem(item, componentId, rowModel);
-                ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(isObject, rowModel);
-                if (guiDescriptor != null) {
-                    item.add(AttributeModifier.replace("title", page.createStringResource(guiDescriptor.getLocalizationKey())));
-                    item.add(new TooltipBehavior());
-                }
-            }
-        };
-        return column;
-    }
-
     IColumn createTargetNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
         column = new LinkColumn<CertCaseOrDecisionDto>(page.createStringResource(headerKey),
-                AccessCertificationCaseType.F_TARGET_REF.getLocalPart(), CertCaseOrDecisionDto.F_TARGET_NAME) {
+				AccessCertificationCaseType.F_TARGET_REF.getLocalPart(), CertCaseOrDecisionDto.F_TARGET_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCaseOrDecisionDto> rowModel) {
@@ -103,6 +108,11 @@ public class CertDecisionHelper implements Serializable {
             }
         };
         return column;
+    }
+
+    IColumn createConflictingNameColumn(final PageBase page, final String headerKey) {
+        return new PropertyColumn<CertCaseOrDecisionDto, String>(page.createStringResource(headerKey),
+                CertCaseOrDecisionDto.F_CONFLICTING_TARGETS);
     }
 
     public IColumn createDetailedInfoColumn(final PageBase page) {

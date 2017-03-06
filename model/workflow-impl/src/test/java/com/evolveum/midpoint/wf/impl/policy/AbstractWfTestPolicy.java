@@ -457,6 +457,14 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		return itemsAll.get(0);
 	}
 
+	protected SearchResultList<WorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
+		return modelService.searchContainers(WorkItemType.class, null, null, task, result);
+	}
+
+	protected void displayWorkItems(String title, List<WorkItemType> workItems) {
+		workItems.forEach(wi -> display(title, wi));
+	}
+
 	protected ObjectReferenceType ort(String oid) {
 		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER);
 	}

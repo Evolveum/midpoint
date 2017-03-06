@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 Biznet, Evolveum
+ * Copyright (c) 2012-2017 Biznet, Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -51,6 +51,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,6 +68,7 @@ import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -344,18 +347,19 @@ public class PageForgotPassword extends PageRegistrationBase {
 				task.setOwner(user.asPrismObject());
 				OperationResult result = new OperationResult("generateUserNonce");
 				ProtectedStringType nonceCredentials = new ProtectedStringType();
-				nonceCredentials.setClearValue(generateNonce(noncePolicy, task, result));
-
-				NonceType nonceType = new NonceType();
-				nonceType.setValue(nonceCredentials);
-
-				ObjectDelta<UserType> nonceDelta;
 				try {
+					nonceCredentials.setClearValue(generateNonce(noncePolicy, task, user.asPrismObject(), result));
+	
+					NonceType nonceType = new NonceType();
+					nonceType.setValue(nonceCredentials);
+	
+					ObjectDelta<UserType> nonceDelta;
+				
 					nonceDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, user.getOid(),
 							SchemaConstants.PATH_NONCE, getPrismContext(), nonceType);
 
 					WebModelServiceUtils.save(nonceDelta, result, task, PageForgotPassword.this);
-				} catch (SchemaException e) {
+				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
 					result.recordFatalError("Failed to generate nonce for user");
 					LoggingUtils.logException(LOGGER, "Failed to generate nonce for user: " + e.getMessage(),
 							e);
@@ -368,7 +372,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		});
 	}
 
-	private String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
+	private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, PrismObject<O> user, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		ValuePolicyType policy = null;
 
 		if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
@@ -377,7 +381,8 @@ public class PageForgotPassword extends PageRegistrationBase {
 			policy = valuePolicy.asObjectable();
 		}
 
-		return ValuePolicyGenerator.generate(policy != null ? policy.getStringPolicy() : null, 24, result);
+		return getModelInteractionService().generateValue(policy != null ? policy.getStringPolicy() : null, 
+				24, false, user, "nonce generation", task, result);
 	}
 
 	// Check if the user exists with the given email and username in the idm

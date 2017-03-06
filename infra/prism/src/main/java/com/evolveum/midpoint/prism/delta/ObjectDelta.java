@@ -717,7 +717,14 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         // nothing to do for DELETE
     }
 
-    private Collection<? extends ItemDelta<?,?>> createEmptyModifications() {
+	public void swallow(List<ItemDelta<?, ?>> itemDeltas) throws SchemaException {
+		for (ItemDelta<?, ?> itemDelta : itemDeltas) {
+			swallow(itemDelta);
+		}
+	}
+
+
+	private Collection<? extends ItemDelta<?,?>> createEmptyModifications() {
     	// Lists are easier to debug
         return new ArrayList<>();
     }

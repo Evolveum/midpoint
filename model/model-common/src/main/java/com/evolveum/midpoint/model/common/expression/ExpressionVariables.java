@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,18 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -143,6 +147,33 @@ public class ExpressionVariables implements DebugDumpable {
     		}
     	}
     	return variables.get(name);
+    }
+    
+    @SuppressWarnings("unchecked")
+	public <T> T get(QName name, Class<T> type) throws SchemaException {
+    	Object object = get(name);
+    	if (object == null) {
+    		return null;
+    	}
+    	if (type.isAssignableFrom(object.getClass())) {
+    		return (T) object;
+    	}
+    	throw new SchemaException("Expected type "+type.getSimpleName()+" in variable "+name+", but found type "+object.getClass());
+    }
+    
+    public <O extends ObjectType> PrismObject<O> getObjectNew(QName name) throws SchemaException {
+    	Object object = get(name);
+    	if (object == null) {
+    		return null;
+    	}
+    	if (object instanceof PrismObject) {
+    		return (PrismObject<O>) object;
+    	}
+    	if (object instanceof ObjectDeltaObject<?>) {
+    		ObjectDeltaObject<O> odo = (ObjectDeltaObject<O>)object;
+    		return odo.getNewObject();
+    	}
+    	throw new SchemaException("Expected object in variable "+name+", but found type "+object.getClass());
     }
     
     public Set<Entry<QName,Object>> entrySet() {

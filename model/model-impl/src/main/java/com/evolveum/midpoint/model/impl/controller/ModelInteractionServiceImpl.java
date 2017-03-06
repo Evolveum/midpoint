@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -119,6 +120,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	
 	@Autowired(required = true)
 	private SystemObjectCache systemObjectCache;
+	
+	@Autowired(required = true)
+	private ValuePolicyGenerator valuePolicyGenerator;
 	
 	@Autowired(required = true)
 	private Protector protector;
@@ -812,6 +816,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			result.recordFatalError(e);
 			throw e;
 		}
+	}
+
+	@Override
+	public <O extends ObjectType> String generateValue(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
+			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+		return valuePolicyGenerator.generate(policy, defaultLength, generateMinimalSize, object, shortDesc, task, parentResult);
 	}
 
 }
