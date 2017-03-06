@@ -72,6 +72,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.OBJECT;
+import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.TARGET;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 
 /**
@@ -182,13 +184,13 @@ public class PageCertDecisions extends PageAdminCertification {
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-		column = helper.createObjectOrTargetTypeColumn(true, this);
+		column = helper.createTypeColumn(OBJECT, this);
 		columns.add(column);
 
 		column = helper.createObjectNameColumn(this, "PageCertDecisions.table.objectName");
         columns.add(column);
 
-        column = helper.createObjectOrTargetTypeColumn(false, this);
+        column = helper.createTypeColumn(TARGET, this);
         columns.add(column);
 
         column = helper.createTargetNameColumn(this, "PageCertDecisions.table.targetName");
@@ -197,7 +199,10 @@ public class PageCertDecisions extends PageAdminCertification {
         column = helper.createDetailedInfoColumn(this);
         columns.add(column);
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
+        column = helper.createConflictingNameColumn(this, "PageCertDecisions.table.conflictingTargetName");
+        columns.add(column);
+
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
 				AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGN_URL)) {
 
 			column = new LinkColumn<CertDecisionDto>(

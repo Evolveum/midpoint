@@ -529,7 +529,6 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 								sb.append(PrettyPrinter.prettyPrint(value));
 							} else {
 								PrismPropertyValue.debugDumpValue(sb, indent + 1, value.getValue(), prismContext);
-								//sb.append(PrettyPrinter.prettyPrint(value.getValue()));
 							}
 						}
 					}
@@ -551,7 +550,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 						if (DebugUtil.isDetailedDebugDump()) {
 							sb.append(PrettyPrinter.prettyPrint(value));
 						} else {
-							sb.append(value.getValue());
+							PrismPropertyValue.debugDumpValue(sb, indent + 1, value.getValue(), prismContext);
 						}
 					}
 					if (iterator.hasNext()) {

@@ -3299,12 +3299,26 @@
                 </xsd:annotation>
             </xsd:element>
             
+            <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Fired policy rule triggers for this assignment. (Some fields of the triggers might be zeroed out
+						in order to save space. This is yet to be decided.)
+						This is EXPERIMENTAL functionality. It is likely to change in the near future.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.6</a:since>
+						<a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="policyException" type="tns:PolicyExceptionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Recorded exception from a policy rule. The exceptions that are approved are
                         recoded here to avoid re-evaluating and re-approving them all the time.
-                        This is EXPERIMENAL functionality. It is likely to change in the near future.
+                        This is EXPERIMENTAL functionality. It is likely to change in the near future.
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.5</a:since>

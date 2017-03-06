@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * @author semancik
@@ -206,6 +207,11 @@ public class PrismUtil {
 	public static String serializeQuietly(PrismContext prismContext, Object object) {
 		if (object == null) {
 			return null;
+		}
+		if (object instanceof Collection) {
+			return ((Collection<?>) object).stream()
+					.map(o -> serializeQuietly(prismContext, o))
+					.collect(Collectors.joining("; "));
 		}
 		try {
 			PrismSerializer<String> serializer = prismContext.xmlSerializer();

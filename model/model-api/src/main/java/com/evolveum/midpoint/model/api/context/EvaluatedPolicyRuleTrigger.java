@@ -118,6 +118,7 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	}
 
 	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt, EvaluatedPolicyRule owningRule) {
+		tt.setRuleName(owningRule.getName());
 		tt.setConstraintKind(constraintKind);
 		tt.setConstraint(constraint);
 		tt.setMessage(message);
