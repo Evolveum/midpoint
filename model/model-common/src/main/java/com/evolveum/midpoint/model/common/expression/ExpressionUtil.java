@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -802,6 +802,17 @@ public class ExpressionUtil {
 				expressionFactory.getPrismContext());
 		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,
 				expressionFactory, shortDesc, task, parentResult);
+	}
+	
+	public static boolean getBooleanConditionOutput(PrismPropertyValue<Boolean> conditionOutput) {
+		if (conditionOutput == null) {
+			return false;
+		}
+		Boolean value = conditionOutput.getValue();
+		if (value == null) {
+			return false;
+		}
+		return value;
 	}
 
 	public static Map<QName, Object> compileVariablesAndSources(ExpressionEvaluationContext params) {

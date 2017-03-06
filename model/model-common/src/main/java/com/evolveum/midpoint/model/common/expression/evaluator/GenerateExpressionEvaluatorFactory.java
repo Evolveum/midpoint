@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluatorFactory;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -45,12 +46,14 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
 	private Protector protector;
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
+	private ValuePolicyGenerator valuePolicyGenerator;
 
-	public GenerateExpressionEvaluatorFactory(Protector protector, ObjectResolver objectResolver, PrismContext prismContext) {
+	public GenerateExpressionEvaluatorFactory(Protector protector, ObjectResolver objectResolver, ValuePolicyGenerator valuePolicyGenerator, PrismContext prismContext) {
 		super();
 		this.protector = protector;
 		this.prismContext = prismContext;
 		this.objectResolver = objectResolver;
+		this.valuePolicyGenerator = valuePolicyGenerator;
 	}
 
 	@Override
@@ -83,7 +86,7 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
         
         GenerateExpressionEvaluatorType generateEvaluatorType = (GenerateExpressionEvaluatorType)evaluatorTypeObject;
         
-		return new GenerateExpressionEvaluator<V,D>(generateEvaluatorType, outputDefinition, protector, objectResolver, prismContext);
+		return new GenerateExpressionEvaluator<V,D>(generateEvaluatorType, outputDefinition, protector, objectResolver, valuePolicyGenerator, prismContext);
 	}
 
 }

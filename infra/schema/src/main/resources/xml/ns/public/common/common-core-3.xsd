@@ -9398,7 +9398,16 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                    <xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			DEPRECATED. Use the lifetime settings in security policy.
+                    		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
                     <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
                     	<xsd:annotation>
@@ -9499,9 +9508,50 @@
         <xsd:sequence>
             <xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="minUniqueChars" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="minUniqueChars" type="xsd:int" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    	  Minimum number of unique characters in the generated string.
+                    	  Defaults to minLength.
+                    	</p> 
+                    </xsd:documentation>
+                </xsd:annotation>            
+            </xsd:element>
             <xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="checkPattern" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="checkExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    	  Expression that is used to check the resulting value whether it is acceptable
+                    	  or not. If the expression returns true, then the value is accepted.
+                    	  If the expression returns false value, then the value is rejected and it
+                    	  will be generated again. Until the maximum number of attempts is reached.
+                    	</p> 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="checkExpressionMessage" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    	  Message thet will be displayed to user when the expression check fails.
+                    	</p> 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxAttempts" type="xsd:int" default="10" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    	  Maximum number of attempts to generate an expression. Attempts are used
+                    	  with limitations that cannot be incorporated directly into the generation
+                    	  algorithm (check expression, pattern, dictionary).
+                    	</p> 
+                    </xsd:documentation>
+                </xsd:annotation>            
+            </xsd:element>
             <xsd:element name="limit" type="tns:StringLimitType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>

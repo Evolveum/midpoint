@@ -32,12 +32,12 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -46,6 +46,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -63,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
@@ -540,7 +543,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		ObjectDelta<UserType> userDelta;
 		try {
 			userDelta = prepareUserDelta(task, result);
-		} catch (SchemaException e) {
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
 			result.recordFatalError("Failed to create delta for user: " + e.getMessage(), e);
 			return;
 		}
@@ -552,7 +555,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 	}
 
-	private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException {
+	private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		if (getOidFromParams(getPageParameters()) == null) {
 			LOGGER.trace("Preparing user ADD delta (new user registration)");
 			UserType userType = prepareUserToSave(task, result);
@@ -584,7 +587,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		}
 	}
 
-	private UserType prepareUserToSave(Task task, OperationResult result) {
+	private UserType prepareUserToSave(Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 
 		SelfRegistrationDto selfRegistrationConfiguration = getSelfRegistrationConfiguration();
 		UserType userType = userModel.getObject();
@@ -644,7 +647,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	}
 
 	private void createCredentials(UserType user, NonceCredentialsPolicyType noncePolicy, Task task,
-			OperationResult result) {
+			OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		NonceType nonceType = createNonce(noncePolicy, task, result);
 
 		// PasswordType password = createPassword();
@@ -661,9 +664,9 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 	}
 
-	private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
+	private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		ProtectedStringType nonceCredentials = new ProtectedStringType();
-		nonceCredentials.setClearValue(generateNonce(noncePolicy, task, result));
+		nonceCredentials.setClearValue(generateNonce(noncePolicy, null, task, result));
 
 		NonceType nonceType = new NonceType();
 		nonceType.setValue(nonceCredentials);
@@ -678,7 +681,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return password;
 	}
 
-	private String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
+	private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, 
+			PrismObject<O> user, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		ValuePolicyType policy = null;
 
 		if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
@@ -687,7 +691,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			policy = valuePolicy.asObjectable();
 		}
 
-		return ValuePolicyGenerator.generate(policy != null ? policy.getStringPolicy() : null, 24, result);
+		return getModelInteractionService().generateValue(policy != null ? policy.getStringPolicy() : null, 
+				24, false, user, "nonce generation (registration)", task, result);
 	}
 
 	 private String getPassword() {

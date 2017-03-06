@@ -111,6 +111,30 @@ public class BasicExpressionFunctions {
 		return StringUtils.upperCase(orig);
 	}
 	
+	public boolean contains(Object object, Object search) {
+		String objectStr = stringify(object);
+		if (StringUtils.isEmpty(objectStr)) {
+			return false;
+		}
+		String searchStr = stringify(search);
+		if (StringUtils.isEmpty(searchStr)) {
+			return false;
+		}
+		return objectStr.contains(searchStr);
+	}
+	
+	public boolean containsIgnoreCase(Object object, Object search) {
+		String objectStr = stringify(object);
+		if (StringUtils.isEmpty(objectStr)) {
+			return false;
+		}
+		String searchStr = stringify(search);
+		if (StringUtils.isEmpty(searchStr)) {
+			return false;
+		}
+		return StringUtils.containsIgnoreCase(objectStr, searchStr);
+	}
+	
 	/**
 	 * Remove whitespaces at the beginning and at the end of the string.
 	 */
