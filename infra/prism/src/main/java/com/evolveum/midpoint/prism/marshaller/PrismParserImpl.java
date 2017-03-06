@@ -209,7 +209,7 @@ abstract class PrismParserImpl implements PrismParser {
 
 	@Nullable
 	private <IV extends PrismValue> IV getSingleParentlessValue(Item<IV, ?> item) {
-		if (item.isEmpty()) {
+		if (item.size() == 0) {
 			return null;
 		} else if (item.size() == 1) {
 			IV value = item.getValues().get(0);

@@ -92,6 +92,7 @@
 				   </sourceRef>
 			   </segment>
 		   </assignmentPath>
+		   <constraint></constraint>
 	   </trigger>
     </assignment>
     

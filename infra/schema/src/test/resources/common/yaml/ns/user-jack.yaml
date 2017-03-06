@@ -47,6 +47,13 @@ object: !http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType
       resourceRef:
         oid: 2f9b9299-5555-5555-5555-000000001111
         targetName: resource1
+    trigger:
+      assignmentPath:
+        segment:
+          sourceRef:
+            oid: 123
+            targetName: source123
+      constraint: {}
   activation:
     administrativeStatus: enabled
   fullName: Jack Sparrow
