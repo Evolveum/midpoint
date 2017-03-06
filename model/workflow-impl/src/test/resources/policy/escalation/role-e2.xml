@@ -29,11 +29,13 @@
 							<approverRef oid="00000001-d34d-b33f-f00d-L00000000001" type="UserType"/>		<!-- lead1 -->
 							<approverRef oid="00000001-d34d-b33f-f00d-L00000000002" type="UserType"/>		<!-- lead2 -->
 							<evaluationStrategy>firstDecides</evaluationStrategy>
-							<duration>P5D</duration>
+							<duration>P3D</duration>
 							<timedActions>
 								<name>escalate</name>
 								<actions>
 									<escalate>
+										<name>auto-escalate</name>
+										<displayName>Automatic escalation at deadline</displayName>
 										<approverExpression>
 											<script>
 												<code>
@@ -45,7 +47,7 @@
 												</code>
 											</script>
 										</approverExpression>
-										<duration>P3D</duration>
+										<duration>P5D</duration>
 										<delegationMethod>addAssignees</delegationMethod>
 										<escalationLevelName>deputies</escalationLevelName>
 									</escalate>
@@ -55,6 +57,8 @@
 								<name>reject</name>
 								<actions>
 									<complete>
+										<name>auto-reject</name>
+										<displayName>Automatic rejection at deadline</displayName>
 										<outcome>reject</outcome>
 									</complete>
 								</actions>

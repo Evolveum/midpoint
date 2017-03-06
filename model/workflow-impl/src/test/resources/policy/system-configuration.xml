@@ -32,7 +32,27 @@
             <append>true</append>
         </appender>
     </logging>
-    <workflowConfiguration>
+	<notificationConfiguration>
+		<handler>
+			<simpleWorkflowNotifier>
+				<category>workflowProcessEvent</category>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleWorkflowNotifier-Processes</transport>
+			</simpleWorkflowNotifier>
+		</handler>
+		<handler>
+			<simpleWorkflowNotifier>
+				<category>workItemEvent</category>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
+			</simpleWorkflowNotifier>
+		</handler>
+	</notificationConfiguration>
+	<workflowConfiguration>
         <allowCompleteOthersItems>true</allowCompleteOthersItems>
         <primaryChangeProcessor>
         </primaryChangeProcessor>

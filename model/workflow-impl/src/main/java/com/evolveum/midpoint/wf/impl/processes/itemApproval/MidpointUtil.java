@@ -327,6 +327,8 @@ public class MidpointUtil {
 		removeSelectedTriggers(wfTask, toDelete, result);
 	}
 
+	// not necessary any more, as work item triggers are deleted when the work item (task) is deleted
+	// (and there are currently no triggers other than work-item-related)
 	public static void removeAllStageTriggersForWorkItem(Task wfTask, OperationResult result) {
 		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
 		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {

@@ -30,6 +30,8 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
 
@@ -70,13 +72,18 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 				allApproved &= ApprovalUtils.isApproved(event.getResult());
 			}
 			approved = allApproved;
-			if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES && itemEvents.size() != 1) {
-				throw new IllegalStateException("Not exactly one response with firstDecides strategy in "
-						+ WfContextUtil.getBriefDiagInfo(wfc) + ": " + itemEvents.size() + " response(s)");
+			if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
+				Set<WorkItemOutcomeType> outcomes = itemEvents.stream()
+						.map(e -> e.getResult().getOutcome())
+						.collect(Collectors.toSet());
+				if (outcomes.size() > 1) {
+					LOGGER.warn("Ambiguous outcome with firstDecides strategy in {}: {} response(s), providing outcomes of {}",
+							WfContextUtil.getBriefDiagInfo(wfc), itemEvents.size(), outcomes);
+				}
 			}
 		}
 
-		MidpointUtil.removeAllStageTriggersForWorkItem(wfTask, result);
+		//MidpointUtil.removeAllStageTriggersForWorkItem(wfTask, result);
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Approval process instance {} (id {}), level {}: result of this level: {}",

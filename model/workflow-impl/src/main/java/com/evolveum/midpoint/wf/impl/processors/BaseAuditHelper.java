@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.api.WorkflowException;
+import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -134,10 +135,6 @@ public class BaseAuditHelper {
 		ObjectReferenceType objectRef = resolveIfNeeded(workItem.getObjectRef(), result);
 		record.setTarget(objectRef.asReferenceValue());
 
-//		@SuppressWarnings("unchecked")
-//		PrismObject<UserType> targetOwner = (PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getOriginalAssigneeRef());
-//		record.setTargetOwner(targetOwner);
-
 		record.setOutcome(OperationResultStatus.SUCCESS);
 		record.setParameter(wfTask.getCompleteStageInfo());
 
@@ -168,11 +165,24 @@ public class BaseAuditHelper {
     }
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask,
-		OperationResult result) throws WorkflowException {
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, TaskEvent taskEvent,
+			WorkItemEventCauseInformationType cause, WorkItemResultType workItemResult, WfTask wfTask,
+			OperationResult result) throws WorkflowException {
 
         AuditEventRecord record = prepareWorkItemAuditReportCommon(workItem, wfTask, AuditEventStage.EXECUTION, result);
 		setCurrentUserAsInitiator(record);
+
+		if (cause != null) {
+			if (cause.getType() != null) {
+				record.addPropertyValue(WorkflowConstants.AUDIT_CAUSE_TYPE, cause.getType().value());
+			}
+			if (cause.getName() != null) {
+				record.addPropertyValue(WorkflowConstants.AUDIT_CAUSE_NAME, cause.getName());
+			}
+			if (cause.getDisplayName() != null) {
+				record.addPropertyValue(WorkflowConstants.AUDIT_CAUSE_DISPLAY_NAME, cause.getDisplayName());
+			}
+		}
 
 		// message + result
 		StringBuilder message = new StringBuilder();
@@ -180,14 +190,13 @@ public class BaseAuditHelper {
 		if (stageInfo != null) {
 			message.append(stageInfo).append(" : ");
 		}
-		WorkItemResultType itemResult = workItem.getResult();
-		if (itemResult != null) {
-			String answer = ApprovalUtils.makeNice(itemResult.getOutcomeAsString());
+		if (workItemResult != null) {
+			String answer = ApprovalUtils.makeNice(workItemResult.getOutcomeAsString());
 			record.setResult(answer);
 			message.append(answer);
-			if (itemResult.getComment() != null) {
-				message.append(" : ").append(itemResult.getComment());
-				record.addPropertyValue(WorkflowConstants.AUDIT_COMMENT, itemResult.getComment());
+			if (workItemResult.getComment() != null) {
+				message.append(" : ").append(workItemResult.getComment());
+				record.addPropertyValue(WorkflowConstants.AUDIT_COMMENT, workItemResult.getComment());
 			}
 		} else {
 			message.append("(no decision)");		// TODO

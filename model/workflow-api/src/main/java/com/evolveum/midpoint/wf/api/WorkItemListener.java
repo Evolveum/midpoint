@@ -52,12 +52,17 @@ public interface WorkItemListener {
 	 * @param assignee
 	 * @param initiator
 	 * @param operationKind
+	 * @param workItemResult
+	 * @param source
+	 * @param cause
 	 */
     void onWorkItemDeletion(WorkItemType workItem, ObjectReferenceType assignee, ObjectReferenceType initiator,
-			WorkItemOperationKindType operationKind, Task wfTask, OperationResult result);
+			WorkItemOperationKindType operationKind, WorkItemResultType workItemResult, AbstractWorkItemActionType source,
+			WorkItemEventCauseInformationType cause,
+			Task wfTask, OperationResult result);
 
     void onWorkItemCustomEvent(WorkItemType workItem, ObjectReferenceType assignee,
-			WorkItemNotificationActionType notificationAction, Task wfTask,
+			WorkItemNotificationActionType notificationAction, WorkItemEventCauseInformationType cause, Task wfTask,
 			OperationResult result);
 
 	/**
@@ -65,7 +70,7 @@ public interface WorkItemListener {
 	 */
 	void onWorkItemAllocationChangeCurrentActors(WorkItemType workItem, List<ObjectReferenceType> currentActors,
 			Duration timeBefore, WorkItemOperationKindType operationKind, ObjectReferenceType initiator,
-			AbstractWorkItemActionType source,
+			WorkItemResultType workItemResult, AbstractWorkItemActionType source,
 			WorkItemEventCauseInformationType reason,
 			Task task, OperationResult result);
 

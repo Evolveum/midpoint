@@ -916,8 +916,8 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong # of work items lifecycle messages", 2, lifecycleMessages.size());
 		assertEquals("Wrong # of work items allocation messages", 2, allocationMessages.size());
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
-		checkOneCompletedOneCancelled(lifecycleMessages);
-		checkOneCompletedOneCancelled(allocationMessages);
+		checkTwoCompleted(lifecycleMessages);
+		checkTwoCompleted(allocationMessages);
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
 				"Process instance name: Assigning a-test-1 to carla", "Result: REJECTED");
 
@@ -945,6 +945,23 @@ public class TestStrings extends AbstractStoryTest {
 		assertMessage(lifecycleMessages.get(1-completed), null, "Work item has been cancelled",
 				"^Carried out by:",
 				"^Result:");
+	}
+
+	private void checkTwoCompleted(List<Message> lifecycleMessages) {
+		Map<String, Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+
+		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com",
+				null,
+				"Security (2/3)", "Allocated to: Elaine Marley (elaine)");
+		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com",
+				null,
+				"Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
+		int completed;
+		assertMessage(lifecycleMessages.get(0), null, "Work item has been completed",
+				"Carried out by: midPoint Administrator (administrator)",		// TODO remove later
+				"Result: REJECTED");
+		assertMessage(lifecycleMessages.get(1), null, "Work item has been completed",
+				"Result: REJECTED");
 	}
 
 	@Test

@@ -46,7 +46,6 @@ import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.activiti.engine.FormService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -112,7 +111,6 @@ public class WorkItemManager {
 			taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_CAUSE,
 					new SingleItemSerializationSafeContainerImpl<>(causeInformation, prismContext));
 
-			FormService formService = activitiEngine.getFormService();
 			TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
 
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
@@ -242,7 +240,7 @@ public class WorkItemManager {
 			result.addContext("user", toShortString(principal.getUser()));
 
 			ObjectReferenceType initiator =
-					principal.getUser() != null && (causeInformation == null || causeInformation.getCause() == WorkItemEventCauseType.USER_ACTION) ?
+					principal.getUser() != null && (causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION) ?
 							ObjectTypeUtil.createObjectRef(principal.getUser()) : null;
 
 			LOGGER.trace("Delegating work item {} to {}: escalation={}:{}/{}; cause={}", workItemId, delegates, escalate,
@@ -259,7 +257,7 @@ public class WorkItemManager {
 
 			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(workItem.getTaskRef().getOid(), result);
 			wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, assigneesBefore, null, operationKind,
-					initiator, null, causeInformation, wfTask, result);
+					initiator, null, null, causeInformation, wfTask, result);
 
 			List<ObjectReferenceType> newAssignees;
 			if (method == null) {
