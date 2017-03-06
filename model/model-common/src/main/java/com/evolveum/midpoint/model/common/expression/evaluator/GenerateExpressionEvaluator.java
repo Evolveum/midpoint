@@ -186,11 +186,11 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		if (variables == null) {
 			return null;
 		}
-		PrismObject<O> object = variables.get(ExpressionConstants.VAR_PROJECTION, PrismObject.class);
+		PrismObject<O> object = variables.getObjectNew(ExpressionConstants.VAR_PROJECTION);
 		if (object != null) {
 			return object;
 		}
-		object = variables.get(ExpressionConstants.VAR_FOCUS, PrismObject.class);
+		object = variables.getObjectNew(ExpressionConstants.VAR_FOCUS);
 		return object;
 	}
 
