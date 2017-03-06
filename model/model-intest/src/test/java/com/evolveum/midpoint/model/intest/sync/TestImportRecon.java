@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1566,7 +1566,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID);
         
-        boolean isPasswordValid = passwordPolicyProcessor.validatePassword(stringPassword, null, passwordPolicy.asObjectable(), result);
+        boolean isPasswordValid = passwordPolicyProcessor.validatePassword(stringPassword, null, passwordPolicy.asObjectable(),
+        		userRapp, TEST_NAME, task, result);
         assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);        
         
         // These are protected accounts, they should not be imported

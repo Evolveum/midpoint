@@ -224,6 +224,18 @@ public interface ModelInteractionService {
 			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 
-	
+	/**
+	 * TEMPORARY. Need to find out better way how to deal with generated values
+	 * 
+	 * @param policy
+	 * @param defaultLength
+	 * @param generateMinimalSize
+	 * @param object object for which we generate the value (e.g. user or shadow)
+	 * @param inputResult
+	 * @return
+	 * @throws ExpressionEvaluationException
+	 */
+	<O extends ObjectType> String generateValue(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
+			PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException;
 
 }

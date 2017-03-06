@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,13 @@ import javax.xml.namespace.QName;
  */
 public class ExpressionConstants {
 
+	// Generic variables
 	public static final QName VAR_INPUT = new QName(SchemaConstants.NS_C, "input");
-	public static final QName VAR_FOCUS = new QName(SchemaConstants.NS_C, "focus");
-	public static final QName VAR_USER = new QName(SchemaConstants.NS_C, "user");
-	public static final QName VAR_ACCOUNT = new QName(SchemaConstants.NS_C, "account");
+	public static final QName VAR_OBJECT = new QName(SchemaConstants.NS_C, "object");
+	
+	// Variables used in various mappings
+	public static final QName VAR_FOCUS = new QName(SchemaConstants.NS_C, "focus");	
 	public static final QName VAR_PROJECTION = new QName(SchemaConstants.NS_C, "projection");
-	public static final QName VAR_SHADOW = new QName(SchemaConstants.NS_C, "shadow");
 	public static final QName VAR_SOURCE = new QName(SchemaConstants.NS_C, "source");
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
 	public static final QName VAR_IMMEDIATE_ASSIGNMENT = new QName(SchemaConstants.NS_C, "immediateAssignment");
@@ -45,6 +46,12 @@ public class ExpressionConstants {
     public static final QName VAR_ACTOR = new QName(SchemaConstants.NS_C, "actor");
 	public static final QName VAR_VALUE = new QName(SchemaConstants.NS_C, "value");
 
+	// DEPRECATED variables, just for compatibility
+	public static final QName VAR_USER = new QName(SchemaConstants.NS_C, "user");
+	public static final QName VAR_ACCOUNT = new QName(SchemaConstants.NS_C, "account");
+	public static final QName VAR_SHADOW = new QName(SchemaConstants.NS_C, "shadow");
+
+	// existence mapping variables
 	public static final QName VAR_LEGAL = new QName(SchemaConstants.NS_C, "legal");
     public static final QName VAR_ASSIGNED = new QName(SchemaConstants.NS_C, "assigned");
 	public static final QName VAR_FOCUS_EXISTS = new QName(SchemaConstants.NS_C, "focusExists");

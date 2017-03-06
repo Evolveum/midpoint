@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
 	private static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
 	private static final String USER_PASSWORD_A_CLEAR = "A"; // too short
+	private static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
 	private static final String USER_PASSWORD_VALID_1 = "abcd123";
 	private static final String USER_PASSWORD_VALID_2 = "abcd223";
 	private static final String USER_PASSWORD_VALID_3 = "abcd323";
@@ -676,8 +677,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	 * Change to password that violates the password policy (but is still OK for yellow resource).
 	 */
 	@Test
-    public void test220ModifyUserJackPasswordBad() throws Exception {
-		doTestModifyUserJackPasswordFailureWithHistory("test220ModifyUserJackPasswordBad",
+    public void test220ModifyUserJackPasswordBadA() throws Exception {
+		doTestModifyUserJackPasswordFailureWithHistory("test220ModifyUserJackPasswordBadA",
 				USER_PASSWORD_1_CLEAR, USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
 	}
 	
@@ -722,6 +723,16 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertFailure(result);
         
         assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
+	}
+	
+	/**
+	 * Change to password that violates the password policy (contains username)
+	 * MID-1657
+	 */
+	@Test
+    public void test224ModifyUserJackPasswordBadJack() throws Exception {
+		doTestModifyUserJackPasswordFailureWithHistory("test224ModifyUserJackPasswordBadJack",
+				USER_PASSWORD_JACK_CLEAR, USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
 	}
 	
 	/**

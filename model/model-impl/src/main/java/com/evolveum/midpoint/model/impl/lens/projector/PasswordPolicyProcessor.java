@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.policy.StringPolicyUtils;
+import com.evolveum.midpoint.model.common.stringpolicy.StringPolicyUtils;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,6 +69,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -83,6 +86,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 
+/**
+ * Password policy processor and validator. Mishmash or old and new code. Only partially refactored.
+ * Still need to align with ValuePolicyGenerator and the utils.
+ * 
+ * @author mamut
+ * @author semancik
+ *
+ */
 @Component
 public class PasswordPolicyProcessor {
 	
@@ -98,11 +109,14 @@ public class PasswordPolicyProcessor {
 	Protector protector;
 	
 	@Autowired(required = true)
+	private ValuePolicyGenerator valuePolicyGenerator;
+	
+	@Autowired(required = true)
 	ModelObjectResolver resolver;	
 	
 	<F extends FocusType> void processPasswordPolicy(LensFocusContext<F> focusContext, 
 			LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
-			throws PolicyViolationException, SchemaException {
+			throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
 		if (!UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			LOGGER.trace("Skipping processing password policies because focus is not user");
@@ -166,7 +180,7 @@ public class PasswordPolicyProcessor {
 			passwordPolicy = focusContext.getOrgPasswordPolicy();
 		}
 		
-		processPasswordPolicy(passwordPolicy, focusContext.getObjectOld(), passwordValueProperty, result);
+		processPasswordPolicy(passwordPolicy, focusContext.getObjectOld(), null, passwordValueProperty, task, result);
 		
 		if (passwordValueProperty != null && isPasswordChange) {
 			processPasswordHistoryDeltas(focusContext, context, now, task, result);
@@ -174,8 +188,8 @@ public class PasswordPolicyProcessor {
 
 	}
 	
-	private <F extends FocusType> void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismObject<F> focus, PrismProperty<ProtectedStringType> passwordProperty, OperationResult result)
-			throws PolicyViolationException, SchemaException {
+	private <F extends FocusType> void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismObject<F> focus, PrismObject<ShadowType> projection, PrismProperty<ProtectedStringType> passwordProperty, 
+			Task task, OperationResult result) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (passwordPolicy == null) {
 			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
@@ -185,7 +199,12 @@ public class PasswordPolicyProcessor {
         String passwordValue = determinePasswordValue(passwordProperty);
         PasswordType currentPasswordType = determineCurrentPassword(focus);
        
-        boolean isValid = validatePassword(passwordValue, currentPasswordType, passwordPolicy, result);
+        boolean isValid;
+        if (projection != null) {
+        	isValid = validatePassword(passwordValue, currentPasswordType, passwordPolicy, projection, "projection password policy", task, result);
+        } else {
+        	isValid = validatePassword(passwordValue, currentPasswordType, passwordPolicy, focus, "focus password policy", task, result);
+        }
 
 		if (!isValid) {
 			result.computeStatus();
@@ -349,7 +368,7 @@ public class PasswordPolicyProcessor {
 	}
 	
 	<F extends ObjectType> void processPasswordPolicy(LensProjectionContext projectionContext, 
-			LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException{
+			LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ObjectNotFoundException, ExpressionEvaluationException{
 		
 		ObjectDelta accountDelta = projectionContext.getDelta();
 		
@@ -362,7 +381,7 @@ public class PasswordPolicyProcessor {
 			return;
 		}
 		
-		PrismObject<ShadowType> accountShadow;
+		PrismObject<ShadowType> accountShadow = null;
 		PrismProperty<ProtectedStringType> password = null;
 		if (ChangeType.ADD == accountDelta.getChangeType()){
 			accountShadow = accountDelta.getObjectToAdd();
@@ -393,7 +412,11 @@ public class PasswordPolicyProcessor {
 			passwordPolicy = projectionContext.getEffectivePasswordPolicy();
 		}
 		
-		processPasswordPolicy(passwordPolicy, null, password, result);
+		if (accountShadow == null) {
+			accountShadow = projectionContext.getObjectNew();
+		}
+		
+		processPasswordPolicy(passwordPolicy, null, accountShadow, password, task, result);
 	}
 	
 	private <F extends ObjectType> boolean isCheckOrgPolicy(LensContext<F> context) throws SchemaException{
@@ -419,17 +442,8 @@ public class PasswordPolicyProcessor {
 		return true;
 	}
 
-
-	/**
-	 * Check provided password against provided policy
-	 * 
-	 * @param newPassword
-	 *            - password to check
-	 * @param pp
-	 *            - Password policy used
-	 * @return - Operation result of this validation
-	 */
-	public boolean validatePassword(String newPassword, PasswordType currentPasswordType, ValuePolicyType pp, OperationResult parentResult) {
+	public <O extends ObjectType> boolean validatePassword(String newPassword, PasswordType currentPasswordType, ValuePolicyType pp, 
+			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		Validate.notNull(pp, "Password policy must not be null.");
 
@@ -489,6 +503,8 @@ public class PasswordPolicyProcessor {
 			result.addSubresult(limitResult);
 		}
 		testInvalidCharacters(passwd, allValidChars, result, message);
+		
+		testCheckExpression(newPassword, lims, object, shortDesc, task, result, message);
 
 		if (message.toString() == null || message.toString().isEmpty()) {
 			result.computeStatus();
@@ -732,6 +748,26 @@ public class PasswordPolicyProcessor {
 				message.append("\n");
 			}
 		}
+	}
+	
+	private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims, PrismObject<O> object,
+			String shortDesc, Task task, OperationResult result, StringBuilder message) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+
+		ExpressionType expressionType = lims.getCheckExpression();
+		if (expressionType == null) {
+			return;
+		}
+		if (!valuePolicyGenerator.checkExpression(newPassword, expressionType, object, shortDesc, task, result)) {
+			String msg = lims.getCheckExpressionMessage();
+			if (msg == null) {
+				msg = "Check expression failed";
+			}
+			result.addSubresult(new OperationResult("Check expression",
+					OperationResultStatus.FATAL_ERROR, msg));
+			message.append(msg);
+			message.append("\n");
+		}
+
 	}
 
 	private boolean passwordEquals(String newPassword, ProtectedStringType currentPassword) {

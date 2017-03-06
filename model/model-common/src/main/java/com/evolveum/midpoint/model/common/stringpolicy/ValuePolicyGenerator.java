@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.common.policy;
+package com.evolveum.midpoint.model.common.stringpolicy;
 
 /**
+ *  Generator for values that match value policies (mostly passwords).
+ * Mishmash or old and new code. Only partially refactored.
+ * Still need to align with ValuePolicyGenerator and the utils.
  * 
  *  @author mamut
- *  
+ *  @author semancik 
  */
 
 import java.util.ArrayList;
@@ -31,34 +34,94 @@ import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.text.StrBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.common.expression.Expression;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 
+@Component
 public class ValuePolicyGenerator {
 
+	private static final String OP_GENERATE = ValuePolicyGenerator.class.getName() + ".generate";
 	private static final transient Trace LOGGER = TraceManager.getTrace(ValuePolicyGenerator.class);
 
-	private static final Random rand = new Random(System.currentTimeMillis());
+	private static final Random RAND = new Random(System.currentTimeMillis());
 
-	public static String generate(StringPolicyType policy, int defaultLength, OperationResult inputResult) {
-		return generate(policy, defaultLength, false, inputResult);
+	private static final int DEFAULT_MAX_ATTEMPTS = 10;
+	
+	@Autowired
+	private ExpressionFactory expressionFactory;
+
+	public ExpressionFactory getExpressionFactory() {
+		return expressionFactory;
 	}
 
-	public static String generate(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
-			OperationResult inputResult) {
+	public void setExpressionFactory(ExpressionFactory expressionFactory) {
+		this.expressionFactory = expressionFactory;
+	}
 
-		if (null == inputResult) {
-			throw new IllegalArgumentException("Provided operation result cannot be null");
+	public <O extends ObjectType> String generate(StringPolicyType policy, int defaultLength, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+		return generate(policy, defaultLength, false, object, shortDesc, task, result);
+	}
+
+	public <O extends ObjectType>  String generate(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
+			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+		
+		OperationResult result = parentResult.createSubresult(OP_GENERATE);
+		
+		int maxAttempts = DEFAULT_MAX_ATTEMPTS;
+		if (policy.getLimitations() != null && policy.getLimitations().getMaxAttempts() != null) {
+			maxAttempts = policy.getLimitations().getMaxAttempts(); 
 		}
-		// Define result from generator
-		OperationResult generatorResult = new OperationResult(
-				"Password generator running policy :" + (policy != null ? policy.getDescription()
-						: "No policy defined, using default config"));
-		inputResult.addSubresult(generatorResult);
+		if (maxAttempts < 1) {
+			ExpressionEvaluationException e = new ExpressionEvaluationException("Illegal number of maximum value genaration attemps: "+maxAttempts);
+			result.recordFatalError(e);
+			throw e;
+		}
+		String generatedValue = null;
+		int attempt = 1;
+		for (;;) {
+			generatedValue = generateAttempt(policy, defaultLength, generateMinimalSize, result);
+			if (result.isError()) {
+				throw new ExpressionEvaluationException(result.getMessage());
+			}
+			if (checkAttempt(generatedValue, policy, object, shortDesc, task, result)) {
+				break;
+			}
+			LOGGER.trace("Generator attempt {}: check failed", attempt);
+			if (attempt == maxAttempts) {
+				ExpressionEvaluationException e =  new ExpressionEvaluationException("Unable to genarate value, maximum number of attemps exceeded");
+				result.recordFatalError(e);
+				throw e;
+			}
+			attempt++;
+		}
+		
+		return generatedValue;
+		
+	}
+	
+	private String generateAttempt(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
+			OperationResult result) {
 
 		// if (policy.getLimitations() != null &&
 		// policy.getLimitations().getMinLength() != null){
@@ -134,12 +197,12 @@ public class ValuePolicyGenerator {
 		// If any limitation was found to be first
 		if (!mustBeFirst.isEmpty()) {
 			Map<Integer, List<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null, false, false,
-					generatorResult);
+					result);
 			int intersectionCardinality = mustBeFirst.keySet().size();
 			List<String> intersectionCharacters = posibleFirstChars.get(intersectionCardinality);
 			// If no intersection was found then raise error
 			if (null == intersectionCharacters || intersectionCharacters.size() == 0) {
-				generatorResult.recordFatalError(
+				result.recordFatalError(
 						"No intersection for required first character sets in password policy:"
 								+ policy.getDescription());
 				// Log error
@@ -165,7 +228,7 @@ public class ValuePolicyGenerator {
 					LOGGER.trace("Generate first character intersection items [" + tmp + "] into password.");
 				}
 				// Generate random char into password from intersection
-				password.append(intersectionCharacters.get(rand.nextInt(intersectionCharacters.size())));
+				password.append(intersectionCharacters.get(RAND.nextInt(intersectionCharacters.size())));
 			}
 		}
 
@@ -186,7 +249,7 @@ public class ValuePolicyGenerator {
 			}
 			// Find all usable characters
 			chars = cardinalityCounter(lims, StringPolicyUtils.stringTokenizer(password.toString()), false,
-					uniquenessReached, generatorResult);
+					uniquenessReached, result);
 			// If something goes badly then go out
 			if (null == chars) {
 				return null;
@@ -200,7 +263,7 @@ public class ValuePolicyGenerator {
 			for (int card = 1; card < lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
 					List<String> validChars = chars.get(card);
-					password.append(validChars.get(rand.nextInt(validChars.size())));
+					password.append(validChars.get(RAND.nextInt(validChars.size())));
 					break;
 				}
 			}
@@ -208,7 +271,7 @@ public class ValuePolicyGenerator {
 
 		// test if maximum is not exceeded
 		if (password.length() > maxLen) {
-			generatorResult.recordFatalError(
+			result.recordFatalError(
 					"Unable to meet minimal criteria and not exceed maximxal size of password.");
 			return null;
 		}
@@ -236,12 +299,12 @@ public class ValuePolicyGenerator {
 			}
 			// find all usable characters
 			chars = cardinalityCounter(lims, StringPolicyUtils.stringTokenizer(password.toString()), true,
-					uniquenessReached, generatorResult);
+					uniquenessReached, result);
 
 			// If something goes badly then go out
 			if (null == chars) {
 				// we hope this never happend.
-				generatorResult.recordFatalError(
+				result.recordFatalError(
 						"No valid characters to generate, but no all limitation are reached");
 				return null;
 			}
@@ -267,14 +330,14 @@ public class ValuePolicyGenerator {
 			for (int card = 1; card <= lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
 					List<String> validChars = chars.get(card);
-					password.append(validChars.get(rand.nextInt(validChars.size())));
+					password.append(validChars.get(RAND.nextInt(validChars.size())));
 					break;
 				}
 			}
 		}
 
 		if (password.length() < minLen) {
-			generatorResult.recordFatalError(
+			result.recordFatalError(
 					"Unable to generate password and meet minimal size of password. Password lenght: "
 							+ password.length() + ", required: " + minLen);
 			LOGGER.trace(
@@ -283,7 +346,7 @@ public class ValuePolicyGenerator {
 			return null;
 		}
 
-		generatorResult.recordSuccess();
+		result.recordSuccess();
 
 		// Shuffle output to solve pattern like output
 		StrBuilder sb = new StrBuilder(password.substring(0, 1));
@@ -294,14 +357,32 @@ public class ValuePolicyGenerator {
 		return sb.toString();
 	}
 
-	/******************************************************
-	 * Private helper methods
-	 ******************************************************/
+	private <O extends ObjectType> boolean checkAttempt(String generatedValue, StringPolicyType policy, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		LimitationsType limitationsType = policy.getLimitations();
+		if (limitationsType == null) {
+			return true;
+		}
+		ExpressionType checkExpression = limitationsType.getCheckExpression();
+		if (checkExpression != null && !checkExpression(generatedValue, checkExpression, object, shortDesc, task, result)) {
+			LOGGER.trace("Check expression returned false for generated value in {}", shortDesc);
+			return false;
+		}
+		// TODO Check pattern
+		return true;
+	}
 
+	public <O extends ObjectType> boolean checkExpression(String generatedValue, ExpressionType checkExpression, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, generatedValue);
+		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
+		PrismPropertyValue<Boolean> output = ExpressionUtil.evaluateCondition(variables, checkExpression, expressionFactory, shortDesc, task, result);
+		return ExpressionUtil.getBooleanConditionOutput(output);
+	}
+	
 	/**
 	 * Count cardinality
 	 */
-	private static Map<Integer, List<String>> cardinalityCounter(Map<StringLimitType, List<String>> lims,
+	private Map<Integer, List<String>> cardinalityCounter(Map<StringLimitType, List<String>> lims,
 			List<String> password, Boolean skipMatchedLims, boolean uniquenessReached, OperationResult op) {
 		HashMap<String, Integer> counter = new HashMap<String, Integer>();
 
@@ -372,7 +453,7 @@ public class ValuePolicyGenerator {
 		return ret;
 	}
 
-	private static int charIntersectionCounter(List<String> a, List<String> b) {
+	private int charIntersectionCounter(List<String> a, List<String> b) {
 		int ret = 0;
 		for (String s : b) {
 			if (a.contains(s)) {
