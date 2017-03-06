@@ -226,9 +226,9 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		LOGGER.debug("Firing trigger {} in {}: id={}", handlerUri, object, trigger.getId());
 		TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
 		if (handler == null) {
-			LOGGER.warn("No registered trigger handler for URI {}", trigger);
+			LOGGER.warn("No registered trigger handler for URI {} in {}", handlerUri, trigger);
 		} else if (triggerAlreadySeen(coordinatorTask, handlerUri, object.getOid()+":"+trigger.getId())) {
-			LOGGER.trace("Handler {} already executed for {}:{}", trigger, ObjectTypeUtil.toShortString(object), trigger.getId());
+			LOGGER.trace("Handler {} already executed for {}:{}", handlerUri, ObjectTypeUtil.toShortString(object), trigger.getId());
 		} else {
 			try {
 				handler.handle(object, trigger, workerTask, result);

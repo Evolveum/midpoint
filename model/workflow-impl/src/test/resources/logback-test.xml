@@ -34,7 +34,7 @@
 	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.wf" level="TRACE" />
 	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.repo" level="INFO" />
 	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
     <logger name="com.evolveum.midpoint.task" level="TRACE" />

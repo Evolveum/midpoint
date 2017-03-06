@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -35,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -63,9 +65,11 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	protected static final File TEST_ESCALATION_RESOURCE_DIR = new File("src/test/resources/policy/escalation");
 	protected static final File METAROLE_ESCALATED_FILE = new File(TEST_ESCALATION_RESOURCE_DIR, "metarole-escalated.xml");
 	protected static final File ROLE_E1_FILE = new File(TEST_ESCALATION_RESOURCE_DIR, "role-e1.xml");
+	protected static final File ROLE_E2_FILE = new File(TEST_ESCALATION_RESOURCE_DIR, "role-e2.xml");
 
 	protected String metaroleEscalatedOid;
 	protected String roleE1Oid;
+	protected String roleE2Oid;
 	private PrismObject<UserType> userLead1, userLead2;
 	private String workItemId;
 	private String approvalTaskOid;
@@ -78,6 +82,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
 		metaroleEscalatedOid = repoAddObjectFromFile(METAROLE_ESCALATED_FILE, initResult).getOid();
 		roleE1Oid = repoAddObjectFromFile(ROLE_E1_FILE, initResult).getOid();
+		roleE2Oid = repoAddObjectFromFile(ROLE_E2_FILE, initResult).getOid();
 
 		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 
@@ -187,6 +192,61 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		waitForTaskClose(rootTask, 60000);
 
 		assertAssignedRole(userJackOid, roleE1Oid, task, result);
+	}
+
+	@Test
+	public void test200CreateTaskE2() throws Exception {
+		final String TEST_NAME = "test200CreateTaskE2";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, result);
+
+		// WHEN
+
+		assignRole(userJackOid, roleE2Oid, task, result);				// should start approval process
+
+		// THEN
+		assertNotAssignedRole(userJackOid, roleE2Oid, task, result);
+
+		List<WorkItemType> workItems = getWorkItems(task, result);
+		displayWorkItems("Work items", workItems);
+
+		approvalTaskOid = workItems.get(0).getTaskRef().getOid();
+		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
+
+		display("workflow task", wfTask);
+
+		// D-0 days: escalate (twice)
+		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
+	}
+
+	@Test
+	public void test210Escalate() throws Exception {
+		final String TEST_NAME = "test210Escalate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+
+		clock.overrideDuration("P5DT10M");		// at 5D there's a deadline with escalation
+		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+
+		SearchResultList<WorkItemType> workItems = getWorkItems(task, result);
+		displayWorkItems("Work items after deadline", workItems);
+
+		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
+		display("workflow task", wfTask);
+
+		// D-0 days: reject (twice)
+		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
+
 	}
 
 }

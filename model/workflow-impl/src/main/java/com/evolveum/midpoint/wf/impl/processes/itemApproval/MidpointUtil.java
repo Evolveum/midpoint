@@ -151,6 +151,8 @@ public class MidpointUtil {
 
 	public static void createTriggersForTimedActions(String workItemId, int escalationLevel, Date workItemCreateTime,
 			Date workItemDeadline, Task wfTask, List<WorkItemTimedActionsType> timedActionsList, OperationResult result) {
+		LOGGER.trace("Creating triggers for timed actions for work item {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
+				workItemId, escalationLevel, workItemCreateTime, workItemDeadline, timedActionsList.size());
 		try {
 			PrismContext prismContext = getPrismContext();
 			List<TriggerType> triggers = new ArrayList<>();

@@ -1,0 +1,70 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="bb38a7fc-8610-49b0-a76d-7b01cb8a6de1">
+	<name>role-e2</name>
+	<assignment>
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<approvalSchema>
+						<level>
+							<approverRef oid="00000001-d34d-b33f-f00d-L00000000001" type="UserType"/>		<!-- lead1 -->
+							<approverRef oid="00000001-d34d-b33f-f00d-L00000000002" type="UserType"/>		<!-- lead2 -->
+							<evaluationStrategy>firstDecides</evaluationStrategy>
+							<duration>P5D</duration>
+							<timedActions>
+								<name>escalate</name>
+								<actions>
+									<escalate>
+										<approverExpression>
+											<script>
+												<code>
+													def approverMap = [
+														'00000001-d34d-b33f-f00d-L00000000001':'00000001-d34d-b33f-f00d-LD1000000001',
+														'00000001-d34d-b33f-f00d-L00000000002':'00000001-d34d-b33f-f00d-LD1000000002'
+													]
+													approverMap[workItem?.originalAssigneeRef?.oid]
+												</code>
+											</script>
+										</approverExpression>
+										<duration>P3D</duration>
+										<delegationMethod>addAssignees</delegationMethod>
+										<escalationLevelName>deputies</escalationLevelName>
+									</escalate>
+								</actions>
+							</timedActions>
+							<timedActions>
+								<name>reject</name>
+								<actions>
+									<complete>
+										<outcome>reject</outcome>
+									</complete>
+								</actions>
+								<escalationLevelFrom>1</escalationLevelFrom>
+								<escalationLevelTo>1</escalationLevelTo>
+							</timedActions>
+						</level>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+</role>

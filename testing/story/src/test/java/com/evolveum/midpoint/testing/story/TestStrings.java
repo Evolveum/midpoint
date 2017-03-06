@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
@@ -57,7 +56,6 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -162,7 +160,7 @@ public class TestStrings extends AbstractStoryTest {
 						.asItemDeltas(), initResult);
 
 		// we prefer running trigger scanner by hand
-		resetTriggerTask(initResult);
+		resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, initResult);
 		// and we don't need validity scanner
 		taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_VALIDITY_SCANNER_OID), 60000L, true, initResult);
 
@@ -200,19 +198,6 @@ public class TestStrings extends AbstractStoryTest {
 		userLechuckOid = addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
 
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-	}
-
-	private void resetTriggerTask(OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, FileNotFoundException {
-		taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_TRIGGER_SCANNER_OID), 60000L, true, result);
-		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE, result);
-		taskManager.suspendTasks(Collections.singletonList(TASK_TRIGGER_SCANNER_OID), 60000L, result);
-		modifySystemObjectInRepo(TaskType.class, TASK_TRIGGER_SCANNER_OID,
-				DeltaBuilder.deltaFor(TaskType.class, prismContext)
-						.item(TaskType.F_SCHEDULE).replace()
-						.asItemDeltas(),
-				result);
-		taskManager.resumeTasks(Collections.singleton(TASK_TRIGGER_SCANNER_OID), result);
 	}
 
 	@Override
@@ -872,7 +857,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		// GIVEN
 		clock.resetOverride();
-		resetTriggerTask(result);
+		resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, result);
 		clock.overrideDuration("P6D");
 
 		// WHEN
