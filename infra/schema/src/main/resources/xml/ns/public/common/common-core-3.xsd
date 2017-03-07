@@ -13526,7 +13526,7 @@
 	           			</xsd:documentation>
 	           		</xsd:annotation>
 	           	</xsd:element>
-       			<xsd:element name="display" type="tns:AbstractDisplayType" minOccurs="0" maxOccurs="1">
+       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
        				<xsd:annotation>
        					<xsd:documentation>
        						Specification of column display properties. This can be used to override the default column
@@ -13735,7 +13735,7 @@
 	</xsd:complexType>
 	<xsd:element name="formItems" type="tns:FormItemsType" />
 
-    <xsd:complexType name="AbstractDisplayType" abstract="true">
+    <xsd:complexType name="DisplayType">
         <xsd:sequence>
             <!-- basic properties -->
             <xsd:element name="label" type="xsd:string" minOccurs="0" />
@@ -13749,7 +13749,7 @@
 
     <xsd:complexType name="FormDisplayType">
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractDisplayType">
+            <xsd:extension base="tns:DisplayType">
                 <xsd:sequence>
                     <xsd:element name="theme" type="xsd:string" minOccurs="0" />
                 </xsd:sequence>
@@ -13759,7 +13759,7 @@
 
     <xsd:complexType name="FormItemDisplayType">
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractDisplayType">
+            <xsd:extension base="tns:DisplayType">
                 <xsd:sequence>
                     <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" />
                     <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0" />

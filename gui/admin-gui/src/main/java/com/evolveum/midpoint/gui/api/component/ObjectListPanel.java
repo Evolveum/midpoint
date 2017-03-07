@@ -19,12 +19,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -50,8 +53,6 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author katkav
@@ -161,8 +162,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 	
 	private BoxedTablePanel<SelectableBean<O>> createTable() {
-		List<IColumn<SelectableBean<O>, String>> columns = initColumns();
-		
+
+		List<IColumn<SelectableBean<O>, String>> columns;
+		if (isCustomColumnsListConfigured()){
+			columns = initCustomColumns();
+		} else {
+			columns = initColumns();
+		}
+
 		BaseSortableDataProvider<SelectableBean<O>> provider = initProvider();
 		
 		
@@ -199,6 +206,81 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		return table;
 	}
 	
+	protected List<IColumn<SelectableBean<O>, String>> initCustomColumns() {
+		LOGGER.trace("Start to init custom columns for table of type {}", type);
+		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<IColumn<SelectableBean<O>, String>>();
+		List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
+		if (customColumns == null){
+			return columns;
+		}
+
+		CheckBoxHeaderColumn<SelectableBean<O>> checkboxColumn = (CheckBoxHeaderColumn<SelectableBean<O>>) createCheckboxColumn();
+		if (checkboxColumn != null) {
+			columns.add(checkboxColumn);
+		}
+
+		IColumn<SelectableBean<O>, String> iconColumn = ColumnUtils.createIconColumn(type);
+		columns.add(iconColumn);
+
+		LOGGER.trace("Finished to init custom columns, created columns {}", columns);
+		return columns;
+	}
+
+	protected List<IColumn<SelectableBean<O>, String>> getCustomColumnsProcessed(List<GuiObjectColumnType> customColumns){
+		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<IColumn<SelectableBean<O>, String>>();
+		if (customColumns == null || customColumns.size() == 0){
+			return columns;
+		}
+		GuiObjectColumnType firstColumn = null;
+		List<GuiObjectColumnType> unorderedColumns = new ArrayList<>();
+		for (GuiObjectColumnType customColumn : customColumns){
+			if (firstColumn == null && StringUtils.isEmpty(customColumn.getPreviousColumn())){
+				firstColumn = customColumn;
+				customColumns.remove(customColumn);
+			} else if (StringUtils.isEmpty(customColumn.getPreviousColumn())){
+				unorderedColumns.add(customColumn);
+				customColumns.remove(customColumn);
+			}
+		}
+		if (firstColumn == null){
+			if (unorderedColumns.size() > 0){
+				firstColumn = unorderedColumns.get(0);
+				unorderedColumns.remove(0);
+			} else {
+				firstColumn = customColumns.get(0);
+				customColumns.remove(0);
+			}
+		}
+		IColumn<SelectableBean<O>, String> column = new PropertyColumn(Model.of(firstColumn.getDisplay().getLabel()),
+				null, SelectableBean.F_VALUE + "." + firstColumn.getPath());
+		columns.add(column);
+
+		GuiObjectColumnType previousColumn = firstColumn;
+		while (customColumns.size() > 0){
+			GuiObjectColumnType currentCustomColumn = null;
+			for (GuiObjectColumnType customColumn : customColumns){
+				if (customColumn.getPreviousColumn() != null &&
+						customColumn.getPreviousColumn().equals(previousColumn.getName())){
+					currentCustomColumn = customColumn;
+					customColumns.remove(customColumn);
+					break;
+				}
+			}
+			if (currentCustomColumn != null) {
+				column = new PropertyColumn(Model.of(currentCustomColumn.getDisplay().getLabel()), null,
+						SelectableBean.F_VALUE + "." + currentCustomColumn.getPath());
+				columns.add(column);
+			}
+		}
+		for (GuiObjectColumnType customColumn : unorderedColumns){
+			column = new PropertyColumn(Model.of(customColumn.getDisplay().getLabel()), null,
+					SelectableBean.F_VALUE + "." + customColumn.getPath());
+			columns.add(column);
+			unorderedColumns.remove(customColumn);
+		}
+		return columns;
+	}
+
 	protected List<IColumn<SelectableBean<O>, String>> initColumns() {
 		LOGGER.trace("Start to init columns for table of type {}", type);
 		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<IColumn<SelectableBean<O>, String>>();
@@ -439,4 +521,22 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		parentPage.hideMainPopup(target);
 	}
 
+	private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
+		AdminGuiConfigurationType adminGuiConfig = parentPage.getPrincipal().getAdminGuiConfiguration();
+		if (adminGuiConfig != null && adminGuiConfig.getObjectLists() != null &&
+				adminGuiConfig.getObjectLists().getObjectList() != null){
+			for (GuiObjectListType object : adminGuiConfig.getObjectLists().getObjectList()){
+				if (object.getType() != null &&
+						!type.getSimpleName().equals(object.getType().getLocalPart())){
+					continue;
+				}
+				return object.getColumn();
+			}
+		}
+		return null;
+	}
+
+	private boolean isCustomColumnsListConfigured(){
+		return getGuiObjectColumnTypeList() != null;
+	}
 }
