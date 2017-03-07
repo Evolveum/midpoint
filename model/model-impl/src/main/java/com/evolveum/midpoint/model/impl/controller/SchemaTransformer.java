@@ -96,7 +96,7 @@ public class SchemaTransformer {
 			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
 					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
 		for (int i = 0; i < objectTypes.size(); i++) {
-			PrismObject<T> object = objectTypes.get(i).asPrismObject();
+			PrismObject<T> object = (PrismObject<T>) objectTypes.get(i).asPrismObject();
 			object = object.cloneIfImmutable();
 			objectTypes.set(i, object.asObjectable());
 			applySchemasAndSecurity(object, options, phase, task, result);

@@ -43,7 +43,7 @@ public class LinkAction implements Action {
 		
 		F focusType = situation.getCorrelatedOwner();
     	LensFocusContext<F> focusContext = context.createFocusContext();
-        PrismObject<F> focusOld = focusType.asPrismObject();
+        PrismObject<F> focusOld = (PrismObject<F>) focusType.asPrismObject();
         focusContext.setLoadedObject(focusOld);
 		
 	}

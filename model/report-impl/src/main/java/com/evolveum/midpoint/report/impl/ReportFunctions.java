@@ -211,7 +211,7 @@ public class ReportFunctions {
             }
 
             if (assignment.getTarget() != null) {
-                resolvedAssignments.add(assignment.getTarget().asPrismObject());
+                resolvedAssignments.add((PrismObject<O>) assignment.getTarget().asPrismObject());
                 continue;
             }
 

@@ -134,7 +134,7 @@ public class TestParseTask {
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
-		ObjectType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, ObjectType.class);
+		TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
 		
 		// THEN
 		System.out.println("Parsed task:");
@@ -179,8 +179,8 @@ public class TestParseTask {
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
-		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, ObjectType.class);
-		ObjectType taskType = jaxbElement.getValue();
+		JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
+		TaskType taskType = jaxbElement.getValue();
 		
 		// THEN
 		System.out.println("Parsed task:");

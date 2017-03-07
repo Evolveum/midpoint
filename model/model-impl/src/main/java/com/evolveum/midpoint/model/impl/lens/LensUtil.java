@@ -1058,7 +1058,7 @@ public class LensUtil {
 			vars.setThisAssignment(thisAssignment);
 			
 			if (iterator.hasNext() && segmentSource instanceof AbstractRoleType) {
-				vars.setImmediateRole(segmentSource.asPrismObject());
+				vars.setImmediateRole((PrismObject<? extends AbstractRoleType>) segmentSource.asPrismObject());
 			}
 		}
 		
