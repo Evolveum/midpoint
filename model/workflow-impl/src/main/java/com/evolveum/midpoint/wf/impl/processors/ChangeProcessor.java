@@ -33,7 +33,6 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.jetbrains.annotations.NotNull;
 
@@ -108,12 +107,11 @@ public interface ChangeProcessor {
      * Prepares a work item-related audit record.
      */
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
-    AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, TaskEvent taskEvent, WfTask wfTask,
-            OperationResult result) throws WorkflowException;
+    AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem,
+            TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException;
 
     AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            WorkItemResultType workItemResult, TaskEvent taskEvent, WfTask wfTask,
-            OperationResult result) throws WorkflowException;
+            TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException;
 
     /**
      * Auxiliary method to access autowired Spring beans from within non-spring java objects.

@@ -320,7 +320,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		List<Message> notifications = dummyTransport.getMessages("dummy:simpleWorkflowNotifier-WorkItems");
 		displayCollection("notifications - work items", notifications);
 		for (Message notification : notifications) {
-			assertContains(notification, "Carried out by: midPoint Administrator (administrator) (timed action 'Automatic rejection at deadline')");
+			assertContains(notification, "Reason: Automatic rejection at deadline (timed action)");
 			assertContains(notification, "Result: REJECTED");
 		}
 	}

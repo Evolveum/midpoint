@@ -91,9 +91,9 @@ public class MiscSchemaUtil {
 	}
 	
 	public static <T extends ObjectType> List<PrismObject<T>> toList(Class<T> type, ObjectListType listType) {
-		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
+		List<PrismObject<T>> list = new ArrayList<>();
 		for (ObjectType o : listType.getObject()) {
-			list.add(((T)o).asPrismObject());
+			list.add((PrismObject<T>) o.asPrismObject());
 		}
 		return list;
 	}

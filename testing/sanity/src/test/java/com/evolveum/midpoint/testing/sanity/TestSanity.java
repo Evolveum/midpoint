@@ -3169,7 +3169,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 				assertNoRepoCache();
                 //				display("getObject result (wait loop)",resultHolder.value);
                 TestUtil.assertSuccess("getObject has failed", resultHolder.value);
-                Task task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), opResult);
+                Task task = taskManager.createTaskInstance((PrismObject<TaskType>) objectHolder.value.asPrismObject(), opResult);
                 System.out.println(new Date() + ": Import task status: " + task.getExecutionStatus() + ", progress: " + task.getProgress());
                 if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
                     // Task closed, wait finished
@@ -3200,7 +3200,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
         TestUtil.assertSuccess("getObject has failed", resultHolder.value);
-        task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), result);
+        task = taskManager.createTaskInstance((PrismObject<TaskType>) objectHolder.value.asPrismObject(), result);
 
         display("Import task after finish (fetched from model)", task);
 
@@ -3244,7 +3244,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             }
         }
 
-        Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
+        Holder<ObjectListType> listHolder = new Holder<>();
         assertNoRepoCache();
 
         modelWeb.searchObjects(ObjectTypes.USER.getTypeQName(), null, null,

@@ -798,7 +798,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				LOGGER.trace("Merge preview {} + {} deltas:\n{}", leftOid, rightOid, mergeDeltas.debugDump(1));
 			}
 			
-			final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
+			final PrismObject<O> objectLeft = (PrismObject<O>) objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
 			
 			if (mergeDeltas == null) {
 				result.computeStatus();

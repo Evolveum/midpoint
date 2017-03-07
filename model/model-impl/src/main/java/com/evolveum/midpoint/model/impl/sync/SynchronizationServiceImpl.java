@@ -912,7 +912,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (situation.getCurrentOwner() != null) {
 			F focusType = situation.getCurrentOwner();
 			LensFocusContext<F> focusContext = context.createFocusContext();
-			PrismObject<F> focusOld = focusType.asPrismObject();
+			PrismObject<F> focusOld = (PrismObject<F>) focusType.asPrismObject();
 			focusContext.setLoadedObject(focusOld);
 		}
 

@@ -271,7 +271,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	public void createObject(final String TEST_NAME, ObjectType object, boolean immediate, boolean approve,
 	                         String assigneeOid) throws Exception {
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(object.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta((PrismObject) object.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override

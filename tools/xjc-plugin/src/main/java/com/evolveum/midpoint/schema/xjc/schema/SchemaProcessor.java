@@ -32,27 +32,7 @@ import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.prism.xjc.PrismReferenceArrayList;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
-import com.sun.codemodel.JAnnotatable;
-import com.sun.codemodel.JAnnotationArrayMember;
-import com.sun.codemodel.JAnnotationUse;
-import com.sun.codemodel.JAnnotationValue;
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JDocComment;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldRef;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JFormatter;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JOp;
-import com.sun.codemodel.JPrimitiveType;
-import com.sun.codemodel.JType;
-import com.sun.codemodel.JVar;
+import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.CElementInfo;
@@ -563,6 +543,8 @@ public class SchemaProcessor implements Processor {
             createDefaultConstructor(definedClass);
             createPrismContextObjectableConstructor(definedClass);
 
+            createAsPrismObject(definedClass);
+
             if (!isDirectPrismObject) {
                 continue;
             }
@@ -579,7 +561,6 @@ public class SchemaProcessor implements Processor {
             createSetContainerMethod(definedClass, container);
 
             //create asPrismObject()
-            createAsPrismObject(definedClass);
             createAsPrismContainer(classOutline, container);
             // Objectable is also Containerable, we also need these
             createAsPrismContainerValueInObject(definedClass);
@@ -650,17 +631,20 @@ public class SchemaProcessor implements Processor {
     }
 
     private void createAsPrismObject(JDefinedClass definedClass) {
-    	JClass returnClass = CLASS_MAP.get(PrismObject.class);
-        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismObject.class),
-                METHOD_AS_PRISM_OBJECT);
-        // TODO: figure out the proper use of generics
-//        JTypeVar oTypeVar = getContainer.generify("O", definedClass);
-//        JClass narrowedReturnType = returnClass.narrow(oTypeVar);
-//        getContainer.type(narrowedReturnType);
-        getContainer.annotate(CLASS_MAP.get(Override.class));
+    	JClass prismObjectClass = CLASS_MAP.get(PrismObject.class);
+    	JType returnType;
+    	if (definedClass.isAbstract()) {
+			returnType = prismObjectClass.narrow(definedClass.wildcard());
+		} else {
+    		// e.g. PrismObject<TaskType> for TaskType
+			// we assume that we don't subclass a non-abstract object class into another one
+    		returnType = prismObjectClass.narrow(definedClass);
+		}
+		JMethod asPrismObject = definedClass.method(JMod.PUBLIC, returnType, METHOD_AS_PRISM_OBJECT);
+        asPrismObject.annotate(CLASS_MAP.get(Override.class));
 
         //create method body
-        JBlock body = getContainer.body();
+        JBlock body = asPrismObject.body();
         body._return(JExpr.invoke(METHOD_AS_PRISM_CONTAINER));
     }
 

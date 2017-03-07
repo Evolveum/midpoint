@@ -560,11 +560,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
         ObjectType objectTypeOld = lensElementContextType.getObjectOld();
-        this.objectOld = objectTypeOld != null ? objectTypeOld.asPrismObject() : null;
+        this.objectOld = objectTypeOld != null ? (PrismObject) objectTypeOld.asPrismObject() : null;
         fixProvisioningTypeInObject(this.objectOld, result);
 
         ObjectType objectTypeNew = lensElementContextType.getObjectNew();
-        this.objectNew = objectTypeNew != null ? objectTypeNew.asPrismObject() : null;
+        this.objectNew = objectTypeNew != null ? (PrismObject) objectTypeNew.asPrismObject() : null;
         fixProvisioningTypeInObject(this.objectNew, result);
 
         ObjectType object = objectTypeNew != null ? objectTypeNew : objectTypeOld;

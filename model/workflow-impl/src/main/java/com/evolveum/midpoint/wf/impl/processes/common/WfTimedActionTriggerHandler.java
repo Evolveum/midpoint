@@ -29,6 +29,8 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
+import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
@@ -134,8 +136,10 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 			cause.setName(action.getName());
 			cause.setDisplayName(action.getDisplayName());
 		}
-		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, workItem.getAssigneeRef(), timeBeforeAction,
-				operationKind, null, null, action, cause, wfTask, result);
+		WorkItemAllocationChangeOperationInfo operationInfo =
+				new WorkItemAllocationChangeOperationInfo(operationKind, workItem.getAssigneeRef(), null);
+		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
+		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, WorkItemType workItem, Task wfTask, Task triggerScannerTask,
@@ -205,10 +209,10 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 		WorkItemEventCauseInformationType cause = createCauseInformation(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-				wfTaskController.notifyWorkItemCustom(workItem, assignee, cause, wfTask, notificationAction, result);
+				wfTaskController.notifyWorkItemCustom(assignee, workItem, cause, wfTask, notificationAction, result);
 			}
 		} else {
-			wfTaskController.notifyWorkItemCustom(workItem, null, cause, wfTask, notificationAction, result);
+			wfTaskController.notifyWorkItemCustom(null, workItem, cause, wfTask, notificationAction, result);
 		}
 
 	}

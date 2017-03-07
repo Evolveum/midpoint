@@ -206,10 +206,10 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            WorkItemResultType workItemResult, TaskEvent taskEvent, WfTask wfTask,
+            TaskEvent taskEvent, WfTask wfTask,
             OperationResult result) throws WorkflowException {
         return getScenarioBean(taskEvent.getVariables())
-                .prepareWorkItemDeletedAuditRecord(workItem, taskEvent, cause, workItemResult, wfTask, result);
+                .prepareWorkItemDeletedAuditRecord(workItem, cause, taskEvent, wfTask, result);
     }
     //endregion
 }
