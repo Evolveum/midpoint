@@ -68,6 +68,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CheckExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -754,19 +755,25 @@ public class PasswordPolicyProcessor {
 	private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims, PrismObject<O> object,
 			String shortDesc, Task task, OperationResult result, StringBuilder message) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
-		ExpressionType expressionType = lims.getCheckExpression();
-		if (expressionType == null) {
+		List<CheckExpressionType> checkExpressions = lims.getCheckExpression();
+		if (checkExpressions.isEmpty()) {
 			return;
 		}
-		if (!valuePolicyGenerator.checkExpression(newPassword, expressionType, object, shortDesc, task, result)) {
-			String msg = lims.getCheckExpressionMessage();
-			if (msg == null) {
-				msg = "Check expression failed";
+		for (CheckExpressionType checkExpression: checkExpressions) {
+			ExpressionType expressionType = checkExpression.getExpression();
+			if (expressionType == null) {
+				return;
 			}
-			result.addSubresult(new OperationResult("Check expression",
-					OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
+			if (!valuePolicyGenerator.checkExpression(newPassword, expressionType, object, shortDesc, task, result)) {
+				String msg = checkExpression.getFailureMessage();
+				if (msg == null) {
+					msg = "Check expression failed";
+				}
+				result.addSubresult(new OperationResult("Check expression",
+						OperationResultStatus.FATAL_ERROR, msg));
+				message.append(msg);
+				message.append("\n");
+			}
 		}
 
 	}

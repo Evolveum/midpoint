@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CheckExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -362,12 +363,22 @@ public class ValuePolicyGenerator {
 		if (limitationsType == null) {
 			return true;
 		}
-		ExpressionType checkExpression = limitationsType.getCheckExpression();
-		if (checkExpression != null && !checkExpression(generatedValue, checkExpression, object, shortDesc, task, result)) {
+		List<CheckExpressionType> checkExpressionTypes = limitationsType.getCheckExpression();
+		if (!checkExpressions(generatedValue, checkExpressionTypes, object, shortDesc, task, result)) {
 			LOGGER.trace("Check expression returned false for generated value in {}", shortDesc);
 			return false;
 		}
 		// TODO Check pattern
+		return true;
+	}
+	
+	private <O extends ObjectType> boolean checkExpressions(String generatedValue, List<CheckExpressionType> checkExpressionTypes, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		for (CheckExpressionType checkExpressionType: checkExpressionTypes) {
+			ExpressionType expression = checkExpressionType.getExpression();
+			if (!checkExpression(generatedValue, expression, object, shortDesc, task, result)) {
+				return false;
+			}
+		}
 		return true;
 	}
 
