@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.HashedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -83,6 +84,14 @@ public class XNodeProcessorUtil {
                 	transformEncryptedValue(protectedType, prismContext);
                 }
             }
+        }
+        RootXNode xHashedData = xmap.getEntryAsRoot(ProtectedDataType.F_HASHED_DATA);
+        if (xHashedData != null) {
+            if (!(xHashedData.getSubnode() instanceof MapXNode)) {
+                throw new SchemaException("Cannot parse hashedData from "+xHashedData);
+            }
+            HashedDataType hashedDataType = prismContext.parserFor(xHashedData).context(pc).parseRealValue(HashedDataType.class);
+            protectedType.setHashedData(hashedDataType);
         }
         // protected data empty..check for clear value
         if (protectedType.isEmpty()){

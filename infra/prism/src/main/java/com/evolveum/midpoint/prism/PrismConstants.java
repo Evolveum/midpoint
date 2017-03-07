@@ -48,6 +48,10 @@ public class PrismConstants {
 	
 	public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-3";
 	public static final String PREFIX_NS_MATCHING = "mr";
+	
+	public static final String NS_PREFIX_CRYPTO = NS_PREFIX + "crypto/";
+	public static final String NS_PREFIX_CRYPTO_ALGORITHM = NS_PREFIX_CRYPTO + "algorithm/";
+	public static final String NS_CRYPTO_ALGORITHM_PBKD = NS_PREFIX_CRYPTO_ALGORITHM + "pbkd-3";
 
 	// Annotations
 

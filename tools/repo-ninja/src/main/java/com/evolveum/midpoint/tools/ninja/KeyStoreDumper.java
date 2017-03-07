@@ -15,7 +15,7 @@ import javax.crypto.SecretKey;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
@@ -32,8 +32,8 @@ public class KeyStoreDumper extends BaseNinjaAction{
 		System.out.println("###################################################");
 		System.out.println("Printing keys from key store");
 		
-		if (protector instanceof AESProtector){
-			AESProtector aesProtector = (AESProtector) protector;
+		if (protector instanceof ProtectorImpl){
+			ProtectorImpl aesProtector = (ProtectorImpl) protector;
 			System.out.println("Using key store from location: " + aesProtector.getKeyStorePath());
 //			System.out.println("Cipher: " + aesProtector.getXmlCipher());
 			
@@ -65,8 +65,8 @@ public class KeyStoreDumper extends BaseNinjaAction{
 				System.out.println("	Algorithm: " + key.getAlgorithm());
 				System.out.println("	Format: " + key.getFormat());
 				System.out.println("	Key length: " + key.getEncoded().length * 8);
-				if (protector instanceof AESProtector) {
-					System.out.println("	Key name: " + ((AESProtector) protector).getSecretKeyDigest(key));
+				if (protector instanceof ProtectorImpl) {
+					System.out.println("	Key name: " + ((ProtectorImpl) protector).getSecretKeyDigest(key));
 				}
 //				Cipher cipher = Cipher.getInstance(key.getAlgorithm());
 //				System.out.println("	Cipher algorithm" + cipher.getAlgorithm());

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptE
 import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -42,8 +42,8 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
  */
 public class ExpressionTestUtil {
 	
-	public static AESProtector createInitializedProtector(PrismContext prismContext) {
-		AESProtector protector = new AESProtector();
+	public static ProtectorImpl createInitializedProtector(PrismContext prismContext) {
+		ProtectorImpl protector = new ProtectorImpl();
         protector.setKeyStorePath(MidPointTestConstants.KEYSTORE_PATH);
         protector.setKeyStorePassword(MidPointTestConstants.KEYSTORE_PASSWORD);
         //protector.setPrismContext(prismContext);
@@ -51,7 +51,7 @@ public class ExpressionTestUtil {
         return protector;
 	}
 	
-	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, AESProtector protector, 
+	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector, 
 			PrismContext prismContext, SecurityEnforcer securityEnforcer) {
     	ExpressionFactory expressionFactory = new ExpressionFactory(resolver, prismContext);
     	

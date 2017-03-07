@@ -68,5 +68,5 @@ public abstract class BaseProtector implements Protector {
         Validate.notNull(ps, "Protected string must not be null.");
         return ps.isEncrypted();
     }
-
+    
 }

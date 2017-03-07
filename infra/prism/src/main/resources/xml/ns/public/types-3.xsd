@@ -174,7 +174,7 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="encryptedData" type="tns:EncryptedDataType" minOccurs="0"/>
-			<!-- TODO: hashing -->
+			<xsd:element name="hashedData" type="tns:HashedDataType" minOccurs="0"/>
 			
 			<xsd:any namespace="##other" minOccurs="0">
 				<xsd:annotation>
@@ -184,6 +184,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:any>
+
 		</xsd:sequence>
 	</xsd:complexType>
 	
@@ -247,6 +248,40 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="cipherValue" type="xsd:base64Binary" minOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+    <xsd:complexType name="HashedDataType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				Contains data protected by (non-reversible) hashing (message digest).
+				
+				Loosely based on XML digital signature standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="digestMethod" type="tns:DigestMethodType" minOccurs="1"/>
+			<xsd:element name="digestValue" type="xsd:base64Binary" minOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="DigestMethodType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+				Loosely based on XML encryption standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="algorithm" type="xsd:anyURI" minOccurs="1"/>
+			<xsd:element name="salt" type="xsd:base64Binary" minOccurs="0"/>
+			<xsd:element name="workFactor" type="xsd:int" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 	

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -79,7 +79,7 @@ public class TestScriptCaching {
     	System.out.println("Setting up expression factory and evaluator");
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
-    	Protector protector = new AESProtector();
+    	Protector protector = new ProtectorImpl();
         Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
         functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext, protector));
 		scriptExpressionfactory = new ScriptExpressionFactory(resolver, prismContext, protector);

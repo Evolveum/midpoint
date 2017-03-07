@@ -52,5 +52,10 @@ public class ProtectedByteArrayType extends ProtectedDataType<Byte[]> {
 		setClearValue(ArrayUtils.toObject(bytes));
 	}
 
+	@Override
+	public boolean canSupportType(Class<?> type) {
+		return byte[].class.isAssignableFrom(type);
+	}
+
 
 }
