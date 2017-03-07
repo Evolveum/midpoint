@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,11 +32,12 @@ import java.util.Map;
  */
 public class WorkItemCustomEvent extends WorkItemEvent {
 
-	public WorkItemCustomEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
-			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, @NotNull WorkItemNotificationActionType source,
-			WorkItemEventCauseInformationType cause, WfContextType workflowContext) {
-        super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null, null, source,
-				cause, workflowContext, source.getHandler(), null);
+	public WorkItemCustomEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
+			@NotNull WorkItemType workItem,
+			@Nullable SimpleObjectRef assignee, @Nullable WorkItemOperationSourceInfo sourceInfo,
+			@NotNull WfContextType workflowContext, @Nullable EventHandlerType handler) {
+        super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null,
+				sourceInfo, workflowContext, handler, null);
 	}
 
 	@Override

@@ -25,12 +25,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.ProcessListener;
-import com.evolveum.midpoint.wf.api.WorkItemListener;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -89,60 +88,59 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 
 	//region WorkItem-level notifications
     @Override
-    public void onWorkItemCreation(WorkItemType workItem, ObjectReferenceType originalAssigneeRef, Task wfTask,
-			OperationResult result) {
+    public void onWorkItemCreation(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
+			Task wfTask, OperationResult result) {
 	    WorkItemEvent event = new WorkItemLifecycleEvent(identifierGenerator, ChangeType.ADD, workItem,
-				SimpleObjectRefImpl.create(functions, originalAssigneeRef), null, null, null, null, null, wfTask.getWorkflowContext());
+				SimpleObjectRefImpl.create(functions, assignee), null, null, null, wfTask.getWorkflowContext());
 		initializeWorkflowEvent(event, wfTask);
         processEvent(event, result);
     }
 
     @Override
-    public void onWorkItemDeletion(WorkItemType workItem, ObjectReferenceType assignee, ObjectReferenceType initiator,
-			WorkItemOperationKindType operationKind,
-			WorkItemResultType workItemResult, AbstractWorkItemActionType source, WorkItemEventCauseInformationType cause,
+    public void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
+			WorkItemOperationInfo operationInfo, WorkItemOperationSourceInfo sourceInfo,
 			Task wfTask, OperationResult result) {
 	    WorkItemEvent event = new WorkItemLifecycleEvent(identifierGenerator, ChangeType.DELETE, workItem,
 				SimpleObjectRefImpl.create(functions, assignee),
-				SimpleObjectRefImpl.create(functions, initiator),
-				operationKind, workItemResult, source, cause, wfTask.getWorkflowContext());
+				getInitiator(sourceInfo), operationInfo, sourceInfo, wfTask.getWorkflowContext());
 		initializeWorkflowEvent(event, wfTask);
 		processEvent(event, result);
     }
 
     @Override
-    public void onWorkItemCustomEvent(WorkItemType workItem, ObjectReferenceType assignee,
+    public void onWorkItemCustomEvent(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
 			@NotNull WorkItemNotificationActionType notificationAction, WorkItemEventCauseInformationType cause, Task wfTask,
 			OperationResult result) {
 	    WorkItemEvent event = new WorkItemCustomEvent(identifierGenerator, ChangeType.ADD, workItem,
-				SimpleObjectRefImpl.create(functions, assignee), notificationAction, cause, wfTask.getWorkflowContext());
+				SimpleObjectRefImpl.create(functions, assignee),
+				new WorkItemOperationSourceInfo(null, cause, notificationAction),
+				wfTask.getWorkflowContext(), notificationAction.getHandler());
 		initializeWorkflowEvent(event, wfTask);
 		processEvent(event, result);
     }
 
-	@Override
-	public void onWorkItemAllocationChangeCurrentActors(WorkItemType workItem, List<ObjectReferenceType> currentActors,
-			Duration timeBefore, WorkItemOperationKindType operationKind, ObjectReferenceType initiator,
-			WorkItemResultType workItemResult, AbstractWorkItemActionType source,
-			WorkItemEventCauseInformationType cause, Task task, OperationResult result) {
-    	checkOids(currentActors);
-		for (ObjectReferenceType currentActor : currentActors) {
-			onWorkItemAllocationModifyDelete(currentActor, workItem, timeBefore, operationKind, initiator, workItemResult, source, cause, task, result);
+    @Override
+	public void onWorkItemAllocationChangeCurrentActors(@NotNull WorkItemType workItem,
+			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
+			@Nullable WorkItemOperationSourceInfo sourceInfo,
+			Duration timeBefore, Task task, OperationResult result) {
+    	checkOids(operationInfo.getCurrentActors());
+		for (ObjectReferenceType currentActor : operationInfo.getCurrentActors()) {
+			onWorkItemAllocationModifyDelete(currentActor, workItem, operationInfo, sourceInfo, timeBefore, task, result);
 		}
 	}
 
 	@Override
-	public void onWorkItemAllocationChangeNewActors(WorkItemType workItem, List<ObjectReferenceType> currentActors,
-			List<ObjectReferenceType> newActors, WorkItemOperationKindType operationKind, ObjectReferenceType initiator,
-			AbstractWorkItemActionType source,
-			WorkItemEventCauseInformationType cause, Task task, OperationResult result) {
+	public void onWorkItemAllocationChangeNewActors(@NotNull WorkItemType workItem,
+			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
+			@Nullable WorkItemOperationSourceInfo sourceInfo,
+			Task task, OperationResult result) {
+    	Validate.notNull(operationInfo.getNewActors());
 
-    	checkOids(currentActors);
-    	checkOids(newActors);
-		for (ObjectReferenceType newActor : newActors) {
-//			if (!ObjectTypeUtil.containsOid(currentActors, newActor.getOid())) {
-				onWorkItemAllocationAdd(newActor, workItem, operationKind, initiator, source, cause, task, result);
-//			}
+    	checkOids(operationInfo.getCurrentActors());
+    	checkOids(operationInfo.getNewActors());
+		for (ObjectReferenceType newActor : operationInfo.getNewActors()) {
+			onWorkItemAllocationAdd(newActor, workItem, operationInfo, sourceInfo, task, result);
 		}
 	}
 
@@ -150,27 +148,29 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 		refs.forEach(r -> Validate.notNull(r.getOid(), "No OID in actor object reference " + r));
 	}
 
-	private void onWorkItemAllocationAdd(ObjectReferenceType newActor, WorkItemType workItem,
-			WorkItemOperationKindType operationKind, ObjectReferenceType initiator, AbstractWorkItemActionType source,
-			WorkItemEventCauseInformationType cause, Task task, OperationResult result) {
+	private void onWorkItemAllocationAdd(ObjectReferenceType newActor, @NotNull WorkItemType workItem,
+			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+			Task task, OperationResult result) {
     	WorkItemAllocationEvent event = new WorkItemAllocationEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, newActor),
-				operationKind, SimpleObjectRefImpl.create(functions, initiator),
-				null, source, cause,
+				getInitiator(sourceInfo), operationInfo, sourceInfo,
 				task.getWorkflowContext(), null);
     	initializeWorkflowEvent(event, task);
     	processEvent(event, result);
 	}
 
-	private void onWorkItemAllocationModifyDelete(ObjectReferenceType currentActor, WorkItemType workItem, Duration timeBefore,
-			WorkItemOperationKindType operationKind, ObjectReferenceType initiator, WorkItemResultType workItemResult,
-			AbstractWorkItemActionType source,
-			WorkItemEventCauseInformationType cause,
-			Task task, OperationResult result) {
+	private SimpleObjectRef getInitiator(WorkItemOperationSourceInfo sourceInfo) {
+		return sourceInfo != null ?
+				SimpleObjectRefImpl.create(functions, sourceInfo.getInitiatorRef()) : null;
+	}
+
+	private void onWorkItemAllocationModifyDelete(ObjectReferenceType currentActor, @NotNull WorkItemType workItem,
+			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+			Duration timeBefore, Task task, OperationResult result) {
 		WorkItemAllocationEvent event = new WorkItemAllocationEvent(identifierGenerator,
 				timeBefore != null ? ChangeType.MODIFY : ChangeType.DELETE, workItem,
-				SimpleObjectRefImpl.create(functions, currentActor), operationKind, SimpleObjectRefImpl.create(functions, initiator),
-				workItemResult, source, cause,
+				SimpleObjectRefImpl.create(functions, currentActor),
+				getInitiator(sourceInfo), operationInfo, sourceInfo,
 				task.getWorkflowContext(), timeBefore);
 		initializeWorkflowEvent(event, task);
 		processEvent(event, result);
@@ -190,14 +190,6 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
             result.computeStatus();
         }
         result.recordSuccessIfUnknown();
-    }
-
-    private void processEvent(WorkflowEvent event) {
-        try {
-            notificationManager.processEvent(event);
-        } catch (RuntimeException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "An unexpected exception occurred when preparing and sending notifications: " + e.getMessage(), e);
-        }
     }
 
 	private void initializeWorkflowEvent(WorkflowEvent event, Task wfTask) {

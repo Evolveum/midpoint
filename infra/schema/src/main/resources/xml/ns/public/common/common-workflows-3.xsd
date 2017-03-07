@@ -2159,8 +2159,7 @@
 	<xsd:simpleType name="WorkItemOperationKindType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Kind of (explicit) operation. Implicit operations like "work item deletion when process instance finishes"
-				are not covered here.
+				Kind of operation.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
@@ -2215,6 +2214,18 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="RELEASE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="cancel">
+				<xsd:annotation>
+					<xsd:documentation>
+						Cancel operation. Work item was cancelled as a result of other action. (E.g. another work item
+						was completed, resulting in process or stage completion. Or the process was cancelled/deleted
+						externally.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CANCEL"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

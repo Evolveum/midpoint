@@ -19,6 +19,8 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.wf.api.WorkItemOperationInfo;
+import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,14 +34,13 @@ import java.util.Map;
  */
 public class WorkItemAllocationEvent extends WorkItemEvent {
 
-	public WorkItemAllocationEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
-			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, WorkItemOperationKindType operationKind,
-			SimpleObjectRef initiator, WorkItemResultType workItemResult, AbstractWorkItemActionType source,
-			WorkItemEventCauseInformationType cause,
-			WfContextType workflowContext,
-			Duration timeBefore) {
-        super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationKind,
-				workItemResult, source, cause, workflowContext,null, timeBefore);
+	public WorkItemAllocationEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
+			@NotNull ChangeType changeType,
+			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
+			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+			@NotNull WfContextType workflowContext, @Nullable Duration timeBefore) {
+        super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationInfo, sourceInfo,
+				workflowContext,null, timeBefore);
 	}
 
 	@Override
