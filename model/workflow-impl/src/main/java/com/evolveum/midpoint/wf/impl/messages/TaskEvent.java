@@ -177,6 +177,21 @@ public class TaskEvent {
 //        return (String) delegateTask.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME);
 //    }
 
-
-
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" +
+                "taskId='" + taskId + '\'' +
+                ", taskName='" + taskName + '\'' +
+                ", assigneeOid='" + assigneeOid + '\'' +
+                ", processInstanceName='" + processInstanceName + '\'' +
+                ", processInstanceId='" + processInstanceId + '\'' +
+                ", createTime=" + createTime +
+                ", dueDate=" + dueDate +
+                ", candidateUsers=" + candidateUsers +
+                ", candidateGroups=" + candidateGroups +
+                ", owner='" + owner + '\'' +
+                ", executionId='" + executionId + '\'' +
+                ", variables=" + variables +
+                '}';
+    }
 }

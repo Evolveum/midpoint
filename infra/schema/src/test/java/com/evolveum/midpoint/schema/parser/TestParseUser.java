@@ -25,23 +25,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -80,22 +69,24 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 	public void testParseRoundTripAsPCV() throws Exception{
 		displayTestTitle("testParseRoundTripAsPCV");
 
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2");		// misleading item name
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asContainerable()), "s3");
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
+		SerializationOptions o = SerializationOptions.createSerializeReferenceNames();
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).serialize(v), "s0");
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serialize(v), "s1");
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2");		// misleading item name
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).serializeRealValue(v.asContainerable()), "s3");
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
 	}
 
 	@Test
 	public void testParseRoundTripAsPO() throws Exception{
 		displayTestTitle("testParseRoundTripAsPO");
 
-		processParsingsPO(v -> getPrismContext().serializerFor(language).serialize(v), "s0", true);
-		processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1", false);
-		processParsingsPO(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2", false);		// misleading item name
-		processParsingsPO(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asObjectable()), "s3", false);
-		processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asObjectable()), "s4", false);
+		SerializationOptions o = SerializationOptions.createSerializeReferenceNames();
+		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).serialize(v), "s0", true);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serialize(v), "s1", false);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2", false);		// misleading item name
+		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).serializeRealValue(v.asObjectable()), "s3", false);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serializeAnyData(v.asObjectable()), "s4", false);
 	}
 
 	private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId) throws Exception {
@@ -181,9 +172,17 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		PrismAsserts.assertDefinition(firstAssignmentExtensionItem.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);
 		PrismPropertyValue<String> firstValueOfFirstAssignmentExtensionItem = firstAssignmentExtensionItem.getValues().get(0);
 		assertEquals("Wrong value of "+EXTENSION_INT_TYPE_ELEMENT+" in assignment extension", 42, firstValueOfFirstAssignmentExtensionItem.getValue());
-		
-		// TODO: check accountConstruction
-		
+
+		PrismContainer<Containerable> constructionContainer = firstAssignmentValue.findContainer(AssignmentType.F_CONSTRUCTION);
+		PrismAsserts.assertDefinition(constructionContainer.getDefinition(), AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);
+		List<Item<?,?>> constructionItems = constructionContainer.getValue().getItems();
+		assertNotNull("No construction items", constructionItems);
+		assertEquals("Wrong number of construction items", 1, constructionItems.size());
+		PrismReference firstConstructionItem = (PrismReference) constructionItems.get(0);
+		PrismAsserts.assertDefinition(firstConstructionItem.getDefinition(), ConstructionType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, 0, 1);
+		PrismReferenceValue firstValueOfFirstConstructionItem = firstConstructionItem.getValues().get(0);
+		assertEquals("Wrong resource name", "resource1", PolyString.getOrig(firstValueOfFirstConstructionItem.getTargetName()));
+
 		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_1_OID);

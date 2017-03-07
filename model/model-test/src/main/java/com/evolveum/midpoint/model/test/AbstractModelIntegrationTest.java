@@ -46,17 +46,14 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -3941,4 +3938,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				.filter(r -> r.getEventType() == type && r.getEventStage() == stage)
 				.collect(Collectors.toList());
 	}
+
+	protected void resetTriggerTask(String taskOid, File taskFile, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, FileNotFoundException {
+		taskManager.suspendAndDeleteTasks(Collections.singletonList(taskOid), 60000L, true, result);
+		importObjectFromFile(taskFile, result);
+		taskManager.suspendTasks(Collections.singletonList(taskOid), 60000L, result);
+		modifySystemObjectInRepo(TaskType.class, taskOid,
+				DeltaBuilder.deltaFor(TaskType.class, prismContext)
+						.item(TaskType.F_SCHEDULE).replace()
+						.asItemDeltas(),
+				result);
+		taskManager.resumeTasks(Collections.singleton(taskOid), result);
+	}
+
 }

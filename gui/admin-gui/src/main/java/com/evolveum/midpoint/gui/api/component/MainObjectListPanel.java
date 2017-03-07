@@ -45,6 +45,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private static final String ID_REFRESH = "refresh";
     private static final String ID_NEW_OBJECT = "newObject";
     private static final String ID_IMPORT_OBJECT = "importObject";
+    private static final String ID_EXPORT_DATA = "exportData";
     private static final String ID_BUTTON_BAR = "buttonBar";
 
     public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
@@ -81,6 +82,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 	protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
 
     protected abstract void newObjectPerformed(AjaxRequestTarget target);
+
+    protected void exportData(AjaxRequestTarget target){
+
+    }
 
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -136,6 +141,18 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 }
             };
             add(importObject);
+
+            AjaxIconButton exportData = new AjaxIconButton(ID_EXPORT_DATA, new Model<>("fa fa-download"),
+                    mainObjectListPanel.createStringResource("MainObjectListPanel.export")) {
+
+            	private static final long serialVersionUID = 1L;
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    mainObjectListPanel.exportData(target);
+                }
+            };
+            add(exportData);
         }
     }
 }

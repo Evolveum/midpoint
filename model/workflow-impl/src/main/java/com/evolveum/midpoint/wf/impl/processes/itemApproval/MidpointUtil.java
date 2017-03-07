@@ -151,6 +151,8 @@ public class MidpointUtil {
 
 	public static void createTriggersForTimedActions(String workItemId, int escalationLevel, Date workItemCreateTime,
 			Date workItemDeadline, Task wfTask, List<WorkItemTimedActionsType> timedActionsList, OperationResult result) {
+		LOGGER.trace("Creating triggers for timed actions for work item {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
+				workItemId, escalationLevel, workItemCreateTime, workItemDeadline, timedActionsList.size());
 		try {
 			PrismContext prismContext = getPrismContext();
 			List<TriggerType> triggers = new ArrayList<>();
@@ -325,6 +327,8 @@ public class MidpointUtil {
 		removeSelectedTriggers(wfTask, toDelete, result);
 	}
 
+	// not necessary any more, as work item triggers are deleted when the work item (task) is deleted
+	// (and there are currently no triggers other than work-item-related)
 	public static void removeAllStageTriggersForWorkItem(Task wfTask, OperationResult result) {
 		List<PrismContainerValue<TriggerType>> toDelete = new ArrayList<>();
 		for (TriggerType triggerType : wfTask.getTaskPrismObject().asObjectable().getTrigger()) {

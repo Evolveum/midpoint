@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.opends.server.types.Entry;
@@ -441,8 +442,20 @@ public class IntegrationTestTools {
 	public static void displayContainerablesCollection(String message, Collection<? extends Containerable> collection) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		for (Containerable c : collection) {
+		for (Containerable c : CollectionUtils.emptyIfNull(collection)) {
 			String s = DebugUtil.debugDump(c.asPrismContainerValue());
+			System.out.println(s);
+			LOGGER.debug("{}", s);
+			System.out.println(OBJECT_LIST_SEPARATOR);
+			LOGGER.debug(OBJECT_LIST_SEPARATOR);
+		}
+	}
+
+	public static void displayCollection(String message, Collection<? extends DebugDumpable> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		for (DebugDumpable c : CollectionUtils.emptyIfNull(collection)) {
+			String s = DebugUtil.debugDump(c);
 			System.out.println(s);
 			LOGGER.debug("{}", s);
 			System.out.println(OBJECT_LIST_SEPARATOR);
@@ -453,7 +466,7 @@ public class IntegrationTestTools {
 	public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		for (ObjectType o : collection) {
+		for (ObjectType o : CollectionUtils.emptyIfNull(collection)) {
 			System.out.println(ObjectTypeUtil.dump(o));
 			LOGGER.debug(ObjectTypeUtil.dump(o));
 			System.out.println(OBJECT_LIST_SEPARATOR);

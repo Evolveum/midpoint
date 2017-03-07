@@ -188,8 +188,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 						LOGGER.warn("Trigger without a timestamp in {}", object);
 					} else {
 						if (isHot(handler, timestamp)) {
-							fireTrigger(trigger, object, workerTask, coordinatorTask, result);
-							removeTrigger(object, trigger.asPrismContainerValue(), workerTask, triggerContainer.getDefinition());
+							fireTrigger(trigger, object, triggerContainer.getDefinition(), workerTask, coordinatorTask, result);
 						} else {
 							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})",
 									trigger, timestamp, handler.getThisScanTimestamp(), handler.getLastScanTimestamp());
@@ -217,18 +216,22 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		return handler.getLastScanTimestamp() == null || handler.getLastScanTimestamp().compare(timestamp) == DatatypeConstants.LESSER;
 	}
 
-	private void fireTrigger(TriggerType trigger, PrismObject<ObjectType> object, Task workerTask, Task coordinatorTask, OperationResult result) {
+	private void fireTrigger(TriggerType trigger, PrismObject<ObjectType> object,
+			PrismContainerDefinition<TriggerType> triggerContainerDefinition,
+			Task workerTask, Task coordinatorTask, OperationResult result) {
 		String handlerUri = trigger.getHandlerUri();
 		if (handlerUri == null) {
 			LOGGER.warn("Trigger without handler URI in {}", object);
 			return;
 		}
 		LOGGER.debug("Firing trigger {} in {}: id={}", handlerUri, object, trigger.getId());
+		if (triggerAlreadySeen(coordinatorTask, handlerUri, object.getOid()+":"+trigger.getId())) {
+			LOGGER.debug("Handler {} already executed for {}:{}", handlerUri, ObjectTypeUtil.toShortString(object), trigger.getId());
+			return;
+		}
 		TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
 		if (handler == null) {
-			LOGGER.warn("No registered trigger handler for URI {}", trigger);
-		} else if (triggerAlreadySeen(coordinatorTask, handlerUri, object.getOid()+":"+trigger.getId())) {
-			LOGGER.trace("Handler {} already executed for {}:{}", trigger, ObjectTypeUtil.toShortString(object), trigger.getId());
+			LOGGER.warn("No registered trigger handler for URI {} in {}", handlerUri, trigger);
 		} else {
 			try {
 				handler.handle(object, trigger, workerTask, result);
@@ -239,6 +242,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 				result.recordPartialError(e);
 			}
 		}
+		removeTrigger(object, trigger.asPrismContainerValue(), workerTask, triggerContainerDefinition);
 	}
 
 	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task,

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -61,6 +62,8 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.OBJECT;
+import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.TARGET;
 import static com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType.*;
 
@@ -264,13 +267,13 @@ public class PageCertCampaign extends PageAdminCertification {
 		
 		IColumn column;
 
-		column = helper.createObjectOrTargetTypeColumn(true, this);
+		column = helper.createTypeColumn(OBJECT, this);
 		columns.add(column);
 
 		column = helper.createObjectNameColumn(this, "PageCertCampaign.table.objectName");
 		columns.add(column);
 
-		column = helper.createObjectOrTargetTypeColumn(false, this);
+		column = helper.createTypeColumn(TARGET, this);
 		columns.add(column);
 
 		column = helper.createTargetNameColumn(this, "PageCertCampaign.table.targetName");
@@ -278,6 +281,11 @@ public class PageCertCampaign extends PageAdminCertification {
 
 		column = helper.createDetailedInfoColumn(this);
 		columns.add(column);
+
+		if (AccessCertificationApiConstants.EXCLUSION_HANDLER_URI.equals(campaignModel.getObject().getHandlerUri())) {
+			column = helper.createConflictingNameColumn(this, "PageCertCampaign.table.conflictingTargetName");
+			columns.add(column);
+		}
 
 		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewers"), CertCaseDto.F_REVIEWERS);
 		columns.add(column);

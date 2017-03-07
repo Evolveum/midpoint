@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2016 Biznet, Evolveum
+ * Copyright (c) 2012-2017 Biznet, Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ import org.apache.wicket.model.Model;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -484,9 +484,9 @@ public class PageSecurityQuestions extends PageBase {
 							systemConfig.asObjectable().getGlobalPasswordPolicyRef().getOid(), options, task,
 							result);
 					LOGGER.trace("password policy {}", valPolicy);
-					newPassword = ValuePolicyGenerator.generate(valPolicy.asObjectable().getStringPolicy(),
-							valPolicy.asObjectable().getStringPolicy().getLimitations().getMinLength(),
-							result);
+					newPassword = getModelInteractionService().generateValue(valPolicy.asObjectable().getStringPolicy(),
+							valPolicy.asObjectable().getStringPolicy().getLimitations().getMinLength(), false,
+							user.asPrismObject(), "security questions password generation", task, result);
 				} else {
 					// TODO What if there is no policy? What should be done to
 					// provide a new automatic password
@@ -502,7 +502,7 @@ public class PageSecurityQuestions extends PageBase {
 				throw new RestartResponseException(PageLogin.class);
 
 			}
-		} catch (ObjectNotFoundException e1) {
+		} catch (ObjectNotFoundException | ExpressionEvaluationException e1) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset password", e1);
 
 		} catch (SchemaException e1) {

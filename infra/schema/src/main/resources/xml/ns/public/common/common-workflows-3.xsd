@@ -1409,16 +1409,16 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="cause" type="tns:WorkItemEventCauseType" minOccurs="0" />
-			<xsd:element name="causeName" type="xsd:string" minOccurs="0" />
-			<xsd:element name="causeDisplayName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="type" type="tns:WorkItemEventCauseTypeType" minOccurs="0" />
+			<xsd:element name="name" type="xsd:string" minOccurs="0" />
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:simpleType name="WorkItemEventCauseType">
+	<xsd:simpleType name="WorkItemEventCauseTypeType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Reason for automated decision.
+				Type of event cause.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>

@@ -200,8 +200,20 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 		SimpleObjectRef initiator = event.getInitiator();
 		if (initiator != null) {
 			UserType initiatorFull = (UserType) functions.getObjectType(initiator, true, result);
-			sb.append("Carried out by: ").append(formatUserName(initiatorFull, initiator.getOid())).append("\n");
+			sb.append("Carried out by: ").append(formatUserName(initiatorFull, initiator.getOid()));
+			WorkItemEventCauseInformationType cause = event.getCause();
+			if (cause != null && cause.getType() == WorkItemEventCauseTypeType.TIMED_ACTION) {
+				sb.append(" (timed action");
+				if (cause.getDisplayName() != null) {
+					sb.append(" '").append(cause.getDisplayName()).append("'");
+				} else if (cause.getName() != null) {
+					sb.append(" '").append(cause.getName()).append("'");
+				}
+				sb.append(")");
+			}
+			sb.append("\n");
 		}
+
 		appendResultInformation(sb, event);
 		if (!isDone(event) && workItem.getDeadline() != null) {
 			XMLGregorianCalendar deadline = workItem.getDeadline();

@@ -32,14 +32,14 @@ import java.util.Map;
  */
 public class WorkItemAllocationEvent extends WorkItemEvent {
 
-	private WorkItemNotificationActionType notificationAction;
-
 	public WorkItemAllocationEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
 			@NotNull WorkItemType workItem, @Nullable SimpleObjectRef assignee, WorkItemOperationKindType operationKind,
-			SimpleObjectRef initiator, WfContextType workflowContext,
+			SimpleObjectRef initiator, WorkItemResultType workItemResult, AbstractWorkItemActionType source,
+			WorkItemEventCauseInformationType cause,
+			WfContextType workflowContext,
 			Duration timeBefore) {
-        super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationKind, workflowContext,
-				null, timeBefore);
+        super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationKind,
+				workItemResult, source, cause, workflowContext,null, timeBefore);
 	}
 
 	@Override

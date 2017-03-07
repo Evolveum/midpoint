@@ -76,14 +76,9 @@ public class TaskCompleteListener implements TaskListener {
 		}
 
 		LOGGER.trace("======================================== Recording individual decision of {}", user);
-		WorkItemCompletionEventType event = new WorkItemCompletionEventType();
-		ActivitiUtil.fillInWorkItemEvent(event, user, delegateTask.getId(), delegateTask.getVariables(), prismContext);
-		event.setCause(ActivitiUtil.getVariable(delegateTask.getVariables(), CommonProcessVariableNames.VARIABLE_CAUSE,
-				WorkItemEventCauseInformationType.class, prismContext));
-		@NotNull WorkItemResultType result = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());
-		event.setResult(result);
 
-		boolean isApproved = ApprovalUtils.isApproved(result);
+		@NotNull WorkItemResultType result1 = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());
+		boolean isApproved = ApprovalUtils.isApproved(result1);
 
         LevelEvaluationStrategyType levelEvaluationStrategyType = level.getEvaluationStrategy();
         Boolean setLoopApprovesInLevelStop = null;
@@ -107,12 +102,8 @@ public class TaskCompleteListener implements TaskListener {
             LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
                     execution.getProcessInstanceId(),
-					WfContextUtil.getLevelDiagName(level), result.getOutcomeAsString(), setLoopApprovesInLevelStop);
+					WfContextUtil.getLevelDiagName(level), result1.getOutcomeAsString(), setLoopApprovesInLevelStop);
         }
-
-        ObjectDeltaType additionalDelta = result.getAdditionalDeltas() != null ?
-				result.getAdditionalDeltas().getFocusPrimaryDelta() : null;
-        MidpointUtil.recordEventInTask(event, additionalDelta, wfTask.getOid(), opResult);
 
 		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);

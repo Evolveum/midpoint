@@ -41,6 +41,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -1889,10 +1890,20 @@ public final class WebComponentUtil {
 		if (!NumberUtils.isDigits(subscriptionId)){
 			return false;
 		}
-		if (subscriptionId.length() < 8){
+		if (subscriptionId.length() < 15){
 			return false;
 		}
-		//TODO check subscription type according to type constants
+		String subscriptionType = subscriptionId.substring(0, 2);
+		boolean isTypeCorrect = false;
+		for (SubscriptionType type : SubscriptionType.values()){
+			if (type.getSubscriptionType().equals(subscriptionType)){
+				isTypeCorrect = true;
+				break;
+			}
+		}
+		if (!isTypeCorrect){
+			return false;
+		}
 		String expDateStr = subscriptionId.substring(2, 6);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("MMyy");
 		try {

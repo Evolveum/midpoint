@@ -78,10 +78,11 @@
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression.Expression" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.common.mapping" level="TRACE" />
+ 	<logger name="com.evolveum.midpoint.model.common.mapping" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />

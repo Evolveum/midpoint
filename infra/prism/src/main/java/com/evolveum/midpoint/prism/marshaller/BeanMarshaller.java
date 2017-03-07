@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.*;
@@ -84,7 +85,16 @@ public class BeanMarshaller {
 		Marshaller marshaller = specialMarshallers.get(bean.getClass());
 		if (marshaller != null) {
 			return marshaller.marshal(bean, ctx);
-		} else if (bean instanceof Containerable) {
+		}
+
+		// avoiding chatty PolyString serializations (namespace declaration + orig + norm)
+		if (bean instanceof PolyString) {
+			bean = (T) ((PolyString) bean).getOrig();
+		} else if (bean instanceof PolyStringType) {
+			bean = (T) ((PolyStringType) bean).getOrig();
+		}
+
+		if (bean instanceof Containerable) {
 			return prismContext.xnodeSerializer().serializeRealValue(bean, new QName("dummy")).getSubnode();
 		} else if (bean instanceof Enum) {
 			return marshalEnum((Enum) bean, ctx);
@@ -414,7 +424,7 @@ public class BeanMarshaller {
 	}
 	
 	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName valueType, boolean isAttribute) {
-		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
+		PrimitiveXNode<T> xprim = new PrimitiveXNode<>();
 		xprim.setValue(value, valueType);
 		xprim.setAttribute(isAttribute);
 		return xprim;

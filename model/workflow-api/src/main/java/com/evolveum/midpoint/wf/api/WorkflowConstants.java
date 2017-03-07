@@ -40,4 +40,7 @@ public class WorkflowConstants {
 	public static final String AUDIT_WORK_ITEM_ID = "wf.workItemId";
 	public static final String AUDIT_PROCESS_INSTANCE_ID = "wf.processInstanceId";
 	public static final String AUDIT_REQUESTER_COMMENT = "wf.requesterComment";
+	public static final String AUDIT_CAUSE_TYPE = "wf.causeType";
+	public static final String AUDIT_CAUSE_NAME = "wf.causeName";
+	public static final String AUDIT_CAUSE_DISPLAY_NAME = "wf.causeDisplayName";
 }

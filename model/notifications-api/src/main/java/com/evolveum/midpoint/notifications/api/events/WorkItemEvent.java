@@ -45,19 +45,27 @@ public class WorkItemEvent extends WorkflowEvent {
 	 */
 	protected final SimpleObjectRef initiator;
 	protected final WorkItemOperationKindType operationKind;
+	protected final AbstractWorkItemActionType source;
+	protected final WorkItemEventCauseInformationType cause;
 	protected final Duration timeBefore;
+	protected final WorkItemResultType workItemResult;
 
-    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
-                         @NotNull WorkItemType workItem,
-                         @Nullable SimpleObjectRef assignee, SimpleObjectRef initiator, WorkItemOperationKindType operationKind,
-                         WfContextType workflowContext,
-                         EventHandlerType handler, Duration timeBefore) {
+    WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
+			@NotNull WorkItemType workItem,
+			@Nullable SimpleObjectRef assignee, SimpleObjectRef initiator, WorkItemOperationKindType operationKind,
+			WorkItemResultType workItemResult, @Nullable AbstractWorkItemActionType source,
+			@Nullable WorkItemEventCauseInformationType cause,
+			WfContextType workflowContext,
+			EventHandlerType handler, Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workflowContext, handler);
 	    Validate.notNull(workItem);
         this.workItem = workItem;
 		this.assignee = assignee;
 		this.initiator = initiator;
 		this.operationKind = operationKind;
+		this.workItemResult = workItemResult;
+		this.source = source;
+		this.cause = cause;
 	    this.timeBefore = timeBefore;
     }
 
@@ -87,6 +95,14 @@ public class WorkItemEvent extends WorkflowEvent {
 		return operationKind;
 	}
 
+	public AbstractWorkItemActionType getSource() {
+		return source;
+	}
+
+	public WorkItemEventCauseInformationType getCause() {
+		return cause;
+	}
+
 	public Duration getTimeBefore() {
 		return timeBefore;
 	}
@@ -98,9 +114,13 @@ public class WorkItemEvent extends WorkflowEvent {
         variables.put(SchemaConstants.C_WORK_ITEM, workItem);
     }
 
+    public WorkItemResultType getWorkItemResult() {
+    	return workItemResult != null ? workItemResult : workItem.getResult();
+	}
+
 	@Override
-	protected String getAnswer() {
-		WorkItemResultType result = workItem.getResult();
+	public String getAnswer() {
+    	WorkItemResultType result = getWorkItemResult();
 		return result != null ? result.getOutcomeAsString() : null;
 	}
 

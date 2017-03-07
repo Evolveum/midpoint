@@ -41,13 +41,12 @@ public class TaskDeleteListener implements TaskListener {
 	@Override
 	public void notify(DelegateTask delegateTask) {
 
-		DelegateExecution execution = delegateTask.getExecution();
-		PrismContext prismContext = getPrismContext();
-		OperationResult opResult = new OperationResult(TaskCompleteListener.class.getName() + ".notify");
-		Task wfTask = ActivitiUtil.getTask(execution, opResult);
+		//DelegateExecution execution = delegateTask.getExecution();
+		//PrismContext prismContext = getPrismContext();
+		//OperationResult opResult = new OperationResult(TaskCompleteListener.class.getName() + ".notify");
+		//Task wfTask = ActivitiUtil.getTask(execution, opResult);
 		//ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
-		MidpointUtil.removeTriggersForWorkItem(wfTask, delegateTask.getId(), opResult);
 		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);
     }
 }

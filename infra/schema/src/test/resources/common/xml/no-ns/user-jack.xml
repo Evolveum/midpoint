@@ -66,7 +66,9 @@
     		<intType>42</intType>
     	</extension>
     	<construction>
-			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="ResourceType"/>
+			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="ResourceType">
+				<targetName>resource1</targetName>
+			</resourceRef>
     	</construction>
     </assignment>
     

@@ -62,7 +62,8 @@
       },
      "construction" : {
          "resourceRef" : {
-          "oid" : "2f9b9299-5555-5555-5555-000000001111"
+           "oid" : "2f9b9299-5555-5555-5555-000000001111",
+           "targetName" : "resource1"
         }
       }
     } ],
