@@ -16,18 +16,11 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardLayoutType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -163,6 +156,12 @@ public class AdminGuiConfigTypeUtil {
 			}
 		}
 		return null;
+	}
+
+	public static List<GuiObjectColumnType> getOrderedCustomColumns(List<GuiObjectColumnType> customColumns){
+		List<GuiObjectColumnType> orderedCustomColumns = new ArrayList<>();
+
+		return orderedCustomColumns;
 	}
 
 }

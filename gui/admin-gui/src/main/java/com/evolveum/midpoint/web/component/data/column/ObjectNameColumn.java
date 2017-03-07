@@ -46,6 +46,10 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 		super(displayModel, ObjectType.F_NAME.getLocalPart());
 	}
 
+	public ObjectNameColumn(IModel<String> displayModel, String itemPath) {
+		super(displayModel, itemPath);
+	}
+
 	@Override
 	public void populateItem(final Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
 			final IModel<SelectableBean<O>> rowModel) {
