@@ -19,10 +19,8 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -32,7 +30,6 @@ import org.h2.tools.Server;
 import org.hibernate.dialect.H2Dialect;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
@@ -136,13 +133,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             LOGGER.info("H2 files are in '{}'.", new File(sqlConfiguration.getBaseDir()).getAbsolutePath());
         } else {
             LOGGER.info("Repository is not running in embedded mode.");
-        }
-
-        try {
-            QueryDefinitionRegistry.getInstance();
-        } catch (Exception ex) {
-            throw new RepositoryServiceFactoryException("Couldn't initialize query registry, reason: "
-                    + ex.getMessage(), ex);
         }
 
         performanceMonitor = new SqlPerformanceMonitor();

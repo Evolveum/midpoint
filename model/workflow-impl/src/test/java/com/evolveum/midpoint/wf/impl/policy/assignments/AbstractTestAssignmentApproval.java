@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -43,6 +45,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -80,7 +83,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         TestUtil.displayTestTile(this, TEST_NAME);
         login(userAdministrator);
 
-		executeAssignRole1ToJack(TEST_NAME, false, false, null);
+		executeAssignRole1ToJack(TEST_NAME, false, false, null, null);
 	}
 
 	/**
@@ -122,7 +125,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		Task task = createTask(TEST_NAME);
 		importLead10(task, task.getResult());
 
-		executeAssignRole1ToJack(TEST_NAME, false, false, null);
+		executeAssignRole1ToJack(TEST_NAME, false, false, null, null);
 	}
 
 	/**
@@ -135,7 +138,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
-		executeAssignRole1ToJack(TEST_NAME, true, false, null);
+		executeAssignRole1ToJack(TEST_NAME, true, false, null, null);
 	}
 
 	/**
@@ -232,7 +235,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		importLead1Deputies(task, task.getResult());
 
 		unassignAllRoles(userJackOid);
-		executeAssignRole1ToJack(TEST_NAME, false, true, null);
+		executeAssignRole1ToJack(TEST_NAME, false, true, null, null);
 	}
 
 	/**
@@ -245,15 +248,26 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
-		executeAssignRole1ToJack(TEST_NAME, false, true, userLead1Deputy1Oid);
+		executeAssignRole1ToJack(TEST_NAME, false, true, userLead1Deputy1Oid, null);
 	}
 
+	@Test(enabled = false)
+	public void test150AddRole1ApproverAssignment() throws Exception {
+		final String TEST_NAME = "test150AddRole1ApproverAssignment";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
 
-	private void executeAssignRole1ToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid) throws Exception {
+		unassignAllRoles(userJackOid);
+		executeAssignRole1ToJack(TEST_NAME, false, true, null, SchemaConstants.ORG_APPROVER);
+	}
+
+	private void executeAssignRole1ToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid, QName relation) throws Exception {
 		PrismObject<UserType> jack = getUser(userJackOid);
+		AssignmentType assignment = createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext);
+		assignment.getTargetRef().setRelation(relation);
 		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
-				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
+				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.asObjectDelta(userJackOid);
 		String realApproverOid = approverOid != null ? approverOid : userLead1Oid;
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
