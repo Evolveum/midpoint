@@ -239,7 +239,7 @@ public class AssignmentProcessor {
         // Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
         // This is where most of the assignment-level action happens.
         DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
-        policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple);
+        policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
         
         if (LOGGER.isTraceEnabled()) {
@@ -258,7 +258,7 @@ public class AssignmentProcessor {
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
-			policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple);
+			policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple, task, result);
 
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());

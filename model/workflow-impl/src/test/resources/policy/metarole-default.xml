@@ -15,6 +15,7 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	  oid="00000001-d34d-b33f-f00d-M00000000001">
 	<name>Metarole 1 'default'</name>
 	<description>Treats assignments and modifications in the default way (but with specific approver/owner relations)</description>
@@ -23,6 +24,7 @@
 			<policyConstraints>
 				<assignment>
 					<operation>add</operation>		<!-- applies to all "add assignment" operations of this metarole-bearer as the target -->
+					<relation>q:any</relation>
 				</assignment>
 			</policyConstraints>
 			<policyActions>
