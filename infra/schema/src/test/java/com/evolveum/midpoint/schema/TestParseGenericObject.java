@@ -136,7 +136,7 @@ public class TestParseGenericObject {
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
-		ObjectType genericType = jaxbProcessor.unmarshalObject(GENERIC_FILE, ObjectType.class);
+		GenericObjectType genericType = jaxbProcessor.unmarshalObject(GENERIC_FILE, GenericObjectType.class);
 		
 		// THEN
 		assertGenericObject(genericType.asPrismObject());
@@ -177,8 +177,8 @@ public class TestParseGenericObject {
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
-		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(GENERIC_FILE, ObjectType.class);
-		ObjectType genericType = jaxbElement.getValue();
+		JAXBElement<GenericObjectType> jaxbElement = jaxbProcessor.unmarshalElement(GENERIC_FILE, GenericObjectType.class);
+		GenericObjectType genericType = jaxbElement.getValue();
 		
 		// THEN
 		assertGenericObject(genericType.asPrismObject());

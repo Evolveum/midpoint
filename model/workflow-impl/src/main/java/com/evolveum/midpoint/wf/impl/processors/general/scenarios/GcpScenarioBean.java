@@ -28,6 +28,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import java.util.Map;
@@ -53,7 +54,8 @@ public interface GcpScenarioBean {
 
     AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, OperationResult result) throws WorkflowException;
 
-    AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent, OperationResult result) throws WorkflowException;
+    AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
+            TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException;
 
     WfTaskCreationInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, WfTask rootWfTask, Task taskFromModel, OperationResult result) throws SchemaException;
 }

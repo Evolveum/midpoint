@@ -57,7 +57,6 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.audit.api.AuditEventStage.EXECUTION;
 import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
 import static com.evolveum.midpoint.model.api.context.ModelState.PRIMARY;
 import static com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor.ExecutionMode.*;
@@ -363,7 +362,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, TaskEvent taskEvent, WfTask wfTask,
             OperationResult result) throws WorkflowException {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
         try {
@@ -376,15 +375,17 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
-            OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, wfTask, result);
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
+			TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException {
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause,
+				wfTask, result);
         try {
+			WorkItemResultType workItemResult = workItem.getResult();
         	// TODO - or merge with original deltas?
-        	if (workItem.getResult() != null && workItem.getResult().getOutcome() == WorkItemOutcomeType.APPROVE
-					&& workItem.getResult().getAdditionalDeltas() != null) {
+        	if (workItemResult != null && workItemResult.getOutcome() == WorkItemOutcomeType.APPROVE
+					&& workItemResult.getAdditionalDeltas() != null) {
 				addDeltasToEventRecord(auditEventRecord,
-						ObjectTreeDeltas.fromObjectTreeDeltasType(workItem.getResult().getAdditionalDeltas(), getPrismContext()));
+						ObjectTreeDeltas.fromObjectTreeDeltasType(workItemResult.getAdditionalDeltas(), getPrismContext()));
 			}
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);

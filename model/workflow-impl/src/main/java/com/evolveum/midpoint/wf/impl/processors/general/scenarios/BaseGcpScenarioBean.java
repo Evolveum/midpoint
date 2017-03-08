@@ -33,6 +33,7 @@ import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessorSpecificContent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -98,9 +99,9 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
     }
 
     @Override
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WfTask wfTask, TaskEvent taskEvent,
-			OperationResult result) throws WorkflowException {
-        return baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, wfTask, result);
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
+			TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException {
+        return baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
         // TODO fill-in missing delta somehow
     }
 

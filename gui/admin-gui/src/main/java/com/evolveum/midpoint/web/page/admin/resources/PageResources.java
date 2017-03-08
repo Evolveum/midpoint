@@ -164,6 +164,11 @@ public class PageResources extends PageAdminResources {
 			}
 
 			@Override
+			protected IColumn<SelectableBean<ResourceType>, String> createActionsColumn() {
+				return PageResources.this.createResourceActionsColumn();
+			}
+
+			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
 				PageResources.this.resourceDetailsPerformed(target, object.getOid());
 
@@ -267,7 +272,11 @@ public class PageResources extends PageAdminResources {
 		columns.add(new PropertyColumn(createStringResource("pageResources.version"),
 				SelectableBean.F_VALUE + ".connector.connectorVersion"));
 
-		columns.add(new InlineMenuButtonColumn<SelectableBean<ResourceType>>(createRowMenuItems(false), 2){
+		return columns;
+	}
+
+	private IColumn<SelectableBean<ResourceType>, String> createResourceActionsColumn() {
+		return new InlineMenuButtonColumn<SelectableBean<ResourceType>>(createRowMenuItems(false), 2){
 			@Override
 			protected int getHeaderNumberOfButtons() {
 				return 1;
@@ -277,12 +286,10 @@ public class PageResources extends PageAdminResources {
 			protected List<InlineMenuItem> getHeaderMenuItems() {
 				return createRowMenuItems(true);
 			}
-		});
-
-		return columns;
+		};
 	}
 
-	private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
+		private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
         clearSessionStorageForResourcePage();
 
         PageParameters parameters = new PageParameters();

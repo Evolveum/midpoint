@@ -1008,7 +1008,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		}
 		ObjectType object = prismObject.asObjectable();
 		if (object instanceof AbstractRoleType) {
-			return getNameToDisplay(object.asPrismObject());
+			return getNameToDisplay((PrismObject<? extends FocusType>) object.asPrismObject());
 		} else {
 			return PolyString.getOrig(object.getName());
 		}

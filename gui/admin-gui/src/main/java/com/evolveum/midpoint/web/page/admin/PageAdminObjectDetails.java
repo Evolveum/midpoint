@@ -291,7 +291,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					LOGGER.trace("Loading object: New object (creating)");
 					O focusType = createNewObject();
 					getMidpointApplication().getPrismContext().adopt(focusType);
-					object = focusType.asPrismObject();
+					object = (PrismObject<O>) focusType.asPrismObject();
 				} else {
 					LOGGER.trace("Loading object: New object (supplied): {}", objectToEdit);
 					object = objectToEdit;

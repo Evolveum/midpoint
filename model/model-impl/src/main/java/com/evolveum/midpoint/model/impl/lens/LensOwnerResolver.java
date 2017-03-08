@@ -82,7 +82,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 				if (ownerType == null) {
 					return null;
 				}
-				return ownerType.asPrismObject();
+				return (PrismObject<FO>) ownerType.asPrismObject();
 			} catch (ObjectNotFoundException | SchemaException e) {
 				LOGGER.error("Error resolving owner of {}: {}", object, e.getMessage(), e);
 				return null;

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.component;
 import java.util.Collection;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -58,21 +59,39 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn() {
-        return new ObjectNameColumn<O>(createStringResource("ObjectType.name")) {
-            private static final long serialVersionUID = 1L;
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath) {
+        if (StringUtils.isEmpty(itemPath)) {
+            return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel) {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                O object = rowModel.getObject().getValue();
-                MainObjectListPanel.this.objectDetailsPerformed(target, object);
-            }
+                @Override
+                public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+                    O object = rowModel.getObject().getValue();
+                    MainObjectListPanel.this.objectDetailsPerformed(target, object);
+                }
 
-			@Override
-			public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-				return MainObjectListPanel.this.isClickable(rowModel);
-			}
-		};
+                @Override
+                public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+                    return MainObjectListPanel.this.isClickable(rowModel);
+                }
+            };
+        } else {
+            return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
+                    itemPath) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+                    O object = rowModel.getObject().getValue();
+                    MainObjectListPanel.this.objectDetailsPerformed(target, object);
+                }
+
+                @Override
+                public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+                    return MainObjectListPanel.this.isClickable(rowModel);
+                }
+            };
+        }
     }
 
 	protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {

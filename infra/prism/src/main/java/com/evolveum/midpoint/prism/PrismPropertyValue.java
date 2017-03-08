@@ -604,7 +604,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 
 	public static void debugDumpValue(StringBuilder sb, int indent, Object value, PrismContext prismContext) {
 		String formatted;
-		if (DebugUtil.getPrettyPrintBeansAs() != null && value != null && prismContext != null
+		if (DebugUtil.getPrettyPrintBeansAs() != null && value != null && !(value instanceof Enum) && prismContext != null
 				&& value.getClass().getAnnotation(XmlType.class) != null) {
 			try {
 				formatted = prismContext.serializerFor(DebugUtil.getPrettyPrintBeansAs()).serializeRealValue(value, new QName("value"));

@@ -29,6 +29,8 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
+import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
@@ -129,13 +131,15 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 			operationKind = null;
 		}
 		WorkItemEventCauseInformationType cause = new WorkItemEventCauseInformationType();
-		cause.setCause(WorkItemEventCauseType.TIMED_ACTION);
+		cause.setType(WorkItemEventCauseTypeType.TIMED_ACTION);
 		if (action != null) {
-			cause.setCauseName(action.getName());
-			cause.setCauseDisplayName(action.getDisplayName());
+			cause.setName(action.getName());
+			cause.setDisplayName(action.getDisplayName());
 		}
-		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, workItem.getAssigneeRef(), timeBeforeAction,
-				operationKind, null, action, cause, wfTask, result);
+		WorkItemAllocationChangeOperationInfo operationInfo =
+				new WorkItemAllocationChangeOperationInfo(operationKind, workItem.getAssigneeRef(), null);
+		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
+		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, WorkItemType workItem, Task wfTask, Task triggerScannerTask,
@@ -202,21 +206,22 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeNotificationAction(WorkItemType workItem, @NotNull WorkItemNotificationActionType notificationAction, Task wfTask,
 			OperationResult result) throws SchemaException {
+		WorkItemEventCauseInformationType cause = createCauseInformation(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-				wfTaskController.notifyWorkItemCustom(workItem, assignee, wfTask, notificationAction, result);
+				wfTaskController.notifyWorkItemCustom(assignee, workItem, cause, wfTask, notificationAction, result);
 			}
 		} else {
-			wfTaskController.notifyWorkItemCustom(workItem, null, wfTask, notificationAction, result);
+			wfTaskController.notifyWorkItemCustom(null, workItem, cause, wfTask, notificationAction, result);
 		}
 
 	}
 
 	private WorkItemEventCauseInformationType createCauseInformation(AbstractWorkItemActionType action) {
 		WorkItemEventCauseInformationType cause = new WorkItemEventCauseInformationType();
-		cause.setCause(WorkItemEventCauseType.TIMED_ACTION);
-		cause.setCauseName(action.getName());
-		cause.setCauseDisplayName(action.getDisplayName());
+		cause.setType(WorkItemEventCauseTypeType.TIMED_ACTION);
+		cause.setName(action.getName());
+		cause.setDisplayName(action.getDisplayName());
 		return cause;
 	}
 

@@ -135,6 +135,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			}
 
 			@Override
+			protected IColumn<SelectableBean<ObjectType>, String> createActionsColumn(){
+				return new InlineMenuHeaderColumn(createMembersHeaderInlineMenu());
+			}
+
+			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
 				return new ArrayList<>();
 			}
@@ -440,8 +445,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		};
 		columns.add(column);
-
-		columns.add(new InlineMenuHeaderColumn(createMembersHeaderInlineMenu()));
 		return columns;
 	}
 

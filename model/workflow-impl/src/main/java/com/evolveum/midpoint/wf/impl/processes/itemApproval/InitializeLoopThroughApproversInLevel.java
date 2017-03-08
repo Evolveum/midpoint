@@ -52,7 +52,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
     public void execute(DelegateExecution execution) {
 
 		PrismContext prismContext = getPrismContext();
-    	WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
+    	WfExpressionEvaluationHelper evaluationHelper = SpringApplicationContextHolder.getExpressionEvaluationHelper();
 
         LOGGER.trace("Executing the delegate; execution = {}", execution);
 
@@ -68,8 +68,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         if (level.getAutomaticallyApproved() != null) {
             try {
                 opTask.setChannel(wfTask.getChannel());
-                expressionVariables = evaluator.getDefaultVariables(execution, wfTask, opResult);
-                boolean preApproved = evaluator.evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables,
+                expressionVariables = evaluationHelper.getDefaultVariables(execution, wfTask, opResult);
+                boolean preApproved = evaluationHelper.evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables,
 						"automatic approval expression", opTask, opResult);
 				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
 				if (preApproved) {
@@ -89,9 +89,9 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             if (!level.getApproverExpression().isEmpty()) {
                 try {
                 	if (expressionVariables == null) {
-						expressionVariables = evaluator.getDefaultVariables(execution, wfTask, opResult);
+						expressionVariables = evaluationHelper.getDefaultVariables(execution, wfTask, opResult);
 					}
-                    approverRefs.addAll(evaluator.evaluateRefExpressions(level.getApproverExpression(), expressionVariables,
+                    approverRefs.addAll(evaluationHelper.evaluateRefExpressions(level.getApproverExpression(), expressionVariables,
 							"resolving approver expression", opTask, opResult));
                 } catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException|RuntimeException e) {
                     throw new SystemException("Couldn't evaluate approvers expressions", e);

@@ -43,7 +43,7 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
-    <xsd:complexType name="AccessCertificationDefinitionType">
+    <xsd:complexType name="AbstractAccessCertificationDefinitionType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
                 Definition of an access certification - a template for
@@ -137,7 +137,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="AccessCertificationDefinitionForReportType">
         <xsd:annotation>
@@ -149,7 +148,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:AccessCertificationDefinitionType">
+            <xsd:extension base="c:AbstractAccessCertificationDefinitionType">
                 <xsd:sequence>
                     <xsd:element name="campaigns" type="xsd:int" minOccurs="0"/>
                     <xsd:element name="openCampaigns" type="xsd:int" minOccurs="0"/>
@@ -158,6 +157,19 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="accessCertificationDefinitionForReport" type="tns:AccessCertificationDefinitionForReportType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="AccessCertificationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Access certification definition.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractAccessCertificationDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="accessCertificationDefinition" type="tns:AccessCertificationDefinitionType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="AccessCertificationStageDefinitionType">
         <xsd:annotation>

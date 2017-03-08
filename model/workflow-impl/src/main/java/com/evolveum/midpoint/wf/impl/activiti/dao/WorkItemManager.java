@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -36,6 +35,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
+import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.activiti.engine.FormService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -80,7 +80,6 @@ public class WorkItemManager {
     @Autowired private ActivitiEngine activitiEngine;
     @Autowired private MiscDataUtil miscDataUtil;
     @Autowired private SecurityEnforcer securityEnforcer;
-    @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
     @Autowired private WorkItemProvider workItemProvider;
     @Autowired private WfTaskController wfTaskController;
@@ -112,7 +111,6 @@ public class WorkItemManager {
 			taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_CAUSE,
 					new SingleItemSerializationSafeContainerImpl<>(causeInformation, prismContext));
 
-			FormService formService = activitiEngine.getFormService();
 			TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
 
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
@@ -125,7 +123,9 @@ public class WorkItemManager {
 			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
 			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_COMMENT, comment);
 			if (additionalDelta != null) {
-				ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(additionalDelta);
+				@SuppressWarnings({ "unchecked", "raw" })
+				ObjectDelta<? extends ObjectType> additionalDeltaCasted = ((ObjectDelta<? extends ObjectType>) additionalDelta);
+				ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(additionalDeltaCasted);
 				String xmlDelta = prismContext.xmlSerializer()
 						.serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
 				propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_ADDITIONAL_DELTA, xmlDelta);
@@ -242,7 +242,7 @@ public class WorkItemManager {
 			result.addContext("user", toShortString(principal.getUser()));
 
 			ObjectReferenceType initiator =
-					principal.getUser() != null && (causeInformation == null || causeInformation.getCause() == WorkItemEventCauseType.USER_ACTION) ?
+					principal.getUser() != null && (causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION) ?
 							ObjectTypeUtil.createObjectRef(principal.getUser()) : null;
 
 			LOGGER.trace("Delegating work item {} to {}: escalation={}:{}/{}; cause={}", workItemId, delegates, escalate,
@@ -258,8 +258,10 @@ public class WorkItemManager {
 			WorkItemOperationKindType operationKind = escalate ? ESCALATE : DELEGATE;
 
 			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(workItem.getTaskRef().getOid(), result);
-			wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, assigneesBefore, null, operationKind,
-					initiator, null, causeInformation, wfTask, result);
+			WorkItemAllocationChangeOperationInfo operationInfoBefore =
+					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesBefore, null);
+			WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
+			wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfoBefore, sourceInfo, null, wfTask, result);
 
 			List<ObjectReferenceType> newAssignees;
 			if (method == null) {
@@ -324,8 +326,9 @@ public class WorkItemManager {
 
 			WorkItemType workItemAfter = workItemProvider.getWorkItem(workItemId, result);
 			com.evolveum.midpoint.task.api.Task wfTaskAfter = taskManager.getTask(wfTask.getOid(), result);
-			wfTaskController.notifyWorkItemAllocationChangeNewActors(workItemAfter, assigneesBefore,
-					workItemAfter.getAssigneeRef(), operationKind, initiator, null, causeInformation, wfTaskAfter, result);
+			WorkItemAllocationChangeOperationInfo operationInfoAfter =
+					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesBefore, workItemAfter.getAssigneeRef());
+			wfTaskController.notifyWorkItemAllocationChangeNewActors(workItemAfter, operationInfoAfter, sourceInfo, wfTaskAfter, result);
 		} catch (SecurityViolationException|RuntimeException|ObjectNotFoundException|SchemaException e) {
 			result.recordFatalError("Couldn't delegate/escalate work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;

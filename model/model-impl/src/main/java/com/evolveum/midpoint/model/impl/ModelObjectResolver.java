@@ -125,7 +125,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (typeQName != null) {
 			typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
 		}
-		return (getObjectSimple((Class<O>)typeClass, oid, options, task, result)).asPrismObject();
+		return (PrismObject<O>) (getObjectSimple((Class<O>)typeClass, oid, options, task, result)).asPrismObject();
 	}
 	
 	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task, 

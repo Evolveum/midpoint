@@ -99,7 +99,6 @@ public class BeanUnmarshaller {
 	 *   1. typeName is processable by unmarshaller - i.e. it corresponds to simple or complex type NOT of containerable character
 	 */
 
-	@NotNull
 	<T> T unmarshal(@NotNull XNode xnode, @NotNull QName typeQName, @NotNull ParsingContext pc) throws SchemaException {
 		Class<T> classType = getSchemaRegistry().determineClassForType(typeQName);		// TODO use correct method!
 		if (classType == null) {
@@ -114,7 +113,10 @@ public class BeanUnmarshaller {
 		return unmarshal(xnode, classType, pc);
 	}
 
-	@NotNull
+	/**
+	 * TODO: decide if this method should be marked @NotNull.
+	 * Basically the problem is with primitives. When parsed, they sometimes return null. The question is if it's correct.
+	 */
 	<T> T unmarshal(@NotNull XNode xnode, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
 		T value = unmarshalInternal(xnode, beanClass, pc);
 		if (PrismContextImpl.isExtraValidation() && value != null) {
@@ -156,12 +158,7 @@ public class BeanUnmarshaller {
 			if (unmarshaller != null) {
 				return unmarshaller.unmarshal(prim, beanClass, pc);
 			} else if (prim.isEmpty()) {
-				// Special case. Just return empty object
-				try {
-					return beanClass.newInstance();
-				} catch (InstantiationException | IllegalAccessException e) {
-					throw new SystemException("Cannot instantiate "+beanClass+": "+e.getMessage(), e);
-				}
+				return instantiate(beanClass);		// Special case. Just return empty object
 			} else {
 				throw new SchemaException("Cannot convert primitive value to bean of type " + beanClass);
 			}
@@ -189,7 +186,7 @@ public class BeanUnmarshaller {
 	}
 	//endregion
 
-
+	@NotNull
 	private <T> T unmarshalFromMapOrHeteroList(@NotNull XNode mapOrList, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
 
 		if (Containerable.class.isAssignableFrom(beanClass)) {
@@ -204,16 +201,22 @@ public class BeanUnmarshaller {
 				throw new SchemaException("SearchFilterType is not supported in combination of heterogeneous list.");
 			}
 		} else {
-			T bean;
-			try {
-				bean = beanClass.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
-				throw new SystemException("Cannot instantiate bean of type " + beanClass + ": " + e.getMessage(), e);
-			}
+			T bean = instantiate(beanClass);
 			return unmarshalFromMapOrHeteroListToBean(bean, mapOrList, null, pc);
 		}
 	}
 
+	private <T> T instantiate(@NotNull Class<T> beanClass) {
+		T bean;
+		try {
+			bean = beanClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new SystemException("Cannot instantiate bean of type " + beanClass + ": " + e.getMessage(), e);
+		}
+		return bean;
+	}
+
+	@NotNull
 	private <T> T unmarshalFromMapOrHeteroListToBean(@NotNull T bean, @NotNull XNode mapOrList, @Nullable Collection<String> keysToParse, @NotNull ParsingContext pc) throws SchemaException {
 		@SuppressWarnings("unchecked")
 		Class<T> beanClass = (Class<T>) bean.getClass();
@@ -222,6 +225,9 @@ public class BeanUnmarshaller {
 			for (Entry<QName, XNode> entry : map.entrySet()) {
 				QName key = entry.getKey();
 				if (keysToParse != null && !keysToParse.contains(key.getLocalPart())) {
+					continue;
+				}
+				if (entry.getValue() == null) {
 					continue;
 				}
 				unmarshalEntry(bean, beanClass, entry.getKey(), entry.getValue(), mapOrList, false, pc);
@@ -366,18 +372,29 @@ public class BeanUnmarshaller {
 
 		final Method getter = mechanism.getter;
 		final Method setter = mechanism.setter;
-		Class<?> paramType = mechanism.paramType;
 		final boolean wrapInJaxbElement = mechanism.wrapInJaxbElement;
 
-		if (Element.class.isAssignableFrom(paramType)) {
+		if (Element.class.isAssignableFrom(mechanism.paramType)) {
 			throw new IllegalArgumentException("DOM not supported in field "+actualPropertyName+" in "+beanClass);
 		}
 
+		// The type T that is expected by the bean, i.e. either by
+		//   - setMethod(T value), or
+		//   - Collection<T> getMethod()
+		// We use it to retrieve the correct value when parsing the node.
+		// We might specialize it using the information derived from the node (to deal with inclusive polymorphism,
+		// i.e. storing ExclusionPolicyConstraintType where AbstractPolicyConstraintType is expected).
+		@NotNull Class<?> paramType;
+
 		if (!storeAsRawType && !isHeteroListProperty) {
-			paramType = specializeNodeType(node, paramType, pc);
-			if (paramType == null) {
+			Class<?> t = specializeParamType(node,  mechanism.paramType, pc);
+			if (t == null) {	// indicates a problem
 				return;
+			} else {
+				paramType = t;
 			}
+		} else {
+			paramType = mechanism.paramType;
 		}
 
 		if (!(node instanceof ListXNode) && Object.class.equals(paramType) && !storeAsRawType) {
@@ -397,7 +414,7 @@ public class BeanUnmarshaller {
 				try {
 					Object value = unmarshalSinglePropValue(node, actualPropertyName, paramType, storeAsRawType, beanClass, pc);
 					if (wrapInJaxbElement) {
-						propValue = wrapInJaxbElement(propValue, mechanism.objectFactory,
+						propValue = wrapInJaxbElement(value, mechanism.objectFactory,
 								mechanism.elementFactoryMethod, propName, beanClass, pc);
 					} else {
 						propValue = value;
@@ -507,11 +524,12 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private Class<?> specializeNodeType(@NotNull XNode node, @NotNull Class<?> expectedType,@NotNull ParsingContext pc)
+	private Class<?> specializeParamType(@NotNull XNode node, @NotNull Class<?> expectedType, @NotNull ParsingContext pc)
 			throws SchemaException {
 		if (node.getTypeQName() != null) {
 			Class explicitType = getSchemaRegistry().determineClassForType(node.getTypeQName());
-			return explicitType != null ? explicitType : expectedType;		//check for subclasses???
+			return explicitType != null && expectedType.isAssignableFrom(explicitType) ? explicitType : expectedType;
+			// (if not assignable, we hope the adaptation will do it)
 		} else if (node.getElementName() != null) {
 			Collection<TypeDefinition> candidateTypes = getSchemaRegistry()
 					.findTypeDefinitionsByElementName(node.getElementName(), TypeDefinition.class);
@@ -910,7 +928,7 @@ public class BeanUnmarshaller {
 		} catch (ClassCastException e) {
 			throw new SystemException("Getter "+getter+" on bean of type "+beanClass+" returned "+getterReturn+" instead of collection");
 		}
-		col.add(subBeanElement != null ? subBeanElement.getValue() : subBeanElement);
+		col.add(subBeanElement != null ? subBeanElement.getValue() : null);
 	}
 
 	private <T,S> void unmarshalToAnyUsingField(T bean, Field anyField, QName elementName, XNode xsubnode, ParsingContext pc) throws SchemaException{
@@ -946,9 +964,11 @@ public class BeanUnmarshaller {
         } else {
             // paramType is what we expect e.g. based on parent definition
             // but actual type (given by xsi:type/@typeDef) may be different, e.g. more specific
-			paramType = specializeNodeType(xsubnode, paramType, pc);
+			// (although we already specialized paramType within the caller, we do it again here, because the subnode
+			// used here might be a child of node used in the caller)
+			paramType = specializeParamType(xsubnode, paramType, pc);
             if (paramType == null) {
-            	return null;				// skipping this element
+            	return null;				// skipping this element in case of error
 			}
 			if (xsubnode instanceof PrimitiveXNode<?> || xsubnode instanceof MapXNode || xsubnode.isHeterogeneousList()) {
 				propValue = unmarshal(xsubnode, paramType, pc);
@@ -1027,12 +1047,7 @@ public class BeanUnmarshaller {
 		if (xmap == null) {
 			return null;
 		}
-		T filterType;
-		try {
-			filterType = beanClass.newInstance();
-		} catch (InstantiationException|IllegalAccessException e) {
-			throw new SystemException("Cannot instantiate " + beanClass + ": " + e.getMessage(), e);
-		}
+		T filterType = instantiate(beanClass);
 		filterType.parseFromXNode(xmap, prismContext);
 		return filterType;
 	}

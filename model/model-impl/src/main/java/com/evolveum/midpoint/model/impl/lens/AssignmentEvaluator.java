@@ -261,7 +261,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		List<PrismObject<O>> targets = null;
 		if (assignmentType.getTarget() != null) {
 			targets = new ArrayList<>(1);
-			targets.add(assignmentType.getTarget().asPrismObject());
+			targets.add((PrismObject<O>) assignmentType.getTarget().asPrismObject());
 		} else if (assignmentType.getTargetRef() != null) {
             try {
                 targets = resolveTargets(assignmentType, assignmentPathSegment, source, sourceDescription, assignmentPath, task, result);

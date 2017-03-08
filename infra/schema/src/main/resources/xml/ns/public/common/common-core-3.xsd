@@ -3299,12 +3299,26 @@
                 </xsd:annotation>
             </xsd:element>
             
+            <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Fired policy rule triggers for this assignment. (Some fields of the triggers might be zeroed out
+						in order to save space. This is yet to be decided.)
+						This is EXPERIMENTAL functionality. It is likely to change in the near future.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.6</a:since>
+						<a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="policyException" type="tns:PolicyExceptionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Recorded exception from a policy rule. The exceptions that are approved are
                         recoded here to avoid re-evaluating and re-approving them all the time.
-                        This is EXPERIMENAL functionality. It is likely to change in the near future.
+                        This is EXPERIMENTAL functionality. It is likely to change in the near future.
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.5</a:since>
@@ -5621,6 +5635,13 @@
 			                    <xsd:documentation>
 			                        Defines the order in which a script is executed.
 			                        (before or after an operation).
+			                    </xsd:documentation>
+			                </xsd:annotation>
+			            </xsd:element>
+			             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Defines the condition when to execute script.
 			                    </xsd:documentation>
 			                </xsd:annotation>
 			            </xsd:element>
@@ -9506,7 +9527,7 @@
             </xsd:element>
             <xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="checkPattern" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="checkExpression" type="c:ExpressionType" minOccurs="0">
+            <xsd:element name="checkExpression" type="c:CheckExpressionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                     	<p>
@@ -9514,15 +9535,8 @@
                     	  or not. If the expression returns true, then the value is accepted.
                     	  If the expression returns false value, then the value is rejected and it
                     	  will be generated again. Until the maximum number of attempts is reached.
-                    	</p> 
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="checkExpressionMessage" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                    	<p>
-                    	  Message thet will be displayed to user when the expression check fails.
+                    	  If there are several expressions that all of them must pass for the value to
+                    	  be accepted. However each of them may produce a different failure message.
                     	</p> 
                     </xsd:documentation>
                 </xsd:annotation>
@@ -9572,6 +9586,39 @@
         <xsd:attribute name="ref" type="xsd:QName" use="optional"/>
         <xsd:attribute name="name" type="xsd:QName" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:complexType name="CheckExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	Expression used to check the data and report a user-friendly message in case
+            	that the check fails.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="expression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    	  Expression that is used to check the resulting value whether it is acceptable
+                    	  or not. If the expression returns true, then the value is accepted.
+                    	  If the expression returns false value, then the value is rejected.
+                    	</p> 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="failureMessage" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                    	  Message thet will be displayed to user when the expression check fails.
+                    	</p> 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: sucess message? -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
 
     <xsd:complexType name="OperationResultType">
         <xsd:annotation>
@@ -13512,7 +13559,7 @@
 	           			</xsd:documentation>
 	           		</xsd:annotation>
 	           	</xsd:element>
-       			<xsd:element name="display" type="tns:AbstractDisplayType" minOccurs="0" maxOccurs="1">
+       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
        				<xsd:annotation>
        					<xsd:documentation>
        						Specification of column display properties. This can be used to override the default column
@@ -13721,7 +13768,7 @@
 	</xsd:complexType>
 	<xsd:element name="formItems" type="tns:FormItemsType" />
 
-    <xsd:complexType name="AbstractDisplayType" abstract="true">
+    <xsd:complexType name="DisplayType">
         <xsd:sequence>
             <!-- basic properties -->
             <xsd:element name="label" type="xsd:string" minOccurs="0" />
@@ -13735,7 +13782,7 @@
 
     <xsd:complexType name="FormDisplayType">
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractDisplayType">
+            <xsd:extension base="tns:DisplayType">
                 <xsd:sequence>
                     <xsd:element name="theme" type="xsd:string" minOccurs="0" />
                 </xsd:sequence>
@@ -13745,7 +13792,7 @@
 
     <xsd:complexType name="FormItemDisplayType">
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractDisplayType">
+            <xsd:extension base="tns:DisplayType">
                 <xsd:sequence>
                     <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" />
                     <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0" />

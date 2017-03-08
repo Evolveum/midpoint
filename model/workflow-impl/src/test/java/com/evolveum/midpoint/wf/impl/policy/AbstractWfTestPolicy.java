@@ -271,7 +271,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	public void createObject(final String TEST_NAME, ObjectType object, boolean immediate, boolean approve,
 	                         String assigneeOid) throws Exception {
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(object.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta((PrismObject) object.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -455,6 +455,14 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 		assertEquals("Wrong # of total work items", 1, itemsAll.size());
 		return itemsAll.get(0);
+	}
+
+	protected SearchResultList<WorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
+		return modelService.searchContainers(WorkItemType.class, null, null, task, result);
+	}
+
+	protected void displayWorkItems(String title, List<WorkItemType> workItems) {
+		workItems.forEach(wi -> display(title, wi));
 	}
 
 	protected ObjectReferenceType ort(String oid) {

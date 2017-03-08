@@ -140,22 +140,25 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         body.append(getSubject(event, generalNotifierType, transport, task, result));
         body.append("\n\n");
 
-        body.append("Process instance name: ").append(workflowEvent.getProcessInstanceName()).append("\n");
-        if (workflowEvent instanceof WorkItemEvent) {
-			appendWorkItemInformation(body, (WorkItemEvent) workflowEvent, result);
+        appendGeneralInformation(body, workflowEvent);		// process instance name, work item name, stage, escalation level
+
+		if (workflowEvent instanceof WorkItemEvent) {
+			WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
+			appendAssigneeInformation(body, workItemEvent, result);
+			appendResultAndOriginInformation(body, workItemEvent, result);
+			appendDeadlineInformation(body, workItemEvent);
         } else {
-			appendStageInformation(body, workflowEvent);
-	        body.append("\n");
-			appendResultInformation(body, workflowEvent);
+			appendResultInformation(body, workflowEvent, true);
 		}
-		body.append("Notification created on: ").append(new Date()).append("\n\n");
+		body.append("\nNotification created on: ").append(new Date()).append("\n\n");
 
         if (techInfo) {
             body.append("----------------------------------------\n");
             body.append("Technical information:\n\n");
             if (workflowEvent instanceof WorkItemEvent) {
+				WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
 				body.append("WorkItem:\n")
-						.append(PrismUtil.serializeQuietly(prismContext, ((WorkItemEvent) workflowEvent).getWorkItem()))
+						.append(PrismUtil.serializeQuietly(prismContext, workItemEvent.getWorkItem()))
 						.append("\n");
 			}
 			body.append("Workflow context:\n")
@@ -164,45 +167,33 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         return body.toString();
     }
 
-	private void appendResultInformation(StringBuilder body, WorkflowEvent workflowEvent) {
+	private void appendGeneralInformation(StringBuilder sb, WorkflowEvent workflowEvent) {
+		sb.append("Process instance name: ").append(workflowEvent.getProcessInstanceName()).append("\n");
+		if (workflowEvent instanceof WorkItemEvent) {
+			WorkItemEvent event = (WorkItemEvent) workflowEvent;
+			sb.append("Work item: ").append(event.getWorkItemName()).append("\n");
+			appendStageInformation(sb, event);
+			appendEscalationInformation(sb, event);
+		} else {
+			appendStageInformation(sb, workflowEvent);
+		}
+		sb.append("\n");
+	}
+
+	private boolean appendResultInformation(StringBuilder body, WorkflowEvent workflowEvent, boolean emptyLineAfter) {
 		if (workflowEvent.isDelete() && workflowEvent.isResultKnown()) {
-			body.append("Result: ").append(workflowEvent.isApproved() ? "APPROVED" : "REJECTED").append("\n\n");
+			body.append("Result: ").append(workflowEvent.isApproved() ? "APPROVED" : "REJECTED").append("\n");
+			if (emptyLineAfter) {
+				body.append("\n");
+			}
+			return true;
+		} else {
+			return false;
 		}
 	}
 
-	private void appendWorkItemInformation(StringBuilder sb, WorkItemEvent event, OperationResult result) {
+	private void appendDeadlineInformation(StringBuilder sb, WorkItemEvent event) {
 		WorkItemType workItem = event.getWorkItem();
-
-		sb.append("Work item: ").append(event.getWorkItemName()).append("\n");
-		appendStageInformation(sb, event);
-		appendEscalationInformation(sb, event);
-		sb.append("\n");
-
-		ObjectReferenceType originalAssignee = workItem.getOriginalAssigneeRef();
-		List<ObjectReferenceType> currentAssignees = workItem.getAssigneeRef();
-		if (currentAssignees.size() != 1 || !java.util.Objects.equals(originalAssignee.getOid(), currentAssignees.get(0).getOid())) {
-			UserType originalAssigneeObject = (UserType) functions.getObjectType(originalAssignee, true, result);
-			sb.append("Originally allocated to: ").append(formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
-		}
-		if (!workItem.getAssigneeRef().isEmpty()) {
-			sb.append("Allocated to");
-			if (event.getOperationKind() == WorkItemOperationKindType.DELEGATE) {
-				sb.append(event.isAdd() ? " (after delegation)" : " (before delegation)");
-			} else if (event.getOperationKind() == WorkItemOperationKindType.ESCALATE) {
-				sb.append(event.isAdd() ? " (after escalation)" : " (before escalation)");
-			}
-			sb.append(": ");
-			sb.append(workItem.getAssigneeRef().stream()
-					.map(ref -> formatUserName(ref, result))
-					.collect(Collectors.joining(", ")));
-			sb.append("\n");
-		}
-		SimpleObjectRef initiator = event.getInitiator();
-		if (initiator != null) {
-			UserType initiatorFull = (UserType) functions.getObjectType(initiator, true, result);
-			sb.append("Carried out by: ").append(formatUserName(initiatorFull, initiator.getOid())).append("\n");
-		}
-		appendResultInformation(sb, event);
 		if (!isDone(event) && workItem.getDeadline() != null) {
 			XMLGregorianCalendar deadline = workItem.getDeadline();
 			long before = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
@@ -217,8 +208,64 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 				beforePhrase = "";
 			}
 			sb.append("Deadline: ").append(formatDateTime(deadline)).append(beforePhrase).append("\n");
+			sb.append("\n");
 		}
-		sb.append("\n");
+	}
+
+	private void appendResultAndOriginInformation(StringBuilder sb, WorkItemEvent event, OperationResult result) {
+		boolean atLeastOne = appendResultInformation(sb, event, false);
+		WorkItemEventCauseInformationType cause = event.getCause();
+		if (cause != null && cause.getType() == WorkItemEventCauseTypeType.TIMED_ACTION) {
+			sb.append("Reason: ");
+			if (cause.getDisplayName() != null) {
+				sb.append(cause.getDisplayName()).append(" (timed action)");
+			} else if (cause.getName() != null) {
+				sb.append(cause.getName()).append(" (timed action)");
+			} else {
+				sb.append("Timed action");
+			}
+			sb.append("\n");
+			atLeastOne = true;
+		} else {
+			SimpleObjectRef initiator = event.getInitiator();
+			if (initiator != null && !isCancelled(event)) {
+				UserType initiatorFull = (UserType) functions.getObjectType(initiator, true, result);
+				sb.append("Carried out by: ").append(formatUserName(initiatorFull, initiator.getOid())).append("\n");
+				atLeastOne = true;
+			}
+		}
+		if (atLeastOne) {
+			sb.append("\n");
+		}
+	}
+
+	private void appendAssigneeInformation(StringBuilder sb, WorkItemEvent event, OperationResult result) {
+		WorkItemType workItem = event.getWorkItem();
+		ObjectReferenceType originalAssignee = workItem.getOriginalAssigneeRef();
+		List<ObjectReferenceType> currentAssignees = workItem.getAssigneeRef();
+		boolean atLeastOne = false;
+		if (currentAssignees.size() != 1 || !java.util.Objects.equals(originalAssignee.getOid(), currentAssignees.get(0).getOid())) {
+			UserType originalAssigneeObject = (UserType) functions.getObjectType(originalAssignee, true, result);
+			sb.append("Originally allocated to: ").append(formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
+			atLeastOne = true;
+		}
+		if (!workItem.getAssigneeRef().isEmpty()) {
+			sb.append("Allocated to");
+			if (event.getOperationKind() == WorkItemOperationKindType.DELEGATE) {
+				sb.append(event.isAdd() ? " (after delegation)" : " (before delegation)");
+			} else if (event.getOperationKind() == WorkItemOperationKindType.ESCALATE) {
+				sb.append(event.isAdd() ? " (after escalation)" : " (before escalation)");
+			}
+			sb.append(": ");
+			sb.append(workItem.getAssigneeRef().stream()
+					.map(ref -> formatUserName(ref, result))
+					.collect(Collectors.joining(", ")));
+			sb.append("\n");
+			atLeastOne = true;
+		}
+		if (atLeastOne) {
+			sb.append("\n");
+		}
 	}
 
 	// a bit of heuristics...
@@ -227,10 +274,17 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 			return event.isDelete();
 		} else if (event instanceof WorkItemAllocationEvent) {
 			return event.isDelete() &&
-					(event.getOperationKind() == null || event.getOperationKind() == WorkItemOperationKindType.COMPLETE);
+					(event.getOperationKind() == null || event.getOperationKind() == WorkItemOperationKindType.CANCEL
+							|| event.getOperationKind() == WorkItemOperationKindType.COMPLETE);
 		} else {
 			return false;
 		}
+	}
+
+	private boolean isCancelled(WorkItemEvent event) {
+		return (event instanceof WorkItemLifecycleEvent || event instanceof WorkItemAllocationEvent)
+				&& event.isDelete()
+				&& (event.getOperationKind() == null || event.getOperationKind() == WorkItemOperationKindType.CANCEL);
 	}
 
 	private String formatUserName(ObjectReferenceType ref, OperationResult result) {
@@ -284,6 +338,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 			case COMPLETE: return "completed";
 			case DELEGATE: return "delegated";
 			case ESCALATE: return "escalated";
+			case CANCEL: return "cancelled";
 			default: throw new IllegalArgumentException("operation kind: " + operationKind);
 		}
 	}

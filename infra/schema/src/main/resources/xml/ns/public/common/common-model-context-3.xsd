@@ -476,6 +476,7 @@
     
     <xsd:complexType name="EvaluatedPolicyRuleTriggerType">
         <xsd:sequence>
+            <xsd:element name="ruleName" type="xsd:string" minOccurs="0" />
             <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
             <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0" />
             <xsd:element name="message" type="xsd:string" minOccurs="0" />
@@ -530,6 +531,7 @@
 			<xsd:element name="sourceRef" type="c:ObjectReferenceType" minOccurs="0" />
 			<xsd:element name="sourceDisplayName" type="t:PolyStringType" minOccurs="0" />
 			<xsd:element name="assignment" type="c:AssignmentType" minOccurs="0" />
+			<xsd:element name="assignmentId" type="xsd:long" minOccurs="0" />
 			<xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" />
 			<xsd:element name="targetDisplayName" type="t:PolyStringType" minOccurs="0" />
 			<xsd:element name="matchingOrder" type="xsd:boolean" minOccurs="0" />

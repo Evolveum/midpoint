@@ -286,7 +286,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	@Override
 	public AssignmentPathSegmentType toAssignmentPathSegmentType() {
 		AssignmentPathSegmentType rv = new AssignmentPathSegmentType();
-		rv.setAssignment(getAssignment());
+		AssignmentType assignment = getAssignment();
+		if (assignment != null) {
+			rv.setAssignment(assignment);
+			rv.setAssignmentId(assignment.getId());
+		}
 		if (source != null) {
 			rv.setSourceRef(ObjectTypeUtil.createObjectRef(source));
 			rv.setSourceDisplayName(ObjectTypeUtil.getDisplayName(source));

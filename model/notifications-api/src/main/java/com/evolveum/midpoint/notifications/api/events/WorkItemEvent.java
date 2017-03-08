@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.wf.api.WorkItemOperationInfo;
+import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -44,20 +46,23 @@ public class WorkItemEvent extends WorkflowEvent {
 	 * In case of automated actions (completion, delegation/escalation) this is not filled-in.
 	 */
 	protected final SimpleObjectRef initiator;
-	protected final WorkItemOperationKindType operationKind;
+	protected final WorkItemOperationInfo operationInfo;
+	protected final WorkItemOperationSourceInfo sourceInfo;
 	protected final Duration timeBefore;
 
-    public WorkItemEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType,
-                         @NotNull WorkItemType workItem,
-                         @Nullable SimpleObjectRef assignee, SimpleObjectRef initiator, WorkItemOperationKindType operationKind,
-                         WfContextType workflowContext,
-                         EventHandlerType handler, Duration timeBefore) {
+    WorkItemEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
+			@NotNull WorkItemType workItem,
+			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
+			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+			@NotNull WfContextType workflowContext,
+			@Nullable EventHandlerType handler, @Nullable Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workflowContext, handler);
 	    Validate.notNull(workItem);
         this.workItem = workItem;
 		this.assignee = assignee;
 		this.initiator = initiator;
-		this.operationKind = operationKind;
+		this.operationInfo = operationInfo;
+		this.sourceInfo = sourceInfo;
 	    this.timeBefore = timeBefore;
     }
 
@@ -84,11 +89,27 @@ public class WorkItemEvent extends WorkflowEvent {
 	}
 
 	public WorkItemOperationKindType getOperationKind() {
-		return operationKind;
+		return operationInfo != null ? operationInfo.getOperationKind() : null;
+	}
+
+	public AbstractWorkItemActionType getSource() {
+		return sourceInfo != null ? sourceInfo.getSource() : null;
+	}
+
+	public WorkItemEventCauseInformationType getCause() {
+		return sourceInfo != null ? sourceInfo.getCause() : null;
 	}
 
 	public Duration getTimeBefore() {
 		return timeBefore;
+	}
+
+	public WorkItemOperationInfo getOperationInfo() {
+		return operationInfo;
+	}
+
+	public WorkItemOperationSourceInfo getSourceInfo() {
+		return sourceInfo;
 	}
 
 	@Override
@@ -98,9 +119,13 @@ public class WorkItemEvent extends WorkflowEvent {
         variables.put(SchemaConstants.C_WORK_ITEM, workItem);
     }
 
+    public WorkItemResultType getWorkItemResult() {
+    	return workItem.getResult();
+	}
+
 	@Override
-	protected String getAnswer() {
-		WorkItemResultType result = workItem.getResult();
+	public String getAnswer() {
+    	WorkItemResultType result = getWorkItemResult();
 		return result != null ? result.getOutcomeAsString() : null;
 	}
 

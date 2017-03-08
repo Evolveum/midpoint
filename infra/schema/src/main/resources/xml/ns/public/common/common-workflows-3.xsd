@@ -1409,16 +1409,16 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="cause" type="tns:WorkItemEventCauseType" minOccurs="0" />
-			<xsd:element name="causeName" type="xsd:string" minOccurs="0" />
-			<xsd:element name="causeDisplayName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="type" type="tns:WorkItemEventCauseTypeType" minOccurs="0" />
+			<xsd:element name="name" type="xsd:string" minOccurs="0" />
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:simpleType name="WorkItemEventCauseType">
+	<xsd:simpleType name="WorkItemEventCauseTypeType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Reason for automated decision.
+				Type of event cause.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
@@ -2159,8 +2159,7 @@
 	<xsd:simpleType name="WorkItemOperationKindType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Kind of (explicit) operation. Implicit operations like "work item deletion when process instance finishes"
-				are not covered here.
+				Kind of operation.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
@@ -2215,6 +2214,18 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="RELEASE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="cancel">
+				<xsd:annotation>
+					<xsd:documentation>
+						Cancel operation. Work item was cancelled as a result of other action. (E.g. another work item
+						was completed, resulting in process or stage completion. Or the process was cancelled/deleted
+						externally.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CANCEL"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

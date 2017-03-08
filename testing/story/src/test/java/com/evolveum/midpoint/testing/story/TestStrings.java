@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
@@ -57,7 +56,6 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -162,7 +160,7 @@ public class TestStrings extends AbstractStoryTest {
 						.asItemDeltas(), initResult);
 
 		// we prefer running trigger scanner by hand
-		resetTriggerTask(initResult);
+		resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, initResult);
 		// and we don't need validity scanner
 		taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_VALIDITY_SCANNER_OID), 60000L, true, initResult);
 
@@ -200,19 +198,6 @@ public class TestStrings extends AbstractStoryTest {
 		userLechuckOid = addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
 
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-	}
-
-	private void resetTriggerTask(OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, FileNotFoundException {
-		taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_TRIGGER_SCANNER_OID), 60000L, true, result);
-		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE, result);
-		taskManager.suspendTasks(Collections.singletonList(TASK_TRIGGER_SCANNER_OID), 60000L, result);
-		modifySystemObjectInRepo(TaskType.class, TASK_TRIGGER_SCANNER_OID,
-				DeltaBuilder.deltaFor(TaskType.class, prismContext)
-						.item(TaskType.F_SCHEDULE).replace()
-						.asItemDeltas(),
-				result);
-		taskManager.resumeTasks(Collections.singleton(TASK_TRIGGER_SCANNER_OID), result);
 	}
 
 	@Override
@@ -408,7 +393,7 @@ public class TestStrings extends AbstractStoryTest {
 				"Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
 		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled",
 				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
-				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:");
+				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:", "^Carried out by:");
 		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "A new work item has been created",
 				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
 				"Allocated to: Ignatius Cheese (cheese)", "^Result:", "(in 5 days)");
@@ -422,7 +407,7 @@ public class TestStrings extends AbstractStoryTest {
 				"Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
 		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled",
 				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
-				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:");
+				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:", "^Carried out by:");
 		assertMessage(sorted2.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been allocated to you",
 				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
 				"Allocated to: Ignatius Cheese (cheese)", "^Result:", "(in 5 days)");
@@ -872,7 +857,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		// GIVEN
 		clock.resetOverride();
-		resetTriggerTask(result);
+		resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, result);
 		clock.overrideDuration("P6D");
 
 		// WHEN
@@ -931,15 +916,15 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong # of work items lifecycle messages", 2, lifecycleMessages.size());
 		assertEquals("Wrong # of work items allocation messages", 2, allocationMessages.size());
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
-		checkOneCompletedOneCancelled(lifecycleMessages);
-		checkOneCompletedOneCancelled(allocationMessages);
+		checkTwoCompleted(lifecycleMessages);
+		checkTwoCompleted(allocationMessages);
 		assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
 				"Process instance name: Assigning a-test-1 to carla", "Result: REJECTED");
 
 		display("audit", dummyAuditService);
 	}
 
-	private void checkOneCompletedOneCancelled(List<Message> lifecycleMessages) {
+	private void checkTwoCompleted(List<Message> lifecycleMessages) {
 		Map<String, Message> sorted = sortByRecipientsSingle(lifecycleMessages);
 
 		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com",
@@ -949,17 +934,14 @@ public class TestStrings extends AbstractStoryTest {
 				null,
 				"Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
 		int completed;
-		if (lifecycleMessages.get(0).getSubject().contains("completed")) {
-			completed = 0;
-		} else {
-			completed = 1;
-		}
-		assertMessage(lifecycleMessages.get(completed), null, "Work item has been completed",
-				"Carried out by: midPoint Administrator (administrator)",		// TODO remove later
-				"Result: REJECTED");
-		assertMessage(lifecycleMessages.get(1-completed), null, "Work item has been cancelled",
+		assertMessage(lifecycleMessages.get(0), null, "Work item has been completed",
 				"^Carried out by:",
-				"^Result:");
+				"Reason: Timed action",
+				"Result: REJECTED");
+		assertMessage(lifecycleMessages.get(1), null, "Work item has been completed",
+				"^Carried out by:",
+				"Reason: Timed action",
+				"Result: REJECTED");
 	}
 
 	@Test

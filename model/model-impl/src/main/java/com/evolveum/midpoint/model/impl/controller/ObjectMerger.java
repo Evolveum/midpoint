@@ -171,8 +171,8 @@ public class ObjectMerger {
 			final String mergeConfigurationName, final Task task, final OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		
-		final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
-		final PrismObject<O> objectRight = objectResolver.getObjectSimple(type, rightOid, null, task, result).asPrismObject();
+		final PrismObject<O> objectLeft = (PrismObject<O>) objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
+		final PrismObject<O> objectRight = (PrismObject<O>) objectResolver.getObjectSimple(type, rightOid, null, task, result).asPrismObject();
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 		MergeConfigurationType mergeConfiguration = selectConfiguration(systemConfiguration, mergeConfigurationName);

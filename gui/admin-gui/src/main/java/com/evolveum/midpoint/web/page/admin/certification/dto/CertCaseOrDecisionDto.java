@@ -20,16 +20,15 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.Date;
+import java.util.*;
 
 /**
  * A common superclass for CertCaseDto + CertDecisionDto.
@@ -46,6 +45,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     public static final String F_CAMPAIGN_NAME = "campaignName";
     public static final String F_REVIEW_REQUESTED = "reviewRequested";
     public static final String F_DEADLINE_AS_STRING = "deadlineAsString";
+    public static final String F_CONFLICTING_TARGETS = "conflictingTargets";
 
     private AccessCertificationCaseType certCase;
     private String objectName;
@@ -81,6 +81,14 @@ public class CertCaseOrDecisionDto extends Selectable {
 	public QName getObjectType() {
 		return certCase.getObjectRef().getType();
 	}
+
+	public QName getObjectType(CertDecisionHelper.WhichObject which) {
+        switch (which) {
+            case OBJECT: return getObjectType();
+            case TARGET: return getTargetType();
+            default: return null;
+        }
+    }
 
     public String getTargetName() {
         return targetName;
@@ -188,4 +196,34 @@ public class CertCaseOrDecisionDto extends Selectable {
     public String getDeadlineAsString() {
         return deadlineAsString;
     }
+
+	/**
+	 * Preliminary implementation. Eventually we will create a list of hyperlinks pointing to the actual objects.
+	 */
+	public String getConflictingTargets() {
+    	if (!(certCase instanceof AccessCertificationAssignmentCaseType)) {
+    		return "";
+		}
+		AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) certCase;
+		if (assignmentCase.getAssignment() == null) {
+			return "";
+		}
+		Set<String> exclusions = new TreeSet<>();
+		for (EvaluatedPolicyRuleTriggerType trigger : assignmentCase.getAssignment().getTrigger()) {
+			if (!(trigger instanceof EvaluatedExclusionTriggerType)) {
+				continue;
+			}
+			EvaluatedExclusionTriggerType exclusionTrigger = (EvaluatedExclusionTriggerType) trigger;
+			ObjectReferenceType conflicting = exclusionTrigger.getConflictingObjectRef();
+			if (conflicting == null) {
+				continue;
+			}
+			if (conflicting.getTargetName() != null) {
+				exclusions.add(conflicting.getTargetName().getOrig());
+			} else {
+				exclusions.add(conflicting.getOid());			// TODO try to resolve?
+			}
+		}
+		return StringUtils.join(exclusions, ", ");
+	}
 }

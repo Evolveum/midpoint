@@ -31,8 +31,10 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.FocusListComponent;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -90,9 +92,12 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 
 			@Override
 			protected List<IColumn<SelectableBean<ServiceType>, String>> createColumns() {
-				List<IColumn<SelectableBean<ServiceType>, String>> columns = ColumnUtils.getDefaultServiceColumns();
+				return ColumnUtils.getDefaultServiceColumns();
+			}
 
-				IColumn column = new InlineMenuButtonColumn<SelectableBean<UserType>>(listInlineMenuHelper.createRowActions(false), 3){
+			@Override
+			protected IColumn<SelectableBean<ServiceType>, String> createActionsColumn() {
+				return new InlineMenuButtonColumn<SelectableBean<ServiceType>>(listInlineMenuHelper.createRowActions(false), 3){
 					@Override
 					protected int getHeaderNumberOfButtons() {
 						return 2;
@@ -103,9 +108,6 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 						return listInlineMenuHelper.createRowActions(true);
 					}
 				};
-				columns.add(column);
-
-				return columns;
 			}
 
 			@Override

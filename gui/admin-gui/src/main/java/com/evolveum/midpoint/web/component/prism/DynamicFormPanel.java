@@ -64,7 +64,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 	public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
 			boolean runPrivileged, final PageBase parentPage) {
-		this(id, model.getObject().asPrismObject(), formOid, mainForm, runPrivileged, parentPage);
+		this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, runPrivileged, parentPage);
 
 	}
 

@@ -269,6 +269,11 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 
 			@Override
+			protected IColumn<SelectableBean<ShadowType>, String> createActionsColumn(){
+				return new InlineMenuHeaderColumn(createHeaderMenuItems());
+			}
+
+			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ShadowType object) {
 				shadowDetailsPerformed(target, WebComponentUtil.getName(object), object.getOid());
 
@@ -631,9 +636,6 @@ public abstract class ResourceContentPanel extends Panel {
 
 			}
 		});
-
-		InlineMenuHeaderColumn menuColumn = new InlineMenuHeaderColumn(createHeaderMenuItems());
-		columns.add(menuColumn);
 
 		return columns;
 	}
