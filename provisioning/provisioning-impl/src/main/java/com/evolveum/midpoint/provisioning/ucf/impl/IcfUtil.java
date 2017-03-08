@@ -575,10 +575,10 @@ class IcfUtil {
 	}
 
 	public static GuardedString toGuardedString(ProtectedStringType ps, String propertyName, Protector protector) {
-		if (ps == null) {
+		if (ps == null || ps.isHashed()) {
 			return null;
 		}
-		if (!protector.isEncrypted(ps)) {
+		if (!ps.isEncrypted()) {
 			if (ps.getClearValue() == null) {
 				return null;
 			}
