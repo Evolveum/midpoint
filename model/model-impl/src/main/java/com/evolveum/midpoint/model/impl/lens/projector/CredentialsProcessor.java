@@ -462,7 +462,11 @@ public class CredentialsProcessor {
 			if (delta.isAdd()) {
 				delta.getObjectToAdd().removeProperty(valuePropertyPath);
 			} else {
-				delta.removePropertyModification(valuePropertyPath);
+				PropertyDelta<ProtectedStringType> propDelta = delta.findPropertyDelta(valuePropertyPath);
+				if (propDelta != null) {
+					// Replace with nothing. We need this to clear any existing value that there might be.
+					propDelta.setValueToReplace();
+				}
 			}
 		} else {
 			throw new SchemaException("Unkwnon storage type "+storageType);

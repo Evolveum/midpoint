@@ -500,11 +500,12 @@ public class ProtectorImpl extends BaseProtector {
 		
 		protectedData.setHashedData(hashedDataType);
 		protectedData.destroyCleartext();
+		protectedData.setEncryptedData(null);
     }
     
     private HashedDataType hashPbkd(ProtectedData<String> protectedData, String algorithmUri, String algorithmName) throws EncryptionException {	
 		
-    	char[] clearChars = protectedData.getClearValue().toCharArray();
+    	char[] clearChars = getClearChars(protectedData);
     	byte[] salt = generatePbkdSalt();
     	int iterations = getPbkdIterations();
 		
@@ -534,6 +535,14 @@ public class ProtectorImpl extends BaseProtector {
 		hashedDataType.setDigestValue(hashBytes);
 		
 		return hashedDataType;
+	}
+
+	private char[] getClearChars(ProtectedData<String> protectedData) throws EncryptionException {
+		if (protectedData.isEncrypted()) {
+			return decryptString(protectedData).toCharArray();
+		} else {
+			return protectedData.getClearValue().toCharArray();
+		}
 	}
 
 	private byte[] generatePbkdSalt() {
@@ -566,6 +575,9 @@ public class ProtectorImpl extends BaseProtector {
 			} else {
 				hashedPs = b;
 				clear = decryptString(a);
+			}
+			if (clear == null) {
+				return false;
 			}
 			return compareHashed(hashedPs, clear.toCharArray());
 			

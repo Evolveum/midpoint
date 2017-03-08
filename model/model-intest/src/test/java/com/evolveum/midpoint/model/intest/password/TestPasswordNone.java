@@ -27,14 +27,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 
 /**
- * Password test with HASHING storage for all credential types.
+ * Password test with NONE password storage (default storage for other types)
  * 
  * @author semancik
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPasswordDefaultHashing extends AbstractPasswordTest {
+public class TestPasswordNone extends AbstractPasswordTest {
 			
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -43,12 +43,12 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 
 	@Override
 	protected String getSecurityPolicyOid() {
-		return SECURITY_POLICY_DEFAULT_STORAGE_HASHING_OID;
+		return SECURITY_POLICY_PASSWORD_STORAGE_NONE_OID;
 	}
 	
 	@Override
 	protected CredentialsStorageTypeType getPasswordStorageType() {
-		return CredentialsStorageTypeType.HASHING;
+		return CredentialsStorageTypeType.NONE;
 	}
 	
 }

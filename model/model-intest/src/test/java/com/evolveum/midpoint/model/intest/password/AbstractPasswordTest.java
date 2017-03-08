@@ -165,7 +165,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedUserPassword(userJack, USER_JACK_PASSWORD);
+		// Password still encrypted. We haven't changed it yet.
+		assertUserPassword(userJack, USER_JACK_PASSWORD, CredentialsStorageTypeType.ENCRYPTION);
 	}
 	
 
@@ -196,7 +197,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertUserPassword(userJack, USER_PASSWORD_1_CLEAR);
 		assertPasswordMetadata(userJack, false, startCal, endCal);
 		// Password policy is not active yet. No history should be kept.
 		assertPasswordHistoryEntries(userJack);
@@ -207,11 +208,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		final String TEST_NAME = "test060CheckJackPasswordModelInteraction";
         TestUtil.displayTestTile(this, TEST_NAME);
 
+        if (getPasswordStorageType() == CredentialsStorageTypeType.NONE) {
+        	// Nothing to check in this case
+        	return;
+        }
+        
         // GIVEN
         Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
         
 		// WHEN, THEN
         ProtectedStringType userPasswordPsGood = new ProtectedStringType();
@@ -233,6 +237,38 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 	}
 	
+	@Test
+    public void test070AddUserHerman() throws Exception {
+		final String TEST_NAME = "test070AddUserHerman";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(USER_HERMAN_FILE, task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userAfter = getUser(USER_HERMAN_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_HERMAN_OID, USER_HERMAN_USERNAME, 
+				USER_HERMAN_FULL_NAME, USER_HERMAN_GIVEN_NAME, USER_HERMAN_FAMILY_NAME);
+        
+		assertUserPassword(userAfter, USER_HERMAN_PASSWORD);
+		assertPasswordMetadata(userAfter, true, startCal, endCal);
+		// Password policy is not active yet. No history should be kept.
+		assertPasswordHistoryEntries(userAfter);
+	}
 
 	@Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
@@ -298,7 +334,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_2_CLEAR);
+		assertUserPassword(userJack, USER_PASSWORD_2_CLEAR);
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_2_CLEAR);
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
@@ -328,7 +364,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertUserJack(userJack, "Jack Sparrow");
         
 		// User should still have old password
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_2_CLEAR);
+		assertUserPassword(userJack, USER_PASSWORD_2_CLEAR);
 		// Account has new password
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_3_CLEAR);
 		
@@ -376,7 +412,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertUserJack(userJack, "Jack Sparrow");
         
 		// User should still have old password
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_4_CLEAR);
+		assertUserPassword(userJack, USER_PASSWORD_4_CLEAR);
 		// Account has new password
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_5_CLEAR);
 		
@@ -419,7 +455,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
 
 		// User and default dummy account should have unchanged passwords
-        assertEncryptedUserPassword(userJack, USER_PASSWORD_4_CLEAR);
+        assertUserPassword(userJack, USER_PASSWORD_4_CLEAR);
      	assertDummyPassword("jack", USER_PASSWORD_5_CLEAR);
      	
      	assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
@@ -466,7 +502,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertUserJack(userJack, USER_JACK_FULL_NAME);
         
 		// User should still have old password
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertUserPassword(userJack, USER_PASSWORD_1_CLEAR);
 		// Red account has the same account as user
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 		// ... and default account has also the same password as user now. There was no other change on default dummy instance 
@@ -511,7 +547,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after", userJack);
         
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertUserPassword(userJack, USER_PASSWORD_1_CLEAR);
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 		// ugly password should be changed
@@ -547,7 +583,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after", userJack);
         
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertUserPassword(userJack, USER_PASSWORD_1_CLEAR);
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 		// ugly password should be changed
@@ -592,7 +628,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
         
         // User and default dummy account should have unchanged passwords
-        assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
+        assertUserPassword(userJack, USER_PASSWORD_1_CLEAR);
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 
 		// this one is not changed
@@ -642,7 +678,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
         
         // User and default dummy account should have unchanged passwords
-        assertEncryptedUserPassword(userJack, USER_PASSWORD_A_CLEAR);
+        assertUserPassword(userJack, USER_PASSWORD_A_CLEAR);
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
 
 		// this one is not changed
@@ -708,7 +744,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
         
         // User and default dummy account should have unchanged passwords
-        assertEncryptedUserPassword(userJack, USER_PASSWORD_A_CLEAR);
+        assertUserPassword(userJack, USER_PASSWORD_A_CLEAR);
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
 
 		// this one is not changed
@@ -969,7 +1005,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userJack, 4);
         accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
-        assertEncryptedUserPassword(userJack, expectedCurrentPassword);
+        assertUserPassword(userJack, expectedCurrentPassword);
         assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
         
         assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, expectedCurrentPassword);
@@ -1039,7 +1075,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// Make sure that the password is unchanged
 
-		assertEncryptedUserPassword(userJack, USER_PASSWORD_VALID_1);
+		assertUserPassword(userJack, USER_PASSWORD_VALID_1);
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);

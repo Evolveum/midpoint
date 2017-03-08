@@ -42,7 +42,7 @@ public abstract class BaseProtector implements Protector {
     protected abstract <T> byte[] decryptBytes(ProtectedData<T> protectedData) throws SchemaException, EncryptionException;
 
     @Override
-    public String decryptString(ProtectedStringType protectedString) throws EncryptionException {
+    public String decryptString(ProtectedData<String> protectedString) throws EncryptionException {
         try {
             if (!protectedString.isEncrypted()) {
                 return protectedString.getClearValue();

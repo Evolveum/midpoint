@@ -50,7 +50,7 @@ public interface Protector {
 	 *             if protectedString argument is null or EncryptedData in
 	 *             protectedString argument is null
 	 */
-	String decryptString(ProtectedStringType protectedString) throws EncryptionException;
+	String decryptString(ProtectedData<String> protectedString) throws EncryptionException;
 
 	/**
 	 *

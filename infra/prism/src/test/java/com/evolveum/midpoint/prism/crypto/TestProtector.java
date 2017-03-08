@@ -201,6 +201,43 @@ public class TestProtector {
 
 		// THEN
 		assertFalse("compare10 unexpected success", compare10);
+		
+		ProtectedStringType pstEncHash = new ProtectedStringType();
+		pstEncHash.setClearValue(value);
+		assertFalse(pstEncHash.isEmpty());
+		protector256.encrypt(pstEncHash);
+		
+		// WHEN
+		protector256.hash(pstEncHash);
+		
+		// THEN
+		assertFalse(pstEncHash.isEmpty());
+		assertTrue(pstEncHash.isHashed());
+		assertFalse(pstEncHash.isEncrypted());
+		assertNull(pstEncHash.getClearValue());
 
+		// WHEN
+		boolean compare1e = protector256.compare(checkPstClear, pstEncHash);
+
+		// THEN
+		assertTrue("compare1e failed", compare1e);
+
+		// WHEN
+		boolean compare2e = protector256.compare(pstEncHash, checkPstClear);
+
+		// THEN
+		assertTrue("compare2e failed", compare2e);
+
+		// WHEN
+		boolean compare3e = protector256.compare(pstEncHash, checkPstEnc);
+
+		// THEN
+		assertTrue("compare3e failed", compare3e);
+
+		// WHEN
+		boolean compare4e = protector256.compare(checkPstEnc, pstEncHash);
+
+		// THEN
+		assertTrue("compare4e failed", compare4e);
 	}
 }

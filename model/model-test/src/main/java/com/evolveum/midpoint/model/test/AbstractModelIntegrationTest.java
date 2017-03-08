@@ -105,6 +105,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
@@ -3670,11 +3671,43 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEncryptedUserPassword(user, expectedClearPassword);
 	}
 	
-	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
+	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+		assertUserPassword(user, expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
+	}
+	
+	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+		assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
+	}
+
+	protected CredentialsStorageTypeType getPasswordStorageType() {
+		return CredentialsStorageTypeType.ENCRYPTION;
+	}
+
+	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
 		UserType userType = user.asObjectable();
 		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
-		String actualClearPassword = protector.decryptString(protectedActualPassword);
-		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
+		switch (storageType) {
+			
+			case NONE:
+				assertNull("Unexpected stored password "+protectedActualPassword+" in "+user, protectedActualPassword);
+				break;
+
+			case ENCRYPTION:
+				assertNotNull("No password for "+user, protectedActualPassword);
+				assertTrue("Unenctypted password for "+user+": "+protectedActualPassword, protectedActualPassword.isEncrypted());
+				String actualClearPassword = protector.decryptString(protectedActualPassword);
+				assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
+				break;
+				
+			case HASHING:
+				assertNotNull("No password for "+user, protectedActualPassword);
+				assertTrue("Not hashed password for "+user+": "+protectedActualPassword, protectedActualPassword.isHashed());
+				ProtectedStringType expectedPs = new ProtectedStringType();
+				expectedPs.setClearValue(expectedClearPassword);
+				assertTrue("Wrong password for "+user+", expected "+expectedClearPassword+", but was "+protectedActualPassword, 
+						protector.compare(protectedActualPassword, expectedPs));
+		}
+		
 	}
 
 	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {

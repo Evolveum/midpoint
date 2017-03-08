@@ -285,7 +285,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_HERMAN_FILE = new File(COMMON_DIR, "user-herman.xml");
 	protected static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
 	protected static final String USER_HERMAN_USERNAME = "herman";
+	protected static final String USER_HERMAN_GIVEN_NAME = "Herman";
+	protected static final String USER_HERMAN_FAMILY_NAME = "Toothrot";
 	protected static final String USER_HERMAN_FULL_NAME = "Herman Toothrot";
+	protected static final String USER_HERMAN_PASSWORD = "m0nk3y";
 	protected static final Date USER_HERMAN_VALID_FROM_DATE = MiscUtil.asDate(1700, 5, 30, 11, 00, 00);
 	protected static final Date USER_HERMAN_VALID_TO_DATE = MiscUtil.asDate(2233, 3, 23, 18, 30, 00);
 
