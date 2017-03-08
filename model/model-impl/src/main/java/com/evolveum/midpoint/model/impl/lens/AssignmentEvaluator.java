@@ -78,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * @author semancik
@@ -89,130 +90,98 @@ public class AssignmentEvaluator<F extends FocusType> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEvaluator.class);
 
-	private RepositoryService repository;
-	private ObjectDeltaObject<F> focusOdo;
-	private LensContext<F> lensContext;
-	private String channel;
-	private ObjectResolver objectResolver;
-	private SystemObjectCache systemObjectCache;
-	private PrismContext prismContext;
-	private MappingFactory mappingFactory;
-	private ActivationComputer activationComputer;
-	XMLGregorianCalendar now;
-	private boolean evaluateConstructions = true;
-	private PrismObject<SystemConfigurationType> systemConfiguration;
-	private MappingEvaluator mappingEvaluator;
+	private final RepositoryService repository;
+	private final ObjectDeltaObject<F> focusOdo;
+	private final LensContext<F> lensContext;
+	private final String channel;
+	private final ObjectResolver objectResolver;
+	private final SystemObjectCache systemObjectCache;
+	private final PrismContext prismContext;
+	private final MappingFactory mappingFactory;
+	private final ActivationComputer activationComputer;
+	private final XMLGregorianCalendar now;
+	private final boolean evaluateConstructions;
+	private final PrismObject<SystemConfigurationType> systemConfiguration;
+	private final MappingEvaluator mappingEvaluator;
 	
+	private AssignmentEvaluator(Builder<F> builder) {
+		repository = builder.repository;
+		focusOdo = builder.focusOdo;
+		lensContext = builder.lensContext;
+		channel = builder.channel;
+		objectResolver = builder.objectResolver;
+		systemObjectCache = builder.systemObjectCache;
+		prismContext = builder.prismContext;
+		mappingFactory = builder.mappingFactory;
+		activationComputer = builder.activationComputer;
+		now = builder.now;
+		evaluateConstructions = builder.evaluateConstructions;
+		systemConfiguration = builder.systemConfiguration;
+		mappingEvaluator = builder.mappingEvaluator;
+	}
+
 	public RepositoryService getRepository() {
 		return repository;
 	}
 
-	public void setRepository(RepositoryService repository) {
-		this.repository = repository;
-	}
-	
 	public ObjectDeltaObject<F> getFocusOdo() {
 		return focusOdo;
-	}
-
-	public void setFocusOdo(ObjectDeltaObject<F> userOdo) {
-		this.focusOdo = userOdo;
 	}
 
 	public LensContext<F> getLensContext() {
 		return lensContext;
 	}
 
-	public void setLensContext(LensContext<F> lensContext) {
-		this.lensContext = lensContext;
-	}
-
 	public String getChannel() {
 		return channel;
-	}
-
-	public void setChannel(String channel) {
-		this.channel = channel;
 	}
 
 	public ObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
 
-	public void setObjectResolver(ObjectResolver objectResolver) {
-		this.objectResolver = objectResolver;
-	}
-
 	public SystemObjectCache getSystemObjectCache() {
 		return systemObjectCache;
-	}
-
-	public void setSystemObjectCache(SystemObjectCache systemObjectCache) {
-		this.systemObjectCache = systemObjectCache;
 	}
 
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
-
 	public MappingFactory getMappingFactory() {
 		return mappingFactory;
-	}
-
-	public void setMappingFactory(MappingFactory mappingFactory) {
-		this.mappingFactory = mappingFactory;
 	}
 
 	public ActivationComputer getActivationComputer() {
 		return activationComputer;
 	}
 
-	public void setActivationComputer(ActivationComputer activationComputer) {
-		this.activationComputer = activationComputer;
-	}
-
 	public XMLGregorianCalendar getNow() {
 		return now;
-	}
-
-	public void setNow(XMLGregorianCalendar now) {
-		this.now = now;
 	}
 
 	public boolean isEvaluateConstructions() {
 		return evaluateConstructions;
 	}
 
-	public void setEvaluateConstructions(boolean evaluateConstructions) {
-		this.evaluateConstructions = evaluateConstructions;
-	}
-
 	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
 		return systemConfiguration;
 	}
 
-	public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
-		this.systemConfiguration = systemConfiguration;
-	}
-	
 	public MappingEvaluator getMappingEvaluator() {
 		return mappingEvaluator;
 	}
 
-	public void setMappingEvaluator(MappingEvaluator mappingEvaluationHelper) {
-		this.mappingEvaluator = mappingEvaluationHelper;
-	}
-
-	public EvaluatedAssignmentImpl<F> evaluate(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, 
+	public EvaluatedAssignmentImpl<F> evaluate(
+			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
 			boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
-		assertSource(source, assignmentIdi);
+
+		assertSourceNotNull(source, assignmentIdi);
+
 		EvaluatedAssignmentImpl<F> evalAssignment = new EvaluatedAssignmentImpl<>();
 		evalAssignment.setAssignmentIdi(assignmentIdi);
+
 		AssignmentPathImpl assignmentPath = new AssignmentPathImpl();
 		AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl(assignmentIdi, true);
 		assignmentPathSegment.setSource(source);
@@ -242,7 +211,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private <O extends ObjectType> void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
 			AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
-		assertSource(source, evalAssignment);
+		assertSourceNotNull(source, evalAssignment);
 		
 		LOGGER.trace("Evaluate assignment {} (matching order: {}, mode: {})", assignmentPath, assignmentPathSegment.isMatchingOrder(),
 				mode);
@@ -402,7 +371,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private void prepareConstructionEvaluation(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, ObjectType source, String sourceDescription,
 			AssignmentPathImpl assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		assertSource(source, evaluatedAssignment);
+		assertSourceNotNull(source, evaluatedAssignment);
 		
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
 		ConstructionType constructionType = assignmentTypeNew.getConstruction();
@@ -440,7 +409,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private void evaluateFocusMappings(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, ObjectType source, String sourceDescription,
 			AssignmentPathImpl assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		assertSource(source, evaluatedAssignment);
+		assertSourceNotNull(source, evaluatedAssignment);
 		
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
 		MappingsType mappingsType = assignmentTypeNew.getFocusMappings();
@@ -466,7 +435,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, ObjectType source, String sourceDescription,
 			AssignmentPathImpl assignmentPath, ObjectType orderOneObject, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		assertSource(source, evaluatedAssignment);
+		assertSourceNotNull(source, evaluatedAssignment);
 		
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
 		PolicyRuleType policyRuleType = assignmentTypeNew.getPolicyRule();
@@ -572,7 +541,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			
 	        SearchResultList<PrismObject<O>> targets = repository.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
 	        
-	        if (org.apache.commons.collections.CollectionUtils.isEmpty(targets)){
+	        if (CollectionUtils.isEmpty(targets)){
 	        	throw new IllegalArgumentException("Got null target from repository, filter:"+evaluatedFilter+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
 	        }
 	        
@@ -587,7 +556,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private void evaluateAssignmentTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegmentImpl assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, FocusType targetType, ObjectType source, QName relation, String sourceDescription,
 			AssignmentPathImpl assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
-		assertSource(source, assignment);
+		assertSourceNotNull(source, assignment);
 		
 		assignmentPathSegment.setTarget(targetType);
 		assignmentPathSegment.setRelation(relation);
@@ -830,13 +799,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return authorization;
 	}
 
-	private void assertSource(ObjectType source, EvaluatedAssignment<F> assignment) {
+	private void assertSourceNotNull(ObjectType source, EvaluatedAssignment<F> assignment) {
 		if (source == null) {
 			throw new IllegalArgumentException("Source cannot be null (while evaluating assignment "+assignment+")");
 		}
 	}
 	
-	private void assertSource(ObjectType source, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
+	private void assertSourceNotNull(ObjectType source, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
 		if (source == null) {
 			throw new IllegalArgumentException("Source cannot be null (while evaluating assignment "+assignmentIdi.getAnyItem()+")");
 		}
@@ -898,5 +867,91 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return mapping.getOutputTriple();
 	}
 
+	public static final class Builder<F extends FocusType> {
+		private RepositoryService repository;
+		private ObjectDeltaObject<F> focusOdo;
+		private LensContext<F> lensContext;
+		private String channel;
+		private ObjectResolver objectResolver;
+		private SystemObjectCache systemObjectCache;
+		private PrismContext prismContext;
+		private MappingFactory mappingFactory;
+		private ActivationComputer activationComputer;
+		private XMLGregorianCalendar now;
+		private boolean evaluateConstructions = true;
+		private PrismObject<SystemConfigurationType> systemConfiguration;
+		private MappingEvaluator mappingEvaluator;
 
+		public Builder() {
+		}
+
+		public Builder<F> repository(RepositoryService val) {
+			repository = val;
+			return this;
+		}
+
+		public Builder<F> focusOdo(ObjectDeltaObject<F> val) {
+			focusOdo = val;
+			return this;
+		}
+
+		public Builder<F> lensContext(LensContext<F> val) {
+			lensContext = val;
+			return this;
+		}
+
+		public Builder<F> channel(String val) {
+			channel = val;
+			return this;
+		}
+
+		public Builder<F> objectResolver(ObjectResolver val) {
+			objectResolver = val;
+			return this;
+		}
+
+		public Builder<F> systemObjectCache(SystemObjectCache val) {
+			systemObjectCache = val;
+			return this;
+		}
+
+		public Builder<F> prismContext(PrismContext val) {
+			prismContext = val;
+			return this;
+		}
+
+		public Builder<F> mappingFactory(MappingFactory val) {
+			mappingFactory = val;
+			return this;
+		}
+
+		public Builder<F> activationComputer(ActivationComputer val) {
+			activationComputer = val;
+			return this;
+		}
+
+		public Builder<F> now(XMLGregorianCalendar val) {
+			now = val;
+			return this;
+		}
+
+		public Builder<F> evaluateConstructions(boolean val) {
+			evaluateConstructions = val;
+			return this;
+		}
+
+		public Builder<F> systemConfiguration(PrismObject<SystemConfigurationType> val) {
+			systemConfiguration = val;
+			return this;
+		}
+
+		public Builder<F> mappingEvaluator(MappingEvaluator val) {
+			mappingEvaluator = val;
+			return this;
+		}
+
+		public AssignmentEvaluator<F> build() {
+			return new AssignmentEvaluator<>(this);
+		}
+	}
 }

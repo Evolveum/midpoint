@@ -927,18 +927,17 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 	}
 	
 	protected AssignmentEvaluator<UserType> createAssignmentEvaluator(ObjectDeltaObject<UserType> focusOdo) throws ObjectNotFoundException, SchemaException {
-		AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator<>();
-		assignmentEvaluator.setRepository(repositoryService);
-		assignmentEvaluator.setFocusOdo(focusOdo);
-		assignmentEvaluator.setObjectResolver(objectResolver);
-		assignmentEvaluator.setSystemObjectCache(systemObjectCache);
-		assignmentEvaluator.setPrismContext(prismContext);
-		assignmentEvaluator.setActivationComputer(activationComputer);
-		assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
-		assignmentEvaluator.setMappingFactory(mappingFactory);
-		assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
-		// Fake
-		assignmentEvaluator.setLensContext(new LensContext<>(UserType.class, prismContext, provisioningService));
-		return assignmentEvaluator;
+		return new AssignmentEvaluator.Builder<UserType>()
+				.repository(repositoryService)
+				.focusOdo(focusOdo)
+				.objectResolver(objectResolver)
+				.systemObjectCache(systemObjectCache)
+				.prismContext(prismContext)
+				.activationComputer(activationComputer)
+				.now(clock.currentTimeXMLGregorianCalendar())
+				.mappingFactory(mappingFactory)
+				.mappingEvaluator(mappingEvaluator)
+				.lensContext(new LensContext<>(UserType.class, prismContext, provisioningService))	// Fake
+				.build();
 	}
 }
