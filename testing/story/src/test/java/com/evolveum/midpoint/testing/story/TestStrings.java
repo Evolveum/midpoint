@@ -393,7 +393,7 @@ public class TestStrings extends AbstractStoryTest {
 				"Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
 		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled",
 				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
-				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:");
+				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:", "^Carried out by:");
 		assertMessage(sorted.get("cheese@evolveum.com"), "cheese@evolveum.com", "A new work item has been created",
 				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
 				"Allocated to: Ignatius Cheese (cheese)", "^Result:", "(in 5 days)");
@@ -407,7 +407,7 @@ public class TestStrings extends AbstractStoryTest {
 				"Carried out by: midPoint Administrator (administrator)", "Result: APPROVED", "^Deadline:");
 		assertMessage(sorted2.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com", "Work item has been cancelled",
 				"Work item: Approve assigning a-test-1 to bob", "Stage: Security (2/3)",
-				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:");
+				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "^Result:", "^Deadline:", "^Carried out by:");
 		assertMessage(sorted2.get("cheese@evolveum.com"), "cheese@evolveum.com", "Work item has been allocated to you",
 				"Work item: Approve assigning a-test-1 to bob", "Role approvers (all) (3/3)",
 				"Allocated to: Ignatius Cheese (cheese)", "^Result:", "(in 5 days)");
@@ -924,29 +924,6 @@ public class TestStrings extends AbstractStoryTest {
 		display("audit", dummyAuditService);
 	}
 
-	private void checkOneCompletedOneCancelled(List<Message> lifecycleMessages) {
-		Map<String, Message> sorted = sortByRecipientsSingle(lifecycleMessages);
-
-		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com",
-				null,
-				"Security (2/3)", "Allocated to: Elaine Marley (elaine)");
-		assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com",
-				null,
-				"Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
-		int completed;
-		if (lifecycleMessages.get(0).getSubject().contains("completed")) {
-			completed = 0;
-		} else {
-			completed = 1;
-		}
-		assertMessage(lifecycleMessages.get(completed), null, "Work item has been completed",
-				"Carried out by: midPoint Administrator (administrator)",		// TODO remove later
-				"Result: REJECTED");
-		assertMessage(lifecycleMessages.get(1-completed), null, "Work item has been cancelled",
-				"^Carried out by:",
-				"^Result:");
-	}
-
 	private void checkTwoCompleted(List<Message> lifecycleMessages) {
 		Map<String, Message> sorted = sortByRecipientsSingle(lifecycleMessages);
 
@@ -958,9 +935,12 @@ public class TestStrings extends AbstractStoryTest {
 				"Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
 		int completed;
 		assertMessage(lifecycleMessages.get(0), null, "Work item has been completed",
-				"Carried out by: midPoint Administrator (administrator)",		// TODO remove later
+				"^Carried out by:",
+				"Reason: Timed action",
 				"Result: REJECTED");
 		assertMessage(lifecycleMessages.get(1), null, "Work item has been completed",
+				"^Carried out by:",
+				"Reason: Timed action",
 				"Result: REJECTED");
 	}
 

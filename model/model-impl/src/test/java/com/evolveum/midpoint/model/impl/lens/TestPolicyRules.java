@@ -23,12 +23,12 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -108,6 +108,41 @@ public class TestPolicyRules extends AbstractLensTest {
 
 		assertEvaluatedRules(context, 4);
 		assertTriggeredRules(context, 2, PolicyConstraintKindType.ASSIGNMENT);
+	}
+
+	@Test(enabled = false)
+	public void test007JackAttemptAssignRoleJudgeAsOwner() throws Exception {
+		final String TEST_NAME = "test007JackAttemptAssignRoleJudgeAsOwner";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createUserAccountContext();
+		fillContextWithUser(context, USER_JACK_OID, result);
+		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID,
+				assignment -> assignment.getTargetRef().setRelation(SchemaConstants.ORG_OWNER)
+		);
+
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+		rememberShadowFetchOperationCount();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		projector.project(context, "test", task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		dumpPolicyRules(context);
+
+		assertEvaluatedRules(context, 4);
+		assertTriggeredRules(context, 0, PolicyConstraintKindType.ASSIGNMENT);
 	}
 
 

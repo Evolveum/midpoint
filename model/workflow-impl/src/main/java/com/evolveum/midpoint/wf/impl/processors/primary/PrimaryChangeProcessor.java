@@ -376,11 +376,11 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            WorkItemResultType workItemResult, TaskEvent taskEvent, WfTask wfTask,
-            OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, taskEvent,
-                cause, workItemResult, wfTask, result);
+			TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException {
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause,
+				wfTask, result);
         try {
+			WorkItemResultType workItemResult = workItem.getResult();
         	// TODO - or merge with original deltas?
         	if (workItemResult != null && workItemResult.getOutcome() == WorkItemOutcomeType.APPROVE
 					&& workItemResult.getAdditionalDeltas() != null) {

@@ -18,28 +18,17 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.query.QueryEngine;
-import com.evolveum.midpoint.repo.sql.query.RQuery;
-import com.evolveum.midpoint.repo.sql.query.RQueryCriteriaImpl;
-import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.H2Dialect;
@@ -47,11 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.*;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -84,7 +69,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired
     protected SessionFactory factory;
 
-    protected static Set<Class> initializedClasses = new HashSet<Class>();
+    protected static Set<Class> initializedClasses = new HashSet<>();
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -171,56 +156,8 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         session.close();
     }
 
-    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query)
-            throws Exception {
-        return getInterpretedQuery(session, type, query, false);
-    }
-
-    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
-                                                                boolean interpretCount) throws Exception {
-
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
-
-        QueryEngine engine = new QueryEngine(baseHelper.getConfiguration(), prismContext);
-        RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);
-        //just test if DB will handle it or throws some exception
-        if (interpretCount) {
-            rQuery.uniqueResult();
-        } else {
-            rQuery.list();
-        }
-
-        if (rQuery instanceof RQueryCriteriaImpl) {
-            Criteria criteria = ((RQueryCriteriaImpl) rQuery).getCriteria();
-            return HibernateToSqlTranslator.toSql(criteria);
-        }
-
-        return HibernateToSqlTranslator.toSql(factory, ((RQueryImpl) rQuery).getQuery().getQueryString());
-    }
-
     protected String hqlToSql(String hql) {
         return HibernateToSqlTranslator.toSql(factory, hql);
     }
 
-    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
-            Exception {
-        return getInterpretedQuery(session, type, file, false);
-    }
-
-    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file,
-                                                                boolean interpretCount) throws Exception {
-
-        QueryType queryType = PrismTestUtil.parseAtomicValue(file, QueryType.COMPLEX_TYPE);
-
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType, prismContext));
-
-        ObjectQuery query = null;
-        try {
-            query = QueryJaxbConvertor.createObjectQuery(type, queryType, prismContext);
-        } catch (Exception ex) {
-            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
-        }
-
-        return getInterpretedQuery(session, type, query, interpretCount);
-    }
 }

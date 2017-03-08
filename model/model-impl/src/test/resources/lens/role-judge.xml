@@ -14,9 +14,11 @@
   ~ limitations under the License.
   -->
 <role oid="12345111-1111-2222-1111-121212111111"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <name>Judge</name>
     <description>Role with role exclusions</description>
     <assignment>
@@ -56,6 +58,22 @@
 				<approval/>
 			</policyActions>
 		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<name>all-assignment-operations-disabled</name>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval/>
+			</policyActions>
+		</policyRule>
+		<condition>
+			<expression>
+				<value>false</value>
+			</expression>
+		</condition>
 	</assignment>
     <inducement>
     	<construction>

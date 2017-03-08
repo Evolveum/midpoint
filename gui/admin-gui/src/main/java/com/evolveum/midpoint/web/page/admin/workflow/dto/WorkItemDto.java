@@ -390,7 +390,7 @@ public class WorkItemDto extends Selectable {
 				focus = (ObjectType) object.asObjectable();
 				try {
 					ObjectDelta<Objectable> objectDelta = DeltaConvertor.createObjectDelta(delta, pageBase.getPrismContext());
-					objectDelta.applyTo(focus.asPrismObject());
+					objectDelta.applyTo((PrismObject) focus.asPrismObject());
 				} catch (SchemaException e) {
 					throw new SystemException("Cannot apply delta to focus object: " + e.getMessage(), e);
 				}

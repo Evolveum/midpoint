@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.query.restriction;
+package com.evolveum.midpoint.wf.api;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType;
 
 /**
- * @author lazyman
+ * Primarily used to simplify passing parameters to WorkflowListener.
+ *
+ * @author mederly
  */
-public enum ItemRestrictionOperation {
+public class WorkItemOperationInfo {
 
-    EQ, GT, GE, LT, LE, NULL, NOT_NULL, SUBSTRING, STARTS_WITH, ENDS_WITH;
+	private final WorkItemOperationKindType operationKind;
+
+	public WorkItemOperationInfo(WorkItemOperationKindType operationKind) {
+		this.operationKind = operationKind;
+	}
+
+	public WorkItemOperationKindType getOperationKind() {
+		return operationKind;
+	}
 }

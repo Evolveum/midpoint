@@ -2615,6 +2615,37 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test650QueryExtensionEnum() throws Exception {
+        Session session = open();
+        try {
+        	ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(F_EXTENSION, new QName("overrideActivation")).eq(ActivationStatusType.ENABLED)
+					.build();
+			String real = getInterpretedQuery2(session, UserType.class, query);
+            String expected = "select\n"
+					+ "  u.fullObject,\n"
+					+ "  u.stringsCount,\n"
+					+ "  u.longsCount,\n"
+					+ "  u.datesCount,\n"
+					+ "  u.referencesCount,\n"
+					+ "  u.polysCount,\n"
+					+ "  u.booleansCount\n"
+					+ "from\n"
+					+ "  RUser u\n"
+					+ "    left join u.strings s with (\n"
+					+ "	      s.ownerType = :ownerType and\n"
+					+ "	      s.name = :name\n"
+					+ ")\n"
+					+ "where\n"
+					+ "  s.value = :value\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+
+    @Test
     public void test700QueryCertCaseAll() throws Exception {
         Session session = open();
         try {

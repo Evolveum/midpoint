@@ -56,7 +56,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -261,7 +260,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		List<PrismObject<O>> targets = null;
 		if (assignmentType.getTarget() != null) {
 			targets = new ArrayList<>(1);
-			targets.add(assignmentType.getTarget().asPrismObject());
+			targets.add((PrismObject<O>) assignmentType.getTarget().asPrismObject());
 		} else if (assignmentType.getTargetRef() != null) {
             try {
                 targets = resolveTargets(assignmentType, assignmentPathSegment, source, sourceDescription, assignmentPath, task, result);
@@ -687,7 +686,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	
 		if (targetType instanceof AbstractRoleType) {
 			for (AssignmentType roleInducement : ((AbstractRoleType)targetType).getInducement()) {
-				if (!isApplicable(roleInducement.getFocusType(), (AbstractRoleType)targetType)) {
+				if (!isApplicableToFocusType(roleInducement.getFocusType(), (AbstractRoleType)targetType)) {
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
 								FocusTypeUtil.dumpAssignment(roleInducement), roleInducement.getFocusType(), targetType.getClass().getSimpleName());
@@ -791,7 +790,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return false;
 	}
 
-	private boolean isApplicable(QName focusType, AbstractRoleType roleType) throws SchemaException {
+	private boolean isApplicableToFocusType(QName focusType, AbstractRoleType roleType) throws SchemaException {
 		if (focusType == null) {
 			return true;
 		}

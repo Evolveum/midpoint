@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -65,10 +66,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	}
 
 	@Override
-	protected IColumn<SelectableBean<O>, String> createNameColumn() {
+	protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath) {
 		if (!isMultiselect()) {
-			return new LinkColumn<SelectableBean<O>>(createStringResource("ObjectType.name"),
-					ObjectType.F_NAME.getLocalPart(), SelectableBean.F_VALUE + ".name") {
+			return new LinkColumn<SelectableBean<O>>(
+					columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
+					StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath,
+					SelectableBean.F_VALUE + "." +
+							(StringUtils.isEmpty(itemPath) ? "name" : itemPath)) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -81,8 +85,11 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 		}
 
 		else {
-			return new PropertyColumn(createStringResource("userBrowserDialog.name"),
-					ObjectType.F_NAME.getLocalPart(), SelectableBean.F_VALUE + ".name");
+			return new PropertyColumn(
+					columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
+					StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath,
+					SelectableBean.F_VALUE + "." +
+							(StringUtils.isEmpty(itemPath) ? "name" : itemPath));
 		}
 	}
 

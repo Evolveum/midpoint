@@ -33,9 +33,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.ProcessListener;
-import com.evolveum.midpoint.wf.api.WorkItemListener;
-import com.evolveum.midpoint.wf.api.WorkflowException;
+import com.evolveum.midpoint.wf.api.*;
 import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.impl.messages.*;
@@ -63,7 +61,6 @@ import javax.xml.datatype.Duration;
 import java.util.*;
 
 import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
-import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getItemApprovalProcessInterface;
 
 /**
  * Manages everything related to a activiti process instance, including the task that monitors that process instance.
@@ -309,6 +306,7 @@ public class WfTaskController {
     //region Processing work item (task) events
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
+	// workItem can be freely modified (e.g. by overriding result, etc.)
 	@SuppressWarnings("unchecked")
     public void onTaskEvent(WorkItemType workItem, TaskEvent taskEvent, OperationResult result) throws WorkflowException, SchemaException {
 
@@ -326,10 +324,11 @@ public class WfTaskController {
 					taskEvent, wfTask, result);
 			auditService.audit(auditEventRecord, wfTask.getTask());
             try {
-                notifyWorkItemCreated(workItem, workItem.getOriginalAssigneeRef(), wfTask, result);
+                notifyWorkItemCreated(workItem.getOriginalAssigneeRef(), workItem, wfTask, result);
                 if (workItem.getAssigneeRef() != null) {
-					notifyWorkItemAllocationChangeNewActors(workItem, Collections.emptyList(), workItem.getAssigneeRef(),
-							null, null, null, null, wfTask.getTask(), result);
+                	WorkItemAllocationChangeOperationInfo operationInfo =
+							new WorkItemAllocationChangeOperationInfo(null, Collections.emptyList(), workItem.getAssigneeRef());
+					notifyWorkItemAllocationChangeNewActors(workItem, operationInfo, null, wfTask.getTask(), result);
 				}
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
@@ -346,14 +345,12 @@ public class WfTaskController {
 			// would be closed for the same reason. For a user it would be misleading if we would simply view this task
 			// as 'cancelled', while, in fact, it is e.g. approved/rejected because of a timed action.
 
-			LOGGER.error("###### processing {}", taskEvent, new IllegalStateException());
 			WorkItemOperationKindType operationKind = BooleanUtils.isTrue(ActivitiUtil.getVariable(taskEvent.getVariables(),
 					CommonProcessVariableNames.VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.class, prismContext)) ?
-					WorkItemOperationKindType.COMPLETE : null;
+					WorkItemOperationKindType.COMPLETE : WorkItemOperationKindType.CANCEL;
 			WorkItemEventCauseInformationType cause = ActivitiUtil.getVariable(taskEvent.getVariables(),
 					CommonProcessVariableNames.VARIABLE_CAUSE, WorkItemEventCauseInformationType.class, prismContext);
-			WorkItemResultType workItemResult = getItemApprovalProcessInterface().extractWorkItemResult(taskEvent.getVariables());
-			boolean genuinelyCompleted = operationKind != null;
+			boolean genuinelyCompleted = operationKind == WorkItemOperationKindType.COMPLETE;
 
 			MidPointPrincipal user;
 			try {
@@ -394,9 +391,10 @@ public class WfTaskController {
 					cause.setName(completeAction.getName());
 					cause.setDisplayName(completeAction.getDisplayName());
 					foundTimedActions++;
-					workItemResult = new WorkItemResultType();
+					WorkItemResultType workItemResult = new WorkItemResultType();
 					workItemResult.setOutcome(completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT);
 					workItemResult.setOutcomeAsString(ApprovalUtils.approvalStringValue(completeAction.getOutcome()));
+					workItem.setResult(workItemResult);
 				}
 				if (foundTimedActions > 1) {
 					LOGGER.warn("Multiple 'work item complete' timed actions ({}) for {}: {}", foundTimedActions,
@@ -404,27 +402,29 @@ public class WfTaskController {
 				}
 			}
 
-			AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemDeletedAuditRecord(workItem,
-					cause, workItemResult, taskEvent, wfTask, result);
+			// We don't pass userRef (initiator) to the audit method. It does need the whole object (not only the reference),
+			// so it fetches it directly from the security enforcer (logged-in user). This could change in the future.
+			AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent)
+					.prepareWorkItemDeletedAuditRecord(workItem, cause, taskEvent, wfTask, result);
 			auditService.audit(auditEventRecord, wfTask.getTask());
             try {
+				WorkItemAllocationChangeOperationInfo operationInfo =
+						new WorkItemAllocationChangeOperationInfo(operationKind, workItem.getAssigneeRef(), null);
+				WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(userRef, cause, null);
             	if (workItem.getAssigneeRef().isEmpty()) {
-					notifyWorkItemDeleted(workItem, null, userRef, operationKind, workItemResult,
-							null, cause, wfTask, result);
+					notifyWorkItemDeleted(null, workItem, operationInfo, sourceInfo, wfTask, result);
 				} else {
 					for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-						notifyWorkItemDeleted(workItem, assignee, userRef, operationKind, workItemResult,
-								null, cause, wfTask, result);
+						notifyWorkItemDeleted(assignee, workItem, operationInfo, sourceInfo, wfTask, result);
 					}
 				}
-				notifyWorkItemAllocationChangeCurrentActors(workItem, workItem.getAssigneeRef(),
-						null, operationKind, userRef, workItemResult,null, cause,
-						wfTask.getTask(), result);
+				notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, null, wfTask.getTask(), result);
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't audit work item complete event", e);
             }
 
-            if (genuinelyCompleted || workItemResult != null) {
+			WorkItemResultType workItemResult = workItem.getResult();
+			if (genuinelyCompleted || workItemResult != null) {
 				WorkItemCompletionEventType event = new WorkItemCompletionEventType();
 				ActivitiUtil.fillInWorkItemEvent(event, user, taskEvent.getTaskId(), taskEvent.getVariables(), prismContext);
 				event.setCause(cause);
@@ -465,52 +465,45 @@ public class WfTaskController {
         }
     }
 
-    private void notifyWorkItemCreated(WorkItemType workItem, ObjectReferenceType originalAssigneeRef, WfTask wfTask,
-			OperationResult result) throws SchemaException {
+    private void notifyWorkItemCreated(ObjectReferenceType originalAssigneeRef, WorkItemType workItem,
+			WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCreation(workItem, originalAssigneeRef, wfTask.getTask(), result);
+            workItemListener.onWorkItemCreation(originalAssigneeRef, workItem, wfTask.getTask(), result);
         }
     }
 
-    private void notifyWorkItemDeleted(WorkItemType workItem, ObjectReferenceType assignee,
-			ObjectReferenceType initiator, WorkItemOperationKindType operationKind,
-			WorkItemResultType workItemResult, @Nullable AbstractWorkItemActionType source,
-			@Nullable WorkItemEventCauseInformationType cause,
+    private void notifyWorkItemDeleted(ObjectReferenceType assignee, WorkItemType workItem,
+			WorkItemOperationInfo operationInfo, WorkItemOperationSourceInfo sourceInfo,
 			WfTask wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemDeletion(workItem, assignee, initiator, operationKind, workItemResult, source, cause, wfTask.getTask(), result);
+            workItemListener.onWorkItemDeletion(assignee, workItem, operationInfo, sourceInfo, wfTask.getTask(), result);
         }
     }
 
     public void notifyWorkItemAllocationChangeCurrentActors(WorkItemType workItem,
-			@NotNull List<ObjectReferenceType> originalActors,
-			Duration timeBefore, WorkItemOperationKindType operationKind, ObjectReferenceType initiator,
-			WorkItemResultType workItemResult, @Nullable AbstractWorkItemActionType source,
-			@Nullable WorkItemEventCauseInformationType cause,
+			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
+			WorkItemOperationSourceInfo sourceInfo, Duration timeBefore,
 			Task wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemAllocationChangeCurrentActors(workItem, originalActors, timeBefore, operationKind,
-					initiator, workItemResult, source, cause, wfTask, result);
+            workItemListener.onWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBefore, wfTask, result);
         }
     }
 
-    public void notifyWorkItemAllocationChangeNewActors(WorkItemType workItem, @NotNull List<ObjectReferenceType> originalActors,
-			@NotNull List<ObjectReferenceType> newActors, WorkItemOperationKindType operationKind,
-			ObjectReferenceType initiator, @Nullable AbstractWorkItemActionType source,
-			@Nullable WorkItemEventCauseInformationType cause,
+    public void notifyWorkItemAllocationChangeNewActors(WorkItemType workItem,
+			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
+			@Nullable WorkItemOperationSourceInfo sourceInfo,
 			Task wfTask, OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemAllocationChangeNewActors(workItem, originalActors, newActors, operationKind,
-					initiator, source, cause, wfTask, result);
+            workItemListener.onWorkItemAllocationChangeNewActors(workItem, operationInfo, sourceInfo, wfTask, result);
         }
     }
 
-    public void notifyWorkItemCustom(WorkItemType workItem, @Nullable ObjectReferenceType assignee,
+    public void notifyWorkItemCustom(@Nullable ObjectReferenceType assignee, WorkItemType workItem,
 			WorkItemEventCauseInformationType cause, Task wfTask,
 			@NotNull WorkItemNotificationActionType notificationAction,
 			OperationResult result) throws SchemaException {
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCustomEvent(workItem, assignee, notificationAction, cause, wfTask, result);
+            workItemListener.onWorkItemCustomEvent(assignee, workItem, notificationAction, cause, wfTask, result);
         }
     }
 

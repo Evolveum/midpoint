@@ -1266,7 +1266,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
                 @Override
                 public void timeout() {
                 }
-            }, 30000, 3000);
+            }, 60000, 3000);
 
             firstChildTask.refresh(result);
             secondChildTask.refresh(result);

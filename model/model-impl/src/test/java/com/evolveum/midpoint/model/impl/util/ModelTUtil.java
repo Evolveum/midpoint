@@ -25,6 +25,7 @@ import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import org.testng.Assert;
 import org.apache.commons.lang.StringUtils;
 
@@ -57,7 +58,7 @@ public class ModelTUtil {
 			Class<T> clazz) throws SchemaException {
 
 		ObjectDelta<T> objectDelta = DeltaConvertor.createObjectDelta(changes, clazz, PrismTestUtil.getPrismContext());
-		objectDelta.applyTo(object.asPrismObject());
+		objectDelta.applyTo((PrismObject<T>) object.asPrismObject());
 		return object;
 	}
 

@@ -210,7 +210,7 @@ public class QueryInterpreter2 {
             ItemPath path = existsFilter.getFullPath();
             ItemDefinition definition = existsFilter.getDefinition();
             ProperDataSearchResult<JpaEntityDefinition> searchResult = resolver.findProperDataDefinition(
-                    baseEntityDefinition, path, definition, JpaEntityDefinition.class);
+                    baseEntityDefinition, path, definition, JpaEntityDefinition.class, context.getPrismContext());
             if (searchResult == null) {
                 throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity within " + baseEntityDefinition);
             }
@@ -220,7 +220,7 @@ public class QueryInterpreter2 {
             ItemPath path = refFilter.getFullPath();
             ItemDefinition definition = refFilter.getDefinition();
             ProperDataSearchResult<JpaReferenceDefinition> searchResult = resolver.findProperDataDefinition(
-                    baseEntityDefinition, path, definition, JpaReferenceDefinition.class);
+                    baseEntityDefinition, path, definition, JpaReferenceDefinition.class, context.getPrismContext());
             if (searchResult == null) {
                 throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a reference item within " + baseEntityDefinition);
             }
@@ -231,7 +231,8 @@ public class QueryInterpreter2 {
             ItemPath path = valFilter.getFullPath();
             ItemDefinition definition = valFilter.getDefinition();
 
-            ProperDataSearchResult<JpaPropertyDefinition> propDefRes = resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class);
+            ProperDataSearchResult<JpaPropertyDefinition> propDefRes = resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class,
+                    context.getPrismContext());
             if (propDefRes == null) {
                 throw new QueryException("Couldn't find a proper restriction for a ValueFilter: " + valFilter.debugDump());
             }
@@ -311,7 +312,7 @@ public class QueryInterpreter2 {
 
         // TODO if we'd like to have order-by extension properties, we'd need to provide itemDefinition for them
         ProperDataSearchResult<JpaDataNodeDefinition> result = context.getItemPathResolver().findProperDataDefinition(
-                context.getRootEntityDefinition(), orderByPath, null, JpaDataNodeDefinition.class);
+                context.getRootEntityDefinition(), orderByPath, null, JpaDataNodeDefinition.class, context.getPrismContext());
         if (result == null) {
             LOGGER.error("Unknown path '" + orderByPath + "', couldn't find definition for it, "
                     + "list will not be ordered by it.");

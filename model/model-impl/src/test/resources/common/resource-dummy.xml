@@ -401,7 +401,79 @@ return tmpSuffix
 			<operation>reconcile</operation>
 			<kind>account</kind>
 			<order>before</order>
+			<condition>
+				<script>
+					<code>
+						return true
+					</code>
+				</script>
+			</condition>
 		</script>
+		
+		<script>
+			<host>resource</host>	
+			<language>Shell</language>	
+			<argument>
+                            <script>
+                               <code>
+tmpSuffix = 'OU=vix,DC=win,DC=evolveum,DC=com'
+switch (basic.stringify(user.getEmployeeType())) {
+	case 'T':
+		tmpSuffix = 'OU=Prefix1,' + tmpSuffix
+		break
+	case 'R':
+		tmpSuffix = 'OU=Prefix1,' + tmpSuffix
+		break
+	case 'D':
+		tmpSuffix = 'OU=Prefix1,' + tmpSuffix
+		break
+	case 'S':
+		tmpSuffix = 'OU=Prefix1,' + tmpSuffix
+		break
+	default:
+		tmpSuffix = 'OU=Prefix2,' + tmpSuffix
+}
+return tmpSuffix
+                               </code>
+                            </script>
+			    <name>midpoint_suffix</name>
+			</argument>		
+			<argument>
+				<path>$user/name</path>
+				<name>midpoint_usercn</name><!-- this is sAMAccountName -->
+			</argument>
+			<argument>
+				<script>
+					<code>
+				'/dir/id/' + user.getFamilyName() + '_' + user.getName()
+					</code>
+				</script>
+				<name>midpoint_idpath</name>
+			</argument>
+			<argument>
+				<script>
+					<code>
+				'/dir/temp/' + user.getFamilyName() + '_' + user.getName()
+					</code>
+				</script>
+				<name>midpoint_temppath</name>
+			</argument>
+<code>user.getFamilyName() + '_' + user.getName()</code>
+			
+<!-- 			<operation>add</operation> -->
+			<operation>reconcile</operation>
+			<kind>account</kind>
+			<order>before</order>
+			<condition>
+				<script>
+					<code>
+						//just for testing condition evaluation
+						return false
+					</code>
+				</script>
+			</condition>
+		</script>
+		
 	</scripts>
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>

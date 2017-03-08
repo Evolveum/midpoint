@@ -1180,7 +1180,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						+ ".searchObjectsIterative.handle");
 
 				if (shouldDoRepoSearch) {
-					return handleRepoObject(type, shadowType.asPrismObject(), options, handler, handleResult);
+					return handleRepoObject(type, (PrismObject<T>) shadowType.asPrismObject(), options, handler, handleResult);
 				}
 				
 				if (shadowType == null) {

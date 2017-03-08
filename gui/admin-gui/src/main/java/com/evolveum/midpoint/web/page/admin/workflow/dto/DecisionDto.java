@@ -108,6 +108,18 @@ public class DecisionDto extends Selectable {
 				rv.comment = result.getComment();
 				// TODO what about additional delta?
 			}
+			WorkItemEventCauseInformationType cause = completionEvent.getCause();
+			if (cause != null && cause.getType() == WorkItemEventCauseTypeType.TIMED_ACTION) {
+				rv.user = PageBase.createStringResourceStatic(null,
+							"DecisionDto." + (rv.outcome ? "approvedDueToTimeout" : "rejectedDueToTimeout")).getString();
+				if (rv.comment == null) {
+					if (cause.getDisplayName() != null) {
+						rv.comment = cause.getDisplayName();
+					} else if (cause.getName() != null) {
+						rv.comment = cause.getName();
+					}
+				}
+			}
 			rv.escalationLevelNumber = completionEvent.getEscalationLevelNumber();
 			if (completionEvent.getOriginalAssigneeRef() != null && pageBase != null) {
 				// TODO optimize repo access

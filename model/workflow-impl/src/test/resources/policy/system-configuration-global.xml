@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
-  ~
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~  
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
-  ~
+  ~  
   ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
+  ~  
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,16 +33,42 @@
             <append>true</append>
         </appender>
     </logging>
-    <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
+	<notificationConfiguration>
+		<handler>
+			<simpleWorkflowNotifier>
+				<category>workflowProcessEvent</category>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleWorkflowNotifier-Processes</transport>
+			</simpleWorkflowNotifier>
+		</handler>
+		<handler>
+			<simpleWorkflowNotifier>
+				<category>workItemEvent</category>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
+			</simpleWorkflowNotifier>
+		</handler>
+	</notificationConfiguration>
+	<workflowConfiguration>
+        <allowCompleteOthersItems>true</allowCompleteOthersItems>
+		<useLegacyApproversSpecification>never</useLegacyApproversSpecification>
+		<useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
+    </workflowConfiguration>
 	<globalPolicyRule>
-		<name>global-assignment-notification</name>
 		<policyConstraints>
 			<assignment>
 				<operation>add</operation>
+				<relation>q:any</relation>
 			</assignment>
 		</policyConstraints>
 		<policyActions>
-			<notification/>
+			<approval>
+				<approverRelation>approver</approverRelation>
+			</approval>
 		</policyActions>
 		<focusSelector>
 			<type>UserType</type>
@@ -50,48 +76,13 @@
 		<targetSelector>
 			<type>RoleType</type>
 			<filter>
-				<q:equal>
-					<q:path>name</q:path>
-					<q:value>Judge</q:value>
-				</q:equal>
+				<q:not>
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>Role4</q:value>
+					</q:equal>
+				</q:not>
 			</filter>
 		</targetSelector>
 	</globalPolicyRule>
-	<globalPolicyRule>
-		<name>global-assignment-disabled</name>
-		<policyConstraints>
-			<assignment>
-				<operation>add</operation>
-			</assignment>
-		</policyConstraints>
-		<policyActions>
-			<enforcement/>
-		</policyActions>
-		<focusSelector>
-			<type>UserType</type>
-		</focusSelector>
-		<targetSelector>
-			<type>RoleType</type>
-		</targetSelector>
-		<condition>
-			<expression>
-				<value>false</value>
-			</expression>
-		</condition>
-	</globalPolicyRule>
-    <adminGuiConfiguration>
-	    <userDashboardLink>
-	    	<targetUrl>/foo</targetUrl>
-	    	<label>Foo</label>
-	    </userDashboardLink>
-	    <objectForms>
-    		<objectForm>
-    			<type>RoleType</type>
-    			<formSpecification>
-    				<panelClass>com.piracy.form.PirateRolePanel</panelClass>
-    			</formSpecification>
-    		</objectForm>
-    	</objectForms>
-    	<defaultTimezone>Jamaica</defaultTimezone>
-    </adminGuiConfiguration>
 </systemConfiguration>

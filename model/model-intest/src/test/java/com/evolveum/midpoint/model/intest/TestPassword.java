@@ -64,6 +64,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
 	private static final String USER_PASSWORD_A_CLEAR = "A"; // too short
 	private static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
+	private static final String USER_PASSWORD_SPARROW_CLEAR = "saRRow123"; // contains familyName
 	private static final String USER_PASSWORD_VALID_1 = "abcd123";
 	private static final String USER_PASSWORD_VALID_2 = "abcd223";
 	private static final String USER_PASSWORD_VALID_3 = "abcd323";
@@ -816,6 +817,16 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
     public void test224ModifyUserJackPasswordBadJack() throws Exception {
 		doTestModifyUserJackPasswordFailureWithHistory("test224ModifyUserJackPasswordBadJack",
 				USER_PASSWORD_JACK_CLEAR, USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
+	}
+	
+	/**
+	 * Change to password that violates the password policy (contains family name)
+	 * MID-1657
+	 */
+	@Test
+    public void test226ModifyUserJackPasswordBadSparrow() throws Exception {
+		doTestModifyUserJackPasswordFailureWithHistory("test226ModifyUserJackPasswordBadSparrow",
+				USER_PASSWORD_SPARROW_CLEAR, USER_PASSWORD_VALID_1, USER_PASSWORD_A_CLEAR);
 	}
 	
 	/**

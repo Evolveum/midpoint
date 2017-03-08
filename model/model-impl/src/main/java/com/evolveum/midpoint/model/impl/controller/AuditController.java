@@ -112,7 +112,7 @@ public class AuditController implements ModelAuditService {
 		// TODO: authorizations
 		
 		O currentObjectType = objectResolver.getObjectSimple(type, oid, null, task, result);
-		PrismObject<O> currentObject = currentObjectType.asPrismObject();
+		PrismObject<O> currentObject = (PrismObject<O>) currentObjectType.asPrismObject();
 		
 		List<AuditEventRecord> changeTrail = getChangeTrail(oid, eventIdentifier);
 		LOGGER.trace("Found change trail for {} containing {} events", oid, changeTrail.size());

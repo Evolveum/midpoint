@@ -171,6 +171,21 @@ public class PageUsers extends PageAdminUsers {
 			}
 
 			@Override
+			protected IColumn<SelectableBean<UserType>, String> createActionsColumn() {
+				return new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(false), 3){
+					@Override
+					protected int getHeaderNumberOfButtons() {
+						return 2;
+					}
+
+					@Override
+					protected List<InlineMenuItem> getHeaderMenuItems() {
+						return createRowActions(true);
+					}
+				};
+			}
+
+			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
 				return createRowActions(false);
 			}
@@ -240,19 +255,6 @@ public class PageUsers extends PageAdminUsers {
 			}
 		};
 
-		columns.add(column);
-
-		column = new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(false), 3){
-            @Override
-            protected int getHeaderNumberOfButtons() {
-                return 2;
-            }
-
-            @Override
-            protected List<InlineMenuItem> getHeaderMenuItems() {
-                return createRowActions(true);
-            }
-            };
 		columns.add(column);
 
 		return columns;

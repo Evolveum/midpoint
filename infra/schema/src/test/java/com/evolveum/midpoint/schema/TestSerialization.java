@@ -129,7 +129,7 @@ public class TestSerialization {
 		System.out.println("Deserialized object (ObjectType):");
 		System.out.println(deserializedObject.asPrismObject().debugDump());
 		
-		ObjectDelta<O> diff = parsedObject.asPrismObject().diff(deserializedObject.asPrismObject());
+		ObjectDelta<O> diff = parsedObject.asPrismObject().diff((PrismObject) deserializedObject.asPrismObject());
 		assertTrue("Something changed in serializetion of "+parsedObject+" (ObjectType): "+diff, diff.isEmpty());
 	}
 

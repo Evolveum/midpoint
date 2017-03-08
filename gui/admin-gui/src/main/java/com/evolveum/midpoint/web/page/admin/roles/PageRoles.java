@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -89,13 +90,19 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 			protected List<IColumn<SelectableBean<RoleType>, String>> createColumns() {
 				return PageRoles.this.initColumns();
 			}
-			
+
 			@Override
-			protected void objectDetailsPerformed(AjaxRequestTarget target, RoleType object) {
-				PageRoles.this.roleDetailsPerformed(target, object.getOid());;
-			}
-			
-			@Override
+            protected IColumn<SelectableBean<RoleType>, String> createActionsColumn() {
+                return PageRoles.this.createActionsColumn();
+            }
+
+            @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, RoleType object) {
+                PageRoles.this.roleDetailsPerformed(target, object.getOid());
+                ;
+            }
+
+            @Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				navigateToNext(PageRole.class);
 			}
@@ -117,7 +124,11 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
         column = new PropertyColumn(createStringResource("ObjectType.description"), "value.description");
         columns.add(column);
 
-        column = new InlineMenuButtonColumn<SelectableBean<UserType>>(listInlineMenuHelper.createRowActions(false), 3){
+        return columns;
+    }
+
+    private IColumn<SelectableBean<RoleType>, String> createActionsColumn() {
+        return new InlineMenuButtonColumn<SelectableBean<RoleType>>(listInlineMenuHelper.createRowActions(false), 3){
             @Override
             protected int getHeaderNumberOfButtons() {
                 return 2;
@@ -128,12 +139,9 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
                 return listInlineMenuHelper.createRowActions(true);
             }
         };
-        columns.add(column);
-
-        return columns;
     }
 
-    private MainObjectListPanel<RoleType> getRoleTable() {
+        private MainObjectListPanel<RoleType> getRoleTable() {
         return (MainObjectListPanel<RoleType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
