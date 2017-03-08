@@ -36,9 +36,9 @@
 									<c:value>recipient@evolveum.com</c:value>
 								</c:recipientExpression>
 								<c:bodyExpression>
-									<c:script>
+									<c:script>	<!-- currently, event.object is PrismObjectValue - this should be changed e.g. to ObjectType -->
 										<c:language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</c:language>
-										<c:code>event.object is '$event.object.name' with OID of $event.object.oid</c:code>
+										<c:code>event.object is '$event.object.asObjectable().name' with OID of $event.object.oid</c:code>
 									</c:script>
 								</c:bodyExpression>
 								<c:transport>mail</c:transport>
