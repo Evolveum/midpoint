@@ -20,14 +20,15 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.sun.xml.xsom.XSSimpleType;
+import com.sun.xml.xsom.*;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.sun.xml.xsom.XSAnnotation;
-import com.sun.xml.xsom.XSComplexType;
-import com.sun.xml.xsom.XSParticle;
+
+import static com.evolveum.midpoint.prism.SimpleTypeDefinition.DerivationMethod.EXTENSION;
+import static com.evolveum.midpoint.prism.SimpleTypeDefinition.DerivationMethod.RESTRICTION;
+import static com.evolveum.midpoint.prism.SimpleTypeDefinition.DerivationMethod.SUBSTITUTION;
 
 /**
  * @author semancik
@@ -46,7 +47,16 @@ public class SchemaDefinitionFactory {
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 
 		QName typeName = new QName(simpleType.getTargetNamespace(), simpleType.getName());
-		return new SimpleTypeDefinitionImpl(typeName, prismContext);
+		XSType baseType = simpleType.getBaseType();
+		QName baseTypeName = baseType != null ? new QName(baseType.getTargetNamespace(), baseType.getName()) : null;
+		SimpleTypeDefinition.DerivationMethod derivationMethod;
+		switch (simpleType.getDerivationMethod()) {
+			case XSSimpleType.EXTENSION: derivationMethod = EXTENSION; break;
+			case XSSimpleType.RESTRICTION: derivationMethod = RESTRICTION; break;
+			case XSSimpleType.SUBSTITUTION: derivationMethod = SUBSTITUTION; break;
+			default: derivationMethod = null;		// TODO are combinations allowed? e.g. EXTENSION+SUBSTITUTION?
+		}
+		return new SimpleTypeDefinitionImpl(typeName, baseTypeName, derivationMethod, prismContext);
 	}
 
 	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,

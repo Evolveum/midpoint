@@ -25,8 +25,14 @@ import javax.xml.namespace.QName;
  */
 public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements SimpleTypeDefinition {
 
-	public SimpleTypeDefinitionImpl(QName typeName, PrismContext prismContext) {
+	private QName baseTypeName;
+	private DerivationMethod derivationMethod;		// usually RESTRICTION
+
+	public SimpleTypeDefinitionImpl(QName typeName, QName baseTypeName, DerivationMethod derivationMethod,
+			PrismContext prismContext) {
 		super(typeName, prismContext);
+		this.baseTypeName = baseTypeName;
+		this.derivationMethod = derivationMethod;
 	}
 
 	@Override
@@ -43,10 +49,19 @@ public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements Simp
 		return "simple type";
 	}
 
+	public QName getBaseTypeName() {
+		return baseTypeName;
+	}
+
+	@Override
+	public DerivationMethod getDerivationMethod() {
+		return derivationMethod;
+	}
+
 	@NotNull
 	@Override
 	public SimpleTypeDefinitionImpl clone() {
-		SimpleTypeDefinitionImpl clone = new SimpleTypeDefinitionImpl(typeName, prismContext);
+		SimpleTypeDefinitionImpl clone = new SimpleTypeDefinitionImpl(typeName, baseTypeName, derivationMethod, prismContext);
 		super.copyDefinitionData(clone);
 		return clone;
 	}

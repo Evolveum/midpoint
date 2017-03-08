@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -45,7 +44,7 @@ import java.util.*;
  */
 public class RAnyConverter {
 
-    private static enum ValueType {
+    private enum ValueType {
         BOOLEAN, LONG, STRING, DATE, POLY_STRING;
     }
 
@@ -79,83 +78,66 @@ public class RAnyConverter {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
+		ItemDefinition definition = item.getDefinition();
         Set<RAnyValue> rValues = new HashSet<>();
-        try {
-            ItemDefinition definition = item.getDefinition();
+		if (!isIndexed(definition, prismContext)) {
+			return rValues;
+		}
 
-            RAnyValue rValue = null;
+        try {
+            RAnyValue rValue;
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
-                if (value instanceof PrismContainerValue) {
-                    continue;
-                } else if (value instanceof PrismPropertyValue) {
+                if (value instanceof PrismPropertyValue) {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
-                    Object realValue = propertyValue.getValue();
-                    if (realValue.getClass().isEnum()) {
-                        PrismBeanInspector inspector = new PrismBeanInspector(prismContext);
-                        String enumToString = inspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
-                        rValue = new ROExtString(enumToString);
-
-                    } else {
-                        //todo  omg, do something with this!!! [lazyman]
-                        switch (getValueType(definition.getTypeName())) {
-                            case BOOLEAN:
-                                if (assignment) {
-                                    RAExtBoolean booleanValue = new RAExtBoolean();
-                                    booleanValue.setValue(extractValue(propertyValue, Boolean.class));
-                                    rValue = booleanValue;
-                                } else {
-                                    ROExtBoolean booleanValue = new ROExtBoolean();
-                                    booleanValue.setValue(extractValue(propertyValue, Boolean.class));
-                                    rValue = booleanValue;
-                                }
-                                break;
-                            case LONG:
-                                if (assignment) {
-                                    RAExtLong longValue = new RAExtLong();
-                                    longValue.setValue(extractValue(propertyValue, Long.class));
-                                    rValue = longValue;
-                                } else {
-                                    ROExtLong longValue = new ROExtLong();
-                                    longValue.setValue(extractValue(propertyValue, Long.class));
-                                    rValue = longValue;
-                                }
-                                break;
-                            case DATE:
-                                if (assignment) {
-                                    RAExtDate dateValue = new RAExtDate();
-                                    dateValue.setValue(extractValue(propertyValue, Timestamp.class));
-                                    rValue = dateValue;
-                                } else {
-                                    ROExtDate dateValue = new ROExtDate();
-                                    dateValue.setValue(extractValue(propertyValue, Timestamp.class));
-                                    rValue = dateValue;
-                                }
-                                break;
-                            case POLY_STRING:
-                                if (assignment) {
-                                    rValue = new RAExtPolyString(extractValue(propertyValue, PolyString.class));
-                                } else {
-                                    rValue = new ROExtPolyString(extractValue(propertyValue, PolyString.class));
-                                }
-                                break;
-                            case STRING:
-                            default:
-                                if (isIndexable(definition)) {
-                                    if (assignment) {
-                                        RAExtString strValue = new RAExtString();
-                                        strValue.setValue(extractValue(propertyValue, String.class));
-                                        rValue = strValue;
-                                    } else {
-                                        ROExtString strValue = new ROExtString();
-                                        strValue.setValue(extractValue(propertyValue, String.class));
-                                        rValue = strValue;
-                                    }
-                                } else {
-                                    continue;
-                                }
-                        }
-                    }
+					//todo  omg, do something with this!!! [lazyman]
+					switch (getValueType(definition.getTypeName())) {
+						case BOOLEAN: {
+							Boolean repoValue = extractValue(propertyValue, Boolean.class);
+							if (assignment) {
+								rValue = new RAExtBoolean(repoValue);
+							} else {
+								rValue = new ROExtBoolean(repoValue);
+							}
+							break;
+						}
+						case LONG: {
+							Long repoValue = extractValue(propertyValue, Long.class);
+							if (assignment) {
+								rValue = new RAExtLong(repoValue);
+							} else {
+								rValue = new ROExtLong(repoValue);
+							}
+							break;
+						}
+						case DATE: {
+							Timestamp repoValue = extractValue(propertyValue, Timestamp.class);
+							if (assignment) {
+								rValue = new RAExtDate(repoValue);
+							} else {
+								rValue = new ROExtDate(repoValue);
+							}
+							break;
+						}
+						case POLY_STRING: {
+							PolyString repoValue = extractValue(propertyValue, PolyString.class);
+							if (assignment) {
+								rValue = new RAExtPolyString(repoValue);
+							} else {
+								rValue = new ROExtPolyString(repoValue);
+							}
+							break;
+						}
+						case STRING:
+						default: {
+							String repoValue = extractValue(propertyValue, String.class);
+							if (assignment) {
+								rValue = new RAExtString(repoValue);
+							} else {
+								rValue = new ROExtString(repoValue);
+							}
+						}
+					}
                 } else if (value instanceof PrismReferenceValue) {
                     if (assignment) {
                         PrismReferenceValue referenceValue = (PrismReferenceValue) value;
@@ -164,7 +146,12 @@ public class RAnyConverter {
                         PrismReferenceValue referenceValue = (PrismReferenceValue) value;
                         rValue = ROExtReference.createReference(referenceValue);
                     }
-                }
+                } else if (value == null) {
+                	continue;			// shouldn't occur anyway
+				} else {
+                	// shouldn't get here because if isIndexed test above
+					throw new AssertionError("Wrong value type: " + value);
+				}
 
                 rValue.setName(RUtil.qnameToString(definition.getName()));
                 rValue.setType(RUtil.qnameToString(definition.getTypeName()));
@@ -180,11 +167,18 @@ public class RAnyConverter {
         return rValues;
     }
 
-    private static boolean isIndexable(ItemDefinition definition) {
-        if (definition instanceof PrismContainerDefinition) {
-            return false;
-        }
-        if (!(definition instanceof PrismPropertyDefinition)) {
+	private static String getEnumStringValue(Enum<?> realValue) {
+		return PrismBeanInspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
+	}
+
+	private static boolean isIndexed(ItemDefinition definition, PrismContext prismContext) {
+		if (definition instanceof PrismContainerDefinition) {
+			return false;
+		}
+		if (definition instanceof PrismReferenceDefinition) {
+			return true;        // TODO make reference indexing configurable
+		}
+		if (!(definition instanceof PrismPropertyDefinition)) {
             throw new UnsupportedOperationException("Unknown definition type '"
                     + definition + "', can't say if it's indexed or not.");
         }
@@ -194,12 +188,12 @@ public class RAnyConverter {
             return pDefinition.isIndexed();
         }
 
-        QName type = definition.getTypeName();
-        return isIndexable(type);
+        return isIndexedByDefault(definition, prismContext);
     }
 
-    private static boolean isIndexable(QName type) {
-        return DOMUtil.XSD_DATETIME.equals(type)
+    private static boolean isIndexedByDefault(ItemDefinition definition, PrismContext prismContext) {
+		QName type = definition.getTypeName();
+		if (DOMUtil.XSD_DATETIME.equals(type)
                 || DOMUtil.XSD_INT.equals(type)
                 || DOMUtil.XSD_LONG.equals(type)
                 || DOMUtil.XSD_SHORT.equals(type)
@@ -208,8 +202,24 @@ public class RAnyConverter {
                 || DOMUtil.XSD_FLOAT.equals(type)
                 || DOMUtil.XSD_STRING.equals(type)
                 || DOMUtil.XSD_DECIMAL.equals(type)
-                || DOMUtil.XSD_BOOLEAN.equals(type);
-    }
+                || DOMUtil.XSD_BOOLEAN.equals(type)
+				|| PolyStringType.COMPLEX_TYPE.equals(type)) {
+			return true;
+		}
+		Collection<? extends TypeDefinition> typeDefinitions = prismContext.getSchemaRegistry()
+				.findTypeDefinitionsByType(definition.getTypeName());
+		if (typeDefinitions.isEmpty() || typeDefinitions.size() > 1) {
+			return false;		// shouldn't occur
+		}
+		TypeDefinition typeDef = typeDefinitions.iterator().next();
+		if (typeDef instanceof SimpleTypeDefinition) {
+			SimpleTypeDefinition simpleTypeDef = (SimpleTypeDefinition) typeDef;
+			return DOMUtil.XSD_STRING.equals(simpleTypeDef.getBaseTypeName())
+					&& simpleTypeDef.getDerivationMethod() == SimpleTypeDefinition.DerivationMethod.RESTRICTION;
+		} else {
+			return false;
+		}
+	}
 
     private RValueType getValueType(Itemable itemable) {
         Validate.notNull(itemable, "Value parent must not be null.");
@@ -354,11 +364,15 @@ public class RAnyConverter {
      * defined as parameters.
      *
      * @param definition
-     * @return One of "strings", "longs", "dates", "clobs"
+     * @param prismContext
+	 * @return One of "strings", "longs", "dates", "clobs"
      * @throws SchemaException
      */
-    public static <T extends ObjectType> String getAnySetType(ItemDefinition definition) throws
+    public static String getAnySetType(ItemDefinition definition, PrismContext prismContext) throws
             SchemaException, QueryException {
+		if (!isIndexed(definition, prismContext)) {
+			throw new QueryException("Can't query non-indexed value, definition " + definition);
+		}
         QName typeName = definition.getTypeName();
 
         ValueType valueType = getValueType(typeName);
@@ -371,11 +385,7 @@ public class RAnyConverter {
                 return "longs";
             case STRING:
             default:
-                if (isIndexable(definition)) {
-                    return "strings";
-                } else {
-                    throw new QueryException("Can't query CLOB (non indexed string) value, definition " + definition);
-                }
+				return "strings";
         }
     }
 
@@ -426,14 +436,13 @@ public class RAnyConverter {
     public static Object getAggregatedRepoObject(Object object) {
         //check float/double to string
         if (object instanceof Float) {
-            object = ((Float) object).toString();
+            object = object.toString();
         } else if (object instanceof Double) {
-            object = ((Double) object).toString();
+            object = object.toString();
         } else if (object instanceof BigInteger) {
-            object = ((BigInteger) object).toString();
-        } else if (object instanceof BigDecimal) {
-            object = ((BigDecimal) object).toString();
-        }
+            object = object.toString();
+        } else if (object instanceof BigDecimal)
+			object = object.toString();
 
         //check short/integer to long
         if (object instanceof Short) {
@@ -454,6 +463,10 @@ public class RAnyConverter {
         }
 
         //if object instance of boolean, nothing to do
+
+		if (object instanceof Enum<?>) {
+        	object = getEnumStringValue((Enum<?>) object);
+		}
 
         return object;
     }

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
@@ -86,44 +85,38 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
         // link parents (maybe not needed at all, we'll see) and referenced entity definitions
         // sort definitions
         for (final JpaEntityDefinition definition : map.values()) {
-            Visitor resolutionVisitor = new Visitor() {
-                @Override
-                public void visit(Visitable visitable) {
-                    if (visitable instanceof JpaEntityDefinition) {
-                        JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
-                        Class superclass = entityDef.getJpaClass().getSuperclass();
-                        if (superclass == null || !RObject.class.isAssignableFrom(superclass)) {
-                            return;
-                        }
-                        JpaEntityDefinition superclassDefinition = definitionsByClass.get(superclass);
-                        if (superclassDefinition == null) {
-                            throw new IllegalStateException("No definition for superclass " + superclass + " of " + entityDef);
-                        }
-                        entityDef.setSuperclassDefinition(superclassDefinition);
-                    } else if (visitable instanceof JpaEntityPointerDefinition) {
-                        JpaEntityPointerDefinition entPtrDef = ((JpaEntityPointerDefinition) visitable);
-                        if (!entPtrDef.isResolved()) {
-                            Class referencedEntityJpaClass = entPtrDef.getJpaClass();
-                            JpaEntityDefinition realEntDef = definitionsByClass.get(referencedEntityJpaClass);
-                            if (realEntDef == null) {
-                                throw new IllegalStateException("Couldn't find entity definition for " + referencedEntityJpaClass);
-                            }
-                            entPtrDef.setResolvedEntityDefinition(realEntDef);
-                        }
-                    }
-                }
-            };
+            Visitor resolutionVisitor = visitable -> {
+				if (visitable instanceof JpaEntityDefinition) {
+					JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
+					Class superclass = entityDef.getJpaClass().getSuperclass();
+					if (superclass == null || !RObject.class.isAssignableFrom(superclass)) {
+						return;
+					}
+					JpaEntityDefinition superclassDefinition = definitionsByClass.get(superclass);
+					if (superclassDefinition == null) {
+						throw new IllegalStateException("No definition for superclass " + superclass + " of " + entityDef);
+					}
+					entityDef.setSuperclassDefinition(superclassDefinition);
+				} else if (visitable instanceof JpaEntityPointerDefinition) {
+					JpaEntityPointerDefinition entPtrDef = ((JpaEntityPointerDefinition) visitable);
+					if (!entPtrDef.isResolved()) {
+						Class referencedEntityJpaClass = entPtrDef.getJpaClass();
+						JpaEntityDefinition realEntDef = definitionsByClass.get(referencedEntityJpaClass);
+						if (realEntDef == null) {
+							throw new IllegalStateException("Couldn't find entity definition for " + referencedEntityJpaClass);
+						}
+						entPtrDef.setResolvedEntityDefinition(realEntDef);
+					}
+				}
+			};
             definition.accept(resolutionVisitor);
 
-            Visitor sortingVisitor = new Visitor() {
-                @Override
-                public void visit(Visitable visitable) {
-                    if (visitable instanceof JpaEntityDefinition) {
-                        JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
-                        entityDef.sortDefinitions();
-                    }
-                }
-            };
+            Visitor sortingVisitor = visitable -> {
+				if (visitable instanceof JpaEntityDefinition) {
+					JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
+					entityDef.sortDefinitions();
+				}
+			};
             definition.accept(sortingVisitor);
         }
 

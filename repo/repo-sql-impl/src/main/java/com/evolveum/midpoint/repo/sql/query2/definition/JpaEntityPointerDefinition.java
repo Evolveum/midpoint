@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -53,8 +54,9 @@ public class JpaEntityPointerDefinition extends JpaDataNodeDefinition {
     }
 
     @Override
-    public DataSearchResult<JpaDataNodeDefinition> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) throws QueryException {
-        return resolvedEntityDefinition.nextLinkDefinition(path, itemDefinition);
+    public DataSearchResult<JpaDataNodeDefinition> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition,
+            PrismContext prismContext) throws QueryException {
+        return resolvedEntityDefinition.nextLinkDefinition(path, itemDefinition, prismContext);
     }
 
     @Override
