@@ -356,7 +356,7 @@ public class ObjectRetriever {
         return count;
     }
 
-
+	@NotNull
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
                                                                                         Collection<SelectorOptions<GetOperationOptions>> options,
                                                                                         OperationResult result) throws SchemaException {

@@ -205,10 +205,11 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 							.mappingEvaluator(mappingEvaluator)
 							.activationComputer(activationComputer)
 							.now(clock.currentTimeXMLGregorianCalendar())
-							// We do need only authorizations. Therefore we not need to evaluate constructions,
-							// so switching it off is faster. It also avoids nasty problems with resources being down,
+							// We do need only authorizations + gui config. Therefore we not need to evaluate
+							// constructions and the like, so switching it off makes the evaluation run faster.
+							// It also avoids nasty problems with resources being down,
 							// resource schema not available, etc.
-							.evaluateConstructions(false)
+							.loginMode(true)
 							// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
 							// will need something to push on the stack. So give them context placeholder.
 							.lensContext(lensContext);
