@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,9 @@ public class InboundProcessor {
     
     @Autowired
     private ContextLoader contextLoader;
+    
+    @Autowired
+    private PasswordPolicyProcessor passwordPolicyProcessor;
     
     @Autowired
     private MappingEvaluator mappingEvaluator;
@@ -423,7 +426,7 @@ public class InboundProcessor {
     			.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account)
 				.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account)
 				.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource)
-				.stringPolicyResolver(createStringPolicyResolver(context))
+				.stringPolicyResolver(createStringPolicyResolver(context, task, result))
 				.originType(OriginType.INBOUND)
 				.originObject(resource)
 				.build();
@@ -563,7 +566,7 @@ public class InboundProcessor {
         return outputFocusItemDelta.isEmpty() ? null : outputFocusItemDelta;
     }
 
-	private <F extends ObjectType> StringPolicyResolver createStringPolicyResolver(final LensContext<F> context) {
+	private <F extends ObjectType> StringPolicyResolver createStringPolicyResolver(final LensContext<F> context, final Task task, final OperationResult result) {
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
@@ -582,7 +585,7 @@ public class InboundProcessor {
 				if (!outputDefinition.getName().equals(PasswordType.F_VALUE)) {
 					return null;
 				}
-				ValuePolicyType passwordPolicy = context.getEffectivePasswordPolicy();
+				ValuePolicyType passwordPolicy = passwordPolicyProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
 				if (passwordPolicy == null) {
 					return null;
 				}
@@ -704,7 +707,7 @@ public class InboundProcessor {
 				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew)
 						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew)
 						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accContext.getResource())
-						.stringPolicyResolver(createStringPolicyResolver(context))
+						.stringPolicyResolver(createStringPolicyResolver(context, task, opResult))
 						.originType(OriginType.INBOUND)
 						.originObject(accContext.getResource());
 				return builder;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,12 @@ import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.lens.projector.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -135,6 +137,9 @@ public class ChangeExecutor {
 
 	@Autowired
 	private PolicyRuleProcessor policyRuleProcessor;
+	
+	@Autowired
+	private CredentialsProcessor credentialsProcessor;
 
 	private PrismObjectDefinition<UserType> userDefinition = null;
 	private PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -149,7 +154,7 @@ public class ChangeExecutor {
 
 	// returns true if current operation has to be restarted, see
 	// ObjectAlreadyExistsException handling (TODO specify more exactly)
-	public <O extends ObjectType> boolean executeChanges(LensContext<O> syncContext, Task task,
+	public <O extends ObjectType> boolean executeChanges(LensContext<O> context, Task task,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 					SchemaException, CommunicationException, ConfigurationException,
 					SecurityViolationException, ExpressionEvaluationException {
@@ -158,13 +163,13 @@ public class ChangeExecutor {
 
 		// FOCUS
 
-		syncContext.checkAbortRequested();
+		context.checkAbortRequested();
 
-		LensFocusContext<O> focusContext = syncContext.getFocusContext();
+		LensFocusContext<O> focusContext = context.getFocusContext();
 		if (focusContext != null) {
-			ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(syncContext.getExecutionWave());
+			ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(context.getExecutionWave());
 
-			focusDelta = policyRuleProcessor.applyAssignmentSituation(syncContext, focusDelta);
+			focusDelta = policyRuleProcessor.applyAssignmentSituation(context, focusDelta);
 
 			if (focusDelta != null) {
 
@@ -174,15 +179,21 @@ public class ChangeExecutor {
 
 				OperationResult subResult = result.createSubresult(
 						OPERATION_EXECUTE_FOCUS + "." + focusContext.getObjectTypeClass().getSimpleName());
+				
 				try {
-					syncContext.reportProgress(new ProgressInformation(FOCUS_OPERATION, ENTERING));
-					executeDelta(focusDelta, focusContext, syncContext, null, null, task, subResult);
+					// Will remove credential deltas or hash them
+					focusDelta = credentialsProcessor.transformFocusExectionDelta(context, focusDelta);
+				} catch (EncryptionException e) {
+					recordFatalError(subResult, result, null, e);
+					throw new SystemException(e.getMessage(), e);
+				}
+				try {
+					context.reportProgress(new ProgressInformation(FOCUS_OPERATION, ENTERING));
+					executeDelta(focusDelta, focusContext, context, null, null, task, subResult);
 					subResult.computeStatus();
 
-				} catch (SchemaException e) {
-					recordFatalError(subResult, result, null, e);
-					throw e;
-				} catch (ObjectNotFoundException e) {
+				} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException 
+						| SecurityViolationException | ExpressionEvaluationException e) {
 					recordFatalError(subResult, result, null, e);
 					throw e;
 				} catch (ObjectAlreadyExistsException e) {
@@ -192,23 +203,11 @@ public class ChangeExecutor {
 					}
 					result.computeStatusComposite();
 					throw e;
-				} catch (CommunicationException e) {
-					recordFatalError(subResult, result, null, e);
-					throw e;
-				} catch (ConfigurationException e) {
-					recordFatalError(subResult, result, null, e);
-					throw e;
-				} catch (SecurityViolationException e) {
-					recordFatalError(subResult, result, null, e);
-					throw e;
-				} catch (ExpressionEvaluationException e) {
-					recordFatalError(subResult, result, null, e);
-					throw e;
 				} catch (RuntimeException e) {
 					recordFatalError(subResult, result, null, e);
 					throw e;
 				} finally {
-					syncContext.reportProgress(new ProgressInformation(FOCUS_OPERATION, subResult));
+					context.reportProgress(new ProgressInformation(FOCUS_OPERATION, subResult));
 				}
 			} else {
 				LOGGER.trace("Skipping focus change execute, because user delta is null");
@@ -217,89 +216,89 @@ public class ChangeExecutor {
 
 		// PROJECTIONS
 
-		syncContext.checkAbortRequested();
+		context.checkAbortRequested();
 
 		boolean restartRequested = false;
 
-		for (LensProjectionContext accCtx : syncContext.getProjectionContexts()) {
-			if (accCtx.getWave() != syncContext.getExecutionWave()) {
+		for (LensProjectionContext projCtx : context.getProjectionContexts()) {
+			if (projCtx.getWave() != context.getExecutionWave()) {
 				continue;
 			}
 
-			if (!accCtx.isCanProject()) {
+			if (!projCtx.isCanProject()) {
 				continue;
 			}
 
 			// we should not get here, but just to be sure
-			if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
-				LOGGER.trace("Skipping ignored projection context {}", accCtx.toHumanReadableString());
+			if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+				LOGGER.trace("Skipping ignored projection context {}", projCtx.toHumanReadableString());
 				continue;
 			}
 
 			OperationResult subResult = result.createSubresult(
-					OPERATION_EXECUTE_PROJECTION + "." + accCtx.getObjectTypeClass().getSimpleName());
-			subResult.addContext("discriminator", accCtx.getResourceShadowDiscriminator());
-			if (accCtx.getResource() != null) {
-				subResult.addParam("resource", accCtx.getResource().getName());
+					OPERATION_EXECUTE_PROJECTION + "." + projCtx.getObjectTypeClass().getSimpleName());
+			subResult.addContext("discriminator", projCtx.getResourceShadowDiscriminator());
+			if (projCtx.getResource() != null) {
+				subResult.addParam("resource", projCtx.getResource().getName());
 			}
 			try {
 
-				syncContext.checkAbortRequested();
+				context.checkAbortRequested();
 
-				syncContext.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-						accCtx.getResourceShadowDiscriminator(), ENTERING));
+				context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
+						projCtx.getResourceShadowDiscriminator(), ENTERING));
 
-				executeReconciliationScript(accCtx, syncContext, BeforeAfterType.BEFORE, task, subResult);
+				executeReconciliationScript(projCtx, context, BeforeAfterType.BEFORE, task, subResult);
 
-				ObjectDelta<ShadowType> accDelta = accCtx.getExecutableDelta();
+				ObjectDelta<ShadowType> projDelta = projCtx.getExecutableDelta();
 
-				if (shouldBeDeleted(accDelta, accCtx)) {
-					accDelta = ObjectDelta.createDeleteDelta(accCtx.getObjectTypeClass(), accCtx.getOid(),
+				if (shouldBeDeleted(projDelta, projCtx)) {
+					projDelta = ObjectDelta.createDeleteDelta(projCtx.getObjectTypeClass(), projCtx.getOid(),
 							prismContext);
 				}
 
-				if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-					if (syncContext.getFocusContext() != null
-							&& syncContext.getFocusContext().getDelta() != null
-							&& syncContext.getFocusContext().getDelta().isDelete()
-							&& syncContext.getOptions() != null
-							&& ModelExecuteOptions.isForce(syncContext.getOptions())) {
-						if (accDelta == null) {
-							accDelta = ObjectDelta.createDeleteDelta(accCtx.getObjectTypeClass(),
-									accCtx.getOid(), prismContext);
+				if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+					if (context.getFocusContext() != null
+							&& context.getFocusContext().getDelta() != null
+							&& context.getFocusContext().getDelta().isDelete()
+							&& context.getOptions() != null
+							&& ModelExecuteOptions.isForce(context.getOptions())) {
+						if (projDelta == null) {
+							projDelta = ObjectDelta.createDeleteDelta(projCtx.getObjectTypeClass(),
+									projCtx.getOid(), prismContext);
 						}
 					}
-					if (accDelta != null && accDelta.isDelete()) {
+					if (projDelta != null && projDelta.isDelete()) {
 
-						executeDelta(accDelta, accCtx, syncContext, null, accCtx.getResource(), task,
+						executeDelta(projDelta, projCtx, context, null, projCtx.getResource(), task,
 								subResult);
 
 					}
 				} else {
 
-					if (accDelta == null || accDelta.isEmpty()) {
+					if (projDelta == null || projDelta.isEmpty()) {
 						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("No change for " + accCtx.getResourceShadowDiscriminator());
+							LOGGER.trace("No change for " + projCtx.getResourceShadowDiscriminator());
 						}
 						if (focusContext != null) {
-							updateLinks(focusContext, accCtx, task, subResult);
+							updateLinks(focusContext, projCtx, task, subResult);
 						}
 
 						// Make sure post-reconcile delta is always executed,
 						// even if there is no change
-						executeReconciliationScript(accCtx, syncContext, BeforeAfterType.AFTER, task,
+						executeReconciliationScript(projCtx, context, BeforeAfterType.AFTER, task,
 								subResult);
 
 						subResult.computeStatus();
 						subResult.recordNotApplicableIfUnknown();
 						continue;
 
-					} else if (accDelta.isDelete() && accCtx.getResourceShadowDiscriminator() != null
-							&& accCtx.getResourceShadowDiscriminator().getOrder() > 0) {
+					} else if (projDelta.isDelete() && projCtx.getResourceShadowDiscriminator() != null
+							&& projCtx.getResourceShadowDiscriminator().getOrder() > 0) {
 						// HACK ... for higher-order context check if this was
 						// already deleted
-						LensProjectionContext lowerOrderContext = LensUtil.findLowerOrderContext(syncContext,
-								accCtx);
+						LensProjectionContext lowerOrderContext = LensUtil.findLowerOrderContext(context,
+								projCtx);
 						if (lowerOrderContext != null && lowerOrderContext.isDelete()) {
 							// We assume that this was already executed
 							subResult.setStatus(OperationResultStatus.NOT_APPLICABLE);
@@ -307,25 +306,25 @@ public class ChangeExecutor {
 						}
 					}
 
-					executeDelta(accDelta, accCtx, syncContext, null, accCtx.getResource(), task, subResult);
+					executeDelta(projDelta, projCtx, context, null, projCtx.getResource(), task, subResult);
 
 				}
 
 				if (focusContext != null) {
-					updateLinks(focusContext, accCtx, task, subResult);
+					updateLinks(focusContext, projCtx, task, subResult);
 				}
 
-				executeReconciliationScript(accCtx, syncContext, BeforeAfterType.AFTER, task, subResult);
+				executeReconciliationScript(projCtx, context, BeforeAfterType.AFTER, task, subResult);
 
 				subResult.computeStatus();
 				subResult.recordNotApplicableIfUnknown();
 
 			} catch (SchemaException e) {
-				recordProjectionExecutionException(e, accCtx, subResult,
+				recordProjectionExecutionException(e, projCtx, subResult,
 						SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ObjectNotFoundException e) {
-				recordProjectionExecutionException(e, accCtx, subResult,
+				recordProjectionExecutionException(e, projCtx, subResult,
 						SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ObjectAlreadyExistsException e) {
@@ -335,8 +334,8 @@ public class ChangeExecutor {
 				// "Users" is SAM Account Name which is used by a built-in group
 				// - in such case, mark the context as broken
 
-				if (isRepeatedAlreadyExistsException(accCtx)) {
-					recordProjectionExecutionException(e, accCtx, subResult,
+				if (isRepeatedAlreadyExistsException(projCtx)) {
+					recordProjectionExecutionException(e, projCtx, subResult,
 							SynchronizationPolicyDecision.BROKEN);
 					continue;
 				}
@@ -355,28 +354,28 @@ public class ChangeExecutor {
 				break; // we will process remaining projections when retrying
 						// the wave
 			} catch (CommunicationException e) {
-				recordProjectionExecutionException(e, accCtx, subResult,
+				recordProjectionExecutionException(e, projCtx, subResult,
 						SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ConfigurationException e) {
-				recordProjectionExecutionException(e, accCtx, subResult,
+				recordProjectionExecutionException(e, projCtx, subResult,
 						SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (SecurityViolationException e) {
-				recordProjectionExecutionException(e, accCtx, subResult,
+				recordProjectionExecutionException(e, projCtx, subResult,
 						SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (ExpressionEvaluationException e) {
-				recordProjectionExecutionException(e, accCtx, subResult,
+				recordProjectionExecutionException(e, projCtx, subResult,
 						SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} catch (RuntimeException e) {
-				recordProjectionExecutionException(e, accCtx, subResult,
+				recordProjectionExecutionException(e, projCtx, subResult,
 						SynchronizationPolicyDecision.BROKEN);
 				continue;
 			} finally {
-				syncContext.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-						accCtx.getResourceShadowDiscriminator(), subResult));
+				context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
+						projCtx.getResourceShadowDiscriminator(), subResult));
 			}
 		}
 
@@ -1372,7 +1371,6 @@ public class ChangeExecutor {
 					ProvisioningOperationTypeType.MODIFY, resource, task, result);
 		}
 		Utils.setRequestee(task, context);
-		LOGGER.info("MOD options {}", options);
 		String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options,
 				task, result);
 		Utils.clearRequestee(task);

@@ -677,19 +677,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public void setAccountPasswordPolicy(ValuePolicyType accountPasswordPolicy) {
 		this.accountPasswordPolicy = accountPasswordPolicy;
 	}
-	
-	public ValuePolicyType getEffectivePasswordPolicy() {
-		if (accountPasswordPolicy != null) {
-			return accountPasswordPolicy;
-		}
 		
-		if (getLensContext().getFocusContext().getOrgPasswordPolicy() != null){
-			return getLensContext().getFocusContext().getOrgPasswordPolicy();
-		}
-		
-		return getLensContext().getGlobalPasswordPolicy();
-	}
-	
 	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
 		// TODO: per-resource assignment enforcement
 		ResourceType resource = getResource();

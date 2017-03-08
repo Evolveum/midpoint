@@ -96,7 +96,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	transient private ObjectTemplateType focusTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
-	transient private ValuePolicyType globalPasswordPolicy;
 
 	transient private DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple;
 
@@ -317,14 +316,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public void setAccountSynchronizationSettings(ProjectionPolicyType accountSynchronizationSettings) {
 		this.accountSynchronizationSettings = accountSynchronizationSettings;
-	}
-
-	public ValuePolicyType getGlobalPasswordPolicy() {
-		return globalPasswordPolicy;
-	}
-
-	public void setGlobalPasswordPolicy(ValuePolicyType globalPasswordPolicy) {
-		this.globalPasswordPolicy = globalPasswordPolicy;
 	}
 
 	public int getProjectionWave() {
@@ -1139,13 +1130,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public String toString() {
 		return "LensContext(s=" + state + ", W(e=" + executionWave + ",p=" + projectionWave + "): "
 				+ focusContext + ", " + projectionContexts + ")";
-	}
-
-	public ValuePolicyType getEffectivePasswordPolicy() {
-		if (getFocusContext().getOrgPasswordPolicy() != null) {
-			return getFocusContext().getOrgPasswordPolicy();
-		}
-		return globalPasswordPolicy;
 	}
 
 	public void setProgressListeners(Collection<ProgressListener> progressListeners) {

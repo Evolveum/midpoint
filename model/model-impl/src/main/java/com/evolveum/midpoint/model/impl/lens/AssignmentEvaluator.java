@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -451,7 +451,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
-			Mapping mapping = LensUtil.createFocusMapping(mappingFactory, lensContext, mappingType, source, focusOdo, 
+			Mapping mapping = mappingEvaluator.createFocusMapping(mappingFactory, lensContext, mappingType, source, focusOdo, 
 					assignmentPathVariables, systemConfiguration, now, sourceDescription, task, result);
 			if (mapping == null) {
 				continue;

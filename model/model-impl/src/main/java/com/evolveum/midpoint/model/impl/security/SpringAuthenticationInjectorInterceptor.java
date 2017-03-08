@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,16 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
             
-        	MidPointPrincipal principal = userDetailsService.getPrincipal(username);
+            MidPointPrincipal principal;
+            try {
+            	principal = userDetailsService.getPrincipal(username);
+            } catch (SchemaException e) {
+				LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
+						username, e.getMessage(), e);
+				message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+				securityHelper.auditLoginFailure(username, null, connEnv, "Schema error: "+e.getMessage());
+				throw new Fault(e);
+			}
         	LOGGER.trace("Principal: {}", principal);
         	if (principal == null) {
         		message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);

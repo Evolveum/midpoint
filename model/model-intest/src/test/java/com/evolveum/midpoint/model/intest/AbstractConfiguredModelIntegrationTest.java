@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -467,6 +468,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	@Override
 	public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
+		// We want logging config from logback-test.xml and not from system config object
+		InternalsConfig.avoidLoggingChange = true;
 		super.initSystem(initTask, initResult);
 			
 		modelService.postInit(initResult);

@@ -2095,6 +2095,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		
 	}
 	
+	protected void setGlobalSecurityPolicy(String securityPolicyOid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+		Collection modifications = new ArrayList<>();
+		
+		ReferenceDelta refDelta = ReferenceDelta.createModificationReplace(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF, 
+				SystemConfigurationType.class, prismContext, securityPolicyOid);
+		modifications.add(refDelta);
+		
+		modifySystemObjectInRepo(SystemConfigurationType.class,
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
+		
+	}
+	
 	protected <O extends ObjectType> void modifySystemObjectInRepo(Class<O> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		repositoryService.modifyObject(type, oid, modifications, parentResult);
@@ -3202,12 +3216,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.assertNoGroupMembers(group);
 	}
 	
-	protected void login(String principalName) throws ObjectNotFoundException {
+	protected void login(String principalName) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
 		login(principal);
 	}
 	
-	protected void login(PrismObject<UserType> user) {
+	protected void login(PrismObject<UserType> user) throws SchemaException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		login(principal);
 	}
@@ -3521,7 +3535,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
 	}
 	
-	protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException {
+	protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		assertNotNull("No principal for "+user, principal);
 		assertAuthorizations(principal, expectedAuthorizations);
@@ -3536,7 +3550,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	
-	protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException {
+	protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		assertNotNull("No principal for "+user, principal);
 		assertNoAuthorizations(principal);

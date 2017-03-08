@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,11 +38,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -269,8 +270,8 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	}
 
 	@Test
-	public void test203modifyUserJackPasswordNoPasswordHisotry() throws Exception {
-		final String TEST_NAME = "test202modifyUserJackPasswordNoPasswordHisotry";
+	public void test203modifyUserJackPasswordNoPasswordHistory() throws Exception {
+		final String TEST_NAME = "test203modifyUserJackPasswordNoPasswordHistory";
 		TestUtil.displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -306,20 +307,10 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		ObjectReferenceType passwordPolicyRef = ObjectTypeUtil.createObjectRef(passwordPolicyOid,
-				ObjectTypes.PASSWORD_POLICY);
-		modifyObjectReplaceReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID,
-				SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, task, result,
-				passwordPolicyRef.asReferenceValue());
-
-		PrismObject<SystemConfigurationType> systemConfiguration = getObject(SystemConfigurationType.class,
-				SYSTEM_CONFIGURATION_OID);
-		assertNotNull("System configuration cannot be null", systemConfiguration);
-
-		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
-		ObjectReferenceType globalPasswordPolicy = systemConfigurationType.getGlobalPasswordPolicyRef();
-		assertNotNull("Expected that global password policy is configured", globalPasswordPolicy);
-		assertEquals("Password policies don't match", passwordPolicyOid, globalPasswordPolicy.getOid());
-
+				ObjectTypes.PASSWORD_POLICY);		
+		modifyObjectReplaceReference(SecurityPolicyType.class, SECURITY_POLICY_OID,
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF),
+        		task, result, passwordPolicyRef.asReferenceValue());
 	}
 
 }

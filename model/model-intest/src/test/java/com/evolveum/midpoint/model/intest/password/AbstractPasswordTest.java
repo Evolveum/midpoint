@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.password;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
@@ -38,11 +38,13 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,22 +57,22 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPassword extends AbstractInitializedModelIntegrationTest {
+public abstract class AbstractPasswordTest extends AbstractInitializedModelIntegrationTest {
 		
-	private static final String USER_PASSWORD_1_CLEAR = "d3adM3nT3llN0Tal3s";
-	private static final String USER_PASSWORD_2_CLEAR = "bl4ckP3arl";
-	private static final String USER_PASSWORD_3_CLEAR = "wh3r3sTheRum?";
-	private static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
-	private static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
-	private static final String USER_PASSWORD_A_CLEAR = "A"; // too short
-	private static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
-	private static final String USER_PASSWORD_SPARROW_CLEAR = "saRRow123"; // contains familyName
-	private static final String USER_PASSWORD_VALID_1 = "abcd123";
-	private static final String USER_PASSWORD_VALID_2 = "abcd223";
-	private static final String USER_PASSWORD_VALID_3 = "abcd323";
-	private static final String USER_PASSWORD_VALID_4 = "abcd423";
+	protected static final String USER_PASSWORD_1_CLEAR = "d3adM3nT3llN0Tal3s";
+	protected static final String USER_PASSWORD_2_CLEAR = "bl4ckP3arl";
+	protected static final String USER_PASSWORD_3_CLEAR = "wh3r3sTheRum?";
+	protected static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
+	protected static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
+	protected static final String USER_PASSWORD_A_CLEAR = "A"; // too short
+	protected static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
+	protected static final String USER_PASSWORD_SPARROW_CLEAR = "saRRow123"; // contains familyName
+	protected static final String USER_PASSWORD_VALID_1 = "abcd123";
+	protected static final String USER_PASSWORD_VALID_2 = "abcd223";
+	protected static final String USER_PASSWORD_VALID_3 = "abcd323";
+	protected static final String USER_PASSWORD_VALID_4 = "abcd423";
 
-	private static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
+	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
 
 	protected static final File RESOURCE_DUMMY_UGLY_FILE = new File(TEST_DIR, "resource-dummy-ugly.xml");
 	protected static final String RESOURCE_DUMMY_UGLY_OID = "10000000-0000-0000-0000-000000344104";
@@ -79,26 +81,36 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	protected static final File PASSWORD_POLICY_UGLY_FILE = new File(TEST_DIR, "password-policy-ugly.xml");
 	protected static final String PASSWORD_POLICY_UGLY_OID = "cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee";
 	
-	private static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
-	private static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
+	protected static final File SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE = new File(TEST_DIR, "security-policy-default-storage-hashing.xml");
+	protected static final String SECURITY_POLICY_DEFAULT_STORAGE_HASHING_OID = "0ea3b93c-0425-11e7-bbc1-73566dc53d59";
+	
+	protected static final File SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE = new File(TEST_DIR, "security-policy-password-storage-none.xml");
+	protected static final String SECURITY_POLICY_PASSWORD_STORAGE_NONE_OID = "2997a20a-0423-11e7-af65-a7ab7d19442c";
+	
+	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
+	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
 	
 	protected DummyResource dummyResourceUgly;
 	protected DummyResourceContoller dummyResourceCtlUgly;
 	protected ResourceType resourceDummyUglyType;
 	protected PrismObject<ResourceType> resourceDummyUgly;
 
-	private String accountOid;
-	private String accountRedOid;
-	private String accountUglyOid;
-	private String accountYellowOid;
-	private XMLGregorianCalendar lastPasswordChangeStart;
-	private XMLGregorianCalendar lastPasswordChangeEnd;
+	protected String accountOid;
+	protected String accountRedOid;
+	protected String accountUglyOid;
+	protected String accountYellowOid;
+	protected XMLGregorianCalendar lastPasswordChangeStart;
+	protected XMLGregorianCalendar lastPasswordChangeEnd;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
 		importObjectFromFile(PASSWORD_POLICY_UGLY_FILE);
+		importObjectFromFile(SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE);
+		importObjectFromFile(SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE);
+		
+		setGlobalSecurityPolicy(getSecurityPolicyOid(), initResult);
 
 		dummyResourceCtlUgly = DummyResourceContoller.create(RESOURCE_DUMMY_UGLY_NAME, resourceDummyUgly);
 		dummyResourceCtlUgly.extendSchemaPirate();
@@ -109,6 +121,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 
 		login(USER_ADMINISTRATOR_USERNAME);
 	}
+	
+	protected abstract String getSecurityPolicyOid();
 
 	@Test
     public void test010AddPasswordPolicy() throws Exception {
@@ -116,7 +130,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
@@ -144,7 +158,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         // this happens during test initialization when user-jack.xml is added
         
         // THEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -161,7 +175,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -194,7 +208,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -226,7 +240,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -265,7 +279,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -298,7 +312,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -331,7 +345,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -378,7 +392,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -421,7 +435,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -553,7 +567,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -599,7 +613,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -649,8 +663,9 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
 		PrismReferenceValue passPolicyRef = new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE);
 		// WHEN
-        modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-        		SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, task, result, passPolicyRef);
+		modifyObjectReplaceReference(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF),
+        		task, result, passPolicyRef);
 		
 		// THEN
 		result.computeStatus();
@@ -668,7 +683,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -777,7 +792,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -983,7 +998,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1048,7 +1063,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1086,7 +1101,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1115,7 +1130,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -410,21 +410,6 @@ public class ContextLoader {
 		    context.setAccountSynchronizationSettings(globalAccountSynchronizationSettings);
 		}
 		
-		if (context.getGlobalPasswordPolicy() == null){
-			
-			ValuePolicyType globalPasswordPolicy = systemConfigurationType.getGlobalPasswordPolicy();
-			
-			if (globalPasswordPolicy == null){
-				if (systemConfigurationType.getGlobalPasswordPolicyRef() != null){
-					PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(ValuePolicyType.class, systemConfigurationType.getGlobalPasswordPolicyRef().getOid(), null, result);
-					if (passwordPolicy != null){
-						globalPasswordPolicy = passwordPolicy.asObjectable();
-					}
-				}
-			}
-			
-			context.setGlobalPasswordPolicy(globalPasswordPolicy);
-		}
 	}
 
     // expects that object policy configuration is already set in focusContext

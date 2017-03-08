@@ -402,12 +402,12 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
     }
 
     // don't forget to apply provisioning definitions to resulting deltas (it's the client responsibility)
-    public static ObjectDeltaWaves fromObjectDeltaWavesType(ObjectDeltaWavesType secondaryDeltas, PrismContext prismContext) throws SchemaException {
+    public static <O extends ObjectType> ObjectDeltaWaves<O> fromObjectDeltaWavesType(ObjectDeltaWavesType secondaryDeltas, PrismContext prismContext) throws SchemaException {
         if (secondaryDeltas == null) {
             return null;
         }
 
-        ObjectDeltaWaves retval = new ObjectDeltaWaves();
+        ObjectDeltaWaves<O> retval = new ObjectDeltaWaves<>();
 
         int max = 0;
         for (ObjectDeltaWaveType odwt : secondaryDeltas.getWave()) {
@@ -416,7 +416,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
             }
         }
 
-        ObjectDelta[] wavesAsArray = new ObjectDelta[max+1];
+        ObjectDelta<O>[] wavesAsArray = new ObjectDelta[max+1];
         for (ObjectDeltaWaveType odwt : secondaryDeltas.getWave()) {
             wavesAsArray[odwt.getNumber()] = DeltaConvertor.createObjectDelta(odwt.getDelta(), prismContext);
         }

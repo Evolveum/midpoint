@@ -44,7 +44,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<O>();
 	
-	transient private ValuePolicyType orgPasswordPolicy;
+	transient private SecurityPolicyType securityPolicy;
 	transient private ObjectPolicyConfigurationType objectPolicyConfigurationType;
 	
 	private int getProjectionWave() {
@@ -55,12 +55,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return getLensContext().getProjectionWave();
 	}
 	
-	public void setOrgPasswordPolicy(ValuePolicyType orgPasswordPolicy) {
-		this.orgPasswordPolicy = orgPasswordPolicy;
+	public SecurityPolicyType getSecurityPolicy() {
+		return securityPolicy;
 	}
-	
-	public ValuePolicyType getOrgPasswordPolicy() {
-		return orgPasswordPolicy;
+
+	public void setSecurityPolicy(SecurityPolicyType securityPolicy) {
+		this.securityPolicy = securityPolicy;
 	}
 
 	public ObjectPolicyConfigurationType getObjectPolicyConfigurationType() {
