@@ -721,7 +721,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		assertLinks(userBefore, 4);
         
 		// WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -730,27 +733,27 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
         
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertLinks(userJack, 4);
-        accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertLinks(userAfter, 4);
+        accountYellowOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_YELLOW_OID);
 
         // Check account in dummy resource (yellow): password is too short for this, original password should remain there
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
+        assertDummyPasswordConditional(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
         
         // Check account in dummy resource (red)
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
         
         // User and default dummy account should have unchanged passwords
-        assertUserPassword(userJack, USER_PASSWORD_A_CLEAR);
+        assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 		
-		assertPasswordHistoryEntries(userJack);
+		assertPasswordHistoryEntries(userAfter);
 	}
 	
 	/**

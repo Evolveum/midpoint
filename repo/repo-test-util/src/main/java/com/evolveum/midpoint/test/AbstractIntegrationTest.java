@@ -1266,12 +1266,104 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		AssertJUnit.fail("Unexpected success");
 	}
 	
+	protected CredentialsStorageTypeType getPasswordStorageType() {
+		return CredentialsStorageTypeType.ENCRYPTION;
+	}
+	
+	protected CredentialsStorageTypeType getPasswordHistoryStorageType() {
+		return CredentialsStorageTypeType.HASHING;
+	}
+	
+	protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertEncryptedUserPassword");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		assertEncryptedUserPassword(user, expectedClearPassword);
+	}
+	
+	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+		assertUserPassword(user, expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
+	}
+	
+	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+		assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
+	}
+
+	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
+		UserType userType = user.asObjectable();
+		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
+		assertProtectedString("Password for "+user, expectedClearPassword, protectedActualPassword, storageType);
+	}
+	
+	protected void assertProtectedString(String message, String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
+		switch (storageType) {
+			
+			case NONE:
+				assertNull(message+": unexpected value: "+actualValue, actualValue);
+				break;
+
+			case ENCRYPTION:
+				assertNotNull(message+": no value", actualValue);
+				assertTrue(message+": unenctypted value: "+actualValue, actualValue.isEncrypted());
+				String actualClearPassword = protector.decryptString(actualValue);
+				assertEquals(message+": wrong value", expectedClearValue, actualClearPassword);
+				break;
+				
+			case HASHING:
+				assertNotNull(message+": no value", actualValue);
+				assertTrue(message+": value not hashed: "+actualValue, actualValue.isHashed());
+				ProtectedStringType expectedPs = new ProtectedStringType();
+				expectedPs.setClearValue(expectedClearValue);
+				assertTrue(message+": hash does not match, expected "+expectedClearValue+", but was "+actualValue, 
+						protector.compare(actualValue, expectedPs));
+				break;
+				
+			default:
+				throw new IllegalArgumentException("Unknown storage "+storageType);
+		}
+		
+	}
+	
+	protected boolean compareProtectedString(String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
+		switch (storageType) {
+			
+			case NONE:
+				return actualValue == null;
+
+			case ENCRYPTION:
+				if (actualValue == null) {
+					return false;
+				}
+				if (!actualValue.isEncrypted()) {
+					return false;
+				}
+				String actualClearPassword = protector.decryptString(actualValue);
+				return expectedClearValue.equals(actualClearPassword);
+				
+			case HASHING:
+				if (actualValue == null) {
+					return false;
+				}
+				if (!actualValue.isHashed()) {
+					return false;
+				}
+				ProtectedStringType expectedPs = new ProtectedStringType();
+				expectedPs.setClearValue(expectedClearValue);
+				return protector.compare(actualValue, expectedPs);
+				
+			default:
+				throw new IllegalArgumentException("Unknown storage "+storageType);
+		}
+		
+	}
+	
 	protected void assertPasswordHistoryEntries(PrismObject<UserType> user, String... changedPasswords) {
 		CredentialsType credentials = user.asObjectable().getCredentials();
 		assertNotNull("Null credentials in "+user, credentials);
 		PasswordType passwordType = credentials.getPassword();
 		assertNotNull("Null passwordType in "+user, passwordType);
-		assertPasswordHistoryEntries(user.toString(), passwordType.getHistoryEntry(), changedPasswords);
+		assertPasswordHistoryEntries(user.toString(), passwordType.getHistoryEntry(), getPasswordHistoryStorageType(), changedPasswords);
 	}
 	
 	protected void assertPasswordHistoryEntries(PasswordType passwordType, String... changedPasswords) {
@@ -1280,11 +1372,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected void assertPasswordHistoryEntries(List<PasswordHistoryEntryType> historyEntriesType,
 			String... changedPasswords) {
-		assertPasswordHistoryEntries(null, historyEntriesType, changedPasswords);
+		assertPasswordHistoryEntries(null, historyEntriesType, getPasswordHistoryStorageType(), changedPasswords);
 	}
 	
 	protected void assertPasswordHistoryEntries(String message, List<PasswordHistoryEntryType> historyEntriesType,
-			String... changedPasswords) {
+			CredentialsStorageTypeType storageType, String... changedPasswords) {
 		if (message == null) {
 			message = "";
 		} else {
@@ -1298,21 +1390,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals(message + "Unexpected number of history entries", changedPasswords.length, historyEntriesType.size());
 		for (PasswordHistoryEntryType historyEntry : historyEntriesType) {
 			boolean found = false;
-			try {
-				String clearValue = protector.decryptString(historyEntry.getValue());
+			try {				
 				for (String changedPassword : changedPasswords) {
-					if (changedPassword.equals(clearValue)) {
+					if (compareProtectedString(changedPassword, historyEntry.getValue(), storageType)) {
 						found = true;
+						break;
 					}
 				}
 
 				if (!found) {
-					AssertJUnit.fail(message + "Unexpected value saved in between password hisotry entries: " + clearValue
+					AssertJUnit.fail(message + "Unexpected value saved in between password hisotry entries: " 
+							+ getHumanReadablePassword(historyEntry.getValue())
 							+ ". Expected "+ Arrays.toString(changedPasswords)+"("+changedPasswords.length+"), was "
 							+ getPasswordHistoryHumanReadable(historyEntriesType) + "("+historyEntriesType.size()+")");
 				}
-			} catch (EncryptionException e) {
-				AssertJUnit.fail(message + "Could not encrypt password");
+			} catch (EncryptionException | SchemaException e) {
+				AssertJUnit.fail(message + "Could not encrypt password: "+e.getMessage());
 			}
 
 		}
@@ -1322,12 +1415,25 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return historyEntriesType.stream()
 			.map(historyEntry -> {
 				try {
-					return protector.decryptString(historyEntry.getValue());
+					return getHumanReadablePassword(historyEntry.getValue());
 				} catch (EncryptionException e) {
 					throw new SystemException(e.getMessage(), e);
 				}
 			})
 			.collect(Collectors.joining(", "));
+	}
+	
+	protected String getHumanReadablePassword(ProtectedStringType ps) throws EncryptionException {
+		if (ps == null) {
+			return null;
+		}
+		if (ps.isEncrypted()) {
+			return "[E:"+protector.decryptString(ps)+"]";
+		}
+		if (ps.isHashed()) {
+			return "[H:"+ps.getHashedDataType().getDigestValue().length*8+"bit]";
+		}
+		return ps.getClearValue();
 	}
 	
 	protected void logTrustManagers() throws NoSuchAlgorithmException, KeyStoreException {

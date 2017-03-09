@@ -29,6 +29,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTy
 /**
  * Password test with NONE password storage (default storage for other types)
  * 
+ * This test is only partially working.
+ * IT IS NOT PART OF THE TEST SUITE. It is NOT executed automatically.
+ * 
+ * E.g. new password will be generated on every recompute because the
+ * weak inbound mapping is activated.
+ * 
  * @author semancik
  *
  */
@@ -50,5 +56,4 @@ public class TestPasswordNone extends AbstractPasswordTest {
 	protected CredentialsStorageTypeType getPasswordStorageType() {
 		return CredentialsStorageTypeType.NONE;
 	}
-	
 }

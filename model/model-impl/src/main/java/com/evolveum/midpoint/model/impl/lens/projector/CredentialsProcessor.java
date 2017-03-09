@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SchemaFailableProcessor;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -433,12 +434,8 @@ public class CredentialsProcessor {
 			return;
 		}
 		CredentialPolicyType defaltCredPolicyType = credsType.getDefault();
-		CredentialsStorageMethodType storageMethod = null;
-		if (credPolicyType != null && credPolicyType.getStorageMethod() != null) {
-			storageMethod = credPolicyType.getStorageMethod();
-		} else if (defaltCredPolicyType != null && defaltCredPolicyType.getStorageMethod() != null) {
-			storageMethod = defaltCredPolicyType.getStorageMethod();
-		}
+		CredentialsStorageMethodType storageMethod = 
+				SecurityUtil.getCredPolicyItem(defaltCredPolicyType, credPolicyType, pol -> pol.getStorageMethod());
 		if (storageMethod == null) {
 			return;
 		}

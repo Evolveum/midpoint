@@ -49,6 +49,6 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 	@Override
 	protected CredentialsStorageTypeType getPasswordStorageType() {
 		return CredentialsStorageTypeType.HASHING;
-	}
+	}	
 	
 }

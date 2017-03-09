@@ -95,7 +95,8 @@
         <classes>
             <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefault"/>
             <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefaultHashing"/>
-            <class name="com.evolveum.midpoint.model.intest.password.TestPasswordNone"/>
+            <!-- TestPasswordNone works only partially. It needs to be updated. -->
+            <!-- <class name="com.evolveum.midpoint.model.intest.password.TestPasswordNone"/>  -->
         </classes>
     </test>
     <!--

@@ -59,6 +59,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -70,6 +71,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CheckExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -709,7 +712,6 @@ public class PasswordPolicyProcessor {
 		return passwordStr;
 	}
 
-
 	public <F extends FocusType> void processPasswordHistoryDeltas(LensFocusContext<F> focusContext,
 			LensContext<F> context, SecurityPolicyType securityPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws SchemaException {
@@ -729,7 +731,7 @@ public class PasswordPolicyProcessor {
 			List<PasswordHistoryEntryType> historyEntryValues = getSortedHistoryList(historyEntries, true);
 			int newHistoryEntries = 0;
 			if (maxPasswordsToSave > 0) {
-				newHistoryEntries = createAddHistoryDelta(context, password, now);
+				newHistoryEntries = createAddHistoryDelta(context, password, securityPolicy, now);
 			}
 			createDeleteHistoryDeltasIfNeeded(historyEntryValues, maxPasswordsToSave, newHistoryEntries, context, task, result);
 		}
@@ -794,9 +796,24 @@ public class PasswordPolicyProcessor {
 	
 
 	private <F extends FocusType> int createAddHistoryDelta(LensContext<F> context,
-			PrismContainer<PasswordType> password, XMLGregorianCalendar now) throws SchemaException {
+			PrismContainer<PasswordType> password, SecurityPolicyType securityPolicy, XMLGregorianCalendar now) throws SchemaException {
 		PrismContainerValue<PasswordType> passwordValue = password.getValue();
-		PasswordType passwordRealValue = passwordValue.asContainerable();
+		PasswordType passwordType = passwordValue.asContainerable();
+		if (passwordType == null || passwordType.getValue() == null) {
+			return 0;
+		}
+		ProtectedStringType passwordPsForStorage = passwordType.getValue().clone();
+		
+		CredentialsStorageTypeType storageType = CredentialsStorageTypeType.HASHING;
+		CredentialsPolicyType creds = securityPolicy.getCredentials();
+		if (creds != null) {
+			CredentialsStorageMethodType storageMethod =  
+				SecurityUtil.getCredPolicyItem(creds.getDefault(), creds.getPassword(), pol -> pol.getStorageMethod());
+			if (storageMethod != null && storageMethod.getStorageType() != null) {
+				storageType = storageMethod.getStorageType();
+			}
+		}
+		prepareProtectedStringForStorage(passwordPsForStorage, storageType);
 		
 		PrismContainerDefinition<PasswordHistoryEntryType> historyEntryDefinition = password.getDefinition().findContainerDefinition(PasswordType.F_HISTORY_ENTRY);
 		PrismContainer<PasswordHistoryEntryType> historyEntry = historyEntryDefinition.instantiate();
@@ -804,8 +821,8 @@ public class PasswordPolicyProcessor {
 		PrismContainerValue<PasswordHistoryEntryType> hisotryEntryValue = historyEntry.createNewValue();
 		
 		PasswordHistoryEntryType entryType = hisotryEntryValue.asContainerable();
-		entryType.setValue(passwordRealValue.getValue());
-		entryType.setMetadata(passwordRealValue.getMetadata());
+		entryType.setValue(passwordPsForStorage);
+		entryType.setMetadata(passwordType.getMetadata());
 		entryType.setChangeTimestamp(now);
 	
 		ContainerDelta<PasswordHistoryEntryType> addHisotryDelta = ContainerDelta
@@ -814,6 +831,37 @@ public class PasswordPolicyProcessor {
 		
 		return 1;
 
+	}
+	
+	private void prepareProtectedStringForStorage(ProtectedStringType ps, CredentialsStorageTypeType storageType) throws SchemaException {
+		try {
+			switch (storageType) {
+				case ENCRYPTION: 
+					if (ps.isEncrypted()) {
+						break;
+					}
+					if (ps.isHashed()) {
+						throw new SchemaException("Cannot store hashed value in an encrypted form");
+					}
+					protector.encrypt(ps);
+					break;
+					
+				case HASHING:
+					if (ps.isHashed()) {
+						break;
+					}
+					protector.hash(ps);
+					break;
+					
+				case NONE:
+					throw new SchemaException("Cannot store value on NONE storage form");
+					
+				default:
+					throw new SchemaException("Unknown storage type: "+storageType);
+			}
+		} catch (EncryptionException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
 	}
 
 	private <F extends FocusType> void createDeleteHistoryDeltasIfNeeded(

@@ -11585,6 +11585,16 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="storageMethod" type="c:CredentialsStorageMethodType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Method used to store the values of this credential (encrypted, hashed, ...)
+						If storage method is not specified it defaults to encryption
+						(due to compatibility and convenience reasons).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="resetMethod" type="c:CredentialsResetMethodType" minOccurs="0" maxOccurs="1">
 			</xsd:element>
@@ -11655,6 +11665,18 @@
 			        </xsd:documentation>
 			    </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="historyStorageMethod" type="c:CredentialsStorageMethodType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Method used to store historical values of the credential (encrypted, hashed, ...)
+						If storage type is not specified then it defaults to hashing.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			
 			<!-- TODO: similarity criteria (history vs new password) -->
 		</xsd:sequence>
 	</xsd:complexType>
@@ -11839,6 +11861,13 @@
                 		MidPoitn will only work with credential in the memory
                 		while it is needed to complete current operation.
                 		The credential will be discarded after the operation.
+                		
+                		THIS IS ONLY PARTIALLY SUPPORTED
+                		
+                		MidPoint should be able not to store the credentials when
+                		this setting is used. But there may be side effects.
+                		This is not entirelly tests and not supported.
+                		Use at your own risk.
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NONE"/>

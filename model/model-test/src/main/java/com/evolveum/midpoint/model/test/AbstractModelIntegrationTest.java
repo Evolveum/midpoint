@@ -3662,53 +3662,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         	}
         }
 	}
-	
-	protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertEncryptedUserPassword");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		assertEncryptedUserPassword(user, expectedClearPassword);
-	}
-	
-	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
-		assertUserPassword(user, expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
-	}
-	
-	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
-		assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
-	}
-
-	protected CredentialsStorageTypeType getPasswordStorageType() {
-		return CredentialsStorageTypeType.ENCRYPTION;
-	}
-
-	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
-		UserType userType = user.asObjectable();
-		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
-		switch (storageType) {
-			
-			case NONE:
-				assertNull("Unexpected stored password "+protectedActualPassword+" in "+user, protectedActualPassword);
-				break;
-
-			case ENCRYPTION:
-				assertNotNull("No password for "+user, protectedActualPassword);
-				assertTrue("Unenctypted password for "+user+": "+protectedActualPassword, protectedActualPassword.isEncrypted());
-				String actualClearPassword = protector.decryptString(protectedActualPassword);
-				assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
-				break;
-				
-			case HASHING:
-				assertNotNull("No password for "+user, protectedActualPassword);
-				assertTrue("Not hashed password for "+user+": "+protectedActualPassword, protectedActualPassword.isHashed());
-				ProtectedStringType expectedPs = new ProtectedStringType();
-				expectedPs.setClearValue(expectedClearPassword);
-				assertTrue("Wrong password for "+user+", expected "+expectedClearPassword+", but was "+protectedActualPassword, 
-						protector.compare(protectedActualPassword, expectedPs));
-		}
-		
-	}
 
 	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
 		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.security.api;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import org.springframework.security.access.ConfigAttribute;
@@ -26,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
 /**
  * @author Radovan Semancik
@@ -105,6 +107,22 @@ public class SecurityUtil {
 			return principalObject.toString();
 		}
 		return ((MidPointPrincipal)principalObject).getUsername();
+	}
+	
+	public static <T> T getCredPolicyItem(CredentialPolicyType defaltCredPolicyType, CredentialPolicyType credPolicyType, Function<CredentialPolicyType, T> getter) {
+		if (credPolicyType != null) {
+			T val = getter.apply(credPolicyType);
+			if (val != null) {
+				return val;
+			}
+		}
+		if (defaltCredPolicyType != null) {
+			T val = getter.apply(defaltCredPolicyType);
+			if (val != null) {
+				return val;
+			}
+		}
+		return null;
 	}
 	
 }
