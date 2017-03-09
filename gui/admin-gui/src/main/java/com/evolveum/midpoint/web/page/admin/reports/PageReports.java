@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -72,7 +73,11 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/reports", action = {
+@PageDescriptor(
+        urls = {
+            @Url(mountUrl = "/admin/reports", matchUrlForSecurity = "/admin/reports")
+        },
+        action = {
         @AuthorizationAction(actionUri = PageAdminReports.AUTH_REPORTS_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),

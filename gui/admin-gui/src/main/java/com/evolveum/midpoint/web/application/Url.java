@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.web.application;
 
-import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
-import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -26,18 +23,13 @@ import java.lang.annotation.RetentionPolicy;
  * @author lazyman
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PageDescriptor {
+public @interface Url {
+
+    String mountUrl();
 
     /**
-     * Please use {@link PageDescriptor#urls()}
-     * @return
+     * If empty {@link Url#mountUrl()} + "/**" will be used for URL ant pattern matching in security configuration.
+     * See {@link DescriptorLoader}, {@link com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator}.
      */
-    @Deprecated
-    String[] url() default {};
-
-    Url[] urls() default {};
-
-    Class<? extends IPageParametersEncoder> encoder() default PageParametersEncoder.class;
-
-    AuthorizationAction[] action() default {};
+    String matchUrlForSecurity() default "";
 }
