@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -236,33 +238,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		List<PrismObject<O>> targets = getTargets(segment, ctx);
 		LOGGER.trace("Targets in {}: {}", segment.source, targets);
-		if (targets != null) {
-			for (PrismObject<O> target: targets) {
-				evaluateFromSegmentWithTarget(segment, target, mode, isParentValid, ctx);
-			}
-		} else {
-			evaluateFromSegmentWithTarget(segment, null, mode, isParentValid, ctx);
-		}
+		evaluateFromSegmentWithTargets(segment, targets, mode, isParentValid, ctx);
 	}
 
-	/**
-	 *  Continues with assignment evaluation: Either there is a non-null (resolved) target, passed in "target" parameter,
-	 *  or traditional items stored in assignmentType (construction or focus mappings). TargetRef from assignmentType is ignored here.
- 	 */
-	private <O extends ObjectType> void evaluateFromSegmentWithTarget(AssignmentPathSegmentImpl segment,
-			@Nullable PrismObject<O> target, PlusMinusZero mode, boolean isParentValid, EvaluationContext ctx)
+	private <O extends ObjectType> void evaluateFromSegmentWithTargets(AssignmentPathSegmentImpl segment,
+			@Nullable List<PrismObject<O>> targets, PlusMinusZero mode, boolean isParentValid, EvaluationContext ctx)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		if (target != null && ctx.evalAssignment.getTarget() == null) {
-			// hopefully this is set the first time we are in this method
-			// (probably yes, because if target==null then we won't continue downwards)
-			ctx.evalAssignment.setTarget(target);
-		}
-
-		if (target != null) {
-			checkCycle(segment, target, ctx);
-			if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
+		final boolean isDirectAssignment = ctx.assignmentPath.isEmpty();
+		if (targets != null) {
+			// We could perhaps do this when using targets (but that would change behavior in
+			// boundary situations like if there's no applicable target etc).
+			targets = checkAndFilterTargets(segment, targets, ctx);
+			if (targets.isEmpty()) {
+				// This was the original behavior, when we processed targets one after another.
+				// We might consider continuing here.
 				return;
+			}
+			if (isDirectAssignment) {
+				setEvaluatedAssignmentTarget(segment, targets, ctx);
 			}
 		}
 
@@ -291,16 +285,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 
-		boolean isValid = evaluateContent && evaluateSegmentContent(segment, target, mode, isParentValid, ctx);
+		boolean isValid = evaluateContent && evaluateSegmentContent(segment, targets, mode, isParentValid, ctx);
 
 		ctx.assignmentPath.removeLast(segment);
-		if (ctx.assignmentPath.isEmpty()) {
-			ctx.evalAssignment.setValid(isValid);		// TODO this may be called multiple times (for more targets) - deal with it
+		if (isDirectAssignment) {
+			ctx.evalAssignment.setValid(isValid);
 		}
 	}
 
 	private <O extends ObjectType> boolean evaluateSegmentContent(AssignmentPathSegmentImpl segment,
-			@Nullable PrismObject<O> target, PlusMinusZero mode, boolean isParentValid, EvaluationContext ctx)
+			@Nullable List<PrismObject<O>> targets, PlusMinusZero mode, boolean isParentValid, EvaluationContext ctx)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
 
 		assert ctx.assignmentPath.last() == segment;
@@ -310,7 +304,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (isValid || segment.isValidityOverride()) {
 			boolean empty = true;
 			boolean reallyValid = isParentValid && isValid;
-			// TODO for multiple targets, we collect constructions, mappings and rules multiple times - is that OK?
 			if (assignmentType.getConstruction() != null) {
 				if (!loginMode && segment.isMatchingOrder()) {
 					collectConstruction(segment, mode, reallyValid, ctx);
@@ -336,9 +329,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 				empty = false;
 			}
-			if (target != null) {
-				evaluateSegmentTarget(segment, mode, reallyValid, (FocusType)target.asObjectable(),
-						getRelation(assignmentType), ctx);
+			if (targets != null) {
+				QName relation = getRelation(assignmentType);
+				for (PrismObject<O> target : targets) {
+					evaluateSegmentTarget(segment, mode, reallyValid, (FocusType)target.asObjectable(), relation, ctx);
+				}
 				empty = false;
 			}
 			if (empty) {
@@ -697,6 +692,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 							evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement),
 							FocusTypeUtil.dumpAssignment(roleInducement), targetType);
 				}
+				assert !ctx.assignmentPath.isEmpty();
 				evaluateFromSegment(subAssignmentPathSegment, mode, isValid, ctx);
 			}
 		}
@@ -731,6 +727,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				// We want to process membership in case of deputy and similar user->user assignments
 				subAssignmentPathSegment.setProcessMembership(true);
 			}
+			assert !ctx.assignmentPath.isEmpty();
 			evaluateFromSegment(subAssignmentPathSegment, mode, isValid, ctx);
 		}
 		
@@ -856,7 +853,31 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 	}
-	
+
+	private <O extends ObjectType> List<PrismObject<O>> checkAndFilterTargets(AssignmentPathSegmentImpl segment,
+			List<PrismObject<O>> targets, EvaluationContext ctx) throws PolicyViolationException {
+		targets = new ArrayList<>(targets);			// to be able to make changes to the list here
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		for (Iterator<PrismObject<O>> iterator = targets.iterator(); iterator.hasNext(); ) {
+			PrismObject<O> target = iterator.next();
+			checkCycle(segment, target, ctx);
+			if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
+				iterator.remove();		// or should we throw an exception here?
+			}
+		}
+		return targets;
+	}
+
+	private <O extends ObjectType> void setEvaluatedAssignmentTarget(AssignmentPathSegmentImpl segment,
+			@NotNull List<PrismObject<O>> targets, EvaluationContext ctx) {
+		assert ctx.evalAssignment.getTarget() == null;
+		if (targets.size() > 1) {
+			throw new UnsupportedOperationException("Multiple targets for direct focus assignment are not supported: " + segment.getAssignment());
+		} else if (!targets.isEmpty()) {
+			ctx.evalAssignment.setTarget(targets.get(0));
+		}
+	}
+
 	public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(MappingType condition,
 			AssignmentType sourceAssignment, ObjectType source, AssignmentPathVariables assignmentPathVariables,
 			EvaluationContext ctx) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
