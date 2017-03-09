@@ -33,6 +33,7 @@ public class MainMenuItem extends BaseMenuItem {
     public static final String F_ICON_CLASS = "iconClass";
     public static final String F_BUBBLE_LABEL = "bubbleLabel";
 
+    private boolean insertDefaultBackBreadcrumb = true;
     private String iconClass;
     private List<MenuItem> items;
 
@@ -69,5 +70,13 @@ public class MainMenuItem extends BaseMenuItem {
     
     public String getBubbleLabel() {
     	return null;
+    }
+
+    public boolean isInsertDefaultBackBreadcrumb() {
+        return insertDefaultBackBreadcrumb;
+    }
+
+    public void setInsertDefaultBackBreadcrumb(boolean insertDefaultBackBreadcrumb) {
+        this.insertDefaultBackBreadcrumb = insertDefaultBackBreadcrumb;
     }
 }

@@ -246,7 +246,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         pageBase.addBreadcrumb(bc);
 
         List<MenuItem> items = mainMenuItem.getItems();
-        if (!items.isEmpty()) {
+        if (!items.isEmpty() && mainMenuItem.isInsertDefaultBackBreadcrumb()) {
             MenuItem first = items.get(0);
 
             IModel<String> nameModel = first.getNameModel();

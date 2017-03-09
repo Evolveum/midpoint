@@ -38,7 +38,6 @@ import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -59,7 +58,7 @@ import java.util.Iterator;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resources/wizard", encoder = MidPointPageParametersEncoder.class, action = {
+@PageDescriptor(url = "/admin/resources/wizard", action = {
         @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
             label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
             description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
