@@ -898,10 +898,10 @@ public class AssignmentProcessor {
 			}
 		}
         // for zero and minus sets we check isForceRecon for all non-construction-related assignments (MID-2242)
+		// TODO why "non-construction-related" ones only?
         if (!forceRecon) {
             for (EvaluatedAssignmentImpl assignment: evaluatedAssignmentTriple.getNonPositiveValues()) {
-                if (assignment.isForceRecon() &&
-                        (assignment.getConstructions() == null || assignment.getConstructions().isEmpty())) {
+                if (assignment.isForceRecon() && assignment.getConstructions().isEmpty()) {
                     forceRecon = true;
                     break;
                 }

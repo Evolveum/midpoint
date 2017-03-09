@@ -267,43 +267,46 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 
 		ctx.assignmentPath.add(segment);
-		
+
+		boolean evaluateContent = true;
 		MappingType assignmentCondition = assignmentType.getCondition();
 		if (assignmentCondition != null) {
-            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
+			AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateCondition(assignmentCondition,
 					assignmentType, segment.source, assignmentPathVariables, ctx);
 			boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 			boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 			PlusMinusZero modeFromCondition = ExpressionUtil.computeConditionResultMode(condOld, condNew);
-			if (modeFromCondition == null) {	// removed "|| (condMode == PlusMinusZero.ZERO && !condNew)" as it was always false
+			if (modeFromCondition == null) { // removed "|| (condMode == PlusMinusZero.ZERO && !condNew)" as it was always false
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Skipping evaluation of {} because of condition result ({} -> {}: {})",
 							FocusTypeUtil.dumpAssignment(assignmentType), condOld, condNew, null);
 				}
-				// This should apply perhaps only when path size is 1.
-				// But, hopefully, the last write to setValid will "win", and overwrite all the previous ones.
-				ctx.evalAssignment.setValid(false);
-				ctx.assignmentPath.removeLast(segment);
-				return;
+				evaluateContent = false;
+			} else {
+				PlusMinusZero origMode = mode;
+				mode = PlusMinusZero.compute(mode, modeFromCondition);
+				LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", condOld, condNew, origMode,
+						modeFromCondition, mode);
 			}
-			PlusMinusZero origMode = mode;
-			mode = PlusMinusZero.compute(mode, modeFromCondition);
-			LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", condOld, condNew, origMode, modeFromCondition, mode);
 		}
 
-		boolean isValid = evaluateSegmentContent(segment, target, mode, isParentValid, ctx);
-		ctx.evalAssignment.setValid(isValid);			// See the above comment on calling setValid.
+		boolean isValid = evaluateContent && evaluateSegmentContent(segment, target, mode, isParentValid, ctx);
+
 		ctx.assignmentPath.removeLast(segment);
+		if (ctx.assignmentPath.isEmpty()) {
+			ctx.evalAssignment.setValid(isValid);		// TODO this may be called multiple times (for more targets) - deal with it
+		}
 	}
 
-	// now the segment is already at the path end (appended by the caller)
 	private <O extends ObjectType> boolean evaluateSegmentContent(AssignmentPathSegmentImpl segment,
 			@Nullable PrismObject<O> target, PlusMinusZero mode, boolean isParentValid, EvaluationContext ctx)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
+
+		assert ctx.assignmentPath.last() == segment;
+
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		boolean isValid = LensUtil
-				.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType, now, activationComputer);
+		boolean isValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType, now, activationComputer);
 		if (isValid || segment.isValidityOverride()) {
 			boolean empty = true;
 			boolean reallyValid = isParentValid && isValid;
