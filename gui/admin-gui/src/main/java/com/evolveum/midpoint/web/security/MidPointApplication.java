@@ -50,6 +50,7 @@ import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
@@ -83,7 +84,6 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 
 /**
@@ -261,11 +261,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         appSettings.setInternalErrorPage(PageError.class);
         appSettings.setPageExpiredErrorPage(PageError.class);
 
-        mount(new MountedMapper("/error", PageError.class, MidPointPageParametersEncoder.ENCODER));
-        mount(new MountedMapper("/error/401", PageError401.class, MidPointPageParametersEncoder.ENCODER));
-        mount(new MountedMapper("/error/403", PageError403.class, MidPointPageParametersEncoder.ENCODER));
-        mount(new MountedMapper("/error/404", PageError404.class, MidPointPageParametersEncoder.ENCODER));
-        mount(new MountedMapper("/error/410", PageError410.class, MidPointPageParametersEncoder.ENCODER));
+        mount(new MountedMapper("/error", PageError.class, new PageParametersEncoder()));
+        mount(new MountedMapper("/error/401", PageError401.class, new PageParametersEncoder()));
+        mount(new MountedMapper("/error/403", PageError403.class, new PageParametersEncoder()));
+        mount(new MountedMapper("/error/404", PageError404.class, new PageParametersEncoder()));
+        mount(new MountedMapper("/error/410", PageError410.class, new PageParametersEncoder()));
 
         getRequestCycleListeners().add(new LoggingRequestCycleListener(this));
 
