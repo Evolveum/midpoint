@@ -63,7 +63,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
 	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
-	@NotNull private final Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings = new ArrayList<>();
+	@NotNull private final Collection<Mapping<?,?>> focusMappings = new ArrayList<>();
 	@NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();	// rules related to the focus itself
 	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules = new ArrayList<>();	// rules related to the target of this assignment
@@ -216,7 +216,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getFocusMappings() {
+	public Collection<Mapping<?,?>> getFocusMappings() {
 		return focusMappings;
 	}
 
@@ -420,7 +420,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		if (!focusMappings.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Focus Mappings", indent+1);
-			for (PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping: focusMappings) {
+			for (PrismValueDeltaSetTripleProducer<?,?> mapping: focusMappings) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);
 				sb.append(mapping.toString());

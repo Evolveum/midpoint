@@ -15,9 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -212,9 +210,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentPathSegmentImpl segment = new AssignmentPathSegmentImpl(source, sourceDescription, assignmentIdi, true);
 		segment.setEvaluationOrder(getInitialEvaluationOrder(assignmentIdi, ctx));
 		segment.setValidityOverride(true);
+		segment.setPathToSourceValid(true);
 		segment.setProcessMembership(true);
 
-		evaluateFromSegment(segment, PlusMinusZero.ZERO, true, ctx);
+		evaluateFromSegment(segment, PlusMinusZero.ZERO, ctx);
 
 		LOGGER.trace("Assignment evaluation finished:\n{}", ctx.evalAssignment.debugDumpLazily());
 		return ctx.evalAssignment;
@@ -227,42 +226,46 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return EvaluationOrderImpl.ZERO.advance(getRelation(assignmentType));
 	}
 
-	// TODO explanation for mode/isParentValid parameters
-	private <O extends ObjectType> void evaluateFromSegment(AssignmentPathSegmentImpl segment,
-			PlusMinusZero mode, boolean isParentValid, EvaluationContext ctx)
+	/**
+	 * @param mode
+	 *
+	 * Where to put constructions and target roles/orgs/services (PLUS/MINUS/ZERO/null; null means "nowhere").
+	 *
+	 * This depends on the status of conditions. E.g. if condition evaluates 'false -> true' (i.e. in old
+	 * state the value is false, and in new state the value is true), then the mode is PLUS.
+	 *
+	 * This "triples algebra" is based on the following two methods:
+	 *
+	 * @see ExpressionUtil#computeConditionResultMode(boolean, boolean) - Based on condition values "old+new" determines
+	 * into what set (PLUS/MINUS/ZERO/none) should the result be placed. Irrespective of what is the current mode. So,
+	 * in order to determine "real" place where to put it (i.e. the new mode) the following method is used.
+	 *
+	 * @see PlusMinusZero#compute(PlusMinusZero, PlusMinusZero) - Takes original mode and the mode from recent condition
+	 * and determines the new mode (commutatively):
+	 *
+	 * PLUS + PLUS/ZERO = PLUS
+	 * MINUS + MINUS/ZERO = MINUS
+	 * ZERO + ZERO = ZERO
+	 * PLUS + MINUS = none
+	 *
+	 * This is quite straightforward, although the last rule deserves a note. If we have an assignment that was originally
+	 * disabled and becomes enabled by the current delta (i.e. PLUS), and that assignment contains an inducement that was originally
+	 * enabled and becomes disabled (i.e. MINUS), the result is that the (e.g.) constructions within the inducement were not
+	 * present in the old state (because assignment was disabled) and are not present in the new state (because inducement is disabled).
+	 *
+	 * Note: this parameter could be perhaps renamed to "tripleMode" or "destination" or something like that.
+	 */
+	private void evaluateFromSegment(AssignmentPathSegmentImpl segment, PlusMinusZero mode, EvaluationContext ctx)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		LOGGER.trace("Evaluate assignment {} (matching order: {}, mode: {})", ctx.assignmentPath, segment.isMatchingOrder(), mode);
 
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 		checkSchema(segment, ctx);
 
-		List<PrismObject<O>> targets = getTargets(segment, ctx);
-		LOGGER.trace("Targets in {}: {}", segment.source, targets);
-		evaluateFromSegmentWithTargets(segment, targets, mode, isParentValid, ctx);
-	}
-
-	private <O extends ObjectType> void evaluateFromSegmentWithTargets(AssignmentPathSegmentImpl segment,
-			@Nullable List<PrismObject<O>> targets, PlusMinusZero mode, boolean isParentValid, EvaluationContext ctx)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
-		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		final boolean isDirectAssignment = ctx.assignmentPath.isEmpty();
-		if (targets != null) {
-			// We could perhaps do this when using targets (but that would change behavior in
-			// boundary situations like if there's no applicable target etc).
-			targets = checkAndFilterTargets(segment, targets, ctx);
-			if (targets.isEmpty()) {
-				// This was the original behavior, when we processed targets one after another.
-				// We might consider continuing here.
-				return;
-			}
-			if (isDirectAssignment) {
-				setEvaluatedAssignmentTarget(segment, targets, ctx);
-			}
-		}
-
 		ctx.assignmentPath.add(segment);
 
 		boolean evaluateContent = true;
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
 		MappingType assignmentCondition = assignmentType.getCondition();
 		if (assignmentCondition != null) {
 			AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
@@ -271,7 +274,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 			boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 			PlusMinusZero modeFromCondition = ExpressionUtil.computeConditionResultMode(condOld, condNew);
-			if (modeFromCondition == null) { // removed "|| (condMode == PlusMinusZero.ZERO && !condNew)" as it was always false
+			if (modeFromCondition == null) { // removed "|| (condMode == PlusMinusZero.ZERO && !condNew)" as it is always false
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Skipping evaluation of {} because of condition result ({} -> {}: {})",
 							FocusTypeUtil.dumpAssignment(assignmentType), condOld, condNew, null);
@@ -285,71 +288,80 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 
-		boolean isValid = evaluateContent && evaluateSegmentContent(segment, targets, mode, isParentValid, ctx);
+		boolean isValid = evaluateContent && evaluateSegmentContent(segment, mode, ctx);
 
 		ctx.assignmentPath.removeLast(segment);
-		if (isDirectAssignment) {
+		if (ctx.assignmentPath.isEmpty()) {		// direct assignment
 			ctx.evalAssignment.setValid(isValid);
 		}
 	}
 
 	private <O extends ObjectType> boolean evaluateSegmentContent(AssignmentPathSegmentImpl segment,
-			@Nullable List<PrismObject<O>> targets, PlusMinusZero mode, boolean isParentValid, EvaluationContext ctx)
+			PlusMinusZero mode, EvaluationContext ctx)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
 
 		assert ctx.assignmentPath.last() == segment;
 
+		final boolean isDirectAssignment = ctx.assignmentPath.size() == 1;
+
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		boolean isValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType, now, activationComputer);
-		if (isValid || segment.isValidityOverride()) {
-			boolean empty = true;
-			boolean reallyValid = isParentValid && isValid;
-			if (assignmentType.getConstruction() != null) {
-				if (!loginMode && segment.isMatchingOrder()) {
-					collectConstruction(segment, mode, reallyValid, ctx);
-				}
-				empty = false;
+		boolean isAssignmentValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType, now, activationComputer);
+		if (isAssignmentValid || segment.isValidityOverride()) {
+			// Note: validityOverride is currently the same as "isDirectAssignment" - which is very probably OK.
+			// Direct assignments are visited even if they are not valid (i.e. effectively disabled).
+			// It is because we need to collect e.g. assignment policy rules for them.
+			// Also because we could have deltas that disable/enable these assignments.
+			boolean reallyValid = segment.isPathToSourceValid() && isAssignmentValid;
+			if (assignmentType.getConstruction() != null && !loginMode && segment.isMatchingOrder()) {
+				collectConstruction(segment, mode, reallyValid, ctx);
 			}
-			if (assignmentType.getFocusMappings() != null) {
-				if (!loginMode && segment.isMatchingOrder()) {
-					// TODO what about mode and reallyValid???
-					evaluateFocusMappings(segment, ctx);
-				}
-				empty = false;
+			if (assignmentType.getFocusMappings() != null && !loginMode && segment.isMatchingOrder()) {
+				// Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
+				// evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
+				// (This is currently ignored by downstream processing, but that's another story. Will be fixed soon.)
+				// ---
+				// But we also ignore "mode". This is because focus mappings are not categorized into PLUS/MINUS/ZERO sets.
+				// They are simply evaluated as they are: skipped only if both condOld and condNew is false.
+				// This is less sophisticated than constructions, but for the time being it is perhaps OK.
+				// TODO But shouldn't we skip focus mapping with mode==null? And with mode=MINUS?
+				evaluateFocusMappings(segment, ctx);
 			}
-			if (assignmentType.getPolicyRule() != null) {
-				if (!loginMode) {
-					// TODO what about mode and reallyValid???
-					if (segment.isMatchingOrder()) {
-						collectPolicyRule(true, segment, mode, reallyValid, ctx);
-					}
-					if (segment.isMatchingOrderPlusOne()) {
-						collectPolicyRule(false, segment, mode, reallyValid, ctx);
-					}
+			if (assignmentType.getPolicyRule() != null && !loginMode) {
+				// We can ignore "reallyValid" for the same reason as for focus mappings.
+				// TODO but what if mode is null or MINUS?
+				if (segment.isMatchingOrder()) {
+					collectPolicyRule(true, segment, ctx);
 				}
-				empty = false;
+				if (segment.isMatchingOrderPlusOne()) {
+					collectPolicyRule(false, segment, ctx);
+				}
 			}
-			if (targets != null) {
+			if (assignmentType.getTarget() != null || assignmentType.getTargetRef() != null) {
+				List<PrismObject<O>> targets = getTargets(segment, ctx);
+				LOGGER.trace("Targets in {}: {}", segment.source, targets);
+
+				if (isDirectAssignment) {
+					setEvaluatedAssignmentTarget(segment, targets, ctx);
+				}
+
 				QName relation = getRelation(assignmentType);
 				for (PrismObject<O> target : targets) {
+					checkCycle(segment, target, ctx);
+					if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
+						continue;
+					}
 					evaluateSegmentTarget(segment, mode, reallyValid, (FocusType)target.asObjectable(), relation, ctx);
 				}
-				empty = false;
-			}
-			if (empty) {
-				// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
-				// an exception would prohibit any operations with the users that have the role, including removal of the reference.
-				LOGGER.debug("No content (target, construction, mapping, policy rule) in assignment in {}, ignoring it", segment.source);
 			}
 		} else {
 			LOGGER.trace("Skipping evaluation of assignment {} because it is not valid", assignmentType);
 		}
-		return isValid;
+		return isAssignmentValid;
 	}
 
 	private <O extends ObjectType> boolean isDelegationToNonDelegableTarget(AssignmentType assignmentType, @NotNull PrismObject<O> target,
 			EvaluationContext ctx) {
-		AssignmentPathSegment previousSegment = ctx.assignmentPath.last();
+		AssignmentPathSegment previousSegment = ctx.assignmentPath.beforeLast(1);
 		if (previousSegment == null || !previousSegment.isDelegation() || !target.canRepresent(AbstractRoleType.class)) {
 			return false;
 		}
@@ -417,7 +429,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private void evaluateFocusMappings(AssignmentPathSegmentImpl segment, EvaluationContext ctx)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
-		
+
+		// TODO why "assignmentTypeNew" when we consider also old values?
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
 		MappingsType mappingsType = assignmentTypeNew.getFocusMappings();
 		
@@ -437,9 +450,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	// TODO treat mode + isValid!!!!
-	private void collectPolicyRule(boolean focusRule, AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid,
-			EvaluationContext ctx) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private void collectPolicyRule(boolean focusRule, AssignmentPathSegmentImpl segment, EvaluationContext ctx)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 		
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
@@ -471,7 +483,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return ctx.assignmentPath.getSegments().get(1).isAssignment();
 	}
 
-	@Nullable 	// null only if there's no target/targetRef
+	@NotNull
 	private <O extends ObjectType> List<PrismObject<O>> getTargets(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException, ExpressionEvaluationException {
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
 		if (assignmentType.getTarget() != null) {
@@ -486,10 +498,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 				LOGGER.error(ex.getMessage()+" in assignment target reference in "+segment.sourceDescription,ex);
 				// For OrgType references we trigger the reconciliation (see MID-2242)
 				ctx.evalAssignment.setForceRecon(true);
-				return null;
+				return Collections.emptyList();
 			}
 		} else {
-			return null;
+			throw new IllegalStateException("Both target and targetRef are null. We should not be here. Assignment: " + assignmentType);
 		}
 	}
 
@@ -591,16 +603,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 						null, segment.source, assignmentPathVariables, ctx);
 				boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 				boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
-				PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
-				if (condMode == null) {		// removed "|| (condMode == PlusMinusZero.ZERO && !condNew)" because it's always false
+				PlusMinusZero modeFromCondition = ExpressionUtil.computeConditionResultMode(condOld, condNew);
+				if (modeFromCondition == null) {		// removed "|| (condMode == PlusMinusZero.ZERO && !condNew)" because it's always false
 					LOGGER.trace("Skipping evaluation of {} because of condition result ({} -> {}: null)",
 							targetType, condOld, condNew);
 					return;
 				}
 				PlusMinusZero origMode = mode;
-				mode = PlusMinusZero.compute(mode, condMode);
+				mode = PlusMinusZero.compute(mode, modeFromCondition);
 				LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", targetType, condOld, condNew,
-						origMode, condMode, mode);
+						origMode, modeFromCondition, mode);
 			}
 		}
 		
@@ -679,6 +691,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, roleInducementIdi, false);
 				subAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
 				subAssignmentPathSegment.setOrderOneObject(orderOneObject);
+				subAssignmentPathSegment.setPathToSourceValid(isValid);
 				subAssignmentPathSegment.setProcessMembership(subAssignmentPathSegment.isMatchingOrder());
 
 				// Originally we executed the following only if isMatchingOrder. However, sometimes we have to look even into
@@ -693,7 +706,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 							FocusTypeUtil.dumpAssignment(roleInducement), targetType);
 				}
 				assert !ctx.assignmentPath.isEmpty();
-				evaluateFromSegment(subAssignmentPathSegment, mode, isValid, ctx);
+				evaluateFromSegment(subAssignmentPathSegment, mode, ctx);
 			}
 		}
 		
@@ -727,8 +740,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 				// We want to process membership in case of deputy and similar user->user assignments
 				subAssignmentPathSegment.setProcessMembership(true);
 			}
+			subAssignmentPathSegment.setPathToSourceValid(isValid);
 			assert !ctx.assignmentPath.isEmpty();
-			evaluateFromSegment(subAssignmentPathSegment, mode, isValid, ctx);
+			evaluateFromSegment(subAssignmentPathSegment, mode, ctx);
 		}
 		
 		if (evaluationOrder.getSummaryOrder() == 1 && targetType instanceof AbstractRoleType) {
@@ -852,20 +866,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 			}
 		}
-	}
-
-	private <O extends ObjectType> List<PrismObject<O>> checkAndFilterTargets(AssignmentPathSegmentImpl segment,
-			List<PrismObject<O>> targets, EvaluationContext ctx) throws PolicyViolationException {
-		targets = new ArrayList<>(targets);			// to be able to make changes to the list here
-		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		for (Iterator<PrismObject<O>> iterator = targets.iterator(); iterator.hasNext(); ) {
-			PrismObject<O> target = iterator.next();
-			checkCycle(segment, target, ctx);
-			if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
-				iterator.remove();		// or should we throw an exception here?
-			}
-		}
-		return targets;
 	}
 
 	private <O extends ObjectType> void setEvaluatedAssignmentTarget(AssignmentPathSegmentImpl segment,

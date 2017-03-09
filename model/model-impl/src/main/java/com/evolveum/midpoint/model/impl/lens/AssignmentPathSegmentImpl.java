@@ -44,6 +44,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	private final boolean isAssignment;			// false means inducement
 	private QName relation;
 	private ObjectType target;
+	private boolean pathToSourceValid;			// is the whole path to source valid?
 	private boolean validityOverride = false;
 	private EvaluationOrder evaluationOrder;
 	private ObjectType varThisObject;
@@ -102,6 +103,14 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	public String getSourceDescription() {
 		return sourceDescription;
+	}
+
+	public boolean isPathToSourceValid() {
+		return pathToSourceValid;
+	}
+
+	public void setPathToSourceValid(boolean pathToSourceValid) {
+		this.pathToSourceValid = pathToSourceValid;
 	}
 
 	public boolean isValidityOverride() {

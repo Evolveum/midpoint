@@ -22,12 +22,8 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,13 +79,18 @@ public class AssignmentPathImpl implements AssignmentPath {
 			return last().getEvaluationOrder();
 		}
 	}
-	
+
 	@Override
 	public AssignmentPathSegmentImpl last() {
-		if (isEmpty()) {
+		return beforeLast(0);
+	}
+
+	@Override
+	public AssignmentPathSegmentImpl beforeLast(int n) {
+		if (size() <= n) {
 			return null;
 		} else {
-			return segments.get(segments.size()-1);
+			return segments.get(segments.size()-1-n);
 		}
 	}
 	
@@ -146,7 +147,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "AssignmentPath", indent);
-		if (segments == null || segments.isEmpty()) {
+		if (segments.isEmpty()) {
 			sb.append(" (empty)");
 		} else {
 			sb.append(" (").append(segments.size()).append(")");
