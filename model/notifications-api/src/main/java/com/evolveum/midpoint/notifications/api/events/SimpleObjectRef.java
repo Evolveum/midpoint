@@ -28,4 +28,5 @@ public interface SimpleObjectRef {
     public ObjectType getObjectType();
     public void setObjectType(ObjectType objectType);
     ObjectType resolveObjectType(OperationResult result, boolean allowNotFound);
+    ObjectType resolveObjectType();
 }
