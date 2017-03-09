@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -151,6 +152,7 @@ public class RepositoryCache implements RepositoryService {
 		return oid;
 	}
 	
+	@NotNull
 	@Override
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {

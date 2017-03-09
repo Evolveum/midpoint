@@ -207,6 +207,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @NotNull
     @Override
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                                  Collection<SelectorOptions<GetOperationOptions>> options,

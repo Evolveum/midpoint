@@ -81,6 +81,11 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
     }
 
     @Override
+    public ObjectType resolveObjectType() {
+        return resolveObjectType(new OperationResult(SimpleObjectRefImpl.class.getName() + ".resolveObjectType"), true);
+    }
+
+    @Override
     public String toString() {
         return "SimpleObjectRef{" +
                 "oid='" + oid + '\'' +

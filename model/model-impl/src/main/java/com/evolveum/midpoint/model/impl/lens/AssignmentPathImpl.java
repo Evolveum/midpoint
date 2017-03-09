@@ -42,10 +42,6 @@ public class AssignmentPathImpl implements AssignmentPath {
 	public AssignmentPathImpl() {
 	}
 	
-	AssignmentPathImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
-		segments.add(new AssignmentPathSegmentImpl(assignmentIdi, true));
-	}
-
 	@Override
 	public List<AssignmentPathSegmentImpl> getSegments() {
 		return segments;
@@ -55,11 +51,17 @@ public class AssignmentPathImpl implements AssignmentPath {
 		segments.add(segment);
 	}
 	
-	public void remove(AssignmentPathSegment segment) {
-		segments.remove(segment);
+	public void removeLast(AssignmentPathSegmentImpl segment) {
+		AssignmentPathSegmentImpl last = last();
+		if (last == null) {
+			throw new IllegalStateException("Attempt to remove segment from empty path: " + this + "; segment=" + segment);
+		} else if (!last.equals(segment)) {
+			throw new IllegalStateException("Attempt to remove wrong segment from the end of path: " + this + "; segment=" + segment);
+		} else {
+			segments.remove(segments.size() - 1);
+		}
 	}
 
-	
 	@Override
 	public AssignmentPathSegmentImpl getFirstAssignmentSegment() {
 		return segments.get(0);
