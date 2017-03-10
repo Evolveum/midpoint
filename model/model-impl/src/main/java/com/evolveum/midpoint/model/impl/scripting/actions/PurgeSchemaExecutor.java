@@ -72,10 +72,12 @@ public class PurgeSchemaExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, resourceType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, resourceType, started, ex);
-                    throw ex;
+					Throwable exception = processActionException(ex, NAME, value, context);
+					context.println("Couldn't purge schema information from " + resourceTypePrismObject + exceptionSuffix(exception));
                 }
             } else {
-                throw new ScriptExecutionException("Couldn't purge resource schema, because input is not a PrismObject<ResourceType>: " + value.toString());
+				//noinspection ThrowableNotThrown
+				processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
             }
         }
         return output;

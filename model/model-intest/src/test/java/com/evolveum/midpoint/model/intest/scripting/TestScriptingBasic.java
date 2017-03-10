@@ -476,6 +476,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-555555556677");
     }
 
+    @Deprecated
     @Test
     public void test380DisableJackInBackgroundSimple() throws Exception {
     	final String TEST_NAME = "test380DisableJackInBackgroundSimple";

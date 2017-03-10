@@ -69,10 +69,15 @@ public class ResolveExecutor extends BaseActionExecutor {
                 if (typeClass == null) {
                     throw new ScriptExecutionException("Couldn't resolve reference, because target type class is unknown for target type " + targetTypeQName);
                 }
-                PrismObject<? extends ObjectType> prismObject = operationsHelper.getObject(typeClass, oid, noFetch, context, result);
-                output.addValue(prismObject.getValue());
+                try {
+                    output.addValue(operationsHelper.getObject(typeClass, oid, noFetch, context, result).getValue());
+                } catch (Throwable e) {
+                    //noinspection ThrowableNotThrown
+                    processActionException(e, NAME, value, context);
+                }
             } else {
-                throw new ScriptExecutionException("Item could not be resolved, because it is not a PrismReference: " + value.toString());
+                //noinspection ThrowableNotThrown
+                processActionException(new ScriptExecutionException("Item is not a PrismReference"), NAME, value, context);
             }
 		}
         return output;
