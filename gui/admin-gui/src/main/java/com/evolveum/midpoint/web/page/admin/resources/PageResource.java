@@ -15,10 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
@@ -34,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
@@ -42,13 +41,10 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -58,9 +54,18 @@ import java.util.List;
 /**
  * @author katkav
  */
-@PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL, label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL, description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_URL, label = "PageResource.auth.resource.label", description = "PageResource.auth.resource.description") })
+@PageDescriptor(
+		urls = {
+				@Url(mountUrl = "/admin/resource", matchUrlForSecurity = "/admin/resource")
+		},
+		action = {
+				@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
+						label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
+						description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
+						label = "PageResource.auth.resource.label",
+						description = "PageResource.auth.resource.description")
+		})
 public class PageResource extends PageAdminResources {
 	private static final long serialVersionUID = 1L;
 

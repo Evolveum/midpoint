@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -68,9 +71,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resources", action = {
-		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL, label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL, description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_URL, label = "PageResources.auth.resources.label", description = "PageResources.auth.resources.description") })
+@PageDescriptor(
+		urls = {
+				@Url(mountUrl = "/admin/resources", matchUrlForSecurity = "/admin/resources")
+		},
+		action = {
+				@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
+						label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
+						description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
+						label = "PageResources.auth.resources.label",
+						description = "PageResources.auth.resources.description")
+		})
 public class PageResources extends PageAdminResources {
 
 	private static final long serialVersionUID = 1L;

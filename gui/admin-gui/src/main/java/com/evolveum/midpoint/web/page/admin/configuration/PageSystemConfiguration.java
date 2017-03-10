@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.configuration.component.*;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -58,9 +59,19 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = { "/admin/config", "/admin/config/system" }, action = {
-		@AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL, label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL, label = "PageSystemConfiguration.auth.configSystemConfiguration.label", description = "PageSystemConfiguration.auth.configSystemConfiguration.description") })
+@PageDescriptor(
+		urls = {
+				@Url(mountUrl = "/admin/config", matchUrlForSecurity = "/admin/config"),
+				@Url(mountUrl = "/admin/config/system"),
+		},
+		action = {
+				@AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+						label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
+						description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL,
+						label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
+						description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
+		})
 public class PageSystemConfiguration extends PageAdminConfiguration {
 
 	public static final String SELECTED_TAB_INDEX = "tab";
