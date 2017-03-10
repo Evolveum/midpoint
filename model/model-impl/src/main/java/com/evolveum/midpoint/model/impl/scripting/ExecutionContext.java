@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,19 +38,29 @@ public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
     private final Task task;
-    private StringBuilder consoleOutput = new StringBuilder();
-    private Map<String, Data> variables = new HashMap<>();
+    private final ScriptingExpressionEvaluationOptionsType options;
+    private final StringBuilder consoleOutput = new StringBuilder();
+    private final Map<String, Data> variables = new HashMap<>();
     private Data finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
 
-    public ExecutionContext(Task task) {
+    public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task) {
         this.task = task;
+        this.options = options;
     }
 
     public Task getTask() {
         return task;
     }
 
-    public Data getVariable(String variableName) {
+	public ScriptingExpressionEvaluationOptionsType getOptions() {
+		return options;
+	}
+
+	public boolean isContinueOnAnyError() {
+    	return options != null && Boolean.TRUE.equals(options.isContinueOnAnyError());
+	}
+
+	public Data getVariable(String variableName) {
         return variables.get(variableName);
     }
 
@@ -68,7 +79,7 @@ public class ExecutionContext {
     public void println(Object o) {
         consoleOutput.append(o).append("\n");
         if (o != null) {
-            LOGGER.info(o.toString());          // temporary, until some better way of logging bulk action executions is found
+            LOGGER.info("Script console message: {}", o);          // temporary, until some better way of logging bulk action executions is found
         }
     }
 

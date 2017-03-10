@@ -25,10 +25,14 @@ import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,7 +41,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class BaseActionExecutor implements ActionExecutor {
 
-    private static final String PARAM_RAW = "raw";
+	private static final Trace LOGGER = TraceManager.getTrace(AddExecutor.class);
+
+	private static final String PARAM_RAW = "raw";
     private static final String PARAM_DRY_RUN = "dryRun";
 
     @Autowired
@@ -82,4 +88,17 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         return rawSuffix(raw) + drySuffix(dry);
     }
 
+    protected String exceptionSuffix(Throwable t) {
+    	return t != null ? " (error: " + t.getClass().getSimpleName() + ": " + t.getMessage() + ")" : "";
+	}
+
+	protected Throwable processActionException(Throwable e, String actionName, PrismValue value, ExecutionContext context) throws ScriptExecutionException {
+    	if (context.isContinueOnAnyError()) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute action '{}' on {}: {}", e,
+					actionName, value, e.getMessage());
+			return e;
+		} else {
+    		throw new ScriptExecutionException("Couldn't execute action '" + actionName + "' on " + value + ": " + e.getMessage(), e);
+		}
+	}
 }

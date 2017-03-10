@@ -85,6 +85,29 @@
     <!--</xsd:complexType>-->
     <!--<xsd:element name="scriptingExpression" type="tns:ScriptingExpressionType" />-->
 
+    <xsd:complexType name="ScriptingExpressionEvaluationOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options related to evaluation of scripting expression.
+                EXPERIMENTAL
+                In the future, these may become part of any scripting expression, allowing parts of a complex expression
+                to be evaluated differently from its other parts.
+            </xsd:documentation>
+            <xsd:appinfo>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="continueOnAnyError" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Causes evaluation to continue even in the presence of any errors.
+                        TODO make this more elaborate w.r.t. kind of error(s) encountered.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:element name="scriptingExpression" type="tns:ScriptingExpressionType"  />        <!-- constants have to be treated separately -->
 
     <xsd:complexType name="ScriptingExpressionType">
@@ -336,6 +359,7 @@
         <xsd:sequence>
             <xsd:element ref="tns:scriptingExpression"/>
             <xsd:element name="input" type="tns:ItemListType" minOccurs="0"/>
+            <xsd:element name="options" type="tns:ScriptingExpressionEvaluationOptionsType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

@@ -60,22 +60,24 @@ public class DeleteExecutor extends BaseActionExecutor {
         boolean raw = getParamRaw(expression, input, context, result);
         boolean dryRun = getParamDryRun(expression, input, context, result);
 
-        for (PrismValue item : input.getData()) {
+        for (PrismValue value : input.getData()) {
             context.checkTaskStop();
-            if (item instanceof PrismObjectValue) {
-                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) item).asPrismObject();
+            if (value instanceof PrismObjectValue) {
+                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
+                Throwable exception = null;
                 try {
                     operationsHelper.applyDelta(createDeleteDelta(objectType), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
-                    throw ex;   // TODO think about this
+                    exception = processActionException(ex, NAME, value, context);
                 }
-                context.println("Deleted " + prismObject.toString() + rawDrySuffix(raw, dryRun));
+                context.println((exception != null ? "Attempted to delete " : "Deleted ") + prismObject.toString() + rawDrySuffix(raw, dryRun) + exceptionSuffix(exception));
             } else {
-                throw new ScriptExecutionException("Item couldn't be deleted, because it is not a PrismObject: " + item.toString());
+				//noinspection ThrowableNotThrown
+				processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
             }
         }
         return Data.createEmpty();
