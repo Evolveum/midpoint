@@ -237,60 +237,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		if (customColumns == null || customColumns.size() == 0){
 			return columns;
 		}
-//		GuiObjectColumnType firstColumn = null;
-//		List<GuiObjectColumnType> unorderedColumns = new ArrayList<>();
-//		while (customColumns.size() > 0){
-//			GuiObjectColumnType customColumn = customColumns.get(0);
-//			if (firstColumn == null && StringUtils.isEmpty(customColumn.getPreviousColumn())){
-//				firstColumn = customColumn;
-//				customColumns.remove(customColumn);
-//			} else if (StringUtils.isEmpty(customColumn.getPreviousColumn())){
-//				unorderedColumns.add(customColumn);
-//				customColumns.remove(customColumn);
-//			}
-//		}
-//		if (firstColumn == null){
-//			if (unorderedColumns.size() > 0){
-//				firstColumn = unorderedColumns.get(0);
-//				unorderedColumns.remove(0);
-//			} else {
-//				firstColumn = customColumns.get(0);
-//				customColumns.remove(0);
-//			}
-//		}
-//		IColumn<SelectableBean<O>, String> column = new PropertyColumn(Model.of(firstColumn.getDisplay().getLabel()),
-//				null, SelectableBean.F_VALUE + "." + firstColumn.getPath());
-//		columns.add(column);
-//
-//		GuiObjectColumnType previousColumn = firstColumn;
-//		while (customColumns.size() > 0){
-//			GuiObjectColumnType currentCustomColumn = null;
-//			for (GuiObjectColumnType customColumn : customColumns){
-//				if (customColumn.getPreviousColumn() != null &&
-//						customColumn.getPreviousColumn().equals(previousColumn.getName())){
-//					currentCustomColumn = customColumn;
-//					customColumns.remove(customColumn);
-//					break;
-//				}
-//			}
-//			if (currentCustomColumn != null) {
-//				column = new PropertyColumn(Model.of(currentCustomColumn.getDisplay().getLabel()), null,
-//						SelectableBean.F_VALUE + "." + currentCustomColumn.getPath());
-//				columns.add(column);
-//			}
-//		}
 		IColumn<SelectableBean<O>, String> column;
 		for (GuiObjectColumnType customColumn : customColumns){
-			if (customColumns.indexOf(customColumn) == 0){
-				column = createNameColumn(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
-						Model.of(customColumn.getDisplay().getLabel()) : createStringResource(getItemDisplayName(customColumn)),
-						customColumn.getPath().toString());
-			} else{
-				column = new PropertyColumn(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
-						Model.of(customColumn.getDisplay().getLabel()) : createStringResource(getItemDisplayName(customColumn)), null,
-						SelectableBean.F_VALUE + "." + customColumn.getPath());
+			if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
+				if (customColumns.indexOf(customColumn) == 0) {
+					column = createNameColumn(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
+									Model.of(customColumn.getDisplay().getLabel()) : createStringResource(getItemDisplayName(customColumn)),
+							customColumn.getPath().toString());
+				} else {
+					column = new PropertyColumn(customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
+							Model.of(customColumn.getDisplay().getLabel()) : createStringResource(getItemDisplayName(customColumn)), null,
+							SelectableBean.F_VALUE + "." + customColumn.getPath());
+				}
+				columns.add(column);
 			}
-			columns.add(column);
 		}
 		return columns;
 	}
