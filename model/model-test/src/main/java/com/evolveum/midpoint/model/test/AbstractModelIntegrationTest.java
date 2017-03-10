@@ -3952,4 +3952,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		taskManager.resumeTasks(Collections.singleton(taskOid), result);
 	}
 
+	protected void repoAddObjects(List<ObjectType> objects, OperationResult result)
+			throws EncryptionException, ObjectAlreadyExistsException, SchemaException {
+		for (ObjectType object : objects) {
+			repoAddObject(object.asPrismObject(), result);
+		}
+	}
+
+	protected void recomputeAndRefreshObjects(List<ObjectType> objects, Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+			SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+		for (int i = 0; i < objects.size(); i++) {
+			ObjectType object = objects.get(i);
+			modelService.recompute(object.getClass(), object.getOid(), null, task, result);
+			objects.set(i, repositoryService.getObject(object.getClass(), object.getOid(), null, result).asObjectable());
+		}
+	}
 }

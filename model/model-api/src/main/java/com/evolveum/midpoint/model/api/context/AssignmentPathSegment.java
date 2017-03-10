@@ -22,27 +22,36 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.jetbrains.annotations.NotNull;
 
 /**
+ * Single assignment in an assignment path. In addition to the AssignmentType, it contains resolved target:
+ * full object, resolved from targetRef. If targetRef resolves to multiple objects, in the path segment
+ * one of them is stored: the one that participates in the particular assignment path.
+ *
  * @author semancik
  * @author mederly
  */
 public interface AssignmentPathSegment extends DebugDumpable {
-	boolean isAssignment();
 
 	AssignmentType getAssignment();
 
-	QName getRelation();
-	
-	ObjectType getTarget();
+	/**
+	 * True if the segment corresponds to assignment. False if it's an inducement.
+	 */
+	boolean isAssignment();
 
 	ObjectType getSource();
 
-	EvaluationOrder getEvaluationOrder();
+	ObjectType getTarget();
 
-	ObjectType getOrderOneObject();
+	QName getRelation();
 	
+	/**
+	 * True if the relation is a delegation one.
+	 */
 	boolean isDelegation();
 
+	@NotNull
 	AssignmentPathSegmentType toAssignmentPathSegmentType();
 }

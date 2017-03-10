@@ -27,30 +27,101 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
+ * Primary duty of this class is to be a part of assignment path. (This is what is visible through its interface,
+ * AssignmentPathSegment.) However, it also serves as a place where auxiliary information about assignment evaluation
+ * is stored.
+ *
  * @author semancik
  *
  */
 public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
-	final ObjectType source;
-	final String sourceDescription;
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPathSegmentImpl.class);
+
+	// "assignment path segment" information
+
+	final ObjectType source;					// we avoid "getter" notation for some final fields to simplify client code
 	private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private final boolean isAssignment;			// false means inducement
 	private QName relation;
 	private ObjectType target;
-	private boolean pathToSourceValid;			// is the whole path to source valid?
-	private boolean validityOverride = false;
-	private EvaluationOrder evaluationOrder;
-	private ObjectType varThisObject;
+
+	// assignment evaluation information
+
+	final String sourceDescription;					// Human readable text describing the source (for error messages)
+	private boolean pathToSourceValid;				// Is the whole path to *source* valid, i.e. enabled (meaning activation.effectiveStatus)?
+	private boolean validityOverride = false;		// Should we evaluate content of the assignment even if it's not valid i.e. enabled?
+													// This is set to true on the first assignment in the chain.
+
+	/**
+	 *  Constructions, focus mappings, and focus policy rules (or "assignment content") should be collected only
+	 *  from assignments that belong directly to the focus; i.e. not from assignments attached to roles, meta roles,
+	 *  meta-meta roles, etc.
+	 *
+	 *  Content belonging to roles should be collected if it's attached to them via inducements of order 1.
+	 *  Content belonging to meta-roles should be collected if it's attached to them via inducements of order 2.
+	 *  And so on.
+	 *
+	 *  For each segment (i.e. assignment/inducement), we know we can use its content if its "isMatchingOrder" attribute is true.
+	 *
+	 *  But how we compute this attribute?
+	 *
+	 *  Each segment in the assignment path has an evaluation order. First assignment has an evaluation order of 1, second
+	 *  assignment has an order of 2, etc. Order of a segment can be seen as the number of assignments segments in the path
+	 *  (including itself). And we collect content from assignment segments of order 1.
+	 *
+	 *  But what about inducements? There are two (somewhat related) questions:
+	 *
+	 *  1. How we compute isMatchingOrder for inducement segments?
+	 *  2. How we compute evaluation order for inducement segments?
+	 *
+	 *  As for #1: To compute isMatchingOrder, we must take evaluation order of the _previous_ segment, and compare
+	 *  it with the inducement order (or, more generally, inducement order constraints). If they match, we say that inducement
+	 *  has matching order.
+	 *
+	 *  As for #2: For some inducements we can determine resulting order, while for others we can not. Problematic inducements
+	 *  are those that do not have strict order, but an interval of orders instead. For the former we can compute the
+	 *  resulting order as previous - (N-1), where N is the order of the inducement (unspecified means 1). For the latter
+	 *  we consider the resulting order as undefined.
+	 *
+	 *  NOTE this is not consistent with the current implementation.
+	 *
+	 *  TODO relations
+	 *
+	 *  Special consideration must be given when collecting target policy rules, i.e. rules that are attached to
+	 *  assignment targets. Such rules are typically attached to roles that are being assigned. So let's consider this:
+	 *
+	 *  rule1 (e.g. assignment approval policy rule)
+	 *    A
+	 *    |
+	 *    |
+	 *  Pirate
+	 *    A
+	 *    |
+	 *    |
+	 *   jack
+	 *
+	 *   When evaluating jack->Pirate assignment, rule1 would not be normally taken into account, because its assignment
+	 *   (Pirate->rule1) has an order of 2. However, we want to collect it - but not as an item related to focus, but
+	 *   as an item related to evaluated assignment's target. Therefore besides isMatchingOrder we maintain isMatchingOrderPlusOne
+	 *   that marks all segments (assignments/inducements) that contain policy rules relevant to the evaluated assignment's target.
+	 *
+	 *   TODO how exactly do we compute it
+	 */
 	private Boolean isMatchingOrder = null;
+	private EvaluationOrder evaluationOrder;
+
 	private Boolean isMatchingOrderPlusOne = null;
+
 	private boolean processMembership = false;
+
+	private ObjectType varThisObject;
 
 	AssignmentPathSegmentImpl(ObjectType source, String sourceDescription,
 			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
@@ -121,7 +192,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		this.validityOverride = validityOverride;
 	}
 
-	@Override
 	public EvaluationOrder getEvaluationOrder() {
 		return evaluationOrder;
 	}
@@ -130,7 +200,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		this.evaluationOrder = evaluationOrder;
 	}
 
-	@Override
 	public ObjectType getOrderOneObject() {
 		return varThisObject;
 	}
@@ -147,6 +216,10 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		this.processMembership = processMembership;
 	}
 
+	/**
+	 *  Whether this assignment/inducement matches the focus level, i.e. if we should collect constructions,
+	 *  focus mappings, and focus policy rules from it.
+	 */
 	public boolean isMatchingOrder() {
 		if (isMatchingOrder == null) {
 			isMatchingOrder = computeMatchingOrder(0);
@@ -163,21 +236,27 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	private boolean computeMatchingOrder(int offset) {
 		AssignmentType assignmentType = getAssignment();
+		boolean rv;
 		if (assignmentType.getOrder() == null && assignmentType.getOrderConstraint().isEmpty()) {
 			// compatibility
-			return evaluationOrder.getSummaryOrder() - offset == 1;
-		}
-		if (assignmentType.getOrder() != null) {
-			if (evaluationOrder.getSummaryOrder() - offset != assignmentType.getOrder()) {
-				return false;
+			rv = evaluationOrder.getSummaryOrder() - offset == 1;
+		} else {
+			rv = true;
+			if (assignmentType.getOrder() != null) {
+				if (evaluationOrder.getSummaryOrder() - offset != assignmentType.getOrder()) {
+					rv = false;
+				}
+			}
+			for (OrderConstraintsType orderConstraint : assignmentType.getOrderConstraint()) {
+				if (!isMatchingConstraint(orderConstraint, offset)) {
+					rv = false;
+					break;
+				}
 			}
 		}
-		for (OrderConstraintsType orderConstraint: assignmentType.getOrderConstraint()) {
-			if (!isMatchingConstraint(orderConstraint, offset)) {
-				return false;
-			}
-		}
-		return true;
+		LOGGER.trace("computeMatchingOrder => {}, for offset={}; assignment.order={}, assignment.orderConstraint={}, evaluationOrder={} ... assignment = {}",
+				rv, offset, assignmentType.getOrder(), assignmentType.getOrderConstraint(), evaluationOrder);
+		return rv;
 	}
 
 	private boolean isMatchingConstraint(OrderConstraintsType orderConstraint, int offset) {
@@ -252,18 +331,22 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		sb.append(": ");
 		sb.append(source).append(" ");
 		PrismContainer<AssignmentType> assignment = (PrismContainer<AssignmentType>) assignmentIdi.getAnyItem();
-		if (assignment != null) {
-			AssignmentType assignmentType = assignment.getValue().asContainerable();
-			if (assignmentType.getConstruction() != null) {
-				sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
-			}
+		AssignmentType assignmentType = assignment != null ? assignment.getValue().asContainerable() : null;
+		if (assignmentType != null && assignmentType.getConstruction() != null) {
+			sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
 		}
-		if (target != null) {
+		ObjectReferenceType targetRef = assignmentType != null ? assignmentType.getTargetRef() : null;
+		if (target != null || targetRef != null) {
 			sb.append("-[");
 			if (relation != null) {
 				sb.append(relation.getLocalPart());
 			}
-			sb.append("]-> ").append(target);
+			sb.append("]-> ");
+			if (target != null) {
+				sb.append(target);
+			} else {
+				sb.append(ObjectTypeUtil.toShortString(targetRef, true));
+			}
 		}
 		sb.append(")");
 		return sb.toString();
@@ -279,18 +362,28 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "AssignmentPathSegment", indent);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrder", isMatchingOrder, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "processMembership", processMembership, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "validityOverride", validityOverride, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", evaluationOrder, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "assignment", assignmentIdi.toString(), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "target", target==null?"null":target.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "source", source==null?"null":source.toString(), indent + 1);
+		String assignmentOrInducement = isAssignment ? "assignment" : "inducement";
+		if (assignmentIdi != null) {
+			DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " old", String.valueOf(assignmentIdi.getItemOld()), indent + 1);
+			DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " delta", String.valueOf(assignmentIdi.getDelta()), indent + 1);
+			DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
+		} else {
+			DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement, "null", indent + 1);
+		}
+		DebugUtil.debugDumpWithLabelLn(sb, "target", target==null?"null":target.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", evaluationOrder, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrder", isMatchingOrder, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrderPlusOne", isMatchingOrderPlusOne, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "pathToSourceValid", pathToSourceValid, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "validityOverride", validityOverride, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "processMembership", processMembership, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
 		return sb.toString();
 	}
 
+	@NotNull
 	@Override
 	public AssignmentPathSegmentType toAssignmentPathSegmentType() {
 		AssignmentPathSegmentType rv = new AssignmentPathSegmentType();

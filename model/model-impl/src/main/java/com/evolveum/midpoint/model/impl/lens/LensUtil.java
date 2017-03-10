@@ -1062,7 +1062,7 @@ public class LensUtil {
 			}
 		}
 		
-		AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.getFirstAssignmentSegment();
+		AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.first();
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment = focusAssignmentSegment.getAssignmentIdi().clone();
 		vars.setFocusAssignment(focusAssignment);
 		

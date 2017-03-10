@@ -58,27 +58,41 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	
 	@Override
 	public EvaluationOrder advance(QName relation) {
+		return advance(1, relation);
+	}
+
+	private EvaluationOrder advance(int amount, QName relation) {
 		EvaluationOrderImpl advanced = new EvaluationOrderImpl();
 		boolean found = false;
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
 			if (QNameUtil.match(entry.getKey(), relation)) {
-				advanced.orderMap.put(entry.getKey(), entry.getValue() + 1);
+				advanced.orderMap.put(entry.getKey(), entry.getValue() + amount);
 				found = true;
 			} else {
 				advanced.orderMap.put(entry.getKey(), entry.getValue());
 			}
 		}
 		if (!found) {
-			advanced.orderMap.put(relation, 1);
+			advanced.orderMap.put(relation, amount);
 		}
 		if (DeputyUtils.isDelegationRelation(relation)) {
 			advanced.summaryOrder = this.summaryOrder;
 		} else {
-			advanced.summaryOrder = this.summaryOrder + 1;
+			advanced.summaryOrder = this.summaryOrder + amount;
 		}
 		return advanced;
 	}
-	
+
+	@Override
+	public EvaluationOrder decrease(int amount) {
+		return decrease(amount, null);
+	}
+
+	@Override
+	public EvaluationOrder decrease(int amount, QName relation) {
+		return advance(-amount, relation);
+	}
+
 	@Override
 	public int getMatchingRelationOrder(QName relation) {
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
