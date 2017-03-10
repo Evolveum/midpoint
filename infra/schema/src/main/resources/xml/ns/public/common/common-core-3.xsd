@@ -5638,6 +5638,13 @@
 			                    </xsd:documentation>
 			                </xsd:annotation>
 			            </xsd:element>
+			             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Defines the condition when to execute script.
+			                    </xsd:documentation>
+			                </xsd:annotation>
+			            </xsd:element>
 			        </xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>

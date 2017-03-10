@@ -179,7 +179,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		super.initSystem(initTask, initResult);
 		modelService.postInit(initResult);
 
-		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+		repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		login(userAdministrator);
@@ -211,6 +211,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		// LEAD10 will be imported later!
 		userSecurityApproverOid = addAndRecomputeUser(USER_SECURITY_APPROVER_FILE, initTask, initResult);
 		userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);
+	}
+
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
 	}
 
 	protected void importLead10(Task task, OperationResult result) throws Exception {

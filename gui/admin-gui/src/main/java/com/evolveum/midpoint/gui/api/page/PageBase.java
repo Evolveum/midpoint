@@ -1277,6 +1277,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private MainMenuItem createConfigurationItems() {
 		MainMenuItem item = new MainMenuItem("fa fa-cog", createStringResource("PageAdmin.menu.top.configuration"),
 				null);
+		item.setInsertDefaultBackBreadcrumb(false);
 
 		List<MenuItem> submenu = item.getItems();
 
@@ -1284,10 +1285,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				PageBulkAction.class);
 		submenu.add(menu);
 
-        PageParameters pageImportParams = new PageParameters();
-        pageImportParams.add(PageImportObject.FROM_MENU_ITEM_PARAM, PageImportObject.FROM_MENU_ITEM_PARAM_TRUE_VALUE);
-        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"),
-				PageImportObject.class, pageImportParams, null);
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"),
+				PageImportObject.class, null, null);
 		submenu.add(menu);
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjects"),
 				PageDebugList.class);
@@ -1670,11 +1669,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return deploymentInformationType;
     }
 
+    public boolean canRedirectBack() {
+		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
+		// first is icon (non clickable), last is for "current page" and if there
+		// is nothing in between then we don't know where to redirect
+		if (breadcrumbs.size() < 3) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public Breadcrumb redirectBack() {
 		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-		if (breadcrumbs.size() < 2) {
+		if (!canRedirectBack()) {
 			setResponsePage(getMidpointApplication().getHomePage());
-			
+
 			return null;
 		}
 

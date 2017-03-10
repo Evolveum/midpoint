@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
@@ -40,7 +41,7 @@ public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
     }
 
     @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) throws QueryException {
+    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) throws QueryException {
         if (ItemPath.asSingleName(path) == null) {
             throw new QueryException("Couldn't resolve paths other than those in the form of single name in extension/attributes container: " + path);
         }
@@ -50,7 +51,7 @@ public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
 
         String jpaName;        // longs, strings, ...
         try {
-            jpaName = RAnyConverter.getAnySetType(itemDefinition);
+            jpaName = RAnyConverter.getAnySetType(itemDefinition, prismContext);
         } catch (SchemaException e) {
             throw new QueryException(e.getMessage(), e);
         }

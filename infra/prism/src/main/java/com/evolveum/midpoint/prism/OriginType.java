@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 /**
- * This enum defines source from where a change in property value occured.
+ * This enum defines source from where a change in property value occurred.
  *
  * @author lazyman
  */

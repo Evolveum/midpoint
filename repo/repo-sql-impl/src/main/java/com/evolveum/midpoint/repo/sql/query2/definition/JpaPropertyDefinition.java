@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -74,7 +75,7 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
     }
 
     @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) {
+    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) {
         // nowhere to come from here
         return null;
     }

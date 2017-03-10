@@ -21,15 +21,22 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -46,9 +53,6 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -67,7 +71,15 @@ public class PolicyRuleProcessor {
 	@Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
-	
+
+	@Autowired
+	private MappingFactory mappingFactory;
+
+	@Autowired
+	private MappingEvaluator mappingEvaluator;
+
+	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
+
 	/**
 	 * Evaluate the policies (policy rules, but also the legacy policies). Trigger the rules.
 	 * But do not enforce anything and do not make any context changes.
@@ -529,7 +541,8 @@ public class PolicyRuleProcessor {
 	}
 
 	public <F extends FocusType> void addGlobalPoliciesToAssignments(LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple) throws SchemaException {
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		if (systemConfiguration == null) {
@@ -554,6 +567,10 @@ public class PolicyRuleProcessor {
 							target.getTarget(), LOGGER, "Global policy rule "+globalPolicyRule.getName()+" target selector: ")) {
 						continue;
 					}
+					if (!isRuleConditionTrue(globalPolicyRule, focus, evaluatedAssignment, context, task, result)) {
+						LOGGER.trace("Skipping global policy rule because the condition evaluated to false: {}", globalPolicyRule);
+						continue;
+					}
 					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule,
 							target.getAssignmentPath() != null ? target.getAssignmentPath().clone() : null);
 					evaluatedAssignment.addTargetPolicyRule(evaluatedRule);
@@ -563,6 +580,36 @@ public class PolicyRuleProcessor {
 				}
 			}
 		}
+	}
+
+	private <F extends FocusType> boolean isRuleConditionTrue(GlobalPolicyRuleType globalPolicyRule, PrismObject<F> focus,
+			EvaluatedAssignmentImpl<F> evaluatedAssignment, LensContext<F> context, Task task, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		MappingType condition = globalPolicyRule.getCondition();
+		if (condition == null) {
+			return true;
+		}
+
+		Mapping.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder = mappingFactory
+				.createMappingBuilder();
+		ObjectDeltaObject<F> focusOdo = new ObjectDeltaObject<>(focus, null, focus);
+		builder = builder.mappingType(condition)
+				.contextDescription("condition in global policy rule " + globalPolicyRule.getName())
+				.sourceContext(focusOdo)
+				.defaultTargetDefinition(
+						new PrismPropertyDefinitionImpl<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext))
+				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget())
+				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment)                // TODO: ok?
+				.rootNode(focusOdo);
+
+		Mapping<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
+
+		mappingEvaluator.evaluateMapping(mapping, context, task, result);
+
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = mapping.getOutputTriple();
+		return conditionTriple != null && ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());	// TODO: null -> true (in the method) - ok?
 	}
 
 	public <F extends FocusType, T extends FocusType> void applyAssignmentSituationOnAdd(LensContext<F> context,

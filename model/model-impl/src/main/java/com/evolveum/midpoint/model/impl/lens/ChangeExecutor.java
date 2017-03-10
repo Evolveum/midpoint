@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -1414,9 +1415,13 @@ public class ChangeExecutor {
 			ExpressionVariables variables, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
+		
 		if (resourceScripts != null) {
 			OperationProvisioningScriptsType scripts = resourceScripts.clone();
 			for (OperationProvisioningScriptType script : scripts.getScript()) {
+				if (!evaluateScriptCondition(script, variables, task, result)){
+					continue;
+				}
 				if (discr != null) {
 					if (script.getKind() != null && !script.getKind().isEmpty()
 							&& !script.getKind().contains(discr.getKind())) {
@@ -1439,6 +1444,24 @@ public class ChangeExecutor {
 		}
 
 		return outScripts;
+	}
+	
+	private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
+			ExpressionVariables variables, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		ExpressionType condition = script.getCondition();
+		if (condition == null) {
+			return true;
+		}
+		
+		PrismPropertyValue<Boolean> conditionOutput = ExpressionUtil.evaluateCondition(variables, condition, expressionFactory, " condition for provisioning script ", task, result);
+		if (conditionOutput == null) {
+			return true;
+		}
+		
+		Boolean conditionOutputValue = conditionOutput.getValue();
+		
+		return BooleanUtils.isNotFalse(conditionOutputValue);
+		
 	}
 
 	private void evaluateScriptArgument(ProvisioningScriptArgumentType argument,

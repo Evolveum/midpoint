@@ -87,10 +87,6 @@ public class PageImportObject extends PageAdminConfiguration {
 	private static final String ID_INPUT_FILE = "inputFile";
 	private static final String ID_FILE_INPUT = "fileInput";
 
-	public static final String FROM_MENU_ITEM_PARAM = "openedFromMenuItem";
-    public static final String FROM_MENU_ITEM_PARAM_TRUE_VALUE = "1";
-    public static final String FROM_MENU_ITEM_PARAM_FALSE_VALUE = "0";
-
 	private static final Integer INPUT_FILE = 1;
 	private static final Integer INPUT_XML = 2;
 
@@ -184,21 +180,15 @@ public class PageImportObject extends PageAdminConfiguration {
             public void onClick(AjaxRequestTarget target) {
                 redirectBack();
             }
-        };
-        backButton.add(new VisibleEnableBehaviour(){
-           public boolean isVisible(){
-               PageParameters params = PageImportObject.this.getPageParameters();
-               if (params != null){
-                   if (params.get(FROM_MENU_ITEM_PARAM) != null &&
-                           !params.get(FROM_MENU_ITEM_PARAM).isNull() &&
-                           params.get(FROM_MENU_ITEM_PARAM).toString().equals(FROM_MENU_ITEM_PARAM_TRUE_VALUE)){
-                       return false;
-                   }
-               }
-               return true;
-           }
-        });
-        buttonBar.add(backButton);
+		};
+		backButton.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return canRedirectBack();
+			}
+		});
+		buttonBar.add(backButton);
 
 		AjaxSubmitButton saveFileButton = new AjaxSubmitButton(ID_IMPORT_FILE_BUTTON,
 				createStringResource("PageImportObject.button.import")) {

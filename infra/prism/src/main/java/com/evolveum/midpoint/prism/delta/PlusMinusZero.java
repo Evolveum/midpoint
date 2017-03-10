@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 /**
- * Simple enumaration that refers to the plus, minus or zero concepts
+ * Simple enumeration that refers to the plus, minus or zero concepts
  * used in delta set triples.
  * 
  * @author Radovan Semancik

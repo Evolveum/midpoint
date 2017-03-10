@@ -715,7 +715,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * efficient, taking the resource from the cache. It assumes the resource is
 	 * in the cache.
 	 *
-	 * @see SyncContext#rememberResource(ResourceType)
+	 * @see LensContext#rememberResource(ResourceType)
 	 */
 	public ResourceType getResource(ResourceShadowDiscriminator rat) {
 		return getResource(rat.getResourceOid());
@@ -726,7 +726,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * efficient, taking the resource from the cache. It assumes the resource is
 	 * in the cache.
 	 *
-	 * @see SyncContext#rememberResource(ResourceType)
+	 * @see LensContext#rememberResource(ResourceType)
 	 */
 	public ResourceType getResource(String resourceOid) {
 		return getResourceCache().get(resourceOid);

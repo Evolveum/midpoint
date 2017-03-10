@@ -37,22 +37,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  *
  */
 public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
-	
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+
+	final ObjectType source;
+	final String sourceDescription;
+	private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+	private final boolean isAssignment;			// false means inducement
 	private QName relation;
 	private ObjectType target;
-	private ObjectType source;
+	private boolean pathToSourceValid;			// is the whole path to source valid?
 	private boolean validityOverride = false;
 	private EvaluationOrder evaluationOrder;
 	private ObjectType varThisObject;
 	private Boolean isMatchingOrder = null;
 	private Boolean isMatchingOrderPlusOne = null;
 	private boolean processMembership = false;
-	private final boolean isAssignment;
-	
-	AssignmentPathSegmentImpl(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-	                          boolean isAssignment) {
-		super();
+
+	AssignmentPathSegmentImpl(ObjectType source, String sourceDescription,
+			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+			boolean isAssignment) {
+		this.source = source;
+		this.sourceDescription = sourceDescription;
 		this.assignmentIdi = assignmentIdi;
 		this.isAssignment = isAssignment;
 	}
@@ -72,10 +76,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			return null;
 		}
 		return ((PrismContainer<AssignmentType>) assignmentIdi.getItemNew()).getValue().asContainerable();
-	}
-
-	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
-		this.assignmentIdi = assignmentIdi;
 	}
 
 	@Override
@@ -101,10 +101,18 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return source;
 	}
 
-	public void setSource(ObjectType source) {
-		this.source = source;
+	public String getSourceDescription() {
+		return sourceDescription;
 	}
-	
+
+	public boolean isPathToSourceValid() {
+		return pathToSourceValid;
+	}
+
+	public void setPathToSourceValid(boolean pathToSourceValid) {
+		this.pathToSourceValid = pathToSourceValid;
+	}
+
 	public boolean isValidityOverride() {
 		return validityOverride;
 	}

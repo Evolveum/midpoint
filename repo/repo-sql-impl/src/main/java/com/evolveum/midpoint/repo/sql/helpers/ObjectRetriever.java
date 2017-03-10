@@ -34,7 +34,6 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
@@ -339,13 +338,8 @@ public class ObjectRetriever {
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 RQuery rQuery;
-                if (isUseNewQueryInterpreter(query)) {
-                    QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
-                    rQuery = engine.interpret(query, type, options, true, session);
-                } else {
-                    QueryEngine engine = new QueryEngine(getConfiguration(), prismContext);
-                    rQuery = engine.interpret(query, type, null, true, session);
-                }
+				QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+				rQuery = engine.interpret(query, type, options, true, session);
 
                 longCount = (Number) rQuery.uniqueResult();
             }
@@ -362,7 +356,7 @@ public class ObjectRetriever {
         return count;
     }
 
-
+	@NotNull
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
                                                                                         Collection<SelectorOptions<GetOperationOptions>> options,
                                                                                         OperationResult result) throws SchemaException {
@@ -372,13 +366,8 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
 
-            if (isUseNewQueryInterpreter(query)) {
-                QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
-                rQuery = engine.interpret(query, type, options, false, session);
-            } else {
-                QueryEngine engine = new QueryEngine(getConfiguration(), prismContext);
-                rQuery = engine.interpret(query, type, options, false, session);
-            }
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			rQuery = engine.interpret(query, type, options, false, session);
 
             List<GetObjectResult> queryResult = rQuery.list();
             LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(queryResult != null ? queryResult.size() : 0)});
@@ -652,13 +641,8 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
-            if (isUseNewQueryInterpreter(query)) {
-                QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
-                rQuery = engine.interpret(query, type, options, false, session);
-            } else {
-                QueryEngine engine = new QueryEngine(getConfiguration(), prismContext);
-                rQuery = engine.interpret(query, type, options, false, session);
-            }
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			rQuery = engine.interpret(query, type, options, false, session);
 
             ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);
             try {

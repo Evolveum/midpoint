@@ -34,14 +34,17 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	public static EvaluationOrder ZERO = createZero();
 	public static EvaluationOrder ONE = ZERO.advance();
 
-	static EvaluationOrderImpl createZero() {
+	private int summaryOrder = 0;
+	private HashMap<QName,Integer> orderMap = new HashMap<>();
+
+	private EvaluationOrderImpl() {
+	}
+
+	private static EvaluationOrderImpl createZero() {
 		EvaluationOrderImpl eo = new EvaluationOrderImpl();
 		eo.orderMap.put(null, 0);
 		return eo;
 	}
-
-	private int summaryOrder = 0;
-	private HashMap<QName,Integer> orderMap = new HashMap<>();
 
 	@Override
 	public int getSummaryOrder() {
@@ -55,25 +58,25 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	
 	@Override
 	public EvaluationOrder advance(QName relation) {
-		EvaluationOrderImpl adeo = new EvaluationOrderImpl();
+		EvaluationOrderImpl advanced = new EvaluationOrderImpl();
 		boolean found = false;
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
 			if (QNameUtil.match(entry.getKey(), relation)) {
-				adeo.orderMap.put(entry.getKey(), entry.getValue() + 1);
+				advanced.orderMap.put(entry.getKey(), entry.getValue() + 1);
 				found = true;
 			} else {
-				adeo.orderMap.put(entry.getKey(), entry.getValue());
+				advanced.orderMap.put(entry.getKey(), entry.getValue());
 			}
 		}
 		if (!found) {
-			adeo.orderMap.put(relation, 1);
+			advanced.orderMap.put(relation, 1);
 		}
 		if (DeputyUtils.isDelegationRelation(relation)) {
-			adeo.summaryOrder = this.summaryOrder;
+			advanced.summaryOrder = this.summaryOrder;
 		} else {
-			adeo.summaryOrder = this.summaryOrder + 1;
+			advanced.summaryOrder = this.summaryOrder + 1;
 		}
-		return adeo;
+		return advanced;
 	}
 	
 	@Override

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -96,19 +97,22 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
      * @param path ItemPath to resolve. Non-empty!
      * @param itemDefinition Definition of the final path segment, if it's "any" property.
      * @param type Type of definition to be found
+     * @param prismContext
      * @return
      *
      * If successful, returns correct definition + empty path.
      * If unsuccessful, return null.
      */
-    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path, ItemDefinition itemDefinition, Class<D> type) throws QueryException {
-        return findDataNodeDefinition(path, itemDefinition, type, null);
+    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
+            ItemDefinition itemDefinition, Class<D> type, PrismContext prismContext) throws QueryException {
+        return findDataNodeDefinition(path, itemDefinition, type, null, prismContext);
     }
 
-    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path, ItemDefinition itemDefinition, Class<D> type, LinkDefinitionHandler handler) throws QueryException {
+    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
+            ItemDefinition itemDefinition, Class<D> type, LinkDefinitionHandler handler, PrismContext prismContext) throws QueryException {
         JpaDataNodeDefinition currentDefinition = this;
         for (;;) {
-            DataSearchResult<JpaDataNodeDefinition> result = currentDefinition.nextLinkDefinition(path, itemDefinition);
+            DataSearchResult<JpaDataNodeDefinition> result = currentDefinition.nextLinkDefinition(path, itemDefinition, prismContext);
             if (result == null) {   // oops
                 return null;
             }
@@ -140,7 +144,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     }
 
     @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) throws QueryException {
+    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) throws QueryException {
 
         if (ItemPath.isNullOrEmpty(path)) {     // doesn't fulfill precondition
             return null;

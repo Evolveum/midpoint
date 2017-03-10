@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import javax.xml.namespace.QName;
+
 /**
  * Primarily for enums. (Experimental.)
  *
@@ -25,4 +27,11 @@ package com.evolveum.midpoint.prism;
  */
 public interface SimpleTypeDefinition extends TypeDefinition {
 
+	enum DerivationMethod {
+		EXTENSION, RESTRICTION, SUBSTITUTION
+	}
+
+	QName getBaseTypeName();
+
+	DerivationMethod getDerivationMethod();
 }

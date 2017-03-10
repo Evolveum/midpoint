@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.resolution;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
@@ -81,7 +82,7 @@ public class ItemPathResolver {
 
         while (!currentState.isFinal()) {
             LOGGER.trace("Current resolution state:\n{}", currentState.debugDumpNoParent());
-            currentState = currentState.nextState(itemDefinition, singletonOnly);
+            currentState = currentState.nextState(itemDefinition, singletonOnly, context.getPrismContext());
         }
 
         LOGGER.trace("resolveItemPath({}) ending in resolution state of:\n{}", relativePath, currentState.debugDump());
@@ -202,17 +203,18 @@ public class ItemPathResolver {
      * @param path Path to be found (non-empty!)
      * @param itemDefinition Definition of target property, required/used only for "any" properties
      * @param clazz Kind of definition to be looked for
+     * @param prismContext
      * @return Entity type definition + item definition, or null if nothing was found
      */
     public <T extends JpaDataNodeDefinition>
     ProperDataSearchResult<T> findProperDataDefinition(JpaEntityDefinition baseEntityDefinition,
-                                                       ItemPath path, ItemDefinition itemDefinition,
-                                                       Class<T> clazz) throws QueryException {
+            ItemPath path, ItemDefinition itemDefinition,
+            Class<T> clazz, PrismContext prismContext) throws QueryException {
         QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
         ProperDataSearchResult<T> candidateResult = null;
 
         for (JpaEntityDefinition entityDefinition : findPossibleBaseEntities(baseEntityDefinition, registry)) {
-            DataSearchResult<T> result = entityDefinition.findDataNodeDefinition(path, itemDefinition, clazz);
+            DataSearchResult<T> result = entityDefinition.findDataNodeDefinition(path, itemDefinition, clazz, prismContext);
             if (result != null) {
                 if (candidateResult == null) {
                     candidateResult = new ProperDataSearchResult<>(entityDefinition, result);
