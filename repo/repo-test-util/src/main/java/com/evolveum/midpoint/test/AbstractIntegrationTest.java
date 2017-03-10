@@ -208,6 +208,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			
 			initSystem(initTask, result);
 			
+			postInitSystem(initTask, result);
+			
 			result.computeStatus();
 			IntegrationTestTools.display("initSystem result", result);
 			TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
@@ -230,6 +232,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
 
+	/**
+	 * May be used to clean up initialized objects as all of the initialized objects should be
+	 * available at this time.
+	 */
+	protected void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
+		// Nothing to do by default
+	};
+	
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		return repoAddObjectFromFile(new File(filePath), parentResult);

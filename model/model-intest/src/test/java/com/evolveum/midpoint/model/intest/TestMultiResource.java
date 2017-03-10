@@ -1523,7 +1523,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyYellow);
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject(RESOURCE_DUMMY_YELLOW_NAME));
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);

@@ -94,10 +94,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	public static final File TEST_DIR = new File("src/test/resources/preview");
 
 	// YELLOW dummy resource has a STRICT dependency on default dummy resource
-	protected static final File RESOURCE_DUMMY_YELLOW_FILE = new File(TEST_DIR, "resource-dummy-yellow.xml");
-	protected static final String RESOURCE_DUMMY_YELLOW_OID = "10000000-0000-0000-0000-000000000504";
-	protected static final String RESOURCE_DUMMY_YELLOW_NAME = "yellow";
-	protected static final String RESOURCE_DUMMY_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
+	protected static final File RESOURCE_DUMMY_LEMON_FILE = new File(TEST_DIR, "resource-dummy-lemon.xml");
+	protected static final String RESOURCE_DUMMY_LEMON_OID = "10000000-0000-0000-0000-000000000504";
+	protected static final String RESOURCE_DUMMY_LEMON_NAME = "lemon";
+	protected static final String RESOURCE_DUMMY_LEMON_NAMESPACE = MidPointConstants.NS_RI;
 
 	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
 	private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
@@ -110,12 +110,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		dummyResourceCtlYellow = DummyResourceContoller.create(RESOURCE_DUMMY_YELLOW_NAME, resourceDummyYellow);
-		dummyResourceCtlYellow.extendSchemaPirate();
-		dummyResourceYellow = dummyResourceCtlYellow.getDummyResource();
-		resourceDummyYellow = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_YELLOW_FILE, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
-		resourceDummyYellowType = resourceDummyYellow.asObjectable();
-		dummyResourceCtlYellow.setResource(resourceDummyYellow);
+		initDummyResourcePirate(RESOURCE_DUMMY_LEMON_NAME, 
+				RESOURCE_DUMMY_LEMON_FILE, RESOURCE_DUMMY_LEMON_OID, initTask, initResult);
 	}
 
 	@Test
@@ -1347,16 +1343,16 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		// administrativeStatus (ENABLED), enableTimestamp, ship (from organizationalUnit), name, gossip, water, iteration, iterationToken, password/value
 		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
-				getAttributePath(resourceDummyYellow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
 				"The crew of The Sea Monkey");
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
 				new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
 				"rogers");
 		PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
-				getAttributePath(resourceDummyYellow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
 				"Rum Rogers Sr. must be the best pirate the  has ever seen");
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
-				getAttributePath(resourceDummyYellow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME),
 				"pirate Rum Rogers Sr. drinks only rum!");
 	}
 	
