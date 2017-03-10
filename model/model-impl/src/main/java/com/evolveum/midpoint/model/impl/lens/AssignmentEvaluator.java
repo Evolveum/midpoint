@@ -698,15 +698,24 @@ public class AssignmentEvaluator<F extends FocusType> {
 				roleInducementIdi.recompute();
 				String subSourceDescription = targetType+" in "+segment.sourceDescription;
 				AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, roleInducementIdi, false);
-//				EvaluationOrder newEvaluationOrder = evaluationOrder;
-//				if (roleInducement.getOrder() != null && roleInducement.getOrder() > 1) {
-//					newEvaluationOrder = evaluationOrder.decrease(roleInducement.getOrder()-1);		// TODO UGLY HACK
-//				}
-//				subAssignmentPathSegment.setEvaluationOrder(newEvaluationOrder);
-				subAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
+
+				boolean newIsMatchingOrder = AssignmentPathSegmentImpl.computeMatchingOrder(
+						subAssignmentPathSegment.getAssignment(), evaluationOrder, 0);
+				boolean newIsMatchingOrderPlusOne = AssignmentPathSegmentImpl.computeMatchingOrder(
+						subAssignmentPathSegment.getAssignment(), evaluationOrder, 1);
+
+				EvaluationOrder newEvaluationOrder;
+				if (roleInducement.getOrder() != null && roleInducement.getOrder() > 1) {
+					newEvaluationOrder = evaluationOrder.decrease(roleInducement.getOrder()-1);		// TODO what about relations?
+				} else {
+					newEvaluationOrder = evaluationOrder;
+				}
+				// TODO undefined if intervals
+				subAssignmentPathSegment.setEvaluationOrder(newEvaluationOrder, newIsMatchingOrder, newIsMatchingOrderPlusOne);
+
 				subAssignmentPathSegment.setOrderOneObject(orderOneObject);
 				subAssignmentPathSegment.setPathToSourceValid(isValid);
-				subAssignmentPathSegment.setProcessMembership(subAssignmentPathSegment.isMatchingOrder());
+				subAssignmentPathSegment.setProcessMembership(newIsMatchingOrder);
 
 				// Originally we executed the following only if isMatchingOrder. However, sometimes we have to look even into
 				// inducements with non-matching order: for example because we need to extract target-related policy rules
@@ -715,9 +724,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 				// We need to make sure NOT to extract anything other from such inducements. That's why we set e.g.
 				// processMembership attribute to false for these inducements.
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("orig E({}): evaluate {} inducement({}) {} (new-disabled EO {})",
+					LOGGER.trace("orig EO({}): evaluate {} inducement({}) {}; new EO({})",
 							evaluationOrder.shortDump(), targetType, FocusTypeUtil.dumpInducementConstraints(roleInducement),
-							FocusTypeUtil.dumpAssignment(roleInducement), evaluationOrder.shortDump());
+							FocusTypeUtil.dumpAssignment(roleInducement), newEvaluationOrder.shortDump());
 				}
 				assert !ctx.assignmentPath.isEmpty();
 				evaluateFromSegment(subAssignmentPathSegment, mode, ctx);
@@ -738,7 +747,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			QName subrelation = getRelation(roleAssignment);
 			EvaluationOrder newEvaluationOrder = evaluationOrder.advance(subrelation);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("orig EO {}: follow assignment {} {} (new EO {})",
+				LOGGER.trace("orig EO({}): follow assignment {} {}; new EO({})",
 						evaluationOrder.shortDump(), targetType, FocusTypeUtil.dumpAssignment(roleAssignment), newEvaluationOrder);
 			}
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();

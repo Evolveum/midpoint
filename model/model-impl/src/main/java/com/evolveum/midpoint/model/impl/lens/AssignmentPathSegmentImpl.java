@@ -90,8 +90,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  resulting order as previous - (N-1), where N is the order of the inducement (unspecified means 1). For the latter
 	 *  we consider the resulting order as undefined.
 	 *
-	 *  NOTE this is not consistent with the current implementation.
-	 *
 	 *  TODO relations
 	 *
 	 *  Special consideration must be given when collecting target policy rules, i.e. rules that are attached to
@@ -197,7 +195,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	}
 
 	public void setEvaluationOrder(EvaluationOrder evaluationOrder) {
+		setEvaluationOrder(evaluationOrder, null, null);
+	}
+
+	public void setEvaluationOrder(EvaluationOrder evaluationOrder, Boolean matchingOrder, Boolean matchingOrderPlusOne) {
 		this.evaluationOrder = evaluationOrder;
+		this.isMatchingOrder = matchingOrder;
+		this.isMatchingOrderPlusOne = matchingOrderPlusOne;
 	}
 
 	public ObjectType getOrderOneObject() {
@@ -222,20 +226,19 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 */
 	public boolean isMatchingOrder() {
 		if (isMatchingOrder == null) {
-			isMatchingOrder = computeMatchingOrder(0);
+			isMatchingOrder = computeMatchingOrder(getAssignment(), evaluationOrder, 0);
 		}
 		return isMatchingOrder;
 	}
 	
 	public boolean isMatchingOrderPlusOne() {
 		if (isMatchingOrderPlusOne == null) {
-			isMatchingOrderPlusOne = computeMatchingOrder(1);
+			isMatchingOrderPlusOne = computeMatchingOrder(getAssignment(), evaluationOrder, 1);
 		}
 		return isMatchingOrderPlusOne;
 	}
 
-	private boolean computeMatchingOrder(int offset) {
-		AssignmentType assignmentType = getAssignment();
+	static boolean computeMatchingOrder(AssignmentType assignmentType, EvaluationOrder evaluationOrder, int offset) {
 		boolean rv;
 		if (assignmentType.getOrder() == null && assignmentType.getOrderConstraint().isEmpty()) {
 			// compatibility
@@ -248,7 +251,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 				}
 			}
 			for (OrderConstraintsType orderConstraint : assignmentType.getOrderConstraint()) {
-				if (!isMatchingConstraint(orderConstraint, offset)) {
+				if (!isMatchingConstraint(orderConstraint, evaluationOrder, offset)) {
 					rv = false;
 					break;
 				}
@@ -259,7 +262,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return rv;
 	}
 
-	private boolean isMatchingConstraint(OrderConstraintsType orderConstraint, int offset) {
+	private static boolean isMatchingConstraint(OrderConstraintsType orderConstraint, EvaluationOrder evaluationOrder, int offset) {
 		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation()) - offset;
 		if (orderConstraint.getOrder() != null) {
 			return orderConstraint.getOrder() == evaluationOrderInt;
