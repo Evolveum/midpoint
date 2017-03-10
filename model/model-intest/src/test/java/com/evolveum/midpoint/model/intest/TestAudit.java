@@ -141,7 +141,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        initialTs = clock.currentTimeXMLGregorianCalendar();
+        initialTs = getTimeSafely();
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -153,12 +153,12 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        jackKidTs = clock.currentTimeXMLGregorianCalendar();
+        jackKidTs = getTimeSafely();
         jackKidEid = assertObjectAuditRecords(USER_JACK_OID, 2);
         assertRecordsFromInitial(jackKidTs, 2);
     }
-    
-    /**
+
+	/**
      * Let's interlace the history of two objects. So we make sure that the filtering
      * in the time machine works well.
      */
@@ -174,7 +174,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         userHermanBefore.asObjectable().setDescription("Unknown");
         userHermanBefore.asObjectable().setNickName(createPolyStringType("HT"));
         
-        hermanInitialTs = clock.currentTimeXMLGregorianCalendar();
+        hermanInitialTs = getTimeSafely();
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -189,7 +189,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (created)", user);
         
-        hermanCreatedTs = clock.currentTimeXMLGregorianCalendar();
+        hermanCreatedTs = getTimeSafely();
         hermanCreatedEid = assertObjectAuditRecords(USER_HERMAN_OID, 2);
         assertRecordsFromInitial(hermanCreatedTs, 4);
     }
@@ -219,7 +219,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        jackSailorTs = clock.currentTimeXMLGregorianCalendar();
+        jackSailorTs = getTimeSafely();
         jackSailorEid = assertObjectAuditRecords(USER_JACK_OID, 4);
         
         assertRecordsFromPrevious(hermanCreatedTs, jackSailorTs, 2);
@@ -253,7 +253,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (marooned)", user);
         
-        hermanMaroonedTs = clock.currentTimeXMLGregorianCalendar();
+        hermanMaroonedTs = getTimeSafely();
         hermanMaroonedEid = assertObjectAuditRecords(USER_HERMAN_OID, 4);
         assertRecordsFromInitial(hermanMaroonedTs, 8);        
     }
@@ -283,7 +283,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        jackCaptainTs = clock.currentTimeXMLGregorianCalendar();
+        jackCaptainTs = getTimeSafely();
         jackCaptainEid = assertObjectAuditRecords(USER_JACK_OID, 6);
         
         assertRecordsFromPrevious(hermanMaroonedTs, jackCaptainTs, 2);
@@ -324,7 +324,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (hermit)", user);
         
-        hermanHermitTs = clock.currentTimeXMLGregorianCalendar();
+        hermanHermitTs = getTimeSafely();
         hermanHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 6);
         assertRecordsFromInitial(hermanHermitTs, 12);        
     }
@@ -357,7 +357,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (civilised hermit)", user);
         
-        hermanCivilisedHermitTs = clock.currentTimeXMLGregorianCalendar();
+        hermanCivilisedHermitTs = getTimeSafely();
         hermanCivilisedHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 8);
         assertRecordsFromInitial(hermanCivilisedHermitTs, 14);        
     }
@@ -713,6 +713,25 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		}
 
 		// TODO check audit correctness
+	}
+
+	// If a timestamp is retrieved at the same time an operation started/finished, wrong results might be assumed
+	// (audit record could be mistakenly included in the time interval bounded by the timestamp).
+	// As I am currently too lazy to think out all possible failure modes, the safest way is to separate
+	// timestamp retrieval from any audited actions by small amount of time.
+	private XMLGregorianCalendar getTimeSafely() {
+		sleep(50);
+		XMLGregorianCalendar time = clock.currentTimeXMLGregorianCalendar();
+		sleep(50);
+		return time;
+	}
+
+	private void sleep(long millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException e) {
+			// no problem here
+		}
 	}
 
 }

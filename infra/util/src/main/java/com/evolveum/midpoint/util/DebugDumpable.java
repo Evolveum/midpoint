@@ -38,5 +38,8 @@ public interface DebugDumpable {
 	}
 	
 	String debugDump(int indent);
-	
+
+	default Object debugDumpLazily() {
+		return DebugUtil.debugDumpLazily(this);
+	}
 }

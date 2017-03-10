@@ -41,6 +41,10 @@ public interface AssignmentPath extends DebugDumpable {
 
 	AssignmentPathSegment last();
 
+	// beforeLast(0) means last()
+	// beforeLast(1) means one before last()
+	AssignmentPathSegment beforeLast(int n);
+
 	boolean containsTarget(ObjectType target);
 
 	/**

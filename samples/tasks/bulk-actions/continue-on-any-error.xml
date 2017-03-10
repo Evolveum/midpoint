@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,43 +14,33 @@
   ~ limitations under the License.
   -->
 
-<c:task xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-	<c:name>Execute send notifications on objects 1 to 0</c:name>
+<c:task xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<c:name>Execute execute script on objects 1 to 0</c:name>
 	<c:extension>
 		<scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
 			<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
 				<s:expression xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:SearchExpressionType">
-					<s:type>UserType</s:type>
+					<s:type>RoleType</s:type>
 				</s:expression>
 				<s:expression xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="s:ActionExpressionType">
-					<s:type>notify</s:type>
+					<s:type>execute-script</s:type>
 					<s:parameter>
-						<s:name>subtype</s:name>
-						<c:value xsi:type="xsd:string">type1</c:value>
-					</s:parameter>
-					<s:parameter>
-						<s:name>handler</s:name>
-						<c:value xsi:type="c:EventHandlerType">
-							<c:generalNotifier>
-								<c:recipientExpression>
-									<c:value>recipient@evolveum.com</c:value>
-								</c:recipientExpression>
-								<c:bodyExpression>
-									<c:script>	<!-- currently, event.object is PrismObjectValue - this should be changed e.g. to ObjectType -->
-										<c:language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</c:language>
-										<c:code>event.object is '$event.object.asObjectable().name' with OID of $event.object.oid</c:code>
-									</c:script>
-								</c:bodyExpression>
-								<c:transport>mail</c:transport>
-							</c:generalNotifier>
+						<s:name>script</s:name>
+						<c:value xsi:type="c:ScriptExpressionEvaluatorType">
+							<c:code>
+								log.info('{}', input.name)
+								throw new IllegalStateException("custom exception for " + input.name)
+							</c:code>
 						</c:value>
 					</s:parameter>
-					<!-- Other parameters: forWholeInput, status, operation -->
 				</s:expression>
 			</s:pipeline>
+			<options>
+				<continueOnAnyError>true</continueOnAnyError>
+			</options>
 		</scext:executeScript>
 	</c:extension>
-	<c:taskIdentifier>1474665896757:987750751</c:taskIdentifier>
+	<c:taskIdentifier>1489138077377:388680045</c:taskIdentifier>
 	<c:ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<c:executionStatus>runnable</c:executionStatus>
 	<c:category>BulkActions</c:category>

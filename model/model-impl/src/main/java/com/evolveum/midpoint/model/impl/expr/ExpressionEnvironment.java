@@ -33,18 +33,15 @@ public class ExpressionEnvironment<F extends ObjectType> {
 	private Task currentTask;
 
 	public ExpressionEnvironment() {
-		super();
 	}
 
 	public ExpressionEnvironment(Task currentTask, OperationResult currentResult) {
-		super();
 		this.currentResult = currentResult;
 		this.currentTask = currentTask;
 	}
 
 	public ExpressionEnvironment(LensContext<F> lensContext, LensProjectionContext projectionContext,
 			Task currentTask, OperationResult currentResult) {
-		super();
 		this.lensContext = lensContext;
 		this.projectionContext = projectionContext;
 		this.currentResult = currentResult;

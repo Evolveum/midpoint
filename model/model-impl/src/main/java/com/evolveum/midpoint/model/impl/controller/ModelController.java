@@ -71,6 +71,7 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
@@ -2042,6 +2043,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     //endregion
 
     //region Scripting (bulk actions)
+	@Deprecated
     @Override
     public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
         checkScriptingAuthorization(parentResult);
@@ -2058,6 +2060,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException, SchemaException, SecurityViolationException {
         checkScriptingAuthorization(result);
         ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
+        return executionContext.toExecutionResult();
+    }
+
+    @Override
+    public ScriptExecutionResult evaluateExpression(ExecuteScriptType scriptExecutionCommand, Task task, OperationResult result)
+			throws ScriptExecutionException, SchemaException, SecurityViolationException {
+        checkScriptingAuthorization(result);
+        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, task, result);
         return executionContext.toExecutionResult();
     }
 

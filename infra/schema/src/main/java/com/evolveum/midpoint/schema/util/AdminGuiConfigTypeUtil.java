@@ -18,11 +18,10 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author semancik
@@ -85,6 +84,17 @@ public class AdminGuiConfigTypeUtil {
 			} else {
 				for (DashboardWidgetType widget: adminGuiConfiguration.getUserDashboard().getWidget()) {
 					mergeWidget(composite.getUserDashboard(), widget);
+				}
+			}
+		}
+		if (composite.getObjectLists() != null && composite.getObjectLists().getObjectList() != null){
+			for (GuiObjectListType objectListType : composite.getObjectLists().getObjectList()){
+				if (objectListType.getColumn() != null) {
+//					objectListType.getColumn().clear();
+//					objectListType.getColumn().addAll(orderCustomColumns(objectListType.getColumn()));
+					List<GuiObjectColumnType> orderedList = orderCustomColumns(objectListType.getColumn());
+					objectListType.getColumn().clear();
+					objectListType.getColumn().addAll(orderedList);
 				}
 			}
 		}
@@ -158,10 +168,58 @@ public class AdminGuiConfigTypeUtil {
 		return null;
 	}
 
-	public static List<GuiObjectColumnType> getOrderedCustomColumns(List<GuiObjectColumnType> customColumns){
-		List<GuiObjectColumnType> orderedCustomColumns = new ArrayList<>();
+	/*
+	the ordering algorithm is: the first level is occupied by
+	the column which previousColumn == null || "" || notExistingColumnNameValue.
+	Each next level contains columns which
+	previousColumn == columnNameFromPreviousLevel
+	 */
+	public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
+		if (customColumns == null || customColumns.size() == 0){
+			return new ArrayList<>();
+		}
+		List<GuiObjectColumnType> customColumnsList = new ArrayList<>();
+		customColumnsList.addAll(customColumns);
+		List<String> previousColumnValues = new ArrayList<>();
+		previousColumnValues.add(null);
+		previousColumnValues.add("");
 
-		return orderedCustomColumns;
+		Map<String, String> columnRefsMap = new HashedMap();
+		for (GuiObjectColumnType column : customColumns){
+			columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
+		}
+
+		List<String> temp = new ArrayList<> ();
+		int index = 0;
+		while (index < customColumns.size()){
+			int sortFrom = index;
+			for (int i = index; i < customColumnsList.size(); i++){
+				GuiObjectColumnType column = customColumnsList.get(i);
+				if (previousColumnValues.contains(column.getPreviousColumn()) ||
+						!columnRefsMap.containsKey(column.getPreviousColumn())){
+					Collections.swap(customColumnsList, index, i);
+					index++;
+					temp.add(column.getName());
+				}
+			}
+			if (temp.size() == 0){
+				temp.add(customColumnsList.get(index).getName());
+				index++;
+			}
+			if (index - sortFrom > 1){
+				Collections.sort(customColumnsList.subList(sortFrom, index - 1), new Comparator<GuiObjectColumnType>() {
+
+					@Override
+					public int compare(GuiObjectColumnType o1, GuiObjectColumnType o2) {
+						return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
+					}
+				});
+			}
+			previousColumnValues.clear();
+			previousColumnValues.addAll(temp);
+			temp.clear();
+		}
+		return customColumnsList;
 	}
 
 }

@@ -56,14 +56,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	@NotNull private final DeltaSetTriple<Construction<F>> constructions = new DeltaSetTriple<>();
 	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
 	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
 	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
-	@NotNull private final Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings = new ArrayList<>();
+	@NotNull private final Collection<Mapping<?,?>> focusMappings = new ArrayList<>();
 	@NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();	// rules related to the focus itself
 	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules = new ArrayList<>();	// rules related to the target of this assignment
@@ -78,14 +78,16 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private boolean presentInOldObject;
 	private Collection<String> policySituations = new ArrayList<>();
 
+	public EvaluatedAssignmentImpl(
+			@NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi) {
+		this.assignmentIdi = assignmentIdi;
+	}
+
+	@NotNull
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
 		return assignmentIdi;
 	}
 
-	public void setAssignmentIdi(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi) {
-		this.assignmentIdi = assignmentIdi;
-	}
-	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAssignmentType()
 	 */
@@ -214,7 +216,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	public Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> getFocusMappings() {
+	public Collection<Mapping<?,?>> getFocusMappings() {
 		return focusMappings;
 	}
 
@@ -418,7 +420,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		if (!focusMappings.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Focus Mappings", indent+1);
-			for (PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping: focusMappings) {
+			for (PrismValueDeltaSetTripleProducer<?,?> mapping: focusMappings) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);
 				sb.append(mapping.toString());

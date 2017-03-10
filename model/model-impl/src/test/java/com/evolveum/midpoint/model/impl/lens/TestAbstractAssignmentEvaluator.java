@@ -200,11 +200,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
 		user.asObjectable().getAssignment().add(assignmentType.clone());
 
-//		// We need to make sure that the assignment has a parent
-//		PrismContainerDefinition<AssignmentType> assignmentContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-//		PrismContainer<AssignmentType> assignmentContainer = assignmentContainerDefinition.instantiate();
-//		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
-		
 		ItemPath path = new ItemPath(
 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
 				new IdItemPathSegment(123L),
@@ -927,18 +922,24 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 	}
 	
 	protected AssignmentEvaluator<UserType> createAssignmentEvaluator(ObjectDeltaObject<UserType> focusOdo) throws ObjectNotFoundException, SchemaException {
-		AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator<>();
-		assignmentEvaluator.setRepository(repositoryService);
-		assignmentEvaluator.setFocusOdo(focusOdo);
-		assignmentEvaluator.setObjectResolver(objectResolver);
-		assignmentEvaluator.setSystemObjectCache(systemObjectCache);
-		assignmentEvaluator.setPrismContext(prismContext);
-		assignmentEvaluator.setActivationComputer(activationComputer);
-		assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
-		assignmentEvaluator.setMappingFactory(mappingFactory);
-		assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
-		// Fake
-		assignmentEvaluator.setLensContext(new LensContext<>(UserType.class, prismContext, provisioningService));
-		return assignmentEvaluator;
+		LensContext<UserType> lensContext = createLensContext(UserType.class);
+		LensFocusContext<UserType> focusContext = lensContext.getOrCreateFocusContext();
+		focusContext.setObjectOld(focusOdo.getOldObject());
+		focusContext.setPrimaryDelta(focusOdo.getObjectDelta());
+		focusContext.setObjectCurrent(focusOdo.getOldObject());
+		focusContext.setObjectNew(focusOdo.getNewObject());
+
+		return new AssignmentEvaluator.Builder<UserType>()
+				.repository(repositoryService)
+				.focusOdo(focusOdo)
+				.objectResolver(objectResolver)
+				.systemObjectCache(systemObjectCache)
+				.prismContext(prismContext)
+				.activationComputer(activationComputer)
+				.now(clock.currentTimeXMLGregorianCalendar())
+				.mappingFactory(mappingFactory)
+				.mappingEvaluator(mappingEvaluator)
+				.lensContext(lensContext)
+				.build();
 	}
 }

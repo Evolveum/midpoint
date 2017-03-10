@@ -18,10 +18,12 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -85,15 +87,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Assignment processor is recomputing user assignments. It recomputes all the assignments whether they are direct
@@ -905,10 +898,10 @@ public class AssignmentProcessor {
 			}
 		}
         // for zero and minus sets we check isForceRecon for all non-construction-related assignments (MID-2242)
+		// TODO why "non-construction-related" ones only?
         if (!forceRecon) {
             for (EvaluatedAssignmentImpl assignment: evaluatedAssignmentTriple.getNonPositiveValues()) {
-                if (assignment.isForceRecon() &&
-                        (assignment.getConstructions() == null || assignment.getConstructions().isEmpty())) {
+                if (assignment.isForceRecon() && assignment.getConstructions().isEmpty()) {
                     forceRecon = true;
                     break;
                 }
@@ -1198,20 +1191,20 @@ public class AssignmentProcessor {
 	
 	private <F extends FocusType> AssignmentEvaluator<F> createAssignmentEvaluator(LensContext<F> context,
 			XMLGregorianCalendar now) throws SchemaException {
-		AssignmentEvaluator<F> assignmentEvaluator = new AssignmentEvaluator<>();
-        assignmentEvaluator.setRepository(repositoryService);
-        assignmentEvaluator.setFocusOdo(context.getFocusContext().getObjectDeltaObject());
-        assignmentEvaluator.setLensContext(context);
-        assignmentEvaluator.setChannel(context.getChannel());
-        assignmentEvaluator.setObjectResolver(objectResolver);
-        assignmentEvaluator.setSystemObjectCache(systemObjectCache);
-        assignmentEvaluator.setPrismContext(prismContext);
-        assignmentEvaluator.setMappingFactory(mappingFactory);
-        assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
-        assignmentEvaluator.setActivationComputer(activationComputer);
-        assignmentEvaluator.setNow(now);
-        assignmentEvaluator.setSystemConfiguration(context.getSystemConfiguration());
-        return assignmentEvaluator;
+		return new AssignmentEvaluator.Builder<F>()
+				.repository(repositoryService)
+				.focusOdo(context.getFocusContext().getObjectDeltaObject())
+				.lensContext(context)
+				.channel(context.getChannel())
+				.objectResolver(objectResolver)
+				.systemObjectCache(systemObjectCache)
+				.prismContext(prismContext)
+				.mappingFactory(mappingFactory)
+				.mappingEvaluator(mappingEvaluator)
+				.activationComputer(activationComputer)
+				.now(now)
+				.systemConfiguration(context.getSystemConfiguration())
+				.build();
 	}
 	
 }
