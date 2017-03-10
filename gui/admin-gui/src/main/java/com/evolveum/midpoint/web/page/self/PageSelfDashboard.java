@@ -139,7 +139,8 @@ public class PageSelfDashboard extends PageSelf {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
-                return isWidgetVisible(PredefinedDashboardWidgetId.SEARCH, searchPanelActions);
+                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
+                return WebComponentUtil.getElementVisibility(visibilityType, searchPanelActions);
             }
         });
         add(dashboardSearchPanel);
@@ -149,7 +150,8 @@ public class PageSelfDashboard extends PageSelf {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
-                return isWidgetVisible(PredefinedDashboardWidgetId.SHORTCUTS);
+                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
+                return WebComponentUtil.getElementVisibility(visibilityType);
             }
         });
         add(linksPanel);
@@ -195,7 +197,8 @@ public class PageSelfDashboard extends PageSelf {
         workItemsPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return getWorkflowManager().isEnabled() && isWidgetVisible(PredefinedDashboardWidgetId.MY_WORKITEMS);
+                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_WORKITEMS);
+                return getWorkflowManager().isEnabled() && WebComponentUtil.getElementVisibility(visibilityType);
             }
         });
         add(workItemsPanel);
@@ -237,7 +240,9 @@ public class PageSelfDashboard extends PageSelf {
         	
             @Override
             public boolean isVisible() {
-                return getWorkflowManager().isEnabled() && isWidgetVisible(PredefinedDashboardWidgetId.MY_REQUESTS);
+                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_REQUESTS);
+                return getWorkflowManager().isEnabled() && WebComponentUtil.getElementVisibility(visibilityType);
+
             }
         });
         add(myRequestsPanel);
@@ -398,7 +403,8 @@ public class PageSelfDashboard extends PageSelf {
 
             @Override
             public boolean isVisible() {
-                return isWidgetVisible(PredefinedDashboardWidgetId.MY_ACCOUNTS);
+                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_ACCOUNTS);
+                return WebComponentUtil.getElementVisibility(visibilityType);
             }
         });
         add(accounts);
@@ -489,7 +495,8 @@ public class PageSelfDashboard extends PageSelf {
 
             @Override
             public boolean isVisible() {
-                return isWidgetVisible(PredefinedDashboardWidgetId.MY_ASSIGNMENTS);
+                UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_ASSIGNMENTS);
+                return WebComponentUtil.getElementVisibility(visibilityType);
             }
         });
         add(assignedOrgUnits);
@@ -596,28 +603,4 @@ public class PageSelfDashboard extends PageSelf {
             return widget.getVisibility();
         }
     }
-
-    private boolean isWidgetVisible(PredefinedDashboardWidgetId componentId) {
-        return isWidgetVisible(componentId, new ArrayList<>());
-    }
-
-    private boolean isWidgetVisible(PredefinedDashboardWidgetId componentId, List<String> requiredAuthorizations){
-        UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(componentId);
-        if (UserInterfaceElementVisibilityType.HIDDEN.equals(visibilityType) ||
-                UserInterfaceElementVisibilityType.VACANT.equals(visibilityType)){
-            return false;
-        }
-        if (UserInterfaceElementVisibilityType.VISIBLE.equals(visibilityType)){
-            return true;
-        }
-        if (UserInterfaceElementVisibilityType.AUTOMATIC.equals(visibilityType)){
-            if (WebComponentUtil.isAuthorized(requiredAuthorizations)){
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
-
 }
