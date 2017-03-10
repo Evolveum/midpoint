@@ -168,6 +168,12 @@ public class AdminGuiConfigTypeUtil {
 		return null;
 	}
 
+	/*
+	the ordering algorithm is: the first level is occupied by
+	the column which previousColumn == null || "" || notExistingColumnNameValue.
+	Each next level contains columns which
+	previousColumn == columnNameFromPreviousLevel
+	 */
 	public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
 		if (customColumns == null || customColumns.size() == 0){
 			return new ArrayList<>();
@@ -186,6 +192,7 @@ public class AdminGuiConfigTypeUtil {
 		List<String> temp = new ArrayList<> ();
 		int index = 0;
 		while (index < customColumns.size()){
+			int sortFrom = index;
 			for (int i = index; i < customColumnsList.size(); i++){
 				GuiObjectColumnType column = customColumnsList.get(i);
 				if (previousColumnValues.contains(column.getPreviousColumn()) ||
@@ -198,6 +205,15 @@ public class AdminGuiConfigTypeUtil {
 			if (temp.size() == 0){
 				temp.add(customColumnsList.get(index).getName());
 				index++;
+			}
+			if (index - sortFrom > 1){
+				Collections.sort(customColumnsList.subList(sortFrom, index - 1), new Comparator<GuiObjectColumnType>() {
+
+					@Override
+					public int compare(GuiObjectColumnType o1, GuiObjectColumnType o2) {
+						return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
+					}
+				});
 			}
 			previousColumnValues.clear();
 			previousColumnValues.addAll(temp);
