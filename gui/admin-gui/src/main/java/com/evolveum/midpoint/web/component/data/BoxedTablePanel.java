@@ -18,12 +18,15 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
@@ -108,6 +111,15 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 			}
 		};
 		table.setOutputMarkupId(true);
+		ExportToolbar exportToolbar = new ExportToolbar(table).addDataExporter(new CSVDataExporter());
+		exportToolbar.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible(){
+				return super.isVisible() && getExportToolbarVisibility();
+			}
+		});
+		table.addBottomToolbar(exportToolbar);
+
 		tableContainer.add(table);
 		box.add(tableContainer);
 
@@ -323,5 +335,9 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 					.createStringResourceStatic(PagingFooter.this, "CountToolbar.noFound", new Object[] {})
 					.getString();
 		}
+	}
+
+	protected boolean getExportToolbarVisibility(){
+		return false;
 	}
 }

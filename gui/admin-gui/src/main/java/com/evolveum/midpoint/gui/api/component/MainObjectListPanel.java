@@ -15,15 +15,27 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -36,6 +48,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.request.resource.ResourceStreamResource;
+import org.apache.wicket.util.resource.IResourceStream;
 
 /**
  * @author katkav
@@ -46,7 +60,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private static final String ID_REFRESH = "refresh";
     private static final String ID_NEW_OBJECT = "newObject";
     private static final String ID_IMPORT_OBJECT = "importObject";
-    private static final String ID_EXPORT_DATA = "exportData";
     private static final String ID_BUTTON_BAR = "buttonBar";
 
     public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
@@ -102,9 +115,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     protected abstract void newObjectPerformed(AjaxRequestTarget target);
 
-    protected void exportData(AjaxRequestTarget target){
-
-    }
 
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -161,17 +171,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             };
             add(importObject);
 
-            AjaxIconButton exportData = new AjaxIconButton(ID_EXPORT_DATA, new Model<>("fa fa-download"),
-                    mainObjectListPanel.createStringResource("MainObjectListPanel.export")) {
-
-            	private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    mainObjectListPanel.exportData(target);
-                }
-            };
-            add(exportData);
         }
     }
-}
+
+    @Override
+    protected boolean getExportToolbarVisibility(){
+        return true;
+    }
+    }
