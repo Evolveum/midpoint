@@ -32,6 +32,10 @@ public interface EvaluationOrder extends DebugDumpable {
 
 	EvaluationOrder advance(QName relation);
 
+	EvaluationOrder decrease(int amount);
+
+	EvaluationOrder decrease(int amount, QName relation);
+
 	int getMatchingRelationOrder(QName relation);
 
 	String shortDump();

@@ -25,8 +25,6 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +37,6 @@ import javax.annotation.PostConstruct;
  */
 @Component
 public class AddExecutor extends BaseActionExecutor {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AddExecutor.class);
 
     private static final String NAME = "add";
 
@@ -64,22 +60,24 @@ public class AddExecutor extends BaseActionExecutor {
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
+                Throwable exception = null;
                 try {
                     operationsHelper.applyDelta(createAddDelta(objectType), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
-                    throw ex;   // TODO think about this
+                    exception = processActionException(ex, NAME, value, context);
                 }
-                context.println("Added " + prismObject.toString() + rawDrySuffix(raw, dryRun));
+				context.println((exception != null ? "Attempted to add " : "Added ") + prismObject.toString() + rawDrySuffix(raw, dryRun) + exceptionSuffix(exception));
             } else {
-                throw new ScriptExecutionException("Item couldn't be added, because it is not a PrismObject: " + value.toString());
+				//noinspection ThrowableNotThrown
+				processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
             }
         }
         return Data.createEmpty();            // todo return oid(s) in the future
     }
 
-    private ObjectDelta createAddDelta(ObjectType objectType) {
+	private ObjectDelta createAddDelta(ObjectType objectType) {
         return ObjectDelta.createAddDelta(objectType.asPrismObject());
     }
 }

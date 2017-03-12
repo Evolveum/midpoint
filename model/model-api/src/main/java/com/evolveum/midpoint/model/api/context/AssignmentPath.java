@@ -24,6 +24,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
+ * Path from the source object (focus) to the ultimate assignment that is being processed or referenced.
+ * The path consists of a chain (list) of segments. Each segment corresponds to a single assignment or inducement.
+ * The source of the first segment is the focus. Source of each following segment (i.e. assignment) is the target
+ * of previous segment (i.e. assignment).
+ *
  * @author semancik
  * @author mederly
  */
@@ -31,13 +36,13 @@ public interface AssignmentPath extends DebugDumpable {
 
 	List<? extends AssignmentPathSegment> getSegments();
 
-	AssignmentPathSegment getFirstAssignmentSegment();
+	AssignmentPathSegment first();
 
 	boolean isEmpty();
 
 	int size();
 
-	EvaluationOrder getEvaluationOrder();
+//	EvaluationOrder getEvaluationOrder();
 
 	AssignmentPathSegment last();
 

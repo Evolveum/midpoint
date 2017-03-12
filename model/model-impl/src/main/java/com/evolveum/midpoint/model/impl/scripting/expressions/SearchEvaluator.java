@@ -30,6 +30,9 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
@@ -46,7 +49,9 @@ import javax.xml.bind.JAXBElement;
 @Component
 public class SearchEvaluator extends BaseExpressionEvaluator {
 
-    @Autowired
+	private static final Trace LOGGER = TraceManager.getTrace(SearchEvaluator.class);
+
+	@Autowired
     private ExpressionHelper expressionHelper;
 
     @Autowired
@@ -105,7 +110,12 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                         result.setSummarizeSuccesses(true);
                         result.summarize();
                     } catch (ScriptExecutionException e) {
-                        throw new SystemException(e);           // todo think about this
+						// todo think about this
+                        if (context.isContinueOnAnyError()) {
+							LoggingUtils.logUnexpectedException(LOGGER, "Exception when evaluating item from search result list.", e);
+						} else {
+							throw new SystemException(e);
+						}
                     }
                 } else {
                     outputData.addItem(object);
@@ -117,6 +127,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
         try {
             modelService.searchObjectsIterative(objectClass, objectQuery, handler, operationsHelper.createGetOptions(noFetch), context.getTask(), result);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+        	// TODO continue on any error?
             throw new ScriptExecutionException("Couldn't execute searchObjects operation: " + e.getMessage(), e);
         }
 
