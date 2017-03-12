@@ -60,37 +60,110 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 													// This is set to true on the first assignment in the chain.
 
 	/**
-	 *  Constructions, focus mappings, and focus policy rules (or "assignment content") should be collected only
-	 *  from assignments that belong directly to the focus; i.e. not from assignments attached to roles, meta roles,
-	 *  meta-meta roles, etc.
+	 *  Assignments and inducements can carry constructions, focus mappings, and focus policy rules.
+	 *  We can call these "assignment/inducement payload", or "payload" for short.
 	 *
-	 *  Content belonging to roles should be collected if it's attached to them via inducements of order 1.
-	 *  Content belonging to meta-roles should be collected if it's attached to them via inducements of order 2.
-	 *  And so on.
+	 *  When looking at assignments/inducements in assignment path, payload of some assignments/inducements will be collected
+	 *  to focus, while payload from others will be not. How we know what to collect?
 	 *
-	 *  For each segment (i.e. assignment/inducement), we know we can use its content if its "isMatchingOrder" attribute is true.
+	 *  For assignments/inducements belonging directly to the focus, we take payload from all the assignments. Not from inducements.
+	 *  For assignments/inducements belonging to roles (assigned to focus), we take payload from all the inducements of order 1.
+	 *  For assignments/inducements belonging to meta-roles (assigned to roles), we take payload from all the inducements of order 2.
+	 *  And so on. (It is a bit more complicated, as described below when discussing relations. But OK for the moment.)
 	 *
-	 *  But how we compute this attribute?
+	 *  To know whether to collect payload from assignment/inducement, i.e. from assignment path segment, we
+	 *  define "isMatchingOrder" attribute - and collect only if value of this attribute is true.
 	 *
-	 *  Each segment in the assignment path has an evaluation order. First assignment has an evaluation order of 1, second
+	 *  How we compute this attribute?
+	 *
+	 *  Each assignment path segment has an evaluation order. First assignment has an evaluation order of 1, second
 	 *  assignment has an order of 2, etc. Order of a segment can be seen as the number of assignments segments in the path
-	 *  (including itself). And we collect content from assignment segments of order 1.
+	 *  (including itself). And, for "real" assignments, we collect content from assignment segments of order 1.
 	 *
-	 *  But what about inducements? There are two (somewhat related) questions:
+	 *  But what about inducements? There are two - somewhat related - questions:
 	 *
 	 *  1. How we compute isMatchingOrder for inducement segments?
 	 *  2. How we compute evaluation order for inducement segments?
 	 *
 	 *  As for #1: To compute isMatchingOrder, we must take evaluation order of the _previous_ segment, and compare
-	 *  it with the inducement order (or, more generally, inducement order constraints). If they match, we say that inducement
+	 *  it with the order (or, more generally, order constraints) of the inducement. If they match, we say that inducement
 	 *  has matching order.
 	 *
-	 *  As for #2: For some inducements we can determine resulting order, while for others we can not. Problematic inducements
-	 *  are those that do not have strict order, but an interval of orders instead. For the former we can compute the
-	 *  resulting order as previous - (N-1), where N is the order of the inducement (unspecified means 1). For the latter
-	 *  we consider the resulting order as undefined.
+	 *  As for #2: It is not usual that inducements have targets with another assignments, i.e. that evaluation continues
+	 *  after inducement segments. But it definitely could happen. We can look at it this way: inducement is something like
+	 *  a "shortcut" that creates an assignment where no assignment was before. E.g. if we have R1 -A-> MR1 -I-> MR2,
+	 *  the "newly created" assignment is R1 -A-> MR2. I.e. as if the " -A-> MR1 -I-> " part was just replaced by " -A-> ".
+	 *  If the inducement is of higher order, even more assignments are "cut out". From R1 -A-> MR1 -A-> MMR1 -(I2)-> MR2
+	 *  we have R1 -A-> MR2, i.e. we cut out " -A-> MR1 -A-> MMR1 -(I2)-> " and replaced it by " -A-> ".
+	 *  So it looks like that when computing new evaluation order of an inducement, we have to "go back" few steps
+	 *  through the assignment path.
+	 *  	TODO think this through, perhaps based on concrete examples
+	 *  It is almost certain that for some inducements we would not be able to determine the resulting order.
+	 *  Such problematic inducements are those that do not have strict order, but an interval of orders instead.
 	 *
-	 *  TODO relations
+	 *  Until no better algorithm is devised, we will do an approximation: when "traditional" inducement order is given,
+	 *  the we will compute the resulting order as "previous - (N-1)", where N is the order of the inducement
+	 *  (unspecified means 1). But beware, we will not manipulate evaluation order parts that are specific to relations.
+	 *  So, it is not safe to combine "higher-order inducements with targets" with non-scalar order constraints.
+	 *
+	 *  Evaluating relations
+	 *  ====================
+	 *
+	 *  With the arrival of various kinds of relations (deputy, manager, approver, owner) things got a bit complicated.
+	 *  For instance, the deputy relation cannot be used to determine evaluation order in a usual way, because if
+	 *  we have this situation:
+	 *
+	 *  Pirate -----I-----> Sailor
+	 *    A
+	 *    | (member)
+	 *    |
+	 *   jack
+	 *    A
+	 *    | (deputy)
+	 *    |
+	 *  barbossa
+	 *
+	 *  we obviously want to have barbossa to obtain all payload from roles Pirate and Sailor: exactly as jack does.
+	 *  So, the evaluation order of " barbossa -A-> jack -A-> Pirate " should be 1, not two. So deputy is a very special
+	 *  kind of relation, that does _not_ increase the traditional evaluation order. But we really want to record
+	 *  the fact that the deputy is on the assignment path; therefore, besides traditional "scalar" evaluation order
+	 *  (called "summaryOrder") we maintain evaluation orders for each relation separately. In the above example,
+	 *  the evaluation orders would be:
+	 *     barbossa--->jack     summary: 0, deputy: 1, member: 0
+	 *     jack--->Pirate       summary: 1, deputy: 1, member: 1
+	 *     Pirate-I->Sailor     summary: 1, deputy: 1, member: 1 (because the inducement has a default order of 1)
+	 *
+	 *  When we determine matchingOrder for an inducement (question #1 above), we can ask about summary order,
+	 *  as well as about individual components (deputy and member, in this case).
+	 *
+	 *  Actually, we have three categories of relations (see MID-3581):
+	 *
+	 *  - membership relations: apply membership references, payload, authorizations, gui config
+	 *  - delegation relations: similar to membership, bud different handling of order
+	 *  - other relations: apply membership references but in limited way; payload, authorizations and gui config
+	 *    are - by default - not applied.
+	 *
+	 *  Currently, membership relations are: null (i.e. member), manager, and meta.
+	 *  Delegation: deputy.
+	 *  Other: approver, owner, and custom ones.
+	 *
+	 *  As for the "other" relations: they bring membership information, but limited to the target that is directly
+	 *  assigned. So if jack is an approver for role Landluber, his roleMembershipRef will contain ref to Landluber
+	 *  but not e.g. to role Earthworm that is induced by Landluber. In a similar way, payload from targets assigned
+	 *  by "other" relations is not collected.
+	 *
+	 *  Both of this can be overridden by using specific orderConstraints on particular inducement.
+	 *  (TODO this is just an idea, not implemented yet)
+	 *  Set of order constraint is considered to match evaluation order with "other" relations, if for each such "other"
+	 *  relation it contains related constraint. So, if one explicitly wants an inducement to be applied when
+	 *  "approver" relation is encountered, he may do so.
+     *
+	 *  Note: authorizations and gui config information are not considered to be a payload, because they are not
+	 *  part of an assignment/inducement - they are part of a role. In the future we might move them into
+	 *  assignments/inducements.
+	 *
+	 *  Collecting target policy rules
+	 *  ==============================
 	 *
 	 *  Special consideration must be given when collecting target policy rules, i.e. rules that are attached to
 	 *  assignment targets. Such rules are typically attached to roles that are being assigned. So let's consider this:
@@ -328,15 +401,18 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		if (isMatchingOrder()) {			// here is a side effect but most probably it's harmless
 			sb.append("(match)");
 		}
-		if (isMatchingOrderPlusOne()) {
+		if (isMatchingOrderPlusOne()) {		// the same here
 			sb.append("(match+1)");
 		}
 		sb.append(": ");
 		sb.append(source).append(" ");
 		PrismContainer<AssignmentType> assignment = (PrismContainer<AssignmentType>) assignmentIdi.getAnyItem();
 		AssignmentType assignmentType = assignment != null ? assignment.getValue().asContainerable() : null;
-		if (assignmentType != null && assignmentType.getConstruction() != null) {
-			sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
+		if (assignmentType != null) {
+			sb.append("id:").append(assignmentType.getId()).append(" ");
+			if (assignmentType.getConstruction() != null) {
+				sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
+			}
 		}
 		ObjectReferenceType targetRef = assignmentType != null ? assignmentType.getTargetRef() : null;
 		if (target != null || targetRef != null) {
