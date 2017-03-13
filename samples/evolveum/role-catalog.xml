@@ -144,8 +144,8 @@
 				 </association>
 			</construction>
 		</inducement>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 	
@@ -198,8 +198,8 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000002000" type="c:OrgType"/>
 		</assignment>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 
@@ -213,8 +213,8 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c0000000a000" type="c:OrgType"/>
 		</assignment>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 	
@@ -224,8 +224,8 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000002000" type="c:OrgType"/>
 		</assignment>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 	
@@ -255,8 +255,8 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 
@@ -266,8 +266,8 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 
@@ -287,8 +287,8 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 
@@ -298,8 +298,8 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 	
@@ -319,8 +319,8 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
-		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 	
