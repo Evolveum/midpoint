@@ -1587,6 +1587,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertPrismRefValues(contextDesc, real, objectsToOids(expected));
 	}
 
+	protected <F extends FocusType> void assertPrismRefValues(String contextDesc, Collection<PrismReferenceValue> real, Collection<? extends ObjectType> expected) {
+		assertPrismRefValues(contextDesc, real, objectsToOids(expected));
+	}
+
 	protected void assertObjectRefs(String contextDesc, Collection<ObjectReferenceType> real, String... expected) {
 		List<String> refOids = new ArrayList<>();
 		for (ObjectReferenceType ref: real) {
@@ -1609,6 +1613,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	private String[] objectsToOids(ObjectType[] objects) {
 		return Arrays.stream(objects)
+				.map(o -> o.getOid())
+				.toArray(String[]::new);
+	}
+
+	private String[] objectsToOids(Collection<? extends ObjectType> objects) {
+		return objects.stream()
 				.map(o -> o.getOid())
 				.toArray(String[]::new);
 	}
