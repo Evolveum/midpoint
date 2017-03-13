@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +15,13 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -33,29 +29,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsTyp
  */
 public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget {
 	
-	PrismObject<? extends FocusType> target;
-	private boolean directlyAssigned;
-	private boolean evaluateConstructions;
-	private AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
-	private AssignmentType assignment;
+	final PrismObject<? extends FocusType> target;
+	private final boolean evaluateConstructions;
+	private final AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
+	private final AssignmentType assignment;
 	private Collection<ExclusionPolicyConstraintType> exclusions = null;
+	private final boolean isValid;
+
+	EvaluatedAssignmentTargetImpl(
+			PrismObject<? extends FocusType> target, boolean evaluateConstructions,
+			AssignmentPathImpl assignmentPath, AssignmentType assignment,
+			boolean isValid) {
+		this.target = target;
+		this.evaluateConstructions = evaluateConstructions;
+		this.assignmentPath = assignmentPath;
+		this.assignment = assignment;
+		this.isValid = isValid;
+	}
 
 	@Override
 	public PrismObject<? extends FocusType> getTarget() {
 		return target;
 	}
 
-	public void setTarget(PrismObject<? extends FocusType> target) {
-		this.target = target;
-	}
-
 	@Override
 	public boolean isDirectlyAssigned() {
-		return directlyAssigned;
-	}
-
-	public void setDirectlyAssigned(boolean directlyAssigned) {
-		this.directlyAssigned = directlyAssigned;
+		return assignmentPath.size() == 1;
 	}
 
 	@Override
@@ -68,17 +67,9 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		return evaluateConstructions;
 	}
 
-	public void setEvaluateConstructions(boolean evaluateConstructions) {
-		this.evaluateConstructions = evaluateConstructions;
-	}
-
 	@Override
 	public AssignmentType getAssignment() {
 		return assignment;
-	}
-
-	public void setAssignment(AssignmentType assignment) {
-		this.assignment = assignment;
 	}
 
 	@Override
@@ -86,12 +77,13 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		return assignmentPath;
 	}
 
-	public void setAssignmentPath(AssignmentPathImpl assignmentPath) {
-		this.assignmentPath = assignmentPath;
-	}
-
 	public String getOid() {
 		return target.getOid();
+	}
+
+	@Override
+	public boolean isValid() {
+		return isValid;
 	}
 
 	public Collection<ExclusionPolicyConstraintType> getExclusions() {
@@ -132,8 +124,9 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		DebugUtil.debugDumpWithLabel(sb, "Target", target, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Assignment", String.valueOf(assignment), indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
 		return sb.toString();
 	}
-	
 
 }

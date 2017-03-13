@@ -326,21 +326,19 @@ public class AssignmentEvaluator<F extends FocusType> {
 				// Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
 				// evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
 				// (This is currently ignored by downstream processing, but that's another story. Will be fixed soon.)
-				// ---
-				// But we also ignore "mode". This is because focus mappings are not categorized into PLUS/MINUS/ZERO sets.
-				// They are simply evaluated as they are: skipped only if both condOld and condNew is false.
-				// This is less sophisticated than constructions, but for the time being it is perhaps OK.
-				// TODO But shouldn't we skip focus mapping with mode==null? And with mode=MINUS?
-				evaluateFocusMappings(segment, ctx);
+				if (isNonNegative(mode)) {
+					evaluateFocusMappings(segment, ctx);
+				}
 			}
 			if (assignmentType.getPolicyRule() != null && !loginMode) {
 				// We can ignore "reallyValid" for the same reason as for focus mappings.
-				// TODO but what if mode is null or MINUS?
-				if (segment.isMatchingOrder()) {
-					collectPolicyRule(true, segment, ctx);
-				}
-				if (segment.isMatchingOrderPlusOne()) {
-					collectPolicyRule(false, segment, ctx);
+				if (isNonNegative(mode)) {
+					if (segment.isMatchingOrder()) {
+						collectPolicyRule(true, segment, ctx);
+					}
+					if (segment.isMatchingOrderPlusOne()) {
+						collectPolicyRule(false, segment, ctx);
+					}
 				}
 			}
 			if (assignmentType.getTarget() != null || assignmentType.getTargetRef() != null) {
@@ -422,6 +420,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		construction.setValid(isValid);
 		
 		// Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
+		if (mode == null) {
+			return;				// null mode (i.e. plus + minus) means 'ignore the payload'
+		}
 		switch (mode) {
 			case PLUS:
 				ctx.evalAssignment.addConstructionPlus(construction);
@@ -625,15 +626,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 		
-		EvaluatedAssignmentTargetImpl evalAssignmentTarget = new EvaluatedAssignmentTargetImpl();
-		evalAssignmentTarget.setTarget(targetType.asPrismObject());
-		evalAssignmentTarget.setEvaluateConstructions(segment.isMatchingOrder());
-		evalAssignmentTarget.setAssignment(segment.getAssignment());
-		evalAssignmentTarget.setDirectlyAssigned(ctx.assignmentPath.size() == 1);
-		evalAssignmentTarget.setAssignmentPath(ctx.assignmentPath.clone());
+		EvaluatedAssignmentTargetImpl evalAssignmentTarget = new EvaluatedAssignmentTargetImpl(
+				targetType.asPrismObject(), segment.isMatchingOrder(),
+				ctx.assignmentPath.clone(), segment.getAssignment(), isValid);
 		ctx.evalAssignment.addRole(evalAssignmentTarget, mode);
 		
-		if (mode != PlusMinusZero.MINUS && segment.isProcessMembership()) {
+		if ((isNonNegative(mode)) && segment.isProcessMembership()) {
 			PrismReferenceValue refVal = new PrismReferenceValue();
 			refVal.setObject(targetType.asPrismObject());
 			refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
@@ -769,9 +767,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 			evaluateFromSegment(subAssignmentPathSegment, mode, ctx);
 		}
 		
-		if (evaluationOrder.getSummaryOrder() == 1 && targetType instanceof AbstractRoleType) {
+		if (evaluationOrder.getSummaryOrder() == 1 && targetType instanceof AbstractRoleType && isNonNegative(mode)) {
 			
-			for(AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
+			for (AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
 				Authorization authorization = createAuthorization(authorizationType, targetType.toString());
 				ctx.evalAssignment.addAuthorization(authorization);
 			}
@@ -786,6 +784,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 
 		LOGGER.trace("Evaluating segment target DONE for {}", segment);
+	}
+
+	private boolean isNonNegative(PlusMinusZero mode) {
+		// mode == null is also considered negative, because it is a combination of PLUS and MINUS;
+		// so the net result is that for both old and new state there exists an unsatisfied condition on the path.
+		return mode == PlusMinusZero.ZERO || mode == PlusMinusZero.PLUS;
 	}
 
 	private void checkRelationWithTarget(AssignmentPathSegmentImpl segment, FocusType targetType, QName relation)

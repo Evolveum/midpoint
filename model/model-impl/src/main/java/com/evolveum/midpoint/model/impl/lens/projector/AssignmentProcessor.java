@@ -50,7 +50,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -334,15 +333,15 @@ public class AssignmentProcessor {
 	            	LOGGER.trace("ZERO construction pack: null");
 	            } else {
 	            	LOGGER.trace("ZERO construction pack (hasValidAssignment={}, hasStrongConstruction={})\n{}",
-	            		new Object[]{zeroConstructionPack.hasValidAssignment(), zeroConstructionPack.hasStrongConstruction(), 
-	            				zeroConstructionPack.debugDump(1)});
+							zeroConstructionPack.hasValidAssignment(), zeroConstructionPack.hasStrongConstruction(),
+							zeroConstructionPack.debugDump(1));
 	            }
 	            if (plusConstructionPack == null) {
 	            	LOGGER.trace("PLUS construction pack: null");
 	            } else {
 	            	LOGGER.trace("PLUS construction pack (hasValidAssignment={}, hasStrongConstruction={})\n{}",
-	            		new Object[]{plusConstructionPack.hasValidAssignment(), plusConstructionPack.hasStrongConstruction(), 
-	            				plusConstructionPack.debugDump(1)});
+							plusConstructionPack.hasValidAssignment(), plusConstructionPack.hasStrongConstruction(),
+							plusConstructionPack.debugDump(1));
 	            }
             }
 
@@ -705,14 +704,14 @@ public class AssignmentProcessor {
             ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
             intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
             ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
-            ConstructionPack constructionPack = null;
+            ConstructionPack constructionPack;
             if (constructionMap.containsKey(rat)) {
                 constructionPack = constructionMap.get(rat);
             } else {
                 constructionPack = new ConstructionPack();
                 constructionMap.put(rat, constructionPack);
             }
-            constructionPack.add(new PrismPropertyValue<Construction>(construction));
+            constructionPack.add(new PrismPropertyValue<>(construction));
             if (evaluatedAssignment.isValid()) {
             	constructionPack.setHasValidAssignment(true);
             }
@@ -852,7 +851,7 @@ public class AssignmentProcessor {
 		}
 	}
 
-	private <F extends FocusType, T extends ObjectType> void createAssignmentDelta(LensContext<F> context, LensProjectionContext accountContext) throws SchemaException{
+	private <F extends FocusType> void createAssignmentDelta(LensContext<F> context, LensProjectionContext accountContext) throws SchemaException{
         Class<F> focusClass = context.getFocusClass();
         ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(FocusType.F_ASSIGNMENT, focusClass, prismContext);
 		AssignmentType assignment = new AssignmentType();
@@ -866,144 +865,28 @@ public class AssignmentProcessor {
 		
 	}
 
-	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, 
-			OperationResult result) throws SchemaException {
+	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, OperationResult result) throws SchemaException {
+
 		LensFocusContext<F> focusContext = context.getFocusContext();
-		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-		if (focusContext == null || evaluatedAssignmentTriple == null) {
+		if (focusContext == null) {
 			return;
 		}
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Starting processing org assignments into parentOrgRef delta(s); evaluatedAssignmentTriple is:\n{}",
-                    evaluatedAssignmentTriple.debugDump());
-        }
+		Collection<PrismReferenceValue> shouldBeParentOrgRefs = new ArrayList<>();
 
-        Class<F> focusClass = focusContext.getObjectTypeClass();
-        PrismObjectDefinition<F> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
-		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(FocusType.F_PARENT_ORG_REF);
-		ItemPath orgRefPath = new ItemPath(FocusType.F_PARENT_ORG_REF);
-
-        // check if parentOrgRef recon is needed - it is when something inside OrgType assignment has changed
-        boolean forceRecon = context.isReconcileFocus(); // this is directly influenced by Reconcile model execution option
-		if (!forceRecon) {
-			for (EvaluatedAssignmentImpl assignment : evaluatedAssignmentTriple.getAllValues()) {
-				if (assignment.isForceRecon() &&
-						assignment.getAssignmentType() != null &&
-						assignment.getAssignmentType().getTargetRef() != null &&
-						OrgType.COMPLEX_TYPE.equals(assignment.getAssignmentType().getTargetRef().getType())) {
-					forceRecon = true;
-					break;
+		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple != null) {
+			for (EvaluatedAssignmentImpl<?> evalAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
+				if (evalAssignment.isValid()) {
+					addReferences(shouldBeParentOrgRefs, evalAssignment.getOrgRefVals());
 				}
 			}
 		}
-        // for zero and minus sets we check isForceRecon for all non-construction-related assignments (MID-2242)
-		// TODO why "non-construction-related" ones only?
-        if (!forceRecon) {
-            for (EvaluatedAssignmentImpl assignment: evaluatedAssignmentTriple.getNonPositiveValues()) {
-                if (assignment.isForceRecon() && assignment.getConstructions().isEmpty()) {
-                    forceRecon = true;
-                    break;
-                }
-            }
-        }
 
-        if (!forceRecon) {      // if no recon, we simply add/delete values as needed
-
-            LOGGER.trace("No reconciliation requested, processing plus and minus sets");
-
-            // A list of values that are _not_ to be removed - these are all the values from zero set,
-            // as well as values from plus set.
-            //
-            // Contrary to existing standard delta merge algorithm (where add+delete means "keep the current state"),
-            // we ignore any delete of values that should be existing or added.
-
-            Collection<PrismReferenceValue> notToBeDeletedCanonical = new HashSet<>();
-            for (EvaluatedAssignmentImpl assignment : evaluatedAssignmentTriple.getZeroSet()) {
-                Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
-                for (PrismReferenceValue org : orgs) {
-                    notToBeDeletedCanonical.add(org.toCannonical());
-                }
-            }
-
-            // Plus
-            for (EvaluatedAssignmentImpl assignment : evaluatedAssignmentTriple.getPlusSet()) {
-                Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
-                for (PrismReferenceValue org : orgs) {
-                    ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
-                    PrismReferenceValue orgCanonical = org.toCannonical();
-                    orgRefDelta.addValueToAdd(orgCanonical);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Created parentOrgRef delta:\n{}", orgRefDelta.debugDump());
-                    }
-                    focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
-
-                    notToBeDeletedCanonical.add(orgCanonical);
-                }
-            }
-
-            // Minus (except for these that are also in zero set)
-            for (EvaluatedAssignmentImpl assignment : evaluatedAssignmentTriple.getMinusSet()) {
-                Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
-                for (PrismReferenceValue org : orgs) {
-                    ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
-                    PrismReferenceValue orgCanonical = org.toCannonical();
-                    if (notToBeDeletedCanonical.contains(orgCanonical)) {
-                        LOGGER.trace("Not removing {} because it is in the zero or plus set", orgCanonical);
-                    } else {
-                        orgRefDelta.addValueToDelete(orgCanonical);
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Created parentOrgRef delta:\n{}", orgRefDelta.debugDump());
-                        }
-                        focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
-                    }
-                }
-            }
-
-        } else {        // if reconciliation is requested, we recreate parentOrgRef from scratch
-
-            LOGGER.trace("Reconciliation requested, collecting all non-negative values");
-
-            Set<PrismReferenceValue> valuesToReplace = new HashSet<>();
-
-            for (EvaluatedAssignmentImpl assignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-                Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
-                for (PrismReferenceValue org : orgs) {
-                    PrismReferenceValue canonical = org.toCannonical();
-                    valuesToReplace.add(canonical);     // if valuesToReplace would be a list, we should check for duplicates!
-                }
-            }
-			PrismObject<F> objectNew = focusContext.getObjectNew();
-			if (parentOrgRefDiffers(objectNew, valuesToReplace)) {
-				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
-				orgRefDelta.setValuesToReplace(valuesToReplace);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Created parentOrgRef delta:\n{}", orgRefDelta.debugDump());
-				}
-				focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
-			} else {
-				LOGGER.trace("Computed parentOrgRef is the same as the value in objectNew -- skipping application of the delta");
-			}
-        }
-        LOGGER.trace("Processing org assignments into parentOrgRef delta(s) done.");
+		setReferences(focusContext, ObjectType.F_PARENT_ORG_REF, shouldBeParentOrgRefs);
 	}
 
-	private <F extends ObjectType> boolean parentOrgRefDiffers(PrismObject<F> objectNew, Set<PrismReferenceValue> valuesToReplace) {
-		if (objectNew == null) {
-			return true;		// the result is probably irrelevant, as the object is going to be deleted - but it's safer not to skip parentOrgRef delta
-		}
-		PrismReference parentOrgRef = objectNew.findReference(ObjectType.F_PARENT_ORG_REF);
-		List<PrismReferenceValue> existingValues;
-		if (parentOrgRef != null) {
-			existingValues = parentOrgRef.getValues();
-		} else {
-			existingValues = new ArrayList<>();
-		}
-		boolean equal = MiscUtil.unorderedCollectionEquals(existingValues, valuesToReplace);
-		return !equal;
-	}
-
-	public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context, 
+	public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context,
 			OperationResult result) throws PolicyViolationException {
 		for(LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()){
@@ -1078,13 +961,13 @@ public class AssignmentProcessor {
 	}
 
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> XMLGregorianCalendar collectFocusTripleFromMappings(
-    		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignmnents, 
+    		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
     		Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
     		PlusMinusZero plusMinusZero) throws SchemaException {
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
-		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignmnents) {
+		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignments) {
 			Collection<Mapping<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (Mapping<V,D> mapping: focusMappings) {
 				
@@ -1124,13 +1007,13 @@ public class AssignmentProcessor {
 		Collection<PrismReferenceValue> shouldBeDelegatedRefs = new ArrayList<>();
 
 		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-		if (evaluatedAssignmentTriple == null) {
-			return;
-		}
-
-		for (EvaluatedAssignmentImpl<?> evalAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
-			addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
-			addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
+		if (evaluatedAssignmentTriple != null) {
+			for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+				if (evalAssignment.isValid()) {
+					addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
+					addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
+				}
+			}
 		}
 
 		setReferences(focusContext, FocusType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
@@ -1180,7 +1063,7 @@ public class AssignmentProcessor {
 				}
 			}
 			if (!found) {
-				PrismReferenceValue ref = reference.clone();
+				PrismReferenceValue ref = reference.clone(false);		// using copyObject=false instead of calling canonicalize()
 				if (ref.getRelation() != null && QNameUtil.isUnqualified(ref.getRelation())) {
 					ref.setRelation(new QName(SchemaConstants.NS_ORG, ref.getRelation().getLocalPart(), SchemaConstants.PREFIX_NS_ORG));
 				}

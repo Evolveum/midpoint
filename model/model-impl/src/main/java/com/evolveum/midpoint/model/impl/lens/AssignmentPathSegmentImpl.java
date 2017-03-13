@@ -413,6 +413,12 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			if (assignmentType.getConstruction() != null) {
 				sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
 			}
+			if (assignmentType.getFocusMappings() != null) {
+				sb.append("FMappings (").append(assignmentType.getFocusMappings().getMapping().size()).append(") ");
+			}
+			if (assignmentType.getPolicyRule() != null) {
+				sb.append("Rule '").append(assignmentType.getPolicyRule().getName()).append("' ");
+			}
 		}
 		ObjectReferenceType targetRef = assignmentType != null ? assignmentType.getTargetRef() : null;
 		if (target != null || targetRef != null) {
