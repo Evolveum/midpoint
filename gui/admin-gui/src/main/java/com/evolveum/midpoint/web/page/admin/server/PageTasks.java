@@ -70,18 +70,24 @@ import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -89,6 +95,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.ResourceStreamResource;
+import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
@@ -251,6 +259,20 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
                 return new SearchFragment(headerId, ID_TABLE_HEADER, PageTasks.this, searchModel);
+            }
+
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                String fileName = "TaskType_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+                CSVDataExporter csvDataExporter = new CSVDataExporter();
+                ResourceStreamResource resource = (new ResourceStreamResource() {
+                    protected IResourceStream getResourceStream() {
+                        return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, getTaskTable().getDataTable());
+                    }
+                }).setFileName(fileName + "." + csvDataExporter.getFileNameExtension());
+                AbstractLink exportDataLink = (new ResourceLink(id, resource)).setBody(csvDataExporter.getDataFormatNameModel());
+                exportDataLink.add(new AttributeAppender("class", " btn btn-primary btn-sm"));
+                return exportDataLink;
             }
         };
         taskTable.setOutputMarkupId(true);
@@ -456,7 +478,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			}
 		});
 
-        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.objectRef")) {
+        columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.objectRef")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
@@ -469,10 +491,16 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     }
                 }));
             }
+
+            @Override
+            public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
+                return Model.of(createObjectRef(rowModel));
+            }
+
         });
         columns.add(createTaskExecutionStatusColumn(this, "pageTasks.task.execution"));
         columns.add(new PropertyColumn<TaskDto, String>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
-        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.progress")) {
+        columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.progress")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> cellItem, String componentId, final IModel<TaskDto> rowModel) {
@@ -483,8 +511,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     }
                 }));
             }
+
+            @Override
+            public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
+                return Model.of(createProgress(rowModel));
+            }
         });
-        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
+        columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
             @Override
             public void populateItem(final Item<ICellPopulator<TaskDto>> item, final String componentId,
@@ -494,13 +527,35 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
                     @Override
                     public Date getObject() {
-                        return createCurrentRuntime(rowModel,(DateLabelComponent) item.get(componentId));
+                        Date date = createCurrentRuntime(rowModel);
+                        TaskDto task = rowModel.getObject();
+                        if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
+                            ((DateLabelComponent) item.get(componentId)).setBefore("closed at ");
+                        } else if (date != null){
+                            ((DateLabelComponent) item.get(componentId)).setBefore(DurationFormatUtils.formatDurationWords(date.getTime(), true, true));
+                        }
+                        return date;
                     }
                 }, DateLabelComponent.MEDIUM_MEDIUM_STYLE);
                 item.add(dateLabel);
             }
+
+            @Override
+            public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
+                TaskDto task = rowModel.getObject();
+                Date date = createCurrentRuntime(rowModel);
+                String displayValue = "";
+                if (date != null) {
+                    if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
+                        displayValue = "closed at " + WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
+                    } else {
+                        displayValue = DurationFormatUtils.formatDurationWords(date.getTime(), true, true);
+                    }
+                }
+                return Model.of(displayValue);
+            }
         });
-        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
+        columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
@@ -513,7 +568,11 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     }
                 }));
             }
-        });
+            @Override
+            public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
+                return Model.of(createScheduledToRunAgain(rowModel));
+            }
+         });
 
         columns.add(new IconColumn<TaskDto>(createStringResource("pageTasks.task.status")) {
 
@@ -671,12 +730,17 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     public static AbstractColumn<TaskDto, String> createTaskCategoryColumn(final Component component, String label) {
-        return new AbstractColumn<TaskDto, String>(createStringResourceStatic(component, label)) {
+        return new AbstractExportableColumn<TaskDto, String>(createStringResourceStatic(component, label)) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
                                      final IModel<TaskDto> rowModel) {
                 item.add(new Label(componentId, WebComponentUtil.createCategoryNameModel(component, new PropertyModel<String>(rowModel, TaskDto.F_CATEGORY))));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
+                return WebComponentUtil.createCategoryNameModel(component, new PropertyModel<String>(rowModel, TaskDto.F_CATEGORY));
             }
         };
     }
@@ -789,7 +853,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         }
     }
 
-    private Date createCurrentRuntime(IModel<TaskDto> taskModel, DateLabel dateLabel) {
+    private Date createCurrentRuntime(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
 
         if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
@@ -799,7 +863,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             if (time == null) {
                 return null;
             }
-            dateLabel.setBefore("closed at ");
             return new Date(time);
 
         } else {
@@ -808,7 +871,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                 return null;
             }
             //todo i18n
-            dateLabel.setBefore(DurationFormatUtils.formatDurationWords(time, true, true));
             return null;
         }
     }
