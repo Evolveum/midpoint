@@ -213,29 +213,16 @@ public class CorrelationConfirmationEvaluator {
 				throw new ExpressionEvaluationException("Couldn't convert query.", ex);
 			}
 			
-			List<PrismObject<F>> users = null;
+			List<PrismObject<F>> users;
 			try {
-				// query = new QueryType();
-				// query.setFilter(filter);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}",
-							new Object[] {q.debugDump() });
-				}
-				PagingType paging = new PagingType();
-				// ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class,
-				// query, prismContext);
+				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}", q.debugDumpLazily());
 				users = repositoryService.searchObjects(focusType, q, null, result);
-
-				if (users == null) {
-					users = new ArrayList<PrismObject<F>>();
-				}
 			} catch (RuntimeException ex) {
 				LoggingUtils.logException(LOGGER,
 						"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.debugDump());
 				throw new SystemException(
 						"Couldn't search users in repository, based on filter (See logs).", ex);
 			}
-			
 			return users;
 		}
 
