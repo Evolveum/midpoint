@@ -60,10 +60,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(ShadowType.F_ATTRIBUTES);
 
-    @Autowired(required = true)
+    @Autowired
     private AssignmentProcessor assignmentProcessor;
     
-    @Autowired(required = true)
+    @Autowired
     private Clock clock;
 
     public TestAssignmentProcessor() throws JAXBException {

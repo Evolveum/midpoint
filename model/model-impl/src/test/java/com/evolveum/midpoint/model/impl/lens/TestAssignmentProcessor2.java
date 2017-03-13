@@ -94,17 +94,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	public static final String RESOURCE_DUMMY_EMPTY_OID = "10000000-0000-0000-0000-00000000EEE4";
 	public static final String RESOURCE_DUMMY_EMPTY_INSTANCE_NAME = "empty";
 
-	@Autowired
-    private AssignmentProcessor assignmentProcessor;
-
-    @Autowired
-    private Clock clock;
+	@Autowired private AssignmentProcessor assignmentProcessor;
+    @Autowired private Clock clock;
 
     private RoleType role1, role2, role4, role5, role6;
     private OrgType org3;
     private RoleType metarole1, metarole2, metarole3, metarole4;
     private RoleType metametarole1;
-	List<ObjectType> roles;
+	private List<ObjectType> roles;
 
 	private static final String R1_OID = getRoleOid("R1");
 
@@ -142,6 +139,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
+		assertTargets(evaluatedAssignment, "R1 R2 O3 R4 R5 R6 MR1 MR2 MR3 MR4 MMR1", null, null, null, null, null);
 		assertMembershipRef(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 		assertOrgRef(evaluatedAssignment, "O3");
 		assertDelegation(evaluatedAssignment, null);
@@ -161,177 +159,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
 		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
-		
-		//		assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-//		assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
-//		assertFalse("No account changes", context.getProjectionContexts().isEmpty());
-//
-//		Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
-//		assertEquals(1, accountContexts.size());
-//		LensProjectionContext accContext = accountContexts.iterator().next();
-//		assertNull(accContext.getPrimaryDelta());
-//
-//		ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-//		assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
-//
-//		assertNoDecision(accContext);
-//		assertLegal(accContext);
-
-//		assignmentProcessor.processAssignmentsAccountValues(accContext, result);
-//
-//		PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-//				accContext.getConstructionDeltaSetTriple();
-//		display("accountConstructionDeltaSetTriple", accountConstructionDeltaSetTriple);
-//
-//		PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
-//		PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
-//		assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
-//
-//		Construction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
-//
-//		assertNoZeroAttributeValues(zeroAccountConstruction,
-//				getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-//		assertPlusAttributeValues(zeroAccountConstruction,
-//				getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Tortuga");
-//		assertMinusAttributeValues(zeroAccountConstruction,
-//				getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
-
-	}
-
-	private void assertAuthorizations(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
-		List<String> expected = getList(text);
-		assertEquals("Wrong # of authorizations", expected.size(), evaluatedAssignment.getAuthorizations().size());
-		assertEquals("Wrong authorizations", new HashSet<>(expected),
-				evaluatedAssignment.getAuthorizations().stream().map(a -> a.getAction().get(0)).collect(Collectors.toSet()));
-	}
-
-	private void assertGuiConfig(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
-		List<String> expected = getList(text);
-		assertEquals("Wrong # of gui configurations", expected.size(), evaluatedAssignment.getAdminGuiConfigurations().size());
-		assertEquals("Wrong gui authorizations", new HashSet<>(expected),
-				evaluatedAssignment.getAdminGuiConfigurations().stream().map(g -> g.getPreferredDataLanguage()).collect(Collectors.toSet()));
-	}
-
-	private List<String> getList(String text) {
-		return text != null ? Arrays.asList(StringUtils.split(text)) : Collections.emptyList();
-	}
-
-	private void assertFocusMappings(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedItems) {
-		assertFocusMappings(evaluatedAssignment, getList(expectedItems));
-	}
-
-	private void assertFocusMappings(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedItems) {
-		expectedItems = CollectionUtils.emptyIfNull(expectedItems);
-		assertEquals("Wrong # of focus mappings", expectedItems.size(), evaluatedAssignment.getFocusMappings().size());
-		assertEquals("Wrong focus mappings", new HashSet<>(expectedItems),
-				evaluatedAssignment.getFocusMappings().stream().map(m -> m.getMappingType().getName()).collect(Collectors.toSet()));
-		// TODO look at the content of the mappings (e.g. zero, plus, minus sets)
-	}
-
-	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedItems) {
-		assertFocusPolicyRules(evaluatedAssignment, getList(expectedItems));
-	}
-
-	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedItems) {
-		expectedItems = CollectionUtils.emptyIfNull(expectedItems);
-		assertEquals("Wrong # of focus policy rules", expectedItems.size(), evaluatedAssignment.getFocusPolicyRules().size());
-		assertEquals("Wrong focus policy rules", new HashSet<>(expectedItems),
-				evaluatedAssignment.getFocusPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
-	}
-
-	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedTargetItems, String expectedThisTargetItems) {
-		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetItems), getList(expectedThisTargetItems));
-	}
-
-	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedTargetItems, Collection<String> expectedThisTargetItems) {
-		expectedTargetItems = CollectionUtils.emptyIfNull(expectedTargetItems);
-		expectedThisTargetItems = CollectionUtils.emptyIfNull(expectedThisTargetItems);
-		assertEquals("Wrong # of target policy rules", expectedTargetItems.size(), evaluatedAssignment.getTargetPolicyRules().size());
-		assertEquals("Wrong # of this target policy rules", expectedThisTargetItems.size(), evaluatedAssignment.getThisTargetPolicyRules().size());
-		assertEquals("Wrong target policy rules", new HashSet<>(expectedTargetItems),
-				evaluatedAssignment.getTargetPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
-		assertEquals("Wrong this target policy rules", new HashSet<>(expectedThisTargetItems),
-				evaluatedAssignment.getThisTargetPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
-
-		// testing (strange) condition on thisTarget vs target policy rules
-		outer: for (EvaluatedPolicyRule localRule : evaluatedAssignment.getThisTargetPolicyRules()) {
-			for (EvaluatedPolicyRule rule : evaluatedAssignment.getTargetPolicyRules()) {
-				if (rule == localRule) {
-					continue outer;
-				}
-			}
-			fail("This target rule " + localRule + " is not among target rules: " + evaluatedAssignment.getTargetPolicyRules());
-		}
-	}
-
-	private void assertTargets(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
-			String zeroValid, String zeroInvalid,
-			String plusValid, String plusInvalid,
-			String minusValid, String minusInvalid) {
-		assertTargets(evaluatedAssignment, getList(zeroValid), getList(zeroInvalid),
-				getList(plusValid), getList(plusInvalid), getList(minusValid), getList(minusInvalid));
-	}
-	
-	private void assertTargets(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
-			List<String> zeroValid, List<String> zeroInvalid,
-			List<String> plusValid, List<String> plusInvalid,
-			List<String> minusValid, List<String> minusInvalid) {
-		assertTargets("zero", evaluatedAssignment.getRoles().getZeroSet(), zeroValid, zeroInvalid);
-		assertTargets("plus", evaluatedAssignment.getRoles().getPlusSet(), plusValid, plusInvalid);
-		assertTargets("minus", evaluatedAssignment.getRoles().getMinusSet(), minusValid, minusInvalid);
-	}
-
-	private void assertTargets(String type, Collection<EvaluatedAssignmentTargetImpl> targets, List<String> expectedValid,
-			List<String> expectedInvalid) {
-		targets = CollectionUtils.emptyIfNull(targets);
-		Collection<EvaluatedAssignmentTargetImpl> realValid = targets.stream().filter(t -> t.isValid()).collect(Collectors.toList());
-		Collection<EvaluatedAssignmentTargetImpl> realInvalid = targets.stream().filter(t -> !t.isValid()).collect(Collectors.toList());
-		assertEquals("Wrong # of valid targets in " + type + " set", expectedValid.size(), realValid.size());
-		assertEquals("Wrong # of invalid targets in " + type + " set", expectedInvalid.size(), realInvalid.size());
-		assertEquals("Wrong valid targets in " + type + " set", new HashSet<>(expectedValid),
-				realValid.stream().map(t -> t.getTarget().getName().getOrig()).collect(Collectors.toSet()));
-		assertEquals("Wrong invalid targets in " + type + " set", new HashSet<>(expectedInvalid),
-				realInvalid.stream().map(t -> t.getTarget().getName().getOrig()).collect(Collectors.toSet()));
-	}
-
-
-	private void assertConstructions(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
-			String zeroValid, String zeroInvalid,
-			String plusValid, String plusInvalid,
-			String minusValid, String minusInvalid) {
-		assertConstructions(evaluatedAssignment, getList(zeroValid), getList(zeroInvalid),
-				getList(plusValid), getList(plusInvalid), getList(minusValid), getList(minusInvalid));
-	}
-
-	private void assertConstructions(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
-			List<String> zeroValid, List<String> zeroInvalid,
-			List<String> plusValid, List<String> plusInvalid,
-			List<String> minusValid, List<String> minusInvalid) {
-		assertConstructions("zero", evaluatedAssignment.getConstructionSet(PlusMinusZero.ZERO), zeroValid, zeroInvalid);
-		assertConstructions("plus", evaluatedAssignment.getConstructionSet(PlusMinusZero.PLUS), plusValid, plusInvalid);
-		assertConstructions("minus", evaluatedAssignment.getConstructionSet(PlusMinusZero.MINUS), minusValid, minusInvalid);
-	}
-
-	private void assertConstructions(String type, Collection<Construction<UserType>> constructions, List<String> valid0,
-			List<String> invalid0) {
-		constructions = CollectionUtils.emptyIfNull(constructions);
-		Collection<String> expectedValid = CollectionUtils.emptyIfNull(valid0);
-		Collection<String> expectedInvalid = CollectionUtils.emptyIfNull(invalid0);
-		Collection<Construction<UserType>> realValid = constructions.stream().filter(c -> c.isValid()).collect(Collectors.toList());
-		Collection<Construction<UserType>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
-		assertEquals("Wrong # of valid constructions in " + type + " set", expectedValid.size(), realValid.size());
-		assertEquals("Wrong # of invalid constructions in " + type + " set", expectedInvalid.size(), realInvalid.size());
-		assertEquals("Wrong valid constructions in " + type + " set", new HashSet<>(expectedValid),
-				realValid.stream().map(c -> c.getDescription()).collect(Collectors.toSet()));
-		assertEquals("Wrong invalid constructions in " + type + " set", new HashSet<>(expectedInvalid),
-				realInvalid.stream().map(c -> c.getDescription()).collect(Collectors.toSet()));
-	}
-
-	private Collection<EvaluatedAssignmentImpl> assertAssignmentTripleSetSize(LensContext<UserType> context, int zero, int plus, int minus) {
-		assertEquals("Wrong size of assignment triple zero set", zero, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getZeroSet()));
-		assertEquals("Wrong size of assignment triple plus set", plus, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getPlusSet()));
-		assertEquals("Wrong size of assignment triple minus set", minus, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getMinusSet()));
-		return context.getEvaluatedAssignmentTriple().getAllValues();
 	}
 
 	@Test
@@ -360,20 +187,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				context.getFocusContext().getObjectNew().asObjectable().getParentOrgRef().size());
 		assertEquals("Wrong # of roleMembershipRef entries", 0,
 				context.getFocusContext().getObjectNew().asObjectable().getRoleMembershipRef().size());
-	}
-
-	@NotNull
-	private LensContext<UserType> createContextForRoleAssignment(String userOid, String roleOid, QName relation,
-			Consumer<AssignmentType> modificationBlock, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, JAXBException {
-		LensContext<UserType> context = createUserAccountContext();
-		fillContextWithUser(context, userOid, result);
-		addFocusDeltaToContext(context, createAssignmentUserDelta(USER_JACK_OID, roleOid, RoleType.COMPLEX_TYPE, relation,
-				modificationBlock, true));
-		context.recompute();
-		display("Input context", context);
-		assertFocusModificationSanity(context);
-		return context;
 	}
 
 	/**
@@ -436,6 +249,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
+		assertTargets(evaluatedAssignment, "R1 MR1", null, null, null, null, null);
 		assertMembershipRef(evaluatedAssignment, "R1");
 		assertOrgRef(evaluatedAssignment, null);
 		assertDelegation(evaluatedAssignment, null);
@@ -512,6 +326,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
+		assertTargets(evaluatedAssignment, "R1 MR1 MMR1 MR4 R4", null, null, null, null, null);
 		assertMembershipRef(evaluatedAssignment, "R1 R4");
 		assertOrgRef(evaluatedAssignment, null);
 		assertDelegation(evaluatedAssignment, null);
@@ -614,6 +429,50 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertGuiConfig(evaluatedAssignment, "R1");
 	}
 
+	//region ============================================================= helper methods (preparing scenarios)
+
+	private void createObjects(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
+		role1 = createRole(1, 1);
+		role2 = createRole(1, 2);
+		org3 = createOrg(3);
+		role4 = createRole(1, 4);
+		role5 = createRole(1, 5);
+		role6 = createRole(1, 6);
+		metarole1 = createRole(2, 1);
+		metarole2 = createRole(2, 2);
+		metarole3 = createRole(2, 3);
+		metarole4 = createRole(2, 4);
+		metametarole1 = createRole(3, 1);
+		assign(role1, metarole1);
+		assign(role2, metarole2);
+		assign(metarole1, metametarole1);
+		induce(role1, role2, 1);
+		induce(metarole1, metarole3, 1);
+		induce(metarole1, role4, 2);
+		induce(metarole2, org3, 2);
+		induce(metarole3, role5, 2);
+		induce(metarole4, role6, 2);
+		induce(metametarole1, metarole4, 2);
+
+		roles = Arrays.asList(role1, role2, org3, role4, role5, role6, metarole1, metarole2, metarole3, metarole4, metametarole1);
+
+		if (adjustment != null) {
+			adjustment.run();
+		}
+
+		// TODO implement repoAddObjects with overwrite option
+		if (deleteFirst) {
+			for (ObjectType role : roles) {
+				repositoryService.deleteObject(role.getClass(), role.getOid(), result);
+			}
+		}
+
+		repoAddObjects(roles, result);
+		recomputeAndRefreshObjects(roles, task, result);
+		displayObjectTypeCollection("objects", roles);
+	}
+
+	// methods for creation-time manipulation with roles and assignments
 
 	private void disableRoles(String text) {
 		for (String name : getList(text)) {
@@ -622,15 +481,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				role.setActivation(new ActivationType(prismContext));
 			}
 			role.getActivation().setAdministrativeStatus(ActivationStatusType.DISABLED);
-		}
-	}
-
-	private void addConditionToRoles(String text) {
-		for (String item : getList(text)) {
-			String name = StringUtils.substring(item, 0, -1);
-			char conditionType = item.charAt(item.length() - 1);
-			AbstractRoleType role = findRole(name);
-			role.setCondition(createCondition(conditionType));
 		}
 	}
 
@@ -644,11 +494,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		}
 	}
 
-	private AssignmentType findAssignmentOrInducement(String assignmentText) {
-		String[] split = StringUtils.split(assignmentText, "-");
-		AbstractRoleType source = findRole(split[0]);
-		AbstractRoleType target = findRole(split[1]);
-		return findAssignmentOrInducement(source, target);
+	private void addConditionToRoles(String text) {
+		for (String item : getList(text)) {
+			String name = StringUtils.substring(item, 0, -1);
+			char conditionType = item.charAt(item.length() - 1);
+			AbstractRoleType role = findRole(name);
+			role.setCondition(createCondition(conditionType));
+		}
 	}
 
 	private void addConditionToAssignments(String text) {
@@ -676,34 +528,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		rv.setExpression(expression);
 		rv.getSource().add(source);
 		return rv;
-	}
-
-	private AssignmentType findAssignmentOrInducement(AbstractRoleType source, AbstractRoleType target) {
-		return Stream.concat(source.getAssignment().stream(), source.getInducement().stream())
-				.filter(a -> a.getTargetRef() != null && target.getOid().equals(a.getTargetRef().getOid()))
-				.findFirst()
-				.orElseThrow(() -> new IllegalStateException(source + " contains no assignment/inducement to " + target));
-	}
-
-	private AbstractRoleType findRole(String name) {
-		return (AbstractRoleType) roles.stream().filter(r -> name.equals(r.getName().getOrig())).findFirst()
-				.orElseThrow(() -> new IllegalStateException("No role " + name));
-	}
-
-	private void assertDelegation(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
-		assertPrismRefValues("delegationRef", evaluatedAssignment.getDelegationRefVals(), findRoles(text));
-	}
-
-	private void assertOrgRef(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
-		assertPrismRefValues("orgRef", evaluatedAssignment.getOrgRefVals(), findRoles(text));
-	}
-
-	private void assertMembershipRef(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
-		assertPrismRefValues("membershipRef", evaluatedAssignment.getMembershipRefVals(), findRoles(text));
-	}
-
-	private List<AbstractRoleType> findRoles(String text) {
-		return getList(text).stream().map(n -> findRole(n)).collect(Collectors.toList());
 	}
 
 	private void induce(AbstractRoleType source, AbstractRoleType target, int inducementOrder) {
@@ -796,50 +620,195 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		return "99999999-0000-0000-0000-" + StringUtils.repeat('0', 12-name.length()) + name;
 	}
 
-	private void createObjects(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
-		role1 = createRole(1, 1);
-		role2 = createRole(1, 2);
-		org3 = createOrg(3);
-		role4 = createRole(1, 4);
-		role5 = createRole(1, 5);
-		role6 = createRole(1, 6);
-		metarole1 = createRole(2, 1);
-		metarole2 = createRole(2, 2);
-		metarole3 = createRole(2, 3);
-		metarole4 = createRole(2, 4);
-		metametarole1 = createRole(3, 1);
-		assign(role1, metarole1);
-		assign(role2, metarole2);
-		assign(metarole1, metametarole1);
-		induce(role1, role2, 1);
-		induce(metarole1, metarole3, 1);
-		induce(metarole1, role4, 2);
-		induce(metarole2, org3, 2);
-		induce(metarole3, role5, 2);
-		induce(metarole4, role6, 2);
-		induce(metametarole1, metarole4, 2);
-
-		roles = Arrays
-				.asList(role1, role2, org3, role4, role5, role6, metarole1, metarole2, metarole3, metarole4, metametarole1);
-
-		if (adjustment != null) {
-			adjustment.run();
-		}
-
-		//		for (ObjectType role : roles) {
-		//			System.out.println(prismContext.xmlSerializer().serialize(role.asPrismObject()));
-		//		}
-
-		// TODO implement repoAddObjects with overwrite option
-		if (deleteFirst) {
-			for (ObjectType role : roles) {
-				repositoryService.deleteObject(role.getClass(), role.getOid(), result);
-			}
-		}
-
-		repoAddObjects(roles, result);
-		recomputeAndRefreshObjects(roles, task, result);
-		displayObjectTypeCollection("objects", roles);
+	@NotNull
+	private LensContext<UserType> createContextForRoleAssignment(String userOid, String roleOid, QName relation,
+			Consumer<AssignmentType> modificationBlock, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, JAXBException {
+		LensContext<UserType> context = createUserAccountContext();
+		fillContextWithUser(context, userOid, result);
+		addFocusDeltaToContext(context, createAssignmentUserDelta(USER_JACK_OID, roleOid, RoleType.COMPLEX_TYPE, relation,
+				modificationBlock, true));
+		context.recompute();
+		display("Input context", context);
+		assertFocusModificationSanity(context);
+		return context;
 	}
 
+	//endregion
+	//region ============================================================= helper methods (asserts)
+
+	private void assertMembershipRef(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+		assertPrismRefValues("membershipRef", evaluatedAssignment.getMembershipRefVals(), findRoles(text));
+	}
+
+	private void assertDelegation(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+		assertPrismRefValues("delegationRef", evaluatedAssignment.getDelegationRefVals(), findRoles(text));
+	}
+
+	private void assertOrgRef(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+		assertPrismRefValues("orgRef", evaluatedAssignment.getOrgRefVals(), findRoles(text));
+	}
+
+	private void assertAuthorizations(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+		List<String> expected = getList(text);
+		assertEquals("Wrong # of authorizations", expected.size(), evaluatedAssignment.getAuthorizations().size());
+		assertEquals("Wrong authorizations", new HashSet<>(expected),
+				evaluatedAssignment.getAuthorizations().stream().map(a -> a.getAction().get(0)).collect(Collectors.toSet()));
+	}
+
+	private void assertGuiConfig(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+		List<String> expected = getList(text);
+		assertEquals("Wrong # of gui configurations", expected.size(), evaluatedAssignment.getAdminGuiConfigurations().size());
+		assertEquals("Wrong gui authorizations", new HashSet<>(expected),
+				evaluatedAssignment.getAdminGuiConfigurations().stream().map(g -> g.getPreferredDataLanguage()).collect(Collectors.toSet()));
+	}
+
+	private void assertFocusMappings(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedItems) {
+		assertFocusMappings(evaluatedAssignment, getList(expectedItems));
+	}
+
+	private void assertFocusMappings(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedItems) {
+		expectedItems = CollectionUtils.emptyIfNull(expectedItems);
+		assertEquals("Wrong # of focus mappings", expectedItems.size(), evaluatedAssignment.getFocusMappings().size());
+		assertEquals("Wrong focus mappings", new HashSet<>(expectedItems),
+				evaluatedAssignment.getFocusMappings().stream().map(m -> m.getMappingType().getName()).collect(Collectors.toSet()));
+		// TODO look at the content of the mappings (e.g. zero, plus, minus sets)
+	}
+
+	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedItems) {
+		assertFocusPolicyRules(evaluatedAssignment, getList(expectedItems));
+	}
+
+	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedItems) {
+		expectedItems = CollectionUtils.emptyIfNull(expectedItems);
+		assertEquals("Wrong # of focus policy rules", expectedItems.size(), evaluatedAssignment.getFocusPolicyRules().size());
+		assertEquals("Wrong focus policy rules", new HashSet<>(expectedItems),
+				evaluatedAssignment.getFocusPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
+	}
+
+	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedTargetItems, String expectedThisTargetItems) {
+		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetItems), getList(expectedThisTargetItems));
+	}
+
+	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedTargetItems, Collection<String> expectedThisTargetItems) {
+		expectedTargetItems = CollectionUtils.emptyIfNull(expectedTargetItems);
+		expectedThisTargetItems = CollectionUtils.emptyIfNull(expectedThisTargetItems);
+		assertEquals("Wrong # of target policy rules", expectedTargetItems.size(), evaluatedAssignment.getTargetPolicyRules().size());
+		assertEquals("Wrong # of this target policy rules", expectedThisTargetItems.size(), evaluatedAssignment.getThisTargetPolicyRules().size());
+		assertEquals("Wrong target policy rules", new HashSet<>(expectedTargetItems),
+				evaluatedAssignment.getTargetPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
+		assertEquals("Wrong this target policy rules", new HashSet<>(expectedThisTargetItems),
+				evaluatedAssignment.getThisTargetPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
+
+		// testing (strange) condition on thisTarget vs target policy rules
+		outer: for (EvaluatedPolicyRule localRule : evaluatedAssignment.getThisTargetPolicyRules()) {
+			for (EvaluatedPolicyRule rule : evaluatedAssignment.getTargetPolicyRules()) {
+				if (rule == localRule) {
+					continue outer;
+				}
+			}
+			fail("This target rule " + localRule + " is not among target rules: " + evaluatedAssignment.getTargetPolicyRules());
+		}
+	}
+
+	private void assertTargets(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+			String zeroValid, String zeroInvalid,
+			String plusValid, String plusInvalid,
+			String minusValid, String minusInvalid) {
+		assertTargets(evaluatedAssignment, getList(zeroValid), getList(zeroInvalid),
+				getList(plusValid), getList(plusInvalid), getList(minusValid), getList(minusInvalid));
+	}
+
+	private void assertTargets(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+			List<String> zeroValid, List<String> zeroInvalid,
+			List<String> plusValid, List<String> plusInvalid,
+			List<String> minusValid, List<String> minusInvalid) {
+		assertTargets("zero", evaluatedAssignment.getRoles().getZeroSet(), zeroValid, zeroInvalid);
+		assertTargets("plus", evaluatedAssignment.getRoles().getPlusSet(), plusValid, plusInvalid);
+		assertTargets("minus", evaluatedAssignment.getRoles().getMinusSet(), minusValid, minusInvalid);
+	}
+
+	private void assertTargets(String type, Collection<EvaluatedAssignmentTargetImpl> targets, List<String> expectedValid,
+			List<String> expectedInvalid) {
+		targets = CollectionUtils.emptyIfNull(targets);
+		Collection<EvaluatedAssignmentTargetImpl> realValid = targets.stream().filter(t -> t.isValid()).collect(Collectors.toList());
+		Collection<EvaluatedAssignmentTargetImpl> realInvalid = targets.stream().filter(t -> !t.isValid()).collect(Collectors.toList());
+		assertEquals("Wrong # of valid targets in " + type + " set", expectedValid.size(), realValid.size());
+		assertEquals("Wrong # of invalid targets in " + type + " set", expectedInvalid.size(), realInvalid.size());
+		assertEquals("Wrong valid targets in " + type + " set", new HashSet<>(expectedValid),
+				realValid.stream().map(t -> t.getTarget().getName().getOrig()).collect(Collectors.toSet()));
+		assertEquals("Wrong invalid targets in " + type + " set", new HashSet<>(expectedInvalid),
+				realInvalid.stream().map(t -> t.getTarget().getName().getOrig()).collect(Collectors.toSet()));
+	}
+
+	private void assertConstructions(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+			String zeroValid, String zeroInvalid,
+			String plusValid, String plusInvalid,
+			String minusValid, String minusInvalid) {
+		assertConstructions(evaluatedAssignment, getList(zeroValid), getList(zeroInvalid),
+				getList(plusValid), getList(plusInvalid), getList(minusValid), getList(minusInvalid));
+	}
+
+	private void assertConstructions(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+			List<String> zeroValid, List<String> zeroInvalid,
+			List<String> plusValid, List<String> plusInvalid,
+			List<String> minusValid, List<String> minusInvalid) {
+		assertConstructions("zero", evaluatedAssignment.getConstructionSet(PlusMinusZero.ZERO), zeroValid, zeroInvalid);
+		assertConstructions("plus", evaluatedAssignment.getConstructionSet(PlusMinusZero.PLUS), plusValid, plusInvalid);
+		assertConstructions("minus", evaluatedAssignment.getConstructionSet(PlusMinusZero.MINUS), minusValid, minusInvalid);
+	}
+
+	private void assertConstructions(String type, Collection<Construction<UserType>> constructions, List<String> valid0,
+			List<String> invalid0) {
+		constructions = CollectionUtils.emptyIfNull(constructions);
+		Collection<String> expectedValid = CollectionUtils.emptyIfNull(valid0);
+		Collection<String> expectedInvalid = CollectionUtils.emptyIfNull(invalid0);
+		Collection<Construction<UserType>> realValid = constructions.stream().filter(c -> c.isValid()).collect(Collectors.toList());
+		Collection<Construction<UserType>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
+		assertEquals("Wrong # of valid constructions in " + type + " set", expectedValid.size(), realValid.size());
+		assertEquals("Wrong # of invalid constructions in " + type + " set", expectedInvalid.size(), realInvalid.size());
+		assertEquals("Wrong valid constructions in " + type + " set", new HashSet<>(expectedValid),
+				realValid.stream().map(c -> c.getDescription()).collect(Collectors.toSet()));
+		assertEquals("Wrong invalid constructions in " + type + " set", new HashSet<>(expectedInvalid),
+				realInvalid.stream().map(c -> c.getDescription()).collect(Collectors.toSet()));
+	}
+
+	private Collection<EvaluatedAssignmentImpl> assertAssignmentTripleSetSize(LensContext<UserType> context, int zero, int plus, int minus) {
+		assertEquals("Wrong size of assignment triple zero set", zero, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getZeroSet()));
+		assertEquals("Wrong size of assignment triple plus set", plus, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getPlusSet()));
+		assertEquals("Wrong size of assignment triple minus set", minus, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getMinusSet()));
+		return context.getEvaluatedAssignmentTriple().getAllValues();
+	}
+
+	//endregion
+	//region ============================================================= helper methods (misc)
+
+	private AssignmentType findAssignmentOrInducement(String assignmentText) {
+		String[] split = StringUtils.split(assignmentText, "-");
+		AbstractRoleType source = findRole(split[0]);
+		AbstractRoleType target = findRole(split[1]);
+		return findAssignmentOrInducement(source, target);
+	}
+
+	private AssignmentType findAssignmentOrInducement(AbstractRoleType source, AbstractRoleType target) {
+		return Stream.concat(source.getAssignment().stream(), source.getInducement().stream())
+				.filter(a -> a.getTargetRef() != null && target.getOid().equals(a.getTargetRef().getOid()))
+				.findFirst()
+				.orElseThrow(() -> new IllegalStateException(source + " contains no assignment/inducement to " + target));
+	}
+
+	private AbstractRoleType findRole(String name) {
+		return (AbstractRoleType) roles.stream().filter(r -> name.equals(r.getName().getOrig())).findFirst()
+				.orElseThrow(() -> new IllegalStateException("No role " + name));
+	}
+
+	private List<AbstractRoleType> findRoles(String text) {
+		return getList(text).stream().map(n -> findRole(n)).collect(Collectors.toList());
+	}
+
+	private List<String> getList(String text) {
+		return text != null ? Arrays.asList(StringUtils.split(text)) : Collections.emptyList();
+	}
+
+	//endregion
 }

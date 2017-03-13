@@ -875,14 +875,14 @@ public class AssignmentProcessor {
 		Collection<PrismReferenceValue> shouldBeParentOrgRefs = new ArrayList<>();
 
 		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-		if (evaluatedAssignmentTriple != null) {
-			for (EvaluatedAssignmentImpl<?> evalAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
-				if (evalAssignment.isValid()) {
-					addReferences(shouldBeParentOrgRefs, evalAssignment.getOrgRefVals());
-				}
+		if (evaluatedAssignmentTriple == null) {
+			return;		// could be if "assignments" step is skipped
+		}
+		for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+			if (evalAssignment.isValid()) {
+				addReferences(shouldBeParentOrgRefs, evalAssignment.getOrgRefVals());
 			}
 		}
-
 		setReferences(focusContext, ObjectType.F_PARENT_ORG_REF, shouldBeParentOrgRefs);
 	}
 
@@ -1007,12 +1007,13 @@ public class AssignmentProcessor {
 		Collection<PrismReferenceValue> shouldBeDelegatedRefs = new ArrayList<>();
 
 		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-		if (evaluatedAssignmentTriple != null) {
-			for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-				if (evalAssignment.isValid()) {
-					addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
-					addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
-				}
+		if (evaluatedAssignmentTriple == null) {
+			return;	// could be if the "assignments" step is skipped
+		}
+		for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+			if (evalAssignment.isValid()) {
+				addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
+				addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
 			}
 		}
 

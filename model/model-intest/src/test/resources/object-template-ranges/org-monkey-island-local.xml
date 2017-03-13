@@ -39,6 +39,9 @@
 		<name>F0002</name>
 		<description>Defending the scum since the ancient times.</description>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
 		<displayName>Ministry of Defense</displayName>
 		<identifier>0002</identifier>
 		<orgType>functional</orgType>
@@ -49,6 +52,9 @@
 		<name>F0003</name>
 		<description>Offending. Anyone. Anywhere.</description>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
 		<displayName>Ministry of Offense</displayName>
 		<identifier>0003</identifier>
 		<orgType>functional</orgType>
@@ -59,6 +65,9 @@
 		<name>F0004</name>
 		<description>Why is the rum always gone?</description>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
 		<displayName>Ministry of Rum</displayName>
 		<identifier>0004</identifier>
 		<orgType>functional</orgType>
@@ -69,6 +78,9 @@
 		<name>F0005</name>
 		<description>Swashing, buckling and insulting. Hard.</description>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000003"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000003" type="OrgType"/>
+		</assignment>
 		<displayName>Swashbuckler Section</displayName>
 		<identifier>0005</identifier>
 		<orgType>functional</orgType>
@@ -86,6 +98,12 @@
 		<description>Hosting the worst scumm of the Caribbean.</description>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000003"/>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000004"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000003" type="OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
+		</assignment>
 		<displayName>Scumm Bar</displayName>
 		<identifier>0006</identifier>
 		<orgType>functional</orgType>
@@ -104,6 +122,9 @@
 	<org oid="00000000-8888-6666-0000-200000000001">
 		<name>P0001</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-200000000000"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-200000000000" type="OrgType"/>
+		</assignment>
 		<displayName>Save Elaine</displayName>
 		<identifier>0001</identifier>
 		<orgType>project</orgType>
@@ -112,6 +133,9 @@
 	<org oid="00000000-8888-6666-0000-200000000002">
 		<name>P0002</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-200000000000"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-200000000000" type="OrgType"/>
+		</assignment>
 		<displayName>Kidnap and marry Elaine</displayName>
 		<identifier>0002</identifier>
 		<orgType>project</orgType>
