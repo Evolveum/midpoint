@@ -15,8 +15,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -167,5 +169,12 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		sb.setLength(sb.length() - 1);
 		sb.append("=").append(summaryOrder);
 		return sb.toString();
+	}
+
+	@Override
+	public Collection<QName> getExtraRelations() {
+		return orderMap.keySet().stream()
+				.filter(r -> !DeputyUtils.isMembershipRelation(r) && !DeputyUtils.isDelegationRelation(r))
+				.collect(Collectors.toSet());
 	}
 }

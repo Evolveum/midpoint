@@ -27,10 +27,14 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Primary duty of this class is to be a part of assignment path. (This is what is visible through its interface,
@@ -153,7 +157,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  by "other" relations is not collected.
 	 *
 	 *  Both of this can be overridden by using specific orderConstraints on particular inducement.
-	 *  (TODO this is just an idea, not implemented yet)
 	 *  Set of order constraint is considered to match evaluation order with "other" relations, if for each such "other"
 	 *  relation it contains related constraint. So, if one explicitly wants an inducement to be applied when
 	 *  "approver" relation is encountered, he may do so.
@@ -180,15 +183,15 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *
 	 *   When evaluating jack->Pirate assignment, rule1 would not be normally taken into account, because its assignment
 	 *   (Pirate->rule1) has an order of 2. However, we want to collect it - but not as an item related to focus, but
-	 *   as an item related to evaluated assignment's target. Therefore besides isMatchingOrder we maintain isMatchingOrderPlusOne
+	 *   as an item related to evaluated assignment's target. Therefore besides isMatchingOrder we maintain isMatchingOrderForTarget
 	 *   that marks all segments (assignments/inducements) that contain policy rules relevant to the evaluated assignment's target.
 	 *
 	 *   TODO how exactly do we compute it
 	 */
 	private Boolean isMatchingOrder = null;
 	private EvaluationOrder evaluationOrder;
-
-	private Boolean isMatchingOrderPlusOne = null;
+	private Boolean isMatchingOrderForTarget = null;
+	private EvaluationOrder evaluationOrderForTarget;
 
 	private boolean processMembership = false;
 
@@ -268,13 +271,25 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	}
 
 	public void setEvaluationOrder(EvaluationOrder evaluationOrder) {
-		setEvaluationOrder(evaluationOrder, null, null);
+		setEvaluationOrder(evaluationOrder, null);
 	}
 
-	public void setEvaluationOrder(EvaluationOrder evaluationOrder, Boolean matchingOrder, Boolean matchingOrderPlusOne) {
+	public void setEvaluationOrder(EvaluationOrder evaluationOrder, Boolean matchingOrder) {
 		this.evaluationOrder = evaluationOrder;
 		this.isMatchingOrder = matchingOrder;
-		this.isMatchingOrderPlusOne = matchingOrderPlusOne;
+	}
+
+	public EvaluationOrder getEvaluationOrderForTarget() {
+		return evaluationOrderForTarget;
+	}
+
+	public void setEvaluationOrderForTarget(EvaluationOrder evaluationOrder) {
+		setEvaluationOrderForTarget(evaluationOrder, null);
+	}
+
+	public void setEvaluationOrderForTarget(EvaluationOrder evaluationOrderForTarget, Boolean matching) {
+		this.evaluationOrderForTarget = evaluationOrderForTarget;
+		this.isMatchingOrderForTarget = matching;
 	}
 
 	public ObjectType getOrderOneObject() {
@@ -299,44 +314,54 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 */
 	public boolean isMatchingOrder() {
 		if (isMatchingOrder == null) {
-			isMatchingOrder = computeMatchingOrder(getAssignment(), evaluationOrder, 0);
+			isMatchingOrder = computeMatchingOrder(evaluationOrder, getAssignment());
 		}
 		return isMatchingOrder;
 	}
 	
-	public boolean isMatchingOrderPlusOne() {
-		if (isMatchingOrderPlusOne == null) {
-			isMatchingOrderPlusOne = computeMatchingOrder(getAssignment(), evaluationOrder, 1);
+	public boolean isMatchingOrderForTarget() {
+		if (isMatchingOrderForTarget == null) {
+			isMatchingOrderForTarget = computeMatchingOrder(evaluationOrderForTarget, getAssignment());
 		}
-		return isMatchingOrderPlusOne;
+		return isMatchingOrderForTarget;
 	}
 
-	static boolean computeMatchingOrder(AssignmentType assignmentType, EvaluationOrder evaluationOrder, int offset) {
+	static boolean computeMatchingOrder(EvaluationOrder evaluationOrder, AssignmentType assignmentType) {
+		return computeMatchingOrder(evaluationOrder, assignmentType.getOrder(), assignmentType.getOrderConstraint());
+	}
+
+	static boolean computeMatchingOrder(EvaluationOrder evaluationOrder, Integer assignmentOrder,
+			List<OrderConstraintsType> assignmentOrderConstraint) {
 		boolean rv;
-		if (assignmentType.getOrder() == null && assignmentType.getOrderConstraint().isEmpty()) {
+		List<QName> extraRelations = new ArrayList<>(evaluationOrder.getExtraRelations());
+		if (assignmentOrder == null && assignmentOrderConstraint.isEmpty()) {
 			// compatibility
-			rv = evaluationOrder.getSummaryOrder() - offset == 1;
+			rv = evaluationOrder.getSummaryOrder() == 1;
 		} else {
 			rv = true;
-			if (assignmentType.getOrder() != null) {
-				if (evaluationOrder.getSummaryOrder() - offset != assignmentType.getOrder()) {
+			if (assignmentOrder != null) {
+				if (evaluationOrder.getSummaryOrder() != assignmentOrder) {
 					rv = false;
 				}
 			}
-			for (OrderConstraintsType orderConstraint : assignmentType.getOrderConstraint()) {
-				if (!isMatchingConstraint(orderConstraint, evaluationOrder, offset)) {
+			for (OrderConstraintsType orderConstraint : assignmentOrderConstraint) {
+				if (!isMatchingConstraint(orderConstraint, evaluationOrder)) {
 					rv = false;
 					break;
 				}
+				extraRelations.removeIf(r -> QNameUtil.match(r, orderConstraint.getRelation()));
 			}
 		}
-		LOGGER.trace("computeMatchingOrder => {}, for offset={}; assignment.order={}, assignment.orderConstraint={}, evaluationOrder={} ... assignment = {}",
-				rv, offset, assignmentType.getOrder(), assignmentType.getOrderConstraint(), evaluationOrder);
+		if (!extraRelations.isEmpty()) {
+			rv = false;
+		}
+		LOGGER.trace("computeMatchingOrder => {}, for offset={}; assignment.order={}, assignment.orderConstraint={}, evaluationOrder={}, remainingExtraRelations={}",
+				rv, assignmentOrder, assignmentOrderConstraint, evaluationOrder, extraRelations);
 		return rv;
 	}
 
-	private static boolean isMatchingConstraint(OrderConstraintsType orderConstraint, EvaluationOrder evaluationOrder, int offset) {
-		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation()) - offset;
+	private static boolean isMatchingConstraint(OrderConstraintsType orderConstraint, EvaluationOrder evaluationOrder) {
+		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation());
 		if (orderConstraint.getOrder() != null) {
 			return orderConstraint.getOrder() == evaluationOrderInt;
 		} else {
@@ -401,8 +426,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		if (isMatchingOrder()) {			// here is a side effect but most probably it's harmless
 			sb.append("(match)");
 		}
-		if (isMatchingOrderPlusOne()) {		// the same here
-			sb.append("(match+1)");
+		if (isMatchingOrderForTarget()) {		// the same here
+			sb.append("(match-target)");
 		}
 		sb.append(": ");
 		sb.append(source).append(" ");
@@ -459,7 +484,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		DebugUtil.debugDumpWithLabelLn(sb, "target", target==null?"null":target.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", evaluationOrder, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrder", isMatchingOrder, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrderPlusOne", isMatchingOrderPlusOne, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrderForTarget", isMatchingOrderForTarget, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "pathToSourceValid", pathToSourceValid, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "validityOverride", validityOverride, indent + 1);

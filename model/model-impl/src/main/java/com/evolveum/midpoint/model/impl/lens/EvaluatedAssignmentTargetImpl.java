@@ -125,7 +125,9 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Assignment", String.valueOf(assignment), indent + 1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "EvaluateConstructions", evaluateConstructions, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "Valid", isValid, indent + 1);
 		return sb.toString();
 	}
 

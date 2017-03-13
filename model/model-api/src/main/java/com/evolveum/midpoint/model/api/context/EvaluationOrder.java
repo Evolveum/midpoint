@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.api.context;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -39,4 +40,6 @@ public interface EvaluationOrder extends DebugDumpable {
 	int getMatchingRelationOrder(QName relation);
 
 	String shortDump();
+
+	Collection<QName> getExtraRelations();
 }

@@ -22,7 +22,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
@@ -209,6 +208,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		AssignmentPathSegmentImpl segment = new AssignmentPathSegmentImpl(source, sourceDescription, assignmentIdi, true);
 		segment.setEvaluationOrder(getInitialEvaluationOrder(assignmentIdi, ctx));
+		segment.setEvaluationOrderForTarget(EvaluationOrderImpl.ZERO);
 		segment.setValidityOverride(true);
 		segment.setPathToSourceValid(true);
 		segment.setProcessMembership(true);
@@ -336,7 +336,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 					if (segment.isMatchingOrder()) {
 						collectPolicyRule(true, segment, ctx);
 					}
-					if (segment.isMatchingOrderPlusOne()) {
+					if (segment.isMatchingOrderForTarget()) {
 						collectPolicyRule(false, segment, ctx);
 					}
 				}
@@ -585,9 +585,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 		
-	private void evaluateSegmentTarget(AssignmentPathSegmentImpl segment,
-			PlusMinusZero mode, boolean isValid, FocusType targetType, QName relation,
-			EvaluationContext ctx) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+	private void evaluateSegmentTarget(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid,
+			FocusType targetType, QName relation, EvaluationContext ctx)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
 		assert ctx.assignmentPath.last() == segment;
@@ -601,7 +601,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		checkRelationWithTarget(segment, targetType, relation);
 
 		if (!LensUtil.isFocusValid(targetType, now, activationComputer)) {
-			LOGGER.trace("Skipping evaluation of " + targetType + " because it is not valid");
+			LOGGER.trace("Skipping evaluation of {} because it is not valid", targetType);
 			return;
 		}
 		
@@ -627,148 +627,31 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		EvaluatedAssignmentTargetImpl evalAssignmentTarget = new EvaluatedAssignmentTargetImpl(
-				targetType.asPrismObject(), segment.isMatchingOrder(),
-				ctx.assignmentPath.clone(), segment.getAssignment(), isValid);
+				targetType.asPrismObject(),
+				segment.isMatchingOrder(),	// evaluateConstructions: exact meaning of this is to be revised
+				ctx.assignmentPath.clone(),
+				segment.getAssignment(),
+				isValid);
 		ctx.evalAssignment.addRole(evalAssignmentTarget, mode);
 		
 		if ((isNonNegative(mode)) && segment.isProcessMembership()) {
-			PrismReferenceValue refVal = new PrismReferenceValue();
-			refVal.setObject(targetType.asPrismObject());
-			refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
-			refVal.setRelation(relation);
-			refVal.setTargetName(targetType.getName().toPolyString());
-
-			if (ctx.assignmentPath.getSegments().stream().anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment()))) {
-				LOGGER.trace("Adding target {} to delegationRef", targetType);
-				ctx.evalAssignment.addDelegationRefVal(refVal);
-			} else {
-				if (targetType instanceof AbstractRoleType) {
-					LOGGER.trace("Adding target {} to membershipRef", targetType);
-					ctx.evalAssignment.addMembershipRefVal(refVal);
-				}
-			}
-			
-			if (targetType instanceof OrgType) {
-				LOGGER.trace("Adding target {} to orgRef", targetType);
-				ctx.evalAssignment.addOrgRefVal(refVal);
-			} else {
-				LOGGER.trace("NOT adding target {} to orgRef: {}", targetType, ctx.assignmentPath);
-			}	
-		}
-		
-		if (!DeputyUtils.isMembershipRelation(relation) && !DeputyUtils.isDelegationRelation(relation)) {
-			LOGGER.trace("Cutting evaluation of " + targetType + " because it is neither membership nor delegation relation ({})", relation);
-			return;
-		}
-		
-		EvaluationOrder evaluationOrder = segment.getEvaluationOrder();
-		ObjectType orderOneObject;
-		
-		if (evaluationOrder.getSummaryOrder() == 1) {
-			orderOneObject = targetType;
-		} else {
-			AssignmentPathSegment last = ctx.assignmentPath.last();
-			if (last != null && last.getSource() != null) {
-				orderOneObject = last.getSource();
-			} else {
-				orderOneObject = targetType;
-			}
+			evaluateMembership(targetType, relation, ctx);
 		}
 
+		// We continue evaluation even if the relation is non-membership and non-delegation.
+		// Computation of isMatchingOrder will ensure that we won't collect any unwanted content.
+		
 		if (targetType instanceof AbstractRoleType) {
 			for (AssignmentType roleInducement : ((AbstractRoleType)targetType).getInducement()) {
-				if (!isApplicableToFocusType(roleInducement.getFocusType(), (AbstractRoleType)targetType)) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
-								FocusTypeUtil.dumpAssignment(roleInducement), roleInducement.getFocusType(), targetType.getClass().getSimpleName());
-					}
-					continue;
-				}
-				if (!isAllowedByLimitations(segment, roleInducement)) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Skipping application of inducement {} because it is limited",
-								FocusTypeUtil.dumpAssignment(roleInducement));
-					}
-					continue;
-				}
-				ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
-				roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
-				roleInducementIdi.recompute();
-				String subSourceDescription = targetType+" in "+segment.sourceDescription;
-				AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, roleInducementIdi, false);
-
-				boolean newIsMatchingOrder = AssignmentPathSegmentImpl.computeMatchingOrder(
-						subAssignmentPathSegment.getAssignment(), evaluationOrder, 0);
-				boolean newIsMatchingOrderPlusOne = AssignmentPathSegmentImpl.computeMatchingOrder(
-						subAssignmentPathSegment.getAssignment(), evaluationOrder, 1);
-
-				EvaluationOrder newEvaluationOrder;
-				if (roleInducement.getOrder() != null && roleInducement.getOrder() > 1) {
-					newEvaluationOrder = evaluationOrder.decrease(roleInducement.getOrder()-1);		// TODO what about relations?
-				} else {
-					newEvaluationOrder = evaluationOrder;
-				}
-				// TODO undefined if intervals
-				subAssignmentPathSegment.setEvaluationOrder(newEvaluationOrder, newIsMatchingOrder, newIsMatchingOrderPlusOne);
-
-				subAssignmentPathSegment.setOrderOneObject(orderOneObject);
-				subAssignmentPathSegment.setPathToSourceValid(isValid);
-				subAssignmentPathSegment.setProcessMembership(newIsMatchingOrder);
-
-				// Originally we executed the following only if isMatchingOrder. However, sometimes we have to look even into
-				// inducements with non-matching order: for example because we need to extract target-related policy rules
-				// (these are stored with order of one less than orders for focus-related policy rules).
-				//
-				// We need to make sure NOT to extract anything other from such inducements. That's why we set e.g.
-				// processMembership attribute to false for these inducements.
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("orig EO({}): evaluate {} inducement({}) {}; new EO({})",
-							evaluationOrder.shortDump(), targetType, FocusTypeUtil.dumpInducementConstraints(roleInducement),
-							FocusTypeUtil.dumpAssignment(roleInducement), newEvaluationOrder.shortDump());
-				}
-				assert !ctx.assignmentPath.isEmpty();
-				evaluateFromSegment(subAssignmentPathSegment, mode, ctx);
+				evaluateInducement(segment, mode, isValid, ctx, targetType, roleInducement);
 			}
 		}
-		
 		for (AssignmentType roleAssignment : targetType.getAssignment()) {
-			if (DeputyUtils.isDelegationRelation(relation)) {
-				// We have to handle assignments as though they were inducements here.
-				if (!isAllowedByLimitations(segment, roleAssignment)) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Skipping application of delegated assignment {} because it is limited in the delegation",
-								FocusTypeUtil.dumpAssignment(roleAssignment));
-					}
-					continue;
-				}
-			}
-			QName subrelation = getRelation(roleAssignment);
-			EvaluationOrder newEvaluationOrder = evaluationOrder.advance(subrelation);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("orig EO({}): follow assignment {} {}; new EO({})",
-						evaluationOrder.shortDump(), targetType, FocusTypeUtil.dumpAssignment(roleAssignment), newEvaluationOrder);
-			}
-			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
-			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
-			roleAssignmentIdi.recompute();
-			String subSourceDescription = targetType+" in "+segment.sourceDescription;
-			AssignmentPathSegmentImpl subAssignmentPathSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, roleAssignmentIdi, true);
-			subAssignmentPathSegment.setEvaluationOrder(newEvaluationOrder);
-			subAssignmentPathSegment.setOrderOneObject(orderOneObject);
-			// TODO why??? this should depend on evaluation order
-			if (targetType instanceof AbstractRoleType) {
-				subAssignmentPathSegment.setProcessMembership(false);
-			} else {
-				// We want to process membership in case of deputy and similar user->user assignments
-				subAssignmentPathSegment.setProcessMembership(true);
-			}
-			subAssignmentPathSegment.setPathToSourceValid(isValid);
-			assert !ctx.assignmentPath.isEmpty();
-			evaluateFromSegment(subAssignmentPathSegment, mode, ctx);
+			evaluateAssignment(segment, mode, isValid, ctx, targetType, relation, roleAssignment);
 		}
-		
-		if (evaluationOrder.getSummaryOrder() == 1 && targetType instanceof AbstractRoleType && isNonNegative(mode)) {
-			
+
+		boolean matchesOrder = AssignmentPathSegmentImpl.computeMatchingOrder(segment.getEvaluationOrder(), 1, Collections.emptyList());
+		if (matchesOrder && targetType instanceof AbstractRoleType && isNonNegative(mode)) {
 			for (AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
 				Authorization authorization = createAuthorization(authorizationType, targetType.toString());
 				ctx.evalAssignment.addAuthorization(authorization);
@@ -776,14 +659,153 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (((AbstractRoleType)targetType).getAdminGuiConfiguration() != null) {
 				ctx.evalAssignment.addAdminGuiConfiguration(((AbstractRoleType)targetType).getAdminGuiConfiguration());
 			}
-			
 			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
 			if (policyConstraints != null) {
 				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType);
 			}
 		}
-
 		LOGGER.trace("Evaluating segment target DONE for {}", segment);
+	}
+
+	// TODO revisit this
+	private ObjectType getOrderOneObject(AssignmentPathSegmentImpl segment) {
+		EvaluationOrder evaluationOrder = segment.getEvaluationOrder();
+		if (evaluationOrder.getSummaryOrder() == 1) {
+			return segment.getTarget();
+		} else {
+			if (segment.getSource() != null) {		// should be always the case...
+				return segment.getSource();
+			} else {
+				return segment.getTarget();
+			}
+		}
+	}
+
+	private void evaluateAssignment(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
+			FocusType targetType, QName relation, AssignmentType roleAssignment)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+
+		ObjectType orderOneObject = getOrderOneObject(segment);
+
+		if (DeputyUtils.isDelegationRelation(relation)) {
+			// We have to handle assignments as though they were inducements here.
+			if (!isInducementAllowedByLimitations(segment, roleAssignment)) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Skipping application of delegated assignment {} because it is limited in the delegation",
+							FocusTypeUtil.dumpAssignment(roleAssignment));
+				}
+				return;
+			}
+		}
+		QName nextRelation = getRelation(roleAssignment);
+		EvaluationOrder nextEvaluationOrder = segment.getEvaluationOrder().advance(nextRelation);
+		EvaluationOrder nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget().advance(nextRelation);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("orig EO({}): follow assignment {} {}; new EO({})",
+					segment.getEvaluationOrder().shortDump(), targetType, FocusTypeUtil.dumpAssignment(roleAssignment), nextEvaluationOrder);
+		}
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
+		roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
+		roleAssignmentIdi.recompute();
+		String nextSourceDescription = targetType+" in "+segment.sourceDescription;
+		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, nextSourceDescription, roleAssignmentIdi, true);
+		nextSegment.setEvaluationOrder(nextEvaluationOrder);
+		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTarget);
+		nextSegment.setOrderOneObject(orderOneObject);
+		// TODO why??? this should depend on evaluation order
+		if (targetType instanceof AbstractRoleType) {
+			nextSegment.setProcessMembership(false);			// evaluation order of an assignment is probably too high (TODO but not in case of inducements going back into zero or negative orders!)
+		} else {
+			// We want to process membership in case of deputy and similar user->user assignments
+			nextSegment.setProcessMembership(true);
+		}
+		nextSegment.setPathToSourceValid(isValid);
+		assert !ctx.assignmentPath.isEmpty();
+		evaluateFromSegment(nextSegment, mode, ctx);
+	}
+
+	private void evaluateInducement(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
+			FocusType targetType, AssignmentType inducement)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+
+		ObjectType orderOneObject = getOrderOneObject(segment);
+
+		if (!isInducementApplicableToFocusType(inducement.getFocusType(), (AbstractRoleType)targetType)) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
+						FocusTypeUtil.dumpAssignment(inducement), inducement.getFocusType(), targetType.getClass().getSimpleName());
+			}
+			return;
+		}
+		if (!isInducementAllowedByLimitations(segment, inducement)) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Skipping application of inducement {} because it is limited", FocusTypeUtil.dumpAssignment(inducement));
+			}
+			return;
+		}
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
+		roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(inducement));
+		roleInducementIdi.recompute();
+		String subSourceDescription = targetType+" in "+segment.sourceDescription;
+		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, roleInducementIdi, false);
+
+		boolean nextIsMatchingOrder = AssignmentPathSegmentImpl.computeMatchingOrder(
+				segment.getEvaluationOrder(), nextSegment.getAssignment());
+		boolean nextIsMatchingOrderForTarget = AssignmentPathSegmentImpl.computeMatchingOrder(
+				segment.getEvaluationOrderForTarget(), nextSegment.getAssignment());
+
+		EvaluationOrder nextEvaluationOrder, nextEvaluationOrderForTarget;
+		if (inducement.getOrder() != null && inducement.getOrder() > 1) {
+			nextEvaluationOrder = segment.getEvaluationOrder().decrease(inducement.getOrder()-1);		// TODO what about relations?
+			nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget().decrease(inducement.getOrder()-1);		// TODO what about relations?
+		} else {
+			nextEvaluationOrder = segment.getEvaluationOrder();
+			nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget();
+		}
+		// TODO undefined if intervals
+		nextSegment.setEvaluationOrder(nextEvaluationOrder, nextIsMatchingOrder);
+		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTarget, nextIsMatchingOrderForTarget);
+
+		nextSegment.setOrderOneObject(orderOneObject);
+		nextSegment.setPathToSourceValid(isValid);
+		nextSegment.setProcessMembership(nextIsMatchingOrder);
+
+		// Originally we executed the following only if isMatchingOrder. However, sometimes we have to look even into
+		// inducements with non-matching order: for example because we need to extract target-related policy rules
+		// (these are stored with order of one less than orders for focus-related policy rules).
+		//
+		// We need to make sure NOT to extract anything other from such inducements. That's why we set e.g.
+		// processMembership attribute to false for these inducements.
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("orig EO({}): evaluate {} inducement({}) {}; new EO({})",
+					segment.getEvaluationOrder().shortDump(), targetType, FocusTypeUtil.dumpInducementConstraints(inducement),
+					FocusTypeUtil.dumpAssignment(inducement), nextEvaluationOrder.shortDump());
+		}
+		assert !ctx.assignmentPath.isEmpty();
+		evaluateFromSegment(nextSegment, mode, ctx);
+	}
+
+	private void evaluateMembership(FocusType targetType, QName relation, EvaluationContext ctx) {
+		PrismReferenceValue refVal = new PrismReferenceValue();
+		refVal.setObject(targetType.asPrismObject());
+		refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
+		refVal.setRelation(relation);
+		refVal.setTargetName(targetType.getName().toPolyString());
+
+		if (ctx.assignmentPath.getSegments().stream().anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment()))) {
+			LOGGER.trace("Adding target {} to delegationRef", targetType);
+			ctx.evalAssignment.addDelegationRefVal(refVal);
+		} else {
+			if (targetType instanceof AbstractRoleType) {
+				LOGGER.trace("Adding target {} to membershipRef", targetType);
+				ctx.evalAssignment.addMembershipRefVal(refVal);
+			}
+		}
+
+		if (targetType instanceof OrgType) {
+			LOGGER.trace("Adding target {} to orgRef", targetType);
+			ctx.evalAssignment.addOrgRefVal(refVal);
+		}
 	}
 
 	private boolean isNonNegative(PlusMinusZero mode) {
@@ -805,48 +827,23 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private boolean containsOtherOrgs(AssignmentPath assignmentPath, FocusType thisOrg) {
-		for (AssignmentPathSegment segment: assignmentPath.getSegments()) {
-			ObjectType segmentTarget = segment.getTarget();
-			if (segmentTarget != null) {
-				if (segmentTarget instanceof OrgType && !segmentTarget.getOid().equals(thisOrg.getOid())) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private boolean isApplicableToFocusType(QName focusType, AbstractRoleType roleType) throws SchemaException {
-		if (focusType == null) {
+	private boolean isInducementApplicableToFocusType(QName inducementFocusType, AbstractRoleType targetType) throws SchemaException {
+		if (inducementFocusType == null) {
 			return true;
 		}
-		
-		Class focusClass = prismContext.getSchemaRegistry().determineCompileTimeClass(focusType);
-		
-		if (focusClass == null){
-			throw new SchemaException("Could not determine class for " + focusType);
+		Class inducementFocusClass = prismContext.getSchemaRegistry().determineCompileTimeClass(inducementFocusType);
+		if (inducementFocusClass == null){
+			throw new SchemaException("Could not determine class for " + inducementFocusType);
 		}
-
-		if (!focusClass.equals(lensContext.getFocusClass())) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Skipping evaluation of {} because it is applicable only for {} and not for {}",
-						roleType, focusClass, lensContext.getFocusClass());
-			}
-			return false;
-		}
-		return true;
+		return !inducementFocusClass.equals(lensContext.getFocusClass());
 	}
 	
-	private boolean isAllowedByLimitations(AssignmentPathSegment assignmentPathSegment, AssignmentType roleInducement) {
-		AssignmentSelectorType limitation = assignmentPathSegment.getAssignment().getLimitTargetContent();
-		if (limitation == null) {
-			return true;
-		}
-		return FocusTypeUtil.selectorMatches(limitation, roleInducement);
+	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement) {
+		AssignmentSelectorType limitation = segment.getAssignment().getLimitTargetContent();
+		return limitation == null || FocusTypeUtil.selectorMatches(limitation, roleInducement);
 	}
 
-	private QName getTargetType(AssignmentPathSegment assignmentPathSegment){
+	private QName getTargetType(AssignmentPathSegment assignmentPathSegment) {
 		return assignmentPathSegment.getTarget().asPrismObject().getDefinition().getName();
 	}
 
