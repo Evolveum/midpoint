@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,6 +94,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
     @Autowired(required = true)
     private MappingEvaluator mappingEvaluator;
+    
+    @Autowired(required = true)
+    private SecurityHelper securityHelper;
 
     @Autowired(required = true)
     private UserComputer userComputer;
@@ -111,7 +114,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     private TaskManager taskManager;
 
     @Override
-    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException {
+    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	PrismObject<UserType> user = null;
         try {
@@ -130,12 +133,12 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) {
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	return createPrincipal(user, result);
     }
     
-    private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) {
+    private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
@@ -180,7 +183,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return list.get(0);
     }
         
-	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) {
+	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
 		UserType userType = principal.getUser();
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
@@ -189,7 +192,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
         OperationResult result = task.getResult();
 
-        principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, task, result));
+        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
 
 		if (!userType.getAssignment().isEmpty()) {
 			LensContext<UserType> lensContext = new LensContextPlaceholder<>(prismContext);
@@ -246,22 +249,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
-	}
-
-	private SecurityPolicyType locateSecurityPolicy(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) {
-		if (systemConfiguration == null) {
-			return null;
-		}
-		ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
-		if (globalSecurityPolicyRef == null) {
-			return null;
-		}
-		try {
-			return objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.error(e.getMessage(), e);
-			return null;
-		}
 	}
 
 	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -325,6 +312,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException(e.getMessage(), e);
+		} catch (SchemaException e) {
+			throw new SystemException(e.getMessage(), e);
 		}
 	}
 
@@ -335,6 +324,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException(e.getMessage(), e);
+		} catch (SchemaException e) {
+			throw new SystemException(e.getMessage(), e);
 		}
 	}
 

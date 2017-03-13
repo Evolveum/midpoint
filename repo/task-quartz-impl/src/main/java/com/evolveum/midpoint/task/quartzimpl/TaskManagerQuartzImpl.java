@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -826,8 +826,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 public void run() {
                     LOGGER.debug("Lightweight task handler shell starting execution; task = {}", task);
 
-                    // Setup Spring Security context
-                    securityEnforcer.setupPreAuthenticatedSecurityContext(task.getOwner());
+                    try {
+	                    // Setup Spring Security context
+	                    securityEnforcer.setupPreAuthenticatedSecurityContext(task.getOwner());
+                    } catch (SchemaException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set up task security context {}", e, task);
+                        throw new SystemException(e.getMessage(), e);
+                    }
 
                     try {
                         task.setLightweightHandlerExecuting(true);

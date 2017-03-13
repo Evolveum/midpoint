@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ public class ObjectFactory implements Serializable {
     private final static QName _PolyStringTypeNorm_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "norm");
     private final static QName _PolyStringTypeOrig_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "orig");
     private final static QName _ProtectedDataTypeEncryptedData_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "encryptedData");
+    private final static QName _ProtectedDataTypeHashedData_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "hashedData");
     private final static QName _ItemPathType_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "path");
     private final static QName _Object_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "object");
 
@@ -239,6 +240,20 @@ public class ObjectFactory implements Serializable {
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "encryptedData", scope = ProtectedStringType.class)
     public JAXBElement<EncryptedDataType> createProtectedStringTypeEncryptedData(EncryptedDataType value) {
         return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedStringType.class, value);
+    }
+    
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link HashedDataType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "hashedData", scope = ProtectedDataType.class)
+    public JAXBElement<HashedDataType> createProtectedDataTypeHashedData(HashedDataType value) {
+        return new JAXBElement<HashedDataType>(_ProtectedDataTypeHashedData_QNAME, HashedDataType.class, ProtectedDataType.class, value);
+    }
+    
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "hashedData", scope = ProtectedStringType.class)
+    public JAXBElement<HashedDataType> createProtectedStringTypeHashedData(HashedDataType value) {
+        return new JAXBElement<HashedDataType>(_ProtectedDataTypeHashedData_QNAME, HashedDataType.class, ProtectedStringType.class, value);
     }
     
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "path", scope = ItemPathType.class)

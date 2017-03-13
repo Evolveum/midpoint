@@ -59,6 +59,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -69,6 +70,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CheckExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -76,9 +80,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
@@ -173,22 +179,55 @@ public class PasswordPolicyProcessor {
 			}
 		}
 		
-		ValuePolicyType passwordPolicy;
-		if (focusContext.getOrgPasswordPolicy() == null) {
-			passwordPolicy = determineValuePolicy(userDelta, focusContext.getObjectAny(), context, task, result);
-			focusContext.setOrgPasswordPolicy(passwordPolicy);
-		} else {
-			passwordPolicy = focusContext.getOrgPasswordPolicy();
-		}
-		
+		ValuePolicyType passwordPolicy = determinePasswordPolicy(focusContext, task, result);		
 		processPasswordPolicy(passwordPolicy, focusContext.getObjectOld(), null, passwordValueProperty, task, result);
 		
 		if (passwordValueProperty != null && isPasswordChange) {
-			processPasswordHistoryDeltas(focusContext, context, now, task, result);
+			processPasswordHistoryDeltas(focusContext, context, focusContext.getSecurityPolicy(), now, task, result);
 		}
 
 	}
 	
+	public <O extends ObjectType> ValuePolicyType determinePasswordPolicy(LensContext<O> context, LensProjectionContext projectionContext, Task task, OperationResult result) {
+		ValuePolicyType passwordPolicy = projectionContext.getAccountPasswordPolicy();
+		
+		if (passwordPolicy == null) {
+			passwordPolicy = determinePasswordPolicy(context.getFocusContext(), task, result);
+		}
+		
+		return passwordPolicy;
+	}
+	
+	public <O extends ObjectType> ValuePolicyType determinePasswordPolicy(LensFocusContext<O> focusContext, Task task, OperationResult result) {
+		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
+		if (securityPolicy == null) {
+			return null;
+		}
+		CredentialsPolicyType creds = securityPolicy.getCredentials();
+		if (creds == null) {
+			return null;
+		}
+		PasswordCredentialsPolicyType password = creds.getPassword();
+		if (password == null) {
+			return null;
+		}
+		ObjectReferenceType passwordPolicyRef = password.getPasswordPolicyRef();
+		if (passwordPolicyRef == null) {
+			return null;
+		}
+		PrismObject<ValuePolicyType> passwordPolicy = passwordPolicyRef.asReferenceValue().getObject();
+		if (passwordPolicy == null) {
+			try {
+				passwordPolicy = resolver.resolve(passwordPolicyRef.asReferenceValue(), "password policy", task, result);
+			} catch (ObjectNotFoundException e) {
+				LOGGER.error("Missing password policy {}", passwordPolicyRef, e);
+				return null;
+			}
+			passwordPolicyRef.asReferenceValue().setObject(passwordPolicy);
+		}
+		return passwordPolicy.asObjectable();
+	}
+
 	private <F extends FocusType> void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismObject<F> focus, PrismObject<ShadowType> projection, PrismProperty<ProtectedStringType> passwordProperty, 
 			Task task, OperationResult result) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -241,132 +280,8 @@ public class PasswordPolicyProcessor {
 		
 		return false;
 	}
+
 	
-	//TODO: maybe some caching of orgs?????
-	protected <T extends ObjectType, F extends FocusType> ValuePolicyType determineValuePolicy(ObjectDelta<F> userDelta, PrismObject<T> object, LensContext<F> context, Task task, OperationResult result) throws SchemaException{
-		//check the modification of organization first
-		ValuePolicyType valuePolicy = determineValuePolicy(userDelta, task, result);
-		
-		//if null, check the existing organization
-		if (valuePolicy == null){
-			valuePolicy = determineValuePolicy(object, task, result);
-		}
-		
-		//if still null, just use global policy
-		if (valuePolicy == null){
-			valuePolicy = context.getEffectivePasswordPolicy();
-		}
-		
-		if (valuePolicy != null){
-			LOGGER.trace("Value policy {} will be user to check password.", valuePolicy.getName().getOrig());
-		}
-		
-		return valuePolicy;
-	}
-	
-	protected <F extends FocusType> ValuePolicyType determineValuePolicy(ObjectDelta<F> userDelta, Task task, OperationResult result)
-			throws SchemaException {
-		if (userDelta == null) {
-			return null;
-		}
-		ReferenceDelta orgDelta = userDelta.findReferenceModification(UserType.F_PARENT_ORG_REF);
-
-		LOGGER.trace("Determining password policy from org delta.");
-		if (orgDelta == null) {
-			return null;
-		}
-
-		PrismReferenceValue orgRefValue = orgDelta.getAnyValue();
-		if (orgRefValue == null) {		// delta may be of type "replace to null"
-			return null;
-		}
-
-		ValuePolicyType passwordPolicy = null;
-		try {
-			PrismObject<OrgType> org = resolver.resolve(orgRefValue,
-					"resolving parent org ref", null, null, result);
-			OrgType orgType = org.asObjectable();
-			ObjectReferenceType ref = orgType.getPasswordPolicyRef();
-			if (ref != null) {
-				LOGGER.trace("Org {} has specified password policy.", orgType);
-				passwordPolicy = resolver.resolve(ref, ValuePolicyType.class, null,
-						"resolving password policy for organization", task, result);
-				LOGGER.trace("Resolved password policy {}", passwordPolicy);
-			}
-
-			if (passwordPolicy == null) {
-				passwordPolicy = determineValuePolicy(org, task, result);
-			}
-
-		} catch (ObjectNotFoundException e) {
-			throw new IllegalStateException(e);
-		}
-
-		return passwordPolicy;
-	}
-	
-	private ValuePolicyType determineValuePolicy(PrismObject object, Task task, OperationResult result)
-			throws SchemaException {
-		LOGGER.trace("Determining password policies from object: {}", ObjectTypeUtil.toShortString(object));
-		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
-		if (orgRef == null) {
-			return null;
-		}
-		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
-		ValuePolicyType resultingValuePolicy = null;
-		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
-		try {
-			for (PrismReferenceValue orgRefValue : orgRefValues) {
-				if (orgRefValue != null) {
-
-					PrismObject<OrgType> org = resolver.resolve(orgRefValue, "resolving parent org ref", null, null, result);
-					orgs.add(org);
-					ValuePolicyType valuePolicy = resolvePolicy(org, task, result);
-
-					if (valuePolicy != null) {
-						if (resultingValuePolicy == null) {
-							resultingValuePolicy = valuePolicy;
-						} else if (!StringUtils.equals(valuePolicy.getOid(), resultingValuePolicy.getOid())) {
-							throw new IllegalStateException(
-									"Found more than one policy while trying to validate user's password. Please check your configuration");
-						}
-					}
-				}
-			}
-		} catch (ObjectNotFoundException ex) {
-			throw new IllegalStateException(ex);
-		}
-		// go deeper
-		if (resultingValuePolicy == null) {
-			for (PrismObject<OrgType> orgType : orgs) {
-				resultingValuePolicy = determineValuePolicy(orgType, task, result);
-				if (resultingValuePolicy != null) {
-					return resultingValuePolicy;
-				}
-			}
-		}
-		return resultingValuePolicy;
-	}
-	
-	private ValuePolicyType resolvePolicy(PrismObject<OrgType> org, Task task, OperationResult result)
-			throws SchemaException {
-		try {
-			OrgType orgType = org.asObjectable();
-			ObjectReferenceType ref = orgType.getPasswordPolicyRef();
-			if (ref == null) {
-				return null;
-			}
-
-			return resolver.resolve(ref, ValuePolicyType.class, null,
-					"resolving password policy for organization", task, result);
-
-		} catch (ObjectNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			throw new IllegalStateException(e);
-		}
-
-	}
 	
 	<F extends ObjectType> void processPasswordPolicy(LensProjectionContext projectionContext, 
 			LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ObjectNotFoundException, ExpressionEvaluationException{
@@ -405,14 +320,7 @@ public class PasswordPolicyProcessor {
 			password = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 		}
 
-		ValuePolicyType passwordPolicy = null;
-		if (isCheckOrgPolicy(context)){
-			passwordPolicy = determineValuePolicy(context.getFocusContext().getObjectAny(), task, result);
-			context.getFocusContext().setOrgPasswordPolicy(passwordPolicy);
-		}
-		if (passwordPolicy == null) {
-			passwordPolicy = projectionContext.getEffectivePasswordPolicy();
-		}
+		ValuePolicyType passwordPolicy = determinePasswordPolicy(context, projectionContext, task, result);
 				
 		if (accountShadow == null) {
 			accountShadow = projectionContext.getObjectNew();
@@ -421,28 +329,7 @@ public class PasswordPolicyProcessor {
 		processPasswordPolicy(passwordPolicy, null, accountShadow, password, task, result);
 	}
 	
-	private <F extends ObjectType> boolean isCheckOrgPolicy(LensContext<F> context) throws SchemaException{
-		LensFocusContext focusCtx = context.getFocusContext();
-		if (focusCtx == null) {
-			return false;			// TODO - ok?
-		}
 
-		if (focusCtx.getDelta() != null){
-			if (focusCtx.getDelta().isAdd()){
-				return false;
-			}
-			
-			if (focusCtx.getDelta().isModify() && focusCtx.getDelta().hasItemDelta(SchemaConstants.PATH_PASSWORD_VALUE)){
-				return false;
-			}
-		}
-		
-		if (focusCtx.getOrgPasswordPolicy() != null){
-			return false;
-		}
-		
-		return true;
-	}
 
 	public <O extends ObjectType> boolean validatePassword(String newPassword, PasswordType currentPasswordType, ValuePolicyType pp, 
 			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
@@ -453,8 +340,8 @@ public class PasswordPolicyProcessor {
 		result.addParam("policyName", pp.getName());
 		normalize(pp);
 
-		if (newPassword == null && pp.getMinOccurs() != null
-				&& XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()) == 0) {
+		if (newPassword == null && 
+				(pp.getMinOccurs() == null || XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()) == 0)) {
 			// No password is allowed
 			result.recordSuccess();
 			return true;
@@ -472,8 +359,11 @@ public class PasswordPolicyProcessor {
 		testMaximalLength(newPassword, lims, result, message);
 
 		testMinimalUniqueCharacters(newPassword, lims, result, message);
-		testPasswordHistoryEntries(newPassword, currentPasswordType, pp, result, message);
-		
+		try {
+			testPasswordHistoryEntries(newPassword, currentPasswordType, pp, result, message);
+		} catch (EncryptionException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
 
 		if (lims.getLimit() == null || lims.getLimit().isEmpty()) {
 			if (message.toString() == null || message.toString().isEmpty()) {
@@ -545,11 +435,17 @@ public class PasswordPolicyProcessor {
 	}
 
 	private void testPasswordHistoryEntries(String newPassword, PasswordType currentPasswordType,
-			ValuePolicyType pp, OperationResult result, StringBuilder message) {
+			ValuePolicyType pp, OperationResult result, StringBuilder message) throws SchemaException, EncryptionException {
 
+		if (newPassword == null) {
+			return;
+		}
 		if (currentPasswordType == null) {
 			return;
 		}
+		
+		ProtectedStringType newPasswordPs = new ProtectedStringType();
+		newPasswordPs.setClearValue(newPassword);
 		
 		PasswordLifeTimeType lifetime = pp.getLifetime();
 		if (lifetime == null) {
@@ -561,7 +457,7 @@ public class PasswordPolicyProcessor {
 			return;
 		}
 		
-		if (passwordEquals(newPassword, currentPasswordType.getValue())) {
+		if (passwordEquals(newPasswordPs, currentPasswordType.getValue())) {
 			appendHistoryViolationMessage(result, message);
 			return;
 		}
@@ -574,7 +470,7 @@ public class PasswordPolicyProcessor {
 				// success (history has more entries than needed)
 				return;
 			}
-			if (passwordEquals(newPassword, historyEntry.getValue())) {
+			if (passwordEquals(newPasswordPs, historyEntry.getValue())) {
 				LOGGER.trace("Password history entry #{} matched (changed {})", i, historyEntry.getChangeTimestamp());
 				appendHistoryViolationMessage(result, message);
 				return;
@@ -778,8 +674,11 @@ public class PasswordPolicyProcessor {
 
 	}
 
-	private boolean passwordEquals(String newPassword, ProtectedStringType currentPassword) {
-		return determinePasswordValue(currentPassword).equals(newPassword);
+	private boolean passwordEquals(ProtectedStringType newPasswordPs, ProtectedStringType currentPassword) throws SchemaException, EncryptionException {
+		if (currentPassword == null) {
+			return newPasswordPs == null;
+		}
+		return protector.compare(newPasswordPs, currentPassword);
 	}
 
 
@@ -813,9 +712,8 @@ public class PasswordPolicyProcessor {
 		return passwordStr;
 	}
 
-
 	public <F extends FocusType> void processPasswordHistoryDeltas(LensFocusContext<F> focusContext,
-			LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
+			LensContext<F> context, SecurityPolicyType securityPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws SchemaException {
 		PrismObject<F> focus = focusContext.getObjectOld();
 		Validate.notNull(focus, "Focus object must not be null");
@@ -828,37 +726,62 @@ public class PasswordPolicyProcessor {
 			PrismContainer<PasswordHistoryEntryType> historyEntries = password
 					.findOrCreateContainer(PasswordType.F_HISTORY_ENTRY);
 
-			int maxPasswordsToSave = getMaxPasswordsToSave(context.getFocusContext(), context, task, result);
+			int maxPasswordsToSave = getMaxPasswordsToSave(context.getFocusContext(), context, securityPolicy, task, result);
 			
 			List<PasswordHistoryEntryType> historyEntryValues = getSortedHistoryList(historyEntries, true);
 			int newHistoryEntries = 0;
 			if (maxPasswordsToSave > 0) {
-				newHistoryEntries = createAddHistoryDelta(context, password, now);
+				newHistoryEntries = createAddHistoryDelta(context, password, securityPolicy, now);
 			}
 			createDeleteHistoryDeltasIfNeeded(historyEntryValues, maxPasswordsToSave, newHistoryEntries, context, task, result);
 		}
 	}
 	
 	private <F extends FocusType> int getMaxPasswordsToSave(LensFocusContext<F> focusContext,
-			LensContext<F> context, Task task, OperationResult result) throws SchemaException {
-		ValuePolicyType passwordPolicy;
-		if (focusContext.getOrgPasswordPolicy() == null) {
-			passwordPolicy = determineValuePolicy(focusContext.getDelta(),
-					focusContext.getObjectAny(), context, task, result);
-			focusContext.setOrgPasswordPolicy(passwordPolicy);
-		} else {
-			passwordPolicy = focusContext.getOrgPasswordPolicy();
-		}
+			LensContext<F> context, SecurityPolicyType securityPolicy, Task task, OperationResult result) throws SchemaException {
 
+		if (securityPolicy == null) {
+			return 0;
+		}
+		
+		CredentialsPolicyType creds = securityPolicy.getCredentials();
+		if (creds == null) {
+			return 0;
+		}
+		
+		PasswordCredentialsPolicyType passwordCredsType = creds.getPassword();
+		if (passwordCredsType == null) {
+			return 0;
+		}
+		
+		Integer historyLength = passwordCredsType.getHistoryLength();
+		if (historyLength != null) {
+			if (historyLength < 0) {
+				return 0;
+			}
+			// One less than the history. The "first" history entry is the current password itself.
+			return historyLength - 1;
+		}
+		
+		// LEGACY, deprecated
+		
+		ObjectReferenceType passwordPolicyRef = passwordCredsType.getPasswordPolicyRef();
+		if (passwordPolicyRef == null) {
+			return 0;
+		}
+		
+		PrismObject<ValuePolicyType> passwordPolicy = passwordPolicyRef.asReferenceValue().getObject();
 		if (passwordPolicy == null) {
 			return 0;
 		}
 		
-		if (passwordPolicy.getLifetime() == null) {
+		ValuePolicyType passwordPolicyType = passwordPolicy.asObjectable();
+		
+		if (passwordPolicyType.getLifetime() == null) {
 			return 0;
 		}
 
-		Integer passwordHistoryLength = passwordPolicy.getLifetime().getPasswordHistoryLength();
+		Integer passwordHistoryLength = passwordPolicyType.getLifetime().getPasswordHistoryLength();
 		if (passwordHistoryLength == null) {
 			return 0;
 		}
@@ -873,9 +796,24 @@ public class PasswordPolicyProcessor {
 	
 
 	private <F extends FocusType> int createAddHistoryDelta(LensContext<F> context,
-			PrismContainer<PasswordType> password, XMLGregorianCalendar now) throws SchemaException {
+			PrismContainer<PasswordType> password, SecurityPolicyType securityPolicy, XMLGregorianCalendar now) throws SchemaException {
 		PrismContainerValue<PasswordType> passwordValue = password.getValue();
-		PasswordType passwordRealValue = passwordValue.asContainerable();
+		PasswordType passwordType = passwordValue.asContainerable();
+		if (passwordType == null || passwordType.getValue() == null) {
+			return 0;
+		}
+		ProtectedStringType passwordPsForStorage = passwordType.getValue().clone();
+		
+		CredentialsStorageTypeType storageType = CredentialsStorageTypeType.HASHING;
+		CredentialsPolicyType creds = securityPolicy.getCredentials();
+		if (creds != null) {
+			CredentialsStorageMethodType storageMethod =  
+				SecurityUtil.getCredPolicyItem(creds.getDefault(), creds.getPassword(), pol -> pol.getStorageMethod());
+			if (storageMethod != null && storageMethod.getStorageType() != null) {
+				storageType = storageMethod.getStorageType();
+			}
+		}
+		prepareProtectedStringForStorage(passwordPsForStorage, storageType);
 		
 		PrismContainerDefinition<PasswordHistoryEntryType> historyEntryDefinition = password.getDefinition().findContainerDefinition(PasswordType.F_HISTORY_ENTRY);
 		PrismContainer<PasswordHistoryEntryType> historyEntry = historyEntryDefinition.instantiate();
@@ -883,8 +821,8 @@ public class PasswordPolicyProcessor {
 		PrismContainerValue<PasswordHistoryEntryType> hisotryEntryValue = historyEntry.createNewValue();
 		
 		PasswordHistoryEntryType entryType = hisotryEntryValue.asContainerable();
-		entryType.setValue(passwordRealValue.getValue());
-		entryType.setMetadata(passwordRealValue.getMetadata());
+		entryType.setValue(passwordPsForStorage);
+		entryType.setMetadata(passwordType.getMetadata());
 		entryType.setChangeTimestamp(now);
 	
 		ContainerDelta<PasswordHistoryEntryType> addHisotryDelta = ContainerDelta
@@ -893,6 +831,37 @@ public class PasswordPolicyProcessor {
 		
 		return 1;
 
+	}
+	
+	private void prepareProtectedStringForStorage(ProtectedStringType ps, CredentialsStorageTypeType storageType) throws SchemaException {
+		try {
+			switch (storageType) {
+				case ENCRYPTION: 
+					if (ps.isEncrypted()) {
+						break;
+					}
+					if (ps.isHashed()) {
+						throw new SchemaException("Cannot store hashed value in an encrypted form");
+					}
+					protector.encrypt(ps);
+					break;
+					
+				case HASHING:
+					if (ps.isHashed()) {
+						break;
+					}
+					protector.hash(ps);
+					break;
+					
+				case NONE:
+					throw new SchemaException("Cannot store value on NONE storage form");
+					
+				default:
+					throw new SchemaException("Unknown storage type: "+storageType);
+			}
+		} catch (EncryptionException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
 	}
 
 	private <F extends FocusType> void createDeleteHistoryDeltasIfNeeded(

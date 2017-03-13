@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,20 +50,7 @@ public interface Protector {
 	 *             if protectedString argument is null or EncryptedData in
 	 *             protectedString argument is null
 	 */
-	String decryptString(ProtectedStringType protectedString) throws EncryptionException;
-
-//	/**
-//	 * 
-//	 * @param protectedString
-//	 * @return decrypted DOM {@link Element}
-//	 * @throws EncryptionException
-//	 *             this is thrown probably in case JRE/JDK doesn't have JCE
-//	 *             installed
-//	 * @throws IllegalArgumentException
-//	 *             if protectedString argument is null or EncryptedData in
-//	 *             protectedString argument is null
-//	 */
-//	Element decrypt(ProtectedStringType protectedString) throws EncryptionException;
+	String decryptString(ProtectedData<String> protectedString) throws EncryptionException;
 
 	/**
 	 *
@@ -76,29 +63,15 @@ public interface Protector {
 	 */
 	ProtectedStringType encryptString(String text) throws EncryptionException;
 
-//	/**
-//	 * 
-//	 * @param plain
-//	 * @return {@link ProtectedStringType} with encrypted element inside it. If
-//	 *         input argument is null, method returns null.
-//	 * @throws EncryptionException
-//	 *             this is thrown probably in case JRE/JDK doesn't have JCE
-//	 *             installed
-//	 */
-//	ProtectedStringType encrypt(Element plain) throws EncryptionException;
-//
-//	/**
-//	 * Encrypts the ProtectedStringType "in place".
-//	 * @param ps
-//	 * @throws EncryptionException 
-//	 */
-//	void encrypt(ProtectedStringType ps) throws EncryptionException;
-//
 	/**
 	 * Returns true if protected string contains encrypted data that seems valid.
+	 * DEPRECATED. Use ProtectedStringType.isEncrypted() instead
 	 */
+	@Deprecated
 	boolean isEncrypted(ProtectedStringType ps);
-
-	boolean compare(ProtectedStringType a, ProtectedStringType b) throws EncryptionException;
+	
+	<T> void hash(ProtectedData<T> protectedData) throws EncryptionException, SchemaException;
+	
+	boolean compare(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException;
 
 }

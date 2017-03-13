@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1403,8 +1403,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				PasswordType password = shadowType.getCredentials().getPassword();
 				ProtectedStringType protectedString = password.getValue();
 				GuardedString guardedPassword = IcfUtil.toGuardedString(protectedString, "new password", protector);
-				attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
+				if (guardedPassword != null) {
+					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
 						guardedPassword));
+				}
 			}
 			
 			if (ActivationUtil.hasAdministrativeActivation(shadowType)){
@@ -1426,12 +1428,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("ICF attributes after conversion:\n{}", IcfUtil.dump(attributes));
 			}
-		} catch (SchemaException ex) {
+		} catch (SchemaException | RuntimeException ex) {
 			result.recordFatalError(
 					"Error while converting resource object attributes. Reason: " + ex.getMessage(), ex);
 			throw new SchemaException("Error while converting resource object attributes. Reason: "
 					+ ex.getMessage(), ex);
 		}
+		
 		if (attributes == null) {
 			result.recordFatalError("Couldn't set attributes for icf.");
 			throw new IllegalStateException("Couldn't set attributes for icf.");

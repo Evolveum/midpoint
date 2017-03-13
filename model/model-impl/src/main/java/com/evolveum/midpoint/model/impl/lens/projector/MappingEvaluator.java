@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,37 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -47,18 +58,30 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author Radovan Semancik
@@ -74,6 +97,9 @@ public class MappingEvaluator {
 
     @Autowired
     private MappingFactory mappingFactory;
+    
+    @Autowired
+    private PasswordPolicyProcessor passwordPolicyProcessor;
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
 			Mapping<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
@@ -422,6 +448,160 @@ public class MappingEvaluator {
 		}
 		
 		
+	}
+	
+    public <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
+    		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
+			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
+			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    	Integer iteration = null;
+    	String iterationToken = null;
+    	if (focusOdo.getNewObject() != null) {
+    		F focusNewType = focusOdo.getNewObject().asObjectable();
+    		iteration = focusNewType.getIteration();
+    		iterationToken = focusNewType.getIterationToken();
+    	} else if (focusOdo.getOldObject() != null) {
+    		F focusOldType = focusOdo.getOldObject().asObjectable();
+    		iteration = focusOldType.getIteration();
+    		iterationToken = focusOldType.getIterationToken();
+    	}
+    	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, assignmentPathVariables,
+    			iteration, iterationToken, configuration, now, contextDesc, task, result);
+    }
+    
+    public <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
+    		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
+			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, 
+			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
+			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+
+		if (!Mapping.isApplicableToChannel(mappingType, context.getChannel())) {
+			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mappingType, context.getChannel());
+			return null;
+		}
+
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private ItemPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(ItemPath outputPath) {
+				this.outputPath = outputPath;
+			}
+
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+
+			@Override
+			public StringPolicyType resolve() {
+				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
+					ValuePolicyType passwordPolicy = passwordPolicyProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
+					if (passwordPolicy == null) {
+						return null;
+					}
+					return passwordPolicy.getStringPolicy();
+				}
+				if (mappingType.getExpression() != null){
+					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
+					if (evaluators != null) {
+						for (JAXBElement jaxbEvaluator : evaluators) {
+							Object object = jaxbEvaluator.getValue();
+							if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
+								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
+								try {
+									ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class,
+											null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", task, new OperationResult("Resolving value policy"));
+									if (valuePolicyType != null) {
+										return valuePolicyType.getStringPolicy();
+									}
+								} catch (CommonException ex) {
+									throw new SystemException(ex.getMessage(), ex);
+								}
+							}
+						}
+
+					}
+				}
+				return null;
+
+			}
+		};
+
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
+
+		Collection<V> targetValues = computeTargetValues(mappingType.getTarget(), focusOdo, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
+
+		Mapping.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
+				.sourceContext(focusOdo)
+				.targetContext(context.getFocusContext().getObjectDefinition())
+				.variables(variables)
+				.originalTargetValues(targetValues)
+				.originType(OriginType.USER_POLICY)
+				.originObject(originObject)
+				.stringPolicyResolver(stringPolicyResolver)
+				.rootNode(focusOdo)
+				.now(now);
+
+		mappingBuilder = LensUtil.addAssignmentPathVariables(mappingBuilder, assignmentPathVariables);
+
+		Mapping<V,D> mapping = mappingBuilder.build();
+
+		ItemPath itemPath = mapping.getOutputPath();
+        if (itemPath == null) {
+            // no output element, i.e. this is a "validation mapping"
+            return mapping;
+        }
+		
+		PrismObject<F> focusNew = focusOdo.getNewObject();
+		if (focusNew != null) {
+			Item<V,D> existingUserItem = (Item<V,D>) focusNew.findItem(itemPath);
+			if (existingUserItem != null && !existingUserItem.isEmpty() 
+					&& mapping.getStrength() == MappingStrengthType.WEAK) {
+				// This valueConstruction only applies if the property does not have a value yet.
+				// ... but it does
+				LOGGER.trace("Mapping {} is weak and focus already has a value {}, skipping.", mapping, existingUserItem);
+				return null;
+			}
+		}
+
+		return mapping;
+	}
+
+    private <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
+			ObjectDeltaObject<F> defaultSource, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (target == null) {
+			// Is this correct? What about default targets?
+			return null;
+		}
+
+		ItemPathType itemPathType = target.getPath();
+		if (itemPathType == null) {
+			// Is this correct? What about default targets?
+			return null;
+		}
+		ItemPath path = itemPathType.getItemPath();
+
+		Object object = ExpressionUtil.resolvePath(path, variables, defaultSource, objectResolver, contextDesc, task, result);
+		if (object == null) {
+			return new ArrayList<>();
+		} else if (object instanceof Item) {
+			return ((Item) object).getValues();
+		} else if (object instanceof PrismValue) {
+			return (List<V>) Collections.singletonList((PrismValue) object);
+		} else if (object instanceof ItemDeltaItem) {
+			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
+			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
+			return triple != null ? triple.getNonNegativeValues() : new ArrayList<V>();
+		} else {
+			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
+		}
 	}
 
 }

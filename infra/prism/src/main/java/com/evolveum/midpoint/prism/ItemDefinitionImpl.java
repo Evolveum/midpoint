@@ -430,7 +430,8 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	 * Used in debugDumping items. Does not need to have name in it as item already has it. Does not need
 	 * to have class as that is just too much info that is almost anytime pretty obvious anyway.
 	 */
-	void debugDumpShortToString(StringBuilder sb) {
+	@Override
+	public void debugDumpShortToString(StringBuilder sb) {
 		sb.append(PrettyPrinter.prettyPrint(getTypeName()));
         debugMultiplicity(sb);
         debugFlags(sb);

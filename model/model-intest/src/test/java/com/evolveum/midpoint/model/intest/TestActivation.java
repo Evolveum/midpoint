@@ -999,7 +999,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // Check shadow
         PrismObject<ShadowType> accountShadowYellow = getShadowModel(accountYellowOid);
-        assertAccountShadowModel(accountShadowYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyYellowType);
+        assertAccountShadowModel(accountShadowYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		getDummyResourceType(RESOURCE_DUMMY_YELLOW_NAME));
         assertAdministrativeStatusEnabled(accountShadowYellow);
         TestUtil.assertCreateTimestamp(accountShadowYellow, start, end);
         assertEnableTimestampShadow(accountShadowYellow, start, end);
@@ -1108,7 +1109,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         	assertDisableReasonShadow(account, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
         }
         
-        assertAccountShadowModel(accountYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyYellowType);
+        assertAccountShadowModel(accountYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		getDummyResourceType(RESOURCE_DUMMY_YELLOW_NAME));
         assertAdministrativeStatus(accountYellow, accountStatusYellow ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
         if (!accountStatusYellow) {
         	assertDisableReasonShadow(accountYellow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);

@@ -9163,17 +9163,38 @@
                         </xsd:annotation>
                     </xsd:element>
                     
+                    <xsd:element name="securityPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	<p>
+                                	Reference to the security policy settings which will be used for this organization.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
+                    			<a:displayName>OrgType.securityPolicy</a:displayName>
+                                <a:displayOrder>230</a:displayOrder>
+                                <a:since>3.6</a:since>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                             	<p>
                                 	Reference to the password policy settings which will be used for generate/validate password for this organization.
+                                	Use either securityPolicyRef or passwordPolicyRef in orgs. Do not use both at the same time. This is not supported.
+                                </p>
+                            	<p>
+                                	DEPRECATED. Use securityPolicyRef instead.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
                     			<a:displayName>OrgType.passwordPolicy</a:displayName>
-                                <a:displayOrder>230</a:displayOrder>
+                                <a:displayOrder>240</a:displayOrder>
+                                <a:deprecated>true</a:deprecated>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9416,7 +9437,7 @@
                     	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
-                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
+                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" default="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
                     			Minimal number of value occurences. minOccurs set to zero means that the value
@@ -9431,6 +9452,7 @@
                     	<xsd:annotation>
                     		<xsd:documentation>
                     			Maximal number of value occurences.
+                    			If not specified then the default schema limitation is imposed.
                     		</xsd:documentation>
                     	</xsd:annotation>
                     </xsd:element>
@@ -11326,11 +11348,26 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element name="default" type="tns:CredentialPolicyType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Common setting applied to all other credetials type. Any of this
+						setting can be overridden in the individual credentials setting.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="password" type="tns:PasswordCredentialsPolicyType" minOccurs="0">
 			</xsd:element>
 			<xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsPolicyType" minOccurs="0">
              </xsd:element>
              <xsd:element name="nonce" type="tns:NonceCredentialsPolicyType" minOccurs="0" maxOccurs="unbounded">
+             	<xsd:annotation>
+					<xsd:documentation>
+						Nonce settings used to generate one-time random values.
+						Used in self-registration, e-mail-based password reset and possibly also
+						other scenarios.
+					</xsd:documentation>
+				</xsd:annotation>
              </xsd:element>
              <!-- More credential types may come here in the future. -->
 		</xsd:sequence>
@@ -11598,7 +11635,7 @@
 	</xsd:complexType>
 	
 	
-	 <xsd:complexType name="AbstractCredentialPolicyType" abstract="true">
+	 <xsd:complexType name="CredentialPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Structure that specifies common elements to all the credential policies.
@@ -11608,6 +11645,18 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element name="storageMethod" type="c:CredentialsStorageMethodType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Method used to store the values of this credential (encrypted, hashed, ...)
+						If storage method is not specified it defaults to encryption
+						(due to compatibility and convenience reasons).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="resetMethod" type="c:CredentialsResetMethodType" minOccurs="0" maxOccurs="1">
 			</xsd:element>
 			<xsd:element name="propagationUserControl" type="c:CredentialsPropagationUserControlType" minOccurs="0" maxOccurs="1" default="userChoice">
@@ -11668,7 +11717,28 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<!-- TODO: historyLength, similarity criteria (history vs new password) -->
+			<xsd:element name="historyLength" type="xsd:int" minOccurs="0" maxOccurs="1" default="0">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            The number of entries to keep in the credential history. Also specifies the
+			            number of past credential values that will be checked before accepting a new
+			            credential change.
+			        </xsd:documentation>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="historyStorageMethod" type="c:CredentialsStorageMethodType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Method used to store historical values of the credential (encrypted, hashed, ...)
+						If storage type is not specified then it defaults to hashing.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			
+			<!-- TODO: similarity criteria (history vs new password) -->
 		</xsd:sequence>
 	</xsd:complexType>
 	
@@ -11789,6 +11859,84 @@
             </xsd:enumeration>
              </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:complexType name="CredentialsStorageMethodType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies the method of storing the credential in midPoint.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="storageType" type="c:CredentialsStorageTypeType" minOccurs="0" maxOccurs="1" default="encryption">
+				<xsd:annotation>
+					<xsd:documentation>
+						The type of credential storage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Storage parameters (ciphers, digest methods, key lengths, ... -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+    <xsd:simpleType name="CredentialsStorageTypeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="encryption">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Credential will be stored in an ecrypted form.
+                		This is a symetric (reversible) encryption.
+                		MidPoint will be able to get a cleartext form of
+                		the credential if needed.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENCRYPTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hashing">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Credential will be stored in a hashed form.
+                		One-way (ireversible) cryptographic hash or key derivation function
+                		will be used to transform the credential before storage.
+                		MidPoint will NOT be able to get a cleartext form of
+                		the credential, but it can still compare credential values.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HASHING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		MidPoint will not store the credential at all.
+                		MidPoitn will only work with credential in the memory
+                		while it is needed to complete current operation.
+                		The credential will be discarded after the operation.
+                		
+                		THIS IS ONLY PARTIALLY SUPPORTED
+                		
+                		MidPoint should be able not to store the credentials when
+                		this setting is used. But there may be side effects.
+                		This is not entirelly tests and not supported.
+                		Use at your own risk.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+    </xsd:restriction>
+    </xsd:simpleType>
 
 	 <xsd:complexType name="PasswordCredentialsPolicyType">
 		<xsd:annotation>
@@ -11801,7 +11949,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractCredentialPolicyType">
+			<xsd:extension base="tns:CredentialPolicyType">
 				<xsd:sequence>
 					<xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
 					    <xsd:annotation>
@@ -11828,7 +11976,12 @@
 					            The number of entries to keep in the password history. Also specifies the
 					            number of past passwords that will be checked before accepting a new password
 					            change.
+					            DEPRECATED. use historyLength instead.
+					            This is not even implemented. It does not work.
 					        </xsd:documentation>
+					        <xsd:appinfo>
+					        	<a:deprecated>true</a:deprecated>
+					        </xsd:appinfo>
 					    </xsd:annotation>
 					</xsd:element>
 				</xsd:sequence>
@@ -11881,7 +12034,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractCredentialPolicyType">
+			<xsd:extension base="tns:CredentialPolicyType">
 				<xsd:sequence>
 					   <xsd:element name="questionNumber" type="xsd:int" minOccurs="0"  maxOccurs="1">
 		                <xsd:annotation>
@@ -11966,7 +12119,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractCredentialPolicyType">
+			<xsd:extension base="tns:CredentialPolicyType">
 				<xsd:sequence>
 					<xsd:element name="name" type="xsd:string" maxOccurs="1">
 		        	    <xsd:annotation>

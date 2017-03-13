@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,13 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         task.setOwner(user.asPrismObject());
         
         m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
-        securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
+        try {
+        	securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
+        } catch (SchemaException e) {
+			securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Schema error: "+e.getMessage());
+			requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
+			return;
+		}
         
         LOGGER.trace("Authenticated to REST service as {}", user);
            

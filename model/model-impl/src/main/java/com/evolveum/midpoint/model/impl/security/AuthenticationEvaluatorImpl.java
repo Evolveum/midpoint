@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -241,7 +242,11 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		} catch (ObjectNotFoundException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "no user");
 			throw new UsernameNotFoundException("web.security.provider.invalid");
+		} catch (SchemaException e) {
+			recordAuthenticationFailure(enteredUsername, connEnv, "schema error");
+			throw new AccessDeniedException("web.security.provider.invalid");
 		}
+		
 		
 		if (principal == null) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "no user");
@@ -268,7 +273,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return false;
 	}
 
-	private <T extends AbstractCredentialPolicyType> void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString, MetadataType passwordMetadata, 
+	private <T extends CredentialPolicyType> void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString, MetadataType passwordMetadata, 
 			T passwordCredentialsPolicy) {
 		if (protectedString == null) {
 			recordAuthenticationFailure(principal, connEnv, "no stored password value");
@@ -319,21 +324,21 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return decryptedPassword;
 	}
 
-	private boolean isLockedOut(AbstractCredentialType credentialsType, AbstractCredentialPolicyType credentialsPolicy) {
+	private boolean isLockedOut(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
 		return isOverFailedLockoutAttempts(credentialsType, credentialsPolicy) && !isLockoutExpired(credentialsType, credentialsPolicy);
 	}
 	
-	private boolean isOverFailedLockoutAttempts(AbstractCredentialType credentialsType, AbstractCredentialPolicyType credentialsPolicy) {
+	private boolean isOverFailedLockoutAttempts(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
 		int failedLogins = credentialsType.getFailedLogins() != null ? credentialsType.getFailedLogins() : 0;
 		return isOverFailedLockoutAttempts(failedLogins, credentialsPolicy);
 	}
 	
-	private boolean isOverFailedLockoutAttempts(int failedLogins, AbstractCredentialPolicyType credentialsPolicy) {
+	private boolean isOverFailedLockoutAttempts(int failedLogins, CredentialPolicyType credentialsPolicy) {
 		return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
 				credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
 	}
 		
-	private boolean isLockoutExpired(AbstractCredentialType credentialsType, AbstractCredentialPolicyType credentialsPolicy) {
+	private boolean isLockoutExpired(AbstractCredentialType credentialsType, CredentialPolicyType credentialsPolicy) {
 		Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
 		if (lockoutDuration == null) {
 			return false;

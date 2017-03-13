@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -65,6 +66,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		InternalsConfig.avoidLoggingChange = false;
 		// DO NOT call super.initSystem() as this will install system config. We do not want that here.
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);

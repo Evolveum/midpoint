@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.test;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -95,4 +96,14 @@ public class DummyResourceCollection {
 		return get(name).getDummyResource();
 	}
 	
+	public void forEachResourceCtl(Consumer<DummyResourceContoller> lambda) {
+		map.forEach((k,v) -> lambda.accept(v));
+	}
+	
+	/**
+	 * Resets the blocking state, error simulation, etc.
+	 */
+	public void resetResources() {
+		forEachResourceCtl(c -> c.reset());
+	}
 }

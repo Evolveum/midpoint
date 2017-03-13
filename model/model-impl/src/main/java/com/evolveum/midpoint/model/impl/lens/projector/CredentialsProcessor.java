@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,17 @@ import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
+import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -36,6 +40,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SchemaFailableProcessor;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -60,10 +65,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStreng
 
 /**
  * Processor that takes password from user and synchronizes it to accounts.
- * <p/>
- * The implementation is very simple now. It only cares about password value,
- * not expiration or other password facets. It completely ignores other
- * credential types.
  *
  * @author Radovan Semancik
  */
@@ -86,14 +87,41 @@ public class CredentialsProcessor {
 	
 	@Autowired(required=true)
 	private OperationalDataManager metadataManager;
+	
+	@Autowired(required = true)
+	private SecurityHelper securityHelper;
+	
+	@Autowired(required = true)
+	Protector protector;
 
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
 					ObjectNotFoundException, SchemaException, PolicyViolationException {
+		processSecurityPolicy(context, now, task, result);
 		processFocusPassword(context, now, task, result);
 		processFocusNonce(context, now, task, result);
 	}
-
+	
+	private <F extends FocusType> void processSecurityPolicy(LensContext<F> context, XMLGregorianCalendar now,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
+		if (securityPolicy == null) {
+			securityPolicy = securityHelper.locateSecurityPolicy(focusContext.getObjectAny(), context.getSystemConfiguration(), task, result);
+			if (securityPolicy == null) {
+				// store empty policy to avoid repeated lookups
+				securityPolicy = new SecurityPolicyType();
+			}
+			focusContext.setSecurityPolicy(securityPolicy);
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
+		} else {
+			LOGGER.debug("Security policy: {}", securityPolicy);
+		}
+	}
+		
 	private <F extends FocusType> void processFocusPassword(LensContext<F> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 					SchemaException, PolicyViolationException {
@@ -188,7 +216,7 @@ public class CredentialsProcessor {
 			}
 			@Override
 			public StringPolicyType resolve() {
-				ValuePolicyType passwordPolicy = projCtx.getEffectivePasswordPolicy();
+				ValuePolicyType passwordPolicy = passwordPolicyProcessor.determinePasswordPolicy(context, projCtx, task, result);
 				if (passwordPolicy == null) {
 					return null;
 				}
@@ -264,8 +292,7 @@ public class CredentialsProcessor {
 	}
 
 	private <F extends FocusType, R extends AbstractCredentialType> void processFocusCredentialsCommon(LensContext<F> context,
-			ItemPath credentialsPath, 
-			XMLGregorianCalendar now, Task task, OperationResult result)
+			ItemPath credentialsPath, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -378,6 +405,80 @@ public class CredentialsProcessor {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Called from ChangeExecutor. Will modify the execution deltas to hash or remove credentials if needed.
+	 */
+	public <O extends ObjectType> ObjectDelta<O> transformFocusExectionDelta(LensContext<O> context, ObjectDelta<O> focusDelta) throws SchemaException, EncryptionException {
+		LensFocusContext<O> focusContext = context.getFocusContext();
+		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
+		if (securityPolicy == null) {
+			return focusDelta;
+		}
+		CredentialsPolicyType credsType = securityPolicy.getCredentials();
+		if (credsType == null) {
+			return focusDelta;
+		}
+		ObjectDelta<O> transformedDelta = focusDelta.clone();
+		transformFocusExectionDeltaCredential(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta);
+		// TODO: nonce and others
+		
+		return transformedDelta;
+	}
+
+	private <O extends ObjectType> void transformFocusExectionDeltaCredential(LensContext<O> context,
+			CredentialsPolicyType credsType, CredentialPolicyType credPolicyType,
+			ItemPath valuePropertyPath, ObjectDelta<O> delta) throws SchemaException, EncryptionException {
+		if (delta.isDelete()) {
+			return;
+		}
+		CredentialPolicyType defaltCredPolicyType = credsType.getDefault();
+		CredentialsStorageMethodType storageMethod = 
+				SecurityUtil.getCredPolicyItem(defaltCredPolicyType, credPolicyType, pol -> pol.getStorageMethod());
+		if (storageMethod == null) {
+			return;
+		}
+		CredentialsStorageTypeType storageType = storageMethod.getStorageType();
+		if (storageType == null || storageType == CredentialsStorageTypeType.ENCRYPTION) {
+			return;
+		} else if (storageType == CredentialsStorageTypeType.HASHING) {
+			PrismPropertyValue<ProtectedStringType> pval = null;
+			if (delta.isAdd()) {
+				PrismProperty<ProtectedStringType> prop = delta.getObjectToAdd().findProperty(valuePropertyPath);
+				hashValues(prop.getValues(), storageMethod);
+			} else {
+				PropertyDelta<ProtectedStringType> propDelta = delta.findPropertyDelta(valuePropertyPath);
+				if (propDelta != null) {
+					hashValues(propDelta.getValuesToAdd(), storageMethod);
+					hashValues(propDelta.getValuesToReplace(), storageMethod);
+					hashValues(propDelta.getValuesToDelete(), storageMethod);
+				}
+			}
+		} else if (storageType == CredentialsStorageTypeType.NONE) {
+			if (delta.isAdd()) {
+				delta.getObjectToAdd().removeProperty(valuePropertyPath);
+			} else {
+				PropertyDelta<ProtectedStringType> propDelta = delta.findPropertyDelta(valuePropertyPath);
+				if (propDelta != null) {
+					// Replace with nothing. We need this to clear any existing value that there might be.
+					propDelta.setValueToReplace();
+				}
+			}
+		} else {
+			throw new SchemaException("Unkwnon storage type "+storageType);
+		}
+		
+	}
+
+	private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> values,
+			CredentialsStorageMethodType storageMethod) throws SchemaException, EncryptionException {
+		if (values == null) {
+			return;
+		}
+		for (PrismPropertyValue<ProtectedStringType> pval: values) {
+			protector.hash(pval.getValue());
+		}
 	}
 
 }

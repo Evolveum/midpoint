@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -586,10 +586,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		for (int i = 0; i < NUM_THREADS; i++) {
 			final int index = i;
 			Thread thread = new Thread(() -> {
-				login(userAdministrator);
-				Task threadTask = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
-				OperationResult threadResult = threadTask.getResult();
 				try {
+					login(userAdministrator);
+					Task threadTask = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+					OperationResult threadResult = threadTask.getResult();
 					for (int iteration = 0; iteration < ITERATIONS; iteration++) {
 						display("Executing iteration " + iteration + " on user " + index);
 						ObjectDelta delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
@@ -657,10 +657,10 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		for (int i = 0; i < NUM_THREADS; i++) {
 			final int index = i;
 			Thread thread = new Thread(() -> {
-				login(userAdministrator);
-				Task threadTask = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
-				OperationResult threadResult = threadTask.getResult();
 				try {
+					login(userAdministrator);
+					Task threadTask = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+					OperationResult threadResult = threadTask.getResult();				
 					for (int iteration = 0; iteration < ITERATIONS; iteration++) {
 						display("Executing iteration " + iteration + " in worker " + index);
 						AuditEventRecord record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);

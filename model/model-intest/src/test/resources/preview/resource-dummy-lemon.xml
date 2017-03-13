@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
-	<name>Dummy Resource Yellow</name>
+	<name>Dummy Resource Lemon</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -47,7 +47,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>yellow</icfi:instanceId>
+			<icfi:instanceId>lemon</icfi:instanceId>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>

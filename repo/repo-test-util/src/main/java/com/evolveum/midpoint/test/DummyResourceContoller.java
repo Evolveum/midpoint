@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
@@ -403,6 +404,15 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public QName getAccountObjectClassQName() {
 		return new QName(getNamespace(), SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+	}
+
+	/**
+	 * Resets the blocking state, error simulation, etc.
+	 */
+	public void reset() {
+		dummyResource.setBreakMode(BreakMode.NONE);
+		dummyResource.setBlockOperations(false);
+		dummyResource.unblockAll();
 	}
 
 }

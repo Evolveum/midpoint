@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,13 +64,6 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	
 	protected DummyResource dummyResourceYellow;
     protected DummyResourceContoller dummyResourceCtlYellow;
-    protected ResourceType resourceDummyYellowType;
-    protected PrismObject<ResourceType> resourceDummyYellow;
-    
-    protected DummyResource dummyResourceBlack;
-	protected DummyResourceContoller dummyResourceCtlBlack;
-	protected ResourceType resourceDummyBlackType;
-	protected PrismObject<ResourceType> resourceDummyBlack;
 	
 	private String accountJackYellowOid;
 	private String initialConnectorStaticVal;
@@ -82,20 +75,13 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		dummyResourceCtlYellow = DummyResourceContoller.create(RESOURCE_DUMMY_YELLOW_NAME, resourceDummyYellow);
-        dummyResourceCtlYellow.extendSchemaPirate();
-        dummyResourceYellow = dummyResourceCtlYellow.getDummyResource();
-        resourceDummyYellow = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_YELLOW_FILENAME, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
-        resourceDummyYellowType = resourceDummyYellow.asObjectable();
-        dummyResourceCtlYellow.setResource(resourceDummyYellow);
+		dummyResourceCtlYellow = initDummyResourcePirate(RESOURCE_DUMMY_YELLOW_NAME, RESOURCE_DUMMY_YELLOW_FILE, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
+		dummyResourceYellow = dummyResourceCtlYellow.getDummyResource();
         
-        dummyResourceCtlBlack = DummyResourceContoller.create(RESOURCE_DUMMY_BLACK_NAME, resourceDummyBlack);
-		dummyResourceCtlBlack.extendSchemaPirate();
-		dummyResourceBlack = dummyResourceCtlBlack.getDummyResource();
-		resourceDummyBlack = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLACK_FILENAME, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
-		resourceDummyBlackType = resourceDummyBlack.asObjectable();
-		dummyResourceCtlBlack.setResource(resourceDummyBlack);
+		initDummyResourcePirate(RESOURCE_DUMMY_BLACK_NAME, RESOURCE_DUMMY_BLACK_FILE, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
         
+		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+		
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, true, initResult);
 	}
@@ -365,9 +351,9 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         assertConnectorInstances("black", RESOURCE_DUMMY_BLACK_OID, 0, 1);
         assertConnectorInstances("yellow", RESOURCE_DUMMY_YELLOW_OID, 0, 2);
         
-        assertConnectorToStringDifferent(shadowBlack, dummyResourceCtlBlack, initialConnectorStaticVal);
-        assertConnectorToStringDifferent(shadowBlack, dummyResourceCtlBlack, initialConnectorToString);
-        assertConnectorStaticVal(shadowBlack, dummyResourceCtlBlack, initialConnectorStaticVal);
+        assertConnectorToStringDifferent(shadowBlack, getDummyResourceController(RESOURCE_DUMMY_BLACK_NAME), initialConnectorStaticVal);
+        assertConnectorToStringDifferent(shadowBlack, getDummyResourceController(RESOURCE_DUMMY_BLACK_NAME), initialConnectorToString);
+        assertConnectorStaticVal(shadowBlack, getDummyResourceController(RESOURCE_DUMMY_BLACK_NAME), initialConnectorStaticVal);
 
 	}
 

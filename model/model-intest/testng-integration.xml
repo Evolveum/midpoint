@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructMeta"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbean"/>
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
-            <class name="com.evolveum.midpoint.model.intest.TestPassword"/>
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
             <class name="com.evolveum.midpoint.model.intest.TestConnectorDummyFake"/>
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
@@ -90,6 +89,14 @@
     <test name="Scripting" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasic"/>
+        </classes>
+    </test>
+    <test name="Password" preserve-order="true" parallel="false" verbose="10" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefault"/>
+            <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefaultHashing"/>
+            <!-- TestPasswordNone works only partially. It needs to be updated. -->
+            <!-- <class name="com.evolveum.midpoint.model.intest.password.TestPasswordNone"/>  -->
         </classes>
     </test>
     <!--

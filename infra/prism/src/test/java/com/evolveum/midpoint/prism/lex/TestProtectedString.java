@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,13 +52,38 @@ public class TestProtectedString {
 	}
 	
 	@Test
-    public void testParseProtectedString() throws Exception {
-		final String TEST_NAME = "testParseProtectedString";
+    public void testParseProtectedStringEncrypted() throws Exception {
+		final String TEST_NAME = "testParseProtectedStringEncrypted";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
-        Protector protector = TestProtector.createProtector(XMLCipher.AES_128);     // TODO move to a util class
+        Protector protector = PrismInternalTestUtil.createProtector(XMLCipher.AES_128);
         ProtectedStringType protectedStringType = protector.encryptString("salalala");
+
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        // WHEN
+
+        MapXNode protectedStringTypeXNode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(protectedStringType, null);
+        System.out.println("Protected string type XNode: " + protectedStringTypeXNode.debugDump());
+
+        // THEN
+        ProtectedStringType unmarshalled = new ProtectedStringType();
+        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, ParsingContext.createDefault());
+        System.out.println("Unmarshalled value: " + unmarshalled);
+        assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
+    }
+	
+	@Test
+    public void testParseProtectedStringHashed() throws Exception {
+		final String TEST_NAME = "testParseProtectedStringHashed";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		ProtectedStringType protectedStringType = new ProtectedStringType();
+		protectedStringType.setClearValue("blabla");
+        Protector protector = PrismInternalTestUtil.createProtector(XMLCipher.AES_128);
+        protector.hash(protectedStringType);
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
