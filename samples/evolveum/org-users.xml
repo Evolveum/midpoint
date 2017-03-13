@@ -24,6 +24,9 @@
 	<role oid="8471b89a-0802-11e7-971d-7728366eba21">
 		<name>Manager</name>
 		<description>Role for organizational unit managers. Allows delegated administration.</description>
+		<inducement>
+			<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/> <!-- Approver -->
+		</inducement>
 		<authorization>
 		    	<name>gui-access</name>
 		    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll</action>

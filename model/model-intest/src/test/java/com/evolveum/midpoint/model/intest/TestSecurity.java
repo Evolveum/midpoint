@@ -1559,6 +1559,108 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 	}
 
+	@Test
+    public void test246AutzJackManagerFullControlManagerMinistryOfRumAndDefense() throws Exception {
+		final String TEST_NAME = "test246AutzJackManagerFullControlManagerMinistryOfRumAndDefense";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        
+        assignRole(USER_JACK_OID, ROLE_MANAGER_FULL_CONTROL_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        
+        // precondition
+        PrismObject<ShadowType> elaineShadow = getObject(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+        assertNotNull(elaineShadow);
+        display("Elaine's shadow", elaineShadow);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        
+        assertSearch(UserType.class, null, 4);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        
+        assertAddDeny();
+        
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+		assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
+		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        
+        assertDeleteDeny();
+        
+        assertGetAllow(UserType.class, userRumRogersOid);
+        assertModifyAllow(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
+        assertGetAllow(UserType.class, userCobbOid); // Cobb is in Scumm Bar, transitive descendant of Ministry of Rum
+        assertAddAllow(USER_MANCOMB_FILE);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        String accountOid = getSingleLinkOid(user);
+        assertGetAllow(ShadowType.class, accountOid);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
+        display("Jack's shadow", shadow);
+        
+        assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+        
+        assertVisibleUsers(5);
+        
+        assertGetAllow(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
+        assertSearch(OrgType.class, null, 3);
+        
+        assertModifyDeny(OrgType.class, ORG_MINISTRY_OF_RUM_OID, OrgType.F_DESCRIPTION, "blababla");
+        assertModifyAllow(OrgType.class, ORG_SCUMM_BAR_OID, OrgType.F_DESCRIPTION, "Hosting the worst scumm of the World.");
+        
+        assignAccount(USER_ESTEVAN_OID, RESOURCE_DUMMY_OID, null);
+        
+        PrismObject<UserType> userEstevan = getUser(USER_ESTEVAN_OID);
+        String accountEstevanOid = getSingleLinkOid(userEstevan);
+        assertGetAllow(ShadowType.class, accountEstevanOid);
+        PrismObject<ShadowType> shadowEstevan = getObject(ShadowType.class, accountEstevanOid);
+        display("Estevan shadow", shadowEstevan);
+
+    	// MID-2822
+        
+    	Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(
+        		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
+        				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
+
+        // When finally fixed is should be like this:
+//    	assertSearch(ShadowType.class, query, 2);
+        
+        try {
+            
+            modelService.searchObjects(ShadowType.class, query, null, task, result);
+                    	
+        	AssertJUnit.fail("unexpected success");
+			
+		} catch (SchemaException e) {
+			// This is expected. The authorizations will mix on-resource and off-resource search.
+			display("Expected exception", e);
+		}
+        result.computeStatus();
+		TestUtil.assertFailure(result);
+        
+		
+        assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
+                
+        assertVisibleUsers(4);
+                
+        assertGlobalStateUntouched();
+	}
 	
 	@Test
     public void test250AutzJackSelfAccountsRead() throws Exception {
@@ -3234,6 +3336,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
+        unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER, task, result);
+        unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, null, task, result);
 	}
 	
 	private void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
