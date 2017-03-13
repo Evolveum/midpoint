@@ -1,0 +1,87 @@
+#
+# Copyright (c) 2017 Evolveum
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+dn: dc=evolveum,dc=net
+DC: evolveum
+objectClass: domain
+
+dn: ou=people,dc=evolveum,dc=net
+objectClass: organizationalunit
+OU: people
+
+dn: ou=groups,dc=evolveum,dc=net
+OU: groups
+objectClass: organizationalunit
+
+dn: cn=devel,ou=groups,dc=evolveum,dc=net
+objectclass: top
+objectclass: groupOfNames
+cn: devel
+ou: groups
+member: cn=placeholder,dc=evolveum,dc=net
+
+dn: cn=jira-users,ou=groups,dc=evolveum,dc=net
+objectclass: top
+objectclass: groupOfNames
+cn: jira-users
+ou: groups
+member: cn=placeholder,dc=evolveum,dc=net
+
+dn: cn=jira-developers,ou=groups,dc=evolveum,dc=net
+objectclass: top
+objectclass: groupOfNames
+cn: jira-developers
+ou: groups
+member: cn=placeholder,dc=evolveum,dc=net
+
+dn: cn=jira-admins,ou=groups,dc=evolveum,dc=net
+objectclass: top
+objectclass: groupOfNames
+cn: jira-admins
+ou: groups
+member: cn=placeholder,dc=evolveum,dc=net
+
+dn: cn=jira-auditors,ou=groups,dc=evolveum,dc=net
+objectclass: top
+objectclass: groupOfNames
+cn: jira-auditors
+ou: groups
+member: cn=placeholder,dc=evolveum,dc=net
+
+dn: ou=posixgroups,dc=evolveum,dc=net
+changetype: add
+objectclass: organizationalUnit
+ou: posixgroups
+
+dn: ou=Administrators,dc=evolveum,dc=net
+objectclass: top
+objectclass: organizationalunit
+ou: Administrators
+
+dn: cn=idm,ou=Administrators,dc=evolveum,dc=net
+objectclass: top
+objectclass: person
+cn: idm
+sn: IDM Administrator
+description: Special LDAP acccount used by the IDM
+  to access the LDAP data.
+userPassword: secret
+
+dn: ou=Services,dc=evolveum,dc=net
+objectclass: top
+objectclass: organizationalunit
+ou: Services
+

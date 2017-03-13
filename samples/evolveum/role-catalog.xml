@@ -17,7 +17,9 @@
  
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
          
     <org oid="00000000-ee88-6666-0000-c00000000000">
 		<name>R0000</name>
@@ -45,13 +47,68 @@
 		<orgType>application</orgType>
 	</org>
 
+	<role oid="5e1b61b0-07fc-11e7-9035-efe066f95164">
+		<name>Jira User</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-c00000001000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-c00000001000" type="c:OrgType"/>
+		</assignment>
+		<inducement>
+			<construction>
+				<resourceRef oid="28b699cc-107c-11e6-8277-034841879377"/> <!-- LDAP resource -->
+				<kind>account</kind>
+				<association>
+				    <ref>ri:ldapGroup</ref>
+				    <outbound>
+				       <expression>
+					  <associationTargetSearch>
+					     <filter>
+						<q:equal>
+						   <q:path>attributes/cn</q:path>
+						   <q:value>jira-users</q:value>
+						</q:equal>
+					     </filter>
+					     <searchOnResource>true</searchOnResource>
+					  </associationTargetSearch>
+				       </expression>
+				    </outbound>
+				 </association>
+			</construction>
+		</inducement>
+		<requestable>true</requestable>
+		<roleType>application</roleType>
+	</role>
+
 	<role oid="0f780cbc-8f0b-11e6-9b44-ab69ec586751">
 		<name>Jira Administrator</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-c00000001000" type="c:OrgType"/>
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000001000" type="c:OrgType"/>
 		</assignment>
+		<inducement>
+			<construction>
+				<resourceRef oid="28b699cc-107c-11e6-8277-034841879377"/> <!-- LDAP resource -->
+				<kind>account</kind>
+				<association>
+				    <ref>ri:ldapGroup</ref>
+				    <outbound>
+				       <expression>
+					  <associationTargetSearch>
+					     <filter>
+						<q:equal>
+						   <q:path>attributes/cn</q:path>
+						   <q:value>jira-admins</q:value>
+						</q:equal>
+					     </filter>
+					     <searchOnResource>true</searchOnResource>
+					  </associationTargetSearch>
+				       </expression>
+				    </outbound>
+				 </association>
+			</construction>
+		</inducement>
 		<requestable>true</requestable>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<roleType>application</roleType>
 	</role>
 
@@ -65,6 +122,29 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c0000000a000" type="c:OrgType"/>
 		</assignment>
+		<inducement>
+			<construction>
+				<resourceRef oid="28b699cc-107c-11e6-8277-034841879377"/> <!-- LDAP resource -->
+				<kind>account</kind>
+				<association>
+				    <ref>ri:ldapGroup</ref>
+				    <outbound>
+				       <expression>
+					  <associationTargetSearch>
+					     <filter>
+						<q:equal>
+						   <q:path>attributes/cn</q:path>
+						   <q:value>jira-developers</q:value>
+						</q:equal>
+					     </filter>
+					     <searchOnResource>true</searchOnResource>
+					  </associationTargetSearch>
+				       </expression>
+				    </outbound>
+				 </association>
+			</construction>
+		</inducement>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -75,6 +155,28 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000001000" type="c:OrgType"/>
 		</assignment>
+		<inducement>
+			<construction>
+				<resourceRef oid="28b699cc-107c-11e6-8277-034841879377"/> <!-- LDAP resource -->
+				<kind>account</kind>
+				<association>
+				    <ref>ri:ldapGroup</ref>
+				    <outbound>
+				       <expression>
+					  <associationTargetSearch>
+					     <filter>
+						<q:equal>
+						   <q:path>attributes/cn</q:path>
+						   <q:value>jira-auditors</q:value>
+						</q:equal>
+					     </filter>
+					     <searchOnResource>true</searchOnResource>
+					  </associationTargetSearch>
+				       </expression>
+				    </outbound>
+				 </association>
+			</construction>
+		</inducement>
 		<requestable>false</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -96,6 +198,7 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000002000" type="c:OrgType"/>
 		</assignment>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -110,6 +213,7 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c0000000a000" type="c:OrgType"/>
 		</assignment>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -120,6 +224,7 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000002000" type="c:OrgType"/>
 		</assignment>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -150,6 +255,7 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -160,6 +266,7 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -180,6 +287,7 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -190,6 +298,7 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
@@ -210,6 +319,7 @@
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000003000" type="c:OrgType"/>
 		</assignment>
+		<approverRef oid="00000000-ee88-6666-0000-000000000002" type="UserType" /> <!-- semancik -->
 		<requestable>true</requestable>
 		<roleType>application</roleType>
 	</role>
