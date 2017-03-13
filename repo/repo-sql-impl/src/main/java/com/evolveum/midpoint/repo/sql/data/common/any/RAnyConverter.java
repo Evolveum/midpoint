@@ -455,6 +455,15 @@ public class RAnyConverter {
 
         //if object instance of boolean, nothing to do
 
+		if (object instanceof Enum<?>) {
+        	object = getEnumStringValue((Enum<?>) object);
+		}
+
         return object;
     }
+
+	private static String getEnumStringValue(Enum<?> realValue) {
+		return PrismBeanInspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
+	}
+
 }

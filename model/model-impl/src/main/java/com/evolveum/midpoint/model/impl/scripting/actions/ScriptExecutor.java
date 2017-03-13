@@ -83,6 +83,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 
 		Data output = Data.createEmpty();
         for (PrismValue value: input.getData()) {
+			context.checkTaskStop();
 			String valueDescription;
         	long started;
 			if (value instanceof PrismObjectValue) {
@@ -92,6 +93,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 				started = 0;
 				valueDescription = value.toHumanReadableString();
 			}
+			Throwable exception = null;
 			try {
 				Object outObject = executeScript(scriptExpression, value, context, result);
 				if (outObject != null) {
@@ -104,16 +106,17 @@ public class ScriptExecutor extends BaseActionExecutor {
 				if (value instanceof PrismObjectValue) {
 					operationsHelper.recordEnd(context, asObjectType(value), started, ex);
 				}
-				throw new ScriptExecutionException("Couldn't execute script action: " + ex.getMessage(), ex);
+				exception = processActionException(ex, NAME, value, context);
 			}
-			context.println("Executed script on " + valueDescription);
+			context.println((exception != null ? "Attempted to execute " : "Executed ")
+					+ "script on " + valueDescription + exceptionSuffix(exception));
         }
         return output;
     }
 
 	private void addToData(Object outObject, Data output) throws SchemaException {
 		if (outObject == null) {
-			return;
+			// nothing to do
 		} else if (outObject instanceof Collection) {
 			for (Object o : (Collection) outObject) {
 				addToData(o, output);
@@ -157,7 +160,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
 		ExpressionUtil.addActorVariable(variables, securityEnforcer);
 		
-		List<?> rv = Utils.evaluateScript(scriptExpression, null, variables, true, "script action", context.getTask(), result);
+		List<?> rv = Utils.evaluateScript(scriptExpression, null, variables, true, "in '"+NAME+"' action", context.getTask(), result);
 		
 		if (rv == null || rv.size() == 0) {
 			return null;

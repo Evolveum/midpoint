@@ -22,12 +22,15 @@
 
 <resource oid="28b699cc-107c-11e6-8277-034841879377"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3' xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-	xmlns:my="http://whatever.com/my" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:my="http://whatever.com/my" 
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
 	xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 

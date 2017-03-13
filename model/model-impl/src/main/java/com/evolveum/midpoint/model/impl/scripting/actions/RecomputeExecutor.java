@@ -66,10 +66,12 @@ public class RecomputeExecutor extends BaseActionExecutor {
         boolean dryRun = getParamDryRun(expression, input, context, result);
 
         for (PrismValue value : input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue && FocusType.class.isAssignableFrom(((PrismObjectValue) value).asPrismObject().getCompileTimeClass())) {
                 PrismObject<FocusType> focalPrismObject = ((PrismObjectValue) value).asPrismObject();
                 FocusType focusType = focalPrismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, focusType);
+                Throwable exception = null;
                 try {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Recomputing object {} with dryRun={}: context:\n{}", focalPrismObject, dryRun);
@@ -80,11 +82,12 @@ public class RecomputeExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, focusType, started, null);
                 } catch (Throwable e) {
                     operationsHelper.recordEnd(context, focusType, started, e);
-                    throw e;
+					exception = processActionException(e, NAME, value, context);
                 }
-                context.println("Recomputed " + focalPrismObject.toString() + drySuffix(dryRun));
+                context.println((exception != null ? "Attempted to recompute " : "Recomputed ") + focalPrismObject.toString() + drySuffix(dryRun) + exceptionSuffix(exception));
             } else {
-                throw new ScriptExecutionException("Item could not be recomputed, because it is not a focal PrismObject: " + value.toString());
+				//noinspection ThrowableNotThrown
+				processActionException(new ScriptExecutionException("Item is not a PrismObject<FocusType>"), NAME, value, context);
             }
         }
         return Data.createEmpty();

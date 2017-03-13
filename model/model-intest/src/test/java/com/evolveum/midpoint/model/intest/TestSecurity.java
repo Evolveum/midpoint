@@ -115,6 +115,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_ANGELICA_NAME = "angelika";
 
 	private static final String USER_RUM_ROGERS_NAME = "rum";
+	private static final String USER_COBB_NAME = "cobb";
 
 	protected static final File ROLE_READ_JACKS_CAMPAIGNS_FILE = new File(TEST_DIR, "role-read-jacks-campaigns.xml");
 	protected static final String ROLE_READ_JACKS_CAMPAIGNS_OID = "00000000-0000-0000-0000-00000001aa00";
@@ -250,8 +251,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private static final ItemPath PASSWORD_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
 	private static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
+
+	private static final int NUMBER_OF_ALL_USERS = 10;
 	
 	String userRumRogersOid;
+	String userCobbOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -312,6 +316,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		addObject(userRum, initTask, initResult);
 		userRumRogersOid = userRum.getOid();
 		assignOrg(userRumRogersOid, ORG_MINISTRY_OF_RUM_OID, initTask, initResult);
+		
+		PrismObject<UserType> userCobb = createUser(USER_COBB_NAME, "Cobb");
+		addObject(userCobb, initTask, initResult);
+		userCobbOid = userCobb.getOid();
+		assignOrg(userCobbOid, ORG_SCUMM_BAR_OID, initTask, initResult);
 	}
 
 	@Test
@@ -644,7 +653,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         login(USER_JACK_USERNAME);
         
         // WHEN
-        assertSuperuserAccess(9);
+        assertSuperuserAccess(NUMBER_OF_ALL_USERS);
         
         assertGlobalStateUntouched();
 	}
@@ -1261,20 +1270,21 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         
-        assertReadDeny(2);
+        assertReadDeny(3);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
         
         assertGetAllow(UserType.class, userRumRogersOid);
         assertModifyAllow(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
+        assertGetAllow(UserType.class, userCobbOid);
         assertAddAllow(USER_MANCOMB_FILE);
         
-        assertVisibleUsers(3);
+        assertVisibleUsers(4);
         
         assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
         
-        assertVisibleUsers(2);
+        assertVisibleUsers(3);
         
         assertGlobalStateUntouched();
 	}
@@ -1333,6 +1343,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertGetDeny(UserType.class, userRumRogersOid);
         assertModifyDeny(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
+        assertGetDeny(UserType.class, userCobbOid);
         assertAddDeny(USER_MANCOMB_FILE);
         
         assertVisibleUsers(0);
@@ -1381,6 +1392,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertGetDeny(UserType.class, userRumRogersOid);
         assertModifyDeny(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
+        assertGetDeny(UserType.class, userCobbOid);
         assertAddDeny(USER_MANCOMB_FILE);
         
         assertVisibleUsers(0);
@@ -1429,7 +1441,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         
-        assertSearch(UserType.class, null, 3);
+        assertSearch(UserType.class, null, 4);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
@@ -1445,6 +1457,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertGetAllow(UserType.class, userRumRogersOid);
         assertModifyAllow(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
+        assertGetAllow(UserType.class, userCobbOid); // Cobb is in Scumm Bar, transitive descendant of Ministry of Rum
         assertAddAllow(USER_MANCOMB_FILE);
         
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1455,7 +1468,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
         
-        assertVisibleUsers(4);
+        assertVisibleUsers(5);
         
         assertGetAllow(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
         assertSearch(OrgType.class, null, 2);
@@ -1499,11 +1512,113 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		
         assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
                 
-        assertVisibleUsers(3);
+        assertVisibleUsers(4);
                 
         assertGlobalStateUntouched();
 	}
 
+	@Test
+    public void test246AutzJackManagerFullControlManagerMinistryOfRumAndDefense() throws Exception {
+		final String TEST_NAME = "test246AutzJackManagerFullControlManagerMinistryOfRumAndDefense";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        
+        assignRole(USER_JACK_OID, ROLE_MANAGER_FULL_CONTROL_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        
+        // precondition
+        PrismObject<ShadowType> elaineShadow = getObject(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+        assertNotNull(elaineShadow);
+        display("Elaine's shadow", elaineShadow);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        
+        assertSearch(UserType.class, null, 4);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        
+        assertAddDeny();
+        
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+		assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
+		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        
+        assertDeleteDeny();
+        
+        assertGetAllow(UserType.class, userRumRogersOid);
+        assertModifyAllow(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
+        assertGetAllow(UserType.class, userCobbOid); // Cobb is in Scumm Bar, transitive descendant of Ministry of Rum
+        assertAddAllow(USER_MANCOMB_FILE);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        String accountOid = getSingleLinkOid(user);
+        assertGetAllow(ShadowType.class, accountOid);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
+        display("Jack's shadow", shadow);
+        
+        assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+        
+        assertVisibleUsers(5);
+        
+        assertGetAllow(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
+        assertSearch(OrgType.class, null, 3);
+        
+        assertModifyDeny(OrgType.class, ORG_MINISTRY_OF_RUM_OID, OrgType.F_DESCRIPTION, "blababla");
+        assertModifyAllow(OrgType.class, ORG_SCUMM_BAR_OID, OrgType.F_DESCRIPTION, "Hosting the worst scumm of the World.");
+        
+        assignAccount(USER_ESTEVAN_OID, RESOURCE_DUMMY_OID, null);
+        
+        PrismObject<UserType> userEstevan = getUser(USER_ESTEVAN_OID);
+        String accountEstevanOid = getSingleLinkOid(userEstevan);
+        assertGetAllow(ShadowType.class, accountEstevanOid);
+        PrismObject<ShadowType> shadowEstevan = getObject(ShadowType.class, accountEstevanOid);
+        display("Estevan shadow", shadowEstevan);
+
+    	// MID-2822
+        
+    	Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(
+        		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
+        				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
+
+        // When finally fixed is should be like this:
+//    	assertSearch(ShadowType.class, query, 2);
+        
+        try {
+            
+            modelService.searchObjects(ShadowType.class, query, null, task, result);
+                    	
+        	AssertJUnit.fail("unexpected success");
+			
+		} catch (SchemaException e) {
+			// This is expected. The authorizations will mix on-resource and off-resource search.
+			display("Expected exception", e);
+		}
+        result.computeStatus();
+		TestUtil.assertFailure(result);
+        
+		
+        assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
+                
+        assertVisibleUsers(4);
+                
+        assertGlobalStateUntouched();
+	}
 	
 	@Test
     public void test250AutzJackSelfAccountsRead() throws Exception {
@@ -1910,7 +2025,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -1969,7 +2084,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2028,7 +2143,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2087,7 +2202,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2149,7 +2264,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2214,7 +2329,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2324,7 +2439,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2401,7 +2516,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2615,7 +2730,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyAllow();
         assertDeleteDeny();
@@ -2655,7 +2770,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyAllow();
         assertDeleteDeny();
@@ -2691,7 +2806,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2845,7 +2960,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			public Object run() {
 				try {
 					
-					assertSuperuserAccess(10);
+					assertSuperuserAccess(NUMBER_OF_ALL_USERS + 1);
 			        
 				} catch (Exception e) {
 					new RuntimeException(e.getMessage(), e);
@@ -2877,7 +2992,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			public Object run() {
 				try {
 					
-					assertSuperuserAccess(10);
+					assertSuperuserAccess(NUMBER_OF_ALL_USERS + 1);
 			        
 				} catch (Exception e) {
 					new RuntimeException(e.getMessage(), e);
@@ -2936,7 +3051,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -2981,7 +3096,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayWhen(TEST_NAME);
         display("Logged in as Barbossa");
         
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -3037,7 +3152,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -3133,6 +3248,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
+        unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER, task, result);
+        unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, null, task, result);
 	}
 	
 	private void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
@@ -3188,7 +3305,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private void assertReadAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		assertReadAllow(9);
+		assertReadAllow(NUMBER_OF_ALL_USERS);
 	}
 	
 	private void assertReadAllow(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {

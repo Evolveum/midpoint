@@ -59,12 +59,11 @@ public class ValidateExecutor extends BaseActionExecutor {
         Data output = Data.createEmpty();
 
         for (PrismValue value : input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
                 PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 ResourceType resourceType = resourceTypePrismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, resourceType);
-
-                //new PrismContainer(, prismContext);
                 try {
                     ValidationResult validationResult = resourceValidator.validate(resourceTypePrismObject, Scope.THOROUGH, null, context.getTask(), result);
 
@@ -77,11 +76,12 @@ public class ValidateExecutor extends BaseActionExecutor {
                 } catch (SchemaException|RuntimeException e) {
                     operationsHelper.recordEnd(context, resourceType, started, e);
                     context.println("Error validation " + resourceTypePrismObject + ": " + e.getMessage());
-                    throw new ScriptExecutionException("Couldn't validate resource " + resourceTypePrismObject, e);
+                    //noinspection ThrowableNotThrown
+                    processActionException(e, NAME, value, context);
                 }
-
             } else {
-                throw new ScriptExecutionException("Couldn't test a resource, because input is not a PrismObject<ResourceType>: " + value.toString());
+                //noinspection ThrowableNotThrown
+                processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
             }
         }
         return output;
