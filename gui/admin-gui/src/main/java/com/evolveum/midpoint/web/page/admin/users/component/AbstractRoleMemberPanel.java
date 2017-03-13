@@ -10,6 +10,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.model.Model;
 
 public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extends BasePanel<T> {
 
@@ -400,7 +402,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	private List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
 		List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
-		IColumn<SelectableBean<ObjectType>, String> column = new AbstractColumn<SelectableBean<ObjectType>, String>(
+		IColumn<SelectableBean<ObjectType>, String> column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
 				createStringResource("TreeTablePanel.fullName.displayName")) {
 			private static final long serialVersionUID = 1L;
 
@@ -409,22 +411,19 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
 				SelectableBean<ObjectType> bean = rowModel.getObject();
 				ObjectType object = bean.getValue();
-				if (object instanceof UserType) {
-					cellItem.add(new Label(componentId,
-							WebComponentUtil.getOrigStringFromPoly(((UserType) object).getFullName())));
-				} else if (object instanceof AbstractRoleType) {
-					cellItem.add(new Label(componentId, WebComponentUtil
-							.getOrigStringFromPoly(((AbstractRoleType) object).getDisplayName())));
-				} else {
-					cellItem.add(new Label(componentId, ""));
-				}
+				cellItem.add(new Label(componentId,
+							getMemberObjectDisplayName(object)));
+			}
 
+			@Override
+			public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
+				return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue()));
 			}
 
 		};
 		columns.add(column);
 
-		column = new AbstractColumn<SelectableBean<ObjectType>, String>(
+		column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
 				createStringResource("TreeTablePanel.identifier.description")) {
 			private static final long serialVersionUID = 1L;
 
@@ -433,14 +432,12 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
 				SelectableBean<ObjectType> bean = rowModel.getObject();
 				ObjectType object = bean.getValue();
-				if (object instanceof UserType) {
-					cellItem.add(new Label(componentId, ((UserType) object).getEmailAddress()));
-				} else if (object instanceof AbstractRoleType) {
-					cellItem.add(new Label(componentId, ((AbstractRoleType) object).getIdentifier()));
-				} else {
-					cellItem.add(new Label(componentId, object.getDescription()));
-				}
+				cellItem.add(new Label(componentId, getMemberObjectIdentifier(object)));
+			}
 
+			@Override
+			public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
+				return Model.of(getMemberObjectIdentifier(rowModel.getObject().getValue()));
 			}
 
 		};
@@ -471,9 +468,30 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return getTaskName(operation, scope, false);
 	}
 	
-//	public <F extends ObjectType> MainObjectListPanel<F> getMemberTable() {
-//		return (MainObjectListPanel<F>) get(
-//				createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
-//	}
+	private String getMemberObjectDisplayName(ObjectType object){
+		if (object == null){
+			return "";
+		}
+		if (object instanceof UserType) {
+			return WebComponentUtil.getOrigStringFromPoly(((UserType) object).getFullName());
+		} else if (object instanceof AbstractRoleType) {
+			return WebComponentUtil
+					.getOrigStringFromPoly(((AbstractRoleType) object).getDisplayName());
+		} else {
+			return "";
+		}
+	}
 
+	private String getMemberObjectIdentifier(ObjectType object){
+		if (object == null){
+			return "";
+		}
+		if (object instanceof UserType) {
+			return ((UserType) object).getEmailAddress();
+		} else if (object instanceof AbstractRoleType) {
+			return ((AbstractRoleType) object).getIdentifier();
+		} else {
+			return object.getDescription();
+		}
+	}
 }

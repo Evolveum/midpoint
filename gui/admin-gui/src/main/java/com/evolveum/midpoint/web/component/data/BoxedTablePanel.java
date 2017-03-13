@@ -111,15 +111,6 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 			}
 		};
 		table.setOutputMarkupId(true);
-		ExportToolbar exportToolbar = new ExportToolbar(table).addDataExporter(new CSVDataExporter());
-		exportToolbar.add(new VisibleEnableBehaviour(){
-			@Override
-			public boolean isVisible(){
-				return super.isVisible() && getExportToolbarVisibility();
-			}
-		});
-		table.addBottomToolbar(exportToolbar);
-
 		tableContainer.add(table);
 		box.add(tableContainer);
 
@@ -335,9 +326,5 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 					.createStringResourceStatic(PagingFooter.this, "CountToolbar.noFound", new Object[] {})
 					.getString();
 		}
-	}
-
-	protected boolean getExportToolbarVisibility(){
-		return false;
 	}
 }

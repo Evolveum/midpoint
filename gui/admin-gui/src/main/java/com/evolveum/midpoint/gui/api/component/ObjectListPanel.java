@@ -195,10 +195,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				return bar != null ? bar : super.createButtonToolbar(id);
 			}
 
-			@Override
-			protected boolean getExportToolbarVisibility(){
-				return ObjectListPanel.this.getExportToolbarVisibility();
-			}
 		};
 		table.setOutputMarkupId(true);
 		String storageKey = getStorageKey();
@@ -530,9 +526,5 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	private String getItemDisplayName(GuiObjectColumnType column){
 		return parentPage.getPrismContext().getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(type).findItemDefinition(column.getPath().getItemPath()).getDisplayName();
-	}
-
-	protected boolean getExportToolbarVisibility(){
-		return false;
 	}
 }
