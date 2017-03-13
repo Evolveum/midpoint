@@ -211,10 +211,11 @@ public class SecurityHelper {
 		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
 		SecurityPolicyType resultingSecurityPolicy = null;
 		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
-		try {
-			for (PrismReferenceValue orgRefValue : orgRefValues) {
-				if (orgRefValue != null) {
 
+		for (PrismReferenceValue orgRefValue : orgRefValues) {
+			if (orgRefValue != null) {
+
+				try {
 					PrismObject<OrgType> org = objectResolver.resolve(orgRefValue, "resolving parent org ref", null, null, result);
 					orgs.add(org);
 					SecurityPolicyType securityPolicy = resolveOrgSecurityPolicy(org, task, result);
@@ -227,11 +228,14 @@ public class SecurityHelper {
 									"Found more than one security policy for user. Please check your configuration");
 						}
 					}
+				} catch (ObjectNotFoundException ex) {
+					// Just log the error, but do not fail on that. Failing would prohibit login
+					// and that may mean the misconfiguration could not be easily fixed.
+					LOGGER.warn("Cannot find organization {} referenced in , cannot use it do determine security policy.", orgRefValue.getOid(), object);
 				}
 			}
-		} catch (ObjectNotFoundException ex) {
-			throw new IllegalStateException(ex);
 		}
+		
 		// go deeper
 		if (resultingSecurityPolicy == null) {
 			for (PrismObject<OrgType> orgType : orgs) {
