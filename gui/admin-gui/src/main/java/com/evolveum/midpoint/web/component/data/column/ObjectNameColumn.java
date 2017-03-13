@@ -19,6 +19,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -32,12 +33,14 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.error.PageOperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.model.Model;
 
 /**
  * @author semancik
  *
  */
-public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<SelectableBean<O>, String> {
+public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<SelectableBean<O>, String>
+		implements IExportableColumn<SelectableBean<O>, String>{
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectNameColumn.class);
@@ -79,7 +82,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 					
 					
 				}
-			} 
+			}
 		};
 
 		if (isClickable(rowModel)) {		// beware: rowModel is very probably resolved at this moment; but it seems to cause no problems
@@ -113,5 +116,11 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 
     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
     }
+
+	public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
+		SelectableBean<O> selectableBean = rowModel.getObject();
+		O value = selectableBean.getValue();
+		return Model.of(value == null ? "" : WebComponentUtil.getName(value));
+	}
 
 }

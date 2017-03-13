@@ -16,16 +16,21 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
+import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 
 /**
  * Created by lazyman on 09/03/2017.
  */
 public class ExactMatchMountedMapper extends MountedMapper {
+
+    private static final Trace LOG = TraceManager.getTrace(ExactMatchMountedMapper.class);
 
     public ExactMatchMountedMapper(String mountPath,
                                    Class<? extends IRequestablePage> pageClass,
@@ -46,7 +51,15 @@ public class ExactMatchMountedMapper extends MountedMapper {
             return false;
         }
 
+        if (!(pageParametersEncoder instanceof PageParametersEncoder)) {
+            LOG.trace("Matching using standard mounted mapper for '{}'", url);
+            return super.urlStartsWithMountedSegments(url);
+        }
+
         String mountUrl = StringUtils.join(mountSegments, "/");
-        return url.getPath().equals(mountUrl);
+        boolean matched = url.getPath().equals(mountUrl);
+
+        LOG.trace("Matched: {} for '{}' with mount url '{}'", matched, url, mountUrl);
+        return matched;
     }
 }

@@ -8509,7 +8509,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Selects some assignments from all the assignments in the object.
-                E.g. may be used to select only some assignments/inducments for a role.
+                E.g. may be used to select only some assignments/inducements for a role.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

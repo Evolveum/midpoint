@@ -15,15 +15,28 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -36,6 +49,9 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.request.resource.ResourceStreamResource;
+import org.apache.wicket.util.resource.IResourceStream;
 
 /**
  * @author katkav
@@ -94,17 +110,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
-	protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-		return true;
-	}
+    protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+        return true;
+    }
 
-	protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
+    protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
 
     protected abstract void newObjectPerformed(AjaxRequestTarget target);
 
-    protected void exportData(AjaxRequestTarget target){
-
-    }
 
     @Override
     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -113,9 +126,9 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private static class ButtonBar extends Fragment {
 
-    	private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-		public <O extends ObjectType> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider) {
+        public <O extends ObjectType> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider) {
             super(id, markupId, markupProvider);
 
             initLayout(markupProvider);
@@ -125,13 +138,13 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             AjaxIconButton refreshIcon = new AjaxIconButton(ID_REFRESH, new Model<>("fa fa-refresh"),
                     mainObjectListPanel.createStringResource("MainObjectListPanel.refresh")) {
 
-             			private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
-				@Override
+                @Override
                 public void onClick(AjaxRequestTarget target) {
-                	mainObjectListPanel.clearCache();
-                	mainObjectListPanel.refreshTable((Class<O>) mainObjectListPanel.getType(), target);
-                    
+                    mainObjectListPanel.clearCache();
+                    mainObjectListPanel.refreshTable((Class<O>) mainObjectListPanel.getType(), target);
+
                     target.add((Component) mainObjectListPanel.getTable());
                 }
             };
@@ -140,8 +153,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_OBJECT, new Model<>("fa fa-plus"),
                     mainObjectListPanel.createStringResource("MainObjectListPanel.newObject")) {
 
-            	private static final long serialVersionUID = 1L;
-            	
+                private static final long serialVersionUID = 1L;
+
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     mainObjectListPanel.newObjectPerformed(target);
@@ -152,8 +165,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             AjaxIconButton importObject = new AjaxIconButton(ID_IMPORT_OBJECT, new Model<>("fa fa-upload"),
                     mainObjectListPanel.createStringResource("MainObjectListPanel.import")) {
 
-            	private static final long serialVersionUID = 1L;
-            	
+                private static final long serialVersionUID = 1L;
+
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     ((PageBase) getPage()).navigateToNext(PageImportObject.class);
@@ -161,17 +174,18 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             };
             add(importObject);
 
-            AjaxIconButton exportData = new AjaxIconButton(ID_EXPORT_DATA, new Model<>("fa fa-download"),
-                    mainObjectListPanel.createStringResource("MainObjectListPanel.export")) {
-
-            	private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    mainObjectListPanel.exportData(target);
+            String fileName = mainObjectListPanel.getType().getSimpleName() +
+                    "_" + mainObjectListPanel.createStringResource("MainObjectListPanel.exportFileName").getString();
+            CSVDataExporter csvDataExporter = new CSVDataExporter();
+            ResourceStreamResource resource = (new ResourceStreamResource() {
+                protected IResourceStream getResourceStream() {
+                    return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, mainObjectListPanel.getTable().getDataTable());
                 }
-            };
-            add(exportData);
+            }).setFileName(fileName + "." + csvDataExporter.getFileNameExtension());
+            AbstractLink exportDataLink = (new ResourceLink(ID_EXPORT_DATA, resource)).setBody(csvDataExporter.getDataFormatNameModel());
+
+            add(exportDataLink);
+
         }
     }
 }

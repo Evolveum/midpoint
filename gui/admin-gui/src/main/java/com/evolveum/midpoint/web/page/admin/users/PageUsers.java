@@ -40,6 +40,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
@@ -253,7 +254,7 @@ public class PageUsers extends PageAdminUsers {
 				SelectableBean.F_VALUE + ".emailAddress");
 		columns.add(column);
 
-		column = new AbstractColumn<SelectableBean<UserType>, String>(
+		column = new AbstractExportableColumn<SelectableBean<UserType>, String>(
 				createStringResource("pageUsers.accounts")) {
 
 			@Override
@@ -263,6 +264,14 @@ public class PageUsers extends PageAdminUsers {
 						model.getObject().getValue() != null ?
 								model.getObject().getValue().getLinkRef().size() : null));
 			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<SelectableBean<UserType>> rowModel) {
+				return Model.of(rowModel.getObject().getValue() != null ?
+						Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
+			}
+
+
 		};
 
 		columns.add(column);

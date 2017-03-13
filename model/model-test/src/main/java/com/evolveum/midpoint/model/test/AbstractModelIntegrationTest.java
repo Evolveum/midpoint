@@ -1586,6 +1586,40 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertAssignedOrgs(user, orgOids);
 	}
 	
+	protected <F extends FocusType> void assertObjectRefs(String contextDesc, Collection<ObjectReferenceType> real, ObjectType... expected) {
+		assertObjectRefs(contextDesc, real, objectsToOids(expected));
+	}
+
+	protected <F extends FocusType> void assertPrismRefValues(String contextDesc, Collection<PrismReferenceValue> real, ObjectType... expected) {
+		assertPrismRefValues(contextDesc, real, objectsToOids(expected));
+	}
+
+	protected void assertObjectRefs(String contextDesc, Collection<ObjectReferenceType> real, String... expected) {
+		List<String> refOids = new ArrayList<>();
+		for (ObjectReferenceType ref: real) {
+			refOids.add(ref.getOid());
+			assertNotNull("Missing type in "+ref.getOid()+" in "+contextDesc, ref.getType());
+			assertNotNull("Missing name in "+ref.getOid()+" in "+contextDesc, ref.getTargetName());
+		}
+		PrismAsserts.assertSets("Wrong values in "+contextDesc, refOids, expected);
+	}
+
+	protected void assertPrismRefValues(String contextDesc, Collection<PrismReferenceValue> real, String... expected) {
+		List<String> refOids = new ArrayList<>();
+		for (PrismReferenceValue ref: real) {
+			refOids.add(ref.getOid());
+			assertNotNull("Missing type in "+ref.getOid()+" in "+contextDesc, ref.getTargetType());
+			assertNotNull("Missing name in "+ref.getOid()+" in "+contextDesc, ref.getTargetName());
+		}
+		PrismAsserts.assertSets("Wrong values in "+contextDesc, refOids, expected);
+	}
+
+	private String[] objectsToOids(ObjectType[] objects) {
+		return Arrays.stream(objects)
+				.map(o -> o.getOid())
+				.toArray(String[]::new);
+	}
+
 	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, String... roleOids) {
 		List<String> refOids = new ArrayList<String>();
 		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
@@ -3958,4 +3992,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		taskManager.resumeTasks(Collections.singleton(taskOid), result);
 	}
 
+	protected void repoAddObjects(List<ObjectType> objects, OperationResult result)
+			throws EncryptionException, ObjectAlreadyExistsException, SchemaException {
+		for (ObjectType object : objects) {
+			repoAddObject(object.asPrismObject(), result);
+		}
+	}
+
+	protected void recomputeAndRefreshObjects(List<ObjectType> objects, Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+			SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+		for (int i = 0; i < objects.size(); i++) {
+			ObjectType object = objects.get(i);
+			modelService.recompute(object.getClass(), object.getOid(), null, task, result);
+			objects.set(i, repositoryService.getObject(object.getClass(), object.getOid(), null, result).asObjectable());
+		}
+	}
 }

@@ -59,7 +59,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 	}
 
 	@Override
-	public AssignmentPathSegmentImpl getFirstAssignmentSegment() {
+	public AssignmentPathSegmentImpl first() {
 		return segments.get(0);
 	}
 	
@@ -71,14 +71,14 @@ public class AssignmentPathImpl implements AssignmentPath {
 	@Override
 	public int size() { return segments.size(); }
 
-	@Override
-	public EvaluationOrder getEvaluationOrder() {
-		if (isEmpty()) {
-			return EvaluationOrderImpl.ZERO;
-		} else {
-			return last().getEvaluationOrder();
-		}
-	}
+//	@Override
+//	public EvaluationOrder getEvaluationOrder() {
+//		if (isEmpty()) {
+//			return EvaluationOrderImpl.ZERO;
+//		} else {
+//			return last().getEvaluationOrder();
+//		}
+//	}
 
 	@Override
 	public AssignmentPathSegmentImpl last() {

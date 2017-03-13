@@ -194,6 +194,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 				return bar != null ? bar : super.createButtonToolbar(id);
 			}
+
 		};
 		table.setOutputMarkupId(true);
 		String storageKey = getStorageKey();
@@ -373,7 +374,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	@SuppressWarnings("unchecked")
-	private BaseSortableDataProvider<SelectableBean<O>> getDataProvider() {
+	protected BaseSortableDataProvider<SelectableBean<O>> getDataProvider() {
 		BoxedTablePanel<SelectableBean<O>> table = getTable();
 		BaseSortableDataProvider<SelectableBean<O>> provider = (BaseSortableDataProvider<SelectableBean<O>>) table
 				.getDataTable().getDataProvider();
