@@ -1,0 +1,7 @@
+to attrs=userPassword dn.subtree="ou=people,dc=evolveum,dc=net" filter="(midPointAccountStatus=disabled)" by dn.subtree="ou=Services,dc=evolveum,dc=net" none by anonymous none by * break
+to attrs=userPassword,shadowLastChange by dn="cn=admin,dc=evolveum,dc=net" write by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by dn="cn=idm,ou=Administrators,dc=evolveum,dc=net" write by anonymous auth by self write by * none
+to dn.base="" by * read
+to dn.subtree="ou=people,dc=evolveum,dc=net" by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by dn="cn=idm,ou=Administrators,dc=evolveum,dc=net" write by dn.subtree="ou=Services,dc=example,dc=com" read by self read
+to dn.subtree="ou=groups,dc=evolveum,dc=net" by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by dn="cn=idm,ou=Administrators,dc=evolveum,dc=net" write by dn.subtree="ou=Services,dc=example,dc=com" read by self read
+to dn.subtree="ou=posixgroups,dc=evolveum,dc=net" by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by dn="cn=idm,ou=Administrators,dc=evolveum,dc=net" write by dn.subtree="ou=Services,dc=example,dc=com" read by self read
+to * by dn="cn=admin,dc=evolveum,dc=net" write by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by dn="cn=idm,ou=Administrators,dc=evolveum,dc=net" read by * none
