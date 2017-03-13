@@ -965,7 +965,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										if (BooleanUtils.isTrue(specOrgRelation.isIncludeReferenceOrg())) {
 											q2 = q2.or().id(subjectParentOrgRef.getOid());
 										}
-										objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, q2.buildFilter());
+										objSpecOrgRelationFilter = ObjectQueryUtil.filterOr(objSpecOrgRelationFilter, q2.buildFilter());
 									}
 								}
 								if (objSpecOrgRelationFilter == null) {

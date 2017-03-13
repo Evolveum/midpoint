@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -59,11 +60,6 @@ public class PageLogin extends PageBase {
     private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
     
     public PageLogin() {
-        if (SecurityUtils.getPrincipalUser() != null) {
-            MidPointApplication app = getMidpointApplication();
-            setResponsePage(app.getHomePage());
-        }
-
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgotPassword.class);
         link.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
@@ -156,5 +152,15 @@ public class PageLogin extends PageBase {
     @Override
     protected void createBreadcrumb() {
         //don't create breadcrumb for login page
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        if (SecurityUtils.getPrincipalUser() != null) {
+            MidPointApplication app = getMidpointApplication();
+            throw new RestartResponseException(app.getHomePage());
+        }
     }
 }
