@@ -160,5 +160,19 @@
             <type>ServiceType</type>
         </object>
     </authorization>
+    <authorization>
+    	<name>assignment-target-read-task</name>
+    	<description>
+    		Authorization that allows to read workflow status of tasks. This is used to display requests
+    		to the end users, especially in the "My Requests" box in user dashboard.
+    		This authorization is a temporary solution. It will be replaced by a finer-grained
+    		permissions in the future.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+        </object>
+        <item>workflowContext</item>
+    </authorization>
     <roleType>system</roleType>
 </role>
