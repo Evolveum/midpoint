@@ -21,8 +21,6 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.session.PageStorage;

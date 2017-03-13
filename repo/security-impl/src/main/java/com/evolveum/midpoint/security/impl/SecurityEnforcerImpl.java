@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1002,7 +1002,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										if (BooleanUtils.isTrue(specOrgRelation.isIncludeReferenceOrg())) {
 											q2 = q2.or().id(subjectParentOrgRef.getOid());
 										}
-										objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, q2.buildFilter());
+										objSpecOrgRelationFilter = ObjectQueryUtil.filterOr(objSpecOrgRelationFilter, q2.buildFilter());
 									}
 								}
 								if (objSpecOrgRelationFilter == null) {
