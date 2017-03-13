@@ -280,7 +280,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Override
 	public void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.postInitSystem(initTask, initResult);
-		dummyResourceCollection.resetResources();
+		if (dummyResourceCollection != null) {
+			dummyResourceCollection.resetResources();
+		}
 	}
 
 	protected void startResources() throws Exception {

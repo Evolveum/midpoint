@@ -93,7 +93,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	
 	public static final File TEST_DIR = new File("src/test/resources/preview");
 
-	// YELLOW dummy resource has a STRICT dependency on default dummy resource
+	// LEMON dummy resource has a STRICT dependency on default dummy resource
 	protected static final File RESOURCE_DUMMY_LEMON_FILE = new File(TEST_DIR, "resource-dummy-lemon.xml");
 	protected static final String RESOURCE_DUMMY_LEMON_OID = "10000000-0000-0000-0000-000000000504";
 	protected static final String RESOURCE_DUMMY_LEMON_NAME = "lemon";
@@ -1264,7 +1264,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 	}
 
-	// testing multiple resources with dependencies (dummy -> dummy yellow)
+	// testing multiple resources with dependencies (dummy -> dummy lemon)
 
 	@Test
 	public void test630AddUserRogers() throws Exception {
@@ -1298,7 +1298,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
 		// inbound from ship (explicitly specified) to organizationalUnit (dummy resource)
-		// inbound from gossip (computed via outbound) to description (yellow resource)
+		// inbound from gossip (computed via outbound) to description (lemon resource)
 		assertEffectualDeltas(userSecondaryDelta, "focus secondary delta", ActivationStatusType.ENABLED, 2);
 
 		PrismObject<UserType> finalUser = user.clone();
@@ -1328,10 +1328,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
 				getAttributePath(getDummyResourceObject(), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
 
-		// YELLOW dummy resource
+		// LEMON dummy resource
 		accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_YELLOW_OID, ShadowKindType.ACCOUNT, null));
-		assertNotNull("Null model projection context (yellow)", accContext);
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_LEMON_OID, ShadowKindType.ACCOUNT, null));
+		assertNotNull("Null model projection context (lemon)", accContext);
 
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
 		accountPrimaryDelta = accContext.getPrimaryDelta();
@@ -1339,7 +1339,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		PrismAsserts.assertIsAdd(accountPrimaryDelta);
 
 		accountSecondaryDelta = accContext.getSecondaryDelta();
-		assertNotNull("No account secondary delta (yellow)", accountSecondaryDelta);
+		assertNotNull("No account secondary delta (lemon)", accountSecondaryDelta);
 		// administrativeStatus (ENABLED), enableTimestamp, ship (from organizationalUnit), name, gossip, water, iteration, iterationToken, password/value
 		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
