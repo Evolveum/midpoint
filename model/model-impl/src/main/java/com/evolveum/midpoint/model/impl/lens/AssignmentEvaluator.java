@@ -302,6 +302,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
+	// "content" means "payload + targets" here
 	private <O extends ObjectType> boolean evaluateSegmentContent(AssignmentPathSegmentImpl segment,
 			PlusMinusZero mode, EvaluationContext ctx)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
@@ -754,6 +755,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (inducement.getOrder() != null && inducement.getOrder() > 1) {
 			nextEvaluationOrder = segment.getEvaluationOrder().decrease(inducement.getOrder()-1);		// TODO what about relations?
 			nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget().decrease(inducement.getOrder()-1);		// TODO what about relations?
+			if (nextEvaluationOrder.getSummaryOrder() <= 0) {		// TODO TODO TODO TODO TODO
+				nextEvaluationOrder = EvaluationOrderImpl.UNDEFINED;
+				nextEvaluationOrderForTarget = EvaluationOrderImpl.UNDEFINED;
+			}
 		} else {
 			nextEvaluationOrder = segment.getEvaluationOrder();
 			nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget();

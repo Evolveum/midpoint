@@ -33,11 +33,12 @@ import com.evolveum.midpoint.util.QNameUtil;
  */
 public class EvaluationOrderImpl implements EvaluationOrder {
 
+	public static EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
 	public static EvaluationOrder ZERO = createZero();
 	public static EvaluationOrder ONE = ZERO.advance();
 
 	private int summaryOrder = 0;
-	private HashMap<QName,Integer> orderMap = new HashMap<>();
+	private final HashMap<QName,Integer> orderMap = new HashMap<>();
 
 	private EvaluationOrderImpl() {
 	}

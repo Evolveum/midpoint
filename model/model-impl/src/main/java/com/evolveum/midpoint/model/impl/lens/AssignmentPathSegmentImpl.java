@@ -73,7 +73,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  For assignments/inducements belonging directly to the focus, we take payload from all the assignments. Not from inducements.
 	 *  For assignments/inducements belonging to roles (assigned to focus), we take payload from all the inducements of order 1.
 	 *  For assignments/inducements belonging to meta-roles (assigned to roles), we take payload from all the inducements of order 2.
-	 *  And so on. (It is a bit more complicated, as described below when discussing relations. But OK for the moment.)
+	 *  And so on. (It is in fact a bit more complicated, as described below when discussing relations. But OK for the moment.)
 	 *
 	 *  To know whether to collect payload from assignment/inducement, i.e. from assignment path segment, we
 	 *  define "isMatchingOrder" attribute - and collect only if value of this attribute is true.
@@ -82,7 +82,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *
 	 *  Each assignment path segment has an evaluation order. First assignment has an evaluation order of 1, second
 	 *  assignment has an order of 2, etc. Order of a segment can be seen as the number of assignments segments in the path
-	 *  (including itself). And, for "real" assignments, we collect content from assignment segments of order 1.
+	 *  (including itself). And, for "real" assignments (i.e. not inducements), we collect content from assignment segments
+	 *  of order 1.
 	 *
 	 *  But what about inducements? There are two - somewhat related - questions:
 	 *
@@ -101,7 +102,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  we have R1 -A-> MR2, i.e. we cut out " -A-> MR1 -A-> MMR1 -(I2)-> " and replaced it by " -A-> ".
 	 *  So it looks like that when computing new evaluation order of an inducement, we have to "go back" few steps
 	 *  through the assignment path.
+	 *
 	 *  	TODO think this through, perhaps based on concrete examples
+	 *
 	 *  It is almost certain that for some inducements we would not be able to determine the resulting order.
 	 *  Such problematic inducements are those that do not have strict order, but an interval of orders instead.
 	 *
@@ -109,6 +112,29 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  the we will compute the resulting order as "previous - (N-1)", where N is the order of the inducement
 	 *  (unspecified means 1). But beware, we will not manipulate evaluation order parts that are specific to relations.
 	 *  So, it is not safe to combine "higher-order inducements with targets" with non-scalar order constraints.
+	 *
+	 *  Because evaluation order can "increase" and "decrease", it is possible that it goes to zero or below, and then
+	 *  increase back to positive numbers. Is that OK? Imagine this:
+	 *
+	 *  (Quite an ugly example, but such things might exist.)
+	 *
+	 *  Metarole:CrewMember ----I----+  Metarole:Sailors
+	 *           A                   |  A
+	 *           |                   |  |
+	 *           |                   V  |
+	 *         Pirate               Sailor
+	 *           A
+	 *           |
+	 *           |
+	 *          jack
+	 *
+	 *  When evaluating jack->Pirate assignment, it is OK to collect from everything (Pirate, CrewMember, Sailor, Sailors).
+	 *
+	 *  But when evaluating Pirate as a focal object (forget about jack for the moment), we have Pirate->CrewMember assignment.
+	 *  For this assignment we should ignore payload from Sailor (obviously, because the order is not matching), but from
+	 *  Metarole:Sailors as well. Payload from Sailors is not connected to Pirate in any meaningful way. (For example, if
+	 *  Sailors prescribes an account construction for Sailor, it is of no use to collect this construction when evaluating
+	 *  Pirate as focal object!)
 	 *
 	 *  Evaluating relations
 	 *  ====================
@@ -187,6 +213,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *   that marks all segments (assignments/inducements) that contain policy rules relevant to the evaluated assignment's target.
 	 *
 	 *   TODO how exactly do we compute it
+	 *   TODO local vs non-local policy rules
 	 */
 	private Boolean isMatchingOrder = null;
 	private EvaluationOrder evaluationOrder;
