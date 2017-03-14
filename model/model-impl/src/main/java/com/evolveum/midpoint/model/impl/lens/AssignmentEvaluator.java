@@ -214,6 +214,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		segment.setValidityOverride(true);
 		segment.setPathToSourceValid(true);
 		segment.setProcessMembership(true);
+		segment.setRelation(getRelation(getAssignmentType(segment, ctx)));
 
 		evaluateFromSegment(segment, PlusMinusZero.ZERO, ctx);
 
@@ -261,8 +262,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("*** Evaluate from segment: {}", segment);
-			LOGGER.trace("*** Evaluation order: {}, matching: {}, mode: {}, process membership: {}",
-					segment.getEvaluationOrder(), segment.isMatchingOrder(), mode, segment.isProcessMembership());
+			LOGGER.trace("*** Evaluation order - standard:   {}, matching: {}", segment.getEvaluationOrder(), segment.isMatchingOrder());
+			LOGGER.trace("*** Evaluation order - for target: {}, matching: {}", segment.getEvaluationOrderForTarget(), segment.isMatchingOrderForTarget());
+			LOGGER.trace("*** mode: {}, process membership: {}", mode, segment.isProcessMembership());
+			LOGGER.trace("*** path to source valid: {}, validity override: {}", segment.isPathToSourceValid(), segment.isValidityOverride());
 		}
 
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
@@ -591,7 +594,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assert ctx.assignmentPath.last() == segment;
 		
 		segment.setTarget(targetType);
-		segment.setRelation(relation);
+		segment.setRelation(relation);			// probably not needed
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Evaluating segment TARGET:\n{}", segment.debugDump(1));
 		}
@@ -707,6 +710,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		roleAssignmentIdi.recompute();
 		String nextSourceDescription = targetType+" in "+segment.sourceDescription;
 		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, nextSourceDescription, roleAssignmentIdi, true);
+		nextSegment.setRelation(nextRelation);
 		nextSegment.setEvaluationOrder(nextEvaluationOrder);
 		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTarget);
 		nextSegment.setOrderOneObject(orderOneObject);
@@ -771,6 +775,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		nextSegment.setOrderOneObject(orderOneObject);
 		nextSegment.setPathToSourceValid(isValid);
 		nextSegment.setProcessMembership(nextIsMatchingOrder);
+		nextSegment.setRelation(getRelation(inducement));
 
 		// Originally we executed the following only if isMatchingOrder. However, sometimes we have to look even into
 		// inducements with non-matching order: for example because we need to extract target-related policy rules

@@ -16,9 +16,9 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -155,9 +155,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, expectedItems);
 		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
-		String expectedThisTargetRules = "R1-0 MR1-1 MR3-1 MR4-1 MMR1-2";
-		String expectedTargetRules = expectedThisTargetRules + " R4-0 R5-0 R6-0 R2-0 O3-0 MR2-1";
-		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
+		assertTargetPolicyRules(evaluatedAssignment,
+				"R1-0 MR1-1 MR3-1 MR4-1 MMR1-2",
+				"R4-0 R5-0 R6-0 R2-0 O3-0 MR2-1");
 		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 	}
@@ -206,9 +206,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, "MR1-1 MR3-1 MMR1-2 MR4-1");
 		assertFocusPolicyRules(evaluatedAssignment, "MR1-1 MR3-1 MMR1-2 MR4-1");
 
-		String expectedThisTargetRules = "MR1-0 MMR1-1 ";
-		String expectedTargetRules = expectedThisTargetRules + " MR3-0 MR4-0";
-		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
+		assertTargetPolicyRules(evaluatedAssignment, "MR1-0 MMR1-1", "MR3-0 MR4-0");
 		assertAuthorizations(evaluatedAssignment, "MR1 MR3 MR4");
 		assertGuiConfig(evaluatedAssignment, "MR1 MR3 MR4");
 	}
@@ -279,9 +277,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, "");
 		assertFocusPolicyRules(evaluatedAssignment, "");
 
-		String expectedThisTargetRules = "R1-0 MR1-1 MMR1-2 MR4-1 MR3-1";
-		String expectedTargetRules = expectedThisTargetRules + " R2-0 MR2-1 O3-0 R4-0 R5-0 R6-0";
-		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
+		assertTargetPolicyRules(evaluatedAssignment, "R1-0 MR1-1 MMR1-2 MR4-1 MR3-1", "R2-0 MR2-1 O3-0 R4-0 R5-0 R6-0");
 		assertAuthorizations(evaluatedAssignment, "");
 		assertGuiConfig(evaluatedAssignment, "");
 	}
@@ -313,7 +309,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		assignRole(USER_BARBOSSA_OID, ROLE_R1_OID);
+		AssignmentType policyRuleAssignment = new AssignmentType(prismContext);
+		PolicyRuleType rule = new PolicyRuleType(prismContext);
+		rule.setName("barbossa-0");
+		policyRuleAssignment.setPolicyRule(rule);
+		@SuppressWarnings({"unchecked", "raw" })
+		ObjectDelta<ObjectType> objectDelta = (ObjectDelta<ObjectType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(
+						ObjectTypeUtil.createAssignmentTo(ROLE_R1_OID, ObjectTypes.ROLE, prismContext),
+						policyRuleAssignment)
+				.asObjectDelta(USER_BARBOSSA_OID);
+		executeChangesAssertSuccess(objectDelta, null, task, result);
 
 		display("barbossa", getUser(USER_BARBOSSA_OID));
 		objects.add(getUser(USER_BARBOSSA_OID).asObjectable());
@@ -349,11 +355,96 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		String expectedItems = "R1-1 R2-1 O3-1 R4-1 R5-1 R6-1 MR1-2 MR2-2 MR3-2 MR4-2 MMR1-3";
 		assertConstructions(evaluatedAssignment, "Brethren_account_construction Undead_monkey_account_construction " + expectedItems, null, null, null, null, null);
 		assertFocusMappings(evaluatedAssignment, expectedItems);
-		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, "barbossa-0 " + expectedItems);
 
-//		String expectedThisTargetRules = "";
-//		String expectedTargetRules = expectedThisTargetRules + " R1-0 R4-0 R5-0 R6-0 MR1-1 MR3-1 MR4-1 MMR1-2 R2-0 O3-0 MR2-1";
-//		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
+		// Rules for other targets are empty, which is very probably OK. All rules are bound to target "barbossa".
+		// There is no alternative target, as barbossa does not induce anything.
+		assertTargetPolicyRules(evaluatedAssignment, "barbossa-0 R1-1 R2-1 MR2-2 O3-1 MR1-2 MR3-2 R5-1 R4-1 MMR1-3 MR4-2 R6-1",
+				"");
+		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+	}
+
+	/**
+	 *                               MMR1 -----------I------------------------------*
+	 *                                ^                                             |
+	 *                                |                                             I
+	 *                                |                                             V
+	 *                               MR1 -----------I-------------*-----> MR3      MR4
+	 *                                ^        MR2 --I---*        |        |        |
+	 *                                |         ^        I        I        I        I
+	 *                                |         |        V        V        V        V
+	 *                                R1 --I--> R2       O3       R4       R5       R6
+	 *                                ^
+	 *                                |
+	 *                                |
+	 * jack --D--> guybrush --D--> barbossa
+	 *
+	 * (D = deputy assignment)
+	 *
+	 */
+	@Test
+	public void test060JackDeputyOfGuybrushDeputyOfBarbossa() throws Exception {
+		final String TEST_NAME = "test060JackDeputyOfGuybrushDeputyOfBarbossa";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		AssignmentType deputyOfBarbossaAssignment = ObjectTypeUtil.createAssignmentTo(USER_BARBOSSA_OID, ObjectTypes.USER, prismContext);
+		deputyOfBarbossaAssignment.getTargetRef().setRelation(SchemaConstants.ORG_DEPUTY);
+		AssignmentType policyRuleAssignment = new AssignmentType(prismContext);
+		PolicyRuleType rule = new PolicyRuleType(prismContext);
+		rule.setName("guybrush-0");
+		policyRuleAssignment.setPolicyRule(rule);
+		@SuppressWarnings({"unchecked", "raw" })
+		ObjectDelta<ObjectType> objectDelta = (ObjectDelta<ObjectType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(deputyOfBarbossaAssignment, policyRuleAssignment)
+				.asObjectDelta(USER_GUYBRUSH_OID);
+		executeChangesAssertSuccess(objectDelta, null, task, result);
+
+		display("guybrush", getUser(USER_GUYBRUSH_OID));
+		objects.add(getUser(USER_GUYBRUSH_OID).asObjectable());
+
+		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, UserType.class, USER_GUYBRUSH_OID,
+				SchemaConstants.ORG_DEPUTY, null, result);
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "R1 R2 O3 R4 R5 R6", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "guybrush barbossa MR1 MR2 MR3 MR4 MMR1", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "");
+		assertOrgRef(evaluatedAssignment, "O3");
+		assertDelegation(evaluatedAssignment, "guybrush barbossa R1 R2 O3 R4 R5 R6");
+		PrismReferenceValue guybrushRef = evaluatedAssignment.getDelegationRefVals().stream()
+				.filter(v -> USER_GUYBRUSH_OID.equals(v.getOid())).findFirst().orElseThrow(
+						() -> new AssertionError("No guybrush ref in delegation ref vals"));
+		assertEquals("Wrong relation for guybrush delegation", SchemaConstants.ORG_DEPUTY, guybrushRef.getRelation());
+
+		String expectedItems = "R1-1 R2-1 O3-1 R4-1 R5-1 R6-1 MR1-2 MR2-2 MR3-2 MR4-2 MMR1-3";
+		assertConstructions(evaluatedAssignment, "Brethren_account_construction Undead_monkey_account_construction " + expectedItems, null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, "guybrush-0 barbossa-0 " + expectedItems);
+
+		// guybrush-0 is the rule assigned to the target (guybrush) - seems OK
+		// barbossa-0 and Rx-y are rules attached to "indirect target" (barbossa, delegator of guybrush).
+		// TODO it is not quite clear if these are to be considered direct or indirect targets
+		// let's consider it OK for the moment
+		assertTargetPolicyRules(evaluatedAssignment, "guybrush-0",
+				"barbossa-0 R1-1 R2-1 MR2-2 O3-1 MR1-2 MR3-2 R5-1 R4-1 MMR1-3 MR4-2 R6-1");
 		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 	}
@@ -431,9 +522,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, expectedItems);
 		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
-		String expectedThisTargetRules = "R1-0 MR1-1";
-		String expectedTargetRules = expectedThisTargetRules;
-		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
+		assertTargetPolicyRules(evaluatedAssignment, "R1-0 MR1-1", "");
 		assertAuthorizations(evaluatedAssignment, "R1");
 		assertGuiConfig(evaluatedAssignment, "R1");
 
@@ -508,9 +597,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, expectedItems);
 		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
-		String expectedThisTargetRules = "R1-0 MR1-1 MMR1-2 MR4-1 ";
-		String expectedTargetRules = expectedThisTargetRules + "R4-0";
-		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
+		assertTargetPolicyRules(evaluatedAssignment, "R1-0 MR1-1 MMR1-2 MR4-1", "R4-0");
 		assertAuthorizations(evaluatedAssignment, "R1 R4");
 		assertGuiConfig(evaluatedAssignment, "R1 R4");
 
@@ -597,7 +684,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, "R1-1 MR1-2 MMR1-3");
 		assertFocusPolicyRules(evaluatedAssignment, "R1-1 MR1-2 MMR1-3");
 
-		assertTargetPolicyRules(evaluatedAssignment, "R1-0 MR1-1 MMR1-2", "R1-0 MR1-1 MMR1-2");
+		assertTargetPolicyRules(evaluatedAssignment, "R1-0 MR1-1 MMR1-2", "");
 		assertAuthorizations(evaluatedAssignment, "R1");
 		assertGuiConfig(evaluatedAssignment, "R1");
 	}
@@ -871,29 +958,21 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				evaluatedAssignment.getFocusPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
 	}
 
-	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String expectedTargetItems, String expectedThisTargetItems) {
-		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetItems), getList(expectedThisTargetItems));
+	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
+			String expectedThisTargetItems, String expectedOtherTargetsItems) {
+		assertTargetPolicyRules(evaluatedAssignment, getList(expectedThisTargetItems), getList(expectedOtherTargetsItems));
 	}
 
-	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedTargetItems, Collection<String> expectedThisTargetItems) {
-		expectedTargetItems = CollectionUtils.emptyIfNull(expectedTargetItems);
+	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
+			Collection<String> expectedThisTargetItems, Collection<String> expectedOtherTargetsItems) {
+		expectedOtherTargetsItems = CollectionUtils.emptyIfNull(expectedOtherTargetsItems);
 		expectedThisTargetItems = CollectionUtils.emptyIfNull(expectedThisTargetItems);
-		assertEquals("Wrong # of target policy rules", expectedTargetItems.size(), evaluatedAssignment.getAllTargetsPolicyRules().size());
+		assertEquals("Wrong # of other targets policy rules", expectedOtherTargetsItems.size(), evaluatedAssignment.getOtherTargetsPolicyRules().size());
 		assertEquals("Wrong # of this target policy rules", expectedThisTargetItems.size(), evaluatedAssignment.getThisTargetPolicyRules().size());
-		assertEquals("Wrong target policy rules", new HashSet<>(expectedTargetItems),
-				evaluatedAssignment.getAllTargetsPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
+		assertEquals("Wrong other targets policy rules", new HashSet<>(expectedOtherTargetsItems),
+				evaluatedAssignment.getOtherTargetsPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
 		assertEquals("Wrong this target policy rules", new HashSet<>(expectedThisTargetItems),
 				evaluatedAssignment.getThisTargetPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
-
-		// testing (strange) condition on thisTarget vs target policy rules
-		outer: for (EvaluatedPolicyRule localRule : evaluatedAssignment.getThisTargetPolicyRules()) {
-			for (EvaluatedPolicyRule rule : evaluatedAssignment.getAllTargetsPolicyRules()) {
-				if (rule == localRule) {
-					continue outer;
-				}
-			}
-			fail("This target rule " + localRule + " is not among target rules: " + evaluatedAssignment.getAllTargetsPolicyRules());
-		}
 	}
 
 	private void assertTargets(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
