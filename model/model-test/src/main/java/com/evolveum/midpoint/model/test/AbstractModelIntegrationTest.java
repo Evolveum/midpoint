@@ -1066,12 +1066,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, 
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
-		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(roleOid, refType, relation, modificationBlock, add)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
-		return userDelta;
+		return createAssignmentFocusDelta(UserType.class, userOid, roleOid, refType, relation, modificationBlock, add);
 	}
 	
+	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusDelta(Class<F> focusClass, String userOid, String roleOid, QName refType, QName relation,
+			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentModification(roleOid, refType, relation, modificationBlock, add)));
+		return ObjectDelta.createModifyDelta(userOid, modifications, focusClass, prismContext);
+	}
+
 	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
 		return createAssignmentModification(resourceOid, ShadowKindType.ACCOUNT, intent, add);
 	}

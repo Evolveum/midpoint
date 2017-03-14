@@ -44,6 +44,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	 * to Employee. But let the user have assignments for Engineer and Contractor only. When evaluating
 	 * Engineer assignment, we find a (indirectly attached) SoD rule. But we need to know it came from Employee.
 	 * This is what assignmentPath (Engineer->Employee->(maybe some metarole)->rule) and directOwner (Employee) are for.
+	 *
+	 * For global policy rules, assignmentPath is the path to the target object that matched global policy rule.
 	 */
 	@Nullable private final AssignmentPath assignmentPath;
 	@Nullable private final ObjectType directOwner;
@@ -109,7 +111,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return rv;
 	}
 
-	public void addTrigger(EvaluatedPolicyRuleTrigger trigger) {
+	void addTrigger(EvaluatedPolicyRuleTrigger trigger) {
 		triggers.add(trigger);
 	}
 
@@ -119,10 +121,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyExceptions;
 	}
 	
-	public void addPolicyException(PolicyExceptionType exception) {
+	void addPolicyException(PolicyExceptionType exception) {
 		policyExceptions.add(exception);
 	}
-
 
 	@Override
 	public PolicyActionsType getActions() {
@@ -145,9 +146,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 				}
 			}
 			PolicyConstraintKindType constraintKind = firstTrigger.getConstraintKind();
-			PredefinedPolicySituation predefSituation = PredefinedPolicySituation.get(constraintKind);
-			if (predefSituation != null) {
-				return predefSituation.getUrl();
+			PredefinedPolicySituation predefinedSituation = PredefinedPolicySituation.get(constraintKind);
+			if (predefinedSituation != null) {
+				return predefinedSituation.getUrl();
 			}
 		}
 		
@@ -215,4 +216,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return "EvaluatedPolicyRuleImpl(" + getName() + ")";
 	}
 
+	@Override
+	public boolean isGlobal() {
+		// in the future we might employ special flag for this (if needed)
+		return policyRuleType instanceof GlobalPolicyRuleType;
+	}
 }
