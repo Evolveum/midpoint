@@ -44,7 +44,6 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -571,15 +570,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 	
 			ObjectFilter origFilter = QueryConvertor.parseFilter(filter, targetClass, prismContext);
 			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", ctx.task, ctx.result);
-			if (evaluatedFilter == null){
+			if (evaluatedFilter == null) {
 				throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+segment.source);
 			}
 
-	        SearchResultList<PrismObject<O>> targets = repository.searchObjects(targetClass, ObjectQuery.createObjectQuery(evaluatedFilter), null, ctx.result);
-	        if (targets.isEmpty()) {
-	        	throw new IllegalArgumentException("Got null target from repository, filter:"+evaluatedFilter+", class:"+targetClass+" (should not happen, probably a bug) in "+segment.sourceDescription);
-	        }
-	        return targets;
+			return repository.searchObjects(targetClass, ObjectQuery.createObjectQuery(evaluatedFilter), null, ctx.result);
+			// we don't check for no targets here; as we don't care for referential integrity
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
@@ -730,7 +726,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		ObjectType orderOneObject = getOrderOneObject(segment);
 
-		if (!isInducementApplicableToFocusType(inducement.getFocusType(), (AbstractRoleType)targetType)) {
+		if (!isInducementApplicableToFocusType(inducement.getFocusType())) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
 						FocusTypeUtil.dumpAssignment(inducement), inducement.getFocusType(), targetType.getClass().getSimpleName());
@@ -827,15 +823,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private boolean isInducementApplicableToFocusType(QName inducementFocusType, AbstractRoleType targetType) throws SchemaException {
+	private boolean isInducementApplicableToFocusType(QName inducementFocusType) throws SchemaException {
 		if (inducementFocusType == null) {
 			return true;
 		}
-		Class inducementFocusClass = prismContext.getSchemaRegistry().determineCompileTimeClass(inducementFocusType);
-		if (inducementFocusClass == null){
+		Class<?> inducementFocusClass = prismContext.getSchemaRegistry().determineCompileTimeClass(inducementFocusType);
+		if (inducementFocusClass == null) {
 			throw new SchemaException("Could not determine class for " + inducementFocusType);
 		}
-		return !inducementFocusClass.equals(lensContext.getFocusClass());
+		if (lensContext.getFocusClass() == null) {
+			// should not occur; it would be probably safe to throw an exception here
+			LOGGER.error("No focus class in lens context; inducement targeted at focus type {} will not be applied:\n{}",
+					inducementFocusType, lensContext.debugDump());
+			return false;
+		}
+		return inducementFocusClass.isAssignableFrom(lensContext.getFocusClass());
 	}
 	
 	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement) {
