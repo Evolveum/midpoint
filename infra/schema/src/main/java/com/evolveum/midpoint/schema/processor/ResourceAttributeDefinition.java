@@ -26,8 +26,10 @@ import javax.xml.namespace.QName;
  */
 public interface ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 
+	@NotNull
 	ResourceAttribute<T> instantiate();
 
+	@NotNull
 	ResourceAttribute<T> instantiate(QName name);
 
 	Boolean getReturnedByDefault();

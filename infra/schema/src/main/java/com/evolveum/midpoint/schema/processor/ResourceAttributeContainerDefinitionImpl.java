@@ -282,11 +282,13 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 		((ObjectClassComplexTypeDefinitionImpl) getComplexTypeDefinition()).setDisplayNameAttribute(displayName);
 	}
 
+	@NotNull
 	@Override
 	public ResourceAttributeContainer instantiate() {
 		return instantiate(getName());
 	}
 	
+	@NotNull
 	@Override
 	public ResourceAttributeContainer instantiate(QName name) {
         name = addNamespaceIfApplicable(name);

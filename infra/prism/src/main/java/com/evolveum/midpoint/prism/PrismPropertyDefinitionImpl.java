@@ -131,15 +131,17 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 		this.matchingRuleQName = matchingRuleQName;
 	}
 
+	@NotNull
 	@Override
     public PrismProperty<T> instantiate() {
         return instantiate(getName());
     }
 
-    @Override
+    @NotNull
+	@Override
     public PrismProperty<T> instantiate(QName name) {
         name = addNamespaceIfApplicable(name);
-        return new PrismProperty<T>(name, this, prismContext);
+        return new PrismProperty<>(name, this, prismContext);
     }
 
     @Override

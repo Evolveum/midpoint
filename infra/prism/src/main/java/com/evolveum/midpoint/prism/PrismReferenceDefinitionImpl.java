@@ -119,12 +119,14 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 		}
 	}
 
+	@NotNull
 	@Override
     public PrismReference instantiate() {
         return instantiate(getName());
     }
 
-    @Override
+    @NotNull
+	@Override
     public PrismReference instantiate(QName name) {
         name = addNamespaceIfApplicable(name);
         return new PrismReference(name, this, prismContext);
