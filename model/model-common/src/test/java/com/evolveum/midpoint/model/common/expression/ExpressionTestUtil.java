@@ -29,7 +29,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -69,7 +69,7 @@ public class ExpressionTestUtil {
     	expressionFactory.addEvaluatorFactory(pathFactory);
     	
     	// generate
-    	ValuePolicyGenerator valuePolicyGenerator = new ValuePolicyGenerator();
+    	ValuePolicyProcessor valuePolicyGenerator = new ValuePolicyProcessor();
     	valuePolicyGenerator.setExpressionFactory(expressionFactory);
     	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, resolver, valuePolicyGenerator, prismContext);
     	expressionFactory.addEvaluatorFactory(generateFactory);

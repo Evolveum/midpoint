@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.stringpolicy.StringPolicyUtils;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -116,7 +116,7 @@ public class PasswordPolicyProcessor {
 	Protector protector;
 	
 	@Autowired(required = true)
-	private ValuePolicyGenerator valuePolicyGenerator;
+	private ValuePolicyProcessor valuePolicyGenerator;
 	
 	@Autowired(required = true)
 	ModelObjectResolver resolver;	
@@ -338,65 +338,15 @@ public class PasswordPolicyProcessor {
 
 		OperationResult result = parentResult.createSubresult(OPERATION_PASSWORD_VALIDATION);
 		result.addParam("policyName", pp.getName());
-		normalize(pp);
-
-		if (newPassword == null && 
-				(pp.getMinOccurs() == null || XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()) == 0)) {
-			// No password is allowed
-			result.recordSuccess();
-			return true;
-		}
-
-		if (newPassword == null) {
-			newPassword = "";
-		}
-
-		LimitationsType lims = pp.getStringPolicy().getLimitations();
 
 		StringBuilder message = new StringBuilder();
 
-		testMinimalLength(newPassword, lims, result, message);
-		testMaximalLength(newPassword, lims, result, message);
-
-		testMinimalUniqueCharacters(newPassword, lims, result, message);
+		boolean stringPolicyValid = valuePolicyGenerator.validateValue(newPassword, pp, object, message, shortDesc, task, result);
 		try {
 			testPasswordHistoryEntries(newPassword, currentPasswordType, pp, result, message);
 		} catch (EncryptionException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
-
-		if (lims.getLimit() == null || lims.getLimit().isEmpty()) {
-			if (message.toString() == null || message.toString().isEmpty()) {
-				result.computeStatus();
-			} else {
-				result.computeStatus(message.toString());
-
-			}
-
-			return result.isAcceptable();
-		}
-
-		// check limitation
-		HashSet<String> validChars = null;
-		HashSet<String> allValidChars = new HashSet<>();
-		List<String> passwd = StringPolicyUtils.stringTokenizer(newPassword);
-		for (StringLimitType stringLimitationType : lims.getLimit()) {
-			OperationResult limitResult = new OperationResult(
-					"Tested limitation: " + stringLimitationType.getDescription());
-
-			validChars = getValidCharacters(stringLimitationType.getCharacterClass(), pp);
-			int count = countValidCharacters(validChars, passwd);
-			allValidChars.addAll(validChars);
-			testMinimalOccurence(stringLimitationType, count, limitResult, message);
-			testMaximalOccurence(stringLimitationType, count, limitResult, message);
-			testMustBeFirst(stringLimitationType, count, limitResult, message, newPassword, validChars);
-
-			limitResult.computeStatus();
-			result.addSubresult(limitResult);
-		}
-		testInvalidCharacters(passwd, allValidChars, result, message);
-		
-		testCheckExpression(newPassword, lims, object, shortDesc, task, result, message);
 
 		if (message.toString() == null || message.toString().isEmpty()) {
 			result.computeStatus();
@@ -405,33 +355,7 @@ public class PasswordPolicyProcessor {
 
 		}
 
-		return result.isAcceptable();
-	}
-	
-	/**
-	 * add defined default values
-	 */
-	private void normalize(ValuePolicyType pp) {
-		if (null == pp) {
-			throw new IllegalArgumentException("Password policy cannot be null");
-		}
-
-		if (null == pp.getStringPolicy()) {
-			StringPolicyType sp = new StringPolicyType();
-			pp.setStringPolicy(StringPolicyUtils.normalize(sp));
-		} else {
-			pp.setStringPolicy(StringPolicyUtils.normalize(pp.getStringPolicy()));
-		}
-
-		if (null == pp.getLifetime()) {
-			PasswordLifeTimeType lt = new PasswordLifeTimeType();
-			lt.setExpiration(-1);
-			lt.setWarnBeforeExpiration(0);
-			lt.setLockAfterExpiration(0);
-			lt.setMinPasswordAge(0);
-			lt.setPasswordHistoryLength(0);
-		}
-		return;
+		return result.isAcceptable() && stringPolicyValid;
 	}
 
 	private void testPasswordHistoryEntries(String newPassword, PasswordType currentPasswordType,
@@ -487,191 +411,6 @@ public class PasswordPolicyProcessor {
 				OperationResultStatus.FATAL_ERROR, msg));
 		message.append(msg);
 		message.append("\n");
-	}
-
-	private void testInvalidCharacters(List<String> password, HashSet<String> validChars,
-			OperationResult result, StringBuilder message) {
-
-		// Check if there is no invalid character
-		StringBuilder invalidCharacters = new StringBuilder();
-		for (String s : password) {
-			if (!validChars.contains(s)) {
-				// memorize all invalid characters
-				invalidCharacters.append(s);
-			}
-		}
-		if (invalidCharacters.length() > 0) {
-			String msg = "Characters [ " + invalidCharacters + " ] are not allowed in password";
-			result.addSubresult(new OperationResult("Check if password does not contain invalid characters",
-					OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
-		}
-		// else {
-		// ret.addSubresult(new OperationResult("Check if password does not
-		// contain invalid characters OK.",
-		// OperationResultStatus.SUCCESS, "PASSED"));
-		// }
-
-	}
-
-	private void testMustBeFirst(StringLimitType stringLimitationType, int count,
-			OperationResult limitResult, StringBuilder message, String password, Set<String> validChars) {
-		// test if first character is valid
-		if (stringLimitationType.isMustBeFirst() == null) {
-			stringLimitationType.setMustBeFirst(false);
-		}
-		// we check mustBeFirst only for non-empty passwords
-		if (StringUtils.isNotEmpty(password) && stringLimitationType.isMustBeFirst()
-				&& !validChars.contains(password.substring(0, 1))) {
-			String msg = "First character is not from allowed set. Allowed set: " + validChars.toString();
-			limitResult.addSubresult(
-					new OperationResult("Check valid first char", OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
-		}
-		// else {
-		// limitResult.addSubresult(new OperationResult("Check valid first char
-		// in password OK.",
-		// OperationResultStatus.SUCCESS, "PASSED"));
-		// }
-
-	}
-
-	private void testMaximalOccurence(StringLimitType stringLimitationType, int count,
-			OperationResult limitResult, StringBuilder message) {
-		// Test maximal occurrence
-		if (stringLimitationType.getMaxOccurs() != null) {
-
-			if (stringLimitationType.getMaxOccurs() < count) {
-				String msg = "Required maximal occurrence (" + stringLimitationType.getMaxOccurs()
-						+ ") of characters (" + stringLimitationType.getDescription()
-						+ ") in password was exceeded (occurrence of characters in password " + count + ").";
-				limitResult.addSubresult(new OperationResult("Check maximal occurrence of characters",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			}
-			// else {
-			// limitResult.addSubresult(new OperationResult(
-			// "Check maximal occurrence of characters in password OK.",
-			// OperationResultStatus.SUCCESS,
-			// "PASSED"));
-			// }
-		}
-
-	}
-
-	private void testMinimalOccurence(StringLimitType stringLimitation, int count,
-			OperationResult result, StringBuilder message) {
-		// Test minimal occurrence
-		if (stringLimitation.getMinOccurs() == null) {
-			stringLimitation.setMinOccurs(0);
-		}
-		if (stringLimitation.getMinOccurs() > count) {
-			String msg = "Required minimal occurrence (" + stringLimitation.getMinOccurs()
-					+ ") of characters (" + stringLimitation.getDescription()
-					+ ") in password is not met (occurrence of characters in password " + count + ").";
-			result.addSubresult(new OperationResult("Check minimal occurrence of characters",
-					OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
-		}
-	}
-
-	private int countValidCharacters(Set<String> validChars, List<String> password) {
-		int count = 0;
-		for (String s : password) {
-			if (validChars.contains(s)) {
-				count++;
-			}
-		}
-		return count;
-	}
-
-	private HashSet<String> getValidCharacters(CharacterClassType characterClassType,
-			ValuePolicyType passwordPolicy) {
-		if (null != characterClassType.getValue()) {
-			return new HashSet<String>(StringPolicyUtils.stringTokenizer(characterClassType.getValue()));
-		} else {
-			return new HashSet<String>(StringPolicyUtils.stringTokenizer(StringPolicyUtils
-					.collectCharacterClass(passwordPolicy.getStringPolicy().getCharacterClass(),
-							characterClassType.getRef())));
-		}
-	}
-
-	private void testMinimalUniqueCharacters(String password, LimitationsType limitations,
-			OperationResult result, StringBuilder message) {
-		// Test uniqueness criteria
-		HashSet<String> tmp = new HashSet<String>(StringPolicyUtils.stringTokenizer(password));
-		if (limitations.getMinUniqueChars() != null) {
-			if (limitations.getMinUniqueChars() > tmp.size()) {
-				String msg = "Required minimal count of unique characters (" + limitations.getMinUniqueChars()
-						+ ") in password are not met (unique characters in password " + tmp.size() + ")";
-				result.addSubresult(new OperationResult("Check minimal count of unique chars",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			}
-
-		}
-	}
-
-	private void testMinimalLength(String password, LimitationsType limitations,
-			OperationResult result, StringBuilder message) {
-		// Test minimal length
-		if (limitations.getMinLength() == null) {
-			limitations.setMinLength(0);
-		}
-		if (limitations.getMinLength() > password.length()) {
-			String msg = "Required minimal size (" + limitations.getMinLength()
-					+ ") of password is not met (password length: " + password.length() + ")";
-			result.addSubresult(new OperationResult("Check global minimal length",
-					OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
-		}
-	}
-
-	private void testMaximalLength(String password, LimitationsType limitations,
-			OperationResult result, StringBuilder message) {
-		// Test maximal length
-		if (limitations.getMaxLength() != null) {
-			if (limitations.getMaxLength() < password.length()) {
-				String msg = "Required maximal size (" + limitations.getMaxLength()
-						+ ") of password was exceeded (password length: " + password.length() + ").";
-				result.addSubresult(new OperationResult("Check global maximal length",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			}
-		}
-	}
-	
-	private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims, PrismObject<O> object,
-			String shortDesc, Task task, OperationResult result, StringBuilder message) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-
-		List<CheckExpressionType> checkExpressions = lims.getCheckExpression();
-		if (checkExpressions.isEmpty()) {
-			return;
-		}
-		for (CheckExpressionType checkExpression: checkExpressions) {
-			ExpressionType expressionType = checkExpression.getExpression();
-			if (expressionType == null) {
-				return;
-			}
-			if (!valuePolicyGenerator.checkExpression(newPassword, expressionType, object, shortDesc, task, result)) {
-				String msg = checkExpression.getFailureMessage();
-				if (msg == null) {
-					msg = "Check expression failed";
-				}
-				result.addSubresult(new OperationResult("Check expression",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			}
-		}
-
 	}
 
 	private boolean passwordEquals(ProtectedStringType newPasswordPs, ProtectedStringType currentPassword) throws SchemaException, EncryptionException {
