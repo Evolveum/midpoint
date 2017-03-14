@@ -155,12 +155,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, expectedItems);
 		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
-		// TODO why R4-0 R5-0 R6-0 ? Sounds not good: when we are adding R1 assignment, we are not interested
-		// in approval rules residing in induced roles, even if they are induced through a higher levels
-		// (in the same way as we are not interested in R2-0 and R3-0)
-		// MR3-1 MR4-1 seems to be OK; these are induced in a quite intuitive way (via MR1)
-		String expectedThisTargetRules = "R1-0 R4-0 R5-0 R6-0 MR1-1 MR3-1 MR4-1 MMR1-2";
-		String expectedTargetRules = expectedThisTargetRules + " R2-0 O3-0 MR2-1";
+		String expectedThisTargetRules = "R1-0 MR1-1 MR3-1 MR4-1 MMR1-2";
+		String expectedTargetRules = expectedThisTargetRules + " R4-0 R5-0 R6-0 R2-0 O3-0 MR2-1";
 		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
 		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
@@ -206,21 +202,20 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertOrgRef(evaluatedAssignment, "");
 		assertDelegation(evaluatedAssignment, null);
 
-		// SHOULD BE NOT: R4-0 R5-0 R6-0
 		assertConstructions(evaluatedAssignment, "MR1-1 MR3-1 MMR1-2 MR4-1", null, null, null, null, null);
 		assertFocusMappings(evaluatedAssignment, "MR1-1 MR3-1 MMR1-2 MR4-1");
 		assertFocusPolicyRules(evaluatedAssignment, "MR1-1 MR3-1 MMR1-2 MR4-1");
 
-		String expectedThisTargetRules = "MR1-0 MMR1-1 MR4-0";
-		String expectedTargetRules = expectedThisTargetRules + " MR3-0";
+		String expectedThisTargetRules = "MR1-0 MMR1-1 ";
+		String expectedTargetRules = expectedThisTargetRules + " MR3-0 MR4-0";
 		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
 		assertAuthorizations(evaluatedAssignment, "MR1 MR3 MR4");
 		assertGuiConfig(evaluatedAssignment, "MR1 MR3 MR4");
 	}
 
 	@Test
-	public void test020AssignR1ToJackProjectorDisabled() throws Exception {
-		final String TEST_NAME = "test020AssignR1ToJackProjectorDisabled";
+	public void test030AssignR1ToJackProjectorDisabled() throws Exception {
+		final String TEST_NAME = "test030AssignR1ToJackProjectorDisabled";
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
@@ -251,8 +246,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 * However, we must collect all relevant target policy rules.
 	 */
 	@Test
-	public void test030AssignR1ToJackAsApprover() throws Exception {
-		final String TEST_NAME = "test030AssignR1ToJackAsApprover";
+	public void test040AssignR1ToJackAsApprover() throws Exception {
+		final String TEST_NAME = "test040AssignR1ToJackAsApprover";
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
@@ -284,9 +279,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, "");
 		assertFocusPolicyRules(evaluatedAssignment, "");
 
-		// TODO why R4-0 R5-0 R6-0 ?
-		String expectedThisTargetRules = "R1-0 R4-0 R5-0 R6-0 MR1-1 MR3-1 MR4-1 MMR1-2";
-		String expectedTargetRules = expectedThisTargetRules + " R2-0 O3-0 MR2-1";
+		String expectedThisTargetRules = "R1-0 MR1-1 MMR1-2 MR4-1 MR3-1";
+		String expectedTargetRules = expectedThisTargetRules + " R2-0 MR2-1 O3-0 R4-0 R5-0 R6-0";
 		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
 		assertAuthorizations(evaluatedAssignment, "");
 		assertGuiConfig(evaluatedAssignment, "");
@@ -311,8 +305,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 *
 	 */
 	@Test
-	public void test040JackDeputyOfBarbossa() throws Exception {
-		final String TEST_NAME = "test040JackDeputyOfBarbossa";
+	public void test050JackDeputyOfBarbossa() throws Exception {
+		final String TEST_NAME = "test050JackDeputyOfBarbossa";
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
@@ -514,8 +508,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertFocusMappings(evaluatedAssignment, expectedItems);
 		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
-		String expectedThisTargetRules = "R1-0 MR1-1 MMR1-2 MR4-1 R4-0";		// TODO why R4-0 ?
-		String expectedTargetRules = expectedThisTargetRules;
+		String expectedThisTargetRules = "R1-0 MR1-1 MMR1-2 MR4-1 ";
+		String expectedTargetRules = expectedThisTargetRules + "R4-0";
 		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetRules), getList(expectedThisTargetRules));
 		assertAuthorizations(evaluatedAssignment, "R1 R4");
 		assertGuiConfig(evaluatedAssignment, "R1 R4");
@@ -828,37 +822,37 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	//endregion
 	//region ============================================================= helper methods (asserts)
 
-	private void assertMembershipRef(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+	private void assertMembershipRef(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
 		assertPrismRefValues("membershipRef", evaluatedAssignment.getMembershipRefVals(), findObjects(text));
 	}
 
-	private void assertDelegation(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+	private void assertDelegation(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
 		assertPrismRefValues("delegationRef", evaluatedAssignment.getDelegationRefVals(), findObjects(text));
 	}
 
-	private void assertOrgRef(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+	private void assertOrgRef(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
 		assertPrismRefValues("orgRef", evaluatedAssignment.getOrgRefVals(), findObjects(text));
 	}
 
-	private void assertAuthorizations(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+	private void assertAuthorizations(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
 		List<String> expected = getList(text);
 		assertEquals("Wrong # of authorizations", expected.size(), evaluatedAssignment.getAuthorizations().size());
 		assertEquals("Wrong authorizations", new HashSet<>(expected),
 				evaluatedAssignment.getAuthorizations().stream().map(a -> a.getAction().get(0)).collect(Collectors.toSet()));
 	}
 
-	private void assertGuiConfig(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String text) {
+	private void assertGuiConfig(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
 		List<String> expected = getList(text);
 		assertEquals("Wrong # of gui configurations", expected.size(), evaluatedAssignment.getAdminGuiConfigurations().size());
 		assertEquals("Wrong gui authorizations", new HashSet<>(expected),
 				evaluatedAssignment.getAdminGuiConfigurations().stream().map(g -> g.getPreferredDataLanguage()).collect(Collectors.toSet()));
 	}
 
-	private void assertFocusMappings(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedItems) {
+	private void assertFocusMappings(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String expectedItems) {
 		assertFocusMappings(evaluatedAssignment, getList(expectedItems));
 	}
 
-	private void assertFocusMappings(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedItems) {
+	private void assertFocusMappings(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedItems) {
 		expectedItems = CollectionUtils.emptyIfNull(expectedItems);
 		assertEquals("Wrong # of focus mappings", expectedItems.size(), evaluatedAssignment.getFocusMappings().size());
 		assertEquals("Wrong focus mappings", new HashSet<>(expectedItems),
@@ -866,43 +860,43 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		// TODO look at the content of the mappings (e.g. zero, plus, minus sets)
 	}
 
-	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedItems) {
+	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String expectedItems) {
 		assertFocusPolicyRules(evaluatedAssignment, getList(expectedItems));
 	}
 
-	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedItems) {
+	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedItems) {
 		expectedItems = CollectionUtils.emptyIfNull(expectedItems);
 		assertEquals("Wrong # of focus policy rules", expectedItems.size(), evaluatedAssignment.getFocusPolicyRules().size());
 		assertEquals("Wrong focus policy rules", new HashSet<>(expectedItems),
 				evaluatedAssignment.getFocusPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
 	}
 
-	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String expectedTargetItems, String expectedThisTargetItems) {
+	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String expectedTargetItems, String expectedThisTargetItems) {
 		assertTargetPolicyRules(evaluatedAssignment, getList(expectedTargetItems), getList(expectedThisTargetItems));
 	}
 
-	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, Collection<String> expectedTargetItems, Collection<String> expectedThisTargetItems) {
+	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedTargetItems, Collection<String> expectedThisTargetItems) {
 		expectedTargetItems = CollectionUtils.emptyIfNull(expectedTargetItems);
 		expectedThisTargetItems = CollectionUtils.emptyIfNull(expectedThisTargetItems);
-		assertEquals("Wrong # of target policy rules", expectedTargetItems.size(), evaluatedAssignment.getTargetPolicyRules().size());
+		assertEquals("Wrong # of target policy rules", expectedTargetItems.size(), evaluatedAssignment.getAllTargetsPolicyRules().size());
 		assertEquals("Wrong # of this target policy rules", expectedThisTargetItems.size(), evaluatedAssignment.getThisTargetPolicyRules().size());
 		assertEquals("Wrong target policy rules", new HashSet<>(expectedTargetItems),
-				evaluatedAssignment.getTargetPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
+				evaluatedAssignment.getAllTargetsPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
 		assertEquals("Wrong this target policy rules", new HashSet<>(expectedThisTargetItems),
 				evaluatedAssignment.getThisTargetPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
 
 		// testing (strange) condition on thisTarget vs target policy rules
 		outer: for (EvaluatedPolicyRule localRule : evaluatedAssignment.getThisTargetPolicyRules()) {
-			for (EvaluatedPolicyRule rule : evaluatedAssignment.getTargetPolicyRules()) {
+			for (EvaluatedPolicyRule rule : evaluatedAssignment.getAllTargetsPolicyRules()) {
 				if (rule == localRule) {
 					continue outer;
 				}
 			}
-			fail("This target rule " + localRule + " is not among target rules: " + evaluatedAssignment.getTargetPolicyRules());
+			fail("This target rule " + localRule + " is not among target rules: " + evaluatedAssignment.getAllTargetsPolicyRules());
 		}
 	}
 
-	private void assertTargets(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+	private void assertTargets(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
 			Boolean evaluateConstructions,
 			String zeroValid, String zeroInvalid,
 			String plusValid, String plusInvalid,
@@ -911,7 +905,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				getList(plusValid), getList(plusInvalid), getList(minusValid), getList(minusInvalid));
 	}
 
-	private void assertTargets(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+	private void assertTargets(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
 			Boolean evaluateConstructions,
 			List<String> zeroValid, List<String> zeroInvalid,
 			List<String> plusValid, List<String> plusInvalid,
@@ -941,7 +935,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		return evaluateConstructions == null || t.isEvaluateConstructions() == evaluateConstructions;
 	}
 
-	private void assertConstructions(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+	private void assertConstructions(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
 			String zeroValid, String zeroInvalid,
 			String plusValid, String plusInvalid,
 			String minusValid, String minusInvalid) {
@@ -949,7 +943,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				getList(plusValid), getList(plusInvalid), getList(minusValid), getList(minusInvalid));
 	}
 
-	private void assertConstructions(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
+	private void assertConstructions(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
 			List<String> zeroValid, List<String> zeroInvalid,
 			List<String> plusValid, List<String> plusInvalid,
 			List<String> minusValid, List<String> minusInvalid) {
@@ -958,13 +952,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertConstructions("minus", evaluatedAssignment.getConstructionSet(PlusMinusZero.MINUS), minusValid, minusInvalid);
 	}
 
-	private void assertConstructions(String type, Collection<Construction<UserType>> constructions, List<String> valid0,
+	private void assertConstructions(String type, Collection<? extends Construction<? extends FocusType>> constructions, List<String> valid0,
 			List<String> invalid0) {
 		constructions = CollectionUtils.emptyIfNull(constructions);
 		Collection<String> expectedValid = CollectionUtils.emptyIfNull(valid0);
 		Collection<String> expectedInvalid = CollectionUtils.emptyIfNull(invalid0);
-		Collection<Construction<UserType>> realValid = constructions.stream().filter(c -> c.isValid()).collect(Collectors.toList());
-		Collection<Construction<UserType>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
+		Collection<Construction<? extends FocusType>> realValid = constructions.stream().filter(c -> c.isValid()).collect(Collectors.toList());
+		Collection<Construction<? extends FocusType>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
 		assertEquals("Wrong # of valid constructions in " + type + " set", expectedValid.size(), realValid.size());
 		assertEquals("Wrong # of invalid constructions in " + type + " set", expectedInvalid.size(), realInvalid.size());
 		assertEquals("Wrong valid constructions in " + type + " set", new HashSet<>(expectedValid),

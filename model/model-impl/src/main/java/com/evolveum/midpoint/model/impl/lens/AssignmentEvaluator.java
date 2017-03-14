@@ -126,6 +126,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return repository;
 	}
 
+	@SuppressWarnings("unused")
 	public ObjectDeltaObject<F> getFocusOdo() {
 		return focusOdo;
 	}
@@ -162,6 +163,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return now;
 	}
 
+	@SuppressWarnings("unused")
 	public boolean isLoginMode() {
 		return loginMode;
 	}
@@ -170,6 +172,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return systemConfiguration;
 	}
 
+	@SuppressWarnings("unused")
 	public MappingEvaluator getMappingEvaluator() {
 		return mappingEvaluator;
 	}
@@ -474,23 +477,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (focusRule) {
 			ctx.evalAssignment.addFocusPolicyRule(policyRule);
 		} else {
-			ctx.evalAssignment.addTargetPolicyRule(policyRule);
-			if (appliesDirectly(ctx, policyRule)) {
+			if (appliesDirectly(ctx.assignmentPath)) {
 				ctx.evalAssignment.addThisTargetPolicyRule(policyRule);
+			} else {
+				ctx.evalAssignment.addOtherTargetPolicyRule(policyRule);
 			}
 		}
 	}
 
-	private boolean appliesDirectly(EvaluationContext ctx, EvaluatedPolicyRuleImpl policyRule) {
-		assert !ctx.assignmentPath.isEmpty();
-		if (ctx.assignmentPath.size() == 1) {
-			// the rule is part of the first assignment target object
-			throw new IllegalStateException("Assignment path for " + policyRule + " is of size 1; in " + ctx.evalAssignment);
-		}
-		// TODO think out this again
-		// The basic idea is that if we get the rule by an inducement, it does NOT apply directly to
-		// the assignment in question. But we should elaborate this later.
-		return ctx.assignmentPath.getSegments().get(1).isAssignment();
+	private boolean appliesDirectly(AssignmentPathImpl assignmentPath) {
+		assert !assignmentPath.isEmpty();
+		// TODO what about deputy relation which does not increase summaryOrder?
+		long zeroOrderCount = assignmentPath.getSegments().stream()
+				.filter(seg -> seg.getEvaluationOrderForTarget().getSummaryOrder() == 0)
+				.count();
+		return zeroOrderCount == 1;
 	}
 
 	@NotNull
@@ -848,10 +849,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement) {
 		AssignmentSelectorType limitation = segment.getAssignment().getLimitTargetContent();
 		return limitation == null || FocusTypeUtil.selectorMatches(limitation, roleInducement);
-	}
-
-	private QName getTargetType(AssignmentPathSegment assignmentPathSegment) {
-		return assignmentPathSegment.getTarget().asPrismObject().getDefinition().getName();
 	}
 
 	private Authorization createAuthorization(AuthorizationType authorizationType, String sourceDesc) {

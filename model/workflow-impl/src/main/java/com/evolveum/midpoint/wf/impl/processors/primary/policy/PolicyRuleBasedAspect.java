@@ -132,8 +132,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		// We collect all target rules; hoping that only relevant ones are triggered.
 		// For example, if we have assignment policy rule on induced role, it will get here.
 		// But projector will take care not to trigger it unless the rule is capable (e.g. configured)
-		// to be triggered in such a situation/
-		List<EvaluatedPolicyRule> triggeredApprovalActionRules = getApprovalActionRules(evaluatedAssignment.getTargetPolicyRules());
+		// to be triggered in such a situation
+		List<EvaluatedPolicyRule> triggeredApprovalActionRules = getApprovalActionRules(evaluatedAssignment.getAllTargetsPolicyRules());
 		logApprovalActions(evaluatedAssignment, triggeredApprovalActionRules);
 
 		// Currently we can deal only with assignments that have a specific target

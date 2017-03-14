@@ -44,6 +44,7 @@ import java.util.List;
  * @author semancik
  *
  */
+@SuppressWarnings("WeakerAccess")
 public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPathSegmentImpl.class);
@@ -212,8 +213,16 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *   as an item related to evaluated assignment's target. Therefore besides isMatchingOrder we maintain isMatchingOrderForTarget
 	 *   that marks all segments (assignments/inducements) that contain policy rules relevant to the evaluated assignment's target.
 	 *
-	 *   TODO how exactly do we compute it
-	 *   TODO local vs non-local policy rules
+	 *   The computation is done by maintaining two evaluationOrders:
+	 *    - plain evaluationOrder that is related to the focus object [starts from ZERO.advance(first assignment relation)]
+	 *    - special evaluationOrderForTarget that is related to the target of the assignment being evaluated [starts from ZERO]
+	 *
+	 *   Finally, how we distinguish between "this target" and "other targets" policy rules? Current approach
+	 *   is like this: count the number of times the evaluation order for target reached ZERO level. First encounter with
+	 *   that level is on "this target". And we assume that each subsequent marks a target that is among "others".
+	 *   TODO revise this algorithm, if needed
+	 *
+	 *   @see AssignmentEvaluator#appliesDirectly
 	 */
 	private Boolean isMatchingOrder = null;
 	private EvaluationOrder evaluationOrder;
@@ -273,6 +282,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return source;
 	}
 
+	@SuppressWarnings("unused")
 	public String getSourceDescription() {
 		return sourceDescription;
 	}
@@ -289,6 +299,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return validityOverride;
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	public void setValidityOverride(boolean validityOverride) {
 		this.validityOverride = validityOverride;
 	}

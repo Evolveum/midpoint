@@ -944,38 +944,46 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		evaluatedAssignmentTriple.debugDumpSets(sb, assignment -> {
 			DebugUtil.indentDebugDump(sb, indent);
 			sb.append(assignment.toHumanReadableString());
-			@SuppressWarnings({ "unchecked", "raw" })
-			Collection<EvaluatedPolicyRule> targetPolicyRules = assignment.getTargetPolicyRules();
 			@SuppressWarnings("unchecked")
 			Collection<EvaluatedPolicyRule> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
-			for (EvaluatedPolicyRule rule : targetPolicyRules) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent + 1);
-				if (thisTargetPolicyRules.stream().anyMatch(d -> d == rule)) {
-					sb.append("local ");
-				}
-				sb.append("rule: ").append(rule.getName());
-				for (EvaluatedPolicyRuleTrigger trigger : rule.getTriggers()) {
-					sb.append("\n");
-					DebugUtil.indentDebugDump(sb, indent + 2);
-					sb.append("trigger: ").append(trigger);
-					if (trigger instanceof EvaluatedExclusionTrigger
-							&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
-						sb.append("\n");
-						DebugUtil.indentDebugDump(sb, indent + 3);
-						sb.append("conflict: ")
-								.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
-										.getConflictingAssignment()).toHumanReadableString());
-					}
-				}
-				for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
-					sb.append("\n");
-					DebugUtil.indentDebugDump(sb, indent + 2);
-					sb.append("exception: ").append(exc);
-				}
-			}
+			dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules);
+			@SuppressWarnings({ "unchecked", "raw" })
+			Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
+			dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules);
 		}, 1);
 		return sb.toString();
+	}
+
+	private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<EvaluatedPolicyRule> rules) {
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(label).append(" (").append(rules.size()).append("):");
+		for (EvaluatedPolicyRule rule : rules) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			if (rule.isGlobal()) {
+				sb.append("global ");
+			}
+			sb.append("rule: ").append(rule.getName());
+			for (EvaluatedPolicyRuleTrigger trigger : rule.getTriggers()) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent + 2);
+				sb.append("trigger: ").append(trigger);
+				if (trigger instanceof EvaluatedExclusionTrigger
+						&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
+					sb.append("\n");
+					DebugUtil.indentDebugDump(sb, indent + 3);
+					sb.append("conflict: ")
+							.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
+									.getConflictingAssignment()).toHumanReadableString());
+				}
+			}
+			for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent + 2);
+				sb.append("exception: ").append(exc);
+			}
+		}
 	}
 
 	private <F extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label,
@@ -986,14 +994,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append(" -> " + assignment.getTarget());
-			dumpRules(sb, "focus rules", assignment.getFocusPolicyRules(), null);
-			dumpRules(sb, "target rules", assignment.getTargetPolicyRules(),
-					assignment.getThisTargetPolicyRules());
+			dumpRules(sb, "focus rules", assignment.getFocusPolicyRules());
+			dumpRules(sb, "this target rules", assignment.getThisTargetPolicyRules());
+			dumpRules(sb, "other targets rules", assignment.getOtherTargetsPolicyRules());
 		}
 	}
 
-	private <F extends FocusType> void dumpRules(StringBuilder sb, String label,
-			Collection<EvaluatedPolicyRule> policyRules, Collection<EvaluatedPolicyRule> directPolicyRules) {
+	private <F extends FocusType> void dumpRules(StringBuilder sb, String label, Collection<EvaluatedPolicyRule> policyRules) {
 		sb.append(" [").append(label).append("(").append(policyRules.size()).append("): ");
 		boolean first = true;
 		for (EvaluatedPolicyRule rule : policyRules) {
@@ -1002,8 +1009,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			} else {
 				sb.append("; ");
 			}
-			if (directPolicyRules != null && directPolicyRules.stream().anyMatch(d -> d == rule)) {
-				sb.append("L"); // L for Local
+			if (rule.isGlobal()) {
+				sb.append("G");
 			}
 			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
 			sb.append("->");
