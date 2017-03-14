@@ -105,6 +105,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
@@ -274,6 +275,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (notificationManager != null) {
             notificationManager.setDisabled(true);
         }
+	}
+	
+	@Override
+	public void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.postInitSystem(initTask, initResult);
+		if (dummyResourceCollection != null) {
+			dummyResourceCollection.resetResources();
+		}
 	}
 
 	protected void startResources() throws Exception {
@@ -2139,6 +2148,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		
 	}
 	
+	protected void setGlobalSecurityPolicy(String securityPolicyOid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+		Collection modifications = new ArrayList<>();
+		
+		ReferenceDelta refDelta = ReferenceDelta.createModificationReplace(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF, 
+				SystemConfigurationType.class, prismContext, securityPolicyOid);
+		modifications.add(refDelta);
+		
+		modifySystemObjectInRepo(SystemConfigurationType.class,
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
+		
+	}
+	
 	protected <O extends ObjectType> void modifySystemObjectInRepo(Class<O> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		repositoryService.modifyObject(type, oid, modifications, parentResult);
@@ -3246,12 +3269,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.assertNoGroupMembers(group);
 	}
 	
-	protected void login(String principalName) throws ObjectNotFoundException {
+	protected void login(String principalName) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
 		login(principal);
 	}
 	
-	protected void login(PrismObject<UserType> user) {
+	protected void login(PrismObject<UserType> user) throws SchemaException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		login(principal);
 	}
@@ -3565,7 +3588,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
 	}
 	
-	protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException {
+	protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		assertNotNull("No principal for "+user, principal);
 		assertAuthorizations(principal, expectedAuthorizations);
@@ -3580,7 +3603,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	
-	protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException {
+	protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		assertNotNull("No principal for "+user, principal);
 		assertNoAuthorizations(principal);
@@ -3690,21 +3713,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         		AssertJUnit.fail("Expected role type "+expectedRoleType+" but it was not present (got "+roleTypes+")");
         	}
         }
-	}
-	
-	protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertEncryptedUserPassword");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		assertEncryptedUserPassword(user, expectedClearPassword);
-	}
-	
-	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
-		UserType userType = user.asObjectable();
-		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
-		String actualClearPassword = protector.decryptString(protectedActualPassword);
-		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
 	}
 
 	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {

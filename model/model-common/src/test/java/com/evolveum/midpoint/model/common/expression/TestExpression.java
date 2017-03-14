@@ -26,7 +26,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -70,7 +70,7 @@ public class TestExpression {
 		
 		prismContext = PrismTestUtil.createInitializedPrismContext();
 		ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
-		AESProtector protector = ExpressionTestUtil.createInitializedProtector(prismContext);
+		ProtectorImpl protector = ExpressionTestUtil.createInitializedProtector(prismContext);
     	expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
@@ -34,9 +35,9 @@ public interface UserProfileService extends OwnerResolver {
     String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
-    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException;
+    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException;
     
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user);
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException;
 
     public void updateUser(MidPointPrincipal principal);
 }

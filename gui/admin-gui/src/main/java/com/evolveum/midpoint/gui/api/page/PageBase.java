@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.self.*;
+import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -274,14 +275,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		MidPointAuthWebSession.getSession().setClientCustomization();
 
-		add(new AjaxNewWindowNotifyingBehavior() {
-
-			@Override
-			protected void onNewWindow(AjaxRequestTarget target) {
-				LOGGER.debug("Page version already used in different tab, refreshing page");
-				setResponsePage(getPageClass(), getPageParameters());
-			}
-		});
+		add(new NewWindowNotifyingBehavior());
 
 		initializeModel();
 		
@@ -499,6 +493,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		// this attaches jquery.js as first header item, which is used in our
 		// scripts.
 		CoreLibrariesContributor.contribute(getApplication(), response);
+
+//		response.render(JavaScriptHeaderItem.forScript("alert(window.name);", "windowNameScript"));
     }
 
     @Override

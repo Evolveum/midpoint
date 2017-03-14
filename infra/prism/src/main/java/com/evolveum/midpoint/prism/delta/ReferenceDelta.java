@@ -110,6 +110,16 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue,PrismReference
 		return createModificationReplace(path, objectDefinition, new PrismReferenceValue(oid));
 	}
 
+    public static <O extends Objectable> ReferenceDelta createModificationReplace(QName refName, Class<O> type, PrismContext ctx , String oid) {
+    	PrismObjectDefinition<O> objectDefinition = ctx.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		return createModificationReplace(refName, objectDefinition, new PrismReferenceValue(oid));
+	}
+    
+    public static <O extends Objectable> ReferenceDelta createModificationReplace(ItemPath path, Class<O> type, PrismContext ctx, String oid) {
+    	PrismObjectDefinition<O> objectDefinition = ctx.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		return createModificationReplace(path, objectDefinition, new PrismReferenceValue(oid));
+	}
+
     public static ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition,
     		PrismReferenceValue refValue) {
     	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(path, PrismReferenceDefinition.class);

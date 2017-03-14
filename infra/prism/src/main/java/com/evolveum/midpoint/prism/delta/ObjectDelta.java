@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -414,6 +414,10 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public void removeReferenceModification(QName itemName) {
     	removeModification(itemName, ReferenceDelta.class);
     }
+    
+    public void removeReferenceModification(ItemPath itemPath) {
+    	removeModification(itemPath, ReferenceDelta.class);
+    }
 
     public void removeContainerModification(QName itemName) {
     	removeModification(itemName, ContainerDelta.class);
@@ -421,6 +425,10 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 
     public void removePropertyModification(QName itemName) {
     	removeModification(itemName, PropertyDelta.class);
+    }
+    
+    public void removePropertyModification(ItemPath itemPath) {
+    	removeModification(itemPath, PropertyDelta.class);
     }
     
     public boolean isEmpty() {

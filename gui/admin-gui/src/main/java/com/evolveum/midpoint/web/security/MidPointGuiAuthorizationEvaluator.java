@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
     }
 
     @Override
-    public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
+    public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException {
 		securityEnforcer.setupPreAuthenticatedSecurityContext(user);
 	}
     
@@ -203,7 +203,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 	}
 
 	@Override
-	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) {
+	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException {
 		return securityEnforcer.runAs(producer, user);
 	}
 

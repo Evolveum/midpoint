@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -82,7 +82,7 @@ public class ConfigurableProtectorFactory {
     }
 
     public Protector getProtector() {
-        AESProtector protector = new AESProtector();
+        ProtectorImpl protector = new ProtectorImpl();
         protector.setEncryptionKeyAlias(protectorConfig.getEncryptionKeyAlias());
         protector.setKeyStorePassword(protectorConfig.getKeyStorePassword());
         protector.setKeyStorePath(protectorConfig.getKeyStorePath());

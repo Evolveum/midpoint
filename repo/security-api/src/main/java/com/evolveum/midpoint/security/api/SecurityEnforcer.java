@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 
     void setupPreAuthenticatedSecurityContext(Authentication authentication);
 
-	void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user);
+	void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException;
 	
 	boolean isAuthenticated();
 	
@@ -91,7 +91,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
 			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException;
 	
-	<T> T runAs(Producer<T> producer, PrismObject<UserType> user);
+	<T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException ;
 	
 	<T> T runPrivileged(Producer<T> producer);
 

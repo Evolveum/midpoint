@@ -7,7 +7,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 /**
  * @author Viliam Repan (lazyman)
  */
-@PageDescriptor(url = {"/self/dashboard"}, action = {
+@PageDescriptor(url = {"/self/selfAssignments"}, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
@@ -15,4 +15,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
                 label = "PageSelfAssignments.auth.assignments.label",
                 description = "PageSelfAssignments.auth.assignments.description")})
 public class PageSelfAssignments extends PageSelf {
+    public PageSelfAssignments(){
+        String  k = "";
+    }
 }

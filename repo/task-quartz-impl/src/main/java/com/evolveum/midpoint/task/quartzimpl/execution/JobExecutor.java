@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,7 +165,12 @@ public class JobExecutor implements InterruptableJob {
 			
 			// Setup Spring Security context
 			PrismObject<UserType> taskOwner = task.getOwner();
-			taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext(taskOwner);
+			try {
+				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext(taskOwner);
+			} catch (SchemaException e) {
+	            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be executed: error setting security context", e, oid);
+	            return;
+			}
 		
 			if (task.isCycle()) {
 				executeRecurrentTask(handler);

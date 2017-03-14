@@ -40,7 +40,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -84,7 +84,7 @@ public class MappingTestEvaluator {
     
     private PrismContext prismContext;
     private MappingFactory mappingFactory;
-    AESProtector protector;
+    ProtectorImpl protector;
     
     public PrismContext getPrismContext() {
 		return prismContext;
@@ -108,7 +108,7 @@ public class MappingTestEvaluator {
         mappingFactory.setProtector(protector);
     }
 	
-	public AESProtector getProtector() {
+	public ProtectorImpl getProtector() {
 		return protector;
 	}
 

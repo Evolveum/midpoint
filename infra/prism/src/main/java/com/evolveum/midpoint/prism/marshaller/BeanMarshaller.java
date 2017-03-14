@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -464,6 +464,10 @@ public class BeanMarshaller {
             EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
             MapXNode xEncryptedDataType = (MapXNode) marshall(encryptedDataType);
             xmap.put(ProtectedDataType.F_ENCRYPTED_DATA, xEncryptedDataType);
+        } else if (protectedType.getHashedDataType() != null) {
+            HashedDataType hashedDataType = protectedType.getHashedDataType();
+            MapXNode xHashedDataType = (MapXNode) marshall(hashedDataType);
+            xmap.put(ProtectedDataType.F_HASHED_DATA, xHashedDataType);
         } else if (protectedType.getClearValue() != null){
             QName type = XsdTypeMapper.toXsdType(protectedType.getClearValue().getClass());
             PrimitiveXNode xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type);

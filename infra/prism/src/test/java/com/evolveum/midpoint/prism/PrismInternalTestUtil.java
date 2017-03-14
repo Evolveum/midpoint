@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
@@ -210,6 +212,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName USER_ADHOC_BOTTLES_ELEMENT = new QName(NS_ADHOC, "bottles");
 	
 	public static final QName WEAPONS_WEAPON_BRAND_TYPE_QNAME = new QName(NS_WEAPONS, "WeaponBrandType");
+	
+	public static final String KEYSTORE_PATH = "src/test/resources/keystore.jceks";
+	public static final String KEYSTORE_PASSWORD = "changeit";
 	
 	public static PrismContextImpl constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
 		PrismContextImpl context = constructPrismContext();
@@ -482,5 +487,14 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	public static PrismSchema getFooSchema(PrismContext prismContext) {
 		return prismContext.getSchemaRegistry().findSchemaByNamespace(NS_FOO);
+	}
+	
+	public static Protector createProtector(String xmlCipher){
+		ProtectorImpl protector = new ProtectorImpl();
+		protector.setKeyStorePassword(KEYSTORE_PASSWORD);
+		protector.setKeyStorePath(KEYSTORE_PATH);
+		protector.setEncryptionAlgorithm(xmlCipher);
+		protector.init();
+		return protector;
 	}
 }

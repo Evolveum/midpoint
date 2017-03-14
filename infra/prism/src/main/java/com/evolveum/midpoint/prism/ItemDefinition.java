@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,4 +145,9 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	@Override
 	void revive(PrismContext prismContext);
 
+	/**
+	 * Used in debugDumping items. Does not need to have name in it as item already has it. Does not need
+	 * to have class as that is just too much info that is almost anytime pretty obvious anyway.
+	 */
+	void debugDumpShortToString(StringBuilder sb);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -565,7 +565,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         
         if (def != null && DebugUtil.isDetailedDebugDump()) {
             sb.append(" def(");
-			((PrismPropertyDefinitionImpl) def).debugDumpShortToString(sb);
+            def.debugDumpShortToString(sb);
 //            if (def.isIndexed() != null) {
 //                sb.append(def.isIndexed() ? ",i+" : ",i-");
 //            }

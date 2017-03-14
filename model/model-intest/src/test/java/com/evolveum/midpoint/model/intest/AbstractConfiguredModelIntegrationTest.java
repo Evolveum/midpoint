@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -137,7 +138,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_WHITE_NAMESPACE = MidPointConstants.NS_RI;
 
     // YELLOW dummy resource is the same as default one but with strong asIs administrativeStatus mapping
-    protected static final String RESOURCE_DUMMY_YELLOW_FILENAME = COMMON_DIR + "/resource-dummy-yellow.xml";
+    protected static final File RESOURCE_DUMMY_YELLOW_FILE = new File(COMMON_DIR, "resource-dummy-yellow.xml");
     protected static final String RESOURCE_DUMMY_YELLOW_OID = "10000000-0000-0000-0000-000000000704";
     protected static final String RESOURCE_DUMMY_YELLOW_NAME = "yellow";
     protected static final String RESOURCE_DUMMY_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
@@ -158,7 +159,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_EMERALD_NAMESPACE = MidPointConstants.NS_RI;
 
 	// Black dummy resource for testing tolerant attributes
-	protected static final String RESOURCE_DUMMY_BLACK_FILENAME = COMMON_DIR + "/resource-dummy-black.xml";
+	protected static final File RESOURCE_DUMMY_BLACK_FILE = new File(COMMON_DIR, "resource-dummy-black.xml");
 	protected static final String RESOURCE_DUMMY_BLACK_OID = "10000000-0000-0000-0000-000000000305";
 	protected static final String RESOURCE_DUMMY_BLACK_NAME = "black";
 	protected static final String RESOURCE_DUMMY_BLACK_NAMESPACE = MidPointConstants.NS_RI;
@@ -284,7 +285,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_HERMAN_FILE = new File(COMMON_DIR, "user-herman.xml");
 	protected static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
 	protected static final String USER_HERMAN_USERNAME = "herman";
+	protected static final String USER_HERMAN_GIVEN_NAME = "Herman";
+	protected static final String USER_HERMAN_FAMILY_NAME = "Toothrot";
 	protected static final String USER_HERMAN_FULL_NAME = "Herman Toothrot";
+	protected static final String USER_HERMAN_PASSWORD = "m0nk3y";
 	protected static final Date USER_HERMAN_VALID_FROM_DATE = MiscUtil.asDate(1700, 5, 30, 11, 00, 00);
 	protected static final Date USER_HERMAN_VALID_TO_DATE = MiscUtil.asDate(2233, 3, 23, 18, 30, 00);
 
@@ -467,6 +471,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	@Override
 	public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
+		// We want logging config from logback-test.xml and not from system config object
+		InternalsConfig.avoidLoggingChange = true;
 		super.initSystem(initTask, initResult);
 			
 		modelService.postInit(initResult);
