@@ -56,8 +56,10 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
 
 	ResourceAttributeDefinition getDisplayNameAttribute();
 
+	@NotNull
 	ResourceAttributeContainer instantiate();
 
+	@NotNull
 	ResourceAttributeContainer instantiate(QName name);
 
 	@NotNull

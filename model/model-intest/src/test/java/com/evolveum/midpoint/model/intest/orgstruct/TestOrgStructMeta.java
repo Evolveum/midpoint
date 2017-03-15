@@ -86,21 +86,18 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	
 	@Override
 	protected ResultHandler<OrgType> getOrgSanityCheckHandler() {
-		return new ResultHandler<OrgType>() {
-			@Override
-			public boolean handle(PrismObject<OrgType> org, OperationResult parentResult) {
-				OrgType orgType = org.asObjectable();
-				if (orgType.getOrgType().contains("functional")) {
-					assertAssigned(org, ROLE_META_FUNCTIONAL_ORG_OID, RoleType.COMPLEX_TYPE);
-				} else if (orgType.getOrgType().contains("project")) {
-					// Nothing to check (yet)
-				} else if (orgType.getOrgType().contains("fictional")) {
-					// Nothing to check (yet)
-				} else {
-					AssertJUnit.fail("Unexpected orgType in "+org);
-				}
-				return true;
+		return (org, parentResult) -> {
+			OrgType orgType = org.asObjectable();
+			if (orgType.getOrgType().contains("functional")) {
+				assertAssigned(org, ROLE_META_FUNCTIONAL_ORG_OID, RoleType.COMPLEX_TYPE);
+			} else if (orgType.getOrgType().contains("project")) {
+				// Nothing to check (yet)
+			} else if (orgType.getOrgType().contains("fictional")) {
+				// Nothing to check (yet)
+			} else {
+				AssertJUnit.fail("Unexpected orgType in "+org);
 			}
+			return true;
 		};
 	}
 

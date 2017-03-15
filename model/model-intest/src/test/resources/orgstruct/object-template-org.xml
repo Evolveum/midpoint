@@ -24,21 +24,33 @@
     <name>Org Template</name>
     
     <item>
-    	<ref>parentOrgRef</ref>
+    	<ref>assignment</ref>
     	<mapping>
+			<authoritative>true</authoritative>
+			<strength>strong</strength>			<!-- there's already an assignment, so normal mappings are skipped on object add -->
 	    	<source>
 	    		<path>orgType</path>
 	    	</source>
     		<expression>
-	            <referenceSearch>
-	            	<targetType>c:OrgType</targetType>
-	        		<filter>
-                    <q:equal>
-                        <q:path>name</q:path>
-                        <q:value>F0006</q:value>
-                    </q:equal>
-                </filter>
-	            </referenceSearch>    	
+				<assignmentTargetSearch>
+					<targetType>c:OrgType</targetType>
+					<filter>
+						<q:equal>
+							<q:path>name</q:path>
+							<q:value>F0006</q:value>
+						</q:equal>
+					</filter>
+				</assignmentTargetSearch>
+				<!-- parentOrgRef cannot exist without assignment, so we have to create one (instead of parentRefOrg alone) -->
+	            <!--<referenceSearch>-->
+					<!--<targetType>c:OrgType</targetType>-->
+					<!--<filter>-->
+						<!--<q:equal>-->
+							<!--<q:path>name</q:path>-->
+							<!--<q:value>F0006</q:value>-->
+						<!--</q:equal>-->
+					<!--</filter>-->
+				<!--</referenceSearch>    	-->
 	    	</expression>
     		<condition>
 	    		<script>
@@ -51,6 +63,7 @@
     <mapping>
     	<name>Org functional metarole assignment</name>
     	<authoritative>true</authoritative>
+		<strength>strong</strength>			<!-- there's already an assignment, so normal mappings are skipped on object add -->
     	<source>
     		<path>orgType</path>
     	</source>

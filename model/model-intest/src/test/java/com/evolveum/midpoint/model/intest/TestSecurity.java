@@ -2177,7 +2177,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertReadAllow(10);
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();

@@ -27,10 +27,14 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Primary duty of this class is to be a part of assignment path. (This is what is visible through its interface,
@@ -40,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
+@SuppressWarnings("WeakerAccess")
 public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPathSegmentImpl.class);
@@ -69,7 +74,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  For assignments/inducements belonging directly to the focus, we take payload from all the assignments. Not from inducements.
 	 *  For assignments/inducements belonging to roles (assigned to focus), we take payload from all the inducements of order 1.
 	 *  For assignments/inducements belonging to meta-roles (assigned to roles), we take payload from all the inducements of order 2.
-	 *  And so on. (It is a bit more complicated, as described below when discussing relations. But OK for the moment.)
+	 *  And so on. (It is in fact a bit more complicated, as described below when discussing relations. But OK for the moment.)
 	 *
 	 *  To know whether to collect payload from assignment/inducement, i.e. from assignment path segment, we
 	 *  define "isMatchingOrder" attribute - and collect only if value of this attribute is true.
@@ -78,7 +83,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *
 	 *  Each assignment path segment has an evaluation order. First assignment has an evaluation order of 1, second
 	 *  assignment has an order of 2, etc. Order of a segment can be seen as the number of assignments segments in the path
-	 *  (including itself). And, for "real" assignments, we collect content from assignment segments of order 1.
+	 *  (including itself). And, for "real" assignments (i.e. not inducements), we collect content from assignment segments
+	 *  of order 1.
 	 *
 	 *  But what about inducements? There are two - somewhat related - questions:
 	 *
@@ -97,7 +103,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  we have R1 -A-> MR2, i.e. we cut out " -A-> MR1 -A-> MMR1 -(I2)-> " and replaced it by " -A-> ".
 	 *  So it looks like that when computing new evaluation order of an inducement, we have to "go back" few steps
 	 *  through the assignment path.
+	 *
 	 *  	TODO think this through, perhaps based on concrete examples
+	 *
 	 *  It is almost certain that for some inducements we would not be able to determine the resulting order.
 	 *  Such problematic inducements are those that do not have strict order, but an interval of orders instead.
 	 *
@@ -105,6 +113,29 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  the we will compute the resulting order as "previous - (N-1)", where N is the order of the inducement
 	 *  (unspecified means 1). But beware, we will not manipulate evaluation order parts that are specific to relations.
 	 *  So, it is not safe to combine "higher-order inducements with targets" with non-scalar order constraints.
+	 *
+	 *  Because evaluation order can "increase" and "decrease", it is possible that it goes to zero or below, and then
+	 *  increase back to positive numbers. Is that OK? Imagine this:
+	 *
+	 *  (Quite an ugly example, but such things might exist.)
+	 *
+	 *  Metarole:CrewMember ----I----+  Metarole:Sailors
+	 *           A                   |  A
+	 *           |                   |  |
+	 *           |                   V  |
+	 *         Pirate               Sailor
+	 *           A
+	 *           |
+	 *           |
+	 *          jack
+	 *
+	 *  When evaluating jack->Pirate assignment, it is OK to collect from everything (Pirate, CrewMember, Sailor, Sailors).
+	 *
+	 *  But when evaluating Pirate as a focal object (forget about jack for the moment), we have Pirate->CrewMember assignment.
+	 *  For this assignment we should ignore payload from Sailor (obviously, because the order is not matching), but from
+	 *  Metarole:Sailors as well. Payload from Sailors is not connected to Pirate in any meaningful way. (For example, if
+	 *  Sailors prescribes an account construction for Sailor, it is of no use to collect this construction when evaluating
+	 *  Pirate as focal object!)
 	 *
 	 *  Evaluating relations
 	 *  ====================
@@ -153,7 +184,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  by "other" relations is not collected.
 	 *
 	 *  Both of this can be overridden by using specific orderConstraints on particular inducement.
-	 *  (TODO this is just an idea, not implemented yet)
 	 *  Set of order constraint is considered to match evaluation order with "other" relations, if for each such "other"
 	 *  relation it contains related constraint. So, if one explicitly wants an inducement to be applied when
 	 *  "approver" relation is encountered, he may do so.
@@ -180,15 +210,24 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *
 	 *   When evaluating jack->Pirate assignment, rule1 would not be normally taken into account, because its assignment
 	 *   (Pirate->rule1) has an order of 2. However, we want to collect it - but not as an item related to focus, but
-	 *   as an item related to evaluated assignment's target. Therefore besides isMatchingOrder we maintain isMatchingOrderPlusOne
+	 *   as an item related to evaluated assignment's target. Therefore besides isMatchingOrder we maintain isMatchingOrderForTarget
 	 *   that marks all segments (assignments/inducements) that contain policy rules relevant to the evaluated assignment's target.
 	 *
-	 *   TODO how exactly do we compute it
+	 *   The computation is done by maintaining two evaluationOrders:
+	 *    - plain evaluationOrder that is related to the focus object [starts from ZERO.advance(first assignment relation)]
+	 *    - special evaluationOrderForTarget that is related to the target of the assignment being evaluated [starts from ZERO]
+	 *
+	 *   Finally, how we distinguish between "this target" and "other targets" policy rules? Current approach
+	 *   is like this: count the number of times the evaluation order for target reached ZERO level. First encounter with
+	 *   that level is on "this target". And we assume that each subsequent marks a target that is among "others".
+	 *   TODO revise this algorithm, if needed
+	 *
+	 *   @see AssignmentEvaluator#appliesDirectly
 	 */
 	private Boolean isMatchingOrder = null;
 	private EvaluationOrder evaluationOrder;
-
-	private Boolean isMatchingOrderPlusOne = null;
+	private Boolean isMatchingOrderForTarget = null;
+	private EvaluationOrder evaluationOrderForTarget;
 
 	private boolean processMembership = false;
 
@@ -243,6 +282,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return source;
 	}
 
+	@SuppressWarnings("unused")
 	public String getSourceDescription() {
 		return sourceDescription;
 	}
@@ -259,6 +299,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return validityOverride;
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	public void setValidityOverride(boolean validityOverride) {
 		this.validityOverride = validityOverride;
 	}
@@ -268,13 +309,25 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	}
 
 	public void setEvaluationOrder(EvaluationOrder evaluationOrder) {
-		setEvaluationOrder(evaluationOrder, null, null);
+		setEvaluationOrder(evaluationOrder, null);
 	}
 
-	public void setEvaluationOrder(EvaluationOrder evaluationOrder, Boolean matchingOrder, Boolean matchingOrderPlusOne) {
+	public void setEvaluationOrder(EvaluationOrder evaluationOrder, Boolean matchingOrder) {
 		this.evaluationOrder = evaluationOrder;
 		this.isMatchingOrder = matchingOrder;
-		this.isMatchingOrderPlusOne = matchingOrderPlusOne;
+	}
+
+	public EvaluationOrder getEvaluationOrderForTarget() {
+		return evaluationOrderForTarget;
+	}
+
+	public void setEvaluationOrderForTarget(EvaluationOrder evaluationOrder) {
+		setEvaluationOrderForTarget(evaluationOrder, null);
+	}
+
+	public void setEvaluationOrderForTarget(EvaluationOrder evaluationOrderForTarget, Boolean matching) {
+		this.evaluationOrderForTarget = evaluationOrderForTarget;
+		this.isMatchingOrderForTarget = matching;
 	}
 
 	public ObjectType getOrderOneObject() {
@@ -299,44 +352,54 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 */
 	public boolean isMatchingOrder() {
 		if (isMatchingOrder == null) {
-			isMatchingOrder = computeMatchingOrder(getAssignment(), evaluationOrder, 0);
+			isMatchingOrder = computeMatchingOrder(evaluationOrder, getAssignment());
 		}
 		return isMatchingOrder;
 	}
 	
-	public boolean isMatchingOrderPlusOne() {
-		if (isMatchingOrderPlusOne == null) {
-			isMatchingOrderPlusOne = computeMatchingOrder(getAssignment(), evaluationOrder, 1);
+	public boolean isMatchingOrderForTarget() {
+		if (isMatchingOrderForTarget == null) {
+			isMatchingOrderForTarget = computeMatchingOrder(evaluationOrderForTarget, getAssignment());
 		}
-		return isMatchingOrderPlusOne;
+		return isMatchingOrderForTarget;
 	}
 
-	static boolean computeMatchingOrder(AssignmentType assignmentType, EvaluationOrder evaluationOrder, int offset) {
+	static boolean computeMatchingOrder(EvaluationOrder evaluationOrder, AssignmentType assignmentType) {
+		return computeMatchingOrder(evaluationOrder, assignmentType.getOrder(), assignmentType.getOrderConstraint());
+	}
+
+	static boolean computeMatchingOrder(EvaluationOrder evaluationOrder, Integer assignmentOrder,
+			List<OrderConstraintsType> assignmentOrderConstraint) {
 		boolean rv;
-		if (assignmentType.getOrder() == null && assignmentType.getOrderConstraint().isEmpty()) {
+		List<QName> extraRelations = new ArrayList<>(evaluationOrder.getExtraRelations());
+		if (assignmentOrder == null && assignmentOrderConstraint.isEmpty()) {
 			// compatibility
-			rv = evaluationOrder.getSummaryOrder() - offset == 1;
+			rv = evaluationOrder.getSummaryOrder() == 1;
 		} else {
 			rv = true;
-			if (assignmentType.getOrder() != null) {
-				if (evaluationOrder.getSummaryOrder() - offset != assignmentType.getOrder()) {
+			if (assignmentOrder != null) {
+				if (evaluationOrder.getSummaryOrder() != assignmentOrder) {
 					rv = false;
 				}
 			}
-			for (OrderConstraintsType orderConstraint : assignmentType.getOrderConstraint()) {
-				if (!isMatchingConstraint(orderConstraint, evaluationOrder, offset)) {
+			for (OrderConstraintsType orderConstraint : assignmentOrderConstraint) {
+				if (!isMatchingConstraint(orderConstraint, evaluationOrder)) {
 					rv = false;
 					break;
 				}
+				extraRelations.removeIf(r -> QNameUtil.match(r, orderConstraint.getRelation()));
 			}
 		}
-		LOGGER.trace("computeMatchingOrder => {}, for offset={}; assignment.order={}, assignment.orderConstraint={}, evaluationOrder={} ... assignment = {}",
-				rv, offset, assignmentType.getOrder(), assignmentType.getOrderConstraint(), evaluationOrder);
+		if (!extraRelations.isEmpty()) {
+			rv = false;
+		}
+		LOGGER.trace("computeMatchingOrder => {}, for offset={}; assignment.order={}, assignment.orderConstraint={}, evaluationOrder={}, remainingExtraRelations={}",
+				rv, assignmentOrder, assignmentOrderConstraint, evaluationOrder, extraRelations);
 		return rv;
 	}
 
-	private static boolean isMatchingConstraint(OrderConstraintsType orderConstraint, EvaluationOrder evaluationOrder, int offset) {
-		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation()) - offset;
+	private static boolean isMatchingConstraint(OrderConstraintsType orderConstraint, EvaluationOrder evaluationOrder) {
+		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation());
 		if (orderConstraint.getOrder() != null) {
 			return orderConstraint.getOrder() == evaluationOrderInt;
 		} else {
@@ -401,8 +464,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		if (isMatchingOrder()) {			// here is a side effect but most probably it's harmless
 			sb.append("(match)");
 		}
-		if (isMatchingOrderPlusOne()) {		// the same here
-			sb.append("(match+1)");
+		if (isMatchingOrderForTarget()) {		// the same here
+			sb.append("(match-target)");
 		}
 		sb.append(": ");
 		sb.append(source).append(" ");
@@ -412,6 +475,12 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			sb.append("id:").append(assignmentType.getId()).append(" ");
 			if (assignmentType.getConstruction() != null) {
 				sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
+			}
+			if (assignmentType.getFocusMappings() != null) {
+				sb.append("FMappings (").append(assignmentType.getFocusMappings().getMapping().size()).append(") ");
+			}
+			if (assignmentType.getPolicyRule() != null) {
+				sb.append("Rule '").append(assignmentType.getPolicyRule().getName()).append("' ");
 			}
 		}
 		ObjectReferenceType targetRef = assignmentType != null ? assignmentType.getTargetRef() : null;
@@ -453,7 +522,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		DebugUtil.debugDumpWithLabelLn(sb, "target", target==null?"null":target.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", evaluationOrder, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrder", isMatchingOrder, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrderPlusOne", isMatchingOrderPlusOne, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrderForTarget", isMatchingOrderForTarget, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "pathToSourceValid", pathToSourceValid, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "validityOverride", validityOverride, indent + 1);

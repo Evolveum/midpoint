@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -60,9 +59,11 @@ public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty
 	@Override
 	PropertyDelta<T> createEmptyDelta(ItemPath path);
 
+	@NotNull
 	@Override
 	PrismProperty<T> instantiate();
 
+	@NotNull
 	@Override
 	PrismProperty<T> instantiate(QName name);
 

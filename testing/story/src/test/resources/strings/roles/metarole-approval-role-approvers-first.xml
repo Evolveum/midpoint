@@ -14,14 +14,18 @@
   ~ limitations under the License.
   -->
   
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="e3c28c94-798a-4f93-85f8-de7cbe37315b">
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	  oid="e3c28c94-798a-4f93-85f8-de7cbe37315b">
 	<name>metarole-approval-role-approvers-first</name>
 	<description>Requests to assign role holding this metarole will be approved by the role approver(s) using "first decides" method</description>
 	<displayName>Metarole: approval by the role approver(s) - first decides</displayName>
 	<inducement>
 		<policyRule>
 			<policyConstraints>
-				<assignment />
+				<assignment>
+					<relation>q:any</relation>
+				</assignment>
 			</policyConstraints>
 			<policyActions>
 				<approval>
@@ -44,8 +48,5 @@
 				</approval>
 			</policyActions>
 		</policyRule>
-	</inducement>
-	<inducement>
-		<targetRef oid="99828c23-40c1-4340-9fe4-8df2599a1691" type="RoleType"/>		<!-- escalation then rejection -->
 	</inducement>
 </role>

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
@@ -1088,6 +1089,45 @@ public class TestStrings extends AbstractStoryTest {
 
 		// record #1, #2: cancellation of work items of other approvers
 		// record #3: finishing process execution
+	}
+
+	@Test
+	public void test250ApproverAssignment() throws Exception {
+		final String TEST_NAME = "test250ApproverAssignment";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		dummyAuditService.clear();
+		dummyTransport.clearMessages();
+
+		// WHEN
+		assignRole(userBobOid, roleATest1Oid, SchemaConstants.ORG_APPROVER, task, task.getResult());
+
+		// THEN
+		assertNull("bob has assigned a-test-1 as an approver", getUserAssignment(userBobOid, roleATest1Oid, SchemaConstants.ORG_APPROVER));
+
+		List<WorkItemType> workItems = getWorkItems(task, result);
+		displayWorkItems("Work item after start", workItems);
+		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		display("wfTask", wfTask);
+
+		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
+		ApprovalSchemaType schema = info.getApprovalSchema();
+		assertEquals("Wrong # of approval levels", 3, schema.getLevel().size());
+		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
+		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
+		assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
+		assertStage(wfTask, 1, 3, "Line managers", null);
+
+		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
+		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
+		List<Message> processMessages = dummyTransport.getMessages(DUMMY_PROCESS);
+		display("work items lifecycle notifications", lifecycleMessages);
+		display("work items allocation notifications", allocationMessages);
+		display("processes notifications", processMessages);
+
+		display("audit", dummyAuditService);
 	}
 
 

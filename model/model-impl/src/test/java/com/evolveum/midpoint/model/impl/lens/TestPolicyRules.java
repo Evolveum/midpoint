@@ -621,7 +621,7 @@ public class TestPolicyRules extends AbstractLensTest {
         		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
         evaluatedAssignmentTriple.accept(assignment -> {
         	if (targetOid == null || assignment.getTarget() != null && targetOid.equals(assignment.getTarget().getOid())) {
-				assignment.getTargetPolicyRules().forEach(handler::accept);
+				assignment.getAllTargetsPolicyRules().forEach(handler::accept);
 			}
         });
 	}

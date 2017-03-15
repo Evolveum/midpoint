@@ -47,4 +47,6 @@ public interface EvaluatedAssignmentTarget extends DebugDumpable {
 	AssignmentType getAssignment();
 
 	AssignmentPath getAssignmentPath();
+
+	boolean isValid();
 }

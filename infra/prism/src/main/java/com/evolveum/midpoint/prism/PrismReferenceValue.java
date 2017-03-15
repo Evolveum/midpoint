@@ -363,10 +363,10 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 	
 	/**
-	 * Returns a version of this value that is cannonical, that means it has the minimal form.
+	 * Returns a version of this value that is canonical, that means it has the minimal form.
 	 * E.g. it will have only OID and no object.
 	 */
-	public PrismReferenceValue toCannonical() {
+	public PrismReferenceValue toCanonical() {
 		PrismReferenceValue can = new PrismReferenceValue();
 		can.setOid(getOid());
 		// do NOT copy object
@@ -597,15 +597,19 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
     @Override
     public PrismReferenceValue clone() {
+		return clone(true);
+	}
+
+    public PrismReferenceValue clone(boolean copyFullObject) {
         PrismReferenceValue clone = new PrismReferenceValue(getOid(), getOriginType(), getOriginObject());
-        copyValues(clone);
+        copyValues(clone, copyFullObject);
         return clone;
     }
 
-	protected void copyValues(PrismReferenceValue clone) {
+	protected void copyValues(PrismReferenceValue clone, boolean copyFullObject) {
 		super.copyValues(clone);
 		clone.targetType = this.targetType;
-		if (this.object != null) { 
+		if (this.object != null && copyFullObject) {
 			clone.object = this.object.clone();
 		}
 		clone.description = this.description;
