@@ -59,4 +59,8 @@
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
     </notificationConfiguration>
+	<workflowConfiguration>
+		<useLegacyApproversSpecification>never</useLegacyApproversSpecification>
+		<useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
+	</workflowConfiguration>
 </systemConfiguration>

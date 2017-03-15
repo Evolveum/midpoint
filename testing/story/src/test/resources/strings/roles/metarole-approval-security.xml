@@ -23,7 +23,9 @@
 	<inducement>
 		<policyRule>
 			<policyConstraints>
-				<assignment/>
+				<assignment>
+					<relation>q:any</relation>
+				</assignment>
 			</policyConstraints>
 			<policyActions>
 				<approval>

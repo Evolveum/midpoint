@@ -1518,6 +1518,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return null;
 	}
 	
+	protected AssignmentType getUserAssignment(String userOid, String roleOid, QName relation)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = getUser(userOid);
+		List<AssignmentType> assignments = user.asObjectable().getAssignment();
+		for (AssignmentType assignment: assignments) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null && roleOid.equals(targetRef.getOid()) && QNameUtil.match(relation, targetRef.getRelation())) {
+				return assignment;
+			}
+		}
+		return null;
+	}
+
 	protected <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
 		MidPointAsserts.assertNoAssignments(user);
 	}
