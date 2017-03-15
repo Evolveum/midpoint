@@ -61,7 +61,7 @@ public class MiscUtil {
     }
 	
 	public static <T> Collection<T> union(Collection<T>... sets) {
-		Set<T> resultSet = new HashSet<T>();
+		Set<T> resultSet = new HashSet<>();
 		for (Collection<T> set: sets) {
 			if (set != null) {
 				resultSet.addAll(set);

@@ -180,6 +180,7 @@ public class LensUtil {
      *
      * filterExistingValues: if true, then values that already exist in the item are not added (and those that don't exist are not removed)
 	 */
+	@NotNull
 	public static <V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> 
 		ItemDelta<V,D> consolidateTripleToDelta(
 			ItemPath itemPath, DeltaSetTriple<I> triple, D itemDefinition, 
@@ -204,12 +205,9 @@ public class LensUtil {
         Collection<V> allValues = collectAllValues(triple, valueMatcher);
         
         final MutableBoolean itemHasStrongMutable = new MutableBoolean(false);
-        SimpleVisitor<I> visitor = new SimpleVisitor<I>() {
-			@Override
-			public void visit(I pvwo) {
-				if (pvwo.getMapping().getStrength() == MappingStrengthType.STRONG) {
-					itemHasStrongMutable.setValue(true);
-				}
+        SimpleVisitor<I> visitor = pvwo -> {
+			if (pvwo.getMapping().getStrength() == MappingStrengthType.STRONG) {
+				itemHasStrongMutable.setValue(true);
 			}
 		};
 		triple.accept(visitor);

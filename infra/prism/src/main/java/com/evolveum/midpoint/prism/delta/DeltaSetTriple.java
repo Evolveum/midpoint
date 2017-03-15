@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.SimpleVisitable;
 import com.evolveum.midpoint.prism.SimpleVisitor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -27,10 +28,9 @@ import com.evolveum.midpoint.util.Transformer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * The triple of values (added, unchanged, deleted) that represents difference between two collections of values.
@@ -44,24 +44,23 @@ import java.util.function.Consumer;
  */
 public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
 
-	// TODO decide if these sets can be null (and make them final)
     /**
      * Collection of values that were not changed.
      */
     @NotNull
-    protected final Collection<T> zeroSet;
+	final Collection<T> zeroSet;
 
     /**
      * Collection of values that were added.
      */
 	@NotNull
-	protected final Collection<T> plusSet;
+	final Collection<T> plusSet;
 
     /**
      * Collection of values that were deleted.
      */
 	@NotNull
-	protected final Collection<T> minusSet;
+	final Collection<T> minusSet;
 
     public DeltaSetTriple() {
         zeroSet = createSet();
@@ -79,7 +78,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
      * Compares two (unordered) collections and creates a triple describing the differences.
      */
     public static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew) {
-        DeltaSetTriple<T> triple = new DeltaSetTriple<T>();
+        DeltaSetTriple<T> triple = new DeltaSetTriple<>();
         diff(valuesOld, valuesNew, triple);
         return triple;
     }
@@ -111,32 +110,35 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
         }
     }
 
-    protected Collection<T> createSet() {
+    private Collection<T> createSet() {
         return new ArrayList<>();
     }
 
-    public Collection<T> getZeroSet() {
+    @NotNull
+	public Collection<T> getZeroSet() {
         return zeroSet;
     }
 
-    public Collection<T> getPlusSet() {
+    @NotNull
+	public Collection<T> getPlusSet() {
         return plusSet;
     }
 
-    public Collection<T> getMinusSet() {
+    @NotNull
+	public Collection<T> getMinusSet() {
         return minusSet;
     }
     
     public boolean hasPlusSet() {
-    	return (plusSet != null && !plusSet.isEmpty());
+    	return !plusSet.isEmpty();
     }
 
     public boolean hasZeroSet() {
-    	return (zeroSet != null && !zeroSet.isEmpty());
+    	return !zeroSet.isEmpty();
     }
 
     public boolean hasMinusSet() {
-    	return (minusSet != null && !minusSet.isEmpty());
+    	return !minusSet.isEmpty();
     }
     
 	public boolean isZeroOnly() {
@@ -179,7 +181,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 
     public void addAllToSet(PlusMinusZero destination, Collection<T> items) {
     	if (destination == null) {
-    		return;
+    		// no op
     	} else if (destination == PlusMinusZero.PLUS) {
     		addAllToSet(plusSet, items);
     	} else if (destination == PlusMinusZero.MINUS) {
@@ -191,7 +193,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     
     public void addToSet(PlusMinusZero destination, T item) {
     	if (destination == null) {
-    		return;
+			// no op
     	} else if (destination == PlusMinusZero.PLUS) {
     		addToSet(plusSet, item);
     	} else if (destination == PlusMinusZero.MINUS) {
@@ -232,10 +234,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     }
 
 	private boolean presentInSet(Collection<T> set, T item) {
-		if (set == null) {
-			return false;
-		}
-		return set.contains(item);
+		return set != null && set.contains(item);
 	}
 	
 	public void clearPlusSet() {
@@ -270,25 +269,26 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	/**
      * Returns all values, regardless of the internal sets.
      */
-    public Collection<T> union() {
+    @SuppressWarnings("unchecked")
+	public Collection<T> union() {
         return MiscUtil.union(zeroSet, plusSet, minusSet);
     }
     
     public T getAnyValue() {
-    	if (zeroSet != null && !zeroSet.isEmpty()) {
+    	if (!zeroSet.isEmpty()) {
     		return zeroSet.iterator().next();
     	}
-    	if (plusSet != null && !plusSet.isEmpty()) {
+    	if (!plusSet.isEmpty()) {
     		return plusSet.iterator().next();
     	}
-    	if (minusSet != null && !minusSet.isEmpty()) {
+    	if (!minusSet.isEmpty()) {
     		return minusSet.iterator().next();
     	}
     	return null;
     }
     
     public Collection<T> getAllValues() {
-    	Collection<T> allValues = new ArrayList<T>(size());
+    	Collection<T> allValues = new ArrayList<>(size());
     	addAllValuesSet(allValues, zeroSet);
     	addAllValuesSet(allValues, plusSet);
     	addAllValuesSet(allValues, minusSet);
@@ -302,10 +302,12 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 		allValues.addAll(set);
 	}
 
+	@SuppressWarnings("unchecked")
 	public Collection<T> getNonNegativeValues() {
         return MiscUtil.union(zeroSet, plusSet);
     }
-    
+
+	@SuppressWarnings("unchecked")
     public Collection<T> getNonPositiveValues() {
         return MiscUtil.union(zeroSet, minusSet);
     }
@@ -317,7 +319,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	}
 	
 	public DeltaSetTriple<T> clone(Cloner<T> cloner) {
-		DeltaSetTriple<T> clone = new DeltaSetTriple<T>();
+		DeltaSetTriple<T> clone = new DeltaSetTriple<>();
 		copyValues(clone, cloner);
 		return clone;
 	}
@@ -345,10 +347,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	}
 	
 	private boolean isEmpty(Collection<T> set) {
-		if (set == null) {
-			return true;
-		}
-		return set.isEmpty();
+		return set == null || set.isEmpty();
 	}
 	
 	/**
@@ -467,10 +466,9 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	
 	public String toHumanReadableString() {
 		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		first = toHumanReadableString(sb, "added", plusSet, first);
+		boolean first = toHumanReadableString(sb, "added", plusSet, true);
 		first = toHumanReadableString(sb, "removed", minusSet, first);
-		first = toHumanReadableString(sb, "unchanged", zeroSet, first);
+		toHumanReadableString(sb, "unchanged", zeroSet, first);
 		return sb.toString();
 	}
 
@@ -497,5 +495,16 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 		sb.append(item);
 	}
 
-
+	public static <T> DeltaSetTriple<? extends T> find(Map<ItemPath, DeltaSetTriple<? extends T>> tripleMap, ItemPath path) {
+		List<Map.Entry<ItemPath, DeltaSetTriple<? extends T>>> matching = tripleMap.entrySet().stream()
+				.filter(e -> path.equivalent(e.getKey()))
+				.collect(Collectors.toList());
+		if (matching.isEmpty()) {
+			return null;
+		} else if (matching.size() == 1) {
+			return matching.get(0).getValue();
+		} else {
+			throw new IllegalStateException("Multiple matching entries for key '" + path + "' in " + tripleMap);
+		}
+	}
 }

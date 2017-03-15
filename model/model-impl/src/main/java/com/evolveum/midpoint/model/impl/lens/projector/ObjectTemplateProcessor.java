@@ -15,23 +15,23 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,51 +39,34 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
@@ -91,11 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * Processor to handle object template.
@@ -155,7 +134,7 @@ public class ObjectTemplateProcessor {
 		int iteration = focusContext.getIteration();
 		String iterationToken = focusContext.getIterationToken();
 		ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
-		PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
+		PrismObjectDefinition<F> focusDefinition = getObjectDefinition(focusContext.getObjectTypeClass());
 						
 		LOGGER.trace("Applying {} to {}, iteration {} ({}), phase {}",
 				objectTemplate, focusContext.getObjectNew(), iteration, iterationToken, phase);
@@ -265,10 +244,7 @@ public class ObjectTemplateProcessor {
 			}
 			boolean isNonTolerant = templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant());
 
-			ItemDelta aprioriItemDelta = null;
-			if (focusDelta != null) {
-				aprioriItemDelta = focusDelta.findItemDelta(itemPath);
-			}
+			ItemDelta aprioriItemDelta = getAprioriItemDelta(focusDelta, itemPath);
 			boolean filterExistingValues = !isNonTolerant;	// if non-tolerant, we want to gather ZERO & PLUS sets
 			ItemDefinition itemDefinition = focusDefinition.findItemDefinition(itemPath);
 			ItemDelta itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
@@ -358,12 +334,16 @@ public class ObjectTemplateProcessor {
 		return itemDeltas;
 	}
 
+	private <F extends FocusType> ItemDelta getAprioriItemDelta(ObjectDelta<F> focusDelta, ItemPath itemPath) {
+		return focusDelta != null ? focusDelta.findItemDelta(itemPath) : null;
+	}
+
 	private <F extends FocusType> XMLGregorianCalendar collectTripleFromTemplate(LensContext<F> context,
 			ObjectTemplateType objectTemplateType, ObjectTemplateMappingEvaluationPhaseType phase, ObjectDeltaObject<F> focusOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			int iteration, String iterationToken,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
-					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
@@ -390,8 +370,9 @@ public class ObjectTemplateProcessor {
 		}
 		
 		// Process own mappings
-		Collection<ObjectTemplateMappingType> mappings = collectMapings(objectTemplateType);
-		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, phase, context, objectTemplateType, focusOdo, 
+		List<ObjectTemplateMappingType> mappings = collectMappings(objectTemplateType);
+		List<ObjectTemplateMappingType> sortedMappings = sortMappingsByDependencies(mappings);
+		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(sortedMappings, phase, context, objectTemplateType, focusOdo,
 				outputTripleMap, iteration, iterationToken, now, contextDesc, task, result);
 		if (templateNextRecomputeTime != null) {
 			if (nextRecomputeTime == null || nextRecomputeTime.compare(templateNextRecomputeTime) == DatatypeConstants.GREATER) {
@@ -401,9 +382,79 @@ public class ObjectTemplateProcessor {
 		
 		return nextRecomputeTime;
 	}
-	
-	
-	private Collection<ObjectTemplateMappingType> collectMapings(ObjectTemplateType objectTemplateType) {
+
+	/**
+	 * If M2 has a source of X, and M1 has a target of X, then M1 must be placed before M2; we want also to detect cycles.
+	 *
+	 * So let's stratify mappings according to their dependencies.
+ 	 */
+	private List<ObjectTemplateMappingType> sortMappingsByDependencies(List<ObjectTemplateMappingType> mappings) {
+		// map.get(X) = { Y1 ... Yn } means that mapping X depends on output of mappings Y1 ... Yn
+		// using indices instead of actual mappings because of equality issues
+		Map<Integer, Set<Integer>> dependencyMap = createDependencyMap(mappings);
+		LOGGER.trace("sortMappingsByDependencies: dependencyMap: {}", dependencyMap);
+
+		List<Integer> processed = new ArrayList<>();
+		List<Integer> toProcess = Stream.iterate(0, t -> t+1).limit(mappings.size()).collect(Collectors.toList());		// not a set: to preserve original order
+		while (!toProcess.isEmpty()) {
+			LOGGER.trace("sortMappingsByDependencies: toProcess: {}, processed: {}", toProcess, processed);
+			Integer available = toProcess.stream()
+					.filter(i -> CollectionUtils.isSubCollection(dependencyMap.get(i), processed))	// cannot depend on yet-unprocessed mappings
+					.findFirst().orElse(null);
+			if (available == null) {
+				LOGGER.warn("Cannot sort mappings according to dependencies, there is a cycle. Processing in the original order: {}", mappings);
+				return mappings;
+			}
+			processed.add(available);
+			toProcess.remove(available);
+		}
+		LOGGER.trace("sortMappingsByDependencies: final ordering: {}", processed);
+		return processed.stream().map(i -> mappings.get(i)).collect(Collectors.toList());
+	}
+
+	private Map<Integer, Set<Integer>> createDependencyMap(List<ObjectTemplateMappingType> mappings) {
+		Map<Integer, Set<Integer>> map = new HashMap<>();
+		for (int i = 0; i < mappings.size(); i++) {
+			Set<Integer> dependsOn = new HashSet<>();
+			for (int j = 0; j < mappings.size(); j++) {
+				if (i == j) {
+					continue;
+				}
+				if (dependsOn(mappings.get(i), mappings.get(j))) {
+					dependsOn.add(j);
+				}
+			}
+			map.put(i, dependsOn);
+		}
+		return map;
+	}
+
+	// true if any source of mapping1 is equivalent to the target of mapping2
+	private boolean dependsOn(ObjectTemplateMappingType mapping1, ObjectTemplateMappingType mapping2) {
+		if (mapping2.getTarget() == null || mapping2.getTarget().getPath() == null) {
+			return false;
+		}
+		ItemPath targetPath = mapping2.getTarget().getPath().getItemPath().stripVariableSegment();
+
+		for (VariableBindingDefinitionType source : mapping1.getSource()) {
+			ItemPath sourcePath = source.getPath() != null ? source.getPath().getItemPath() : null;
+			if (sourcePath != null && stripFocusVariableSegment(sourcePath).equivalent(targetPath)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private <T extends Objectable> ItemPath stripFocusVariableSegment(ItemPath sourcePath) {
+		if (sourcePath.startsWithVariable()
+			&& QNameUtil.matchAny(ItemPath.getFirstName(sourcePath), MappingEvaluator.FOCUS_VARIABLE_NAMES)) {
+			return sourcePath.stripVariableSegment();
+		} else {
+			return sourcePath;
+		}
+	}
+
+	private List<ObjectTemplateMappingType> collectMappings(ObjectTemplateType objectTemplateType) {
 		List<ObjectTemplateMappingType> mappings = new ArrayList<ObjectTemplateMappingType>();
 		mappings.addAll(objectTemplateType.getMapping());
 		for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
@@ -429,7 +480,8 @@ public class ObjectTemplateProcessor {
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> focusOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			int iteration, String iterationToken,
-			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
@@ -441,7 +493,10 @@ public class ObjectTemplateProcessor {
 			if (mappingPhase != phase) {
 				continue;
 			}
-			Mapping<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context, mappingType, objectTemplateType, focusOdo, 
+			LOGGER.trace("Starting evaluation of mapping '{}' in {}", mappingType.getName(), contextDesc);
+			ObjectDeltaObject<F> updatedFocusOdo = getUpdatedFocusOdo(context, focusOdo, outputTripleMap, mappingType, contextDesc);		// for mapping chaining
+
+			Mapping<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context, mappingType, objectTemplateType, updatedFocusOdo,
 					null, iteration, iterationToken, context.getSystemConfiguration(), now, contextDesc, task, result);
 			if (mapping == null) {
 				continue;
@@ -460,7 +515,7 @@ public class ObjectTemplateProcessor {
 				}
 				continue;
 			}
-			
+
 			mappingEvaluator.evaluateMapping(mapping, context, task, result);
 			
 			ItemPath itemPath = mapping.getOutputPath();
@@ -485,7 +540,43 @@ public class ObjectTemplateProcessor {
 		return nextRecomputeTime;
 	}
 
-	private <F extends ObjectType> PrismObjectDefinition<F> getFocusDefinition(Class<F> focusClass) {
+	private <F extends FocusType> ObjectDeltaObject<F> getUpdatedFocusOdo(LensContext<F> context, ObjectDeltaObject<F> focusOdo,
+			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
+			ObjectTemplateMappingType mappingType, String contextDesc) throws ExpressionEvaluationException,
+			PolicyViolationException, SchemaException {
+		ObjectDeltaObject<F> focusOdoCloned = null;
+		for (VariableBindingDefinitionType source : mappingType.getSource()) {
+			if (source.getPath() == null) {
+				continue;
+			}
+			ItemPath path = stripFocusVariableSegment(source.getPath().getItemPath());
+			if (path.startsWithVariable()) {
+				continue;
+			}
+			DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = DeltaSetTriple.find(outputTripleMap, path);
+			if (triple == null) {
+				continue;
+			}
+			if (focusOdoCloned == null) {
+				LOGGER.trace("Cloning and updating focusOdo because of chained mappings; chained source path: {}", path);
+				focusOdoCloned = focusOdo.clone();
+			} else {
+				LOGGER.trace("Updating focusOdo because of chained mappings; chained source path: {}", path);
+			}
+			Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
+			ItemDefinition<?> itemDefinition = getObjectDefinition(focusClass).findItemDefinition(path);
+			// TODO not much sure about the parameters
+			ItemDelta itemDelta = LensUtil
+					.consolidateTripleToDelta(path, (DeltaSetTriple) triple, itemDefinition,
+							getAprioriItemDelta(focusOdo.getObjectDelta(), path), focusOdo.getNewObject(), null, null,
+							true, true, false, " updating chained source (" + path + ") in " + contextDesc, true);
+			LOGGER.trace("Updating focus ODO with delta:\n{}", itemDelta.debugDumpLazily());
+			focusOdoCloned.update(itemDelta);
+		}
+		return focusOdoCloned != null ? focusOdoCloned : focusOdo;
+	}
+
+	private <F extends ObjectType> PrismObjectDefinition<F> getObjectDefinition(Class<F> focusClass) {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
 	}
 	
