@@ -403,6 +403,7 @@
     <xsd:complexType name="OrgFilterRefType">
         <xsd:sequence>
             <xsd:element name="oid" type="xsd:string" />
+            <xsd:element name="scope" type="tns:OrgFilterScopeType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
 
