@@ -166,7 +166,7 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
     private void currentStateButtonClicked(AjaxRequestTarget target, String oid, String eventIdentifier,
                                            String date, Class type) {
         //TODO cases for PageRoleHistory, PageOrgHistory if needed...
-        setResponsePage(new PageUserHistory((PrismObject<UserType>) getReconstructedObject(oid, eventIdentifier, type), date));
+        getPageBase().navigateToNext(new PageUserHistory((PrismObject<UserType>) getReconstructedObject(oid, eventIdentifier, type), date));
     }
 
     private PrismObject<F> getReconstructedObject(String oid, String eventIdentifier,
