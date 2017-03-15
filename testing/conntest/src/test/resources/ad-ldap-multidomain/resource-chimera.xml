@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016 Evolveum
+  ~ Copyright (c) 2016-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -48,6 +48,11 @@
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
+            <icfcldap:winRmUsername>midpoint</icfcldap:winRmUsername>
+            <icfcldap:winRmDomain>midpoint</icfcldap:winRmDomain>
+            <icfcldap:winRmAuthenticationScheme>credssp</icfcldap:winRmAuthenticationScheme>
+            <icfcldap:winRmPort>5986</icfcldap:winRmPort>
+            <icfcldap:winRmUseHttps>true</icfcldap:winRmUseHttps>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -621,6 +626,23 @@
         </objectType>
 
     </schemaHandling>
+    
+    <scripts>
+		<script>
+			<host>resource</host>
+			<language>powerhell</language>
+			<code>Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) ADD`n" }</code>
+			<operation>add</operation>
+			<order>before</order>
+		</script>
+		<script>
+			<host>resource</host>
+			<language>powerhell</language>
+			<code>Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) MOD`n" }</code>
+			<operation>modify</operation>
+			<order>before</order>
+		</script>
+	</scripts>
 
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
