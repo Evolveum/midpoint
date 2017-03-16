@@ -11072,6 +11072,19 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="roleCatalogCollections" type="tns:ObjectCollectionsUseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the set of object collections ("role catalog views") to display in role
+						catalog. If this element is not specified then the default (hardcoded) collections
+						will be displayed. If this element is specified then only those collections specified
+						in this element are displayed.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="defaultAssignmentMultiplicity" type="tns:AssignmentMultiplicityType" minOccurs="0" default="single">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -11136,6 +11149,61 @@
             </xsd:enumeration>
        </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:complexType name="ObjectCollectionsUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a set of object collections ("views") to be displayed (used) at
+                a specific location in the system.
+                This is generic type that can be used to specify collections to display
+                in role catalog, menu, dashboard and so on.
+            </xsd:documentation>
+	        <xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="collection" type="tns:ObjectCollectionUseType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Reference to the colleciot, its visibility, etc.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: other elements that influence the way how the whole collection set
+			           is displayed or how the collection sets configuration is merged. -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ObjectCollectionUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies how a specific collection ("view") is to be displayed (used) at
+                a specific location in the system.
+                This is generic type that can be used to specify collection to display
+                in role catalog, menu, dashboard and so on.
+            </xsd:documentation>
+	        <xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="collectionUri" type="xsd:anyURI" minOccurs="0">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Reference to the built-in collection.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: visibility, ordering, etc. -->
+        </xsd:sequence>
+    </xsd:complexType>
     
     <xsd:complexType name="PolicyRuleType">
         <xsd:annotation>
