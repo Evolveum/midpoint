@@ -1464,4 +1464,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		    }
 		}
 	}
+	
+	protected void setPassword(PrismObject<UserType> user, String password) {
+		UserType userType = user.asObjectable();
+		CredentialsType creds = userType.getCredentials();
+		if (creds == null) {
+			creds = new CredentialsType();
+			userType.setCredentials(creds);
+		}
+		PasswordType passwordType = creds.getPassword();
+		if (passwordType == null) {
+			passwordType = new PasswordType();
+			creds.setPassword(passwordType);
+		}
+		ProtectedStringType ps = new ProtectedStringType();
+		ps.setClearValue(password);
+		passwordType.setValue(ps);
+	}
 }

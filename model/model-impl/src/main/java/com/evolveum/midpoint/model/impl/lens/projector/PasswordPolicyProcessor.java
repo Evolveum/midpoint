@@ -180,7 +180,7 @@ public class PasswordPolicyProcessor {
 		}
 		
 		ValuePolicyType passwordPolicy = determinePasswordPolicy(focusContext, task, result);		
-		processPasswordPolicy(passwordPolicy, focusContext.getObjectOld(), null, passwordValueProperty, task, result);
+		processPasswordPolicy(focusContext, passwordPolicy, passwordValueProperty, task, result);
 		
 		if (passwordValueProperty != null && isPasswordChange) {
 			processPasswordHistoryDeltas(focusContext, context, focusContext.getSecurityPolicy(), now, task, result);
@@ -228,7 +228,7 @@ public class PasswordPolicyProcessor {
 		return passwordPolicy.asObjectable();
 	}
 
-	private <F extends FocusType> void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismObject<F> focus, PrismObject<ShadowType> projection, PrismProperty<ProtectedStringType> passwordProperty, 
+	private <F extends FocusType> void processPasswordPolicy(LensFocusContext<F> focusContext, ValuePolicyType passwordPolicy, PrismProperty<ProtectedStringType> passwordProperty, 
 			Task task, OperationResult result) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (passwordPolicy == null) {
@@ -237,14 +237,9 @@ public class PasswordPolicyProcessor {
 		}
 
         String passwordValue = determinePasswordValue(passwordProperty);
-        PasswordType currentPasswordType = determineCurrentPassword(focus);
+        PasswordType currentPasswordType = determineCurrentPassword(focusContext.getObjectOld());
        
-        boolean isValid;
-        if (projection != null) {
-        	isValid = validatePassword(passwordValue, currentPasswordType, passwordPolicy, projection, "projection password policy", task, result);
-        } else {
-        	isValid = validatePassword(passwordValue, currentPasswordType, passwordPolicy, focus, "focus password policy", task, result);
-        }
+        boolean isValid = validatePassword(passwordValue, currentPasswordType, passwordPolicy, focusContext.getObjectAny(), "focus password policy", task, result);
 
 		if (!isValid) {
 			result.computeStatus();
@@ -326,7 +321,19 @@ public class PasswordPolicyProcessor {
 			accountShadow = projectionContext.getObjectNew();
 		}
 		
-		processPasswordPolicy(passwordPolicy, null, accountShadow, password, task, result);
+		if (passwordPolicy == null) {
+			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
+			return;
+		}
+
+        String passwordValue = determinePasswordValue(password);
+       
+        boolean isValid = validatePassword(passwordValue, null, passwordPolicy, accountShadow, "projection password policy", task, result);
+
+		if (!isValid) {
+			result.computeStatus();
+			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
+		}
 	}
 	
 

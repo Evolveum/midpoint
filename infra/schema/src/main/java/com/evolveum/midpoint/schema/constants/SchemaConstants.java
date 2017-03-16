@@ -216,6 +216,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(
 			UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
 	public static final ItemPath PATH_LINK_REF = new ItemPath(FocusType.F_LINK_REF);
+	public static final ItemPath PATH_LIFECYCLE_STATE = new ItemPath(ObjectType.F_LIFECYCLE_STATE);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";

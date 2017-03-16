@@ -1037,4 +1037,10 @@ public interface MidpointFunctions {
 	List<ObjectReferenceType> getMembersAsReferences(String orgOid)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
 			ObjectNotFoundException;
+	
+	/**
+	 * Default function used to compute projection lifecycle. It is provided here so it can be explicitly
+	 * invoked from a custom expression and then the result can be changed for special cases.
+	 */
+	<F extends FocusType> String computeProjectionLifecycle(F focus, ShadowType shadow, ResourceType resource);
 }

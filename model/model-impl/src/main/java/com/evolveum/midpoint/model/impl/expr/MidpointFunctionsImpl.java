@@ -44,6 +44,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,6 +61,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -1240,5 +1244,34 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				.isDirectChildOf(orgOid)
 				.build();
 		return searchObjects(UserType.class, query, null);
+	}
+	
+	@Override
+	public <F extends FocusType> String computeProjectionLifecycle(F focus, ShadowType shadow, ResourceType resource) {
+		if (focus == null || shadow == null) {
+			return null;
+		}
+		if (!(focus instanceof UserType)) {
+			return null;
+		}
+		if (shadow.getKind() != null && shadow.getKind() != ShadowKindType.ACCOUNT) {
+			return null;
+		}
+		ProtectedStringType passwordPs = FocusTypeUtil.getPasswordValue((UserType)focus);
+		if (passwordPs != null && passwordPs.canGetCleartext()) {
+			return null;
+		}
+		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+		if (credentialsCapabilityType == null) {
+			return null;
+		}
+		PasswordCapabilityType passwordCapabilityType = credentialsCapabilityType.getPassword();
+		if (passwordCapabilityType == null) {
+			return null;
+		}
+		if (passwordCapabilityType.isEnabled() == Boolean.FALSE) {
+			return null;
+		}
+		return SchemaConstants.LIFECYCLE_PROPOSED;
 	}
 }
