@@ -901,9 +901,10 @@ public class ExpressionUtil {
 		try {
 			if (securityEnforcer != null) {
 				if (!securityEnforcer.isAuthenticated()) {
-					// Nothing to set up. This is most likely evaluation of role
+					// This is most likely evaluation of role
 					// condition before
 					// the authentication is complete.
+					scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, null);
 					return;
 				}
 				MidPointPrincipal principal = securityEnforcer.getPrincipal();

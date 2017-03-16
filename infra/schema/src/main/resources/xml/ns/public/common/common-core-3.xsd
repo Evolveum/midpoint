@@ -6300,6 +6300,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="runAsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the user whose identity will be used to execute the expression.
+                        The expression will use authorizations that this user has. If the expression
+                        triggers any change then the change will be audited under the identity of
+                        this user.
+                        If no user is specified then the identify of currently logged-in user or
+                        the owner of the task will be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>

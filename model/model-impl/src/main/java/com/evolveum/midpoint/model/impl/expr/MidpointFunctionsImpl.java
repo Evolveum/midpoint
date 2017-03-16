@@ -47,6 +47,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -123,6 +125,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Autowired
     private ProvisioningService provisioningService;
+    
+    @Autowired
+    private SecurityEnforcer securityEnforcer;
 
     @Autowired(required = true)
     private transient Protector protector;
@@ -1273,5 +1278,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return null;
 		}
 		return SchemaConstants.LIFECYCLE_PROPOSED;
+	}
+	
+	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
+		return securityEnforcer.getPrincipal();
 	}
 }

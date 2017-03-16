@@ -218,6 +218,9 @@
         	<ref bean="modelObjectResolver"/>
         </constructor-arg>
         <constructor-arg>
+        	<ref bean="securityEnforcer"/>
+        </constructor-arg>
+        <constructor-arg>
         	<ref bean="prismContext"/>
         </constructor-arg>
         <property name="evaluatorFactories">

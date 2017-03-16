@@ -198,14 +198,28 @@
 				<outbound>
 					<strength>strong</strength>
 					<expression>
-						<value>Arr!</value>
+						<script>
+							<code>
+								'Bla bla bla ' + midpoint.getPrincipal().getUsername() + ' -- ' + actor?.getName()
+							</code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
             <attribute>
                 <ref>ri:gossip</ref>
                 <displayName>Gossip</displayName>
-                <tolerant>true</tolerant>
+                <outbound>
+                	<expression>
+                		<!-- MID-3816 -->
+                		<runAsRef oid="c0c010c0-d34d-b33f-f00d-11111111111e"/> <!-- Elaine -->
+						<script>
+							<code>
+								'Some say ' + midpoint.getPrincipal().getUsername() + ' -- ' + actor?.getName()
+							</code>
+						</script>
+					</expression>
+				</outbound>
             </attribute>
             <attribute>
                 <ref>ri:water</ref>

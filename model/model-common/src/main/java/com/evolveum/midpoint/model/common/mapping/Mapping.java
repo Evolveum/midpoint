@@ -348,8 +348,6 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
 
-        ExpressionUtil.addActorVariable(variables, securityEnforcer);
-
         traceEvaluationStart();
 		
 		try {

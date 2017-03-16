@@ -53,7 +53,7 @@ public class ExpressionTestUtil {
 	
 	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector, 
 			PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-    	ExpressionFactory expressionFactory = new ExpressionFactory(resolver, prismContext);
+    	ExpressionFactory expressionFactory = new ExpressionFactory(resolver, securityEnforcer, prismContext);
     	
     	// asIs
     	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext, protector);
