@@ -31,6 +31,7 @@ public class GuiStyleConstants {
 	
 	public static final String CLASS_OBJECT_ROLE_ICON = "fa fa-street-view";
 	public static final String CLASS_OBJECT_ROLE_BG = "object-role-bg";
+	public static final String CLASS_DISABLED_OBJECT_ROLE_BG = "object-disabled-bg";
 	public static final String CLASS_OBJECT_ROLE_ICON_COLORED = CLASS_OBJECT_ROLE_ICON + " object-role-color";
 	public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "object-role-box";
 	public static final String CLASS_OBJECT_ROLE_BOX_THIN_CSS_CLASSES = "object-role-box-thin";

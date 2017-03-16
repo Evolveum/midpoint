@@ -18,9 +18,17 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.*;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentMultiplicityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -50,6 +58,10 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private static final String ID_DETAILS_LINK = "detailsLink";
     private static final String ID_DETAILS_LINK_LABEL = "detailsLinkLabel";
     private static final String ID_DETAILS_LINK_ICON = "detailsLinkIcon";
+
+    private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
+    private static final String OPERATION_LOAD_ASSIGNMENT_MULTIPLICITY = DOT_CLASS + "loadAssignmentMultiplicity";
 
     private String addToCartLinkIcon = "fa fa-times-circle fa-lg text-danger";
     private String detailsLinkIcon = "fa fa-arrow-circle-right";
@@ -92,7 +104,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
                     WebMarkupContainer itemButtonContainer = new WebMarkupContainer(ID_ITEM_BUTTON_CONTAINER);
                     itemButtonContainer.setOutputMarkupId(true);
-                    itemButtonContainer.add(new AttributeAppender("class", getBackgroundClass(assignmentsList.get(index).getType())));
+                    itemButtonContainer.add(new AttributeAppender("class", getBackgroundClass(assignmentsList.get(index))));
                     colContainer.add(itemButtonContainer);
                     populateCell(itemButtonContainer, assignmentsList.get(index));
                     index++;
@@ -115,6 +127,15 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                 assignmentDetailsPerformed(assignment, ajaxRequestTarget);
             }
         };
+        inner.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
+                        && assignment.isAlreadyAssigned());
+            }
+        });
         cellContainer.add(inner);
         
         Label nameLabel = new Label(ID_INNER_LABEL, assignment.getName());
@@ -126,6 +147,15 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                 assignmentDetailsPerformed(assignment, ajaxRequestTarget);
             }
         };
+        detailsLink.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
+                        && assignment.isAlreadyAssigned());
+            }
+        });
         cellContainer.add(detailsLink);
 
         Label detailsLinkLabel = new Label(ID_DETAILS_LINK_LABEL, pageBase.createStringResource("MultiButtonPanel.detailsLink"));
@@ -140,6 +170,15 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 			}
 
         };
+        detailsLinkIcon.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
+                        && assignment.isAlreadyAssigned());
+            }
+        });
         detailsLink.add(detailsLinkIcon);
 
         AjaxLink addToCartLink = new AjaxLink(ID_ADD_TO_CART_LINK) {
@@ -148,6 +187,15 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                 addAssignmentPerformed(assignment, ajaxRequestTarget);
             }
         };
+        addToCartLink.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
+                        && assignment.isAlreadyAssigned());
+            }
+        });
         cellContainer.add(addToCartLink);
 
         AjaxLink addToCartLinkIcon = new AjaxLink(ID_ADD_TO_CART_LINK_ICON) {
@@ -158,6 +206,15 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
             }
 
         };
+        addToCartLinkIcon.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
+                        && assignment.isAlreadyAssigned());
+            }
+        });
         addToCartLink.add(addToCartLinkIcon);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_TYPE_ICON);
@@ -205,12 +262,14 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         }
     }
 
-    private String getBackgroundClass(AssignmentEditorDtoType type){
-        if (AssignmentEditorDtoType.ROLE.equals(type)){
+    private String getBackgroundClass(AssignmentEditorDto dto){
+        if (dto.isAlreadyAssigned()){
+            return GuiStyleConstants.CLASS_DISABLED_OBJECT_ROLE_BG;
+        } else if (AssignmentEditorDtoType.ROLE.equals(dto.getType())){
             return GuiStyleConstants.CLASS_OBJECT_ROLE_BG;
-        }else if (AssignmentEditorDtoType.SERVICE.equals(type)){
+        }else if (AssignmentEditorDtoType.SERVICE.equals(dto.getType())){
             return GuiStyleConstants.CLASS_OBJECT_SERVICE_BG;
-        }else if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
+        }else if (AssignmentEditorDtoType.ORG_UNIT.equals(dto.getType())){
             return GuiStyleConstants.CLASS_OBJECT_ORG_BG;
         } else {
             return "";
@@ -231,4 +290,20 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     }
 
+    private AssignmentMultiplicityType getAssignmentMultiplicity(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_MULTIPLICITY);
+        SystemConfigurationType systemConfig = null;
+        try {
+            systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
+            return AssignmentMultiplicityType.SINGLE;
+        }
+        if (systemConfig != null && systemConfig.getRoleManagement() != null &&
+                systemConfig.getRoleManagement().getDefaultAssignmentMultiplicity() != null &&
+                !systemConfig.getRoleManagement().getDefaultAssignmentMultiplicity().toString().equals("")){
+            return systemConfig.getRoleManagement().getDefaultAssignmentMultiplicity();
+        }
+        return AssignmentMultiplicityType.SINGLE;
+    }
 }
