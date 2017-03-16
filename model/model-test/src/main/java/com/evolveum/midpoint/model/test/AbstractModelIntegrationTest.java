@@ -823,6 +823,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.recompute(UserType.class, userOid, null, task, result);
 	}
 	
+	protected void recomputeFocus(Class<? extends FocusType> clazz, String userOid, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
+		modelService.recompute(clazz, userOid, null, task, result);
+	}
+
 	protected void recomputeUser(String userOid, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
 		modelService.recompute(UserType.class, userOid, options, task, result);
 	}
@@ -1066,12 +1070,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, 
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
-		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(roleOid, refType, relation, modificationBlock, add)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
-		return userDelta;
+		return createAssignmentFocusDelta(UserType.class, userOid, roleOid, refType, relation, modificationBlock, add);
 	}
 	
+	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusDelta(Class<F> focusClass, String userOid, String roleOid, QName refType, QName relation,
+			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentModification(roleOid, refType, relation, modificationBlock, add)));
+		return ObjectDelta.createModifyDelta(userOid, modifications, focusClass, prismContext);
+	}
+
 	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
 		return createAssignmentModification(resourceOid, ShadowKindType.ACCOUNT, intent, add);
 	}
@@ -1514,6 +1522,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return null;
 	}
 	
+	protected AssignmentType getUserAssignment(String userOid, String roleOid, QName relation)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = getUser(userOid);
+		List<AssignmentType> assignments = user.asObjectable().getAssignment();
+		for (AssignmentType assignment: assignments) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null && roleOid.equals(targetRef.getOid()) && QNameUtil.match(relation, targetRef.getRelation())) {
+				return assignment;
+			}
+		}
+		return null;
+	}
+
 	protected <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
 		MidPointAsserts.assertNoAssignments(user);
 	}
@@ -1596,6 +1617,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertPrismRefValues(contextDesc, real, objectsToOids(expected));
 	}
 
+	protected <F extends FocusType> void assertPrismRefValues(String contextDesc, Collection<PrismReferenceValue> real, Collection<? extends ObjectType> expected) {
+		assertPrismRefValues(contextDesc, real, objectsToOids(expected));
+	}
+
 	protected void assertObjectRefs(String contextDesc, Collection<ObjectReferenceType> real, String... expected) {
 		List<String> refOids = new ArrayList<>();
 		for (ObjectReferenceType ref: real) {
@@ -1618,6 +1643,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	private String[] objectsToOids(ObjectType[] objects) {
 		return Arrays.stream(objects)
+				.map(o -> o.getOid())
+				.toArray(String[]::new);
+	}
+
+	private String[] objectsToOids(Collection<? extends ObjectType> objects) {
+		return objects.stream()
 				.map(o -> o.getOid())
 				.toArray(String[]::new);
 	}

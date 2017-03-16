@@ -463,7 +463,7 @@ public class AuditLogViewerPanel extends BasePanel{
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't adopt event record: " + e, e);
                 }
-                setResponsePage(new PageAuditLogDetails(record));
+                pageBase.navigateToNext(new PageAuditLogDetails(record));
             }
 
         };

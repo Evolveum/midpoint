@@ -35,7 +35,7 @@
     </logging>
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
 	<globalPolicyRule>
-		<name>global-assignment-notification</name>
+		<name>global-assignment-notification-for-judge</name>
 		<policyConstraints>
 			<assignment>
 				<operation>add</operation>

@@ -52,8 +52,6 @@ import com.evolveum.midpoint.model.common.expression.ValueSetDefinition;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -855,14 +853,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				if (outputDefinition == null) {
 					throw new SchemaException("No target item that would conform to the path "+path+" in "+getMappingContextDescription());
 				}
-	
-				// Make the path relative if needed
-				if (!path.isEmpty() && (path.first() instanceof NameItemPathSegment) && 
-						((NameItemPathSegment)path.first()).isVariable()) {
-					outputPath = path.rest();
-				} else {
-					outputPath = path;
-				}
+				outputPath = path.stripVariableSegment();
 			}
 		}
 		if (stringPolicyResolver != null) {

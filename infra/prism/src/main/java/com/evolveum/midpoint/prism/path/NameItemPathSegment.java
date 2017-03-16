@@ -52,6 +52,7 @@ public class NameItemPathSegment extends ItemPathSegment {
 		return name;
 	}
 
+	@Override
 	public boolean isVariable() {
 		return isVariable;
 	}

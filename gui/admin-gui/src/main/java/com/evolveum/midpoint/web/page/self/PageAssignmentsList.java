@@ -366,7 +366,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             Map<String, AssignmentConflictDto> conflictOidsMap = new HashMap<>();
             if (addedAssignments != null) {
                 for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
-                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getTargetPolicyRules()) {
+                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
                         for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getAllTriggers()) {
                             if (trigger instanceof EvaluatedExclusionTrigger) {
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();

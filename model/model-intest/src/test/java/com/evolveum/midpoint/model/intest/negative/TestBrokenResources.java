@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,11 +126,12 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		initDummyResourcePirate(null, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_UNACCESSIBLE_NAME, null, null, initTask, initResult);
-		getDummyResource(RESOURCE_DUMMY_UNACCESSIBLE_NAME).setBreakMode(BreakMode.NETWORK);
 		
 		importObjectFromFile(RESOURCE_CSVFILE_BROKEN_FILENAME, initResult);
 		importObjectFromFile(RESOURCE_CSVFILE_NOTFOUND_FILENAME, initResult);
 		importObjectFromFile(RESOURCE_DUMMY_NOJARS_FILENAME, initResult);
+
+		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 		
 		// Accounts
 		repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, initResult);
@@ -140,6 +141,13 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
+	}
+	
+	@Override
+	public void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.postInitSystem(initTask, initResult);
+		// Break it only after resource are reset in super.postInitSystem()
+		getDummyResource(RESOURCE_DUMMY_UNACCESSIBLE_NAME).setBreakMode(BreakMode.NETWORK);
 	}
 	
 	@Test

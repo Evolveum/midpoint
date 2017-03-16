@@ -59,7 +59,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private String channel;
 
 	private LensFocusContext<F> focusContext;
-	private Collection<LensProjectionContext> projectionContexts = new ArrayList<LensProjectionContext>();
+	private Collection<LensProjectionContext> projectionContexts = new ArrayList<>();
 
 	/**
 	 * EXPERIMENTAL. A trace of resource objects that once existed but were
@@ -92,7 +92,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	/*
 	 * Executed deltas from rotten contexts.
 	 */
-	private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<LensObjectDeltaOperation<?>>();
+	private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
 	transient private ObjectTemplateType focusTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
@@ -188,10 +188,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return provisioningService;
 	}
 
-	public void setTriggeredResource(String triggeredResourceOid) {
-		this.triggeredResourceOid = triggeredResourceOid;
-	}
-
 	public void setTriggeredResource(ResourceType triggeredResource) {
 		if (triggeredResource != null) {
 			this.triggeredResourceOid = triggeredResource.getOid();
@@ -228,7 +224,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (explicitFocusClass != null) {
 			this.focusClass = explicitFocusClass;
 		}
-		focusContext = new LensFocusContext<F>(focusClass, this);
+		focusContext = new LensFocusContext<>(focusClass, this);
 		return focusContext;
 	}
 
@@ -524,7 +520,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * better to merge them.
 	 */
 	public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException {
-		Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<>();
 		if (focusContext != null) {
 			addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
 			addChangeIfNotNull(allChanges, focusContext.getSecondaryDelta());
@@ -551,7 +547,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	public Collection<ObjectDelta<? extends ObjectType>> getPrimaryChanges() throws SchemaException {
-		Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<>();
 		if (focusContext != null) {
 			addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
 		}
@@ -603,7 +599,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 */
 	Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas(Boolean audited)
 			throws SchemaException {
-		Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
+		Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
 		if (focusContext != null) {
 			executedDeltas.addAll(focusContext.getExecutedDeltas(audited));
 		}
@@ -611,7 +607,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			executedDeltas.addAll(projCtx.getExecutedDeltas(audited));
 		}
 		if (audited == null) {
-			executedDeltas.addAll(getRottenExecutedDeltas());
+			executedDeltas.addAll((Collection<? extends ObjectDeltaOperation<? extends ObjectType>>) getRottenExecutedDeltas());
 		}
 		return executedDeltas;
 	}
@@ -696,7 +692,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	private Map<String, ResourceType> getResourceCache() {
 		if (resourceCache == null) {
-			resourceCache = new HashMap<String, ResourceType>();
+			resourceCache = new HashMap<>();
 		}
 		return resourceCache;
 	}
@@ -780,7 +776,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	public LensContext<F> clone() {
-		LensContext<F> clone = new LensContext<F>(focusClass, prismContext, provisioningService);
+		LensContext<F> clone = new LensContext<>(focusClass, prismContext, provisioningService);
 		copyValues(clone);
 		return clone;
 	}
@@ -813,7 +809,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (resourceCache == null) {
 			return null;
 		}
-		Map<String, ResourceType> clonedMap = new HashMap<String, ResourceType>();
+		Map<String, ResourceType> clonedMap = new HashMap<>();
 		for (Entry<String, ResourceType> entry : resourceCache.entrySet()) {
 			clonedMap.put(entry.getKey(), entry.getValue());
 		}
@@ -935,66 +931,82 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		evaluatedAssignmentTriple.debugDumpSets(sb, assignment -> {
 			DebugUtil.indentDebugDump(sb, indent);
 			sb.append(assignment.toHumanReadableString());
-			@SuppressWarnings({ "unchecked", "raw" })
-			Collection<EvaluatedPolicyRule> targetPolicyRules = assignment.getTargetPolicyRules();
 			@SuppressWarnings("unchecked")
 			Collection<EvaluatedPolicyRule> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
-			for (EvaluatedPolicyRule rule : targetPolicyRules) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent + 1);
-				if (thisTargetPolicyRules.stream().anyMatch(d -> d == rule)) {
-					sb.append("local ");
-				}
-				sb.append("rule: ").append(rule.getName());
-				for (EvaluatedPolicyRuleTrigger trigger : rule.getTriggers()) {
-					sb.append("\n");
-					DebugUtil.indentDebugDump(sb, indent + 2);
-					sb.append("trigger: ").append(trigger);
-					if (trigger instanceof EvaluatedExclusionTrigger
-							&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
-						sb.append("\n");
-						DebugUtil.indentDebugDump(sb, indent + 3);
-						sb.append("conflict: ")
-								.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
-										.getConflictingAssignment()).toHumanReadableString());
-					}
-				}
-				for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
-					sb.append("\n");
-					DebugUtil.indentDebugDump(sb, indent + 2);
-					sb.append("exception: ").append(exc);
-				}
-			}
+			dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules);
+			@SuppressWarnings({ "unchecked", "raw" })
+			Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
+			dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules);
 		}, 1);
 		return sb.toString();
 	}
 
-	private <F extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label,
-			Collection<EvaluatedAssignmentImpl<F>> set, int indent) {
+	private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<EvaluatedPolicyRule> rules) {
 		sb.append("\n");
-		DebugUtil.debugDumpLabel(sb, label, indent);
-		for (EvaluatedAssignmentImpl<F> assignment : set) {
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(label).append(" (").append(rules.size()).append("):");
+		for (EvaluatedPolicyRule rule : rules) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append(" -> " + assignment.getTarget());
-			dumpRules(sb, "focus rules", assignment.getFocusPolicyRules(), null);
-			dumpRules(sb, "target rules", assignment.getTargetPolicyRules(),
-					assignment.getThisTargetPolicyRules());
+			if (rule.isGlobal()) {
+				sb.append("global ");
+			}
+			sb.append("rule: ").append(rule.getName());
+			for (EvaluatedPolicyRuleTrigger trigger : rule.getTriggers()) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent + 2);
+				sb.append("trigger: ").append(trigger);
+				if (trigger instanceof EvaluatedExclusionTrigger
+						&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
+					sb.append("\n");
+					DebugUtil.indentDebugDump(sb, indent + 3);
+					sb.append("conflict: ")
+							.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
+									.getConflictingAssignment()).toHumanReadableString());
+				}
+			}
+			for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent + 2);
+				sb.append("exception: ").append(exc);
+			}
 		}
 	}
 
-	private <F extends FocusType> void dumpRules(StringBuilder sb, String label,
-			Collection<EvaluatedPolicyRule> policyRules, Collection<EvaluatedPolicyRule> directPolicyRules) {
-		sb.append(" [").append(label).append("(").append(policyRules.size()).append("): ");
+	// <F> of LensContext is of ObjectType; so we need to override it (but using another name to avoid IDE warnings)
+	private <FT extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label,
+			Collection<EvaluatedAssignmentImpl<FT>> set, int indent) {
+		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, label, indent);
+		for (EvaluatedAssignmentImpl<FT> assignment : set) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append("-> ").append(assignment.getTarget());
+			dumpRules(sb, "focus rules", indent + 3, assignment.getFocusPolicyRules());
+			dumpRules(sb, "this target rules", indent + 3, assignment.getThisTargetPolicyRules());
+			dumpRules(sb, "other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());
+		}
+	}
+
+	private void dumpRules(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
+		if (policyRules.isEmpty()) {
+			return;
+		}
+		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, "- " + label + " (" + policyRules.size() + ")", indent);
 		boolean first = true;
 		for (EvaluatedPolicyRule rule : policyRules) {
 			if (first) {
 				first = false;
+				sb.append(" ");
 			} else {
 				sb.append("; ");
 			}
-			if (directPolicyRules != null && directPolicyRules.stream().anyMatch(d -> d == rule)) {
-				sb.append("L"); // L for Local
+			if (rule.isGlobal()) {
+				sb.append("G:");
+			}
+			if (rule.getName() != null) {
+				sb.append(rule.getName());
 			}
 			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
 			sb.append("->");
@@ -1006,7 +1018,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 				sb.append(")");
 			}
 		}
-		sb.append("]");
 	}
 
 	public LensContextType toLensContextType() throws SchemaException {
@@ -1052,6 +1063,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return lensContextTypeContainer;
 	}
 
+	@SuppressWarnings({"unchecked", "raw"})
 	public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext,
 			ProvisioningService provisioningService, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {

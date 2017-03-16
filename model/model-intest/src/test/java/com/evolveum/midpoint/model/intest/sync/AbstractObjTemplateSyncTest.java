@@ -134,7 +134,8 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         
         waitForSyncTaskStart(resourceDummyByzantine);
 	}
-	
+
+	// MID-2149
 	@Test
     public void test110AddDummyByzantineAccountMancomb() throws Exception {
 		final String TEST_NAME = "test110AddDummyByzantineAccountMancomb";
@@ -187,8 +188,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 
 		assertEquals("Wrong e-mail address for mancomb", "mancomb.Mr@test.com", userMancomb.asObjectable().getEmailAddress());
 		assertAssignedOrg(userMancomb, ORG_F0001_OID);
-		// this fails (see MID-2149)
-		//assertHasOrg(userMancomb, ORG_F0001_OID);
+		assertHasOrg(userMancomb, ORG_F0001_OID);
         
         assertUsers(6);
 

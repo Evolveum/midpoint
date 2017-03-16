@@ -56,14 +56,14 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		return new PrismObject<O>(getName(), this, prismContext);
 	}
 	
+	@NotNull
 	@Override
 	public PrismObject<O> instantiate(QName name) throws SchemaException {
 		if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
         name = addNamespaceIfApplicable(name);
-		PrismObject<O> midPointObject = new PrismObject<O>(name, this, prismContext);
-		return midPointObject;
+		return new PrismObject<>(name, this, prismContext);
 	}
 	
 	@NotNull

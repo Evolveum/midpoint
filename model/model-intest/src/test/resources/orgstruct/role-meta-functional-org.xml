@@ -36,6 +36,7 @@
     			</target>
     		</mapping>
     	</focusMappings>
+		<focusType>UserType</focusType>
     	<order>2</order>
     </inducement>
     

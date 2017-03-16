@@ -94,6 +94,8 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private boolean editable = true;
 	private boolean simpleView = false;
 
+	private boolean isAlreadyAssigned = false;
+
 	private Boolean isOrgUnitManager = Boolean.FALSE;
 	private AssignmentType newAssignment;
 	private List<ACAttributeDto> attributes;
@@ -662,6 +664,14 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     public void setSimpleView(boolean simpleView) {
         this.simpleView = simpleView;
     }
+
+	public boolean isAlreadyAssigned() {
+		return isAlreadyAssigned;
+	}
+
+	public void setAlreadyAssigned(boolean alreadyAssigned) {
+		isAlreadyAssigned = alreadyAssigned;
+	}
 
 	public List<AssignmentsPreviewDto> getPrivilegeLimitationList() {
 		return privilegeLimitationList;

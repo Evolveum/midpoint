@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
@@ -65,12 +67,15 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
 	@NotNull private final Collection<Mapping<?,?>> focusMappings = new ArrayList<>();
 	@NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();	// rules related to the focus itself
-	@NotNull private final Collection<EvaluatedPolicyRule> targetPolicyRules = new ArrayList<>();	// rules related to the target of this assignment
-	// rules directly related to the target of this assignment - should be a subset of targetPolicyRules
-	// (this means that if a reference is in thisTargetPolicyRules, then the same reference should
-	// be in targetPolicyRules)
+	// rules related to the focal object (typically e.g. "forbid modifications")
+	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();
+	// rules related to the target of this assignment (typically e.g. "approve the assignment")
 	@NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules = new ArrayList<>();
+	// rules related to other targets provided by this assignment (e.g. induced or obtained by delegation)
+	// usually, these rules do not cause direct action (e.g. in the case of approvals);
+	// however, there are situations in which they are used (e.g. for exclusion rules)
+	@NotNull private final Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = new ArrayList<>();
+
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -193,9 +198,6 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		delegationRefVals.add(org);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAuthorizations()
-	 */
 	@NotNull
 	@Override
 	public Collection<Authorization> getAuthorizations() {
@@ -306,21 +308,26 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	public Collection<EvaluatedPolicyRule> getTargetPolicyRules() {
-		return targetPolicyRules;
-	}
-
-	public void addTargetPolicyRule(EvaluatedPolicyRule policyRule) {
-		targetPolicyRules.add(policyRule);
-	}
-
-	@NotNull
 	public Collection<EvaluatedPolicyRule> getThisTargetPolicyRules() {
 		return thisTargetPolicyRules;
 	}
 
 	public void addThisTargetPolicyRule(EvaluatedPolicyRule policyRule) {
 		thisTargetPolicyRules.add(policyRule);
+	}
+
+	@NotNull
+	public Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules() {
+		return otherTargetsPolicyRules;
+	}
+
+	public void addOtherTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+		otherTargetsPolicyRules.add(policyRule);
+	}
+
+	@NotNull
+	public Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules() {
+		return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
 	}
 
 	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
@@ -337,7 +344,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			PolicyConstraintsType targetConstraints = constraints.clone();
 			targetConstraints.getModification().clear();
 			EvaluatedPolicyRule evaluatedPolicyRule = toEvaluatedPolicyRule(targetConstraints, assignmentPath, directOwner);
-			targetPolicyRules.add(evaluatedPolicyRule);
+			otherTargetsPolicyRules.add(evaluatedPolicyRule);
 			thisTargetPolicyRules.add(evaluatedPolicyRule);
 		}
 	}
@@ -392,6 +399,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabelLn(sb, "EvaluatedAssignment", indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "assignment old", String.valueOf(assignmentIdi.getItemOld()), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "assignment delta", String.valueOf(assignmentIdi.getDelta()), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "assignment new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
         if (forceRecon) {
             sb.append("\n");
@@ -432,8 +443,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		}
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules", focusPolicyRules, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "targetPolicyRules", targetPolicyRules, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules", thisTargetPolicyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules", otherTargetsPolicyRules, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
 		return sb.toString();

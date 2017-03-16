@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -33,9 +32,11 @@ public interface PrismReferenceDefinition extends ItemDefinition<PrismReference>
 
 	boolean isComposite();
 
+	@NotNull
 	@Override
 	PrismReference instantiate();
 
+	@NotNull
 	@Override
 	PrismReference instantiate(QName name);
 

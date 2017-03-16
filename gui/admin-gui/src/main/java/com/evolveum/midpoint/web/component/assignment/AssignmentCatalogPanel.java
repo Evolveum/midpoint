@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.*;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,6 +48,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
@@ -142,7 +146,9 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
                 @Override
                 public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
-                    return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, pageBase);
+                    AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, pageBase);
+                    dto.setAlreadyAssigned(isAlreadyAssigned(obj));
+                    return dto;
                 }
 
                 @Override
@@ -334,15 +340,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         targetUserModel = new IModel<PrismObject<UserType>>() {
             @Override
             public PrismObject<UserType> getObject() {
-                PrismObject<UserType> targetUser = pageBase.getSessionStorage().getRoleCatalog().getTargetUser();
-                if (targetUser != null){
-                    return targetUser;
-                }
-                PrismObject<UserType> user = pageBase.loadUserSelf(pageBase);
-                if (user != null){
-                    return user;
-                }
-                return null;
+                return getTargetUser();
             }
 
             @Override
@@ -662,6 +660,27 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
             }
         };
+    }
+
+    private boolean isAlreadyAssigned(PrismObject<AbstractRoleType> obj){
+        PrismObject<UserType> user = getTargetUser();
+        if (user == null || user.asObjectable().getAssignment() == null){
+            return false;
+        }
+        for (AssignmentType assignment : user.asObjectable().getAssignment()){
+            if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(obj.getOid())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private PrismObject<UserType> getTargetUser(){
+        PrismObject<UserType> targetUser = pageBase.getSessionStorage().getRoleCatalog().getTargetUser();
+        if (targetUser != null){
+            return targetUser;
+        }
+        return pageBase.loadUserSelf(pageBase);
     }
 }
 

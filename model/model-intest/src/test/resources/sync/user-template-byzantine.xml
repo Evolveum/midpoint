@@ -27,21 +27,7 @@
     <!-- Demonstrates the problem where values created during execution of object template cannot be used in the template itself -->
     <!-- (i.e. chaining of mappings) -->
 
-    <!-- HonorificPrefix is such a value. -->
-
-    <mapping>
-        <name>Honorific prefix mapping</name>
-        <expression>
-            <script>
-                <code>
-                    'Mr'
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>honorificPrefix</path>
-        </target>
-    </mapping>
+    <!-- HonorificPrefix is such a value. We even put the mapping that produces it at the end. -->
 
     <mapping>
         <name>Email address mapping</name>
@@ -64,7 +50,7 @@
     <mapping>
         <name>Org assignment</name>
         <source>
-            <path>honorificPrefix</path>
+            <path>$focus/honorificPrefix</path>
         </source>
         <expression>
             <assignmentTargetSearch>
@@ -74,6 +60,20 @@
         </expression>
         <target>
             <path>assignment</path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <name>Honorific prefix mapping</name>
+        <expression>
+            <script>
+                <code>
+                    'Mr'
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>$user/honorificPrefix</path>
         </target>
     </mapping>
 

@@ -168,7 +168,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         assertCaseOutcome(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, ACCEPT, ACCEPT, null);
-        assertPercentComplete(campaign, 20, 100, 0);     // preliminary outcomes for all aases are "ACCEPT"
+        assertPercentComplete(campaign, 20, 100, 0);     // preliminary outcomes for all cases are "ACCEPT"
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {

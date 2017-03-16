@@ -181,7 +181,7 @@ public class ExpressionUtil {
 		ItemPath relativePath = path;
 		ItemPathSegment first = path.first();
 		String varDesc = "default context";
-		if (first instanceof NameItemPathSegment && ((NameItemPathSegment) first).isVariable()) {
+		if (first.isVariable()) {
 			QName varName = ((NameItemPathSegment) first).getName();
 			varDesc = "variable " + PrettyPrinter.prettyPrint(varName);
 			relativePath = path.rest();

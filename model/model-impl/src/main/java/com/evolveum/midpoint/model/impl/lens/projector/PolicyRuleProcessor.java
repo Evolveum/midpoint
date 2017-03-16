@@ -208,7 +208,7 @@ public class PolicyRuleProcessor {
 
 		// We consider all policy rules, i.e. also from induced targets. (It is not possible to collect local
 		// rules for individual targets in the chain - rules are computed only for directly evaluated assignments.)
-		for (EvaluatedPolicyRule policyRule : assignmentA.getTargetPolicyRules()) {
+		for (EvaluatedPolicyRule policyRule : assignmentA.getAllTargetsPolicyRules()) {
 			if (policyRule.getPolicyConstraints() == null || policyRule.getPolicyConstraints().getExclusion().isEmpty()) {
 				continue;
 			}
@@ -371,7 +371,7 @@ public class PolicyRuleProcessor {
 		}
 		boolean needToReevaluateAssignments = false;
 		for (EvaluatedAssignmentImpl<F> plusAssignment: plusSet) {
-			for (EvaluatedPolicyRule targetPolicyRule: plusAssignment.getTargetPolicyRules()) {
+			for (EvaluatedPolicyRule targetPolicyRule: plusAssignment.getAllTargetsPolicyRules()) {
 				for (EvaluatedPolicyRuleTrigger trigger: targetPolicyRule.getTriggers()) {
 					if (!(trigger instanceof EvaluatedExclusionTrigger)) {
 						continue;
@@ -452,7 +452,7 @@ public class PolicyRuleProcessor {
 		// Decision whether to trigger such rules lies on "primary" policy constraints. (E.g. approvals would
 		// not trigger, whereas exclusions probably would.) Overall, our responsibility is simply to collect
 		// all triggered rules.
-		return evaluatedAssignment.getTargetPolicyRules().stream()
+		return evaluatedAssignment.getAllTargetsPolicyRules().stream()
 				.filter(r -> !r.getTriggers().isEmpty() && situations.contains(r.getPolicySituation()))
 				.collect(Collectors.toList());
 	}
@@ -552,7 +552,7 @@ public class PolicyRuleProcessor {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		PrismObject<F> focus = focusContext.getObjectCurrent();
 		if (focus == null) {
-			focus = focusContext.getObjectNew();
+			focus = focusContext.getObjectNew();		// only if it does not exist, let's try the new one
 		}
 
 		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
@@ -573,9 +573,10 @@ public class PolicyRuleProcessor {
 					}
 					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule,
 							target.getAssignmentPath() != null ? target.getAssignmentPath().clone() : null);
-					evaluatedAssignment.addTargetPolicyRule(evaluatedRule);
 					if (target.getAssignmentPath() != null && target.getAssignmentPath().size() == 1) {
 						evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);
+					} else {
+						evaluatedAssignment.addOtherTargetPolicyRule(evaluatedRule);
 					}
 				}
 			}
@@ -639,7 +640,7 @@ public class PolicyRuleProcessor {
 
 	private List<EvaluatedPolicyRuleTriggerType> getTriggers(EvaluatedAssignmentImpl<?> evaluatedAssignment) {
 		List<EvaluatedPolicyRuleTriggerType> rv = new ArrayList<>();
-		for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getTargetPolicyRules()) {
+		for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
 			for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getTriggers()) {
 				EvaluatedPolicyRuleTriggerType triggerType = trigger.toEvaluatedPolicyRuleTriggerType(policyRule).clone();
 				simplifyTrigger(triggerType);

@@ -15,8 +15,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -31,11 +33,12 @@ import com.evolveum.midpoint.util.QNameUtil;
  */
 public class EvaluationOrderImpl implements EvaluationOrder {
 
+	public static EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
 	public static EvaluationOrder ZERO = createZero();
 	public static EvaluationOrder ONE = ZERO.advance();
 
 	private int summaryOrder = 0;
-	private HashMap<QName,Integer> orderMap = new HashMap<>();
+	private final HashMap<QName,Integer> orderMap = new HashMap<>();
 
 	private EvaluationOrderImpl() {
 	}
@@ -167,5 +170,12 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		sb.setLength(sb.length() - 1);
 		sb.append("=").append(summaryOrder);
 		return sb.toString();
+	}
+
+	@Override
+	public Collection<QName> getExtraRelations() {
+		return orderMap.keySet().stream()
+				.filter(r -> !DeputyUtils.isMembershipRelation(r) && !DeputyUtils.isDelegationRelation(r))
+				.collect(Collectors.toSet());
 	}
 }

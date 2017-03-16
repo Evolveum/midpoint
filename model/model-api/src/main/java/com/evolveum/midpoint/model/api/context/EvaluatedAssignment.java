@@ -66,23 +66,35 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	Collection<EvaluatedPolicyRule> getFocusPolicyRules();
 	
 	/**
-	 * Returns all policy rules that (directly or indirectly) apply to the target object of this assignment
-	 * and are derived from this assignment - even those that were not triggered. The policy rules are compiled
-	 * from all the applicable sources (target, meta-roles, etc.)
-	 */
-	@NotNull
-	Collection<EvaluatedPolicyRule> getTargetPolicyRules();
-
-	/**
-	 * Returns all policy rules that directly apply to the target object of this assignment and are derived
-	 * from this assignment - even those that were not triggered. The policy rules are compiled
-	 * from all the applicable sources (target, meta-roles, etc.)
-	 *
-	 * By "directly apply" we mean that these rules are derived from the assignments of this target.
-	 * Rules that this target got via inducements are not included here.
+	 * Returns all policy rules that directly apply to the target object of this assignment
+	 * (and are derived from this assignment) - even those that were not triggered. The policy rules
+	 * are compiled from all the applicable sources (target, meta-roles, etc.)
 	 */
 	@NotNull
 	Collection<EvaluatedPolicyRule> getThisTargetPolicyRules();
+
+	/**
+	 * Returns all policy rules that apply to some other target object of this assignment
+	 * (and are derived from this assignment) - even those that were not triggered. The policy rules
+	 * are compiled from all the applicable sources (target, meta-roles, etc.)
+	 */
+	@NotNull
+	Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules();
+
+	/**
+	 * Returns all policy rules that apply to any of the target objects provided by this assignment
+	 * (and are derived from this assignment) - even those that were not triggered. The policy rules
+	 * are compiled from all the applicable sources (target, meta-roles, etc.)
+	 *
+	 * The difference to getThisTargetPolicyRules is that if e.g.
+	 * jack is a Pirate, and Pirate induces Sailor, then
+	 *  - getThisTargetPolicyRules will show rules that are attached to Pirate
+	 *  - getAllTargetsPolicyRules will show rules that are attached to Pirate and Sailor
+	 *  - getOtherTargetsPolicyRules will show rules that are attached to Sailor
+	 */
+	@NotNull
+	Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules();
+
 
 	Collection<String> getPolicySituations();
 	
