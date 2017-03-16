@@ -12494,7 +12494,8 @@
     <xsd:complexType name="ModelExecuteOptionsType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Options for execution of Model operations. These options influence the way how the operations are executed.
+                The options are not mandatory. All options have reasonable default values. They may not be specified at all.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -12520,13 +12521,16 @@
                     <xsd:documentation>
                         Avoid encryption of any cleartext data on write. Applies only to the encrypted
                         data formats (ProtectedString, ProtectedByteArray).
+                        It is not recommended to use in production environment. This option is provided only for diagnostic
+						purposes to be used in development environments.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Option to reconcile user while executing changes.
+                        Option to reconcile focus and all projections while executing changes.
+						(implies reconcileFocus)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -12602,7 +12606,8 @@
             <xsd:element name="partialProcessing" type="tns:PartialProcessingOptionsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Business context that describes this request.
+                        Options that control selective execution of model logic.
+                        Use with extreme care. Some combinations may be dangerous.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
