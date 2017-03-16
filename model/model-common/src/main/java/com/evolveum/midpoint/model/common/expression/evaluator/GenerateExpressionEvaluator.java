@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -62,11 +62,11 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	private Protector protector;
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
-	private ValuePolicyGenerator valuePolicyGenerator;
+	private ValuePolicyProcessor valuePolicyGenerator;
 	private StringPolicyType elementStringPolicy;
 
 	GenerateExpressionEvaluator(GenerateExpressionEvaluatorType generateEvaluatorType, D outputDefinition,
-			Protector protector, ObjectResolver objectResolver, ValuePolicyGenerator valuePolicyGenerator, PrismContext prismContext) {
+			Protector protector, ObjectResolver objectResolver, ValuePolicyProcessor valuePolicyGenerator, PrismContext prismContext) {
 		this.generateEvaluatorType = generateEvaluatorType;
 		this.outputDefinition = outputDefinition;
 		this.protector = protector;

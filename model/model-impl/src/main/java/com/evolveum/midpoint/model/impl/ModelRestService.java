@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,6 +39,8 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,14 +56,17 @@ import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -75,16 +81,21 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ScriptOutputsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
@@ -94,8 +105,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
@@ -154,6 +167,9 @@ public class ModelRestService {
 	private SecurityHelper securityHelper;
 
 	@Autowired
+	ValuePolicyProcessor policyProcessor;
+	
+	@Autowired
 	private TaskManager taskManager;
 
 	@Autowired
@@ -166,6 +182,165 @@ public class ModelRestService {
 	public ModelRestService() {
 		// nothing to do
 	}
+	
+	@POST
+	@Path("/{type}/{oid}/generate")
+	@Consumes({"application/xml", "application/json", "application/yaml"})
+	@Produces({"application/xml", "application/json", "application/yaml"})
+	public <O extends ObjectType> Response generateValue(@PathParam("type") String type,
+			@PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition,
+			@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
+
+		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
+		Response response = null;
+		if (policyItemsDefinition == null) {
+			LOGGER.error("Policy items definition must not be null");
+			parentResult.recordFatalError("Policy items definition must not be null");
+			ResponseBuilder builder = Response.status(Status.BAD_REQUEST).entity(parentResult);
+			return builder.build();
+		}
+		try {
+			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+
+			PrismObject<ValuePolicyType> valuePolicy = resolveUserPolicy((PrismObject<UserType>) object, task,
+					parentResult);
+
+			boolean executeImmediatelly = false;
+			Collection<PropertyDelta> propertyDeltas = new ArrayList<>();
+			for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition
+					.getPolicyItemDefinition()) {
+
+				generateValue(object, valuePolicy, policyItemDefinition, task, parentResult);
+				
+				if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
+					executeImmediatelly = true;
+					PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(policyItemDefinition.getTarget().getPath().getItemPath(), object.getDefinition(), policyItemDefinition.getValue());
+					propertyDeltas.add(propertyDelta);
+				}
+
+			}
+			
+			if (executeImmediatelly) {
+				model.modifyObject(clazz, oid, propertyDeltas, null, task, parentResult);
+			}
+
+			ResponseBuilder responseBuilder = Response.ok(policyItemsDefinition);
+			response = responseBuilder.build();
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(parentResult, ex);
+		}
+
+		parentResult.computeStatus();
+		finishRequest(task);
+		return response;
+
+	}
+	
+	private PrismObject<ValuePolicyType> resolveUserPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(user, task, parentResult);
+		
+		
+		PrismObject<ValuePolicyType> valuePolicy = null;
+		if (policy.getPassword().getPasswordPolicyRef() != null) {
+			valuePolicy = model.getObject(ValuePolicyType.class, policy.getPassword().getPasswordPolicyRef().getOid(), null, task, parentResult);
+		}
+		
+		return valuePolicy;
+	}
+	
+	private <O extends ObjectType> void generateValue(PrismObject<O> object, PrismObject<ValuePolicyType> policy, PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		
+		StringPolicyType stringPolicy = null;
+		if (policyItemDefinition.getValuePolicyRef() != null) {
+			PrismObject<ValuePolicyType> valuePolicy = model.getObject(ValuePolicyType.class, policyItemDefinition.getValuePolicyRef().getOid(), null, task, result);
+			PrismObject<ValuePolicyType> policyOverride = valuePolicy.clone();
+			stringPolicy = policyOverride != null ? policyOverride.asObjectable().getStringPolicy() : null;
+		} else {
+		
+			stringPolicy = policy != null ? policy.asObjectable().getStringPolicy() : null;
+		}
+		String newValue = policyProcessor.generate(stringPolicy, 10, object, "generating value for" + policyItemDefinition.getTarget().getPath(), task, result);
+		policyItemDefinition.setValue(newValue);
+	}
+	
+	@POST
+	@Path("/{type}/{oid}/validate")
+	public <O extends ObjectType> Response validateValue(@PathParam("type") String type, @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
+		
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
+
+		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
+		Response response = null;
+		if (policyItemsDefinition == null) {
+			LOGGER.error("Policy items definition must not be null");
+			parentResult.recordFatalError("Policy items definition must not be null");
+			ResponseBuilder builder = Response.status(Status.BAD_REQUEST).entity(parentResult);
+			return builder.build();
+		}
+		try {
+			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+
+			PrismObject<ValuePolicyType> valuePolicy = resolveUserPolicy((PrismObject<UserType>) object, task,
+					parentResult);
+
+			boolean executeImmediatelly = false;
+			Collection<PropertyDelta> propertyDeltas = new ArrayList<>();
+			for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition
+					.getPolicyItemDefinition()) {
+
+				validateValue(object, valuePolicy, policyItemDefinition, task, parentResult);
+			
+			}
+			
+			
+
+			ResponseBuilder responseBuilder = Response.ok(policyItemsDefinition);
+			response = responseBuilder.build();
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(parentResult, ex);
+		}
+
+		parentResult.computeStatus();
+		finishRequest(task);
+		return response;
+
+		
+	}
+	
+private <O extends ObjectType> void validateValue(PrismObject<O> object, PrismObject<ValuePolicyType> policy, PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+		
+	ValuePolicyType stringPolicy = null;
+		if (policyItemDefinition.getValuePolicyRef() != null) {
+			PrismObject<ValuePolicyType> valuePolicy = model.getObject(ValuePolicyType.class, policyItemDefinition.getValuePolicyRef().getOid(), null, task, result);
+			PrismObject<ValuePolicyType> policyOverride = valuePolicy.clone();
+			stringPolicy = policyOverride != null ? policyOverride.asObjectable() : null;
+		} else {
+		
+			stringPolicy = policy != null ? policy.asObjectable() : null;
+		}
+		
+		ItemDefinition itemToValidateDefinition = object.findItem(policyItemDefinition.getTarget().getPath().getItemPath()).getDefinition();
+		itemToValidateDefinition.getTypeName();
+		
+		prismContext.getEntityResolver();
+		
+		//TODO 		
+		String valueToValidate = (String) policyItemDefinition.getValue();
+		if (StringUtils.isBlank(valueToValidate)) {
+			valueToValidate = object.findItem(policyItemDefinition.getTarget().getPath().getItemPath()).getRealValue();
+		}
+		
+		if (!policyProcessor.validateValue(valueToValidate, stringPolicy, object, "validate value for " + object + " value " + valueToValidate, task, result)) {
+			result.computeStatus();
+			throw new PolicyViolationException("Validation for value: " + valueToValidate + " failed." + result.getMessage());
+		}
+		
+	}
+	
 
 	@GET
 	@Path("/users/{id}/policy")
@@ -177,6 +352,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
+			
 			Collection<SelectorOptions<GetOperationOptions>> options =
 					SelectorOptions.createCollection(GetOperationOptions.createRaw());
 			PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, parentResult);

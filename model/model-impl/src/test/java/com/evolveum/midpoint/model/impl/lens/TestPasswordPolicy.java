@@ -35,7 +35,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.common.stringpolicy.StringPolicyUtils;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -74,7 +74,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	private PasswordPolicyProcessor passwordPolicyProcessor;
 	
 	@Autowired(required = true)
-	private ValuePolicyGenerator valuePolicyGenerator;
+	private ValuePolicyProcessor valuePolicyGenerator;
 		
 	@Test
 	public void stringPolicyUtilsMinimalTest() throws JAXBException, SchemaException, IOException {
