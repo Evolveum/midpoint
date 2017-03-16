@@ -30,20 +30,18 @@ import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.bag.TreeBag;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,8 +49,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayObjectTypeCollection;
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
 
 /**
  * Comprehensive test of assignment evaluator and processor.
@@ -87,26 +83,38 @@ import static org.testng.AssertJUnit.fail;
  *
  * @author mederly
  */
+@SuppressWarnings({ "FieldCanBeLocal", "SameParameterValue" })
 public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	private static final int CONSTRUCTION_LEVELS = 5;
 	private static final int FOCUS_MAPPING_LEVELS = 5;
 	private static final int POLICY_RULES_LEVELS = 5;
 
-	public static final File RESOURCE_DUMMY_EMPTY_FILE = new File(TEST_DIR, "resource-dummy-empty.xml");
-	public static final String RESOURCE_DUMMY_EMPTY_OID = "10000000-0000-0000-0000-00000000EEE4";
-	public static final String RESOURCE_DUMMY_EMPTY_INSTANCE_NAME = "empty";
+	private static final boolean FIRST_PART = true;
+	private static final boolean SECOND_PART = true;
+
+	private static final File RESOURCE_DUMMY_EMPTY_FILE = new File(TEST_DIR, "resource-dummy-empty.xml");
+	private static final String RESOURCE_DUMMY_EMPTY_OID = "10000000-0000-0000-0000-00000000EEE4";
+	private static final String RESOURCE_DUMMY_EMPTY_INSTANCE_NAME = "empty";
 
 	@Autowired private AssignmentProcessor assignmentProcessor;
     @Autowired private Clock clock;
 
+    // first part
     private RoleType role1, role2, role4, role5, role6;
     private OrgType org3;
     private RoleType metarole1, metarole2, metarole3, metarole4;
     private RoleType metametarole1;
+
+	// second part
+	private RoleType role7, role8, role9;
+	private RoleType metarole7, metarole8, metarole9;
+	private RoleType metametarole7;
+
 	private List<ObjectType> objects;
 
 	private static final String ROLE_R1_OID = getRoleOid("R1");
+	private static final String ROLE_R7_OID = getRoleOid("R7");
 	private static final String ROLE_MR1_OID = getRoleOid("MR1");
 
 	@Override
@@ -115,10 +123,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		initDummyResourcePirate(RESOURCE_DUMMY_EMPTY_INSTANCE_NAME, RESOURCE_DUMMY_EMPTY_FILE,
 				RESOURCE_DUMMY_EMPTY_OID, initTask, initResult);
 
-		createObjects(false, initTask, initResult, null);
+		createObjectsInFirstPart(false, initTask, initResult, null);
 	}
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test010AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test010AssignR1ToJack";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -139,7 +147,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		result.computeStatus();
 		assertSuccess("Assignment processor failed (result)", result);
 
-		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		@SuppressWarnings({ "unchecked", "raw" })
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -162,7 +171,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 	}
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test020AssignMR1ToR1() throws Exception {
 		final String TEST_NAME = "test020AssignMR1ToR1";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -187,11 +196,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		// assignment of focus mappings R1-0
 		// assignment of focus policy rules R1-0
 		// assignment of metarole MR1 (this will be checked)
-		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 4, 0, 0);
-		List<EvaluatedAssignmentImpl> targetedAssignments = evaluatedAssignments.stream().filter(ea -> ea.getTarget() != null)
+		Collection<EvaluatedAssignmentImpl<RoleType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 4, 0, 0);
+		List<EvaluatedAssignmentImpl<RoleType>> targetedAssignments = evaluatedAssignments.stream().filter(ea -> ea.getTarget() != null)
 				.collect(Collectors.toList());
 		assertEquals("Wrong # of targeted assignments", 1, targetedAssignments.size());
-		EvaluatedAssignmentImpl evaluatedAssignment = targetedAssignments.get(0);
+		EvaluatedAssignmentImpl<RoleType> evaluatedAssignment = targetedAssignments.get(0);
 
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -211,7 +220,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertGuiConfig(evaluatedAssignment, "MR1 MR3 MR4");
 	}
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test030AssignR1ToJackProjectorDisabled() throws Exception {
 		final String TEST_NAME = "test030AssignR1ToJackProjectorDisabled";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -243,7 +252,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 * As R1 is assigned with the relation=approver, jack will "see" only this role.
 	 * However, we must collect all relevant target policy rules.
 	 */
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test040AssignR1ToJackAsApprover() throws Exception {
 		final String TEST_NAME = "test040AssignR1ToJackAsApprover";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -264,7 +273,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		result.computeStatus();
 		assertSuccess("Assignment processor failed (result)", result);
 
-		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -300,7 +309,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 *  (D = deputy assignment)
 	 *
 	 */
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test050JackDeputyOfBarbossa() throws Exception {
 		final String TEST_NAME = "test050JackDeputyOfBarbossa";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -337,7 +346,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		result.computeStatus();
 		assertSuccess("Assignment processor failed (result)", result);
 
-		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -383,7 +392,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 * (D = deputy assignment)
 	 *
 	 */
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test060JackDeputyOfGuybrushDeputyOfBarbossa() throws Exception {
 		final String TEST_NAME = "test060JackDeputyOfGuybrushDeputyOfBarbossa";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -420,7 +429,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		result.computeStatus();
 		assertSuccess("Assignment processor failed (result)", result);
 
-		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -468,7 +477,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 *            jack
 	 */
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test100DisableSomeRoles() throws Exception {
 		final String TEST_NAME = "test100DisableSomeRoles";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -478,14 +487,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// WHEN
-		createObjects(true, task, result, () -> disableRoles("MMR1 R2 MR3 R4"));
+		createObjectsInFirstPart(true, task, result, () -> disableRoles("MMR1 R2 MR3 R4"));
 
 		// THEN
 		// TODO check e.g. membershipRef for roles
 	}
 
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test110AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test010AssignR1ToJack";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -506,7 +515,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		result.computeStatus();
 		assertSuccess("Assignment processor failed (result)", result);
 
-		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -546,7 +555,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 *            jack
 	 */
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test150DisableSomeAssignments() throws Exception {
 		final String TEST_NAME = "test150DisableSomeAssignments";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -556,12 +565,12 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// WHEN
-		createObjects(true, task, result, () -> disableAssignments("MR4-R6 MR1-MR3 R1-R2"));
+		createObjectsInFirstPart(true, task, result, () -> disableAssignments("MR4-R6 MR1-MR3 R1-R2"));
 
 		// THEN
 	}
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test160AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test160AssignR1ToJack";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -582,7 +591,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		result.computeStatus();
 		assertSuccess("Assignment processor failed (result)", result);
 
-		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -622,7 +631,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 *            jack
 	 */
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test200AddConditions() throws Exception {
 		final String TEST_NAME = "test200AddConditions";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -632,7 +641,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// WHEN
-		createObjects(true, task, result, () -> {
+		createObjectsInFirstPart(true, task, result, () -> {
 			disableRoles("R4");
 			addConditionToRoles("MR1+ MR30 MR4-");
 			addConditionToAssignments("R1-MR1+ MR1-MMR1+ R1-R2- MR2-O3+");
@@ -643,7 +652,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 
-	@Test
+	@Test(enabled = FIRST_PART)
 	public void test210AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test210AssignR1ToJack";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -668,7 +677,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		result.computeStatus();
 		assertSuccess("Assignment processor failed (result)", result);
 
-		Collection<EvaluatedAssignmentImpl> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -689,9 +698,150 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertGuiConfig(evaluatedAssignment, "R1");
 	}
 
+	/**
+	 * Testing targets with multiple incoming paths.
+	 *
+	 *            MMR7 -------I--------*
+	 *             ^^                  |
+	 *             ||                  |
+	 *             |+--------+         |
+	 *             |         |         V
+	 *            MR7       MR8       MR9
+	 *             ^         ^         |
+	 *             |         |         |
+	 *             |         |         V
+	 *             R7 --I--> R8        R9
+	 *             ^
+	 *             |
+	 *             |
+	 *            jack
+	 *
+	 */
+
+	@Test(enabled = SECOND_PART)
+	public void test300AssignR7ToJack() throws Exception {
+		final String TEST_NAME = "test300AssignR7ToJack";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		createObjectsInSecondPart(false, task, result, null);
+
+		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R7_OID, null, null, result);
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		/* We expect some duplicates, namely:
+
+        Constructions:
+          DeltaSetTriple:
+              zero:
+                  description: R7-1
+                  description: R8-1
+                  description: R9-1 description: R9-1
+                  description: MR7-2
+                  description: MR8-2
+                  description: MR9-2 description: MR9-2
+                  description: MMR7-3 description: MMR7-3
+              plus:
+              minus:
+        Roles:
+          DeltaSetTriple:
+              zero:
+                EvaluatedAssignmentTarget:
+                        name: R7
+                        name: R8
+                        name: R9 name: R9
+                        name: MR7
+                        name: MR8
+                        name: MR9 name: MR9
+                        name: MMR7 name: MMR7
+              plus:
+              minus:
+        Membership:
+          PRV(object=role:99999999-0000-0000-0000-0000000000R7(R7))
+          PRV(object=role:99999999-0000-0000-0000-0000000000R8(R8))
+          PRV(object=role:99999999-0000-0000-0000-0000000000R9(R9))     PRV(object=role:99999999-0000-0000-0000-0000000000R9(R9))
+        Authorizations:
+          [R7])
+          [R8])
+          [R9]) [R9])
+        Focus Mappings:
+          M(R7-1: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; ))
+          M(R8-1: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; ))
+          M(R9-1: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; )) M(R9-1: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; ))
+          M(MR7-2: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; ))
+          M(MR8-2: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; ))
+          M(MR9-2: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; )) M(MR9-2: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; ))
+          M(MMR7-3: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; )) M(MMR7-3: {...common/common-3}description = PVDeltaSetTriple(zero: [PPV(String:jack)]; plus: []; minus: []; ))
+        Target: role:99999999-0000-0000-0000-0000000000R7(R7)
+        focusPolicyRules:
+          [
+              name: R7-1
+              name: R8-1
+              name: R9-1 name: R9-1
+              name: MR7-2
+              name: MR8-2
+              name: MR9-2 name: MR9-2
+              name: MMR7-3 name: MMR7-3
+          ]
+        thisTargetPolicyRules:
+          [
+              name: R7-0
+              name: MR7-1
+              name: MMR7-2
+              name: MR9-1
+          ]
+        otherTargetsPolicyRules:
+          [
+              name: R8-0
+              name: R9-0 name: R9-0
+              name: MR8-1
+              name: MR9-1
+              name: MMR7-2
+          ]
+
+          For all path-sensitive items (constructions, targets, focus mappings, policy rules) it is OK, because the items will
+          differ in assignment path; this might be relevant (e.g. w.r.t. validity, or further processing of e.g. constructions
+          or policy rules).
+
+          Simple "scalar" results, like membership, authorizations or gui config, should not contain duplicates.
+		 */
+
+		assertTargets(evaluatedAssignment, true, "R7 R8 R9 R9", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "MR7 MR8 MR9 MR9 MMR7 MMR7", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "R7 R8 R9");
+		assertOrgRef(evaluatedAssignment, "");
+		assertDelegation(evaluatedAssignment, "");
+
+		String expectedItems = "R7-1 R8-1 R9-1 R9-1 MR7-2 MR8-2 MR9-2 MR9-2 MMR7-3 MMR7-3";
+		assertConstructions(evaluatedAssignment, expectedItems, null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
+
+		assertTargetPolicyRules(evaluatedAssignment,
+				"R7-0 MR7-1 MMR7-2 MR9-1",
+				"R8-0 R9-0 R9-0 MR8-1 MR9-1 MMR7-2");
+		assertAuthorizations(evaluatedAssignment, "R7 R8 R9");
+		assertGuiConfig(evaluatedAssignment, "R7 R8 R9");
+	}
 	//region ============================================================= helper methods (preparing scenarios)
 
-	private void createObjects(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
+	private void createObjectsInFirstPart(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
 		role1 = createRole(1, 1);
 		role1.setDelegable(true);
 		role2 = createRole(1, 2);
@@ -718,6 +868,33 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		objects = new ArrayList<>(
 				Arrays.asList(role1, role2, org3, role4, role5, role6, metarole1, metarole2, metarole3, metarole4, metametarole1));
 
+		createObjects(deleteFirst, task, result, adjustment);
+	}
+
+	private void createObjectsInSecondPart(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
+		role7 = createRole(1, 7);
+		role7.setDelegable(true);
+		role8 = createRole(1, 8);
+		role9 = createRole(1, 9);
+		metarole7 = createRole(2, 7);
+		metarole8 = createRole(2, 8);
+		metarole9 = createRole(2, 9);
+		metametarole7 = createRole(3, 7);
+		assign(role7, metarole7);
+		assign(role8, metarole8);
+		assign(metarole7, metametarole7);
+		assign(metarole8, metametarole7);
+		induce(role7, role8, 1);
+		induce(metametarole7, metarole9, 2);
+		induce(metarole9, role9, 2);
+
+		objects = new ArrayList<>(
+				Arrays.asList(role7, role8, role9, metarole7, metarole8, metarole9, metametarole7));
+
+		createObjects(deleteFirst, task, result, adjustment);
+	}
+
+	private void createObjects(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
 		if (adjustment != null) {
 			adjustment.run();
 		}
@@ -882,30 +1059,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		return "99999999-0000-0000-0000-" + StringUtils.repeat('0', 12-name.length()) + name;
 	}
 
-	@NotNull
-	private LensContext<UserType> createContextForRoleAssignment(String userOid, String roleOid, QName relation,
-			Consumer<AssignmentType> modificationBlock, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, JAXBException {
-		return createContextForAssignment(UserType.class, userOid, RoleType.class, roleOid, relation, modificationBlock, result);
-	}
-
-	@NotNull
-	protected <F extends FocusType> LensContext<F> createContextForAssignment(Class<F> focusClass, String focusOid,
-			Class<? extends FocusType> targetClass, String targetOid, QName relation,
-			Consumer<AssignmentType> modificationBlock, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, JAXBException {
-		LensContext<F> context = createLensContext(focusClass);
-		fillContextWithFocus(context, focusClass, focusOid, result);
-		QName targetType = prismContext.getSchemaRegistry().determineTypeForClass(targetClass);
-		assertNotNull("Unknown target class "+targetClass, targetType);
-		addFocusDeltaToContext(context, createAssignmentFocusDelta(focusClass, focusOid, targetOid, targetType, relation,
-				modificationBlock, true));
-		context.recompute();
-		display("Input context", context);
-		assertFocusModificationSanity(context);
-		return context;
-	}
-
 	//endregion
 	//region ============================================================= helper methods (asserts)
 
@@ -922,17 +1075,18 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private void assertAuthorizations(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
-		List<String> expected = getList(text);
-		assertEquals("Wrong # of authorizations", expected.size(), evaluatedAssignment.getAuthorizations().size());
-		assertEquals("Wrong authorizations", new HashSet<>(expected),
-				evaluatedAssignment.getAuthorizations().stream().map(a -> a.getAction().get(0)).collect(Collectors.toSet()));
+		assertUnsortedListsEquals("Wrong authorizations", getList(text), evaluatedAssignment.getAuthorizations(), a -> a.getAction().get(0));
 	}
 
 	private void assertGuiConfig(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
-		List<String> expected = getList(text);
-		assertEquals("Wrong # of gui configurations", expected.size(), evaluatedAssignment.getAdminGuiConfigurations().size());
-		assertEquals("Wrong gui authorizations", new HashSet<>(expected),
-				evaluatedAssignment.getAdminGuiConfigurations().stream().map(g -> g.getPreferredDataLanguage()).collect(Collectors.toSet()));
+		assertUnsortedListsEquals("Wrong gui configurations", getList(text),
+				evaluatedAssignment.getAdminGuiConfigurations(), g -> g.getPreferredDataLanguage());
+	}
+
+	private <T> void assertUnsortedListsEquals(String message, Collection<String> expected, Collection<T> real, Function<T, String> nameExtractor) {
+		Bag<String> expectedAsBag = new TreeBag<>(CollectionUtils.emptyIfNull(expected));
+		Bag<String> realAsBag = new TreeBag<>(real.stream().map(nameExtractor).collect(Collectors.toList()));
+		assertEquals(message, expectedAsBag, realAsBag);
 	}
 
 	private void assertFocusMappings(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String expectedItems) {
@@ -940,10 +1094,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private void assertFocusMappings(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedItems) {
-		expectedItems = CollectionUtils.emptyIfNull(expectedItems);
-		assertEquals("Wrong # of focus mappings", expectedItems.size(), evaluatedAssignment.getFocusMappings().size());
-		assertEquals("Wrong focus mappings", new HashSet<>(expectedItems),
-				evaluatedAssignment.getFocusMappings().stream().map(m -> m.getMappingType().getName()).collect(Collectors.toSet()));
+		assertUnsortedListsEquals("Wrong focus mappings", expectedItems, evaluatedAssignment.getFocusMappings(), m -> m.getMappingType().getName());
 		// TODO look at the content of the mappings (e.g. zero, plus, minus sets)
 	}
 
@@ -952,10 +1103,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private void assertFocusPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedItems) {
-		expectedItems = CollectionUtils.emptyIfNull(expectedItems);
-		assertEquals("Wrong # of focus policy rules", expectedItems.size(), evaluatedAssignment.getFocusPolicyRules().size());
-		assertEquals("Wrong focus policy rules", new HashSet<>(expectedItems),
-				evaluatedAssignment.getFocusPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
+		assertUnsortedListsEquals("Wrong focus policy rules", expectedItems, evaluatedAssignment.getFocusPolicyRules(), r -> r.getName());
 	}
 
 	private void assertTargetPolicyRules(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
@@ -967,12 +1115,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			Collection<String> expectedThisTargetItems, Collection<String> expectedOtherTargetsItems) {
 		expectedOtherTargetsItems = CollectionUtils.emptyIfNull(expectedOtherTargetsItems);
 		expectedThisTargetItems = CollectionUtils.emptyIfNull(expectedThisTargetItems);
-		assertEquals("Wrong # of other targets policy rules", expectedOtherTargetsItems.size(), evaluatedAssignment.getOtherTargetsPolicyRules().size());
-		assertEquals("Wrong # of this target policy rules", expectedThisTargetItems.size(), evaluatedAssignment.getThisTargetPolicyRules().size());
-		assertEquals("Wrong other targets policy rules", new HashSet<>(expectedOtherTargetsItems),
-				evaluatedAssignment.getOtherTargetsPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
-		assertEquals("Wrong this target policy rules", new HashSet<>(expectedThisTargetItems),
-				evaluatedAssignment.getThisTargetPolicyRules().stream().map(r -> r.getName()).collect(Collectors.toSet()));
+		assertUnsortedListsEquals("Wrong other targets policy rules", expectedOtherTargetsItems,
+				evaluatedAssignment.getOtherTargetsPolicyRules(), r -> r.getName());
+		assertUnsortedListsEquals("Wrong this target policy rules", expectedThisTargetItems,
+				evaluatedAssignment.getThisTargetPolicyRules(), r -> r.getName());
 	}
 
 	private void assertTargets(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment,
@@ -1002,12 +1148,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		Collection<EvaluatedAssignmentTargetImpl> realInvalid = targets.stream()
 				.filter(t -> !t.isValid() && matchesConstructions(t, evaluateConstructions)).collect(Collectors.toList());
 		String ec = evaluateConstructions != null ? " (evaluateConstructions: " + evaluateConstructions + ")" : "";
-		assertEquals("Wrong # of valid targets in " + type + " set" + ec, expectedValid.size(), realValid.size());
-		assertEquals("Wrong # of invalid targets in " + type + " set" + ec, expectedInvalid.size(), realInvalid.size());
-		assertEquals("Wrong valid targets in " + type + " set" + ec, new HashSet<>(expectedValid),
-				realValid.stream().map(t -> t.getTarget().getName().getOrig()).collect(Collectors.toSet()));
-		assertEquals("Wrong invalid targets in " + type + " set" + ec, new HashSet<>(expectedInvalid),
-				realInvalid.stream().map(t -> t.getTarget().getName().getOrig()).collect(Collectors.toSet()));
+		assertUnsortedListsEquals("Wrong valid targets in " + type + " set" + ec, expectedValid,
+				realValid, t -> t.getTarget().getName().getOrig());
+		assertUnsortedListsEquals("Wrong invalid targets in " + type + " set" + ec, expectedInvalid,
+				realInvalid, t -> t.getTarget().getName().getOrig());
 	}
 
 	private boolean matchesConstructions(EvaluatedAssignmentTargetImpl t, Boolean evaluateConstructions) {
@@ -1038,19 +1182,18 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		Collection<String> expectedInvalid = CollectionUtils.emptyIfNull(invalid0);
 		Collection<Construction<? extends FocusType>> realValid = constructions.stream().filter(c -> c.isValid()).collect(Collectors.toList());
 		Collection<Construction<? extends FocusType>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
-		assertEquals("Wrong # of valid constructions in " + type + " set", expectedValid.size(), realValid.size());
-		assertEquals("Wrong # of invalid constructions in " + type + " set", expectedInvalid.size(), realInvalid.size());
-		assertEquals("Wrong valid constructions in " + type + " set", new HashSet<>(expectedValid),
-				realValid.stream().map(c -> c.getDescription()).collect(Collectors.toSet()));
-		assertEquals("Wrong invalid constructions in " + type + " set", new HashSet<>(expectedInvalid),
-				realInvalid.stream().map(c -> c.getDescription()).collect(Collectors.toSet()));
+		assertUnsortedListsEquals("Wrong valid constructions in " + type + " set", expectedValid,
+				realValid, c -> c.getDescription());
+		assertUnsortedListsEquals("Wrong invalid constructions in " + type + " set", expectedInvalid,
+				realInvalid, c -> c.getDescription());
 	}
 
-	private Collection<EvaluatedAssignmentImpl> assertAssignmentTripleSetSize(LensContext<? extends FocusType> context, int zero, int plus, int minus) {
+	@SuppressWarnings("unchecked")
+	private <F extends FocusType> Collection<EvaluatedAssignmentImpl<F>> assertAssignmentTripleSetSize(LensContext<F> context, int zero, int plus, int minus) {
 		assertEquals("Wrong size of assignment triple zero set", zero, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getZeroSet()));
 		assertEquals("Wrong size of assignment triple plus set", plus, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getPlusSet()));
 		assertEquals("Wrong size of assignment triple minus set", minus, CollectionUtils.size(context.getEvaluatedAssignmentTriple().getMinusSet()));
-		return context.getEvaluatedAssignmentTriple().getAllValues();
+		return (Collection) context.getEvaluatedAssignmentTriple().getAllValues();
 	}
 
 	//endregion

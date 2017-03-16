@@ -198,9 +198,6 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		delegationRefVals.add(org);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAuthorizations()
-	 */
 	@NotNull
 	@Override
 	public Collection<Authorization> getAuthorizations() {

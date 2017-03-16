@@ -15,8 +15,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -60,21 +62,7 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -636,7 +624,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		ctx.evalAssignment.addRole(evalAssignmentTarget, mode);
 		
 		if ((isNonNegative(mode)) && segment.isProcessMembership()) {
-			evaluateMembership(targetType, relation, ctx);
+			collectMembership(targetType, relation, ctx);
 		}
 
 		// We continue evaluation even if the relation is non-membership and non-delegation.
@@ -655,10 +643,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (matchesOrder && targetType instanceof AbstractRoleType && isNonNegative(mode)) {
 			for (AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
 				Authorization authorization = createAuthorization(authorizationType, targetType.toString());
-				ctx.evalAssignment.addAuthorization(authorization);
+				if (!ctx.evalAssignment.getAuthorizations().contains(authorization)) {
+					ctx.evalAssignment.addAuthorization(authorization);
+				}
 			}
-			if (((AbstractRoleType)targetType).getAdminGuiConfiguration() != null) {
-				ctx.evalAssignment.addAdminGuiConfiguration(((AbstractRoleType)targetType).getAdminGuiConfiguration());
+			AdminGuiConfigurationType adminGuiConfiguration = ((AbstractRoleType) targetType).getAdminGuiConfiguration();
+			if (adminGuiConfiguration != null && !ctx.evalAssignment.getAdminGuiConfigurations().contains(adminGuiConfiguration)) {
+				ctx.evalAssignment.addAdminGuiConfiguration(adminGuiConfiguration);
 			}
 			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
 			if (policyConstraints != null) {
@@ -792,7 +783,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		evaluateFromSegment(nextSegment, mode, ctx);
 	}
 
-	private void evaluateMembership(FocusType targetType, QName relation, EvaluationContext ctx) {
+	private void collectMembership(FocusType targetType, QName relation, EvaluationContext ctx) {
 		PrismReferenceValue refVal = new PrismReferenceValue();
 		refVal.setObject(targetType.asPrismObject());
 		refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
@@ -800,18 +791,27 @@ public class AssignmentEvaluator<F extends FocusType> {
 		refVal.setTargetName(targetType.getName().toPolyString());
 
 		if (ctx.assignmentPath.getSegments().stream().anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment()))) {
-			LOGGER.trace("Adding target {} to delegationRef", targetType);
-			ctx.evalAssignment.addDelegationRefVal(refVal);
+			addIfNotThere(ctx.evalAssignment.getDelegationRefVals(), ctx.evalAssignment::addDelegationRefVal, refVal,
+					"delegationRef", targetType);
 		} else {
 			if (targetType instanceof AbstractRoleType) {
-				LOGGER.trace("Adding target {} to membershipRef", targetType);
-				ctx.evalAssignment.addMembershipRefVal(refVal);
+				addIfNotThere(ctx.evalAssignment.getMembershipRefVals(), ctx.evalAssignment::addMembershipRefVal, refVal,
+						"membershipRef", targetType);
 			}
 		}
-
 		if (targetType instanceof OrgType) {
-			LOGGER.trace("Adding target {} to orgRef", targetType);
-			ctx.evalAssignment.addOrgRefVal(refVal);
+			addIfNotThere(ctx.evalAssignment.getOrgRefVals(), ctx.evalAssignment::addOrgRefVal, refVal,
+					"orgRef", targetType);
+		}
+	}
+
+	private void addIfNotThere(Collection<PrismReferenceValue> collection, Consumer<PrismReferenceValue> setter,
+			PrismReferenceValue refVal, String collectionName, FocusType targetType) {
+		if (!collection.contains(refVal)) {
+			LOGGER.trace("Adding target {} to {}", targetType, collectionName);
+			setter.accept(refVal);
+		} else {
+			LOGGER.trace("Would add target {} to {}, but it's already there", targetType, collectionName);
 		}
 	}
 

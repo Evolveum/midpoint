@@ -38,6 +38,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -46,6 +47,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.function.Consumer;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -317,4 +319,27 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		assertFalse("User secondary delta is empty", userSecondaryDelta.isEmpty());
 	}
 
+	@NotNull
+	protected LensContext<UserType> createContextForRoleAssignment(String userOid, String roleOid, QName relation,
+			Consumer<AssignmentType> modificationBlock, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, JAXBException {
+		return createContextForAssignment(UserType.class, userOid, RoleType.class, roleOid, relation, modificationBlock, result);
+	}
+
+	@NotNull
+	protected <F extends FocusType> LensContext<F> createContextForAssignment(Class<F> focusClass, String focusOid,
+			Class<? extends FocusType> targetClass, String targetOid, QName relation,
+			Consumer<AssignmentType> modificationBlock, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, JAXBException {
+		LensContext<F> context = createLensContext(focusClass);
+		fillContextWithFocus(context, focusClass, focusOid, result);
+		QName targetType = prismContext.getSchemaRegistry().determineTypeForClass(targetClass);
+		assertNotNull("Unknown target class "+targetClass, targetType);
+		addFocusDeltaToContext(context, createAssignmentFocusDelta(focusClass, focusOid, targetOid, targetType, relation,
+				modificationBlock, true));
+		context.recompute();
+		display("Input context", context);
+		assertFocusModificationSanity(context);
+		return context;
+	}
 }
