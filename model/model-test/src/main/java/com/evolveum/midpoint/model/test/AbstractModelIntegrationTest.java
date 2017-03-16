@@ -823,6 +823,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.recompute(UserType.class, userOid, null, task, result);
 	}
 	
+	protected void recomputeFocus(Class<? extends FocusType> clazz, String userOid, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
+		modelService.recompute(clazz, userOid, null, task, result);
+	}
+
 	protected void recomputeUser(String userOid, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
 		modelService.recompute(UserType.class, userOid, options, task, result);
 	}

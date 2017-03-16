@@ -964,7 +964,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         userElaine = getUser(USER_ELAINE_OID).asObjectable();
         display("userElaine", userElaine);
-        assertEquals("wrong # of userElaine's assignments", 4, userElaine.getAssignment().size());
+        assertEquals("wrong # of userElaine's assignments", 5, userElaine.getAssignment().size());
 
         userGuybrush = getUser(USER_GUYBRUSH_OID).asObjectable();
         display("userGuybrush", userGuybrush);

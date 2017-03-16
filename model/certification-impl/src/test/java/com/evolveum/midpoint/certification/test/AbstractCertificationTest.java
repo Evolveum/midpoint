@@ -117,6 +117,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected static final String ORG_SECURITY_TEAM_OID = "e015eb10-1426-4104-86c0-eb0cf9dc423f";
 
 	public static final File ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_FILE = new File(COMMON_DIR, "role-eroot-user-assignment-campaign-owner.xml");
+	protected static final String ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_OID = "00000000-d34d-b33f-f00d-ffffffff0001";
 
 	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
@@ -234,6 +235,16 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		resourceDummyBlackType = resourceDummyBlack.asObjectable();
 		dummyResourceCtlBlack.setResource(resourceDummyBlack);
 
+		// Recompute relevant objects
+		recomputeUser(USER_JACK_OID, initTask, initResult);
+		recomputeUser(USER_ELAINE_OID, initTask, initResult);
+		recomputeUser(USER_GUYBRUSH_OID, initTask, initResult);
+		recomputeFocus(RoleType.class, ROLE_CEO_OID, initTask, initResult);
+		recomputeFocus(RoleType.class, ROLE_COO_OID, initTask, initResult);
+		recomputeFocus(RoleType.class, ROLE_CTO_OID, initTask, initResult);
+		recomputeFocus(RoleType.class, ROLE_REVIEWER_OID, initTask, initResult);
+		recomputeFocus(RoleType.class, ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_OID, initTask, initResult);
+		recomputeFocus(OrgType.class, ORG_SECURITY_TEAM_OID, initTask, initResult);
 	}
 
 	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus, String campaignOid) {
@@ -360,13 +371,13 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentStageOutcome,
 									   int currentStage, List<String> reviewerOidList) {
-		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
-		assertEquals("wrong current stage number", currentStage, _case.getCurrentStageNumber());
+		assertEquals("wrong current stage outcome for "+_case, currentStageOutcome, _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage number for "+_case, currentStage, _case.getCurrentStageNumber());
 		Set<String> realReviewerOids = new HashSet<>();
 		for (ObjectReferenceType ref : _case.getCurrentReviewerRef()) {
 			realReviewerOids.add(ref.getOid());
 		}
-		assertEquals("wrong reviewer oids", new HashSet<>(reviewerOidList), realReviewerOids);
+		assertEquals("wrong reviewer oids for "+_case, new HashSet<>(reviewerOidList), realReviewerOids);
 	}
 
 	protected void recordDecision(String campaignOid, AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,

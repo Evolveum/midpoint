@@ -15,17 +15,13 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -92,16 +88,15 @@ public class MappingEvaluator {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluator.class);
 	
-	@Autowired
-    private PrismContext prismContext;
-
     @Autowired
     private MappingFactory mappingFactory;
     
     @Autowired
     private PasswordPolicyProcessor passwordPolicyProcessor;
 
-    public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
+    public static final List<QName> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
+
+	public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
 			Mapping<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	evaluateMapping(mapping, lensContext, null, task, parentResult);
     }
@@ -529,8 +524,7 @@ public class MappingEvaluator {
 		};
 
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
-		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		FOCUS_VARIABLE_NAMES.forEach(name -> variables.addVariableDefinition(name, focusOdo));
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);

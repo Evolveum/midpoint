@@ -407,7 +407,7 @@ public class TestProjector extends AbstractLensTest {
 
 	/**
 	 * User barbossa has a direct account assignment. This assignment has an expression for user/fullName -> dummy/fullname.
-	 * cn is also overriden to be single-value.
+	 * cn is also overridden to be single-value.
 	 * Let's try if the "cn" gets updated if we update barbosa's fullName. Also check if delta is replace.
 	 */
 	@Test
@@ -1208,8 +1208,9 @@ public class TestProjector extends AbstractLensTest {
         assertFalse("Empty user secondary delta", userSecondaryDelta.isEmpty());
         PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, 
         		PrismTestUtil.createPolyString("Largo LaGrande"));
-        
-    }
+		PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_NICK_NAME,
+				PrismTestUtil.createPolyString("Largo LaGrande"));        // MID-2149
+	}
 	
 	private void assertNoJackShadow() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<ShadowType> jackAccount = findAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceObject());

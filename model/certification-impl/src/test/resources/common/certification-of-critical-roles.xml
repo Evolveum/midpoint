@@ -55,7 +55,9 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
             <script>
                 <code>
                     role = midpoint.resolveReferenceIfExists(assignment.targetRef)
-                    return role != null &amp;&amp; role.riskLevel == 'critical'
+                    role != null &amp;&amp; role.riskLevel == 'critical' &amp;&amp;
+							assignment.targetRef != null &amp;&amp;
+							(assignment.targetRef.relation == null || assignment.targetRef.relation.localPart != 'owner')
                 </code>
             </script>
         </itemSelectionExpression>

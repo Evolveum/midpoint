@@ -25,7 +25,7 @@
         </construction>
     </inducement>
     <riskLevel>critical</riskLevel>
-    <ownerRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />     <!-- elaine -->
+    <!-- elaine is set as owner by including assignment with relation="owner" in her user record -->
     <approverRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType" />  <!-- elaine -->
     <approverRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" />  <!-- jack -->
 </role>

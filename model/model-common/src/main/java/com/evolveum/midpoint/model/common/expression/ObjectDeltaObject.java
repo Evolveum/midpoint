@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -61,9 +62,19 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 	public ObjectDelta<O> getObjectDelta() {
 		return delta;
 	}
-		
+
 	public PrismObject<O> getNewObject() {
 		return newObject;
+	}
+
+	// FIXME fragile!!! better don't use if you don't have to
+	public void update(ItemDelta<?, ?> itemDelta) throws SchemaException {
+		if (delta == null) {
+			delta = ObjectDelta.createModifyDelta(getAnyObject().getOid(), itemDelta, getAnyObject().getCompileTimeClass(), getAnyObject().getPrismContext());
+		} else {
+			delta.swallow(itemDelta);
+			itemDelta.applyTo(newObject);
+		}
 	}
 
 	public PrismObject<O> getAnyObject() {
@@ -284,6 +295,15 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 	@Override
 	public String toString() {
 		return "ObjectDeltaObject(" + oldObject + " + " + delta + " = " + newObject + ")";
+	}
+
+	public ObjectDeltaObject<O> clone() {
+		ObjectDeltaObject<O> clone = new ObjectDeltaObject<>(
+				CloneUtil.clone(oldObject),
+				CloneUtil.clone(delta),
+				CloneUtil.clone(newObject));
+		// TODO what about the internals?
+		return clone;
 	}
 
 }

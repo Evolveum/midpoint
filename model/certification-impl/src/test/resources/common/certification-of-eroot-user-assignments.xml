@@ -27,8 +27,8 @@
         <objectType>UserType</objectType>
         <searchFilter>
             <q:org>
-                <q:path>parentOrgRef</q:path>
-                <q:orgRef oid="00000000-8888-6666-0000-300000000000">
+                <q:orgRef>
+                    <q:oid>00000000-8888-6666-0000-300000000000</q:oid>
                     <q:scope>SUBTREE</q:scope>
                 </q:orgRef>
             </q:org>

@@ -20,6 +20,34 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Default User Template</name>
+
+	<mapping>
+		<!-- MID-2149: this should (1) execute after the fulLName mapping, (2) get its output as the input -->
+		<source>
+			<path>$focus/fullName</path>			<!-- using variable to make chained mapping evaluation tougher -->
+		</source>
+		<source>
+			<path>name</path>
+		</source>
+		<expression>
+			<script>
+				<code>
+					fullName
+				</code>
+			</script>
+		</expression>
+		<target>
+			<path>nickName</path>
+		</target>
+		<condition>
+			<script>
+				<code>
+					basic.stringify(name) == 'largo'			<!-- not to confuse other tests -->
+				</code>
+			</script>
+		</condition>
+	</mapping>
+
     <mapping>
     	<strength>weak</strength>
     	<source>
@@ -36,7 +64,8 @@
          	</script>
 		</expression>
     	<target>
-    		<path>fullName</path>
+    		<path>$user/fullName</path>		<!-- using variable to make chained mapping evaluation tougher -->
     	</target>
     </mapping>
+
 </objectTemplate>

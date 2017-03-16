@@ -131,6 +131,9 @@
 			<targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType"/>		<!-- CEO -->
 		</assignment>
 		<assignment>
+			<targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType" relation="owner"/>		<!-- CEO (intentionally without 'org' prefix) -->
+		</assignment>
+		<assignment>
 			<targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="c:RoleType"/>		<!-- reviewer -->
 		</assignment>
 		<fullName>Elaine Marley</fullName>

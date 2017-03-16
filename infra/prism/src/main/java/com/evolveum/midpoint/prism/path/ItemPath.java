@@ -391,18 +391,11 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	public boolean startsWith(Class<? extends ItemPathSegment> clazz) {
-		if (isEmpty()) {
-			return false;
-		} else {
-			return clazz.isAssignableFrom(first().getClass());
-		}
+		return !isEmpty() && clazz.isAssignableFrom(first().getClass());
 	}
 
 	public boolean startsWith(ItemPath other) {
-		if (other == null) {
-			return true;
-		}
-		return other.isSubPathOrEquivalent(this);
+		return other == null || other.isSubPathOrEquivalent(this);
 	}
 	
 	public boolean startsWithName(QName name) {
@@ -411,6 +404,14 @@ public class ItemPath implements Serializable, Cloneable {
 		} else {
 			return false;
 		}
+	}
+
+	public boolean startsWithVariable() {
+		return !isEmpty() && first().isVariable();
+	}
+
+	public ItemPath stripVariableSegment() {
+		return startsWithVariable() ? rest() : this;
 	}
 
 	public QName asSingleName() {
