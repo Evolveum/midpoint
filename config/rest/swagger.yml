@@ -233,20 +233,20 @@ paths:
       - name: "type"
         in: "path"
         required: true
-        description: "type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
+        description: "type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services"
         type: "string"
       - name: "id"
         in: "path"
         required: true
         type: "string"
-        description: "oid of the object for which the value will be generated"
+        description: "oid of the object for which the value will be validated"
       - in: "body"
         name: "body"
         required: true
         schema:
           type: "object"
           description: "see PolicyItemsDefinitionType"
-        description: "path to the property which will be generated"
+        description: "It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate."
       responses:
         200:
           description: "Successful operation"

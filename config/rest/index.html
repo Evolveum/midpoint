@@ -18778,9 +18778,9 @@ public class DefaultApiExample {
         m_basic.setPassword("YOUR PASSWORD");
 
         DefaultApi apiInstance = new DefaultApi();
-        String type = type_example; // String | type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-        String id = id_example; // String | oid of the object for which the value will be generated
-        Object body = ; // Object | path to the property which will be generated
+        String type = type_example; // String | type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
+        String id = id_example; // String | oid of the object for which the value will be validated
+        Object body = ; // Object | It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate.
         try {
             Object result = apiInstance.validateValue(type, id, body);
             System.out.println(result);
@@ -18803,9 +18803,9 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
-        String type = type_example; // String | type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-        String id = id_example; // String | oid of the object for which the value will be generated
-        Object body = ; // Object | path to the property which will be generated
+        String type = type_example; // String | type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
+        String id = id_example; // String | oid of the object for which the value will be validated
+        Object body = ; // Object | It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate.
         try {
             Object result = apiInstance.validateValue(type, id, body);
             System.out.println(result);
@@ -18833,9 +18833,9 @@ Configuration *apiConfig = [Configuration sharedConfig];
 [apiConfig setPassword:@"YOUR_PASSWORD"];
 
 
-String *type = type_example; // type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-String *id = id_example; // oid of the object for which the value will be generated
-Object *body = ; // path to the property which will be generated
+String *type = type_example; // type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
+String *id = id_example; // oid of the object for which the value will be validated
+Object *body = ; // It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate.
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
@@ -18866,11 +18866,11 @@ m_basic.password = 'YOUR PASSWORD'
 
 var api = new .DefaultApi()
 
-var type = type_example; // {String} type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
+var type = type_example; // {String} type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 
-var id = id_example; // {String} oid of the object for which the value will be generated
+var id = id_example; // {String} oid of the object for which the value will be validated
 
-var body = ; // {Object} path to the property which will be generated
+var body = ; // {Object} It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate.
 
 
 var callback = function(error, data, response) {
@@ -18909,9 +18909,9 @@ namespace Example
             Configuration.Default.Password = "YOUR_PASSWORD";
 
             var apiInstance = new DefaultApi();
-            var type = type_example;  // String | type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-            var id = id_example;  // String | oid of the object for which the value will be generated
-            var body = new Object(); // Object | path to the property which will be generated
+            var type = type_example;  // String | type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
+            var id = id_example;  // String | oid of the object for which the value will be validated
+            var body = new Object(); // Object | It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate.
 
             try
             {
@@ -18941,9 +18941,9 @@ io.swagger.client\Configuration::getDefaultConfiguration()->setUsername('YOUR_US
 io.swagger.client\Configuration::getDefaultConfiguration()->setPassword('YOUR_PASSWORD');
 
 $api_instance = new io.swagger.client\Api\DefaultApi();
-$type = type_example; // String | type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-$id = id_example; // String | oid of the object for which the value will be generated
-$body = ; // Object | path to the property which will be generated
+$type = type_example; // String | type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
+$id = id_example; // String | oid of the object for which the value will be validated
+$body = ; // Object | It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate.
 
 try {
     $result = $api_instance->validateValue($type, $id, $body);
@@ -18981,7 +18981,7 @@ try {
 													var schemaWrapper = {
   "name" : "type",
   "in" : "path",
-  "description" : "type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
+  "description" : "type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
@@ -19014,7 +19014,7 @@ try {
 													var schemaWrapper = {
   "name" : "id",
   "in" : "path",
-  "description" : "oid of the object for which the value will be generated",
+  "description" : "oid of the object for which the value will be validated",
   "required" : true,
   "type" : "string"
 };
@@ -19058,7 +19058,7 @@ try {
 													var schemaWrapper = {
   "in" : "body",
   "name" : "body",
-  "description" : "path to the property which will be generated",
+  "description" : "It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate.",
   "required" : true,
   "schema" : {
     "type" : "object",
@@ -19784,7 +19784,7 @@ try {
             </div>
             <div id="generator">
                 <div class="content">
-                    Generated 2017-03-02T14:25:03.802+01:00
+                    Generated 2017-03-16T13:50:39.152+01:00
                 </div>
             </div>
         </div>
