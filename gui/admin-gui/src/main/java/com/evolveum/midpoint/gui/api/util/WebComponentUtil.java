@@ -25,15 +25,7 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -1853,14 +1845,14 @@ public final class WebComponentUtil {
 		return value.toInteger();
 	}
 
-	public static boolean checkSubscriptionId(String subscriptionId){
+	public static boolean isSubscriptionIdCorrect(String subscriptionId){
 		if (StringUtils.isEmpty(subscriptionId)) {
 			return false;
 		}
 		if (!NumberUtils.isDigits(subscriptionId)){
 			return false;
 		}
-		if (subscriptionId.length() < 15){
+		if (subscriptionId.length() < 11){
 			return false;
 		}
 		String subscriptionType = subscriptionId.substring(0, 2);
@@ -1874,15 +1866,27 @@ public final class WebComponentUtil {
 		if (!isTypeCorrect){
 			return false;
 		}
-		String expDateStr = subscriptionId.substring(2, 6);
-		SimpleDateFormat dateFormat = new SimpleDateFormat("MMyy");
+		String substring1 = subscriptionId.substring(2, 4);
+		String substring2 = subscriptionId.substring(4, 6);
 		try {
-			Date expDate =  dateFormat.parse(expDateStr);
-			Date currentDate = new Date(System.currentTimeMillis());;
-			if (expDate.before(currentDate)){
+			if (Integer.parseInt(substring1) < 1 || Integer.parseInt(substring1) > 12) {
 				return false;
 			}
-		} catch (Exception ex){
+
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yy");
+			String currentYear = dateFormat.format(Calendar.getInstance().getTime());
+			if (Integer.parseInt(substring2) < Integer.parseInt(currentYear)){
+				return false;
+			}
+
+			String expDateStr = subscriptionId.substring(2, 6);
+			dateFormat = new SimpleDateFormat("MMyy");
+			Date expDate = dateFormat.parse(expDateStr);
+			Date currentDate = new Date(System.currentTimeMillis());
+			if (expDate.before(currentDate)) {
+				return false;
+			}
+		} catch (Exception ex) {
 			return false;
 		}
 		VerhoeffCheckDigit checkDigit = new VerhoeffCheckDigit();
