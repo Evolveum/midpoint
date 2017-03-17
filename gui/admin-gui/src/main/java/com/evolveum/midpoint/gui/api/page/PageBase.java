@@ -188,6 +188,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_MAIN_POPUP = "mainPopup";
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
 	private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
+	private static final String ID_FOOTER_CONTAINER = "footerContainer";
+	private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
 	private static final String ID_LOGO = "logo";
 	private static final String ID_CUSTOM_LOGO = "customLogo";
 	private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
@@ -696,6 +698,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		sidebarMenu.add(createUserStatusBehaviour(true));
 		add(sidebarMenu);
 
+		WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+		footerContainer.setOutputMarkupId(true);
+		footerContainer.add(getFooterVisibleBehaviour());
+		add(footerContainer);
+
 		WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 			private static final long serialVersionUID = 1L;
 			
@@ -712,7 +719,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
 			}
 		});
-		add(version);
+		footerContainer.add(version);
+
+        WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
+        copyrightMessage.add(getFooterVisibleBehaviour());
+		footerContainer.add(copyrightMessage);
 
 		Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
 				new AbstractReadOnlyModel<String>() {
@@ -722,30 +733,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					public String getObject() {
 						String subscriptionId = getSubscriptionId();
 						if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)){
-							return createStringResource("PageBase.nonActiveSubscriptionMessage").getString() + " ";
+							return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
 						}
 						if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))){
-							return createStringResource("PageBase.demoSubscriptionMessage").getString() + " ";
+							return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
 						}
 						return "";
 					}
 				});
 		subscriptionMessage.setOutputMarkupId(true);
-        subscriptionMessage.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				String subscriptionId = getSubscriptionId();
-                if (StringUtils.isEmpty(subscriptionId)){
-                    return true;
-                }
-                return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
-						(SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
-								&& WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
-			}
-		});
-		add(subscriptionMessage);
+        subscriptionMessage.add(getFooterVisibleBehaviour());
+		footerContainer.add(subscriptionMessage);
 
 		WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
 		feedbackContainer.setOutputMarkupId(true);
@@ -1846,5 +1844,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return null;
         }
 		return deploymentInfoModel.getObject().getSubscriptionIdentifier();
+	}
+
+	private VisibleEnableBehaviour getFooterVisibleBehaviour(){
+		return new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				String subscriptionId = getSubscriptionId();
+				if (StringUtils.isEmpty(subscriptionId)){
+					return true;
+				}
+				return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
+						(SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
+								&& WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
+			}
+		};
 	}
 }
