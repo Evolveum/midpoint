@@ -17,7 +17,9 @@
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <task>
         <name>Assign OpenDJ account to users starting with 'a'</name>
@@ -37,7 +39,7 @@
                         <s:type>assign</s:type>
                         <s:parameter>
                             <s:name>resource</s:name>
-                            <c:value>ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:value>
+                            <c:value xsi:type="xsd:string">ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:value>
                         </s:parameter>
                     </s:action>
                 </s:search>
