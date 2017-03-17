@@ -25,6 +25,7 @@ import javax.management.ObjectName;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -713,7 +714,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		});
 		add(version);
 
-		Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE, createStringResource("PageBase.subscriptionMessage"));
+		Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
+				new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public String getObject() {
+						String subscriptionId = getSubscriptionId();
+						if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)){
+							return createStringResource("PageBase.nonActiveSubscriptionMessage").getString() + " ";
+						}
+						if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))){
+							return createStringResource("PageBase.demoSubscriptionMessage").getString() + " ";
+						}
+						return "";
+					}
+				});
 		subscriptionMessage.setOutputMarkupId(true);
         subscriptionMessage.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -724,7 +740,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 if (StringUtils.isEmpty(subscriptionId)){
                     return true;
                 }
-                return !WebComponentUtil.checkSubscriptionId(subscriptionId);
+                return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
+						(SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
+								&& WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
 			}
 		});
 		add(subscriptionMessage);
