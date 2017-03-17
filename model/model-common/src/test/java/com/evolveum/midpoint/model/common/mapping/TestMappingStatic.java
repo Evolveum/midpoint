@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,33 +94,6 @@ public class TestMappingStatic {
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }
-
-    // We do not have boolean property in the use any more ... but this is covered quite well in dynamic tests
-//    @Test
-//    public void testValueBooleanTrue() throws Exception {
-//        // WHEN
-//    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
-//    			"mapping-value-boolean-true.xml",
-//    			"testValue",
-//    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS));				// target    	
-//        // THEN
-//    	PrismAsserts.assertTripleZero(outputTriple, Boolean.TRUE);
-//    	PrismAsserts.assertTripleNoPlus(outputTriple);
-//    	PrismAsserts.assertTripleNoMinus(outputTriple);
-//    }
-//    
-//    @Test
-//    public void testValueBooleanFalse() throws Exception {
-//        // WHEN
-//    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
-//    			"mapping-value-boolean-false.xml",
-//    			"testValue",
-//    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS));				// target    	
-//        // THEN
-//    	PrismAsserts.assertTripleZero(outputTriple, Boolean.FALSE);
-//    	PrismAsserts.assertTripleNoPlus(outputTriple);
-//    	PrismAsserts.assertTripleNoMinus(outputTriple);
-//    }
     
     @Test
     public void testPathNoSource() throws Exception {

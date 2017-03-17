@@ -4183,6 +4183,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="lifecycle" minOccurs="0" type="tns:ResourceObjectLifecycleDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of resource object lifecycle handling. It defines
+                        how the initial lifecycle state is determined, constraints for lifecycle
+                        transitions, etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+		            	<a:since>3.6</a:since>
+		            </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="pagedSearches" minOccurs="0" type="xsd:anyType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5076,6 +5088,39 @@
 		            </xsd:documentation>
 		        </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ResourceObjectLifecycleDefinitionType">
+    	<xsd:annotation>
+            <xsd:documentation>
+                Definition of resource object lifecycle handling. It defines
+                how the initial lifecycle state is determined, constraints for lifecycle
+                transitions, etc.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="lifecycleState" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
+		    	<xsd:annotation>
+		            <xsd:documentation>
+		                Lifecycle state mapping. This mapping influences how shadow lifecycle state and focus
+		                lifecycle state are mapped.
+		                Default outbound lifecycleState mapping is somehow smart algorithm that will consider
+		                presence of the focus password, resource password capability, operation and so on.
+		                It is defined to work well with hashed passwords.
+		                Default inbound lifecycle mapping is empty: no mapping at all. In midPoint 3.6 the inbound
+		                lifecycle mapping is not implemented.
+		            </xsd:documentation>
+		        </xsd:annotation>                
+            </xsd:element>
+        	<!-- TODO: validation for each individual lifecycle state. 
+        	           References to forms for each state. The forms may be used both for validation and
+        	           for entering the missing properties.
+        	           We need to align this with similar method to control lifecycle transitions 
+        	           for all other objects -->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6253,6 +6298,21 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="runAsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the user whose identity will be used to execute the expression.
+                        The expression will use authorizations that this user has. If the expression
+                        triggers any change then the change will be audited under the identity of
+                        this user.
+                        If no user is specified then the identify of currently logged-in user or
+                        the owner of the task will be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
@@ -11072,6 +11132,19 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="roleCatalogCollections" type="tns:ObjectCollectionsUseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the set of object collections ("role catalog views") to display in role
+						catalog. If this element is not specified then the default (hardcoded) collections
+						will be displayed. If this element is specified then only those collections specified
+						in this element are displayed.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="defaultAssignmentMultiplicity" type="tns:AssignmentMultiplicityType" minOccurs="0" default="single">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -11136,6 +11209,61 @@
             </xsd:enumeration>
        </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:complexType name="ObjectCollectionsUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a set of object collections ("views") to be displayed (used) at
+                a specific location in the system.
+                This is generic type that can be used to specify collections to display
+                in role catalog, menu, dashboard and so on.
+            </xsd:documentation>
+	        <xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="collection" type="tns:ObjectCollectionUseType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Reference to the colleciot, its visibility, etc.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: other elements that influence the way how the whole collection set
+			           is displayed or how the collection sets configuration is merged. -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ObjectCollectionUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies how a specific collection ("view") is to be displayed (used) at
+                a specific location in the system.
+                This is generic type that can be used to specify collection to display
+                in role catalog, menu, dashboard and so on.
+            </xsd:documentation>
+	        <xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="collectionUri" type="xsd:anyURI" minOccurs="0">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Reference to the built-in collection.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: visibility, ordering, etc. -->
+        </xsd:sequence>
+    </xsd:complexType>
     
     <xsd:complexType name="PolicyRuleType">
         <xsd:annotation>
@@ -12626,6 +12754,7 @@
             <xsd:element name="projectionValues" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="projectionCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="projectionReconciliation" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="projectionLifecycle" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="approvals" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="execution" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="notification" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>            

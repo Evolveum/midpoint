@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -1037,4 +1038,15 @@ public interface MidpointFunctions {
 	List<ObjectReferenceType> getMembersAsReferences(String orgOid)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
 			ObjectNotFoundException;
+	
+	/**
+	 * Default function used to compute projection lifecycle. It is provided here so it can be explicitly
+	 * invoked from a custom expression and then the result can be changed for special cases.
+	 */
+	<F extends FocusType> String computeProjectionLifecycle(F focus, ShadowType shadow, ResourceType resource);
+	
+	/**
+	 * Returns principal representing the user whose identity is used to execute the expression.
+	 */
+	MidPointPrincipal getPrincipal() throws SecurityViolationException;
 }

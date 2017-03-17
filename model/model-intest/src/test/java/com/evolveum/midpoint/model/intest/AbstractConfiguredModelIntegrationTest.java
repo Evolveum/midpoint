@@ -298,7 +298,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	// Elaine has account on the dummy resources (default, red, blue)
 	// The accounts are also assigned
-	static final String USER_ELAINE_FILENAME = COMMON_DIR + "/user-elaine.xml";
+	static final File USER_ELAINE_FILE = new File (COMMON_DIR, "user-elaine.xml");
 	protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";
 	protected static final String USER_ELAINE_USERNAME = "elaine";
 	

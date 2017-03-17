@@ -248,7 +248,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		userTypeJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult).asObjectable();
 		userTypeBarbossa = repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult).asObjectable();
 		userTypeGuybrush = repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
-		userTypeElaine = repoAddObjectFromFile(new File(USER_ELAINE_FILENAME), UserType.class, initResult).asObjectable();
+		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILE, UserType.class, initResult).asObjectable();
 		
 		// Roles
 		repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);

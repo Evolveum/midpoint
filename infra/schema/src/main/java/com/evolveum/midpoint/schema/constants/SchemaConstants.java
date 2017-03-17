@@ -65,6 +65,11 @@ public abstract class SchemaConstants {
 	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-3";
 	public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
 	public static final String NS_SAMPLES_EXTENSION = "http://midpoint.evolveum.com/xml/ns/samples/extension-3";
+	
+	/**
+	 * Namespace for default (bult-in) object collections, such as "all objects", "all roles", ...
+	 */
+	public static final String NS_OBJECT_COLLECTIONS = NS_MIDPOINT_PUBLIC + "/common/object-collections-3";
 
 	// COMMON NAMESPACE
 
@@ -216,6 +221,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(
 			UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
 	public static final ItemPath PATH_LINK_REF = new ItemPath(FocusType.F_LINK_REF);
+	public static final ItemPath PATH_LIFECYCLE_STATE = new ItemPath(ObjectType.F_LIFECYCLE_STATE);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
@@ -397,6 +403,34 @@ public abstract class SchemaConstants {
 	public static final String LIFECYCLE_ARCHIVED = "archived";
 	public static final String LIFECYCLE_FAILED = "failed";
 
+	
+	// Object collections
+	
+	/**
+	 * All objects in role catalog. It means all the objects in all the categories that are placed under the
+	 * primary role catalog defined in the system. If used in a context where the role catalog can be displayed
+	 * as a tree then this collection will be displayed as a tree.
+	 */
+	public static final QName OBJECT_COLLECTION_ROLE_CATALOG_QNAME = new QName(NS_OBJECT_COLLECTIONS, "roleCatalog");
+	public static final String OBJECT_COLLECTION_ROLE_CATALOG_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ROLE_CATALOG_QNAME);
+	
+	/**
+	 * Collection that contains all roles.
+	 */
+	public static final QName OBJECT_COLLECTION_ALL_ROLES_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allRoles");
+	public static final String OBJECT_COLLECTION_ALL_ROLES_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_ROLES_QNAME);
+	
+	/**
+	 * Collection that contains all orgs.
+	 */
+	public static final QName OBJECT_COLLECTION_ALL_ORGS_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allOrgs");
+	public static final String OBJECT_COLLECTION_ALL_ORGS_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_ORGS_QNAME);
+	
+	/**
+	 * Collection that contains all services.
+	 */
+	public static final QName OBJECT_COLLECTION_ALL_SERVICES_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allServices");
+	public static final String OBJECT_COLLECTION_ALL_SERVICES_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_SERVICES_QNAME);
 	
 	// Samples
 

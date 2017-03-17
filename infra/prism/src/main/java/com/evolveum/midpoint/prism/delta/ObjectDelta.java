@@ -1688,4 +1688,24 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			}
 		}
 	}
+        
+        public List<PrismValue> getDeletedValuesFor(ItemPath itemPath) {
+		if (isAdd()) {
+			Item<PrismValue, ItemDefinition> item = objectToAdd.findItem(itemPath);
+			return item != null ? item.getValues() : Collections.emptyList();
+		} else if (isDelete()) {
+			return Collections.emptyList();
+		} else {
+			ItemDelta itemDelta = ItemDelta.findItemDelta(modifications, itemPath, ItemDelta.class);
+			if (itemDelta != null) {
+				if (itemDelta.getValuesToDelete() != null) {
+					return (List<PrismValue>) itemDelta.getValuesToDelete();
+				} else {
+					return Collections.emptyList();
+				}
+			} else {
+				return Collections.emptyList();
+			}
+		}
+	}
 }
