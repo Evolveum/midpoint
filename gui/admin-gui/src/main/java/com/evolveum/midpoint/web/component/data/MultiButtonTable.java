@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentMultiplicityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -61,7 +61,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
-    private static final String OPERATION_LOAD_ASSIGNMENT_MULTIPLICITY = DOT_CLASS + "loadAssignmentMultiplicity";
+    private static final String OPERATION_LOAD_ASSIGNMENT_CONSTRAINTS = DOT_CLASS + "loadAssignmentConstraints";
 
     private String addToCartLinkIcon = "fa fa-times-circle fa-lg text-danger";
     private String detailsLinkIcon = "fa fa-arrow-circle-right";
@@ -132,8 +132,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
-                        && assignment.isAlreadyAssigned());
+                return canAssign(assignment);
             }
         });
         cellContainer.add(inner);
@@ -152,8 +151,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
-                        && assignment.isAlreadyAssigned());
+                return canAssign(assignment);
             }
         });
         cellContainer.add(detailsLink);
@@ -175,8 +173,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
-                        && assignment.isAlreadyAssigned());
+                return canAssign(assignment);
             }
         });
         detailsLink.add(detailsLinkIcon);
@@ -192,8 +189,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
-                        && assignment.isAlreadyAssigned());
+                return canAssign(assignment);
             }
         });
         cellContainer.add(addToCartLink);
@@ -211,8 +207,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
-                        && assignment.isAlreadyAssigned());
+                return canAssign(assignment);
             }
         });
         addToCartLink.add(addToCartLinkIcon);
@@ -223,6 +218,17 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     }
 
+    private boolean canAssign(final AssignmentEditorDto assignment) {
+    	AssignmentConstraintsType assignmentConstraints = getAssignmentConstraints();
+    	if (assignmentConstraints == null) {
+    		return true;
+    	}
+    	// TODO
+//    	return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
+//                && assignment.isAlreadyAssigned());
+    	return true;
+    }
+    
     private void assignmentDetailsPerformed(final AssignmentEditorDto assignment, AjaxRequestTarget target){
         if (!plusIconClicked) {
             IModel<AssignmentEditorDto> assignmentModel = new IModel<AssignmentEditorDto>() {
@@ -290,20 +296,18 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     }
 
-    private AssignmentMultiplicityType getAssignmentMultiplicity(){
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_MULTIPLICITY);
+    private AssignmentConstraintsType getAssignmentConstraints() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_CONSTRAINTS);
         SystemConfigurationType systemConfig = null;
         try {
             systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
         } catch (ObjectNotFoundException | SchemaException e) {
             LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
-            return AssignmentMultiplicityType.SINGLE;
+            return null;
         }
-        if (systemConfig != null && systemConfig.getRoleManagement() != null &&
-                systemConfig.getRoleManagement().getDefaultAssignmentMultiplicity() != null &&
-                !systemConfig.getRoleManagement().getDefaultAssignmentMultiplicity().toString().equals("")){
-            return systemConfig.getRoleManagement().getDefaultAssignmentMultiplicity();
+        if (systemConfig != null && systemConfig.getRoleManagement() != null) {
+            return systemConfig.getRoleManagement().getDefaultAssignmentConstraints();
         }
-        return AssignmentMultiplicityType.SINGLE;
+        return null;
     }
 }
