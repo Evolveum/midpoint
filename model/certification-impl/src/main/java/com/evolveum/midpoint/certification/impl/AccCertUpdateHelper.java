@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -204,10 +205,9 @@ public class AccCertUpdateHelper {
         }
 
         rv.add(createStageAddDelta(stage));
-
         rv.addAll(createDeltasToRecordStageOpen(campaign, stage, task, result));
 
-        LOGGER.trace("getDeltasForStageOpen finishing, returning {} deltas", rv.size());
+		LOGGER.trace("getDeltasForStageOpen finishing, returning {} deltas:\n{}", rv.size(), DebugUtil.debugDumpLazily(rv));
         return rv;
     }
 

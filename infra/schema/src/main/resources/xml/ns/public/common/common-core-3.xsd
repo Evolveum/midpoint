@@ -621,7 +621,8 @@
     					The time when a trigger needs to be activated.
     				</xsd:documentation>
     				<xsd:appinfo>
-    					<a:operational>true</a:operational>
+						<!-- cannot be operational: it's a substantial piece of information, used to compare triggers -->
+    					<a:operational>false</a:operational>
     					<a:indexed>true</a:indexed>
     				</xsd:appinfo>
     			</xsd:annotation>

@@ -354,6 +354,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		Iterator<V> valuesIterator = set.iterator();
 		while (valuesIterator.hasNext()) {
 			V existingValue = valuesIterator.next();
+			// TODO either make equalsRealValue return false if both PCVs have IDs and these IDs are different
+			// TODO or include a special test condition here; see MID-3828
 			if (existingValue.equalsRealValue(valueToRemove)
 					|| toDelete && existingValue.representsSameValue(valueToRemove, false)) {		// the same algorithm as when deleting the item value
 				valuesIterator.remove();
@@ -1646,6 +1648,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 							// If IDs are used - and are the same - the content is irrelevant.
 							// The problem is if one side has content with ID, and the other has the same content without ID.
 							// This might have the same or different effect, depending on the content it is applied to.
+							// See MID-3828
 							return (v1.equalsRealValue(v2) && !differentIds(v1, v2)) || v1.representsSameValue(v2, false);
 						}
 					} else {
