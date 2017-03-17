@@ -22,8 +22,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Password test with DEFAULT configuration of password storage.
@@ -44,6 +46,11 @@ public class TestPasswordDefault extends AbstractPasswordTest {
 	@Override
 	protected String getSecurityPolicyOid() {
 		return SECURITY_POLICY_OID;
+	}
+
+	@Override
+	protected void assertShadowLifecycle(PrismObject<ShadowType> shadow, boolean focusCreated) {
+		assertShadowLifecycle(shadow, null);
 	}
 	
 }

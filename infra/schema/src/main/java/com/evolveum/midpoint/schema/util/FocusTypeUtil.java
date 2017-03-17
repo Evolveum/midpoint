@@ -23,11 +23,15 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -146,5 +150,20 @@ public class FocusTypeUtil {
 		}
 		
 		throw new IllegalArgumentException("Construction not defined in the assigment.");
+	}
+
+	public static ProtectedStringType getPasswordValue(UserType user) {
+		if (user == null) {
+			return null;
+		}
+		CredentialsType creds = user.getCredentials();
+		if (creds == null) {
+			return null;
+		}
+		PasswordType passwd = creds.getPassword();
+		if (passwd == null) {
+			return null;
+		}
+		return passwd.getValue();
 	}
 }

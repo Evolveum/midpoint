@@ -76,8 +76,6 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
         PrismValueDeltaSetTriple<V> outputTriple;
 
-        ExpressionUtil.addActorVariable(context.getVariables(), securityEnforcer);
-
         if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
         	
         	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context,

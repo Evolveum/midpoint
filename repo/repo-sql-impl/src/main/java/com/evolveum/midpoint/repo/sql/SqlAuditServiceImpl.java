@@ -370,7 +370,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 			while (true) {
 				try {
 					LOGGER.info("{} audit cleanup, deleting up to {} (duration '{}'), batch size {}{}.",
-							first ? "Starting" : "Restarting", minValue, duration, CLEANUP_AUDIT_BATCH_SIZE,
+							first ? "Starting" : "Continuing with ", minValue, duration, CLEANUP_AUDIT_BATCH_SIZE,
 							first ? "" : ", up to now deleted " + totalCountHolder.getValue() + " entries");
 					first = false;
 					int count;
@@ -422,7 +422,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 			while (true) {
 				try {
 					LOGGER.info("{} audit cleanup, keeping at most {} records, batch size {}{}.",
-							first ? "Starting" : "Restarting", recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE,
+							first ? "Starting" : "Continuing with ", recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE,
 							first ? "" : ", up to now deleted " + totalCountHolder.getValue() + " entries");
 					first = false;
 					int count;

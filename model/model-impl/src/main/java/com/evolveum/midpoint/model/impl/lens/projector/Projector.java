@@ -191,7 +191,7 @@ public class Projector {
 						context.setFresh(true);
 						if (consistencyChecks) context.checkConsistence();
 					}, 
-					partialProcessingOptions::getLoad);
+					partialProcessingOptions::getLoad, result);
 			}
 	        // For now let's pretend to do just one wave. The maxWaves number will be corrected in the
 			// first wave when dependencies are sorted out for the first time.
@@ -225,7 +225,7 @@ public class Projector {
 					        context.recomputeFocus();
 					        if (consistencyChecks) context.checkConsistence();
 						}, 
-						partialProcessingOptions::getFocus);
+						partialProcessingOptions::getFocus, result);
 				
 				LensUtil.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
 				LensUtil.checkContextSanity(context, "focus processing", result);
@@ -343,7 +343,6 @@ public class Projector {
 				    	if (consistencyChecks) context.checkConsistence();
 				    	
 				    	projectionContext.recompute();
-				    	//SynchronizerUtil.traceContext("values", context, false);
 				    	if (consistencyChecks) context.checkConsistence();
 					},
 					partialProcessingOptions::getProjectionValues);
@@ -352,7 +351,6 @@ public class Projector {
 	    	LensUtil.partialExecute("projectionCredentials",
 					() -> {
 						credentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result);
-						//SynchronizerUtil.traceContext("credentials", context, false);
 				    	if (consistencyChecks) context.checkConsistence();
 				        
 				    	projectionContext.recompute();
@@ -371,6 +369,17 @@ public class Projector {
 					},
 					partialProcessingOptions::getProjectionReconciliation);
 	        
+	        
+	        LensUtil.partialExecute("projectionLifecycle",
+					() -> {
+						activationProcessor.processLifecycle(context, projectionContext, now, task, result);
+				    	if (consistencyChecks) context.checkConsistence();
+				    	
+				    	projectionContext.recompute();
+				    	LensUtil.traceContext(LOGGER, activityDescription, "projection lifecycle of "+projectionDesc, false, context, false);
+				    	if (consistencyChecks) context.checkConsistence();
+					},
+					partialProcessingOptions::getProjectionLifecycle);
 	        
 	        result.recordSuccess();
 	        

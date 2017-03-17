@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,8 +104,8 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		try {
 			InternalMonitor.recordScriptExecution();
 			evalRawResult = compiledScript.eval(bindings);
-		} catch (ScriptException e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+		} catch (Throwable e) {
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
 		}
 		
 		if (outputDefinition == null) {
@@ -172,8 +172,8 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		try {
 			InternalMonitor.recordScriptExecution();
 			evalRawResult = compiledScript.eval(bindings);
-		} catch (ScriptException e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+		} catch (Throwable e) {
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
 		}
 		
 		
@@ -190,7 +190,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			InternalMonitor.recordScriptCompile();
 			compiledScript = ((Compilable)scriptEngine).compile(codeString);
 		} catch (ScriptException e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
 		}
 		scriptCache.put(codeString, compiledScript);
 		return compiledScript;
@@ -201,7 +201,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			T convertedValue = ExpressionUtil.convertValue(expectedType, rawValue, protector, prismContext);
 			return convertedValue;
 		} catch (IllegalArgumentException e) {
-			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
 		}
 	}
 	

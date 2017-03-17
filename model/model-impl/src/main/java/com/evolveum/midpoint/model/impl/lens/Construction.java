@@ -246,7 +246,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		return refinedObjectClassDefinition.getIntent();
 	}
 
-	public Object getDescription() {
+	public String getDescription() {
 		return constructionType.getDescription();
 	}
 	

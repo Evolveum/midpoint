@@ -23,7 +23,7 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -122,7 +122,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	private SystemObjectCache systemObjectCache;
 	
 	@Autowired(required = true)
-	private ValuePolicyGenerator valuePolicyGenerator;
+	private ValuePolicyProcessor valuePolicyGenerator;
 	
 	@Autowired(required = true)
 	private Protector protector;

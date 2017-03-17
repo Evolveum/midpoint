@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.security.api;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -132,7 +133,22 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "Authorization(" + authorizationType == null ? "null" : authorizationType.getAction() + ")";
+		return "Authorization(" + (authorizationType == null ? "null" : authorizationType.getAction() + ")");
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof Authorization))
+			return false;
+		Authorization that = (Authorization) o;
+		return Objects.equals(authorizationType, that.authorizationType) &&
+				Objects.equals(sourceDescription, that.sourceDescription);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(authorizationType, sourceDescription);
+	}
 }

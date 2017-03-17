@@ -84,6 +84,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 		
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, true, initResult);
+        repoAddObjectFromFile(USER_ELAINE_FILE, true, initResult);
 	}
 
 	@Test

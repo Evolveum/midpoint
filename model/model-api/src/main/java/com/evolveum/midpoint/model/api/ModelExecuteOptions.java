@@ -25,8 +25,10 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ * Options for execution of Model operations. These options influence the way how the operations are executed.
+ * The options are not mandatory. All options have reasonable default values. They may not be specified at all.
+ * 
  * @author semancik
- *
  */
 public class ModelExecuteOptions extends AbstractOptions implements Serializable, Cloneable {
 	
@@ -46,6 +48,8 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	/**
 	 * Encrypt any cleartext data on write, decrypt any encrypted data on read. Applies only to the encrypted
 	 * data formats (ProtectedString, ProtectedByteArray).
+	 * It is not recommended to use in production environment. This option is provided only for diagnostic
+	 * purposes to be used in development environments.
 	 */
 	private Boolean noCrypt;
 	
@@ -88,6 +92,9 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
      */
 	private Boolean overwrite;
     
+	/**
+	 * Option to simulate import operation. E.g. search filters will be resolved.
+	 */
 	private Boolean isImport;
 
 	/**
@@ -106,8 +113,15 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 */
 	private Boolean preAuthorized;
 	
+	/**
+	 * Business context that describes this request.
+	 */
 	private OperationBusinessContextType requestBusinessContext;
 	
+	/**
+	 * Options that control selective execution of model logic.
+     * Use with extreme care. Some combinations may be dangerous.
+	 */
 	private PartialProcessingOptionsType partialProcessing;
 
     public Boolean getForce() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -40,13 +41,15 @@ public class ExpressionFactory {
 	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<QName, ExpressionEvaluatorFactory>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
 	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<ExpressionIdentifier, Expression<?,?>>();
-	private PrismContext prismContext;
-	private ObjectResolver objectResolver;
+	final private PrismContext prismContext;
+	final private ObjectResolver objectResolver;
+	final private SecurityEnforcer securityEnforcer;
 	
-	public ExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext) {
+	public ExpressionFactory(ObjectResolver objectResolver, SecurityEnforcer securityEnforcer, PrismContext prismContext) {
 		super();
 		this.objectResolver = objectResolver;
 		this.prismContext = prismContext;
+		this.securityEnforcer = securityEnforcer;
 	}
 		
 	public PrismContext getPrismContext() {
@@ -74,7 +77,7 @@ public class ExpressionFactory {
 	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
 																							 D outputDefinition, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
-		Expression<V,D> expression = new Expression<V,D>(expressionType, outputDefinition, objectResolver, prismContext);
+		Expression<V,D> expression = new Expression<V,D>(expressionType, outputDefinition, objectResolver, securityEnforcer, prismContext);
 		expression.parse(this, shortDesc, task, result);
 		return expression;
 	}

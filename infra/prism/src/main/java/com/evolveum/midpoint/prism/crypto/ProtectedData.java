@@ -24,15 +24,17 @@ import com.evolveum.prism.xml.ns._public.types_3.HashedDataType;
  */
 public interface ProtectedData<T> {
 	
-	abstract byte[] getClearBytes();
+	byte[] getClearBytes();
 	
-	abstract void setClearBytes(byte[] bytes);
+	void setClearBytes(byte[] bytes);
 	
-	abstract T getClearValue();
+	T getClearValue();
 	
-	abstract void setClearValue(T data);
+	void setClearValue(T data);
 	
-	abstract void destroyCleartext();
+	void destroyCleartext();
+	
+	boolean canGetCleartext();
 
 	EncryptedDataType getEncryptedDataType();
 

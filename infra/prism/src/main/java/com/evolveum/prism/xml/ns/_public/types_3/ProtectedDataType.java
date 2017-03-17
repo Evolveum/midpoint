@@ -166,6 +166,11 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     public void setClearValue(T clearValue) {
     	this.clearValue = clearValue;
     }
+
+    @Override
+	public boolean canGetCleartext() {
+		return clearValue != null || encryptedDataType != null;
+	}
     
     @Override
 	public void destroyCleartext() {
