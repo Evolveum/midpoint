@@ -442,12 +442,16 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
 		}
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules", focusPolicyRules, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules", thisTargetPolicyRules, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules", otherTargetsPolicyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules " + ruleCountInfo(focusPolicyRules), focusPolicyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetPolicyRules), thisTargetPolicyRules, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules " + ruleCountInfo(otherTargetsPolicyRules), otherTargetsPolicyRules, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
 		return sb.toString();
+	}
+
+	private String ruleCountInfo(Collection<EvaluatedPolicyRule> rules) {
+		return "(" + rules.size() + ", triggered " + LensContext.getTriggeredRulesCount(rules) + ")";
 	}
 
 	private void dumpRefList(int indent, StringBuilder sb, String label, Collection<PrismReferenceValue> referenceValues) {

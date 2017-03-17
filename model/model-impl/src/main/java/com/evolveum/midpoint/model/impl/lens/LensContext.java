@@ -993,7 +993,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			return;
 		}
 		sb.append("\n");
-		DebugUtil.debugDumpLabel(sb, "- " + label + " (" + policyRules.size() + ")", indent);
+		DebugUtil.debugDumpLabel(sb, "- " + label + " (" + policyRules.size() + ", triggered " + getTriggeredRulesCount(policyRules) + ")", indent);
 		boolean first = true;
 		for (EvaluatedPolicyRule rule : policyRules) {
 			if (first) {
@@ -1018,6 +1018,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 				sb.append(")");
 			}
 		}
+	}
+
+	static int getTriggeredRulesCount(Collection<EvaluatedPolicyRule> policyRules) {
+		return (int) policyRules.stream().filter(r -> !r.getTriggers().isEmpty()).count();
 	}
 
 	public LensContextType toLensContextType() throws SchemaException {

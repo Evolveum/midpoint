@@ -25,9 +25,9 @@
 	<assignment> <!-- role3b -->
 		<targetRef oid="00000001-d34d-b33f-f00d-00000000003b" type="RoleType" relation="special-approver"/>
 	</assignment>
-	<assignment> <!-- Role23 (special-approver) -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000023" type="RoleType" relation="special-approver"/>
-	</assignment>
+	<!--<assignment> &lt;!&ndash; Role23 (special-approver) &ndash;&gt;-->
+		<!--<targetRef oid="00000001-d34d-b33f-f00d-000000000023" type="RoleType" relation="special-approver"/>-->
+	<!--</assignment>-->
 	<fullName>Lead3</fullName>
 	<familyName>Lead3</familyName>
 </user>

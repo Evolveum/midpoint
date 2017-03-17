@@ -336,7 +336,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		System.out.println("Delta before operation:\n" + addDelta.debugDump() + "\n");
 		System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
-		boolean removed = addDelta.subtract(SchemaConstants.PATH_ASSIGNMENT, assignmentValue, false);
+		boolean removed = addDelta.subtract(SchemaConstants.PATH_ASSIGNMENT, assignmentValue, false, false);
 
 		// THEN
 		System.out.println("Delta after operation:\n" + addDelta.debugDump() + "\n");
@@ -376,7 +376,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		System.out.println("Delta before operation:\n" + delta.debugDump() + "\n");
 		System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
-		boolean removed = delta.subtract(SchemaConstants.PATH_ASSIGNMENT, assignmentValue, true);
+		boolean removed = delta.subtract(SchemaConstants.PATH_ASSIGNMENT, assignmentValue, true, false);
 
 		// THEN
 		System.out.println("Delta after operation:\n" + delta.debugDump() + "\n");

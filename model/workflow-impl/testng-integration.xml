@@ -57,7 +57,7 @@
     <test name="Other" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.wf.impl.policy.other.TestActivitiQuery"/>
-            <class name="com.evolveum.midpoint.wf.impl.policy.other.TestSimpleCompletion"/>
+            <class name="com.evolveum.midpoint.wf.impl.policy.other.TestMiscellaneous"/>
             <class name="com.evolveum.midpoint.wf.impl.policy.other.TestDelegation"/>
             <class name="com.evolveum.midpoint.wf.impl.policy.other.TestEscalation"/>
         </classes>

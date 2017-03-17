@@ -92,7 +92,7 @@ public class LensUtil {
         	logger.trace("Lens context:\n"+
             		"---[ {} context {} ]--------------------------------\n"+
             		"{}\n",
-            		new Object[]{activity, phase, context.dump(showTriples)});
+					activity, phase, context.dump(showTriples));
         }
     }
 

@@ -30,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -1609,54 +1610,66 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	 *
 	 * @param itemPath
 	 * @param value
+	 * @param dryRun only testing if value could be subtracted; not changing anything
 	 * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
 	 */
-    public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet) {
+    public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
 		if (isAdd()) {
-			if (!fromMinusSet) {
-				return subtractFromObject(objectToAdd, itemPath, value);
-			} else {
-				return false;
-			}
+			return !fromMinusSet && subtractFromObject(objectToAdd, itemPath, value, dryRun);
 		} else {
-			return subtractFromModifications(modifications, itemPath, value, fromMinusSet);
+			return subtractFromModifications(modifications, itemPath, value, fromMinusSet, dryRun);
 		}
 	}
 
 	public static boolean subtractFromModifications(Collection<? extends ItemDelta<?, ?>> modifications,
-			@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet) {
+			@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
 		if (modifications == null) {
 			return false;
 		}
-		boolean removed = false;
+		boolean wasPresent = false;
 		Iterator<? extends ItemDelta<?, ?>> itemDeltaIterator = modifications.iterator();
 		while (itemDeltaIterator.hasNext()) {
 			ItemDelta<?, ?> itemDelta = itemDeltaIterator.next();
 			if (itemPath.equivalent(itemDelta.getPath())) {
 				if (!fromMinusSet) {
-					boolean removed1 = itemDelta.removeValueToAdd(value);
-					boolean removed2 = itemDelta.removeValueToReplace(value);
-					removed = removed || removed1 || removed2;
+					if (dryRun) {
+						wasPresent = wasPresent
+								|| CollectionUtils.emptyIfNull(itemDelta.getValuesToAdd()).contains(value)
+								|| CollectionUtils.emptyIfNull(itemDelta.getValuesToReplace()).contains(value);
+					} else {
+						boolean removed1 = itemDelta.removeValueToAdd(value);
+						boolean removed2 = itemDelta.removeValueToReplace(value);
+						wasPresent = wasPresent || removed1 || removed2;
+					}
 				} else {
 					if (itemDelta.getValuesToReplace() != null) {
 						throw new UnsupportedOperationException("Couldn't subtract 'value to be deleted' from REPLACE itemDelta: " + itemDelta);
 					}
-					removed = removed || itemDelta.removeValueToDelete(value);
+					if (dryRun) {
+						wasPresent = wasPresent || CollectionUtils.emptyIfNull(itemDelta.getValuesToDelete()).contains(value);
+					} else {
+						wasPresent = wasPresent || itemDelta.removeValueToDelete(value);
+					}
 				}
-				if (itemDelta.isInFactEmpty()) {
+				if (!dryRun && itemDelta.isInFactEmpty()) {
 					itemDeltaIterator.remove();
 				}
 			}
 		}
-		return removed;
+		return wasPresent;
 	}
 
-	public static boolean subtractFromObject(@NotNull PrismObject<?> object, @NotNull ItemPath itemPath, @NotNull PrismValue value) {
+	public static boolean subtractFromObject(@NotNull PrismObject<?> object, @NotNull ItemPath itemPath,
+			@NotNull PrismValue value, boolean dryRun) {
 		Item<PrismValue, ItemDefinition> item = object.findItem(itemPath);
 		if (item == null) {
 			return false;
 		}
-		return item.remove(value);
+		if (dryRun) {
+			return item.contains(value);
+		} else {
+			return item.remove(value);
+		}
 	}
 
 	@NotNull

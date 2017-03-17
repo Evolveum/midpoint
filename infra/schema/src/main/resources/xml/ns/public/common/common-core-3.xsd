@@ -11145,10 +11145,12 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="defaultAssignmentMultiplicity" type="tns:AssignmentMultiplicityType" minOccurs="0" default="single">
+			<xsd:element name="defaultAssignmentConstraints" type="tns:AssignmentConstraintsType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Default multiplicity or role assignment. This value defines whether the same
+						Default assignment constraints. These constraints are applied globally to
+						the entire system. 
+						This value defines whether the same
 						abstract role may be assigned only once or multiple times to the same focus.
 						This is the system-wide default value.
 						It will be possible to override this value for each individual role using the
@@ -11162,54 +11164,52 @@
         </xsd:sequence>
     </xsd:complexType>
     
-    <xsd:simpleType name="AssignmentMultiplicityType">
+    <xsd:complexType name="AssignmentConstraintsType">
         <xsd:annotation>
             <xsd:documentation>
-                Multiplicity or role assignment. This value defines whether the same
-				abstract role may be assigned only once or multiple times to the same focus.
+                Specifies constraints on assignments that are placed in the same focus. It can be used
+                to prohibit multiple assignment of the same role and for similar cases.
+                There are several individual constraints in the type. There is a logical AND between them.
+                This means that if no contraint can be violated. All active constratints must be satified
+                at the same time.
             </xsd:documentation>
             <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-                <a:since>3.6</a:since>
-            </xsd:appinfo>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
         </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="single">
-                <xsd:annotation>
-                	<xsd:documentation>
-                		The role may be assigned to each focus only once.
-                	</xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SINGLE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="parametricMultiple">
-                <xsd:annotation>
-                	<xsd:documentation>
-                		The role may be assigned to each focus multiple times,
-                		but easch assignment must have different assignment
-                		parameters.
-                	</xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="PARAMETRIC_MULTIPLE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="multiple">
-                <xsd:annotation>
-                	<xsd:documentation>
-                		The role may be assigned to each focus multiple times.
-                		There is no limitation as to the number of assignments.
-                	</xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MULTIPLE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-       </xsd:restriction>
-    </xsd:simpleType>
-    
+        <xsd:sequence>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        	<xsd:element name="prohibitSameTarget" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Constraint all assignments that have the same target. I.e. multiple assignments
+			            of the same (abstract) role.
+			            If prohibitSameTarget=false then multiple assignments of the same role are allowed.
+			            If prohibitSameTarget=true then multiple assignments of the same role are prohibited.
+			            (but see also other constraints in this type)
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="prohibitSameRelation" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Constraint all assignments that have the same relation.
+			            E.g. if prohibitSameTarget=true and prohibitSameRelation=false then multiple assignments
+			            of the same role are allowed as long as they have different relation.
+			            If prohibitSameTarget=true and prohibitSameRelation=false
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: prohibitSameOrg, prohibitSameTenant, parameter prohibitions -->
+        </xsd:sequence>
+    </xsd:complexType>
+        
     <xsd:complexType name="ObjectCollectionsUseType">
         <xsd:annotation>
             <xsd:documentation>

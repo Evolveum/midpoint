@@ -174,7 +174,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRule", indent);
+		DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRule " + (getName() != null ? getName() + " " : "") + "(triggers: " + triggers.size() + ")", indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "policyRuleType", policyRuleType.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);

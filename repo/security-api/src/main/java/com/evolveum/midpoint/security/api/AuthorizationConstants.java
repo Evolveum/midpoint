@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,22 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_ALL_QNAME = new QName(NS_AUTHORIZATION, "all");
 	public static final String AUTZ_ALL_URL = QNameUtil.qNameToUri(AUTZ_ALL_QNAME);
 	
+	/**
+	 * Authorization to access all REST operations (web resources).
+	 * This does NOT grant proxy authorization. It just gives access to all the
+	 * REST API operations. It does not automatically allow access to the data.
+	 * Additional data-level authorizations must be in place for most REST operations
+	 * to be executed.
+	 */
 	public static final QName AUTZ_REST_ALL_QNAME = new QName(NS_AUTHORIZATION_REST, "all");
 	public static final String AUTZ_REST_ALL_URL = QNameUtil.qNameToUri(AUTZ_REST_ALL_QNAME);
+	
+	/**
+	 * Authorization for a proxy user. The proxy user may impersonate other users. Special HTTP
+	 * header may be used to switch the identity without additional authentication.
+	 */
+	public static final QName AUTZ_REST_PROXY_QNAME = new QName(NS_AUTHORIZATION_REST, "proxy");
+	public static final String AUTZ_REST_PROXY_URL = QNameUtil.qNameToUri(AUTZ_REST_PROXY_QNAME);
 	
 	public static final QName AUTZ_WS_ALL_QNAME = new QName(NS_AUTHORIZATION_WS, "all");
 	public static final String AUTZ_WS_ALL_URL = QNameUtil.qNameToUri(AUTZ_WS_ALL_QNAME);

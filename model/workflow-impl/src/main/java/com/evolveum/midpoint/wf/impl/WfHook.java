@@ -18,16 +18,14 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -35,7 +33,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.apache.commons.lang.Validate;
@@ -134,26 +131,13 @@ public class WfHook implements ChangeHook {
     private void logOperationInformation(ModelContext context) {
 
         if (LOGGER.isTraceEnabled()) {
-
-            LensContext lensContext = (LensContext) context;
-
-            LOGGER.trace("=====================================================================");
-            LOGGER.trace("WfHook invoked in state {} (wave {}, max {}):", context.getState(), lensContext.getProjectionWave(), lensContext.getMaxWave());
-
-            ObjectDelta pdelta = context.getFocusContext() != null ? context.getFocusContext().getPrimaryDelta() : null;
-            ObjectDelta sdelta = context.getFocusContext() != null ? context.getFocusContext().getSecondaryDelta() : null;
-
-            LOGGER.trace("Primary delta: {}", DebugUtil.debugDump(pdelta));
-            LOGGER.trace("Secondary delta: {}", DebugUtil.debugDump(sdelta));
-            LOGGER.trace("Projection contexts ({}):", context.getProjectionContexts().size());
-
-            for (Object o : context.getProjectionContexts()) {
-                ModelProjectionContext mpc = (ModelProjectionContext) o;
-                LOGGER.trace(" - Context: " + mpc.getResourceShadowDiscriminator());
-                LOGGER.trace("   - Primary delta: {}", DebugUtil.debugDump(mpc.getPrimaryDelta()));
-                LOGGER.trace("   - Secondary delta: {}" + DebugUtil.debugDump(mpc.getSecondaryDelta()));
-                LOGGER.trace("   - Sync delta: {}", DebugUtil.debugDump(mpc.getSyncDelta()));
-            }
+        	@SuppressWarnings({"unchecked", "raw"})
+            LensContext<?> lensContext = (LensContext<?>) context;
+			try {
+				LensUtil.traceContext(LOGGER, "WORKFLOW (" + context.getState() + ")", "workflow processing", true, lensContext, false);
+			} catch (SchemaException e) {
+				throw new IllegalStateException("SchemaException when tracing model context: " + e.getMessage(), e);
+			}
         }
     }
 

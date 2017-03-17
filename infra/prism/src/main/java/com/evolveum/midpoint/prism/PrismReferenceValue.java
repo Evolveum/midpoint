@@ -500,7 +500,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			sb.append(", source=").append(getOriginObject());
 		}
 		if (filter != null) {
-			sb.append(", (filter)");
+			sb.append(", filter");
 		}
 		if (resolutionTime != null) {
 			sb.append(", resolutionTime=").append(resolutionTime);

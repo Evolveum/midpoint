@@ -99,8 +99,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_SECURITY_APPROVER_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy.xml");
 
 	protected static final File ROLE_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "041-role-approver.xml");
-	protected static final File ROLE_METAROLE1_FILE = new File(TEST_RESOURCE_DIR, "metarole-default.xml");
-	protected static final File ROLE_METAROLE2_FILE = new File(TEST_RESOURCE_DIR, "metarole-security.xml");
+	protected static final File METAROLE_DEFAULT_FILE = new File(TEST_RESOURCE_DIR, "metarole-default.xml");
+	protected static final File METAROLE_SECURITY_FILE = new File(TEST_RESOURCE_DIR, "metarole-security.xml");
+	// following 2 are not used by default (assigned when necessary)
+	protected static final File METAROLE_PRUNE_TEST2X_ROLES_FILE = new File(TEST_RESOURCE_DIR, "metarole-prune-test2x-roles.xml");
+	protected static final File METAROLE_APPROVE_UNASSIGN_FILE = new File(TEST_RESOURCE_DIR, "metarole-approve-unassign.xml");
 	protected static final File ROLE_ROLE1_FILE = new File(TEST_RESOURCE_DIR, "role-role1.xml");
 	protected static final File ROLE_ROLE1A_FILE = new File(TEST_RESOURCE_DIR, "role-role1a.xml");
 	protected static final File ROLE_ROLE1B_FILE = new File(TEST_RESOURCE_DIR, "role-role1b.xml");
@@ -116,6 +119,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File ROLE_ROLE10_FILE = new File(TEST_RESOURCE_DIR, "role-role10.xml");
 	protected static final File ROLE_ROLE10A_FILE = new File(TEST_RESOURCE_DIR, "role-role10a.xml");
 	protected static final File ROLE_ROLE10B_FILE = new File(TEST_RESOURCE_DIR, "role-role10b.xml");
+	protected static final File ROLE_FOCUS_ASSIGNMENT_MAPPING = new File(TEST_RESOURCE_DIR, "role-focus-assignment-mapping.xml");
+
+	protected static final File USER_TEMPLATE_ASSIGNING_ROLE_1A = new File(TEST_RESOURCE_DIR, "user-template-assigning-role1a.xml");
+	protected static final File USER_TEMPLATE_ASSIGNING_ROLE_1A_AFTER = new File(TEST_RESOURCE_DIR, "user-template-assigning-role1a-after.xml");
 
 	protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
@@ -130,8 +137,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String userSecurityApproverDeputyOid;
 
 	protected String roleApproverOid;
-	protected String roleMetarole1Oid;
-	protected String roleMetarole2Oid;
+	protected String metaroleDefaultOid;
+	protected String metaroleSecurityOid;
+	protected String metarolePruneTest2xRolesOid;
+	protected String metaroleApproveUnassign;
 	protected String roleRole1Oid;
 	protected String roleRole1aOid;
 	protected String roleRole1bOid;
@@ -147,6 +156,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String roleRole10Oid;
 	protected String roleRole10aOid;
 	protected String roleRole10bOid;
+	protected String roleFocusAssignmentMapping;
+
+	protected String userTemplateAssigningRole1aOid;
+	protected String userTemplateAssigningRole1aOidAfter;
 
 	@Autowired
 	protected Clockwork clockwork;
@@ -185,8 +198,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		login(userAdministrator);
 
 		roleApproverOid = repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult).getOid();
-		roleMetarole1Oid = repoAddObjectFromFile(ROLE_METAROLE1_FILE, initResult).getOid();
-		roleMetarole2Oid = repoAddObjectFromFile(ROLE_METAROLE2_FILE, initResult).getOid();
+		metaroleDefaultOid = repoAddObjectFromFile(METAROLE_DEFAULT_FILE, initResult).getOid();
+		metaroleSecurityOid = repoAddObjectFromFile(METAROLE_SECURITY_FILE, initResult).getOid();
+		metarolePruneTest2xRolesOid = repoAddObjectFromFile(METAROLE_PRUNE_TEST2X_ROLES_FILE, initResult).getOid();
+		metaroleApproveUnassign = repoAddObjectFromFile(METAROLE_APPROVE_UNASSIGN_FILE, initResult).getOid();
 
 		userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
 		roleRole1Oid = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();
@@ -204,6 +219,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		roleRole10Oid = repoAddObjectFromFile(ROLE_ROLE10_FILE, initResult).getOid();
 		roleRole10aOid = repoAddObjectFromFile(ROLE_ROLE10A_FILE, initResult).getOid();
 		roleRole10bOid = repoAddObjectFromFile(ROLE_ROLE10B_FILE, initResult).getOid();
+		roleFocusAssignmentMapping = repoAddObjectFromFile(ROLE_FOCUS_ASSIGNMENT_MAPPING, initResult).getOid();
 
 		userLead1Oid = addAndRecomputeUser(USER_LEAD1_FILE, initTask, initResult);
 		userLead2Oid = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);
@@ -211,6 +227,9 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		// LEAD10 will be imported later!
 		userSecurityApproverOid = addAndRecomputeUser(USER_SECURITY_APPROVER_FILE, initTask, initResult);
 		userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);
+
+		userTemplateAssigningRole1aOid = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A, initResult).getOid();
+		userTemplateAssigningRole1aOidAfter = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A_AFTER, initResult).getOid();
 	}
 
 	protected File getSystemConfigurationFile() {
