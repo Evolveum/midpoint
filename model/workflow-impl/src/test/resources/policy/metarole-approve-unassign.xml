@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	  oid="00000001-d34d-b33f-f00d-M00000000001">
-	<name>Metarole 1 'default'</name>
-	<description>Treats assignments and modifications in the default way (but with specific approver/owner relations)</description>
+	  oid="e5144353-c39d-445c-bf15-c4b80ce75918">
+	<name>metarole-approve-unassign</name>
 	<inducement>
 		<policyRule>
+			<name>approve-unassign</name>
 			<policyConstraints>
 				<assignment>
-					<operation>add</operation>		<!-- applies to all "add assignment" operations of this metarole-bearer as the target -->
-					<relation>q:any</relation>
+					<operation>delete</operation>
 				</assignment>
 			</policyConstraints>
 			<policyActions>
@@ -34,7 +33,7 @@
 					</compositionStrategy>
 					<approvalSchema>
 						<level>
-							<approverRelation>special-approver</approverRelation>
+							<approverRelation>approver</approverRelation>
 							<outcomeIfNoApprovers>skip</outcomeIfNoApprovers>		<!-- so e.g. for role4b no approval process is started -->
 						</level>
 					</approvalSchema>

@@ -239,39 +239,6 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		executeUnassignRoles123ToJack(TEST_NAME, false, true, true, true);
 	}
 
-	//	/**
-//	 * Assigning Role1 with two deputies present. (Approved by one of the deputies.)
-//	 */
-//	@Test
-//	public void test132AddRole1aAssignmentWithDeputyApprovedByDeputy1() throws Exception {
-//		final String TEST_NAME = "test132AddRole1aAssignmentWithDeputyApprovedByDeputy1";
-//		TestUtil.displayTestTile(this, TEST_NAME);
-//		login(userAdministrator);
-//
-//		unassignAllRoles(userJackOid);
-//		executeAssignRole1ToJack(TEST_NAME, false, true, userLead1Deputy1Oid);
-//	}
-//
-//
-//	protected List<PrismReferenceValue> getPotentialAssignees(PrismObject<UserType> user) {
-//		List<PrismReferenceValue> rv = new ArrayList<>();
-//		rv.add(ObjectTypeUtil.createObjectRef(user).asReferenceValue());
-//		rv.addAll(DeputyUtils.getDelegatorReferences(user.asObjectable()));
-//		return rv;
-//	}
-//
-//	protected void assertActiveWorkItems(String approverOid, int expectedCount) throws Exception {
-//		if (approverOid == null && expectedCount == 0) {
-//			return;
-//		}
-//		Task task = createTask("query");
-//		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
-//				.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssignees(getUser(approverOid)))
-//				.build();
-//		List<WorkItemType> items = modelService.searchContainers(WorkItemType.class, query, null, task, task.getResult());
-//		assertEquals("Wrong active work items for " + approverOid, expectedCount, items.size());
-//	}
-
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate,
 			boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
 		PrismObject<UserType> jack = getUser(userJackOid);

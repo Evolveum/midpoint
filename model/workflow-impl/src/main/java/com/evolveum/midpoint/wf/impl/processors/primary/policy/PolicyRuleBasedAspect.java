@@ -126,8 +126,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createInstructionFromAssignment(
 			EvaluatedAssignment<?> evaluatedAssignment, PlusMinusZero plusMinusZero, @NotNull ObjectTreeDeltas<?> objectTreeDeltas,
-			PrismObject<UserType> requester,
-			ModelInvocationContext ctx, OperationResult result) throws SchemaException {
+			PrismObject<UserType> requester, ModelInvocationContext ctx, OperationResult result) throws SchemaException {
 
 		assert plusMinusZero == PlusMinusZero.PLUS || plusMinusZero == PlusMinusZero.MINUS;
 
@@ -151,7 +150,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		// Let's construct the approval schema plus supporting triggered approval policy rule information
 		ApprovalSchemaBuilder.Result approvalSchemaResult = createSchemaWithRules(triggeredApprovalActionRules, plusMinusZero,
-				targetObject, ctx, result);
+				evaluatedAssignment, ctx, result);
 		if (approvalSchemaHelper.shouldBeSkipped(approvalSchemaResult.schemaType)) {
 			return null;
 		}
@@ -165,9 +164,15 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			case MINUS: assignmentRemoved = true; break;
 			default: throw new UnsupportedOperationException("Processing assignment zero set is not yet supported.");
 		}
-		boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue, assignmentRemoved);
+		boolean removed = objectTreeDeltas.subtractFromFocusDelta(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue, assignmentRemoved,
+				false);
 		if (!removed) {
-			String message = "Assignment to be added/deleted was not found in primary delta."
+			ObjectDelta<?> secondaryDelta = ctx.modelContext.getFocusContext().getSecondaryDelta();
+			if (secondaryDelta != null && secondaryDelta.subtract(new ItemPath(FocusType.F_ASSIGNMENT), assignmentValue, assignmentRemoved, true)) {
+				LOGGER.trace("Assignment to be added/deleted was not found in primary delta. It is present in secondary delta, so there's nothing to be approved.");
+				return null;
+			}
+			String message = "Assignment to be added/deleted was not found in primary nor secondary delta."
 					+ "\nAssignment:\n" + assignmentValue.debugDump()
 					+ "\nPrimary delta:\n" + objectTreeDeltas.debugDump();
 			throw new IllegalStateException(message);
@@ -186,8 +191,9 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	}
 
 	private ApprovalSchemaBuilder.Result createSchemaWithRules(List<EvaluatedPolicyRule> triggeredApprovalRules,
-			PlusMinusZero plusMinusZero, @NotNull PrismObject<?> targetObject, ModelInvocationContext ctx, OperationResult result) throws SchemaException {
+			PlusMinusZero plusMinusZero, @NotNull EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext ctx, OperationResult result) throws SchemaException {
 
+		PrismObject<?> targetObject = evaluatedAssignment.getTarget();
 		ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(this, approvalSchemaHelper);
 
 		// (1) legacy approvers (only if adding)
@@ -201,7 +207,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			AbstractRoleType abstractRole = (AbstractRoleType) targetObject.asObjectable();
 			if (abstractRole.getApprovalSchema() != null) {
 				builder.addPredefined(targetObject, abstractRole.getApprovalSchema().clone());
-				LOGGER.trace("Added legacy approval schema");
+				LOGGER.trace("Added legacy approval schema for {}", evaluatedAssignment);
 			} else if (!abstractRole.getApproverRef().isEmpty() || !abstractRole.getApproverExpression().isEmpty()) {
 				ApprovalLevelType level = new ApprovalLevelType(prismContext);
 				level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverRef()));
@@ -209,7 +215,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				level.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
 				// consider default (if expression returns no approvers) -- currently it is "reject"; it is probably correct
 				builder.addPredefined(targetObject, level);
-				LOGGER.trace("Added legacy approval schema");
+				LOGGER.trace("Added legacy approval schema (from approverRef, approverExpression, automaticallyApproved) for {}", evaluatedAssignment);
 			}
 		}
 
@@ -217,7 +223,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		if (triggeredApprovalRules.isEmpty() && plusMinusZero == PlusMinusZero.PLUS
 				&& baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 			if (builder.addPredefined(targetObject, SchemaConstants.ORG_APPROVER, result)) {
-				LOGGER.trace("Added default approval action, as no explicit one was found");
+				LOGGER.trace("Added default approval action, as no explicit one was found for {}", evaluatedAssignment);
 			}
 		}
 
@@ -249,6 +255,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	private void logApprovalActions(EvaluatedAssignment<?> newAssignment,
 			List<EvaluatedPolicyRule> triggeredApprovalActionRules, PlusMinusZero plusMinusZero) {
 		if (LOGGER.isDebugEnabled() && !triggeredApprovalActionRules.isEmpty()) {
+			LOGGER.trace("-------------------------------------------------------------");
 			LOGGER.debug("Assignment to be {}: {}: {} this target policy rules, {} triggered approval actions:",
 					plusMinusZero == PlusMinusZero.PLUS ? "added" : "deleted",
 					newAssignment, newAssignment.getThisTargetPolicyRules().size(), triggeredApprovalActionRules.size());

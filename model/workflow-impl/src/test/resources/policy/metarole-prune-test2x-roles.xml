@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role oid="2330f9df-83bc-4270-86fc-27fca2b616a7"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<name>metarole-pruning-test2x-roles</name>
+	<inducement>
+		<policyRule>
+			<name>pruning-test2x-roles</name>
+			<policyConstraints>
+				<exclusion>
+					<targetRef oid="00000001-d34d-b33f-f00d-000000000002" type="RoleType"/> <!-- role2 -->
+				</exclusion>
+				<exclusion>
+					<targetRef oid="00000001-d34d-b33f-f00d-00000000002a" type="RoleType"/> <!-- role2a -->
+				</exclusion>
+				<exclusion>
+					<targetRef oid="00000001-d34d-b33f-f00d-00000000002b" type="RoleType"/> <!-- role2b -->
+				</exclusion>
+			</policyConstraints>
+			<policyActions>
+				<prune/>
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>
