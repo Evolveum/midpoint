@@ -81,7 +81,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
 
 /**
- * Set of utility methods that work around some of the ICF problems.
+ * Set of utility methods that work around some of the ConnId and connector problems.
  * 
  * @author Radovan Semancik
  *
@@ -101,7 +101,7 @@ class IcfUtil {
 	}
 	
 	/**
-	 * Transform ICF exception to something more usable.
+	 * Transform ConnId exception to something more usable.
 	 *
 	 * ICF throws exceptions that contains inner exceptions that cannot be
 	 * reached by current classloader. Such inner exceptions may cause a lot
@@ -115,93 +115,95 @@ class IcfUtil {
 	 * The full exception with a stack trace is logged here, so the details are
 	 * still in the log.
 	 * 
-	 * WARNING: This is black magic. Really. Blame ICF interface design.
+	 * WARNING: This is black magic. Really. Blame Sun Identity Connector
+	 * Framework interface design.
 	 * 
-	 * @param icfException
-	 *            exception from the ICF
+	 * @param connIdException
+	 *            exception from the ConnId
 	 * @param connIdResult
 	 *            OperationResult to record failure
 	 * @return reasonable midPoint exception
 	 */
-	static Throwable processIcfException(Throwable icfException, String desc,
+	static Throwable processIcfException(Throwable connIdException, String desc,
 			OperationResult connIdResult) {
 		// Whole exception handling in this case is a black magic.
-		// ICF does not define any exceptions and there is no "best practice"
-		// how to handle ICF errors
-		// Therefore let's just guess what might have happened. That's the best
-		// we can do.
+		// ConnId does not define any checked exceptions so the developers are not
+		// guided towards good exception handling. Sun Identity Connector Framework (ConnId predecessor)
+		// haven't had any "best practice" for error reporting. Now there is some
+		// basic (runtime) exceptions and the connectors are getting somehow better. But this
+		// nightmarish code is still needed to support bad connectors.
 		
-		if (icfException == null) {
-			connIdResult.recordFatalError("Null exception while processing ICF exception ");
-			throw new IllegalArgumentException("Null exception while processing ICF exception ");
+		if (connIdException == null) {
+			connIdResult.recordFatalError("Null exception while processing ConnId exception ");
+			throw new IllegalArgumentException("Null exception while processing ConnId exception ");
 		}
 		
-		LOGGER.error("ICF Exception {} in {}: {}",new Object[]{icfException.getClass().getName(),
-				desc, icfException.getMessage(),icfException});
+		LOGGER.error("ConnId Exception {} in {}: {}", connIdException.getClass().getName(),
+				desc, connIdException.getMessage(), connIdException);
 
-        if (icfException instanceof RemoteWrappedException) {
+        if (connIdException instanceof RemoteWrappedException) {
             // brutal hack, for now
-            RemoteWrappedException remoteWrappedException = (RemoteWrappedException) icfException;
+            RemoteWrappedException remoteWrappedException = (RemoteWrappedException) connIdException;
             String className = remoteWrappedException.getExceptionClass();
             if (className == null) {
-                LOGGER.error("Remote ICF exception without inner exception class name. Continuing with original one: {}", icfException);
+                LOGGER.error("Remote ConnId exception without inner exception class name. Continuing with original one: {}", connIdException);
             } else if (DOT_NET_ARGUMENT_EXCEPTION.equals(className) && remoteWrappedException.getMessage().contains("0x800708C5")) {       // password too weak
-                icfException = new SecurityViolationException(icfException.getMessage(), icfException);
+                connIdException = new SecurityViolationException(connIdException.getMessage(), connIdException);
             } else {
                 if (className.startsWith(DOT_NET_EXCEPTION_PACKAGE_PLUS_DOT)) {
                     className = JAVA_EXCEPTION_PACKAGE + "." + className.substring(DOT_NET_EXCEPTION_PACKAGE_PLUS_DOT.length());
                     LOGGER.trace("Translated exception class: {}", className);
                 }
                 try {
-                    icfException = (Throwable) Class.forName(className).getConstructor(String.class, Throwable.class).newInstance(
+                    connIdException = (Throwable) Class.forName(className).getConstructor(String.class, Throwable.class).newInstance(
                             remoteWrappedException.getMessage(), remoteWrappedException);
                 } catch (InstantiationException|IllegalAccessException|ClassNotFoundException|NoSuchMethodException|InvocationTargetException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't unwrap remote ICF exception, continuing with original one {}", e, icfException);
+                    LoggingUtils.logException(LOGGER, "Couldn't unwrap remote ConnId exception, continuing with original one {}", e, connIdException);
                 }
             }
         }
 		
-		if (icfException instanceof NullPointerException && icfException.getMessage() != null) {
+		if (connIdException instanceof NullPointerException && connIdException.getMessage() != null) {
 			// NPE with a message text is in fact not a NPE but an application exception
 			// this usually means that some parameter is missing
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",icfException));  
-			connIdResult.recordFatalError("Required attribute is missing: "+icfException.getMessage(),newEx);
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",connIdException));  
+			connIdResult.recordFatalError("Required attribute is missing: "+connIdException.getMessage(),newEx);
 			return newEx;
-		} else if (icfException instanceof IllegalArgumentException) {
+		} else if (connIdException instanceof IllegalArgumentException) {
 			// Let's assume this must be a configuration problem
-			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", icfException));
-			connIdResult.recordFatalError("Configuration error: "+icfException.getMessage(), newEx);
+			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", connIdException));
+			connIdResult.recordFatalError("Configuration error: "+connIdException.getMessage(), newEx);
 			return newEx;
 		}
         //fix of MiD-2645
         //exception brought by the connector is java.lang.RuntimeException with cause=CommunicationsException
         //this exception is to be analyzed here before the following if clause
-        if (icfException.getCause() != null){
-            String exCauseClassName = icfException.getCause().getClass().getSimpleName();
+        if (connIdException.getCause() != null){
+            String exCauseClassName = connIdException.getCause().getClass().getSimpleName();
             if (exCauseClassName.equals(CONNECTIONS_EXCEPTION_CLASS_NAME) ){
-                Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connect error", icfException));
-                connIdResult.recordFatalError("Connect error: " + icfException.getMessage(), newEx);
+                Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connect error", connIdException));
+                connIdResult.recordFatalError("Connect error: " + connIdException.getMessage(), newEx);
                 return newEx;
             }
         }
-		if (icfException.getClass().getPackage().equals(NullPointerException.class.getPackage())) {
+		if (connIdException.getClass().getPackage().equals(NullPointerException.class.getPackage())) {
 			// There are java.lang exceptions, they are safe to pass through
-			connIdResult.recordFatalError(icfException);
-			return icfException;
+			connIdResult.recordFatalError(connIdException);
+			return connIdException;
 		}
 		
-		if (icfException.getClass().getPackage().equals(SchemaException.class.getPackage())) {
+		if (connIdException.getClass().getPackage().equals(SchemaException.class.getPackage())) {
 			// Common midPoint exceptions, pass through
-			connIdResult.recordFatalError(icfException);
-			return icfException;
+			connIdResult.recordFatalError(connIdException);
+			return connIdException;
 		}
 		
 		if (connIdResult == null) {
-			throw new IllegalArgumentException(createMessageFromAllExceptions("Null parent result while processing ICF exception",icfException));
+			throw new IllegalArgumentException(createMessageFromAllExceptions("Null parent result while processing ConnId exception",connIdException));
 		}
 
 		// Introspect the inner exceptions and look for known causes
-		Exception knownCause = lookForKnownCause(icfException, icfException, connIdResult);
+		Exception knownCause = lookForKnownCause(connIdException, connIdException, connIdResult);
 		if (knownCause != null) {
 			connIdResult.recordFatalError(knownCause);
 			return knownCause;
@@ -213,87 +215,87 @@ class IcfUtil {
 		// relevant message directly in the exception ("javax.naming.NoPermissionException([LDAP: error code 50 - The entry uid=idm,ou=Administrators,dc=example,dc=com cannot be modified due to insufficient access rights])
 
         // Otherwise try few obvious things
-		if (icfException instanceof IllegalArgumentException) {
+		if (connIdException instanceof IllegalArgumentException) {
 			// This is most likely missing attribute or similar schema thing
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation (most likely)", icfException));
-			connIdResult.recordFatalError("Schema violation: "+icfException.getMessage(), newEx);
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation (most likely)", connIdException));
+			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
 			return newEx;
 			
-		} else if (icfException instanceof ConfigurationException) {
-			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", icfException));
-			connIdResult.recordFatalError("Configuration error: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof ConfigurationException) {
+			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", connIdException));
+			connIdResult.recordFatalError("Configuration error: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof AlreadyExistsException) {
-			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, icfException));
-			connIdResult.recordFatalError("Object already exists: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof AlreadyExistsException) {
+			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, connIdException));
+			connIdResult.recordFatalError("Object already exists: "+connIdException.getMessage(), newEx);
 			return newEx;
 			
-		} else if (icfException instanceof PermissionDeniedException) {
-			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null, icfException));
-			connIdResult.recordFatalError("Security violation: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof PermissionDeniedException) {
+			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null, connIdException));
+			connIdResult.recordFatalError("Security violation: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof ConnectionBrokenException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", icfException));
-			connIdResult.recordFatalError("Connection broken: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof ConnectionBrokenException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection broken", connIdException));
+			connIdResult.recordFatalError("Connection broken: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof ConnectionFailedException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection failed", icfException));
-			connIdResult.recordFatalError("Connection failed: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof ConnectionFailedException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connection failed", connIdException));
+			connIdResult.recordFatalError("Connection failed: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof UnknownHostException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Unknown host", icfException));
-			connIdResult.recordFatalError("Unknown host: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof UnknownHostException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Unknown host", connIdException));
+			connIdResult.recordFatalError("Unknown host: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof ConnectorIOException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("IO error", icfException));
-			connIdResult.recordFatalError("IO error: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof ConnectorIOException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("IO error", connIdException));
+			connIdResult.recordFatalError("IO error: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof InvalidCredentialException) {
-			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("Invalid credentials", icfException));
-			connIdResult.recordFatalError("Invalid credentials: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof InvalidCredentialException) {
+			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("Invalid credentials", connIdException));
+			connIdResult.recordFatalError("Invalid credentials: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof OperationTimeoutException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Operation timed out", icfException));
-			connIdResult.recordFatalError("Operation timed out: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof OperationTimeoutException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Operation timed out", connIdException));
+			connIdResult.recordFatalError("Operation timed out: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof UnknownUidException) {
-			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, icfException));
-			connIdResult.recordFatalError("Unknown UID: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof UnknownUidException) {
+			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, connIdException));
+			connIdResult.recordFatalError("Unknown UID: "+connIdException.getMessage(), newEx);
 			return newEx;
 			
-		} else if (icfException instanceof InvalidAttributeValueException) {
-			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, icfException));
-			connIdResult.recordFatalError("Schema violation: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof InvalidAttributeValueException) {
+			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, connIdException));
+			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
 			return newEx;
 			
-		} else if (icfException instanceof RetryableException) {
-			Exception newEx = new CommunicationException(createMessageFromAllExceptions(null, icfException));
-			connIdResult.recordFatalError("Retryable errror: "+icfException.getMessage(), newEx);
+		} else if (connIdException instanceof RetryableException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions(null, connIdException));
+			connIdResult.recordFatalError("Retryable errror: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (icfException instanceof ConnectorSecurityException) {
+		} else if (connIdException instanceof ConnectorSecurityException) {
 			// Note: connection refused is also packed inside
 			// ConnectorSecurityException. But that will get addressed by the
 			// lookForKnownCause(..) before
 			
 			// Maybe we need special exception for security?
-			Exception newEx =  new SecurityViolationException(createMessageFromAllExceptions("Security violation",icfException));
+			Exception newEx =  new SecurityViolationException(createMessageFromAllExceptions("Security violation",connIdException));
 			connIdResult.recordFatalError(
-					"Security violation: " + icfException.getMessage(), newEx);
+					"Security violation: " + connIdException.getMessage(), newEx);
 			return newEx;
 			
 		}
 		
 		// Fallback
-		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,icfException)); 
+		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,connIdException)); 
 		connIdResult.recordFatalError(newEx);
 		return newEx;
 	}
