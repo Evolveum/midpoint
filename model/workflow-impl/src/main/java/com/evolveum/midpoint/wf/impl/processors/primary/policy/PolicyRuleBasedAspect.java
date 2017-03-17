@@ -129,12 +129,14 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			PrismObject<UserType> requester,
 			ModelInvocationContext ctx, OperationResult result) throws SchemaException {
 
+		assert plusMinusZero == PlusMinusZero.PLUS || plusMinusZero == PlusMinusZero.MINUS;
+
 		// We collect all target rules; hoping that only relevant ones are triggered.
 		// For example, if we have assignment policy rule on induced role, it will get here.
 		// But projector will take care not to trigger it unless the rule is capable (e.g. configured)
 		// to be triggered in such a situation
 		List<EvaluatedPolicyRule> triggeredApprovalActionRules = getApprovalActionRules(evaluatedAssignment.getAllTargetsPolicyRules());
-		logApprovalActions(evaluatedAssignment, triggeredApprovalActionRules);
+		logApprovalActions(evaluatedAssignment, triggeredApprovalActionRules, plusMinusZero);
 
 		// Currently we can deal only with assignments that have a specific target
 		PrismObject<?> targetObject = evaluatedAssignment.getTarget();
@@ -245,9 +247,10 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	}
 
 	private void logApprovalActions(EvaluatedAssignment<?> newAssignment,
-			List<EvaluatedPolicyRule> triggeredApprovalActionRules) {
+			List<EvaluatedPolicyRule> triggeredApprovalActionRules, PlusMinusZero plusMinusZero) {
 		if (LOGGER.isDebugEnabled() && !triggeredApprovalActionRules.isEmpty()) {
-			LOGGER.debug("Assignment to be added: {}: {} this target policy rules, {} triggered approval actions:",
+			LOGGER.debug("Assignment to be {}: {}: {} this target policy rules, {} triggered approval actions:",
+					plusMinusZero == PlusMinusZero.PLUS ? "added" : "deleted",
 					newAssignment, newAssignment.getThisTargetPolicyRules().size(), triggeredApprovalActionRules.size());
 			for (EvaluatedPolicyRule t : triggeredApprovalActionRules) {
 				LOGGER.debug(" - Approval action: {}", t.getActions().getApproval());
