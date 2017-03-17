@@ -128,12 +128,12 @@
                 <div wicket:id="debugPanel" style="z-index: 10000;"/>
             </section>
         </div>
-        <footer class="main-footer">
+        <footer wicket:id="footerContainer" class="main-footer">
             <div class="pull-right hidden-xs" wicket:id="version">
                 <b><wicket:message key="PageTemplate.version"/></b> <wicket:message key="pageBase.midPointVersion"/>
             </div>
-            <div wicket:id="subscriptionMessage" class="pull-left"/>
-            <wicket:message key="PageTemplate.copy" class="pull-right"/>
+            <div wicket:id="copyrightMessage" class="pull-left"><wicket:message key="PageTemplate.copy" /></div>
+            <div wicket:id="subscriptionMessage"/>
         </footer>
     </div>
 
