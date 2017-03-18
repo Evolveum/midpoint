@@ -265,6 +265,7 @@
 	        </xsd:element>
 	        
 	        <xsd:element name="trigger" type="tns:TriggerType" minOccurs="0" maxOccurs="unbounded">
+
 	        </xsd:element>
 	        
 	        <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0" maxOccurs="1">
@@ -622,6 +623,7 @@
     				</xsd:documentation>
     				<xsd:appinfo>
 						<!-- cannot be operational: it's a substantial piece of information, used to compare triggers -->
+						<!-- TODO think again about this (MID-3828) -->
     					<a:operational>false</a:operational>
     					<a:indexed>true</a:indexed>
     				</xsd:appinfo>

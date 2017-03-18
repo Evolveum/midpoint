@@ -188,12 +188,13 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
 		assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
-		assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
+		// Originally here was only one execution expected. But why? There are two triggers
+		// with different triggering times! So the handler should be really called two times.
+		assertEquals("Trigger was called wrong number of times", 2, testTriggerHandler.getInvocationCount());
 		assertNoTrigger(UserType.class, USER_JACK_OID);
 
 		assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
-
 
 	@Test
     public void test150NoTriggerAgain() throws Exception {
@@ -222,5 +223,39 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
-	
+
+	@Test
+	public void test200TwoDistantTriggers() throws Exception {
+		final String TEST_NAME = "test130TwoDistantTriggers";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testTriggerHandler.reset();
+
+		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+		addTrigger(USER_JACK_OID, startCal, MockTriggerHandler.HANDLER_URI);
+
+		XMLGregorianCalendar startCalPlus5days = XmlTypeConverter.createXMLGregorianCalendar(startCal);
+		startCalPlus5days.add(XmlTypeConverter.createDuration("P5D"));
+		addTrigger(USER_JACK_OID, startCalPlus5days, MockTriggerHandler.HANDLER_URI);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		// THEN
+		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+		assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+		assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
+		assertTrigger(getUser(USER_JACK_OID), MockTriggerHandler.HANDLER_URI, startCalPlus5days, 100L);
+
+		assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
+
 }
