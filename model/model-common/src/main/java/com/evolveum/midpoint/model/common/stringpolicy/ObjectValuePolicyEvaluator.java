@@ -276,7 +276,7 @@ public class ObjectValuePolicyEvaluator {
 		}
 		
 		XMLGregorianCalendar changeAllowedTimestamp = XmlTypeConverter.addDuration(lastChangeTimestamp, minAge);
-		if (changeAllowedTimestamp.compare(now) == DatatypeConstants.LESSER) {
+		if (changeAllowedTimestamp.compare(now) == DatatypeConstants.GREATER) {
 			LOGGER.trace("Password minAge violated. lastChange={}, minAge={}, now={}", lastChangeTimestamp, minAge, now);
 			String msg = shortDesc + " could not be changed because password minimal age was not yet reached.";
 			result.addSubresult(new OperationResult("Password minimal age",
