@@ -265,6 +265,17 @@
 	        </xsd:element>
 	        
 	        <xsd:element name="trigger" type="tns:TriggerType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Triggers for this object. They drive invocations of corresponding trigger handlers
+							at specified time.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:operational>true</a:operational>
+					</xsd:appinfo>
+				</xsd:annotation>
 	        </xsd:element>
 	        
 	        <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0" maxOccurs="1">
@@ -610,7 +621,9 @@
                 at specified time or under some other condition.
     		</xsd:documentation>
     		<xsd:appinfo>
-    			<a:operational>true</a:operational>
+				<!-- We don't consider this type to be operational per se. We set operational flag
+					 on some elements with this type. -->
+    			<a:operational>false</a:operational>
     			<a:container/>
     		</xsd:appinfo>
     	</xsd:annotation>
@@ -622,6 +635,7 @@
     				</xsd:documentation>
     				<xsd:appinfo>
 						<!-- cannot be operational: it's a substantial piece of information, used to compare triggers -->
+						<!-- TODO think again about this (MID-3828) -->
     					<a:operational>false</a:operational>
     					<a:indexed>true</a:indexed>
     				</xsd:appinfo>
