@@ -283,6 +283,9 @@ public class SecurityHelper {
 	
 	private ValuePolicyType postProcessCredentialPolicy(SecurityPolicyType securityPolicyType, CredentialPolicyType credPolicy, String credShortDesc, Task task, OperationResult result) {
 		ObjectReferenceType valuePolicyRef = credPolicy.getValuePolicyRef();
+		if (valuePolicyRef == null) {
+			return null;
+		}
 		ValuePolicyType valuePolicyType;
 		try {
 			valuePolicyType = objectResolver.resolve(valuePolicyRef, ValuePolicyType.class, null, credShortDesc + " in " + securityPolicyType, task, result);
@@ -312,11 +315,11 @@ public class SecurityHelper {
 		PasswordLifeTimeType lifetime = passwordPolicyType.getLifetime();
 		if (lifetime != null) {
 			Integer expiration = lifetime.getExpiration();
-			if (expiration != null && passwd.getMaxAge() == null) {
+			if (expiration != null && expiration != 0 && passwd.getMaxAge() == null) {
 				passwd.setMaxAge(daysToDuration(expiration));
 			}
 			Integer minPasswordAge = lifetime.getMinPasswordAge();
-			if (minPasswordAge != null && passwd.getMinAge() == null) {
+			if (minPasswordAge != null && minPasswordAge != 0 && passwd.getMinAge() == null) {
 				passwd.setMinAge(daysToDuration(minPasswordAge));
 			}
 			Integer passwordHistoryLength = lifetime.getPasswordHistoryLength();

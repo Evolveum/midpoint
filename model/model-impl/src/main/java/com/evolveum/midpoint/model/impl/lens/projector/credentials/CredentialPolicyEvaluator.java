@@ -112,7 +112,6 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	// State
 	
 	private ObjectValuePolicyEvaluator objectValuePolicyEvaluator;
-	private List<ProtectedStringType> newHistoryValues = new ArrayList<>();
 	private P credentialPolicy;
 	
 	public PrismContext getPrismContext() {
@@ -228,6 +227,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	private ObjectValuePolicyEvaluator getObjectValuePolicyEvaluator() {
 		if (objectValuePolicyEvaluator == null) {
 			PrismObject<UserType> user = getUser();
+			
 			objectValuePolicyEvaluator = new ObjectValuePolicyEvaluator();
 			objectValuePolicyEvaluator.setNow(now);
 			objectValuePolicyEvaluator.setObject(user);
@@ -237,6 +237,12 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 			objectValuePolicyEvaluator.setTask(task);
 			objectValuePolicyEvaluator.setValueItemPath(getCredentialValuePath());
 			objectValuePolicyEvaluator.setValuePolicyProcessor(valuePolicyProcessor);
+			
+			PrismContainer<R> currentCredentialContainer = getOldCredentialContainer();
+			if (currentCredentialContainer != null) {
+				objectValuePolicyEvaluator.setOldCredentialType(currentCredentialContainer.getRealValue());
+			}
+
 		}
 		return objectValuePolicyEvaluator;
 	}
@@ -346,8 +352,6 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		if (!validationResult.isAcceptable()) {
 			throw new PolicyViolationException("Provided "+getCredentialHumanReadableName()+" does not satisfy the policies: " + validationResult.getMessage());
 		}
-		
-		rememberHistoryValue(value);
 	}
 
 	private void addMetadataDelta() throws SchemaException {
@@ -423,52 +427,43 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		return false;
 	}
 	
-	protected PrismContainer<R> getCurrentCredentialContainer() {
-		PrismObject<UserType> objectCurrent = context.getFocusContext().getObjectCurrent();
-		if (objectCurrent == null) {
-			objectCurrent = context.getFocusContext().getObjectOld();
-		}
-		if (objectCurrent == null) {
+	protected PrismContainer<R> getOldCredentialContainer() {
+		PrismObject<UserType> objectOld = context.getFocusContext().getObjectOld();
+		if (objectOld == null) {
 			return null;
 		}
-		return objectCurrent.findContainer(getCredentialsContainerPath());
+		return objectOld.findContainer(getCredentialsContainerPath());
 	}
-	
-	protected void rememberHistoryValue(ProtectedStringType value) {
-		newHistoryValues.add(value);
-	}
-	
+		
 	private void addHistoryDeltas() throws SchemaException {
 		if (!supportsHistory()) {
 			return;
 		}
-		if (newHistoryValues.isEmpty()) {
-			return;
-		}
-		PrismContainer<R> currentCredentialContainer = getCurrentCredentialContainer();
-		if (currentCredentialContainer == null) {
-			// Obviously we are setting the first value. We do not need to deal with history yet
-			return;
-		}
-		
 		int historyLength = SecurityUtil.getCredentialHistoryLength(getCredentialPolicy());
 		
 		
+		PrismContainer<R> oldCredentialContainer = getOldCredentialContainer();
+		if (oldCredentialContainer == null) {
+			return;
+		}
+			
+		int addedValues = 0;
 		// Note: historyLength=1 means that we need just compare with current password
 		// The real number of values stored in the history is historyLength-1
 		if (historyLength > 1) {
-			for (ProtectedStringType newHistoryValue: newHistoryValues) {
-				createAddHistoryDelta(newHistoryValue, currentCredentialContainer);
-			}
+			addedValues = createAddHistoryDelta(oldCredentialContainer);
 		}
 		
-		createDeleteHistoryDeltasIfNeeded(historyLength, currentCredentialContainer);
+		createDeleteHistoryDeltasIfNeeded(historyLength, addedValues, oldCredentialContainer);		
 	}
 	
 	// TODO: generalize for other credentials
-	private <F extends FocusType> void createAddHistoryDelta(ProtectedStringType newHistoryValue, PrismContainer<R> currentCredentialContainer) throws SchemaException {
+	private <F extends FocusType> int createAddHistoryDelta(PrismContainer<R> currentCredentialContainer) throws SchemaException {
 		R currentCredentialContainerType = currentCredentialContainer.getValue().asContainerable();
 		MetadataType currentCredentialMetadata = currentCredentialContainerType.getMetadata();
+		
+		PrismProperty<ProtectedStringType> currentValueProperty = currentCredentialContainer.findProperty(getCredentialRelativeValuePath());
+		ProtectedStringType newHistoryValue = currentValueProperty.getRealValue();
 		ProtectedStringType passwordPsForStorage = newHistoryValue.clone();
 		
 		CredentialsStorageTypeType storageType = SecurityUtil.getCredentialStoragetTypeType(getCredentialPolicy().getHistoryStorageMethod());
@@ -490,24 +485,25 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		ContainerDelta<PasswordHistoryEntryType> addHisotryDelta = ContainerDelta
 				.createModificationAdd(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY), UserType.class, prismContext, entryType.clone());
 		context.getFocusContext().swallowToSecondaryDelta(addHisotryDelta);
+		
+		return 1;
 	}
 	
 	// TODO: generalize for other credentials
-	private <F extends FocusType> void createDeleteHistoryDeltasIfNeeded(int historyLength, PrismContainer<R> currentCredentialContainer) throws SchemaException {
-				
+	private <F extends FocusType> void createDeleteHistoryDeltasIfNeeded(int historyLength, int addedValues, PrismContainer<R> currentCredentialContainer) throws SchemaException {
+
 		PrismContainer<PasswordHistoryEntryType> historyEntries = currentCredentialContainer.findOrCreateContainer(PasswordType.F_HISTORY_ENTRY);
 		List<PrismContainerValue<PasswordHistoryEntryType>> historyEntryValues = historyEntries.getValues();
-		
+				
 		if (historyEntries.size() == 0) {
 			return;
 		}
 
 		// We need to delete one more entry than intuitively expected - because we are computing from the history entries 
 		// in the old object. In the new object there will be one new history entry for the changed password.
-		int numberOfHistoryEntriesToDelete = historyEntries.size() - historyLength - 1 + newHistoryValues.size();
+		int numberOfHistoryEntriesToDelete = historyEntries.size() - historyLength + addedValues + 1;
 		
 		for (int i = 0; i < numberOfHistoryEntriesToDelete; i++) {
-			LOGGER.info("PPPPPPPPPPP i={}, numberOfHistoryEntriesToDelete={}, historyLength={}", i, numberOfHistoryEntriesToDelete, historyLength);
 			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDelta
 					.createModificationDelete(
 							new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,

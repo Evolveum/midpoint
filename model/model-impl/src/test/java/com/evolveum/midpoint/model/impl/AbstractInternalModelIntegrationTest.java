@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.impl.util.mock.MockClockworkHook;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -137,6 +138,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
+		
+		// We want logging config from logback-test.xml and not from system config object
+		InternalsConfig.avoidLoggingChange = true;
 		
 		mockClockworkHook = new MockClockworkHook();
 		hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);

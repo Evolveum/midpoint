@@ -94,6 +94,11 @@ public class ObjectValuePolicyEvaluator {
 	
 	private PrismObject<UserType> object;
 	
+	// We need to get old credential as a configuration. We cannot determine it
+	// from the "object". E.g. in case of addition the object is the new object that
+	// is just being added. The password will conflict with itself.
+	private AbstractCredentialType oldCredentialType;
+	
 	private String shortDesc;
 	
 	private Task task;
@@ -102,7 +107,6 @@ public class ObjectValuePolicyEvaluator {
 	
 	private boolean prepared = false;
 	private QName credentialQName = null;
-	private AbstractCredentialType currentCredentialType;
 	private CredentialPolicyType credentialPolicy;
 	private ValuePolicyType valuePolicy;
 	
@@ -153,6 +157,14 @@ public class ObjectValuePolicyEvaluator {
 
 	public void setObject(PrismObject<UserType> object) {
 		this.object = object;
+	}
+
+	public AbstractCredentialType getOldCredentialType() {
+		return oldCredentialType;
+	}
+
+	public void setOldCredentialType(AbstractCredentialType oldCredentialType) {
+		this.oldCredentialType = oldCredentialType;
 	}
 
 	public String getShortDesc() {
@@ -232,11 +244,6 @@ public class ObjectValuePolicyEvaluator {
 			return;
 		}
 		
-		PrismContainer<PasswordType> currentPasswordProperty = object.findContainer(SchemaConstants.PATH_PASSWORD);
-		if (currentPasswordProperty != null) {
-			currentCredentialType = currentPasswordProperty.getRealValue();
-		}
-		
 		credentialPolicy = SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
 	}
 	
@@ -245,23 +252,18 @@ public class ObjectValuePolicyEvaluator {
 			return;
 		}
 		
-		PrismContainer<NonceType> currentNonceProperty = object.findContainer(SchemaConstants.PATH_NONCE);
-		if (currentNonceProperty != null) {
-			currentCredentialType = currentNonceProperty.getRealValue();
-		}
-		
 		credentialPolicy = SecurityUtil.getEffectiveNonceCredentialsPolicy(securityPolicy);
 	}
 
 	private void validateMinAge(StringBuilder messageBuilder, OperationResult result) {
-		if (currentCredentialType == null) {
+		if (oldCredentialType == null) {
 			return;
 		}
 		Duration minAge = getMinAge();
 		if (minAge == null) {
 			return;
 		}
-		MetadataType currentCredentialMetadata = currentCredentialType.getMetadata();
+		MetadataType currentCredentialMetadata = oldCredentialType.getMetadata();
 		if (currentCredentialMetadata == null) {
 			return;
 		}
@@ -321,7 +323,7 @@ public class ObjectValuePolicyEvaluator {
 			return;
 		}
 		
-		PasswordType currentPasswordType = (PasswordType)currentCredentialType;
+		PasswordType currentPasswordType = (PasswordType)oldCredentialType;
 		if (currentPasswordType == null) {
 			LOGGER.trace("Skipping validating {} history, because it is empty", shortDesc);
 			return;
@@ -331,6 +333,7 @@ public class ObjectValuePolicyEvaluator {
 		newPasswordPs.setClearValue(clearValue);
 		
 		if (passwordEquals(newPasswordPs, currentPasswordType.getValue())) {
+			LOGGER.trace("{} matched current value", shortDesc);
 			appendHistoryViolationMessage(messageBuilder, result);
 			return;
 		}
