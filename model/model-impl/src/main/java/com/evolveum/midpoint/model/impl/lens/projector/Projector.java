@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -90,7 +91,7 @@ public class Projector {
     private ReconciliationProcessor reconciliationProcessor;
 
     @Autowired
-    private CredentialsProcessor credentialsProcessor;
+    private ProjectionCredentialsProcessor projectionCredentialsProcessor;
 
     @Autowired
     private ActivationProcessor activationProcessor;
@@ -350,7 +351,7 @@ public class Projector {
 	    	
 	    	LensUtil.partialExecute("projectionCredentials",
 					() -> {
-						credentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result);
+						projectionCredentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result);
 				    	if (consistencyChecks) context.checkConsistence();
 				        
 				    	projectionContext.recompute();

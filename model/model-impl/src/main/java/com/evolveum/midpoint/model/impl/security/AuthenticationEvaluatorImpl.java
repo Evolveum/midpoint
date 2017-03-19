@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -85,13 +86,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 		PasswordType passwordType = credentials.getPassword();
 		SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
-		PasswordCredentialsPolicyType passwordCredentialsPolicy = null;
-		if (securityPolicy != null) {
-			CredentialsPolicyType credentialsPolicyType = securityPolicy.getCredentials();
-			if (credentialsPolicyType != null) {
-				passwordCredentialsPolicy = credentialsPolicyType.getPassword();
-			}
-		}
+		PasswordCredentialsPolicyType passwordCredentialsPolicy = SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
 
 		// Lockout
 		if (isLockedOut(passwordType, passwordCredentialsPolicy)) {
@@ -183,13 +178,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 		PasswordType passwordType = credentials.getPassword();
 		SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
-		PasswordCredentialsPolicyType passwordCredentialsPolicy = null;
-		if (securityPolicy != null) {
-			CredentialsPolicyType credentialsPolicyType = securityPolicy.getCredentials();
-			if (credentialsPolicyType != null) {
-				passwordCredentialsPolicy = credentialsPolicyType.getPassword();
-			}
-		}
+		PasswordCredentialsPolicyType passwordCredentialsPolicy = SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
 
 		// Lockout
 		if (isLockedOut(passwordType, passwordCredentialsPolicy)) {

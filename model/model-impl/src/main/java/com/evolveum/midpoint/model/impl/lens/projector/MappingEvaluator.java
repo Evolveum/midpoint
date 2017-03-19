@@ -40,6 +40,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialPolicyEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -92,7 +94,7 @@ public class MappingEvaluator {
     private MappingFactory mappingFactory;
     
     @Autowired
-    private PasswordPolicyProcessor passwordPolicyProcessor;
+    private CredentialsProcessor credentialsProcessor;
 
     public static final List<QName> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
@@ -490,8 +492,9 @@ public class MappingEvaluator {
 
 			@Override
 			public StringPolicyType resolve() {
+				// TODO need to switch to ObjectValuePolicyEvaluator
 				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
-					ValuePolicyType passwordPolicy = passwordPolicyProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
+					ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
 					if (passwordPolicy == null) {
 						return null;
 					}

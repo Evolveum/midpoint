@@ -28,6 +28,8 @@ import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialPolicyEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -79,7 +81,7 @@ public class InboundProcessor {
     private ContextLoader contextLoader;
     
     @Autowired
-    private PasswordPolicyProcessor passwordPolicyProcessor;
+    private CredentialsProcessor credentialsProcessor;
     
     @Autowired
     private MappingEvaluator mappingEvaluator;
@@ -585,7 +587,7 @@ public class InboundProcessor {
 				if (!outputDefinition.getName().equals(PasswordType.F_VALUE)) {
 					return null;
 				}
-				ValuePolicyType passwordPolicy = passwordPolicyProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
+				ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
 				if (passwordPolicy == null) {
 					return null;
 				}

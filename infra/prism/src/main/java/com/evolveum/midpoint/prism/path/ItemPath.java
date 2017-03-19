@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -559,18 +559,29 @@ public class ItemPath implements Serializable, Cloneable {
 		if (itemPath == null) {
 			return null;
 		}
-		ItemPathSegment first = itemPath.first();
+		return itemPath.getFirstNameSegment();
+	}
+	
+	public NameItemPathSegment getFirstNameSegment() {
+		ItemPathSegment first = first();
 		if (first instanceof NameItemPathSegment) {
 			return (NameItemPathSegment)first;
 		}
 		if (first instanceof IdItemPathSegment) {
-			return getFirstNameSegment(itemPath.rest());
+			return getFirstNameSegment(rest());
 		}
 		return null;
 	}
 	
 	public static QName getFirstName(ItemPath itemPath) {
-		NameItemPathSegment nameSegment = getFirstNameSegment(itemPath);
+		if (itemPath == null) {
+			return null;
+		}
+		return itemPath.getFirstName();
+	}
+	
+	public QName getFirstName() {
+		NameItemPathSegment nameSegment = getFirstNameSegment();
 		if (nameSegment == null) {
 			return null;
 		}

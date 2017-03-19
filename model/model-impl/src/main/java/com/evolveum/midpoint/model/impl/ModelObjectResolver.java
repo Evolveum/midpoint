@@ -15,7 +15,10 @@
  */
 package com.evolveum.midpoint.model.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -25,12 +28,15 @@ import com.evolveum.midpoint.task.api.TaskManager;
 
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -248,5 +254,105 @@ public class ModelObjectResolver implements ObjectResolver {
         }
         return config;
     }
+	
+	public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
+			Function<PrismObject<OrgType>, ObjectReferenceType> function, String shortDesc, Task task, OperationResult result) throws SchemaException {
+		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
+		if (orgRef == null) {
+			return null;
+		}
+		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
+		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
+		PrismObject<R> resultObject = null;
+
+		for (PrismReferenceValue orgRefValue : orgRefValues) {
+			if (orgRefValue != null) {
+
+				try {
+					PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, null, result);
+					orgs.add(org);
+					ObjectReferenceType ref = function.apply(org);
+
+					if (ref != null) {
+						PrismObject<R> resolvedObject;
+						try {
+							resolvedObject = resolve(ref.asReferenceValue(), shortDesc, task, result);
+						} catch (ObjectNotFoundException ex) {
+							// Just log the error, but do not fail on that. Failing would prohibit login
+							// and that may mean the misconfiguration could not be easily fixed.
+							LOGGER.warn("Cannot find object {} referenced in {} while resolving {}", orgRefValue.getOid(), object, shortDesc);
+							continue;
+						}			
+						if (resolvedObject != null) {
+							if (resultObject == null) {
+								resultObject = resolvedObject;
+							} else if (!StringUtils.equals(resolvedObject.getOid(), resultObject.getOid())) {
+								throw new SchemaException(
+										"Found more than one object (" + resolvedObject + ", " + resultObject + ") while " + shortDesc);
+							}
+						}
+					}
+					
+				} catch (ObjectNotFoundException ex) {
+					// Just log the error, but do not fail on that. Failing would prohibit login
+					// and that may mean the misconfiguration could not be easily fixed.
+					LOGGER.warn("Cannot find organization {} referenced in {}", orgRefValue.getOid(), object);
+				}
+			}
+		}
+		
+		if (resultObject != null) {
+			return resultObject;
+		}
+		
+		// go deeper
+		for (PrismObject<OrgType> org : orgs) {
+			PrismObject<R> val = searchOrgTreeWidthFirstReference((PrismObject<O>) org, function, shortDesc, task, result);
+			if (val != null) {
+				return val;
+			}
+		}
+		
+		return null;
+	}
+	
+	public <R,O extends ObjectType> R searchOrgTreeWidthFirst(PrismObject<O> object,
+			Function<PrismObject<OrgType>, R> function, Task task, OperationResult result) {
+		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
+		if (orgRef == null) {
+			return null;
+		}
+		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
+		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
+
+		for (PrismReferenceValue orgRefValue : orgRefValues) {
+			if (orgRefValue != null) {
+
+				try {
+					PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, null, result);
+					orgs.add(org);
+					R val = function.apply(org);
+
+					if (val != null) {
+						return val;
+					}
+				} catch (ObjectNotFoundException ex) {
+					// Just log the error, but do not fail on that. Failing would prohibit login
+					// and that may mean the misconfiguration could not be easily fixed.
+					LOGGER.warn("Cannot find organization {} referenced in {}", orgRefValue.getOid(), object);
+				}
+			}
+		}
+		
+		// go deeper
+		for (PrismObject<OrgType> orgType : orgs) {
+			R val = searchOrgTreeWidthFirst((PrismObject<O>) orgType, function, task, result);
+			if (val != null) {
+				return val;
+			}
+		}
+		
+		return null;
+	}
 	
 }

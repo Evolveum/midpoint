@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1557,5 +1558,121 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		} else {
 			PrismAsserts.assertPropertyValue(shadow, ObjectType.F_LIFECYCLE_STATE, expectedLifecycle);
 		}
+	}
+	
+	/**
+	 * Let's have a baseline for other 90x tests.
+	 */
+	@Test
+    public void test900ModifyUserElainePassword() throws Exception {
+		final String TEST_NAME = "test900ModifyUserElainePassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
+                        
+		// WHEN
+        modifyUserChangePassword(USER_ELAINE_OID, USER_PASSWORD_VALID_1, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
+		display("User after", userAfter);
+        
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+	}
+	
+	@Test
+    public void test902SetPasswordMinAge() throws Exception {
+		final String TEST_NAME = "test900SetPasswordMinAge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+        		task, result, XmlTypeConverter.createDuration("PT10M"));
+		
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		PrismObject<SecurityPolicyType> securityPolicy = getObject(SecurityPolicyType.class, getSecurityPolicyOid());
+		display("Security policy after", securityPolicy);
+		PrismAsserts.assertPropertyValue(securityPolicy, 
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE), 
+				XmlTypeConverter.createDuration("PT10M"));
+	}
+	
+	/**
+	 * Password modification is obviously before the password minAge has passed.
+	 * Therefore this should fail.
+	 */
+	@Test
+    public void test904ModifyUserElainePasswordAgain() throws Exception {
+		final String TEST_NAME = "test904ModifyUserElainePasswordAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+        	
+			// WHEN
+	        modifyUserChangePassword(USER_ELAINE_OID, USER_PASSWORD_VALID_2, task, result);
+	        
+	        assertNotReached();
+	        
+        } catch (PolicyViolationException e) {
+        	
+        }
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
+		display("User after", userAfter);
+        
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+	}
+	
+	@Test
+    public void test906ModifyUserElainePasswordLater() throws Exception {
+		final String TEST_NAME = "test906ModifyUserElainePasswordLater";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        clock.overrideDuration("PT15M");
+        
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserChangePassword(USER_ELAINE_OID, USER_PASSWORD_VALID_3, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
+		display("User after", userAfter);
+        
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
 	}
 }

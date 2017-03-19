@@ -327,6 +327,20 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return ObjectDelta.union(getFixedPrimaryDelta(), getSecondaryDelta());
 	}
 
+	public <F extends FocusType> boolean wasAddExecuted() {
+		
+		for (LensObjectDeltaOperation<O> executedDeltaOperation : getExecutedDeltas()){
+			ObjectDelta<O> executedDelta = executedDeltaOperation.getObjectDelta();
+			if (!executedDelta.isAdd()){
+				continue;
+			} else if (executedDelta.getObjectToAdd() != null && executedDelta.getObjectTypeClass().equals(getObjectTypeClass())){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	abstract public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException;
 
     @Override
