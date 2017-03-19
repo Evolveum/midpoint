@@ -1,0 +1,18 @@
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+policyItemsDefinition:
+  policyItemDefinition:
+  - target:
+      path: "phoneNumber"
+    valuePolicyRef:
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType"
+      oid: "00000000-0000-0000-1111-000000000003"
+  - target:
+      path: "employeeNumber"
+    valuePolicyRef:
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType"
+      oid: "00000000-0000-0000-1111-000000000003"
+    execute: true
+  - target:
+      path: "costCenter"

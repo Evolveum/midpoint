@@ -65,9 +65,12 @@ import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -108,34 +111,47 @@ public abstract class TestAbstractRestService {
 	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
 	
 	// REST, reader and adder authorization
- 	public static final String USER_DARTHADDER_FILE = "user-darthadder";//new File(REPO_DIR, "user-darthadder.xml");
+ 	public static final String USER_DARTHADDER_FILE = "user-darthadder";
  	public static final String USER_DARTHADDER_OID = "1696229e-d90a-11e4-9ce6-001e8c717e5b";
  	public static final String USER_DARTHADDER_USERNAME = "darthadder";
  	public static final String USER_DARTHADDER_PASSWORD = "iamyouruncle";
  	
  	// Authorizations, but no password
- 	public static final String USER_NOPASSWORD_FILE = "user-nopassword"; //new File(REPO_DIR, "user-nopassword.xml");
+ 	public static final String USER_NOPASSWORD_FILE = "user-nopassword";
  	public static final String USER_NOPASSWORD_USERNAME = "nopassword";
 
 	public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
 	public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
 	public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
-	public static final String ROLE_ADDER_FILE = "role-adder";//new File(REPO_DIR, "role-adder.xml");
+	public static final String ROLE_ADDER_FILE = "role-adder";
 	
-	public static final String ROLE_MODIFIER_FILE = "role-modifier"; //new File(REPO_DIR, "role-modifier.xml");
+	public static final String ROLE_MODIFIER_FILE = "role-modifier"; 
 	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
+	
+	public static final String POLICY_ITEM_DEFINITION_GENERATE = "policy-generate"; 	
+	public static final String POLICY_ITEM_DEFINITION_GENERATE_BAD_PATH = "policy-generate-bad-path"; 
+	public static final String POLICY_ITEM_DEFINITION_GENERATE_EXECUTE = "policy-generate-execute";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT = "policy-validate-explicit";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE = "policy-validate-implicit-single";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI = "policy-validate-implicit-multi";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT = "policy-validate-implicit-multi-conflict";
+
 
 	public static final File RESOURCE_OPENDJ_FILE = new File(BASE_REPO_DIR, "reosurce-opendj.xml");
 	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
-	public static final String USER_TEMPLATE_FILE = "user-template";//new File(REPO_DIR, "user-template.xml");
+	public static final String USER_TEMPLATE_FILE = "user-template";
 	public static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 
-	public static final String ACCOUT_CHUCK_FILE = "account-chuck"; //new File(BASE_REPO_DIR, "account-chuck.xml");
+	public static final String ACCOUT_CHUCK_FILE = "account-chuck";
 	public static final String ACCOUT_CHUCK_OID = BASE_REPO_DIR + "a0c010c0-d34d-b33f-f00d-111111111666";
 
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
 
+	public static final File VALUE_POLICY_GENERAL = new File(BASE_REPO_DIR, "value-policy-general.xml");
+	public static final File VALUE_POLICY_NUMERIC = new File(BASE_REPO_DIR, "value-policy-numeric.xml");
+	
 	private static final Trace LOGGER = TraceManager.getTrace(TestAbstractRestService.class);
 
 	private final static String ENDPOINT_ADDRESS = "http://localhost:18080/rest";
@@ -209,6 +225,8 @@ public abstract class TestAbstractRestService {
 		addObject(USER_NOBODY_FILE, result);
 		addObject(USER_CYCLOPS_FILE, result);
 		addObject(USER_SOMEBODY_FILE, result);
+		addObject(VALUE_POLICY_GENERAL, result);
+		addObject(VALUE_POLICY_NUMERIC, result);
 		addObject(SYSTEM_CONFIGURATION_FILE, result);
 
 		dummyAuditService = DummyAuditService.getInstance();
@@ -885,6 +903,243 @@ public abstract class TestAbstractRestService {
 		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 		dummyAuditService.assertHasDelta(1, ChangeType.ADD, ObjectTemplateType.class);
 
+	}
+	
+	
+	@Test
+	public void test501generateValue() throws Exception {
+		final String TEST_NAME = "test501generateValue";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+
+	}
+	
+	@Test
+	public void test502generateValueBadPath() throws Exception {
+		final String TEST_NAME = "test501generateValueBadPath";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_BAD_PATH));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 405 but got " + response.getStatus(), 200, response.getStatus());
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+
+	}
+	
+	@Test
+	public void test503generateValueExecute() throws Exception {
+		final String TEST_NAME = "test503generateValueExecute";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_EXECUTE));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(4);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+		
+		//UserType user = loadObject(UserType.class, USER_DARTHADDER_OID);
+		//TODO assert changed items
+	}
+	
+	@Test
+	public void test504checkGeneratedValue() throws Exception {
+		final String TEST_NAME = "test503generateValueExecute";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID );
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.get();
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		UserType user = response.readEntity(UserType.class);
+		assertNotNull("EmployeeNumber must not be null", user.getEmployeeNumber());
+	}
+	
+	@Test
+	public void test510validateValueExplicit() throws Exception {
+		final String TEST_NAME = "test510validateValueExplicit";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		
+	
+	}
+	
+	@Test
+	public void test511validateValueExplicitConflict() throws Exception {
+		final String TEST_NAME = "test511validateValueExplicitConflict";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
+		
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		
+		
+	}
+	
+	@Test
+	public void test512validateValueImplicitSingle() throws Exception {
+		final String TEST_NAME = "test512validateValueImplicitSingle";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		
+		
+	}
+	
+	@Test
+	public void test513validateValueImplicitMulti() throws Exception {
+		final String TEST_NAME = "test513validateValueImplicitMulti";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		
+	}
+	
+	@Test
+	public void test514validateValueImplicitMultiConflict() throws Exception {
+		final String TEST_NAME = "test514validateValueImplicitMultiConflict";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		
+		dummyAuditService.clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		OperationResultType result = response.readEntity(OperationResultType.class);
+		IntegrationTestTools.display(OperationResult.createOperationResult(result));
+		
+		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
+	
+		IntegrationTestTools.display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	
+		
+	}
+	
+	
+	private <O extends ObjectType> O loadObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance("loadObject");
+		OperationResult result = task.getResult();
+		
+		PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
+		return object.asObjectable();
 	}
 
 	private WebClient prepareClient() {

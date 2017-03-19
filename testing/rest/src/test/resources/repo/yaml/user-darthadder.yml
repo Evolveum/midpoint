@@ -40,6 +40,15 @@ user:
   fullName: "Darth Adder"
   givenName: "Darth"
   familyName: "Adder"
+  employeeType : 
+  - "user"
+  - "123user"
+  - "employeE"
+  employeeNumber : "123456"
+  organization : 
+  - "Org1"
+  - "Org2"
+  - "Org3"
   credentials:
     password:
       value:

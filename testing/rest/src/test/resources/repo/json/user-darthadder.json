@@ -23,6 +23,9 @@
     "activation" : {
       "administrativeStatus" : "enabled"
     },
+    "employeeType" : ["user", "123user", "employeE"],
+    "employeeNumber" : "123456",
+    "organization" : ["Org1", "Org2", "Org3"],
     "fullName" : "Darth Adder",
     "givenName" : "Darth",
     "familyName" : "Adder",
