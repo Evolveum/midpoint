@@ -119,7 +119,6 @@ public interface RepositoryService {
 
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
     String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
-    String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
     @Deprecated
     String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
@@ -135,7 +134,6 @@ public interface RepositoryService {
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
     String GET_VERSION = CLASS_NAME_WITH_DOT + "getVersion";
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchObjectsIterative";
-    String CLEANUP_TASKS = CLASS_NAME_WITH_DOT + "cleanupTasks";
     String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
 	String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + "advanceSequence";
 	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
@@ -250,8 +248,6 @@ public interface RepositoryService {
 	 *
 	 * @param query
 	 *            search query
-	 * @param paging
-	 *            paging specification to limit operation result (optional)
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return all objects of specified type that match search criteria (subject
@@ -271,18 +267,9 @@ public interface RepositoryService {
 	/**
 	 * Search for "sub-object" structures, i.e. containers.
 	 * Currently, only one type of search is available: certification case search.
-	 *
-	 * @param type
-	 * @param query
-	 * @param options
-	 * @param parentResult
-	 * @param <T>
-	 * @return
-	 * @throws SchemaException
 	 */
 	<T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
-																   Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
-			throws SchemaException;
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException;
 
 	/**
 	 * <p>Search for objects in the repository in an iterative fashion.</p>
@@ -333,8 +320,6 @@ public interface RepositoryService {
 	 *
 	 * @param query
 	 *            search query
-	 * @param paging
-	 *            paging specification to limit operation result (optional)
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return count of objects of specified type that match search criteria (subject
@@ -517,7 +502,7 @@ public interface RepositoryService {
 	 * the same sequence at the same time then different values will be returned.
 	 * 
 	 * @param oid sequence OID
-	 * @param parentResult
+	 * @param parentResult Operation result
 	 * @return next unallocated counter value
 	 * @throws ObjectNotFoundException the sequence does not exist
 	 * @throws SchemaException the sequence cannot produce a value (e.g. maximum counter reached)
@@ -529,10 +514,9 @@ public interface RepositoryService {
 	 * The sequence may ignore the values, e.g. if value re-use is disabled or when the list of
 	 * unused values is full. In such a case the values will be ignored silently and no error is indicated.
 	 * 
-	 * @param oid
-	 * @param unusedValues
-	 * @param parentResult
-	 * @throws ObjectNotFoundException
+	 * @param oid sequence OID
+	 * @param unusedValues values to return
+	 * @param parentResult Operation result
 	 */
 	void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
@@ -575,9 +559,9 @@ public interface RepositoryService {
 	 * A bit of hack - execute arbitrary query, e.g. hibernate query in case of SQL repository.
 	 * Use with all the care!
 	 *
-	 * @param request
-	 * @param result
-	 * @return
+	 * @param request Diagnostics request
+	 * @param result Operation result
+	 * @return diagnostics response
 	 */
 	RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result);
 

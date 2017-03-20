@@ -19,13 +19,8 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ExistsFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -43,28 +38,16 @@ import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.Criteria;
-import org.hibernate.LockMode;
-import org.hibernate.LockOptions;
-import org.hibernate.Query;
-import org.hibernate.SQLQuery;
-import org.hibernate.ScrollMode;
-import org.hibernate.ScrollableResults;
-import org.hibernate.Session;
+import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -445,7 +428,8 @@ public class ObjectRetriever {
             baseHelper.cleanupSessionAndResult(session, result);
         }
 
-        return new SearchResultList<C>(list);
+        list.forEach(c -> ObjectTypeUtil.normalizeAllRelations(c.asPrismContainerValue()));
+        return new SearchResultList<>(list);
     }
 
     /**
@@ -517,7 +501,8 @@ public class ObjectRetriever {
         nameResolutionHelper.resolveNamesIfRequested(session, prismObject.getValue(), options);
         validateObjectType(prismObject, type);
 
-        return prismObject;
+        ObjectTypeUtil.normalizeAllRelations(prismObject);
+		return prismObject;
     }
 
 
@@ -856,43 +841,4 @@ main:       for (;;) {
             baseHelper.cleanupSessionAndResult(session, result);
         }
     }
-
-    private boolean isUseNewQueryInterpreter(ObjectQuery query) {
-        //return query == null || query.isUseNewQueryInterpreter();
-        return true;
-//        boolean retval = isUseNewQueryInterpreterInternal(query);
-//        LOGGER.debug("isUseNewQueryInterpreter for {} returns {}", query, retval);
-//        return retval;
-    }
-
-    private boolean isUseNewQueryInterpreterInternal(ObjectQuery query) {
-        if (query == null) {
-            return false;
-        }
-        if (query.getPaging() != null) {
-            if (query.getPaging().getOrderBy() != null &&
-                    query.getPaging().getOrderBy().size() != 1) {
-                return true;
-            }
-        }
-        if (query.getFilter() == null) {
-            return false;
-        }
-        final Holder<Boolean> isNewHolder = new Holder<>(false);
-        query.getFilter().accept(new Visitor() {
-            @Override
-            public void visit(ObjectFilter filter) {
-                if (filter instanceof ExistsFilter) {
-                    isNewHolder.setValue(true);
-                } else if (filter instanceof ValueFilter) {
-                    ItemPath path = ((ValueFilter) filter).getFullPath();
-                    if (ItemPath.containsSpecialSymbols(path)) {
-                        isNewHolder.setValue(true);
-                    }
-                }
-            }
-        });
-        return isNewHolder.getValue();
-    }
-
 }

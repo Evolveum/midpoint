@@ -412,7 +412,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> modifications, QName propertyName) {
     	for (ItemDelta delta: modifications) {
     		if (delta instanceof PropertyDelta && delta.getParentPath().isEmpty() &&
-    				QNameUtil.match(delta.getElementName(),propertyName)) {
+    				QNameUtil.match(delta.getElementName(), propertyName)) {
     			return (PropertyDelta) delta;
     		}
     	}

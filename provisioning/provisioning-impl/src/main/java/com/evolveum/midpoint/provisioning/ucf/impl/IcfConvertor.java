@@ -211,17 +211,15 @@ public class IcfConvertor {
 				if (lockOut == null) {
 					continue;
 				}
-				if (lockOut != null){
-					ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
-					LockoutStatusType lockoutStatusType;
-					if (lockOut) {
-						lockoutStatusType = LockoutStatusType.LOCKED;
-					} else {
-						lockoutStatusType = LockoutStatusType.NORMAL;
-					}
-					activationType.setLockoutStatus(lockoutStatusType);
-					LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
+				ActivationType activationType = ShadowUtil.getOrCreateActivation(shadow);
+				LockoutStatusType lockoutStatusType;
+				if (lockOut) {
+					lockoutStatusType = LockoutStatusType.LOCKED;
+				} else {
+					lockoutStatusType = LockoutStatusType.NORMAL;
 				}
+				activationType.setLockoutStatus(lockoutStatusType);
+				LOGGER.trace("Converted activation lockoutStatus: {}", lockoutStatusType);
 				continue;
 			}
 
@@ -256,7 +254,7 @@ public class IcfConvertor {
 					// of them may need it (e.g. GuardedString)
 					for (Object icfValue : icfAttr.getValue()) {
 						Object value = convertValueFromIcf(icfValue, qname);
-						resourceAttribute.add(new PrismPropertyValue<Object>(value));
+						resourceAttribute.add(new PrismPropertyValue<>(value));
 					}
 				}
 
@@ -268,14 +266,13 @@ public class IcfConvertor {
 			} else {
 				if (icfAttr.getValue() != null && !icfAttr.getValue().isEmpty()) {
 					// Convert the values. While most values do not need
-					// conversions, some
-					// of them may need it (e.g. GuardedString)
+					// conversions, some of them may need it (e.g. GuardedString)
 					boolean empty = true;
 					for (Object icfValue : icfAttr.getValue()) {
 						if (icfValue != null) {
 							Object value = convertValueFromIcf(icfValue, qname);
 							empty = false;
-							resourceAttribute.add(new PrismPropertyValue<Object>(value));
+							resourceAttribute.add(new PrismPropertyValue<>(value));
 						}
 					}
 

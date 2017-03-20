@@ -1481,4 +1481,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ps.setClearValue(password);
 		passwordType.setValue(ps);
 	}
+	
+	protected <O extends ObjectType> PrismObject<O> instantiateObject(Class<O> type) throws SchemaException {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
+	}
 }

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 /**
@@ -132,6 +133,17 @@ public class QNameUtil {
 			return null;
 		} else {
 			return qNameToUri(new QName(namespace, info.name.getLocalPart()));
+		}
+	}
+
+	@NotNull
+	public static QName setNamespaceIfMissing(@NotNull QName name, @NotNull String namespace, @Nullable String prefix) {
+    	if (hasNamespace(name)) {
+    		return name;
+		} else if (prefix == null) {
+			return new QName(namespace, name.getLocalPart());
+		} else {
+			return new QName(namespace, name.getLocalPart(), prefix);
 		}
 	}
 

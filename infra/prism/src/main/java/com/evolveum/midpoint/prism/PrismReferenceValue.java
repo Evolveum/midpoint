@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -380,10 +379,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
 	@Override
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
-		if (other == null || !(other instanceof PrismReferenceValue)) {
-			return false;
-		}
-		return equalsComplex((PrismReferenceValue)other, ignoreMetadata, isLiteral);
+		return other instanceof PrismReferenceValue
+				&& equalsComplex((PrismReferenceValue) other, ignoreMetadata, isLiteral);
 	}
 
 	public boolean equalsComplex(PrismReferenceValue other, boolean ignoreMetadata, boolean isLiteral) {
@@ -410,12 +407,22 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		if (!equalsTargetType(other)) {
 			return false;
 		}
-		if (this.relation == null) {
-			if (other.relation != null)
-				return false;
-		} else if (!this.relation.equals(other.relation))
+		if (!relationsEquivalent(relation, other.relation)) {
 			return false;
+		}
 		return true;
+	}
+
+	private boolean relationsEquivalent(QName r1, QName r2) {
+		return QNameUtil.match(normalizedRelation(r1), normalizedRelation(r2));
+	}
+
+	private QName normalizedRelation(QName r) {
+		if (r != null) {
+			return r;
+		}
+		PrismContext prismContext = getPrismContext();
+		return prismContext != null ? prismContext.getDefaultRelation() : null;
 	}
 
 	private boolean equalsTargetType(PrismReferenceValue other) {
@@ -463,7 +470,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	
 	public boolean representsSameValue(PrismReferenceValue other) {
 		if (this.getOid() != null && other.getOid() != null) {
-			return this.getOid().equals(other.getOid()) && Objects.equals(this.getRelation(), other.getRelation());
+			return this.getOid().equals(other.getOid()) && relationsEquivalent(this.getRelation(), other.getRelation());
 		}
 		return false;
 	}

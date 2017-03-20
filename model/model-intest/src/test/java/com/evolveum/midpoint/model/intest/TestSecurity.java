@@ -806,7 +806,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         
         assertVisibleUsers(1);
-        // The search wit ObjectClass is important. It is a very different case
+        // The search with ObjectClass is important. It is a very different case
         // than searching just for UserType
         assertSearch(ObjectType.class, null, 2);		// user + campaign
 

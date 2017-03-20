@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -156,14 +157,7 @@ public abstract class RContainerReference implements ObjectReference {
     }
 
     public static void copyFromJAXB(ObjectReferenceType jaxb, RContainerReference repo) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
-
-        repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-        repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));
-
-        repo.setTargetOid(jaxb.getOid());
+        RObjectReference.copyFromJAXB(jaxb, repo);
     }
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {

@@ -19,7 +19,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -393,7 +392,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		if (!extraRelations.isEmpty()) {
 			rv = false;
 		}
-		LOGGER.trace("computeMatchingOrder => {}, for offset={}; assignment.order={}, assignment.orderConstraint={}, evaluationOrder={}, remainingExtraRelations={}",
+		LOGGER.trace("computeMatchingOrder => {}, for assignment.order={}, assignment.orderConstraint={}, evaluationOrder={}, remainingExtraRelations={}",
 				rv, assignmentOrder, assignmentOrderConstraint, evaluationOrder, extraRelations);
 		return rv;
 	}
@@ -417,7 +416,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	
 	@Override
 	public boolean isDelegation() {
-		return DeputyUtils.isDelegationRelation(relation);
+		return ObjectTypeUtil.isDelegationRelation(relation);
 	}
 
 	@Override

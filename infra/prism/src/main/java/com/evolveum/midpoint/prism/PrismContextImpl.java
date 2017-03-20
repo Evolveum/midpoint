@@ -71,6 +71,8 @@ public class PrismContextImpl implements PrismContext {
 	// We need to keep this because of deprecated methods and various hacks
 	@NotNull private final JaxbDomHack jaxbDomHack;
 
+	private QName defaultRelation;
+
 	//region Standard overhead
 	private PrismContextImpl(@NotNull SchemaRegistryImpl schemaRegistry) {
 		this.schemaRegistry = schemaRegistry;
@@ -213,7 +215,14 @@ public class PrismContextImpl implements PrismContext {
 		this.monitor = monitor;
 	}
 
-    //endregion
+	public QName getDefaultRelation() {
+		return defaultRelation;
+	}
+
+	public void setDefaultRelation(QName defaultRelation) {
+		this.defaultRelation = defaultRelation;
+	}
+	//endregion
 
 	//region Parsing
 	@NotNull

@@ -91,11 +91,15 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		query.setPaging(paging);
 		return query;
 	}
-	
+
+	// although we do our best to match even incomplete relations (null, unqualified), ultimately
+	// it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
 	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
 		return filter.match(object.getValue(), matchingRuleRegistry);
 	}
 
+	// although we do our best to match even incomplete relations (null, unqualified), ultimately
+	// it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
 	public static boolean match(Containerable object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
 		return filter.match(object.asPrismContainerValue(), matchingRuleRegistry);
 	}

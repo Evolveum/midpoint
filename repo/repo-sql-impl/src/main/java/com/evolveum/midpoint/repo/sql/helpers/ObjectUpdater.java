@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -114,8 +115,9 @@ public class ObjectUpdater {
         String originalOid = object.getOid();
         try {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Object\n{}", new Object[]{object.debugDump()});
+                LOGGER.trace("Object\n{}", object.debugDump());
             }
+            ObjectTypeUtil.normalizeAllRelations(object);
 
             LOGGER.trace("Translating JAXB to data type.");
             PrismIdentifierGenerator.Operation operation = options.isOverwrite() ?
@@ -135,8 +137,7 @@ public class ObjectUpdater {
             }
             session.getTransaction().commit();
 
-            LOGGER.trace("Saved object '{}' with oid '{}'", new Object[]{
-                    object.getCompileTimeClass().getSimpleName(), oid});
+            LOGGER.trace("Saved object '{}' with oid '{}'", object.getCompileTimeClass().getSimpleName(), oid);
 
             object.setOid(oid);
         } catch (ConstraintViolationException ex) {
@@ -391,24 +392,21 @@ public class ObjectUpdater {
                 // get object
                 PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
                 // apply diff
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
-                }
+				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
                 PrismObject<T> originalObject = null;
                 if (closureManager.isEnabled()) {
                     originalObject = prismObject.clone();
                 }
                 ItemDelta.applyTo(modifications, prismObject);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
-                }
+				LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
                 // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
                 // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
                 boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
                 // merge and update object
                 LOGGER.trace("Translating JAXB to data type.");
-                RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
+				ObjectTypeUtil.normalizeAllRelations(prismObject);
+				RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
                 rObject.setVersion(rObject.getVersion() + 1);
 
                 updateFullObject(rObject, prismObject);
