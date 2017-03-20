@@ -76,7 +76,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_PASSWORD_VALID_3 = "abcd323";
 	protected static final String USER_PASSWORD_VALID_4 = "abcd423";
 
-	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
 
 	protected static final File RESOURCE_DUMMY_UGLY_FILE = new File(TEST_DIR, "resource-dummy-ugly.xml");
 	protected static final String RESOURCE_DUMMY_UGLY_OID = "10000000-0000-0000-0000-000000344104";
@@ -94,11 +94,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
 	
-	protected DummyResource dummyResourceUgly;
-	protected DummyResourceContoller dummyResourceCtlUgly;
-	protected ResourceType resourceDummyUglyType;
-	protected PrismObject<ResourceType> resourceDummyUgly;
-
 	protected String accountJackOid;
 	protected String accountJackRedOid;
 	protected String accountJackUglyOid;
@@ -116,12 +111,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		
 		setGlobalSecurityPolicy(getSecurityPolicyOid(), initResult);
 
-		dummyResourceCtlUgly = DummyResourceContoller.create(RESOURCE_DUMMY_UGLY_NAME, resourceDummyUgly);
-		dummyResourceCtlUgly.extendSchemaPirate();
-		dummyResourceUgly = dummyResourceCtlUgly.getDummyResource();
-		resourceDummyUgly = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
-		resourceDummyUglyType = resourceDummyUgly.asObjectable();
-		dummyResourceCtlUgly.setResource(resourceDummyUgly);
+		initDummyResourcePirate(RESOURCE_DUMMY_UGLY_NAME, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
 
 		login(USER_ADMINISTRATOR_USERNAME);
 	}
@@ -148,7 +138,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicy.getOid());
 
 		// Check object
-        PrismObject<ValuePolicyType> accountShadow = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, result);
+        PrismObject<ValuePolicyType> valuePolicy = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, result);
 
         // TODO: more asserts
 	}
