@@ -14,26 +14,18 @@
   ~ limitations under the License.
   -->
 
-<role oid="f2ad0ace-45d7-11e5-af54-001e8c717e5b"
+<role oid="c5d3294a-0d8e-11e7-bd9d-ff848c2e7e3f"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>Org Metarole</name>
+    <name>Org Group Metarole</name>
     
     <inducement>
     	<construction>
     		<resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="c:ResourceType"/>
     		<kind>entitlement</kind>
-            <intent>group</intent>
-    	</construction>
-    </inducement>
-    
-    <inducement>
-    	<construction>
-    		<resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="c:ResourceType"/>
-    		<kind>generic</kind>
-            <intent>ou-top</intent>
+            <intent>org-group</intent>
     	</construction>
     </inducement>
     
@@ -43,13 +35,13 @@
     		<kind>account</kind>
     		<intent>default</intent>
     		<association>
-            	<ref>ri:group</ref>
+            	<ref>ri:org-group</ref>
             	<outbound>
             		<expression>
             			<associationFromLink>
             				<projectionDiscriminator>
 	            				<kind>entitlement</kind>
-	            				<intent>group</intent>
+	            				<intent>org-group</intent>
             				</projectionDiscriminator>
             			</associationFromLink>
             		</expression>
