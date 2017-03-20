@@ -58,7 +58,9 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -541,6 +543,13 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private void initCartButton(WebMarkupContainer headerPanel){
         AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 PageAssignmentsList assignmentsPanel = new PageAssignmentsList(true);
