@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
@@ -419,20 +420,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					ownerResolver = userProfileService;
 					if (ownerResolver == null) {
 						LOGGER.trace("  {}: owner object spec not applicable for {}, object OID {} because there is no owner resolver",
-								new Object[]{autzHumanReadableDesc, desc, object.getOid()});
+								autzHumanReadableDesc, desc, object.getOid());
 						return false;
 					}
 				}
-				PrismObject<? extends FocusType> owner = ownerResolver.resolveOwner((PrismObject<ShadowType>)object);
+				PrismObject<? extends FocusType> owner = ownerResolver.resolveOwner(object);
 				if (owner == null) {
 					LOGGER.trace("  {}: owner object spec not applicable for {}, object OID {} because it has no owner",
-							new Object[]{autzHumanReadableDesc, desc, object.getOid()});
+							autzHumanReadableDesc, desc, object.getOid());
 					return false;
 				}
 				boolean ownerApplicable = isApplicable(ownerSpec, owner, principal, ownerResolver, "owner of "+desc, autzHumanReadableDesc);
 				if (!ownerApplicable) {
 					LOGGER.trace("  {}: owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
-							new Object[]{autzHumanReadableDesc, desc, object.getOid(), owner});
+							autzHumanReadableDesc, desc, object.getOid(), owner);
 					return false;
 				}			
 			}
@@ -882,8 +883,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
 									S_AtomicFilterExit builder = QueryBuilder.queryFor(AbstractRoleType.class, prismContext)
 											.item(ownerRefPath, ownerRefDef).ref(principal.getUser().getOid());
+									// TODO don't understand this code
 									for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-										if (MiscSchemaUtil.compareRelation(null, subjectParentOrgRef.getRelation())) {		// TODO!!!!!!!!!
+										if (ObjectTypeUtil.isDefaultRelation(subjectParentOrgRef.getRelation())) {
 											builder = builder.or().item(ownerRefPath, ownerRefDef).ref(subjectParentOrgRef.getOid());
 										}
 									}
@@ -950,7 +952,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter objSpecOrgRelationFilter = null;
 								QName subjectRelation = specOrgRelation.getSubjectRelation();
 								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {			// TODO !!!!!!!!!!!!!!!!!
+									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
 										S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, prismContext);
 										S_AtomicFilterExit q2;
 										if (specOrgRelation.getScope() == null || specOrgRelation.getScope() == OrgScopeType.ALL_DESCENDANTS) {
