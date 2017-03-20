@@ -704,10 +704,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 		PrismReferenceValue passPolicyRef = new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE);
+		
 		// WHEN
 		modifyObjectReplaceReference(SecurityPolicyType.class, getSecurityPolicyOid(),
 				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF),
         		task, result, passPolicyRef);
+		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+        		task, result, 3);
 		
 		// THEN
 		result.computeStatus();
