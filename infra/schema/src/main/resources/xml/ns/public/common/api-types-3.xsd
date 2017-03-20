@@ -577,6 +577,9 @@
 	                <xsd:documentation>
 	                    Contains either generated value or value which will be validated
 	                </xsd:documentation>
+	                <xsd:appinfo>
+                        <a:rawType/>
+                    </xsd:appinfo>
 	            </xsd:annotation>
         	</xsd:element>
         	
