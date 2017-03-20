@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+							 oid="461db8c7-4c1f-4a05-8338-d90dd2b3dba3"
+							 version="4">
+	<name>Assignment certification by Organization 3</name>
+	<description>Assignment certification by Organization membership</description>
+	<trigger id="1">
+		<timestamp>2017-03-17T23:45:58.689+01:00</timestamp>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3</handlerUri>
+	</trigger>
+	<trigger id="2">
+		<timestamp>2017-03-17T23:44:58.689+01:00</timestamp>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
+	</trigger>
+</accessCertificationCampaign>

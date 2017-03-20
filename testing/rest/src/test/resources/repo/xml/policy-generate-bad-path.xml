@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policyItemsDefinition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	<policyItemDefinition>
+		<c:target>
+			<t:path>parentOrgRef</t:path>
+		</c:target>
+		<c:valuePolicyRef oid="00000000-0000-0000-1111-000000000003" type="c:ValuePolicyType"/>
+	</policyItemDefinition>
+</policyItemsDefinition>

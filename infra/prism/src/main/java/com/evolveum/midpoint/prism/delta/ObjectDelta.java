@@ -1701,11 +1701,19 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			}
 		}
 	}
-        
-        public List<PrismValue> getDeletedValuesFor(ItemPath itemPath) {
+
+	/**
+	 * Limitations:
+	 * (1) For DELETE object delta, we don't know what values were in the object's item.
+	 * (2) For REPLACE item delta, we don't know what values were in the object's item (but these deltas are quite rare
+	 * for multivalued items; and eventually there will be normalized into ADD+DELETE form)
+	 * (3) For DELETE item delta for PrismContainers, content of items deleted might not be known
+	 * (only ID could be provided on PCVs).
+	 */
+	@SuppressWarnings("unused")			// used from scripts
+	public List<PrismValue> getDeletedValuesFor(ItemPath itemPath) {
 		if (isAdd()) {
-			Item<PrismValue, ItemDefinition> item = objectToAdd.findItem(itemPath);
-			return item != null ? item.getValues() : Collections.emptyList();
+			return Collections.emptyList();
 		} else if (isDelete()) {
 			return Collections.emptyList();
 		} else {

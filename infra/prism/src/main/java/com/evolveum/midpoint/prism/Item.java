@@ -427,7 +427,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	while (iterator.hasNext()) {
     		V val = iterator.next();
 			// the same algorithm as when deleting the item value from delete delta
-    		if (val.representsSameValue(newValue, false) || val.equalsRealValue(newValue)) {
+			// TODO either make equalsRealValue return false if both PCVs have IDs and these IDs are different
+			// TODO or include a special test condition here; see MID-3828
+			if (val.representsSameValue(newValue, false) || val.equalsRealValue(newValue)) {
     			iterator.remove();
     			changed = true;
     		}
@@ -524,7 +526,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     					// No need to process this value again
     					iterator.remove();
     					break;
-    				} else if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
+					// TODO either make equalsRealValue return false if both PCVs have IDs and these IDs are different
+					// TODO or include a special test condition here; see MID-3828
+					} else if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
     					found = true;
     					// same values. No delta
     					// No need to process this value again

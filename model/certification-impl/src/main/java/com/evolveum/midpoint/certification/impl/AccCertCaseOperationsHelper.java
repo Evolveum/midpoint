@@ -269,9 +269,7 @@ public class AccCertCaseOperationsHelper {
 
         ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(F_CASE,
                 AccessCertificationCampaignType.class, prismContext);
-        for (int i = 0; i < caseList.size(); i++) {
-            final AccessCertificationCaseType _case = caseList.get(i);
-
+        for (final AccessCertificationCaseType _case : caseList) {
             _case.setCurrentStageNumber(1);
             reviewersHelper.setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
             _case.setCurrentReviewRequestedTimestamp(stage.getStart());
@@ -280,7 +278,8 @@ public class AccCertCaseOperationsHelper {
             List<AccessCertificationDecisionType> decisions = createEmptyDecisionsForCase(_case.getCurrentReviewerRef(), 1);
             _case.getDecision().addAll(decisions);
 
-            final AccessCertificationResponseType currentStageOutcome = computationHelper.computeInitialResponseForStage(_case, campaign, 1);
+            final AccessCertificationResponseType currentStageOutcome = computationHelper
+                    .computeInitialResponseForStage(_case, campaign, 1);
             _case.setCurrentStageOutcome(currentStageOutcome);
             _case.setOverallOutcome(computationHelper.computeOverallOutcome(_case, campaign, currentStageOutcome));
 
@@ -294,9 +293,6 @@ public class AccCertCaseOperationsHelper {
         rv.add(caseDelta);
 
         LOGGER.trace("Created {} deltas to create {} cases for campaign {}", rv.size(), caseList.size(), campaignShortName);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Deltas: {}", DebugUtil.debugDump(rv));
-        }
         return rv;
     }
 
@@ -329,9 +325,7 @@ public class AccCertCaseOperationsHelper {
         final AccessCertificationReviewerSpecificationType reviewerSpec =
                 reviewersHelper.findReviewersSpecification(campaign, stageToBe, task, result);
 
-        for (int i = 0; i < caseList.size(); i++) {
-            final AccessCertificationCaseType _case = caseList.get(i);
-
+        for (final AccessCertificationCaseType _case : caseList) {
             if (!computationHelper.computeEnabled(campaign, _case, outcomesToStopOn)) {
                 continue;
             }
@@ -340,7 +334,8 @@ public class AccCertCaseOperationsHelper {
             assert caseId != null;
 
             reviewersHelper.setupReviewersForCase(_case, campaign, reviewerSpec, task, result);
-            final PrismReference reviewersRef = _case.asPrismContainerValue().findOrCreateReference(AccessCertificationCaseType.F_CURRENT_REVIEWER_REF);
+            final PrismReference reviewersRef = _case.asPrismContainerValue()
+                    .findOrCreateReference(AccessCertificationCaseType.F_CURRENT_REVIEWER_REF);
             final ReferenceDelta reviewersDelta = ReferenceDelta.createModificationReplace(
                     new ItemPath(
                             new NameItemPathSegment(F_CASE),
@@ -367,7 +362,8 @@ public class AccCertCaseOperationsHelper {
                     Arrays.asList(stage.getDeadline()));
             rv.add(deadlineDelta);
 
-            final AccessCertificationResponseType currentOutcome = computationHelper.computeInitialResponseForStage(_case, campaign, stageToBe);
+            final AccessCertificationResponseType currentOutcome = computationHelper
+                    .computeInitialResponseForStage(_case, campaign, stageToBe);
             final PropertyDelta currentOutcomeDelta = PropertyDelta.createModificationReplaceProperty(
                     new ItemPath(
                             new NameItemPathSegment(F_CASE),
@@ -377,7 +373,8 @@ public class AccCertCaseOperationsHelper {
                     currentOutcome);
             rv.add(currentOutcomeDelta);
 
-            final AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(_case, campaign, currentOutcome);
+            final AccessCertificationResponseType overallOutcome = computationHelper
+                    .computeOverallOutcome(_case, campaign, currentOutcome);
             final PropertyDelta overallOutcomeDelta = PropertyDelta.createModificationReplaceProperty(
                     new ItemPath(
                             new NameItemPathSegment(F_CASE),
@@ -396,7 +393,8 @@ public class AccCertCaseOperationsHelper {
                     stageToBe);
             rv.add(currentStageNumberDelta);
 
-            final List<AccessCertificationDecisionType> emptyDecisions = createEmptyDecisionsForCase(_case.getCurrentReviewerRef(), stageToBe);
+            final List<AccessCertificationDecisionType> emptyDecisions = createEmptyDecisionsForCase(
+                    _case.getCurrentReviewerRef(), stageToBe);
             final ItemDelta emptyDecisionsDelta = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                     .item(F_CASE, caseId, F_DECISION).add(emptyDecisions.toArray())
                     .asItemDelta();
@@ -404,9 +402,6 @@ public class AccCertCaseOperationsHelper {
         }
 
         LOGGER.debug("Created {} deltas to advance {} cases for campaign {}", rv.size(), caseList.size(), ObjectTypeUtil.toShortString(campaign));
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Deltas: {}", DebugUtil.debugDump(rv));
-        }
         return rv;
     }
 
