@@ -187,6 +187,7 @@ public class SecurityHelper {
     	if (orgSecurityPolicy != null) {
     		SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();
     		postProcessSecurityPolicy(orgSecurityPolicyType, task, result);
+    		traceSecurityPolicy(orgSecurityPolicyType, user);
     		return orgSecurityPolicyType;
     	}
     	
@@ -197,9 +198,11 @@ public class SecurityHelper {
 					SecurityPolicyType globalSecurityPolicyType = objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
 					LOGGER.trace("Using global security policy: {}", globalSecurityPolicyType);
 					postProcessSecurityPolicy(globalSecurityPolicyType, task, result);
+					traceSecurityPolicy(globalSecurityPolicyType, user);
 					return globalSecurityPolicyType;
 				} catch (ObjectNotFoundException | SchemaException e) {
 					LOGGER.error(e.getMessage(), e);
+					traceSecurityPolicy(null, user);
 					return null;
 				}
 			}
@@ -210,7 +213,9 @@ public class SecurityHelper {
     	PrismObject<ValuePolicyType> orgPasswordPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getPasswordPolicyRef(), "security policy", task, result);
     	LOGGER.trace("Found organization password policy: {}", orgPasswordPolicy);
     	if (orgPasswordPolicy != null) {
-    		return postProcessPasswordPolicy(orgPasswordPolicy.asObjectable());
+    		SecurityPolicyType policy = postProcessPasswordPolicy(orgPasswordPolicy.asObjectable());
+    		traceSecurityPolicy(policy, user);
+    		return policy;
     	}
     	
     	if (systemConfiguration != null) {
@@ -219,9 +224,12 @@ public class SecurityHelper {
 				try {
 					ValuePolicyType globalPasswordPolicyType = objectResolver.resolve(globalPasswordPolicyRef, ValuePolicyType.class, null, "global security policy reference in system configuration", task, result);
 					LOGGER.trace("Using global password policy: {}", globalPasswordPolicyType);
-					return postProcessPasswordPolicy(globalPasswordPolicyType);
+					SecurityPolicyType policy = postProcessPasswordPolicy(globalPasswordPolicyType);
+					traceSecurityPolicy(policy, user);
+		    		return policy;
 				} catch (ObjectNotFoundException | SchemaException e) {
 					LOGGER.error(e.getMessage(), e);
+					traceSecurityPolicy(null, user);
 					return null;
 				}
 			}
@@ -231,6 +239,17 @@ public class SecurityHelper {
 	}
     
  
+	private <F extends FocusType> void traceSecurityPolicy(SecurityPolicyType securityPolicyType, PrismObject<F> user) {
+		if (LOGGER.isTraceEnabled()) {
+			if (securityPolicyType == null) {
+				LOGGER.trace("Located security policy for {}: null", user);
+			} else {
+				LOGGER.trace("Located security policy for {}:\n{}", user, securityPolicyType.asPrismObject().debugDump(1));
+			}
+		}
+		
+	}
+
 	private void postProcessSecurityPolicy(SecurityPolicyType securityPolicyType, Task task, OperationResult result) {
 		CredentialsPolicyType creds = securityPolicyType.getCredentials();
 		if (creds != null) {
@@ -293,7 +312,7 @@ public class SecurityHelper {
 		creds.setPassword(passwd);
 		securityPolicyType.setCredentials(creds);
 		setDeprecatedPasswordPolicyProperties(passwordPolicyType, passwd);
-		return null;
+		return securityPolicyType;
 	}
 
 	private void setDeprecatedPasswordPolicyProperties(ValuePolicyType passwordPolicyType,
