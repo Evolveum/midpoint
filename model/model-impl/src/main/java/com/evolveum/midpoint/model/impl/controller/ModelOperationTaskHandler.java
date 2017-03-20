@@ -135,7 +135,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
             } catch (Exception e) { // too many various exceptions; will be fixed with java7 :)
                 String message = "An exception occurred within model operation, in task " + task;
-                LoggingUtils.logException(LOGGER, message, e);
+                LoggingUtils.logUnexpectedException(LOGGER, message, e);
                 result.recordPartialError(message, e);
                 // TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
                 runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR);
