@@ -1610,6 +1610,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		try {
+			ObjectClassComplexTypeDefinition structuralObjectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassDef.getTypeName());
 			Map<QName,ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap = new HashMap<>();
 			if (auxiliaryObjectClassDelta != null) {
 				// Activation change means modification of attributes
@@ -1647,34 +1648,39 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							}
 						}
 						boolean isInRemovedAuxClass = false;
-						if (auxiliaryObjectClassDelta != null && auxiliaryObjectClassDelta.isDelete()) {
-							// We need to change all the deltas of all the attributes that belong
-							// to the removed auxiliary object class from REPLACE to DELETE. The change of
-							// auxiliary object class and the change of the attributes must be done in
-							// one operation. Otherwise we get schema error. And as auxiliary object class
-							// is removed, the attributes must be removed as well.
-							for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToDelete()) {
-								ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-								ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
-								if (attrDef != null) {
-									isInRemovedAuxClass = true;
-									break;
+						boolean isInAddedAuxClass = false;
+						ResourceAttributeDefinition<Object> structAttrDef = structuralObjectClassDefinition.findAttributeDefinition(delta.getElementName());
+						// if this attribute is also in the structural object class. It does not matter if it is in
+						// aux object class, we cannot add/remove it with the object class unless it is normally requested
+						if (structAttrDef == null) {
+							if (auxiliaryObjectClassDelta != null && auxiliaryObjectClassDelta.isDelete()) {
+								// We need to change all the deltas of all the attributes that belong
+								// to the removed auxiliary object class from REPLACE to DELETE. The change of
+								// auxiliary object class and the change of the attributes must be done in
+								// one operation. Otherwise we get schema error. And as auxiliary object class
+								// is removed, the attributes must be removed as well.
+								for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToDelete()) {
+									ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
+									ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
+									if (attrDef != null) {
+										isInRemovedAuxClass = true;
+										break;
+									}
 								}
 							}
-						}
-						boolean isInAddedAuxClass = false;
-						if (auxiliaryObjectClassDelta != null && auxiliaryObjectClassDelta.isAdd()) {
-							// We need to change all the deltas of all the attributes that belong
-							// to the new auxiliary object class from REPLACE to ADD. The change of
-							// auxiliary object class and the change of the attributes must be done in
-							// one operation. Otherwise we get schema error. And as auxiliary object class
-							// is added, the attributes must be added as well.
-							for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToAdd()) {
-								ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-								ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
-								if (attrDef != null) {
-									isInAddedAuxClass = true;
-									break;
+							if (auxiliaryObjectClassDelta != null && auxiliaryObjectClassDelta.isAdd()) {
+								// We need to change all the deltas of all the attributes that belong
+								// to the new auxiliary object class from REPLACE to ADD. The change of
+								// auxiliary object class and the change of the attributes must be done in
+								// one operation. Otherwise we get schema error. And as auxiliary object class
+								// is added, the attributes must be added as well.
+								for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToAdd()) {
+									ObjectClassComplexTypeDefinition auxOcDef = auxiliaryObjectClassMap.get(auxPval.getValue());
+									ResourceAttributeDefinition<Object> auxAttrDef = auxOcDef.findAttributeDefinition(delta.getElementName());
+									if (auxAttrDef != null) {
+										isInAddedAuxClass = true;
+										break;
+									}
 								}
 							}
 						}
