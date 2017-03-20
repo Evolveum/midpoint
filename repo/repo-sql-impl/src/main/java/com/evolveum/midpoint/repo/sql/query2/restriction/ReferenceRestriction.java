@@ -31,12 +31,19 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
 
 /**
  * @author lazyman
@@ -85,14 +92,24 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         conjunction.add(handleEqOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_TARGET_OID, refValueOid));
 
         if (refValueOid != null) {
-	        if (refValueRelation == null) {
-	        	// Return only references without relation
-	        	conjunction.add(hibernateQuery.createEq(hqlPath + "." + ObjectReference.F_RELATION, RUtil.QNAME_DELIMITER));
-	        } else if (refValueRelation.equals(PrismConstants.Q_ANY)) {
+	        if (ObjectTypeUtil.isDefaultRelation(refValueRelation)) {
+	        	// Return references without relation or with "member" relation
+				conjunction.add(hibernateQuery.createIn(hqlPath + "." + ObjectReference.F_RELATION,
+						Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT))));
+	        } else if (QNameUtil.match(refValueRelation, PrismConstants.Q_ANY)) {
 	        	// Return all relations => no restriction
 	        } else {
 	        	// return references with specific relation
-	            conjunction.add(handleEqOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_RELATION, RUtil.qnameToString(refValueRelation)));
+				List<String> relationsToTest = new ArrayList<>();
+				relationsToTest.add(qnameToString(refValueRelation));
+				if (QNameUtil.noNamespace(refValueRelation)) {
+					relationsToTest.add(qnameToString(QNameUtil.setNamespaceIfMissing(refValueRelation, SchemaConstants.NS_ORG, null)));
+				} else if (SchemaConstants.NS_ORG.equals(refValueRelation.getNamespaceURI())) {
+					relationsToTest.add(qnameToString(new QName(refValueRelation.getLocalPart())));
+				} else {
+					// non-empty non-standard NS => nothing to add
+				}
+				conjunction.add(hibernateQuery.createEqOrIn(hqlPath + "." + ObjectReference.F_RELATION, relationsToTest));
 	        }
 	
 	        if (refValueTargetType != null) {

@@ -1214,7 +1214,7 @@ public final class WebComponentUtil {
 
 		boolean isManager = false;
 		for (ObjectReferenceType parentOrgRef : user.getParentOrgRef()) {
-			if (SchemaConstants.ORG_MANAGER.equals(parentOrgRef.getRelation())) {
+			if (ObjectTypeUtil.isManagerRelation(parentOrgRef.getRelation())) {
 				isManager = true;
 				break;
 			}
@@ -1529,7 +1529,7 @@ public final class WebComponentUtil {
 		List<ObjectReferenceType> parentOrgRefs = objectType.getParentOrgRef();
 
 		for (ObjectReferenceType ref : parentOrgRefs) {
-			if (ref.getRelation() != null && ref.getRelation().equals(SchemaConstants.ORG_MANAGER)) {
+			if (ObjectTypeUtil.isManagerRelation(ref.getRelation())) {
 				return true;
 			}
 		}

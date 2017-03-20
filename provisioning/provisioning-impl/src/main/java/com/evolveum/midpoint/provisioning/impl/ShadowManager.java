@@ -677,14 +677,11 @@ public class ShadowManager {
 	 */
 	private void processQueryMatchingRules(ObjectQuery repoQuery, final RefinedObjectClassDefinition objectClassDef) {
 		ObjectFilter filter = repoQuery.getFilter();
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(ObjectFilter filter) {
-				try {
-					processQueryMatchingRuleFilter(filter, objectClassDef);
-				} catch (SchemaException e) {
-					throw new SystemException(e);
-				}
+		Visitor visitor = f -> {
+			try {
+				processQueryMatchingRuleFilter(f, objectClassDef);
+			} catch (SchemaException e) {
+				throw new SystemException(e);
 			}
 		};
 		filter.accept(visitor);

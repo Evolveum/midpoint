@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -111,7 +112,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		if (targetRef == null) {
 			return null;
 		}
-		return targetRef.getRelation();
+		return ObjectTypeUtil.normalizeRelation(targetRef.getRelation());
 	}
 
 	@NotNull

@@ -55,6 +55,7 @@ import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.persistence.Table;
@@ -322,6 +323,7 @@ public final class RUtil {
                 + "', can't translate to '" + type + "'.");
     }
 
+    @NotNull
     public static String qnameToString(QName qname) {
         StringBuilder sb = new StringBuilder();
         if (qname != null) {

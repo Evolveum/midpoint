@@ -28,8 +28,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -193,7 +193,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             return retval;
         }
         for (ObjectReferenceType orgRef : user.getParentOrgRef()) {
-            if (QNameUtil.match(relation, orgRef.getRelation())) {
+            if (ObjectTypeUtil.relationMatches(relation, orgRef.getRelation())) {
                 retval.add(orgRef.getOid());
             }
         }
@@ -260,17 +260,11 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     @Override
     public Collection<OrgType> getParentOrgs(ObjectType object, QName relation, String orgType, boolean preAuthorized) throws SchemaException, SecurityViolationException {
         List<ObjectReferenceType> parentOrgRefs = object.getParentOrgRef();
-        List<OrgType> parentOrgs = new ArrayList<OrgType>(parentOrgRefs.size());
+        List<OrgType> parentOrgs = new ArrayList<>(parentOrgRefs.size());
         for (ObjectReferenceType parentOrgRef: parentOrgRefs) {
-            if (relation == null) {
-                if (parentOrgRef.getRelation() != null) {
-                    continue;
-                }
-            } else if (!relation.equals(PrismConstants.Q_ANY)) {
-                if (!QNameUtil.match(parentOrgRef.getRelation(), relation)) {
-                    continue;
-                }
-            }
+            if (!ObjectTypeUtil.relationMatches(relation, parentOrgRef.getRelation())) {
+            	continue;
+			}
             OrgType parentOrg;
             try {
                 parentOrg = getObject(OrgType.class, parentOrgRef.getOid(), preAuthorized);
@@ -313,7 +307,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     @Override
     public boolean isManagerOf(UserType user, String orgOid, boolean preAuthorized) {
         for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
-            if (orgOid.equals(objectReferenceType.getOid()) && SchemaConstants.ORG_MANAGER.equals(objectReferenceType.getRelation())) {
+            if (orgOid.equals(objectReferenceType.getOid()) && ObjectTypeUtil.isManagerRelation(objectReferenceType.getRelation())) {
                 return true;
             }
         }
@@ -323,7 +317,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     @Override
     public boolean isManager(UserType user) {
         for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
-            if (SchemaConstants.ORG_MANAGER.equals(objectReferenceType.getRelation())) {
+            if (ObjectTypeUtil.isManagerRelation(objectReferenceType.getRelation())) {
                 return true;
             }
         }
@@ -333,7 +327,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     @Override
     public boolean isManagerOfOrgType(UserType user, String orgType, boolean preAuthorized) throws SchemaException {
         for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
-            if (SchemaConstants.ORG_MANAGER.equals(objectReferenceType.getRelation())) {
+            if (ObjectTypeUtil.isManagerRelation(objectReferenceType.getRelation())) {
                 OrgType org = getOrgByOid(objectReferenceType.getOid(), preAuthorized);
                 if (org.getOrgType().contains(orgType)) {
                     return true;

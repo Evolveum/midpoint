@@ -147,11 +147,19 @@ public abstract class SchemaConstants {
 	// "ProtectedByteArrayType");
 
 	/**
+	 * Default relation, usually meaning "has" or "is member of". Used as a relation value in object references.
+	 * Specifies that the subject is a member of organization, or that the subject
+	 * has been assigned a role in a way that he gets authorizations and other content
+	 * provided by that role.
+	 */
+	public static final QName ORG_DEFAULT = new QName(NS_ORG, "default");
+
+	/**
 	 * Relation "is manager of". Used as a relation value in object references.
 	 * Specifies that the subject is a manager of organizational unit.
 	 */
 	public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
-	
+
 	/**
 	 * Relation used for metarole assignments. Sometimes it is important to
 	 * distinguish metarole and member assignments. This relation is used

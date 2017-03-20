@@ -171,11 +171,12 @@
     <xsd:complexType name="MultiplicityPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
-                Constraint on various multiplicity properties,
-                such as minimum and maximum assignmees
+                Constraint on multiplicity of assigned objects.
+				(Other multiplicity requirements will be probably treated in separate constraints, like "constraint that
+				restricts value(s) of given item, based on a set of conditions that must be met".)
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container/>
+				<a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -188,6 +189,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Relation(s) to which this constraint applies. All of these relation must match
+								the defined multiplicity. If no relation is present, org:default (i.e. null) is assumed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+					<!-- TODO something like "assigned" vs. "effective" - i.e. if we watch assignments created
+					or assignments that are actually "alive" (i.e. enabled and with condition = true) -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

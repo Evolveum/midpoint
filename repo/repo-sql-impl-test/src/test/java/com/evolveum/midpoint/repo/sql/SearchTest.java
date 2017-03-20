@@ -192,6 +192,7 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test
     public void roleMembershipSearchTest() throws Exception {
         PrismReferenceValue r456 = new PrismReferenceValue("r456", RoleType.COMPLEX_TYPE);
+        r456.setRelation(SchemaConstants.ORG_DEFAULT);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r456)
                 .build();
@@ -210,11 +211,22 @@ public class SearchTest extends BaseSQLRepoTest {
         result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Should find two users", 2, users.size());
+
+        PrismReferenceValue r123approver = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        r123approver.setRelation(SchemaConstants.ORG_APPROVER);
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r123approver)
+                .build();
+        users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find no users", 0, users.size());
     }
 
     @Test
     public void delegatedSearchTest() throws Exception {
         PrismReferenceValue r789 = new PrismReferenceValue("r789", RoleType.COMPLEX_TYPE);
+        // intentionally without relation (meaning "member")
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_DELEGATED_REF).ref(r789)
                 .build();

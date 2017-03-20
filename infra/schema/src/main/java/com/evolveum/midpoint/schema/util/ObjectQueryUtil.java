@@ -183,14 +183,11 @@ public class ObjectQueryUtil {
 	
 	public static boolean hasAllDefinitions(ObjectFilter filter) {
 		final MutableBoolean hasAllDefinitions = new MutableBoolean(true);
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(ObjectFilter filter) {
-				if (filter instanceof ValueFilter) {
-					ItemDefinition definition = ((ValueFilter<?,?>)filter).getDefinition();
-					if (definition == null) {
-						hasAllDefinitions.setValue(false);
-					}
+		Visitor visitor = f -> {
+			if (f instanceof ValueFilter) {
+				ItemDefinition definition = ((ValueFilter<?,?>) f).getDefinition();
+				if (definition == null) {
+					hasAllDefinitions.setValue(false);
 				}
 			}
 		};
@@ -200,15 +197,12 @@ public class ObjectQueryUtil {
 
 	// TODO what about OidIn here?
 	public static void assertPropertyOnly(ObjectFilter filter, final String message) {
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(ObjectFilter filter) {
-				if (filter instanceof OrgFilter) {
-					if (message == null) {
-						throw new IllegalArgumentException(filter.toString());
-					} else {
-						throw new IllegalArgumentException(message+": "+filter);
-					}
+		Visitor visitor = f -> {
+			if (f instanceof OrgFilter) {
+				if (message == null) {
+					throw new IllegalArgumentException(f.toString());
+				} else {
+					throw new IllegalArgumentException(message+": "+ f);
 				}
 			}
 		};
@@ -216,15 +210,12 @@ public class ObjectQueryUtil {
 	}
 	
 	public static void assertNotRaw(ObjectFilter filter, final String message) {
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(ObjectFilter filter) {
-				if (filter instanceof ValueFilter && ((ValueFilter)filter).isRaw()) {
-					if (message == null) {
-						throw new IllegalArgumentException(filter.toString());
-					} else {
-						throw new IllegalArgumentException(message+": "+filter);
-					}
+		Visitor visitor = f -> {
+			if (f instanceof ValueFilter && ((ValueFilter) f).isRaw()) {
+				if (message == null) {
+					throw new IllegalArgumentException(f.toString());
+				} else {
+					throw new IllegalArgumentException(message+": "+ f);
 				}
 			}
 		};

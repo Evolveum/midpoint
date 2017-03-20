@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * @author semancik
@@ -45,7 +45,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 
 	private static EvaluationOrderImpl createZero() {
 		EvaluationOrderImpl eo = new EvaluationOrderImpl();
-		eo.orderMap.put(null, 0);
+		eo.orderMap.put(SchemaConstants.ORG_DEFAULT, 0);
 		return eo;
 	}
 
@@ -65,10 +65,11 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	}
 
 	private EvaluationOrder advance(int amount, QName relation) {
+		relation = ObjectTypeUtil.normalizeRelation(relation);
 		EvaluationOrderImpl advanced = new EvaluationOrderImpl();
 		boolean found = false;
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
-			if (QNameUtil.match(entry.getKey(), relation)) {
+			if (ObjectTypeUtil.relationMatches(relation, entry.getKey())) {
 				advanced.orderMap.put(entry.getKey(), entry.getValue() + amount);
 				found = true;
 			} else {
@@ -78,7 +79,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		if (!found) {
 			advanced.orderMap.put(relation, amount);
 		}
-		if (DeputyUtils.isDelegationRelation(relation)) {
+		if (ObjectTypeUtil.isDelegationRelation(relation)) {
 			advanced.summaryOrder = this.summaryOrder;
 		} else {
 			advanced.summaryOrder = this.summaryOrder + amount;
@@ -99,7 +100,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	@Override
 	public int getMatchingRelationOrder(QName relation) {
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
-			if (QNameUtil.match(entry.getKey(), relation)) {
+			if (ObjectTypeUtil.relationMatches(relation, entry.getKey())) {
 				return entry.getValue();
 			}
 		}
@@ -175,7 +176,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	@Override
 	public Collection<QName> getExtraRelations() {
 		return orderMap.keySet().stream()
-				.filter(r -> !DeputyUtils.isMembershipRelation(r) && !DeputyUtils.isDelegationRelation(r))
+				.filter(r -> !ObjectTypeUtil.isMembershipRelation(r) && !ObjectTypeUtil.isDelegationRelation(r))
 				.collect(Collectors.toSet());
 	}
 }

@@ -28,6 +28,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ObjectFilter implements DebugDumpable, Serializable, Revivable {
 
+	transient private PrismContext prismContext;
+
 	/**
 	 * Does a SHALLOW clone.
 	 */
@@ -42,9 +44,18 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 	@Override
 	public void revive(PrismContext prismContext) throws SchemaException {
 		QueryConvertor.revive(this, prismContext);
+		this.prismContext = prismContext;
 	}
 	
 	public abstract void checkConsistence(boolean requireDefinitions);
 
 	public abstract boolean equals(Object o, boolean exact);
+
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
 }

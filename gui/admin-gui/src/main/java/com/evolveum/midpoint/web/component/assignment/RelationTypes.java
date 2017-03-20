@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import javax.xml.namespace.QName;
 
@@ -47,12 +49,12 @@ public enum RelationTypes {
         return headerLabel;
     }
 
-    public static RelationTypes getRelationType(QName relation){
-        if (relation == null){
+    public static RelationTypes getRelationType(QName relation) {
+        if (ObjectTypeUtil.isDefaultRelation(relation)) {
             return RelationTypes.MEMBER;
         }
-        for (RelationTypes relationTypes : RelationTypes.values()){
-            if (relation.equals(relationTypes.getRelation())){
+        for (RelationTypes relationTypes : RelationTypes.values()) {
+            if (QNameUtil.match(relation, relationTypes.getRelation())) {
                 return relationTypes;
             }
         }
