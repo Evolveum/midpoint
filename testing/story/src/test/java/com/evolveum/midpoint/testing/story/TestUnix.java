@@ -154,6 +154,7 @@ public class TestUnix extends AbstractStoryTest {
 	private static final Integer ROLE_RANGERS_GID = 998;
 	private static final String ROLE_SEALS_NAME = "seals";
 	private static final Integer ROLE_SEALS_GID = 997;
+	private static final String ROLE_WALRUSES_NAME = "walruses";
 	
 	public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
 	public static final String OBJECT_TEMPLATE_USER_OID = "9cd03eda-66bd-11e5-866c-f3bc34108fdf";
@@ -1308,6 +1309,8 @@ public class TestUnix extends AbstractStoryTest {
         
         PrismObject<ShadowType> shadow = getShadowModel(groupSealsOid);
         display("Shadow (model)", shadow);
+        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, groupSealsOid, null, result);
+        display("Shadow (repo)", shadowRepo);
         groupSealsDn = assertUnixGroup(shadow, ROLE_SEALS_GID);
 	}
 
@@ -1489,6 +1492,38 @@ public class TestUnix extends AbstractStoryTest {
         assertNoObject(ShadowType.class, accountRangerOid, task, result);
         
         openDJController.assertNoEntry(accountRangerDn);
+	}
+	
+	/**
+	 * MID-3535
+	 */
+	@Test
+    public void test270RenameUnixGroupSeals() throws Exception {
+		final String TEST_NAME = "test270RenameUnixGroupSeals";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		renameObject(RoleType.class, roleSealsOid, ROLE_WALRUSES_NAME, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, roleSealsOid);
+        assertNotNull("No role", roleAfter);
+        display("Role after", roleAfter);
+        assertObject(roleAfter);
+        assertEquals("link OID changed", groupSealsOid, getSingleLinkOid(roleAfter));
+        
+        PrismObject<ShadowType> shadow = getShadowModel(groupSealsOid);
+        display("Shadow (model)", shadow);
+        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, groupSealsOid, null, result);
+        display("Shadow (repo)", shadowRepo);
+        String newGroupSealsDn = assertUnixGroup(shadow, ROLE_SEALS_GID);
+        
 	}
 	
 /* *************************************************************************** */
@@ -1675,7 +1710,7 @@ public class TestUnix extends AbstractStoryTest {
         assertUserPosix(userAfter, USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, USER_WALLY_UID_NUMBER);
         accountMancombOid = getSingleLinkOid(userAfter);        
 	}
-	
+		
 	@Test
     public void test400ListAllAccountsObjectClass() throws Exception {
 		final String TEST_NAME = "test400ListAllAccountsObjectClass";
