@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -84,18 +85,9 @@ public class ProjectionCredentialsProcessor {
 
 	@Autowired(required=true)
 	private MappingEvaluator mappingEvaluator;
-
-	@Autowired(required=true)
-	private OperationalDataManager metadataManager;
-	
-	@Autowired(required=true)
-	private ModelObjectResolver resolver;
 	
 	@Autowired(required=true)
 	private ValuePolicyProcessor valuePolicyProcessor;
-	
-	@Autowired(required = true)
-	private SecurityHelper securityHelper;
 	
 	@Autowired(required = true)
 	Protector protector;
@@ -108,15 +100,25 @@ public class ProjectionCredentialsProcessor {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null && FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			
-			@SuppressWarnings("unchecked")
-			LensContext<? extends FocusType> focusContextFocus = (LensContext<? extends FocusType>) context;
-			processProjectionPassword(focusContextFocus, projectionContext, now, task, result);
+			processProjectionCredentialsFocus((LensContext<? extends FocusType>) context, projectionContext, now, task, result);
 			
 		}
 	}
+	
+	public <F extends FocusType> void processProjectionCredentialsFocus(LensContext<F> context,
+			LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
+			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		
+		ValuePolicyType passwordPolicy = determinePasswordPolicy(context, projectionContext, now, task, result);
+		
+		processProjectionPasswordMapping(context, projectionContext, passwordPolicy, now, task, result);
+		
+		validateProjectionPassword(context, projectionContext, passwordPolicy, now, task, result);
+	}
 
-	private <F extends FocusType> void processProjectionPassword(LensContext<F> context,
-			final LensProjectionContext projCtx, XMLGregorianCalendar now, Task task, OperationResult result)
+	private <F extends FocusType> void processProjectionPasswordMapping(LensContext<F> context,
+			final LensProjectionContext projCtx, final ValuePolicyType passwordPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
@@ -172,7 +174,6 @@ public class ProjectionCredentialsProcessor {
 			}
 			@Override
 			public StringPolicyType resolve() {
-				ValuePolicyType passwordPolicy = determinePasswordPolicy(context, projCtx, now, task, result);
 				if (passwordPolicy == null) {
 					return null;
 				}
@@ -239,6 +240,68 @@ public class ProjectionCredentialsProcessor {
 		projCtx.swallowToSecondaryDelta(projPasswordDeltaNew);
 	}
 	
+	private <F extends FocusType> void validateProjectionPassword(LensContext<F> context,
+			final LensProjectionContext projectionContext, final ValuePolicyType passwordPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+		
+		if (passwordPolicy == null) {
+			return;
+		}
+		
+		ObjectDelta accountDelta = projectionContext.getDelta();
+		
+		if (accountDelta == null){
+			LOGGER.trace("Skipping processing password policies. Shadow delta not specified.");
+			return;
+		}
+		
+		if (ChangeType.DELETE == accountDelta.getChangeType()){
+			return;
+		}
+		
+		PrismObject<ShadowType> accountShadow = null;
+		PrismProperty<ProtectedStringType> password = null;
+		if (ChangeType.ADD == accountDelta.getChangeType()){
+			accountShadow = accountDelta.getObjectToAdd();
+			if (accountShadow != null){
+				password = accountShadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+			}
+		}
+		if (ChangeType.MODIFY == accountDelta.getChangeType() || password == null) {
+			PropertyDelta<ProtectedStringType> passwordValueDelta =
+					accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+			// Modification sanity check
+			if (accountDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
+					&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+				throw new SchemaException("Shadow password value cannot be added or deleted, it can only be replaced");
+			}
+			if (passwordValueDelta == null) {
+				LOGGER.trace("Skipping processing password policies. Shadow delta does not contain password change.");
+				return;
+			}
+			password = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
+		}
+				
+		if (accountShadow == null) {
+			accountShadow = projectionContext.getObjectNew();
+		}
+		
+		if (passwordPolicy == null) {
+			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
+			return;
+		}
+
+        String passwordValue = determinePasswordValue(password);
+       
+        boolean isValid = valuePolicyProcessor.validateValue(passwordValue, passwordPolicy, accountShadow, "projection password policy", task, result);
+
+		if (!isValid) {
+			result.computeStatus();
+			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
+		}
+		
+	}
+	
 	private <F extends FocusType> ValuePolicyType determinePasswordPolicy(LensContext<F> context,
 			final LensProjectionContext projCtx, XMLGregorianCalendar now, Task task, OperationResult result) {
 		ValuePolicyType passwordPolicy = projCtx.getAccountPasswordPolicy();
@@ -252,6 +315,36 @@ public class ProjectionCredentialsProcessor {
 		return SecurityUtil.getPasswordPolicy(focusContext.getSecurityPolicy());
 	}
 
+	// On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.
+	private String determinePasswordValue(PrismProperty<ProtectedStringType> password) {
+		if (password == null || password.getValue(ProtectedStringType.class) == null) {
+			return null;
+		}
+
+		ProtectedStringType passValue = password.getRealValue();
+
+		return determinePasswordValue(passValue);
+	}
+	
+	private String determinePasswordValue(ProtectedStringType passValue) {
+		if (passValue == null) {
+			return null;
+		}
+
+		String passwordStr = passValue.getClearValue();
+
+		if (passwordStr == null && passValue.getEncryptedDataType () != null) {
+			// TODO: is this appropriate handling???
+			try {
+				passwordStr = protector.decryptString(passValue);
+			} catch (EncryptionException ex) {
+				throw new SystemException("Failed to process password for user: " , ex);
+			}
+		}
+
+		return passwordStr;
+	}
+	
 	private void checkExistingDeltaSanity(LensProjectionContext projCtx,
 			PropertyDelta<ProtectedStringType> passwordDelta) throws SchemaException {
 		if (passwordDelta != null && (passwordDelta.isAdd() || passwordDelta.isDelete())) {

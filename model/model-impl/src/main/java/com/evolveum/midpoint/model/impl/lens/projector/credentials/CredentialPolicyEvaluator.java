@@ -458,12 +458,15 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	}
 	
 	// TODO: generalize for other credentials
-	private <F extends FocusType> int createAddHistoryDelta(PrismContainer<R> currentCredentialContainer) throws SchemaException {
-		R currentCredentialContainerType = currentCredentialContainer.getValue().asContainerable();
-		MetadataType currentCredentialMetadata = currentCredentialContainerType.getMetadata();
+	private <F extends FocusType> int createAddHistoryDelta(PrismContainer<R> oldCredentialContainer) throws SchemaException {
+		R oldCredentialContainerType = oldCredentialContainer.getValue().asContainerable();
+		MetadataType oldCredentialMetadata = oldCredentialContainerType.getMetadata();
 		
-		PrismProperty<ProtectedStringType> currentValueProperty = currentCredentialContainer.findProperty(getCredentialRelativeValuePath());
-		ProtectedStringType newHistoryValue = currentValueProperty.getRealValue();
+		PrismProperty<ProtectedStringType> oldValueProperty = oldCredentialContainer.findProperty(getCredentialRelativeValuePath());
+		if (oldValueProperty == null) {
+			return 0;
+		}
+		ProtectedStringType newHistoryValue = oldValueProperty.getRealValue();
 		ProtectedStringType passwordPsForStorage = newHistoryValue.clone();
 		
 		CredentialsStorageTypeType storageType = SecurityUtil.getCredentialStoragetTypeType(getCredentialPolicy().getHistoryStorageMethod());
@@ -472,14 +475,14 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		}
 		prepareProtectedStringForStorage(passwordPsForStorage, storageType);
 		
-		PrismContainerDefinition<PasswordHistoryEntryType> historyEntryDefinition = currentCredentialContainer.getDefinition().findContainerDefinition(PasswordType.F_HISTORY_ENTRY);
+		PrismContainerDefinition<PasswordHistoryEntryType> historyEntryDefinition = oldCredentialContainer.getDefinition().findContainerDefinition(PasswordType.F_HISTORY_ENTRY);
 		PrismContainer<PasswordHistoryEntryType> historyEntry = historyEntryDefinition.instantiate();
 		
 		PrismContainerValue<PasswordHistoryEntryType> hisotryEntryValue = historyEntry.createNewValue();
 		
 		PasswordHistoryEntryType entryType = hisotryEntryValue.asContainerable();
 		entryType.setValue(passwordPsForStorage);
-		entryType.setMetadata(currentCredentialMetadata==null?null:currentCredentialMetadata.clone());
+		entryType.setMetadata(oldCredentialMetadata==null?null:oldCredentialMetadata.clone());
 		entryType.setChangeTimestamp(now);
 	
 		ContainerDelta<PasswordHistoryEntryType> addHisotryDelta = ContainerDelta
