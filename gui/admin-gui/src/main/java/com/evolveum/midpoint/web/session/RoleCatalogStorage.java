@@ -49,7 +49,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private int selectedTabId = 0;                 //selected tab id on the Org. structure page
     private SelectableBean<OrgType> collapsedItem = null;                 //collapsed tree item
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
-    private AssignmentViewType viewType = AssignmentViewType.ROLE_CATALOG_VIEW;      //the current view type
+    private AssignmentViewType viewType = null;      //the current view type
     private PrismObject<UserType> targetUser = null;
     private PrismObject<UserType> assignmentsUserOwner = null;
     private List<AssignmentConflictDto> conflictsList;
@@ -154,9 +154,6 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     }
 
     public AssignmentViewType getViewType() {
-        if (viewType == null){
-            viewType = AssignmentViewType.ROLE_TYPE;
-        }
         return viewType;
     }
 

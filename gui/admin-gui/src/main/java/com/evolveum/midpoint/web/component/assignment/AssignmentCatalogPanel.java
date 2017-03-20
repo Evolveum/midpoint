@@ -57,6 +57,7 @@ import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -112,28 +113,31 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private int itemsPerRow = 4;
     private boolean showUserSelectionPopup = true;
     private List<AssignmentEditorDto> listProviderData;
-
+    private AssignmentViewType defaultAssignmentViewType = AssignmentViewType.ROLE_CATALOG_VIEW;
+    List<AssignmentViewType> viewTypeList = new ArrayList<>();
 
     public AssignmentCatalogPanel(String id) {
         super(id);
     }
 
-    public AssignmentCatalogPanel(String id, String rootOid, PageBase pageBase) {
+    public AssignmentCatalogPanel(String id, String rootOid, List<AssignmentViewType> viewTypeList, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
         this.rootOid = rootOid;
+        this.viewTypeList = viewTypeList;
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
         initLayout();
     }
 
-    public AssignmentCatalogPanel(String id, PageBase pageBase) {
-        this(id, AssignmentViewType.getViewTypeFromSession(pageBase), pageBase);
+    public AssignmentCatalogPanel(String id, List<AssignmentViewType> viewTypeList, PageBase pageBase) {
+        this(id, AssignmentViewType.getViewTypeFromSession(pageBase), viewTypeList, pageBase);
     }
 
-     public AssignmentCatalogPanel(String id, AssignmentViewType viewType, PageBase pageBase) {
+     public AssignmentCatalogPanel(String id, AssignmentViewType viewType, List<AssignmentViewType> viewTypeList, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
-        AssignmentViewType.saveViewTypeToSession(pageBase, viewType);
+         AssignmentViewType.saveViewTypeToSession(pageBase, viewType);
+         this.viewTypeList = viewTypeList;
          initLayout();
     }
 
@@ -221,6 +225,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             treePanel.setOutputMarkupId(true);
             treePanelContainer.add(new AttributeAppender("class", "col-md-3"));
             treePanelContainer.add(new VisibleEnableBehaviour(){
+                private static final long serialVersionUID = 1L;
                 @Override
                 public boolean isVisible(){
                     return !isCatalogOidEmpty();
@@ -243,6 +248,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         Label assignmentsOwnerLabel = new Label(ID_ASSIGNMENTS_OWNER_NAME,
                 createStringResource("AssignmentCatalogPanel.assignmentsOwner", assignmentsOwnerName));
         assignmentsOwnerLabel.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
                 return AssignmentViewType.USER_TYPE.equals(pageBase.getSessionStorage().getRoleCatalog().getViewType());
@@ -295,6 +301,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private void initModels(){
         selectedTreeItemOidModel = new IModel<String>() {
+            private static final long serialVersionUID = 1L;
             @Override
             public String getObject() {
                 return StringUtils.isEmpty(pageBase.getSessionStorage().getRoleCatalog().getSelectedOid()) ?
@@ -312,6 +319,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             }
         };
         viewModel = new IModel<AssignmentViewType>() {
+            private static final long serialVersionUID = 1L;
             @Override
             public AssignmentViewType getObject() {
                 return AssignmentViewType.getViewTypeFromSession(pageBase);
@@ -329,6 +337,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         };
 
         searchModel = new LoadableModel<Search>(false) {
+            private static final long serialVersionUID = 1L;
             @Override
             public Search load() {
                 Search search = SearchFactory.createSearch(AbstractRoleType.class, pageBase.getPrismContext(),
@@ -338,6 +347,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         };
 
         targetUserModel = new IModel<PrismObject<UserType>>() {
+            private static final long serialVersionUID = 1L;
             @Override
             public PrismObject<UserType> getObject() {
                 return getTargetUser();
@@ -367,6 +377,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         WebMarkupContainer targetUserContainer = new WebMarkupContainer(ID_TARGET_USER_CONTAINER);
         targetUserContainer.setOutputMarkupId(true);
         AjaxLink<String> targetUserButton = new AjaxLink<String>(ID_TARGET_USER_BUTTON) {
+            private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (showUserSelectionPopup) {
@@ -381,6 +392,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         targetUserButton.add(label);
 
         AjaxLink deleteButton = new AjaxLink(ID_DELETE_TARGET_USER_BUTTON) {
+            private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showUserSelectionPopup = false;
@@ -389,6 +401,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             }
         };
         deleteButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
                 return pageBase.getSessionStorage().getRoleCatalog().getTargetUser() != null;
@@ -398,9 +411,12 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         headerPanel.add(targetUserContainer);
     }
     private void initViewSelector(WebMarkupContainer headerPanel){
-        DropDownChoice<AssignmentViewType> viewSelect = new DropDownChoice(ID_VIEW_TYPE, viewModel, new ListModel(createAssignableTypesList()),
+        DropDownChoice<AssignmentViewType> viewSelect = new DropDownChoice(ID_VIEW_TYPE, viewModel,
+                Model.ofList(viewTypeList != null && viewTypeList.size() > 0 ?
+                        viewTypeList : createAssignableTypesList()),
                 new EnumChoiceRenderer<AssignmentViewType>(this));
         viewSelect.add(new OnChangeAjaxBehavior() {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -430,6 +446,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private DropDownChoice getViewSelectComponent(){
         return (DropDownChoice)getHeaderPanel().get(ID_VIEW_TYPE);
     }
+
     private void initSearchPanel(WebMarkupContainer headerPanel) {
         final Form searchForm = new Form(ID_SEARCH_FORM);
         headerPanel.add(searchForm);
@@ -442,6 +459,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         searchForm.setOutputMarkupId(true);
 
         SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
@@ -487,7 +505,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private ObjectQuery createMemberQuery(QName focusTypeClass) {
         ObjectQuery query = new ObjectQuery();
         ObjectFilter filter = null;
-        if (focusTypeClass.equals(RoleType.COMPLEX_TYPE)) {
+        if (RoleType.COMPLEX_TYPE.equals(focusTypeClass)) {
             LOGGER.debug("Loading roles which the current user has right to assign");
             OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNABLE_ROLES);
             try {
@@ -606,10 +624,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private void initUserSelectionPopup(StringResourceModel title, boolean targetUserSelection, AjaxRequestTarget target) {
 
         List<QName> supportedTypes = new ArrayList<>();
-        supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
+        supportedTypes.add(pageBase.getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class).getTypeName());
-        ObjectBrowserPanel<UserType> focusBrowser = new ObjectBrowserPanel<UserType>(getPageBase().getMainPopupBodyId(),
-                UserType.class, supportedTypes, false, getPageBase()) {
+        ObjectBrowserPanel<UserType> focusBrowser = new ObjectBrowserPanel<UserType>(pageBase.getMainPopupBodyId(),
+                UserType.class, supportedTypes, false, pageBase) {
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, UserType targetUser) {
                 super.onSelectPerformed(target, targetUser);
@@ -631,7 +649,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             }
 
         };
-        getPageBase().showMainPopup(focusBrowser, target);
+        pageBase.showMainPopup(focusBrowser, target);
     }
 
     private WebMarkupContainer getTargetUserContainer(){
@@ -682,5 +700,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         }
         return pageBase.loadUserSelf(pageBase);
     }
+
 }
 

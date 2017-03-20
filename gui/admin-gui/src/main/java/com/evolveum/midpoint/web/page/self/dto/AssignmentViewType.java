@@ -17,13 +17,28 @@
 package com.evolveum.midpoint.web.page.self.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 /**
  * Created by honchar.
  */
 public enum AssignmentViewType {
-    ROLE_CATALOG_VIEW, ROLE_TYPE, ORG_TYPE, SERVICE_TYPE, USER_TYPE;
+    ROLE_CATALOG_VIEW(SchemaConstants.OBJECT_COLLECTION_ROLE_CATALOG_URI),
+    ROLE_TYPE(SchemaConstants.OBJECT_COLLECTION_ALL_ROLES_URI),
+    ORG_TYPE(SchemaConstants.OBJECT_COLLECTION_ALL_ORGS_URI),
+    SERVICE_TYPE(SchemaConstants.OBJECT_COLLECTION_ALL_SERVICES_URI),
+    USER_TYPE(SchemaConstants.OBJECT_COLLECTION_USER_ASSIGNMENTS_URI);
+
+    private String uri;
+
+    AssignmentViewType(String uri){
+        this.uri = uri;
+    }
+
+    public String getUri() {
+        return uri;
+    }
 
     public static AssignmentViewType getViewTypeFromSession(PageBase pageBase){
         SessionStorage storage = pageBase.getSessionStorage();

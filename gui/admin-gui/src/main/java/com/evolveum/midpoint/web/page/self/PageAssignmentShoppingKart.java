@@ -33,6 +33,9 @@ import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by honchar.
  */
@@ -50,6 +53,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String DOT_CLASS = PageAssignmentShoppingKart.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_CATALOG_REFERENCE = DOT_CLASS + "loadRoleCatalogReference";
+    private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getAssignmentViewList";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingKart.class);
 
     private String catalogOid = null;
@@ -91,12 +95,40 @@ public class PageAssignmentShoppingKart extends PageSelf {
     }
 
     private Component initMainPanel() {
-        AssignmentViewType viewType = AssignmentViewType.getViewTypeFromSession(getPageBase());
+        List<AssignmentViewType> viewTypeList = getAssignmentViewList();
+        AssignmentViewType viewType = null;
+        AssignmentViewType viewTypeIfNoRoleCatalog = null;
+        if (viewTypeList != null && viewTypeList.size() > 0){
+            for (AssignmentViewType assignmentViewType : viewTypeList){
+                if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(assignmentViewType)){
+                    viewType = AssignmentViewType.ROLE_CATALOG_VIEW;
+                    break;
+                }
+            }
+            if (viewType == null){
+                viewType = viewTypeList.get(0);
+                viewTypeIfNoRoleCatalog = viewTypeList.get(0);
+            } else {
+                if (viewTypeList.size() == 1){
+                    viewTypeIfNoRoleCatalog = viewTypeList.get(0);
+                } else {
+                    for (AssignmentViewType assignmentViewType : viewTypeList){
+                        if (!viewType.equals(assignmentViewType)){
+                            viewTypeIfNoRoleCatalog = assignmentViewType;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            viewType = AssignmentViewType.ROLE_CATALOG_VIEW;
+            viewTypeIfNoRoleCatalog = AssignmentViewType.ROLE_TYPE;
+        }
         if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewType)) {
             if (StringUtils.isEmpty(catalogOid)) {
-                if (isFirstInit) {
+                if (isFirstInit && !viewTypeIfNoRoleCatalog.equals(AssignmentViewType.ROLE_CATALOG_VIEW)) {
                     isFirstInit = false;
-                    AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, AssignmentViewType.ROLE_TYPE, PageAssignmentShoppingKart.this);
+                    AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, viewTypeIfNoRoleCatalog, viewTypeList, PageAssignmentShoppingKart.this);
                     panel.setOutputMarkupId(true);
                     return panel;
                 } else {
@@ -105,15 +137,41 @@ public class PageAssignmentShoppingKart extends PageSelf {
                     return panel;
                 }
             } else {
-                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
+                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, viewTypeList, PageAssignmentShoppingKart.this);
                 panel.setOutputMarkupId(true);
                 return panel;
             }
         } else {
-            AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, PageAssignmentShoppingKart.this);
+            AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, viewType, viewTypeList, PageAssignmentShoppingKart.this);
             panel.setRootOid(catalogOid);
             panel.setOutputMarkupId(true);
             return panel;
         }
     }
+
+    private List<AssignmentViewType> getAssignmentViewList() {
+        OperationResult result = new OperationResult(OPERATION_GET_ASSIGNMENT_VIEW_LIST);
+        SystemConfigurationType config;
+        List<AssignmentViewType> assignmentViewTypes = new ArrayList<>();
+        try {
+            config = getModelInteractionService().getSystemConfiguration(result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
+            return null;
+        }
+        if (config != null && config.getRoleManagement() != null
+                && config.getRoleManagement().getRoleCatalogCollections() != null
+                && config.getRoleManagement().getRoleCatalogCollections().getCollection() != null) {
+            for (ObjectCollectionUseType collection :
+                    config.getRoleManagement().getRoleCatalogCollections().getCollection()){
+                for (AssignmentViewType viewType : AssignmentViewType.values()){
+                    if (viewType.getUri().equals(collection.getCollectionUri())){
+                        assignmentViewTypes.add(viewType);
+                    }
+                }
+            }
+        }
+        return assignmentViewTypes;
+    }
+
 }
