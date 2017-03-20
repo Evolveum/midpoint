@@ -421,7 +421,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         IModel<RelationTypes> relationModel = new IModel<RelationTypes>() {
             @Override
             public RelationTypes getObject() {
-                if (getModelObject().getTargetRef() == null){
+                if (getModelObject().getTargetRef() == null) {
                     return RelationTypes.MEMBER;
                 }
                 return RelationTypes.getRelationType(getModelObject().getTargetRef().getRelation());

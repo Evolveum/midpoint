@@ -68,11 +68,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -105,7 +101,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
@@ -1557,7 +1552,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		List<AssignmentType> assignments = user.asObjectable().getAssignment();
 		for (AssignmentType assignment: assignments) {
 			ObjectReferenceType targetRef = assignment.getTargetRef();
-			if (targetRef != null && roleOid.equals(targetRef.getOid()) && QNameUtil.match(relation, targetRef.getRelation())) {
+			if (targetRef != null && roleOid.equals(targetRef.getOid()) && ObjectTypeUtil.relationMatches(relation,
+					targetRef.getRelation())) {
 				return assignment;
 			}
 		}
@@ -1699,7 +1695,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					if (!expectedOid.equals(hasRef.getOid())) {
 						return false;
 					}
-					if (!QNameUtil.match(relation, hasRef.getRelation())) {
+					if (!ObjectTypeUtil.relationMatches(relation, hasRef.getRelation())) {
 						return false;
 					}
 					return true;

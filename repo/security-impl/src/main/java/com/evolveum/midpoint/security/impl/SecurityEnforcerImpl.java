@@ -883,7 +883,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									S_AtomicFilterExit builder = QueryBuilder.queryFor(AbstractRoleType.class, prismContext)
 											.item(ownerRefPath, ownerRefDef).ref(principal.getUser().getOid());
 									for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-										if (MiscSchemaUtil.compareRelation(null, subjectParentOrgRef.getRelation())) {
+										if (MiscSchemaUtil.compareRelation(null, subjectParentOrgRef.getRelation())) {		// TODO!!!!!!!!!
 											builder = builder.or().item(ownerRefPath, ownerRefDef).ref(subjectParentOrgRef.getOid());
 										}
 									}
@@ -950,7 +950,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter objSpecOrgRelationFilter = null;
 								QName subjectRelation = specOrgRelation.getSubjectRelation();
 								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
+									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {			// TODO !!!!!!!!!!!!!!!!!
 										S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, prismContext);
 										S_AtomicFilterExit q2;
 										if (specOrgRelation.getScope() == null || specOrgRelation.getScope() == OrgScopeType.ALL_DESCENDANTS) {

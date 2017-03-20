@@ -635,19 +635,6 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         throw new IllegalStateException("No assignment pointing to " + targetOid + " found");
     }
 
-    // @pre relation not null
-    private Long findAssignmentIdForTarget(PrismObject<UserType> user, String targetOid, QName relation) {
-        for (AssignmentType assignmentType : user.asObjectable().getAssignment()) {
-            if (assignmentType.getTargetRef() != null &&
-                    targetOid.equals(assignmentType.getTargetRef().getOid()) &&
-                    relation.equals(assignmentType.getTargetRef().getRelation())) {
-                return assignmentType.getId();
-            }
-        }
-        throw new IllegalStateException("No assignment pointing to " + targetOid + "/" + relation + " found");
-    }
-
-
     @Test
     public void test300JackUnassignAllOrgs() throws Exception {
         final String TEST_NAME = "test300JackUnassignAllOrgs";

@@ -35,6 +35,9 @@ import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 
+import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation;
+
 /**
  * @author lazyman
  */
@@ -140,6 +143,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference {
         this.ownerOid = ownerOid;
     }
 
+    @Override
     public void setRelation(String relation) {
         this.relation = relation;
     }
@@ -148,10 +152,12 @@ public class RObjectReference<T extends RObject> implements ObjectReference {
         this.target = target;
     }
 
+    @Override
     public void setTargetOid(String targetOid) {
         this.targetOid = targetOid;
     }
 
+    @Override
     public void setType(RObjectType type) {
         this.type = type;
     }
@@ -187,16 +193,15 @@ public class RObjectReference<T extends RObject> implements ObjectReference {
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, RObjectReference repo) {
+    public static void copyFromJAXB(ObjectReferenceType jaxb, ObjectReference repo) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
 
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-        repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));
-
+		repo.setRelation(qnameToString(normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());
-    }
+	}
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
         ObjectReferenceType ref = new ObjectReferenceType();

@@ -317,7 +317,6 @@ public class CertificationCaseHelper {
         if (campaign != null) {
             campaign.asObjectable().getCase().add(aCase);
         }
-
         return aCase;
     }
 

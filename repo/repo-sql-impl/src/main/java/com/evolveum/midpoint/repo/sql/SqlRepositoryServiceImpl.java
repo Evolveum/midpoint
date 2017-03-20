@@ -50,6 +50,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -277,7 +278,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             filter = ObjectQueryUtil.simplify(filter);
             if (filter instanceof NoneFilter) {
                 result.recordSuccess();
-                return new SearchResultList(new ArrayList<T>(0));
+                return new SearchResultList<>(new ArrayList<T>(0));
             } else {
 				query = replaceSimplifiedFilter(query, filter);
 			}
@@ -305,9 +306,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T> void logSearchInputParameters(Class<T> type, ObjectQuery query, boolean iterative, Boolean strictlySequential) {
         ObjectPaging paging = query != null ? query.getPaging() : null;
         LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}, iterative {}, strictlySequential {}.",
-                new Object[]{type.getSimpleName(), (paging != null ? paging.getOffset() : "undefined"),
-                        (paging != null ? paging.getMaxSize() : "undefined"), iterative, strictlySequential}
-        );
+                type.getSimpleName(), (paging != null ? paging.getOffset() : "undefined"),
+                (paging != null ? paging.getMaxSize() : "undefined"), iterative, strictlySequential);
 
         if (!LOGGER.isTraceEnabled()) {
             return;
@@ -336,9 +336,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         LOGGER.debug("Adding object type '{}', overwrite={}, allowUnencryptedValues={}",
-                new Object[]{object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
-                        options.isAllowUnencryptedValues()}
-        );
+                object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
+                options.isAllowUnencryptedValues());
 
         if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
             CryptoUtil.checkEncrypted(object);
@@ -940,7 +939,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		// Filter
 		if (specFilterType != null) {
 			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());
-			if (specFilter != null) {
+            ObjectTypeUtil.normalizeFilter(specFilter);		//  we assume object is already normalized
+            if (specFilter != null) {
 				ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
 			}
 			try {

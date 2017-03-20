@@ -620,7 +620,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    s3.value = :value2 or\n" +
                     "    (\n" +
                     "      s.resourceRef.targetOid = :targetOid and\n" +
-                    "      s.resourceRef.relation = :relation\n" +
+                    "      s.resourceRef.relation in (:relation)\n" +
                     "    )\n" +
                     "  )\n";
 
@@ -633,14 +633,15 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                 value2 = uid=test,dc=example,dc=com
                 intent = some account type
                 targetOid = d0db5be9-cb93-401f-b6c1-86ffffe4cd5e
-                relation = #
+                relation = ...
                 type = com.evolveum.midpoint.repo.sql.data.common.other.RObjectType.RESOURCE
              */
             assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
 			assertEquals("Wrong property URI for 'foo'", "http://midpoint.evolveum.com/blabla#foo", realQuery.getQuerySource().getParameters().get("name").getValue());
 			assertEquals("Wrong property URI for 'stringType'", "http://example.com/p#stringType", realQuery.getQuerySource().getParameters().get("name2").getValue());
 
-		} finally {
+            System.out.println("Query parameters: " + realQuery.getQuerySource().getParameters());
+        } finally {
             close(session);
         }
     }
@@ -740,11 +741,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  (\n"
 					+ "    (\n"
 					+ "      a.targetRef.targetOid = :targetOid and\n"
-					+ "      a.targetRef.relation = :relation\n"
+					+ "      a.targetRef.relation in (:relation)\n"
 					+ "    ) and\n"
 					+ "    (\n"
 					+ "      u.tenantRef.targetOid = :targetOid2 and\n"
-					+ "      u.tenantRef.relation = :relation2\n"
+					+ "      u.tenantRef.relation in (:relation2)\n"
 					+ "    )\n"
 					+ "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -780,11 +781,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  (\n"
 					+ "    (\n"
 					+ "      a.targetRef.targetOid = :targetOid and\n"
-					+ "      a.targetRef.relation = :relation\n"
+					+ "      a.targetRef.relation in (:relation)\n"
 					+ "    ) and\n"
 					+ "    (\n"
 					+ "      a2.tenantRef.targetOid = :targetOid2 and\n"
-					+ "      a2.tenantRef.relation = :relation2\n"
+					+ "      a2.tenantRef.relation in (:relation2)\n"
 					+ "    )\n"
 					+ "  )\n";
 			assertEqualsIgnoreWhitespace(expected, real);
@@ -983,7 +984,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  (\n" +
                     "    (\n" +
                     "      s.resourceRef.targetOid = :targetOid and\n" +
-                    "      s.resourceRef.relation = :relation\n" +
+                    "      s.resourceRef.relation in (:relation)\n" +
                     "    ) and\n" +
                     "    s2.value = :value\n" +
                     "  )\n";
@@ -1023,7 +1024,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  (\n" +
                     "    l.targetOid = :targetOid and\n" +
-                    "    l.relation = :relation\n" +
+                    "    l.relation in (:relation)\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -1065,7 +1066,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  (\n" +
                     "    a.targetRef.targetOid = :targetOid and\n" +
-                    "    a.targetRef.relation = :relation and\n" +
+                    "    a.targetRef.relation in (:relation) and\n" +
                     "    a.targetRef.type = :type\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -2227,7 +2228,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    o.objectTypeClass = :objectTypeClass and\n" +
                     "    (\n" +
                     "      l.targetOid = :targetOid and\n" +
-                    "      l.relation = :relation\n" +
+                    "      l.relation in (:relation)\n" +
                     "    )\n" +
                     "  )\n";
 
@@ -2343,7 +2344,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "      o.objectTypeClass = :objectTypeClass and\n"
                     + "      (\n"
                     + "        o.ownerRef.targetOid = :targetOid and\n"
-                    + "        o.ownerRef.relation = :relation\n"
+                    + "        o.ownerRef.relation in (:relation)\n"
                     + "      )\n"
                     + "    )\n"
                     + "  )\n";
@@ -2392,28 +2393,28 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "      o.objectTypeClass = :objectTypeClass and\n"
                     + "      (\n"
                     + "        o.ownerRef.targetOid = :targetOid and\n"
-                    + "        o.ownerRef.relation = :relation\n"
+                    + "        o.ownerRef.relation in (:relation)\n"
                     + "      )\n"
                     + "    ) or\n"
                     + "    (\n"
                     + "      o.objectTypeClass = :objectTypeClass2 and\n"
                     + "      (\n"
                     + "        o.ownerRefCampaign.targetOid = :targetOid2 and\n"
-                    + "        o.ownerRefCampaign.relation = :relation2\n"
+                    + "        o.ownerRefCampaign.relation in (:relation2)\n"
                     + "      )\n"
                     + "    ) or\n"
                     + "    (\n"
                     + "      o.objectTypeClass = :objectTypeClass3 and\n"
                     + "      (\n"
                     + "        o.ownerRefDefinition.targetOid = :targetOid3 and\n"
-                    + "        o.ownerRefDefinition.relation = :relation3\n"
+                    + "        o.ownerRefDefinition.relation in (:relation3)\n"
                     + "      )\n"
                     + "    ) or\n"
                     + "    (\n"
                     + "      o.objectTypeClass = :objectTypeClass4 and\n"
                     + "      (\n"
                     + "        o.ownerRefTask.targetOid = :targetOid4 and\n"
-                    + "        o.ownerRefTask.relation = :relation4\n"
+                    + "        o.ownerRefTask.relation in (:relation4)\n"
                     + "      )\n"
                     + "    )\n"
                     + "  )\n";
@@ -2697,7 +2698,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    a.ownerOid in :ownerOid and\n" +
                     "    (\n" +
                     "      a.targetRef.targetOid = :targetOid and\n" +
-                    "      a.targetRef.relation = :relation\n" +
+                    "      a.targetRef.relation in (:relation)\n" +
                     "    )\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -2722,7 +2723,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  (\n" +
                     "    r.targetOid = :targetOid and\n" +
-                    "    r.relation = :relation\n" +
+                    "    r.relation in (:relation)\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -2755,7 +2756,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    o.oid in :oid or\n" +
                     "    (\n" +
                     "      o.ownerRefCampaign.targetOid = :targetOid and\n" +
-                    "      o.ownerRefCampaign.relation = :relation and\n" +
+                    "      o.ownerRefCampaign.relation in (:relation) and\n" +
                     "      o.ownerRefCampaign.type = :type\n" +
                     "    )\n" +
                     "  )\n";
@@ -2787,7 +2788,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                             "  (\n" +
                             "    (\n" +
                             "      r.targetOid = :targetOid and\n" +
-                            "      r.relation = :relation and\n" +
+                            "      r.relation in (:relation) and\n" +
                             "      r.type = :type\n" +
                             "    ) and\n" +
                             "    (\n" +
@@ -2829,7 +2830,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                             "  (\n" +
                             "    (\n" +
                             "      r.targetOid = :targetOid and\n" +
-                            "      r.relation = :relation and\n" +
+                            "      r.relation in (:relation) and\n" +
                             "      r.type = :type\n" +
                             "    ) and\n" +
                             "    (\n" +
@@ -2870,7 +2871,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  (\n" +
                     "    (\n" +
                     "      r.targetOid = :targetOid and\n" +
-                    "      r.relation = :relation and\n" +
+                    "      r.relation in (:relation) and\n" +
                     "      r.type = :type\n" +
                     "    ) and\n" +
                     "    (\n" +
@@ -3223,7 +3224,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  (\n" +
                     "    (\n" +
                     "      d.reviewerRef.targetOid = :targetOid and\n" +
-                    "      d.reviewerRef.relation = :relation\n" +
+                    "      d.reviewerRef.relation in (:relation)\n" +
                     "    ) and\n" +
                     "    (\n" +
                     "      d.stageNumber = a.currentStageNumber or\n" +
@@ -3274,7 +3275,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  (\n" +
                     "    (\n" +
                     "      d.reviewerRef.targetOid = :targetOid and\n" +
-                    "      d.reviewerRef.relation = :relation\n" +
+                    "      d.reviewerRef.relation in (:relation)\n" +
                     "    ) and\n" +
                     "    (\n" +
                     "      d.stageNumber = a.currentStageNumber or\n" +
@@ -3313,7 +3314,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  (\n" +
                     "    a.resourceRef.targetOid = :targetOid and\n" +
-                    "    a.resourceRef.relation = :relation\n" +
+                    "    a.resourceRef.relation in (:relation)\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3338,7 +3339,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  (\n" +
                     "    u.creatorRef.targetOid = :targetOid and\n" +
-                    "    u.creatorRef.relation = :relation\n" +
+                    "    u.creatorRef.relation in (:relation)\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3364,7 +3365,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  (\n" +
                     "    c.targetOid = :targetOid and\n" +
-                    "    c.relation = :relation\n" +
+                    "    c.relation in (:relation)\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3426,7 +3427,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  (\n"
 					+ "    (\n"
 					+ "      t.wfRequesterRef.targetOid = :targetOid and\n"
-					+ "      t.wfRequesterRef.relation = :relation\n"
+					+ "      t.wfRequesterRef.relation in (:relation)\n"
 					+ "    ) and\n"
 					+ "    not t.wfProcessInstanceId is null\n"
 					+ "  )\n"

@@ -93,9 +93,9 @@ public class NameResolutionHelper {
         }
     }
 
-    private Map<String, PolyString> consolidateResults(List<Map<String, Object>> results){
-    	Map<String, PolyString> oidNameMap = new HashMap<String, PolyString>();
-    	for (Map<String, Object> map : results){
+    private Map<String, PolyString> consolidateResults(List<Map<String, Object>> results) {
+    	Map<String, PolyString> oidNameMap = new HashMap<>();
+    	for (Map<String, Object> map : results) {
     		PolyStringType name = RPolyString.copyToJAXB((RPolyString) map.get("1"));
     		oidNameMap.put((String)map.get("0"), new PolyString(name.getOrig(), name.getNorm()));
     	}

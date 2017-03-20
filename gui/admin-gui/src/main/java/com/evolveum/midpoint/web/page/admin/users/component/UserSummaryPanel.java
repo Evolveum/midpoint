@@ -19,6 +19,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -97,7 +98,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				boolean isManager = false;
 				boolean isMember = false;
 				for (ObjectReferenceType parentOrgRef: wrapper.getObject().asObjectable().getParentOrgRef()) {
-					if (SchemaConstants.ORG_MANAGER.equals(parentOrgRef.getRelation())) {
+					if (ObjectTypeUtil.isManagerRelation(parentOrgRef.getRelation())) {
 						isManager = true;
 					} else {
 						isMember = true;

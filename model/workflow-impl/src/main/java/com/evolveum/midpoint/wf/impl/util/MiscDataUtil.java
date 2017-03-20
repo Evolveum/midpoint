@@ -34,12 +34,12 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -398,7 +398,7 @@ public class MiscDataUtil {
     }
 
 	public boolean matches(ObjectReferenceType groupRef, ObjectReferenceType targetRef) {
-		return (QNameUtil.match(SchemaConstants.ORG_MANAGER, targetRef.getRelation()) || targetRef.getRelation() == null)
+		return (ObjectTypeUtil.isMembershipRelation(targetRef.getRelation()))			// TODO!!!!!!!!!
 				&& targetRef.getOid().equals(groupRef.getOid());
 	}
 

@@ -36,4 +36,10 @@ public interface ObjectReference extends Serializable {
     String getRelation();
 
     RObjectType getType();
+
+    void setRelation(String relation);
+
+    void setTargetOid(String targetOid);
+
+    void setType(RObjectType type);
 }

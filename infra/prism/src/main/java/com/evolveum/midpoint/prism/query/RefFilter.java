@@ -15,16 +15,15 @@
  */
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -74,7 +73,7 @@ public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDe
 		}
 
 		assert !filterItemIsEmpty;	// if both are empty, the previous statement causes 'return true'
-		assert !objectItemIsEmpty;	// if only one of them is empty, the super.match() returnsed false
+		assert !objectItemIsEmpty;	// if only one of them is empty, the super.match() returned false
 
 		List<Object> objectValues = objectItem.getValues();
 		for (Object v : objectValues) {
@@ -95,12 +94,36 @@ public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDe
 				throw new IllegalArgumentException("Not supported prism value for ref equals filter. It must be an instance of PrismReferenceValue but it is " + v.getClass());
 			}
 			PrismReferenceValue filterRV = (PrismReferenceValue) filterValue;
-			if (filterRV.getOid().equals(v.getOid())) {
+			if (valuesMatch(v, filterRV)) {
 				return true;
 			}
-			// TODO compare relation and target type as well (see repo implementation in ReferenceRestriction)
 		}
 		return false;
+	}
+
+	private boolean valuesMatch(PrismReferenceValue value, PrismReferenceValue filterValue) {
+		if (!value.getOid().equals(filterValue.getOid())) {
+			return false;
+		}
+		if (!QNameUtil.match(PrismConstants.Q_ANY, filterValue.getRelation())) {
+			// similar to relation-matching code in PrismReferenceValue (but awkward to unify, so keeping separate)
+			PrismContext prismContext = getPrismContext();
+			QName thisRelation = value.getRelation();
+			QName filterRelation = filterValue.getRelation();
+			if (prismContext != null) {
+				if (thisRelation == null) {
+					thisRelation = prismContext.getDefaultRelation();
+				}
+				if (filterRelation == null) {
+					filterRelation = prismContext.getDefaultRelation();
+				}
+			}
+			if (!QNameUtil.match(thisRelation, filterRelation)) {
+				return false;
+			}
+		}
+		// TODO treat also targetType (see ReferenceRestriction in repo)
+		return true;
 	}
 
 	@Override

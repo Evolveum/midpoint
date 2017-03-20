@@ -1058,7 +1058,7 @@ public class AssignmentProcessor {
 			boolean found = false;
 			for (PrismReferenceValue exVal: extractedReferences) {
 				if (exVal.getOid().equals(reference.getOid())
-						&& QNameUtil.match(exVal.getRelation(), reference.getRelation())) {
+						&& ObjectTypeUtil.relationsEquivalent(exVal.getRelation(), reference.getRelation())) {
 					found = true;
 					break;
 				}

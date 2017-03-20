@@ -153,6 +153,16 @@ public class RootHibernateQuery extends HibernateQuery {
         return createEq(propertyPath, value, false);
     }
 
+    public Condition createEqOrIn(String propertyPath, Collection<?> values) {
+        if (values.isEmpty()) {
+        	return createIsNull(propertyPath);
+		} else if (values.size() == 1) {
+			return createEq(propertyPath, values.iterator().next(), false);
+		} else {
+        	return createIn(propertyPath, values);
+		}
+    }
+
     public Condition createSimpleComparisonCondition(String propertyPath, Object value, String comparatorSymbol) {
         return new SimpleComparisonCondition(this, propertyPath, value, comparatorSymbol, false);
     }
