@@ -642,7 +642,9 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 super.onSelectPerformed(target, targetUser);
                 if (targetUserSelection) {
                     pageBase.getSessionStorage().getRoleCatalog().setTargetUser(targetUser.asPrismContainer());
-                    target.add(getTargetUserContainer());
+                    AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
+                    target.add(getHeaderPanel());
+                    target.add(getCatalogItemsPanelContainer());
                 } else {
                     pageBase.getSessionStorage().getRoleCatalog().setAssignmentsUserOwner(targetUser.asPrismContainer());
                     AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
