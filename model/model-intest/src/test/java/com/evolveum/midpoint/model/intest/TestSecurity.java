@@ -54,10 +54,12 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -84,8 +86,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -2102,6 +2107,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertRoleTypes(spec, "application", "nonexistent");
         assertFilter(spec.getFilter(), TypeFilter.class);
         
+        assertAllowRequestItems(USER_JACK_OID, ROLE_APPLICATION_1_OID, null, 
+        		AssignmentType.F_TARGET_REF, ActivationType.F_VALID_FROM, ActivationType.F_VALID_TO);
+        
         assertGlobalStateUntouched();
 	}
 
@@ -2154,6 +2162,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
         assertRoleTypes(spec);
         assertFilter(spec.getFilter(), TypeFilter.class);
+        
+        assertAllowRequestItems(USER_JACK_OID, ROLE_APPLICATION_1_OID, AuthorizationDecisionType.ALLOW);
         
         assertGlobalStateUntouched();
 	}

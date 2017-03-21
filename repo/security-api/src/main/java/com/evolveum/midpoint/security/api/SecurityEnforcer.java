@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -94,5 +95,10 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	<T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException ;
 	
 	<T> T runPrivileged(Producer<T> producer);
+
+	/**
+	 * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
+	 */
+	<O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems( MidPointPrincipal midPointPrincipal, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver) throws SchemaException;
 
 }

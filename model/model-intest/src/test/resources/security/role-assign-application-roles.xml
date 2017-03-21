@@ -23,7 +23,6 @@
     </authorization>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
     	<phase>request</phase>
     	<target>
     		<type>RoleType</type>
@@ -44,6 +43,24 @@
 	    				     But it does not change the result and it replicates MID-2549 -->
 	    				<q:path>roleType</q:path>
 	    				<q:value>nonexistent</q:value>
+	    			</q:equal>
+    			</q:or>
+    		</filter>
+    	</target>
+    	<item>assignment/targetRef</item>
+    	<item>assignment/activation/validFrom</item>
+    	<item>assignment/activation/validTo</item>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+    	<phase>request</phase>
+    	<target>
+    		<type>RoleType</type>
+    		<filter>
+    			<q:or>
+	    			<q:equal>
+	    				<q:path>roleType</q:path>
+	    				<q:value>application</q:value>
 	    			</q:equal>
     			</q:or>
     		</filter>

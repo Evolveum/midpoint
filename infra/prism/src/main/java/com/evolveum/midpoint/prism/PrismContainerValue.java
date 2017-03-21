@@ -631,6 +631,29 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         return findItem(itemDefinition.getName(), type);
     }
 
+    public boolean containsItem(ItemPath propPath, boolean acceptEmptyItem) throws SchemaException {
+    	ItemPathSegment first = propPath.first();
+    	if (!(first instanceof NameItemPathSegment)) {
+    		throw new IllegalArgumentException("Attempt to lookup item using a non-name path "+propPath+" in "+this);
+    	}
+    	QName subName = ((NameItemPathSegment)first).getName();
+    	ItemPath rest = propPath.rest();
+        Item item = findItemByQName(subName);
+        if (item != null) {
+            if (rest.isEmpty()) {
+                return (acceptEmptyItem || !item.isEmpty());
+            } else {
+                // Go deeper
+                if (item instanceof PrismContainer) {
+                    return ((PrismContainer<?>)item).containsItem(rest, acceptEmptyItem);
+                } else {
+                	return (acceptEmptyItem || !item.isEmpty());
+                }
+            }
+        }
+
+        return false;
+    }
 
     // Expects that "self" path is NOT present in propPath
     @SuppressWarnings("unchecked")
