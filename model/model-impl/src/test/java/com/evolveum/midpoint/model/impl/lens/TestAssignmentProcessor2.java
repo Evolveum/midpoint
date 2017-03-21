@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -930,21 +931,22 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	/**
 	 * Testing assignment path variables
 	 *
-	 *           MetaroleCrewMember (C1,2) ----I----> MetarolePerson (C4) --I--+
+	 *           MetaroleCrewMember (C3) -----I-----> MetarolePerson (C4) --I--+
 	 *             ^            ^                       ^     ^                |
 	 *             |            |                       |     |                |
 	 *             |            |                       |     |                V
-	 *          Pirate --I--> Sailor                   Man  Woman           Human (C3)
+	 *     (C1) Pirate --I--> Sailor (C2)              Man  Woman           Human (C5)
 	 *             ^                                    |
 	 *             | +----------------------------------+
 	 *             | |             (added later)
 	 *            jack
 	 *
-	 * Assume two constructions:
-	 *  - C1 giving each crew member role (i.e. Pirate, Sailor): group on resource 1
-	 *  - C2 giving each crew member (i.e. jack): membership in that group
-	 *  - C3 giving each ultimate bearer (i.e. jack): account on resource 2
-	 *  - C4 giving each person (i.e. jack): account on resource 3
+	 * Assume these constructions:
+	 *  - C1 giving each Pirate some account (attached via inducement)
+	 *  - C2 giving each Sailor some account (attached via inducement)
+	 *  - C3 giving each crew member some account (attached via inducement of order 2)
+	 *  - C4 giving each person some account (attached via inducement of order 2)
+	 *  - C5 giving each Human some account (attached via inducement)
 	 */
 
 	@Test(enabled = THIRD_PART)
@@ -957,6 +959,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		createObjectsInThirdPart(false, task, result, () -> {
+
+			createCustomConstruction(rolePirate, "C1", 1);
+			createCustomConstruction(roleSailor, "C2", 1);
+			createCustomConstruction(metaroleCrewMember, "C3", 2);
+			createCustomConstruction(metarolePerson, "C4", 2);
+			createCustomConstruction(roleHuman, "C5", 1);
+
 			addConditionToRoles("Pirate! Sailor! MetaroleCrewMember! MetarolePerson! Man! Human!");
 			addConditionToAssignments("Pirate-MetaroleCrewMember! Sailor-MetaroleCrewMember! MetaroleCrewMember-MetarolePerson! Man-MetarolePerson! MetarolePerson-Human!");
 		});
@@ -984,7 +993,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertDelegation(evaluatedAssignment, "");
 
 		String expectedItems = "Pirate-1 Sailor-1 MetaroleCrewMember-2 MetaroleCrewMember-2 MetarolePerson-2 MetarolePerson-2 Human-1 Human-1";
-		assertConstructions(evaluatedAssignment, expectedItems + " C2 C2 C3 C3 C4 C4", null, null, null, null, null);
+		assertConstructions(evaluatedAssignment, expectedItems + " C1 C2 C3 C3 C4 C4 C5 C5", null, null, null, null, null);
 		assertFocusMappings(evaluatedAssignment, expectedItems);
 		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
@@ -994,65 +1003,61 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertAuthorizations(evaluatedAssignment, "Pirate Sailor Human");
 		assertGuiConfig(evaluatedAssignment, "Pirate Sailor Human");
 
-		List<Construction<UserType>> c2ab = getConstructions(evaluatedAssignment, "C2");
-		assertEquals("Wrong c2ab size", 2, c2ab.size());
-		Construction<UserType> c2a = c2ab.get(0);
-		Construction<UserType> c2b = c2ab.get(1);
+		showEvaluations(evaluatedAssignment, "C1", 1, task, result);
+		showEvaluations(evaluatedAssignment, "C2", 1, task, result);
+		showEvaluations(evaluatedAssignment, "C3", 2, task, result);
+		showEvaluations(evaluatedAssignment, "C4", 2, task, result);
+		showEvaluations(evaluatedAssignment, "C5", 2, task, result);
 
-		List<Construction<UserType>> c3ab = getConstructions(evaluatedAssignment, "C3");
-		assertEquals("Wrong c3ab size", 2, c3ab.size());
-		Construction<UserType> c3a = c3ab.get(0);
-		Construction<UserType> c3b = c3ab.get(1);
+	}
 
-		List<Construction<UserType>> c4ab = getConstructions(evaluatedAssignment, "C4");
-		assertEquals("Wrong c4ab size", 2, c4ab.size());
-		Construction<UserType> c4a = c4ab.get(0);
-		Construction<UserType> c4b = c4ab.get(1);
-
-		System.out.println("Evaluating C2a");
-		c2a.evaluate(task, result);
-		System.out.println("Done");
-
-		System.out.println("Evaluating C2b");
-		c2b.evaluate(task, result);
-		System.out.println("Done");
-
-		System.out.println("Evaluating C3a");
-		c3a.evaluate(task, result);
-		System.out.println("Done");
-
-		System.out.println("Evaluating C3b");
-		c3b.evaluate(task, result);
-		System.out.println("Done");
-
-		System.out.println("Evaluating C4a");
-		c4a.evaluate(task, result);
-		System.out.println("Done");
-
-		System.out.println("Evaluating C4b");
-		c4b.evaluate(task, result);
-		System.out.println("Done");
-
+	private void showEvaluations(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String name, int expectedConstructions, Task task, OperationResult result)
+			throws Exception {
+		List<Construction<UserType>> constructions = getConstructions(evaluatedAssignment, name);
+		assertEquals("Wrong # of constructions: " + name, expectedConstructions, constructions.size());
+		for (int i = 0; i < constructions.size(); i++) {
+			Construction<UserType> construction = constructions.get(i);
+			System.out.println("Evaluating " + name + " #" + (i+1));
+			construction.evaluate(task, result);
+			System.out.println("Done");
+		}
 	}
 
 	// called from the script
 	public static void startCallback(String desc) {
-		System.out.println("Starting execution: " + desc);
+		if (isNew()) {
+			System.out.println("Starting execution: " + desc);
+		}
 	}
+
+	private static boolean isNew() {
+		return ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew();
+	}
+
 	public static void variableCallback(Object name, Object value, String desc) {
-		System.out.println(desc + ": name = " + name + ", value = " + value);
+		if (isNew()) {
+			System.out.println(desc + ": name = " + name + ", value = " + value);
+		}
 	}
 	public static void finishCallback(String desc) {
-		System.out.println("Finishing execution: " + desc);
+		if (isNew()) {
+			System.out.println("Finishing execution: " + desc);
+		}
 	}
 	public static void startConditionCallback(String name) {
-		System.out.println("Starting execution: " + name);
+		if (isNew()) {
+			System.out.println("Starting execution: " + name);
+		}
 	}
 	public static void conditionVariableCallback(Object name, Object value, String desc) {
-		System.out.println(desc + ": name = " + name + ", value = " + value);
+		if (isNew()) {
+			System.out.println(desc + ": name = " + name + ", value = " + value);
+		}
 	}
 	public static void finishConditionCallback(String name) {
-		System.out.println("Finishing execution: " + name);
+		if (isNew()) {
+			System.out.println("Finishing execution: " + name);
+		}
 	}
 
 	//region ============================================================= helper methods (preparing scenarios)
@@ -1119,11 +1124,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		roleMan = createRole("Man");
 		roleWoman = createRole("Woman");
 		roleHuman = createRole("Human");
-
-		createCustomConstruction(metaroleCrewMember, "C1", 1);
-		createCustomConstruction(metaroleCrewMember, "C2", 2);
-		createCustomConstruction(roleHuman, "C3", 1);
-		createCustomConstruction(metarolePerson, "C4", 2);
 
 		assign(rolePirate, metaroleCrewMember);
 		assign(roleSailor, metaroleCrewMember);
