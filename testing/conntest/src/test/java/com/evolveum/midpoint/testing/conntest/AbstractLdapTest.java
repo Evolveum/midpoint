@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -536,6 +536,13 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		Entry entry = getLdapGroupByName(cn);
 		assertAttribute(entry, "cn", cn);
 		return entry;
+	}
+	
+	protected void assertNoLdapGroup(String cn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect();
+		List<Entry> entries = ldapSearch(connection, "(&(cn="+cn+")(objectClass="+getLdapGroupObjectClass()+"))");
+		ldapDisconnect(connection);
+		assertEquals("Unexpected LDAP group "+cn+": "+entries, 0, entries.size());
 	}
 	
 	protected void assertAttribute(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException {

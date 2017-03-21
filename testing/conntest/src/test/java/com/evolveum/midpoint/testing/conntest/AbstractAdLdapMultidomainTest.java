@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
+import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -74,6 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -97,6 +99,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	protected static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
 	protected static final String ROLE_META_ORG_OID = "f2ad0ace-45d7-11e5-af54-001e8c717e5b";
 	
+	protected static final File ROLE_META_ORG_GROUP_FILE = new File(TEST_DIR, "role-meta-org-group.xml");
+	protected static final String ROLE_META_ORG_GROUP_OID = "c5d3294a-0d8e-11e7-bd9d-ff848c2e7e3f";
+	
 	public static final String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
 	public static final String ATTRIBUTE_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
 	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
@@ -111,6 +116,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
+	private static final String GROUP_MELEE_ISLAND_ALT_NAME = "Alternative Mêlée Island";
+	private static final String GROUP_MELEE_ISLAND_PIRATES_NAME = "Mêlée Island Pirates";
+	private static final String GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION = "swashbuckle and loot";
 	
 	protected static final int NUMBER_OF_ACCOUNTS = 7;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
@@ -137,6 +145,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	private static final String USER_SUBMARINE_GIVEN_NAME = "Sub";
 	private static final String USER_SUBMARINE_FAMILY_NAME = "Marine";
 	private static final String USER_SUBMARINE_FULL_NAME = "Sub Marine";
+
+	private static final String INTENT_GROUP = "group";
+	private static final String INTENT_OU_TOP = "ou-top";
 	
 	private boolean allowDuplicateSearchResults = false;
 	
@@ -145,7 +156,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	protected long jackLockoutTimestamp;
 	protected String accountBarbossaOid;
 	protected String orgMeleeIslandOid;
-	protected String groupMeleeOid;
+	protected String groupMeleeIslandOid;
+	protected String ouMeleeIslandOid;
+	protected String roleMeleeIslandPiratesOid;
+	protected String groupMeleeIslandPiratesOid;
 
 	private String accountSubmanOid;
 
@@ -248,6 +262,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		return false;
 	}
 	
+	protected String getOrgsLdapSuffix() {
+		return "OU=Org,"+getLdapSuffix();
+	}
+	
 	private UserLdapConnectionConfig getSubLdapConnectionConfig() {
 		UserLdapConnectionConfig config = new UserLdapConnectionConfig();
 		config.setLdapHost("hydra.ad.evolveum.com");
@@ -275,6 +293,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		repoAddObjectFromFile(ROLE_PIRATES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SUBMISSIVE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_META_ORG_FILE, initResult);
+		repoAddObjectFromFile(ROLE_META_ORG_GROUP_FILE, initResult);
 		
 	}
 	
@@ -291,6 +310,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME));
 		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME));
 		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
+		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_ALT_NAME));
+		cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME));
+		cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME));
+		cleanupDelete(toOrgDn(GROUP_MELEE_ISLAND_NAME));
+		cleanupDelete(toOrgDn(GROUP_MELEE_ISLAND_ALT_NAME));
 	}
 
 	@Test
@@ -1272,10 +1296,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
+        PrismObject<OrgType> org = instantiateObject(OrgType.class);
         OrgType orgType = org.asObjectable();
         orgType.setName(new PolyStringType(GROUP_MELEE_ISLAND_NAME));
         AssignmentType metaroleAssignment = new AssignmentType();
@@ -1295,12 +1319,19 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         orgMeleeIslandOid = org.getOid();
-        Entry entry = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        Entry entryGroup = assertLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        Entry entryOu = assertLdapOrg(GROUP_MELEE_ISLAND_NAME);
         
         org = getObject(OrgType.class, orgMeleeIslandOid);
-        groupMeleeOid = getSingleLinkOid(org);
-        PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOid);
-        display("Shadow (model)", shadow);
+        groupMeleeIslandOid = getLinkRefOid(org, getResourceOid(), ShadowKindType.ENTITLEMENT, INTENT_GROUP);
+        ouMeleeIslandOid = getLinkRefOid(org, getResourceOid(), ShadowKindType.GENERIC, INTENT_OU_TOP);
+        assertLinks(org, 2);
+        
+        PrismObject<ShadowType> shadowGroup = getShadowModel(groupMeleeIslandOid);
+        display("Shadow: group (model)", shadowGroup);
+        
+        PrismObject<ShadowType> shadowOu = getShadowModel(ouMeleeIslandOid);
+        display("Shadow: ou (model)", shadowOu);
         
 //        assertLdapConnectorInstances(2);
 	}
@@ -1311,7 +1342,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         TestUtil.displayTestTile(this, TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -1332,7 +1363,240 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         assertLdapGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeIslandOid);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Create role under the Melee Island org. This creates group in the orgstruct.
+	 */
+	@Test
+    public void test515AddOrgGroupMeleeIslandPirates() throws Exception {
+		final String TEST_NAME = "test515AddOrgGroupMeleeIslandPirates";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<RoleType> role = instantiateObject(RoleType.class);
+        RoleType roleType = role.asObjectable();
+        roleType.setName(new PolyStringType(GROUP_MELEE_ISLAND_PIRATES_NAME));
+        
+        AssignmentType metaroleAssignment = new AssignmentType();
+        ObjectReferenceType metaroleRef = new ObjectReferenceType();
+        metaroleRef.setOid(ROLE_META_ORG_GROUP_OID);
+        metaroleRef.setType(RoleType.COMPLEX_TYPE);
+		metaroleAssignment.setTargetRef(metaroleRef);
+		roleType.getAssignment().add(metaroleAssignment);
+		
+		AssignmentType orgAssignment = new AssignmentType();
+        ObjectReferenceType orgRef = new ObjectReferenceType();
+        orgRef.setOid(orgMeleeIslandOid);
+        orgRef.setType(OrgType.COMPLEX_TYPE);
+		orgAssignment.setTargetRef(orgRef);
+		roleType.getAssignment().add(orgAssignment);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(role, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        roleMeleeIslandPiratesOid = role.getOid();
+        // TODO: assert LDAP object
+        
+        Entry entryOrgGroup = assertLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
+        
+        PrismObject<RoleType> roleAfter = getObject(RoleType.class, roleMeleeIslandPiratesOid);
+        display("Role after", roleAfter);
+        groupMeleeIslandPiratesOid = getSingleLinkOid(roleAfter);
+        PrismObject<ShadowType> shadow = getShadowModel(groupMeleeIslandPiratesOid);
+        display("Shadow (model)", shadow);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Rename org unit. MidPoint should rename OU and ordinary group.
+	 * AD will rename the group in the orgstruct automatically. We need to
+	 * make sure that we can still access that group.
+	 */
+	@Test
+    public void test520RenameMeleeIsland() throws Exception {
+		final String TEST_NAME = "test520RenameMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        renameObject(OrgType.class, orgMeleeIslandOid, GROUP_MELEE_ISLAND_ALT_NAME, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<OrgType> orgAfter = getObject(OrgType.class, orgMeleeIslandOid);
+        groupMeleeIslandOid = getLinkRefOid(orgAfter, getResourceOid(), ShadowKindType.ENTITLEMENT, INTENT_GROUP);
+        ouMeleeIslandOid = getLinkRefOid(orgAfter, getResourceOid(), ShadowKindType.GENERIC, INTENT_OU_TOP);
+        assertLinks(orgAfter, 2);
+        
+        PrismObject<ShadowType> shadowGroup = getShadowModel(groupMeleeIslandOid);
+        display("Shadow: group (model)", shadowGroup);
+        
+        PrismObject<ShadowType> shadowOu = getShadowModel(ouMeleeIslandOid);
+        display("Shadow: ou (model)", shadowOu);
+        
+        Entry groupEntry = assertLdapGroup(GROUP_MELEE_ISLAND_ALT_NAME);
+        assertNoLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        
+        Entry entryOu = assertLdapOrg(GROUP_MELEE_ISLAND_ALT_NAME);
+        assertNoLdapOrg(GROUP_MELEE_ISLAND_NAME);
+        
+        Entry entryOrgGroup = assertLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME);
+        assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
+
+        Entry entryGuybrush = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        String shadowAccountOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadowAccount = getShadowModel(shadowAccountOid);
+        display("Shadow: account (model)", shadowAccount);
+        
+        assertLdapGroupMember(entryGuybrush, GROUP_MELEE_ISLAND_ALT_NAME);
+
+        IntegrationTestTools.assertAssociation(shadowAccount, getAssociationGroupQName(), groupMeleeIslandOid);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * AD renamed the pirate groups by itself. MidPoint does not know about it.
+	 * The GUID that is stored in the shadow is still OK. But the DN is now out
+	 * of date. Try to update the group. Make sure it works.
+	 * It is expected that the GUI will be used as a primary identifier.
+	 * Note: just reading the group will NOT work. MidPoint is too smart
+	 * for that. It will transparently fix the situation. 
+	 */
+	@Test
+    public void test522ModifyMeleeIslandPirates() throws Exception {
+		final String TEST_NAME = "test522GetMeleeIslandPirates";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplaceProperty(ShadowType.class, groupMeleeIslandPiratesOid, 
+        		new ItemPath(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "description")),
+        		task, result,
+        		GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        Entry entryOrgGroup = assertLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME);
+        assertAttribute(entryOrgGroup, "description", GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
+        
+        assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
+        
+//        assertLdapConnectorInstances(2);
+	}
+
+	@Test
+    public void test524GetMeleeIslandPirates() throws Exception {
+		final String TEST_NAME = "test524GetMeleeIslandPirates";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupMeleeIslandPiratesOid, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        display("Shadow after", shadow);
+        assertNotNull(shadow);
+        
+        Entry groupEntry = assertLdapGroup(GROUP_MELEE_ISLAND_ALT_NAME);
+        assertNoLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        Entry entryOu = assertLdapOrg(GROUP_MELEE_ISLAND_ALT_NAME);
+        assertNoLdapOrg(GROUP_MELEE_ISLAND_NAME);
+        Entry entryOrgGroup = assertLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME);
+        assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
+        
+//        assertLdapConnectorInstances(2);
+	}
+
+	@Test
+    public void test595DeleteOrgGroupMeleeIslandPirates() throws Exception {
+		final String TEST_NAME = "test595DeleteOrgGroupMeleeIslandPirates";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteObject(RoleType.class, roleMeleeIslandPiratesOid, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME);
+        assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
+        
+        assertNoObject(ShadowType.class, groupMeleeIslandPiratesOid);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	@Test
+    public void test599DeleteOrgMeleeIsland() throws Exception {
+		final String TEST_NAME = "test599DeleteOrgMeleeIsland";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        deleteObject(OrgType.class, orgMeleeIslandOid, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNoLdapGroup(GROUP_MELEE_ISLAND_NAME);
+        assertNoLdapGroup(GROUP_MELEE_ISLAND_ALT_NAME);
+        assertNoLdapOrg(GROUP_MELEE_ISLAND_NAME);
+        assertNoLdapOrg(GROUP_MELEE_ISLAND_ALT_NAME);
+        
+        assertNoObject(ShadowType.class, groupMeleeIslandOid);
+        assertNoObject(ShadowType.class, ouMeleeIslandOid);
         
 //        assertLdapConnectorInstances(2);
 	}
@@ -1747,7 +2011,45 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 			throw new IllegalStateException(e.getMessage(),e);
 		}
 	}
+	
+	protected String toOrgDn(String cn) {
+		return "ou="+cn+","+getOrgsLdapSuffix();
+	}
+	
+	protected String toOrgGroupDn(String groupCn, String orgName) {
+		return "cn="+groupCn+","+toOrgDn(orgName);
+	}
 
+	protected Entry assertLdapOrg(String orgName) throws LdapException, IOException, CursorException {
+		String dn = toOrgDn(orgName);
+		Entry entry = getLdapEntry(dn);
+		assertNotNull("No entry "+dn, entry);
+		assertAttribute(entry, "ou", orgName);
+		return entry;
+	}
+	
+	protected Entry assertNoLdapOrg(String orgName) throws LdapException, IOException, CursorException {
+		String dn = toOrgDn(orgName);
+		Entry entry = getLdapEntry(dn);
+		assertNull("Unexpected org entry "+entry, entry);
+		return entry;
+	}
+	
+	protected Entry assertLdapOrgGroup(String groupCn, String orgName) throws LdapException, IOException, CursorException {
+		String dn = toOrgGroupDn(groupCn, orgName);
+		Entry entry = getLdapEntry(dn);
+		assertNotNull("No entry "+dn, entry);
+		assertAttribute(entry, "cn", groupCn);
+		return entry;
+	}
+	
+	protected Entry assertNoLdapOrgGroup(String groupCn, String orgName) throws LdapException, IOException, CursorException {
+		String dn = toOrgGroupDn(groupCn, orgName);
+		Entry entry = getLdapEntry(dn);
+		assertNull("Unexpected org group entry "+entry, entry);
+		return entry;
+	}
+	
 	protected void assertLdapPassword(String uid, String fullName, String password) throws LdapException, IOException, CursorException {
 		assertLdapPassword(null, uid, fullName, password);
 	}
