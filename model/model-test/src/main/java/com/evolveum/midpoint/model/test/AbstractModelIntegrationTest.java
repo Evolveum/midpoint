@@ -74,6 +74,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
@@ -101,6 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -3576,6 +3578,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         	}
         }
 	}
+	
+	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException {
+		PrismObject<UserType> user = getUser(userOid);
+		PrismObject<RoleType> target = getRole(targetRoleOid);
+		
+		ItemSecurityDecisions decisions = modelInteractionService.getAllowedRequestAssignmentItems(user, target);
+		display("Request decisions for "+target, decisions);
+		assertEquals("Wrong assign default decision", expectedDefaultDecision, decisions.getDefaultDecision());
+		assertEquals("Unexpected number of allowed items", expectedAllowedItemQNames.length, decisions.getItemDecisionMap().size());
+		
+		decisions.getItemDecisionMap().forEach(
+				(path,decision) -> {
+					assertEquals("wrong item "+path+" decision", AuthorizationDecisionType.ALLOW, decision);
+					QName lastPathName = path.lastNamed().getName();
+					if (!Arrays.stream(expectedAllowedItemQNames).anyMatch(qname -> QNameUtil.match(qname, lastPathName) )) {
+						AssertJUnit.fail("Unexpected path "+path);
+					}
+				}
+		);
+	}
+
 	
 	protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertEncryptedUserPassword");

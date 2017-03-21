@@ -43,13 +43,17 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -70,6 +74,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -298,12 +303,31 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return allow;
 	}
 	
-	private <O extends ObjectType> boolean processAuthorizationObject(PrismObject<O> object, final Collection<ItemPath> allowedItems) {
+	private <O extends ObjectType> boolean processAuthorizationObject(PrismContainer<O> object, final Collection<ItemPath> allowedItems) {
 		final MutableBoolean itemDecision = new MutableBoolean(true);
-		Visitor visitor = new Visitor() {
+		object.accept(createItemVisitor(allowedItems, itemDecision));
+		return itemDecision.booleanValue();
+	}
+	
+	private <C extends Containerable> boolean processAuthorizationContainerDelta(ContainerDelta<C> cval, final Collection<ItemPath> allowedItems) {
+		final MutableBoolean itemDecision = new MutableBoolean(true);
+		cval.accept(createItemVisitor(allowedItems, itemDecision));
+		return itemDecision.booleanValue();
+	}
+	
+	private Visitor createItemVisitor(final Collection<ItemPath> allowedItems, final MutableBoolean itemDecision) {
+		return new Visitor() {
 			@Override
 			public void visit(Visitable visitable) {
 				if (visitable instanceof Item) {
+					
+					// TODO: problem with empty containers such as
+					// orderConstraint in assignment. Skip all 
+					// empty items ... for now.
+					if (((Item)visitable).isEmpty()) {
+						return;
+					}
+					
 					ItemPath itemPath = ((Item)visitable).getPath();
 					if (itemPath != null && !itemPath.isEmpty()) {
 						if (!isInList(itemPath, allowedItems)) {
@@ -314,8 +338,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				}
 			}
 		};
-		object.accept(visitor);
-		return itemDecision.booleanValue();
 	}
 	
 	private <O extends ObjectType> boolean processAuthorizationDelta(ObjectDelta<O> delta, final Collection<ItemPath> allowedItems) {
@@ -324,9 +346,17 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		} else {
 			for (ItemDelta<?,?> itemDelta: delta.getModifications()) {
 				ItemPath itemPath = itemDelta.getPath();
-				if (!isInList(itemPath, allowedItems)) {
-					LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
-					return false;
+				if (itemDelta instanceof ContainerDelta<?>) {
+					if (!isInList(itemPath, allowedItems)) {
+						if (!processAuthorizationContainerDelta((ContainerDelta<?>)itemDelta, allowedItems)) {
+							return false;
+						}
+					}
+				} else {
+					if (!isInList(itemPath, allowedItems)) {
+						LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
+						return false;
+					}
 				}
 			}
 			return true;
@@ -513,7 +543,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 	
 	private <O extends ObjectType, T extends ObjectType> boolean isApplicableItem(Authorization autz,
-			PrismObject<O> object, ObjectDelta<O> delta) {
+			PrismObject<O> object, ObjectDelta<O> delta) throws SchemaException {
 		List<ItemPathType> itemPaths = autz.getItem();
 		if (itemPaths == null || itemPaths.isEmpty()) {
 			// No item constraints. Applicable for all items.
@@ -524,8 +554,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			ItemPath itemPath = itemPathType.getItemPath();
 			if (delta == null) {
 				if (object != null) {
-					Item<?,?> item = object.findItem(itemPath);
-					if (item != null && !item.isEmpty()) {
+					if (object.containsItem(itemPath, false)) {
 						LOGGER.trace("  applicable object item "+itemPath);
 						return true;
 					}
@@ -690,51 +719,46 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectSecurityConstraintsImpl objectSecurityConstraints = new ObjectSecurityConstraintsImpl();
 		Collection<Authorization> authorities = getAuthorities(principal);
 		if (authorities != null) {
-			for (GrantedAuthority authority: authorities) {
-				if (authority instanceof Authorization) {
-					Authorization autz = (Authorization)authority;
-					String autzHumanReadableDesc = autz.getHumanReadableDesc();
-					LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
-					
-					// skip action applicability evaluation. We are interested in all actions
-					
-					// object
-					if (isApplicable(autz.getObject(), object, principal, ownerResolver, "object", autzHumanReadableDesc)) {
-						LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
-					} else {
-						LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)", 
-								autzHumanReadableDesc, object);
-						continue;
-					}
-					
-					// skip target applicability evaluation. We do not have a target here
-					
-					List<String> actions = autz.getAction();
-					AuthorizationPhaseType phase = autz.getPhase();
-					AuthorizationDecisionType decision = autz.getDecision();
-					if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
-						Collection<ItemPath> items = getItems(autz);
-						if (items == null || items.isEmpty()) {
-							applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, phase, AuthorizationDecisionType.ALLOW);
-						} else {
-							for (ItemPath item: items) {
-								applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, phase, AuthorizationDecisionType.ALLOW);
-							}
-						}
-					} else {
-						Collection<ItemPath> items = getItems(autz);
-						if (items == null || items.isEmpty()) {
-							applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, phase, AuthorizationDecisionType.DENY);
-						} else {
-							for (ItemPath item: items) {
-								applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, phase, AuthorizationDecisionType.DENY);
-							}
-						}
-					}
-					
+			for (Authorization autz: authorities) {
+				String autzHumanReadableDesc = autz.getHumanReadableDesc();
+				LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
+				
+				// skip action applicability evaluation. We are interested in all actions
+				
+				// object
+				if (isApplicable(autz.getObject(), object, principal, ownerResolver, "object", autzHumanReadableDesc)) {
+					LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
 				} else {
-					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), getUsername(principal));
+					LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)", 
+							autzHumanReadableDesc, object);
+					continue;
 				}
+				
+				// skip target applicability evaluation. We do not have a target here
+				
+				List<String> actions = autz.getAction();
+				AuthorizationPhaseType phase = autz.getPhase();
+				AuthorizationDecisionType decision = autz.getDecision();
+				if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
+					Collection<ItemPath> items = getItems(autz);
+					if (items == null || items.isEmpty()) {
+						applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, phase, AuthorizationDecisionType.ALLOW);
+					} else {
+						for (ItemPath item: items) {
+							applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, phase, AuthorizationDecisionType.ALLOW);
+						}
+					}
+				} else {
+					Collection<ItemPath> items = getItems(autz);
+					if (items == null || items.isEmpty()) {
+						applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, phase, AuthorizationDecisionType.DENY);
+					} else {
+						for (ItemPath item: items) {
+							applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, phase, AuthorizationDecisionType.DENY);
+						}
+					}
+				}
+					
 			}
 		}
 		
@@ -1090,6 +1114,85 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private Object getUsername(MidPointPrincipal principal) {
 		return principal==null?null:principal.getUsername();
+	}
+
+	@Override
+	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems( MidPointPrincipal midPointPrincipal, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver) throws SchemaException {
+		
+		ItemSecurityDecisions decisions = new ItemSecurityDecisions();
+		
+		for(Authorization autz: getAuthorities(midPointPrincipal)) {
+			String autzHumanReadableDesc = autz.getHumanReadableDesc();
+			LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
+			
+			// First check if the authorization is applicable.
+			
+			// action
+			if (!autz.getAction().contains(AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+				LOGGER.trace("  {} not applicable for operation {}", autzHumanReadableDesc, AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL);
+				continue;
+			}
+			
+			// phase
+			if (autz.getPhase() != null && autz.getPhase() != AuthorizationPhaseType.REQUEST) {
+				LOGGER.trace("  {} is not applicable for phase {} (breaking evaluation)", autzHumanReadableDesc, AuthorizationPhaseType.REQUEST);
+				continue;
+			}
+						
+			// object
+			if (isApplicable(autz.getObject(), object, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc)) {
+				LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
+			} else {
+				LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)", 
+						autzHumanReadableDesc, object);
+				continue;
+			}
+			
+			// target
+			if (isApplicable(autz.getTarget(), target, midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc)) {
+				LOGGER.trace("  {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, object);
+			} else {
+				LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)", 
+						autzHumanReadableDesc, object);
+				continue;
+			}
+			
+			// authority is applicable to this situation. now we can process the decision.
+			AuthorizationDecisionType decision = autz.getDecision();
+			if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
+				Collection<ItemPath> items = getItems(autz);
+				if (items.isEmpty()) {
+					LOGGER.trace("  {}: ALLOW all items (but continue evaluation)", autzHumanReadableDesc);
+					if (decisions.getDefaultDecision() != AuthorizationDecisionType.DENY) {
+						decisions.setDefaultDecision(AuthorizationDecisionType.ALLOW);
+					}
+				} else {
+					for(ItemPath item: items) {
+						LOGGER.trace("  {}: ALLOW item {} (but continue evaluation)", autzHumanReadableDesc, item);
+						if (decisions.getItemDecisionMap().get(item) != AuthorizationDecisionType.DENY) {
+							decisions.getItemDecisionMap().put(item, AuthorizationDecisionType.ALLOW);
+						}
+					}
+				}
+			} else {
+				Collection<ItemPath> items = getItems(autz);
+				if (items.isEmpty()) {
+					LOGGER.trace("  {}: DENY all items (breaking evaluation)", autzHumanReadableDesc);
+					// Total deny. Reset everything. Return just deny
+					decisions = new ItemSecurityDecisions();
+					decisions.setDefaultDecision(AuthorizationDecisionType.DENY);
+					break;
+				} else {
+					for(ItemPath item: items) {
+						LOGGER.trace("  {}: DENY item {} (but continue evaluation)", autzHumanReadableDesc, item);
+						decisions.getItemDecisionMap().put(item, AuthorizationDecisionType.DENY);
+					}
+				}
+			}
+
+		}
+		
+		return decisions;
 	}
 
 	@Override

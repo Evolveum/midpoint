@@ -456,25 +456,26 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		}
     }
     
+    public boolean containsItem(ItemPath itemPath, boolean acceptEmptyItem) throws SchemaException {
+    	if (itemPath == null || itemPath.isEmpty()) {
+    		throw new IllegalArgumentException("Empty path specified");
+    	}
+
+    	ItemPath rest = ItemPath.pathRestStartingWithName(itemPath);
+    	for (PrismContainerValue<C> value: getValues()) {
+    		if (value.containsItem(rest, acceptEmptyItem)) {
+    			return true;
+    		}
+    	}
+    	
+    	return false;
+    }
+    
     <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(ItemPath itemPath, Class<I> type, ID itemDefinition, boolean create) throws SchemaException {
     	if (itemPath == null || itemPath.isEmpty()) {
     		throw new IllegalArgumentException("Empty path specified");
     	}
-    	
-    	if (itemPath.isEmpty()) {
-    		// This is the end ...
-    		if (type.isAssignableFrom(getClass())) {
-    			return (I) this;
-    		} else {
-    			if (create) {
-    				throw new IllegalStateException("The " + type.getSimpleName() + " " + getElementName() + " cannot be created because "
-    						+ this.getClass().getSimpleName() + " with the same name exists"); 
-    			} else {
-    				return null;
-    			}
-    		}
-    	}
-    	
+    	    	
     	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(itemPath);
     	PrismContainerValue<C> cval = findValue(idSegment);
     	if (cval == null) {
