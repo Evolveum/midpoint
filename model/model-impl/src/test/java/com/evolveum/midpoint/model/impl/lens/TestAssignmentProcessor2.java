@@ -458,6 +458,85 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 	}
 
+	/**
+	 *                MMR1 -----------I------------------------------*
+	 *                 ^                                             |
+	 *                 |                                             I
+	 *                 |                                             V
+	 *                MR1 -----------I-------------*-----> MR3      MR4
+	 *                 ^        MR2 --I---*        |        |        |
+	 *                 |         ^        I        I        I        I
+	 *                 |         |        V        V        V        V
+	 *                 R1 --I--> R2       O3       R4       R5       R6
+	 *                 ^
+	 *                 A
+	 *                 |
+	 *  jack --D--> barbossa
+	 *
+	 *  (D = deputy assignment) (A = approver)
+	 *
+	 */
+	@Test(enabled = FIRST_PART)
+	public void test070JackDeputyOfBarbossaApproverOfR1() throws Exception {
+		final String TEST_NAME = "test070JackDeputyOfBarbossaApproverOfR1";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(USER_GUYBRUSH_OID);
+		unassignAllRoles(USER_BARBOSSA_OID);
+
+		// barbossa has a policy rule barbossa-0 from test050
+		assignRole(USER_BARBOSSA_OID, ROLE_R1_OID, SchemaConstants.ORG_APPROVER, task, result);
+
+		display("barbossa", getUser(USER_BARBOSSA_OID));
+
+		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, UserType.class, USER_BARBOSSA_OID,
+				SchemaConstants.ORG_DEPUTY, null, result);
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "barbossa R1 R2 O3 R4 R5 R6 MR1 MR2 MR3 MR4 MMR1", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "");
+		assertOrgRef(evaluatedAssignment, "");
+		assertDelegation(evaluatedAssignment, "barbossa R1");
+		PrismReferenceValue barbossaRef = evaluatedAssignment.getDelegationRefVals().stream()
+				.filter(v -> USER_BARBOSSA_OID.equals(v.getOid())).findFirst().orElseThrow(
+						() -> new AssertionError("No barbossa ref in delegation ref vals"));
+		assertEquals("Wrong relation for barbossa delegation", SchemaConstants.ORG_DEPUTY, barbossaRef.getRelation());
+		PrismReferenceValue r1Ref = evaluatedAssignment.getDelegationRefVals().stream()
+				.filter(v -> ROLE_R1_OID.equals(v.getOid())).findFirst().orElseThrow(
+						() -> new AssertionError("No R1 ref in delegation ref vals"));
+		assertEquals("Wrong relation for R1 delegation", SchemaConstants.ORG_APPROVER, r1Ref.getRelation());
+
+		// Constructions are named "role-level". We expect e.g. that from R1 we get a construction induced with order=1 (R1-1).
+		assertConstructions(evaluatedAssignment, "Brethren_account_construction Undead_monkey_account_construction", null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, "");
+		assertFocusPolicyRules(evaluatedAssignment, "barbossa-0");
+
+		// Rules for other targets are empty, which is very probably OK. All rules are bound to target "barbossa".
+		// There is no alternative target, as barbossa does not induce anything.
+		assertTargetPolicyRules(evaluatedAssignment, "barbossa-0", "");
+		assertAuthorizations(evaluatedAssignment, "");
+		assertGuiConfig(evaluatedAssignment, "");
+	}
+
 
 	/**
 	 * Now disable some roles. Their administrative status is simply set to DISABLED.
