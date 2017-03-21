@@ -20,6 +20,7 @@ import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -41,6 +42,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -110,21 +112,23 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
             } else {
                 throw new IllegalStateException("Unexpected targetRef type: " + assignment.getTargetRef().getType() + " in " + ObjectTypeUtil.toShortString(assignment));
             }
+            valid = valid && relationMatches(assignment.getTargetRef().getRelation(), scope.getRelation());
         } else if (assignment.getConstruction() != null) {
             assignmentCase.setTargetRef(assignment.getConstruction().getResourceRef());
             valid = isIncludeResources(scope);
         } else {
             valid = false;      // neither role/org/service nor resource assignment; ignored for now
         }
-        if (valid && isEnabledItemsOnly(scope) && !ActivationUtil.isAdministrativeEnabledOrNull(assignment.getActivation())) {
-            valid = false;
-        }
-        if (valid && !itemSelectionExpressionAccepts(assignment, isInducement, object, campaign, task, result)) {
-            valid = false;
-        }
+        valid = valid && (!isEnabledItemsOnly(scope) || ActivationUtil.isAdministrativeEnabledOrNull(assignment.getActivation()));
+        valid = valid && itemSelectionExpressionAccepts(assignment, isInducement, object, campaign, task, result);
         if (valid) {
             caseList.add(assignmentCase);
         }
+    }
+
+    private boolean relationMatches(QName assignmentRelation, List<QName> scopeRelations) {
+        return (!scopeRelations.isEmpty() ? scopeRelations : Collections.singletonList(SchemaConstants.ORG_DEFAULT))
+                .stream().anyMatch(r -> ObjectTypeUtil.relationMatches(r, assignmentRelation));
     }
 
     private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {

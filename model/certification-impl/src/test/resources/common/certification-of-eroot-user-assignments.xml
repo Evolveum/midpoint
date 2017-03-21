@@ -33,6 +33,7 @@
                 </q:orgRef>
             </q:org>
         </searchFilter>
+        <relation>default</relation>        <!-- the default -->
     </scopeDefinition>
     <remediationDefinition>
         <style>automated</style>
