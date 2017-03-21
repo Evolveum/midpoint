@@ -627,7 +627,7 @@ public class ObjectTypeUtil {
 		if (ObjectTypeUtil.isDefaultRelation(relation1)) {
 			return ObjectTypeUtil.isDefaultRelation(relation2);
 		} else {
-			return QNameUtil.match(relation2, relation1);
+			return QNameUtil.match(relation1, relation2);
 		}
 	}
 }

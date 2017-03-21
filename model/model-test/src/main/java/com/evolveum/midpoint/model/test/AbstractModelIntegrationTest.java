@@ -1201,18 +1201,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAssignees(String targetOid, int expectedAssignees) throws SchemaException {
+		assertAssignees(targetOid, SchemaConstants.ORG_DEFAULT, expectedAssignees);
+	}
+
+	protected void assertAssignees(String targetOid, QName relation, int expectedAssignees) throws SchemaException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName()+".assertAssignees");
-		int count = countAssignees(targetOid, result);
+		int count = countAssignees(targetOid, relation, result);
 		if (count != expectedAssignees) {
 			SearchResultList<PrismObject<FocusType>> assignees = listAssignees(targetOid, result);
-			AssertJUnit.fail("Unexpected number of assignees of "+targetOid+", expected "+expectedAssignees+", but was " + count+ ": "+assignees);
+			AssertJUnit.fail("Unexpected number of assignees of "+targetOid+" as '"+relation+"', expected "+expectedAssignees+", but was " + count+ ": "+assignees);
 		}
 		
 	}
 	
 	protected int countAssignees(String targetOid, OperationResult result) throws SchemaException {
+		return countAssignees(targetOid, SchemaConstants.ORG_DEFAULT, result);
+	}
+
+	protected int countAssignees(String targetOid, QName relation, OperationResult result) throws SchemaException {
+		PrismReferenceValue refVal = new PrismReferenceValue();
+		refVal.setOid(targetOid);
+		refVal.setRelation(relation);
 		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(targetOid)
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(refVal)
 				.build();
 		return repositoryService.countObjects(FocusType.class, query, result);
 	}

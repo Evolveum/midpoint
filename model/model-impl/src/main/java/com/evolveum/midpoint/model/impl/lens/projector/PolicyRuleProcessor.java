@@ -308,59 +308,101 @@ public class PolicyRuleProcessor {
 	
 	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context, EvaluatedAssignment<F> assignment, PlusMinusZero plusMinus, OperationResult result) throws PolicyViolationException, SchemaException {
 		PrismObject<?> target = assignment.getTarget();
-		if (target != null) {
-			Objectable targetType = target.asObjectable();
-			if (targetType instanceof AbstractRoleType) {
-				Collection<EvaluatedPolicyRule> policyRules = assignment.getThisTargetPolicyRules();
-				for (EvaluatedPolicyRule policyRule: policyRules) {
-					PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
-					if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
-						String focusOid = null;
-						if (context.getFocusContext() != null) {
-							focusOid = context.getFocusContext().getOid();
-						}
-						int numberOfAssigneesExceptMyself = countAssignees((PrismObject<? extends AbstractRoleType>)target, focusOid, result);
-						if (plusMinus == PlusMinusZero.PLUS) {
-							numberOfAssigneesExceptMyself++;
-						}
-						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMinAssignees()) {
-							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
-							// Complain only if the situation is getting worse
-							if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MIN_ASSIGNEES,
-										constraint, ""+target+" requires at least "+multiplicity+
-										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
-								assignment.triggerConstraint(policyRule, trigger);
-										
-							}
-						}
-						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
-							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
-							// Complain only if the situation is getting worse
-							if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
-								EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MAX_ASSIGNEES,
-										constraint, ""+target+" requires at most "+multiplicity+
-										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
-								assignment.triggerConstraint(policyRule, trigger);
-										
-							}
-						}
-					}
+		if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
+			return;
+		}
+		AbstractRoleType targetRole = (AbstractRoleType) target.asObjectable();
+		QName relation = ObjectTypeUtil.normalizeRelation(assignment.getRelation());
+		Collection<EvaluatedPolicyRule> policyRules = assignment.getThisTargetPolicyRules();
+		for (EvaluatedPolicyRule policyRule: policyRules) {
+			PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
+			if (policyConstraints == null) {
+				continue;
+			}
+			List<MultiplicityPolicyConstraintType> relevantMinAssignees = getForRelation(policyConstraints.getMinAssignees(), relation);
+			List<MultiplicityPolicyConstraintType> relevantMaxAssignees = getForRelation(policyConstraints.getMaxAssignees(), relation);
+			if (relevantMinAssignees.isEmpty() && relevantMaxAssignees.isEmpty()) {
+				continue;
+			}
+			String focusOid = null;
+			if (context.getFocusContext() != null) {
+				focusOid = context.getFocusContext().getOid();
+			}
+			int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
+			for (MultiplicityPolicyConstraintType constraint: relevantMinAssignees) {
+				Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
+				if (requiredMultiplicity <= 0) {
+					continue;			// unbounded or 0
+				}
+				// Complain only if the situation is getting worse
+				if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
+					EvaluatedPolicyRuleTrigger<MultiplicityPolicyConstraintType> trigger =
+							new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MIN_ASSIGNEES,
+									constraint, target+" requires at least " + requiredMultiplicity
+									+ " assignees with the relation of '" + relation.getLocalPart()
+									+ "'. The operation would result in "+currentAssigneesExceptMyself+" assignees.");
+					assignment.triggerConstraint(policyRule, trigger);
+				}
+			}
+			for (MultiplicityPolicyConstraintType constraint: relevantMaxAssignees) {
+				Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
+				if (requiredMultiplicity < 0) {
+					continue;			// unbounded
+				}
+				// Complain only if the situation is getting worse
+				if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PlusMinusZero.PLUS) {
+					EvaluatedPolicyRuleTrigger<MultiplicityPolicyConstraintType> trigger =
+							new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MAX_ASSIGNEES,
+									constraint, target + " requires at most " + requiredMultiplicity +
+									" assignees with the relation of '" + relation.getLocalPart()
+									+ "'. The operation would result in " + (currentAssigneesExceptMyself+1) + " assignees.");
+					assignment.triggerConstraint(policyRule, trigger);
 				}
 			}
 		}
 	}
 
-	private int countAssignees(PrismObject<? extends AbstractRoleType> target, String selfOid, OperationResult result) throws SchemaException {
+	private List<MultiplicityPolicyConstraintType> getForRelation(List<MultiplicityPolicyConstraintType> all, QName relation) {
+		return all.stream()
+				.filter(c -> containsRelation(c, relation))
+				.collect(Collectors.toList());
+	}
+
+	private boolean containsRelation(MultiplicityPolicyConstraintType constraint, QName relation) {
+		return getConstraintRelations(constraint).stream()
+				.anyMatch(constraintRelation -> ObjectTypeUtil.relationMatches(constraintRelation, relation));
+	}
+
+	private List<QName> getConstraintRelations(MultiplicityPolicyConstraintType constraint) {
+		return !constraint.getRelation().isEmpty() ?
+				constraint.getRelation() :
+				Collections.singletonList(SchemaConstants.ORG_DEFAULT);
+	}
+
+	/**
+	 * Returns numbers of assignees with the given relation name.
+	 */
+	private int getNumberOfAssigneesExceptMyself(AbstractRoleType target, String selfOid, QName relation, OperationResult result)
+			throws SchemaException {
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(target.getOid());
 		if (selfOid != null) {
 			q = q.and().not().id(selfOid);
 		}
 		ObjectQuery query = q.build();
-		return repositoryService.countObjects(FocusType.class, query, result);
+		List<PrismObject<FocusType>> assignees = repositoryService.searchObjects(FocusType.class, query, null, result);
+		int count = 0;
+		assignee: for (PrismObject<FocusType> assignee : assignees) {
+			for (AssignmentType assignment : assignee.asObjectable().getAssignment()) {
+				if (assignment.getTargetRef() != null
+						&& ObjectTypeUtil.relationsEquivalent(relation, assignment.getTargetRef().getRelation())) {
+					count++;
+					continue assignee;
+				}
+			}
+		}
+		return count;
 	}
-	
 
 	public <F extends FocusType> boolean processPruning(LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
