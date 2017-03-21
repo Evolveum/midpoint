@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -35,7 +36,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.bag.TreeBag;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -51,6 +54,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayObjectTypeCollection;
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 /**
  * Comprehensive test of assignment evaluator and processor.
@@ -967,13 +971,15 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			createCustomConstruction(roleHuman, "C5", 1);
 
 			addConditionToRoles("Pirate! Sailor! MetaroleCrewMember! MetarolePerson! Man! Human!");
-			addConditionToAssignments("Pirate-MetaroleCrewMember! Sailor-MetaroleCrewMember! MetaroleCrewMember-MetarolePerson! Man-MetarolePerson! MetarolePerson-Human!");
+			addConditionToAssignments("Pirate-Sailor! Pirate-MetaroleCrewMember! Sailor-MetaroleCrewMember! MetaroleCrewMember-MetarolePerson! Man-MetarolePerson! MetarolePerson-Human!");
 		});
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_PIRATE_OID, null, null, result);
 
 		// WHEN
+		recording = true;
 		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		recording = false;
 
 		// THEN
 		display("Output context", context);
@@ -1003,12 +1009,217 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertAuthorizations(evaluatedAssignment, "Pirate Sailor Human");
 		assertGuiConfig(evaluatedAssignment, "Pirate Sailor Human");
 
-		showEvaluations(evaluatedAssignment, "C1", 1, task, result);
-		showEvaluations(evaluatedAssignment, "C2", 1, task, result);
-		showEvaluations(evaluatedAssignment, "C3", 2, task, result);
-		showEvaluations(evaluatedAssignment, "C4", 2, task, result);
-		showEvaluations(evaluatedAssignment, "C5", 2, task, result);
+		dump("Pirate!", 0);
+		dump("Sailor!", 0);
+		dump("MetaroleCrewMember!", 1);
+		dump("MetaroleCrewMember!", 0);
+		dump("MetarolePerson!", 1);
+		dump("MetarolePerson!", 0);
+		dump("Human!", 1);
+		dump("Human!", 0);
 
+		dump("Pirate-Sailor!", 0);
+		dump("Pirate-MetaroleCrewMember!", 0);
+		dump("Sailor-MetaroleCrewMember!", 0);
+		dump("MetaroleCrewMember-MetarolePerson!", 1);
+		dump("MetaroleCrewMember-MetarolePerson!", 0);
+		dump("MetarolePerson-Human!", 1);
+		dump("MetarolePerson-Human!", 0);
+
+		dump("C1", 0);
+		dump("C2", 0);
+		dump("C3", 1);
+		dump("C3", 0);
+		dump("C4", 1);
+		dump("C4", 0);
+		dump("C5", 1);
+		dump("C5", 0);
+
+		runs.values().forEach(r -> r.assertFocus("jack").assertFocusAssignment("->Pirate"));
+
+		getRunInfo("Pirate!", 0)
+				.assertThisAssignment("->Pirate")
+				.assertImmediateAssignment(null)
+				.assertSource("jack")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(1);
+
+		getRunInfo("Sailor!", 0)
+				.assertThisAssignment("->Sailor")
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		// swap indices if internals of evaluator change and "Pirate" branch is executed first
+		getRunInfo("MetaroleCrewMember!", 1)
+				.assertThisAssignment("->MetaroleCrewMember")
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		getRunInfo("MetaroleCrewMember!", 0)
+				.assertThisAssignment("->MetaroleCrewMember")
+				.assertImmediateAssignment("->Sailor")
+				.assertSource("Sailor")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetarolePerson!", 1)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetarolePerson!", 0)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Sailor")
+				.assertAssignmentPath(4);
+
+		getRunInfo("Human!", 1)
+				.assertThisAssignment("->Human")
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(4);
+
+		getRunInfo("Human!", 0)
+				.assertThisAssignment("->Human")
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(5);
+
+		// assignments
+
+		getRunInfo("Pirate-Sailor!", 0)
+				.assertThisAssignment("->Sailor")
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		getRunInfo("Pirate-MetaroleCrewMember!", 0)
+				.assertThisAssignment("->MetaroleCrewMember")
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		getRunInfo("Sailor-MetaroleCrewMember!", 0)
+				.assertThisAssignment("->MetaroleCrewMember")
+				.assertImmediateAssignment("->Sailor")
+				.assertSource("Sailor")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetaroleCrewMember-MetarolePerson!", 1)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetaroleCrewMember-MetarolePerson!", 0)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Sailor")
+				.assertAssignmentPath(4);
+
+		getRunInfo("MetarolePerson-Human!", 1)
+				.assertThisAssignment("->Human")
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(4);
+
+		getRunInfo("MetarolePerson-Human!", 0)
+				.assertThisAssignment("->Human")
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(5);
+
+		getRunInfo("C1", 0)
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertThisObject("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		getRunInfo("C2", 0)
+				.assertImmediateAssignment("->Sailor")
+				.assertSource("Sailor")
+				.assertThisObject("Sailor")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("C3", 1)
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertThisObject("Pirate")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("C3", 0)
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertThisObject("Sailor")
+				.assertImmediateRole("Sailor")
+				.assertAssignmentPath(4);
+
+		getRunInfo("C4", 1)
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertThisObject("MetaroleCrewMember")			// TODO
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(4);
+
+		getRunInfo("C4", 0)
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertThisObject("MetaroleCrewMember")			// TODO
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(5);
+
+		getRunInfo("C5", 1)
+				.assertImmediateAssignment("->Human")
+				.assertSource("Human")
+				.assertThisObject("Human")
+				.assertImmediateRole("MetarolePerson")
+				.assertAssignmentPath(5);
+
+		getRunInfo("C5", 0)
+				.assertImmediateAssignment("->Human")
+				.assertSource("Human")
+				.assertThisObject("Human")
+				.assertImmediateRole("MetarolePerson")
+				.assertAssignmentPath(6);
+	}
+
+	private void dump(String runName, int index) {
+		System.out.println(getRunInfo(runName, index).dump());
+	}
+
+	private RunInfo getRunInfo(String runName, int index) {
+		return getRunInfos(runName).stream().filter(r -> r.index == index)
+					.findFirst()
+					.orElseThrow(() -> new AssertionError("No run " + runName + " with index " + index));
+	}
+
+	private Collection<RunInfo> getRunInfos(String name) {
+		return CollectionUtils.emptyIfNull(runs.get(name));
+	}
+
+	private RunInfo getRunInfo(String name) {
+		Collection<RunInfo> runs = getRunInfos(name);
+		assertEquals("Wrong # of run infos for " + name, 1, runs.size());
+		return runs.iterator().next();
 	}
 
 	private void showEvaluations(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String name, int expectedConstructions, Task task, OperationResult result)
@@ -1023,40 +1234,168 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		}
 	}
 
+
+	private static boolean recording() {
+		return recording && ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew();
+	}
+
+	private static class RunInfo {
+		private String name;
+		private int index;
+		private AssignmentType assignment;
+		private AssignmentType thisAssignment;
+		private AssignmentType immediateAssignment;
+		private AssignmentType focusAssignment;
+		private FocusType source;
+		private FocusType immediateRole;
+		private FocusType thisObject;
+		private FocusType focus;
+		private AssignmentPathImpl assignmentPath;
+		private String dump() {
+			String p = name + "#" + (index+1);
+			StringBuilder sb = new StringBuilder();
+			sb.append("------------------------------------------------------------------------------------\n");
+			sb.append(p).append(" ").append("assignment:          ").append(assignment).append("\n");
+			sb.append(p).append(" ").append("thisAssignment:      ").append(thisAssignment).append("\n");
+			sb.append(p).append(" ").append("immediateAssignment: ").append(immediateAssignment).append("\n");
+			sb.append(p).append(" ").append("focusAssignment:     ").append(focusAssignment).append("\n");
+			sb.append(p).append(" ").append("source:              ").append(source).append("\n");
+			sb.append(p).append(" ").append("immediateRole:       ").append(immediateRole).append("\n");
+			sb.append(p).append(" ").append("thisObject:          ").append(thisObject).append("\n");
+			sb.append(p).append(" ").append("focus:               ").append(focus).append("\n");
+			sb.append(p).append(" ").append("assignmentPath:      ").append(shortString(assignmentPath)).append("\n");
+			return sb.toString();
+		}
+
+		private String shortString(AssignmentPathImpl assignmentPath) {
+			StringBuilder sb = new StringBuilder();
+			boolean first = true;
+			for (AssignmentPathSegmentImpl segment : assignmentPath.getSegments()) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append("; ");
+				}
+				sb.append(segment.getSource().getName());
+				if (segment.getTarget() != null) {
+					sb.append(" -> ").append(segment.getTarget().getName());
+				}
+			}
+			return sb.toString();
+		}
+
+		public RunInfo assertThisAssignment(String name) {
+			return assertAssignment(thisAssignment, name);
+		}
+
+		private RunInfo assertAssignment(AssignmentType assignment, String name) {
+			if (name == null) {
+				assertNull("Assignment is not null", assignment);
+			} else {
+				name = name.substring(2);
+				assertEquals("Wrong target OID in assignment", getRoleOid(name), assignment.getTargetRef().getOid());
+			}
+			return this;
+		}
+
+		public RunInfo assertImmediateAssignment(String name) {
+			return assertAssignment(immediateAssignment, name);
+		}
+
+		public RunInfo assertFocusAssignment(String name) {
+			return assertAssignment(focusAssignment, name);
+		}
+
+		public RunInfo assertSource(String name) {
+			return assertObject(source, name);
+		}
+
+		public RunInfo assertThisObject(String name) {
+			return assertObject(thisObject, name);
+		}
+
+		public RunInfo assertFocus(String name) {
+			return assertObject(focus, name);
+		}
+
+		public RunInfo assertImmediateRole(String name) {
+			return assertObject(immediateRole, name);
+		}
+
+		public RunInfo assertObject(ObjectType object, String name) {
+			if (name == null) {
+				assertNull("Object is not null", object);
+			} else {
+				assertEquals("Wrong object", name, object.getName().getOrig());
+			}
+			return this;
+		}
+
+		public RunInfo assertAssignmentPath(int expected) {
+			assertEquals("Wrong length of assignmentPath", expected, assignmentPath.size());
+			return this;
+		}
+	}
+
+	private static boolean recording = false;
+
+	private static MultiValuedMap<String,RunInfo> runs = new ArrayListValuedHashMap<>();
+
+	private static RunInfo currentRun;
+
 	// called from the script
 	public static void startCallback(String desc) {
-		if (isNew()) {
+		if (recording()) {
 			System.out.println("Starting execution: " + desc);
+			currentRun = new RunInfo();
+			currentRun.name = desc;
+			currentRun.index = CollectionUtils.emptyIfNull(runs.get(desc)).size();
 		}
 	}
 
-	private static boolean isNew() {
-		return ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew();
-	}
+	private static final List<String> RECORDED_VARIABLES = Arrays.asList(
+			ExpressionConstants.VAR_ASSIGNMENT.getLocalPart(),
+			ExpressionConstants.VAR_FOCUS_ASSIGNMENT.getLocalPart(),
+			ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.getLocalPart(),
+			ExpressionConstants.VAR_THIS_ASSIGNMENT.getLocalPart(),
+			ExpressionConstants.VAR_FOCUS.getLocalPart(),
+			ExpressionConstants.VAR_ORDER_ONE_OBJECT.getLocalPart(),
+			ExpressionConstants.VAR_IMMEDIATE_ROLE.getLocalPart(),
+			ExpressionConstants.VAR_SOURCE.getLocalPart(),
+			ExpressionConstants.VAR_ASSIGNMENT_PATH.getLocalPart());
 
-	public static void variableCallback(Object name, Object value, String desc) {
-		if (isNew()) {
-			System.out.println(desc + ": name = " + name + ", value = " + value);
+	@SuppressWarnings("unchecked")
+	public static void variableCallback(String name, Object value, String desc) {
+		if (recording()) {
+			if (RECORDED_VARIABLES.contains(name)) {
+				System.out.println(desc + ": name = " + name + ", value = " + value);
+				if (ExpressionConstants.VAR_ASSIGNMENT.getLocalPart().equals(name)) {
+					currentRun.assignment = (AssignmentType) value;
+				} else if (ExpressionConstants.VAR_FOCUS_ASSIGNMENT.getLocalPart().equals(name)) {
+					currentRun.focusAssignment = (AssignmentType) value;
+				} else if (ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.getLocalPart().equals(name))
+					currentRun.immediateAssignment = (AssignmentType) value;
+				else if (ExpressionConstants.VAR_THIS_ASSIGNMENT.getLocalPart().equals(name)) {
+					currentRun.thisAssignment = (AssignmentType) value;
+				} else if (ExpressionConstants.VAR_FOCUS.getLocalPart().equals(name)) {
+					currentRun.focus = (FocusType) value;
+				} else if (ExpressionConstants.VAR_ORDER_ONE_OBJECT.getLocalPart().equals(name)) {
+					currentRun.thisObject = (FocusType) value;
+				} else if (ExpressionConstants.VAR_IMMEDIATE_ROLE.getLocalPart().equals(name)) {
+					currentRun.immediateRole = (FocusType) value;
+				} else if (ExpressionConstants.VAR_SOURCE.getLocalPart().equals(name)) {
+					currentRun.source = (FocusType) value;
+				} else if (ExpressionConstants.VAR_ASSIGNMENT_PATH.getLocalPart().equals(name)) {
+					currentRun.assignmentPath = (AssignmentPathImpl) value;
+				}
+			}
 		}
 	}
+
 	public static void finishCallback(String desc) {
-		if (isNew()) {
+		if (recording()) {
 			System.out.println("Finishing execution: " + desc);
-		}
-	}
-	public static void startConditionCallback(String name) {
-		if (isNew()) {
-			System.out.println("Starting execution: " + name);
-		}
-	}
-	public static void conditionVariableCallback(Object name, Object value, String desc) {
-		if (isNew()) {
-			System.out.println(desc + ": name = " + name + ", value = " + value);
-		}
-	}
-	public static void finishConditionCallback(String name) {
-		if (isNew()) {
-			System.out.println("Finishing execution: " + name);
+			runs.put(desc, currentRun);
 		}
 	}
 
@@ -1244,9 +1583,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	private String createDumpConditionCode(String text) {
 		return    "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
-				+ "TestAssignmentProcessor2.startConditionCallback('" + text + "')\n"
-				+ "this.binding.variables.each {k,v -> TestAssignmentProcessor2.conditionVariableCallback(k, v, '" + text + "')}\n"
-				+ "TestAssignmentProcessor2.finishConditionCallback('" + text + "')\n"
+				+ "TestAssignmentProcessor2.startCallback('" + text + "')\n"
+				+ "this.binding.variables.each {k,v -> TestAssignmentProcessor2.variableCallback(k, v, '" + text + "')}\n"
+				+ "TestAssignmentProcessor2.finishCallback('" + text + "')\n"
 				+ "return true";
 	}
 
