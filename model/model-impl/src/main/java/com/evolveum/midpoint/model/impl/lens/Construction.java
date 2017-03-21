@@ -328,7 +328,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		// SearchFilterType filter = targetRef.getFilter();
 		ExpressionVariables variables = Utils
 				.getDefaultExpressionVariables(focusOdo.getNewObject().asObjectable(), null, null, null);
-		if (assignmentPathVariables == null){
+		if (assignmentPathVariables == null) {
 			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 		}
 		

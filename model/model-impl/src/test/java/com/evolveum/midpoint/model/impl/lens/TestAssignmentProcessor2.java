@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 import java.util.function.Function;
@@ -92,6 +93,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	private static final boolean FIRST_PART = true;
 	private static final boolean SECOND_PART = true;
+	private static final boolean THIRD_PART = true;
 
 	private static final File RESOURCE_DUMMY_EMPTY_FILE = new File(TEST_DIR, "resource-dummy-empty.xml");
 	private static final String RESOURCE_DUMMY_EMPTY_OID = "10000000-0000-0000-0000-00000000EEE4";
@@ -111,11 +113,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	private RoleType metarole7, metarole8, metarole9;
 	private RoleType metametarole7;
 
+	// third part
+	private RoleType rolePirate, roleSailor, roleMan, roleWoman, roleHuman;
+	private RoleType metaroleCrewMember, metarolePerson;
+
 	private List<ObjectType> objects;
 
 	private static final String ROLE_R1_OID = getRoleOid("R1");
 	private static final String ROLE_R7_OID = getRoleOid("R7");
 	private static final String ROLE_MR1_OID = getRoleOid("MR1");
+	private static final String ROLE_PIRATE_OID = getRoleOid("Pirate");
+	private static final String ROLE_MAN_OID = getRoleOid("Man");
 
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -918,6 +926,135 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertAuthorizations(evaluatedAssignment, "R7 R8 R9");
 		assertGuiConfig(evaluatedAssignment, "R7 R8 R9");
 	}
+
+	/**
+	 * Testing assignment path variables
+	 *
+	 *           MetaroleCrewMember (C1,2) ----I----> MetarolePerson (C4) --I--+
+	 *             ^            ^                       ^     ^                |
+	 *             |            |                       |     |                |
+	 *             |            |                       |     |                V
+	 *          Pirate --I--> Sailor                   Man  Woman           Human (C3)
+	 *             ^                                    |
+	 *             | +----------------------------------+
+	 *             | |             (added later)
+	 *            jack
+	 *
+	 * Assume two constructions:
+	 *  - C1 giving each crew member role (i.e. Pirate, Sailor): group on resource 1
+	 *  - C2 giving each crew member (i.e. jack): membership in that group
+	 *  - C3 giving each ultimate bearer (i.e. jack): account on resource 2
+	 *  - C4 giving each person (i.e. jack): account on resource 3
+	 */
+
+	@Test(enabled = THIRD_PART)
+	public void test400AssignJackPirate() throws Exception {
+		final String TEST_NAME = "test400AssignJackPirate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		createObjectsInThirdPart(false, task, result, () -> {
+			addConditionToRoles("Pirate! Sailor! MetaroleCrewMember! MetarolePerson! Man! Human!");
+			addConditionToAssignments("Pirate-MetaroleCrewMember! Sailor-MetaroleCrewMember! MetaroleCrewMember-MetarolePerson! Man-MetarolePerson! MetarolePerson-Human!");
+		});
+
+		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_PIRATE_OID, null, null, result);
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "Pirate Sailor Human Human", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "MetaroleCrewMember MetaroleCrewMember MetarolePerson MetarolePerson", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "Pirate Sailor Human");
+		assertOrgRef(evaluatedAssignment, "");
+		assertDelegation(evaluatedAssignment, "");
+
+		String expectedItems = "Pirate-1 Sailor-1 MetaroleCrewMember-2 MetaroleCrewMember-2 MetarolePerson-2 MetarolePerson-2 Human-1 Human-1";
+		assertConstructions(evaluatedAssignment, expectedItems + " C2 C2 C3 C3 C4 C4", null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
+
+		assertTargetPolicyRules(evaluatedAssignment,
+				"Pirate-0 MetaroleCrewMember-1 MetarolePerson-1",
+				"Sailor-0 MetaroleCrewMember-1 MetarolePerson-1 Human-0 Human-0");
+		assertAuthorizations(evaluatedAssignment, "Pirate Sailor Human");
+		assertGuiConfig(evaluatedAssignment, "Pirate Sailor Human");
+
+		List<Construction<UserType>> c2ab = getConstructions(evaluatedAssignment, "C2");
+		assertEquals("Wrong c2ab size", 2, c2ab.size());
+		Construction<UserType> c2a = c2ab.get(0);
+		Construction<UserType> c2b = c2ab.get(1);
+
+		List<Construction<UserType>> c3ab = getConstructions(evaluatedAssignment, "C3");
+		assertEquals("Wrong c3ab size", 2, c3ab.size());
+		Construction<UserType> c3a = c3ab.get(0);
+		Construction<UserType> c3b = c3ab.get(1);
+
+		List<Construction<UserType>> c4ab = getConstructions(evaluatedAssignment, "C4");
+		assertEquals("Wrong c4ab size", 2, c4ab.size());
+		Construction<UserType> c4a = c4ab.get(0);
+		Construction<UserType> c4b = c4ab.get(1);
+
+		System.out.println("Evaluating C2a");
+		c2a.evaluate(task, result);
+		System.out.println("Done");
+
+		System.out.println("Evaluating C2b");
+		c2b.evaluate(task, result);
+		System.out.println("Done");
+
+		System.out.println("Evaluating C3a");
+		c3a.evaluate(task, result);
+		System.out.println("Done");
+
+		System.out.println("Evaluating C3b");
+		c3b.evaluate(task, result);
+		System.out.println("Done");
+
+		System.out.println("Evaluating C4a");
+		c4a.evaluate(task, result);
+		System.out.println("Done");
+
+		System.out.println("Evaluating C4b");
+		c4b.evaluate(task, result);
+		System.out.println("Done");
+
+	}
+
+	// called from the script
+	public static void startCallback(String desc) {
+		System.out.println("Starting execution: " + desc);
+	}
+	public static void variableCallback(Object name, Object value, String desc) {
+		System.out.println(desc + ": name = " + name + ", value = " + value);
+	}
+	public static void finishCallback(String desc) {
+		System.out.println("Finishing execution: " + desc);
+	}
+	public static void startConditionCallback(String name) {
+		System.out.println("Starting execution: " + name);
+	}
+	public static void conditionVariableCallback(Object name, Object value, String desc) {
+		System.out.println(desc + ": name = " + name + ", value = " + value);
+	}
+	public static void finishConditionCallback(String name) {
+		System.out.println("Finishing execution: " + name);
+	}
+
 	//region ============================================================= helper methods (preparing scenarios)
 
 	private void createObjectsInFirstPart(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
@@ -973,6 +1110,61 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		createObjects(deleteFirst, task, result, adjustment);
 	}
 
+	private void createObjectsInThirdPart(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
+		rolePirate = createRole("Pirate");
+		rolePirate.setDelegable(true);
+		roleSailor = createRole("Sailor");
+		metaroleCrewMember = createRole("MetaroleCrewMember");
+		metarolePerson = createRole("MetarolePerson");
+		roleMan = createRole("Man");
+		roleWoman = createRole("Woman");
+		roleHuman = createRole("Human");
+
+		createCustomConstruction(metaroleCrewMember, "C1", 1);
+		createCustomConstruction(metaroleCrewMember, "C2", 2);
+		createCustomConstruction(roleHuman, "C3", 1);
+		createCustomConstruction(metarolePerson, "C4", 2);
+
+		assign(rolePirate, metaroleCrewMember);
+		assign(roleSailor, metaroleCrewMember);
+		induce(rolePirate, roleSailor, 1);
+		assign(roleMan, metarolePerson);
+		assign(roleWoman, metarolePerson);
+		induce(metaroleCrewMember, metarolePerson, 1);
+		induce(metarolePerson, roleHuman, 2);
+
+		objects = new ArrayList<>(
+				Arrays.asList(rolePirate, roleSailor, metaroleCrewMember, metarolePerson, roleMan, roleWoman, roleHuman));
+
+		createObjects(deleteFirst, task, result, adjustment);
+	}
+
+	private void createCustomConstruction(RoleType role, String name, int order) {
+		ConstructionType c = new ConstructionType(prismContext);
+		c.setDescription(name);
+		c.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_DUMMY_EMPTY_OID, ObjectTypes.RESOURCE));
+		ResourceAttributeDefinitionType nameDef = new ResourceAttributeDefinitionType();
+		nameDef.setRef(new ItemPath(new QName(SchemaConstants.NS_ICF_SCHEMA, "name")).asItemPathType());
+		MappingType outbound = new MappingType();
+		outbound.setName(name);
+		ExpressionType expression = new ExpressionType();
+		ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
+		script.setCode(
+				  "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
+				+ "TestAssignmentProcessor2.startCallback('" + name + "')\n"
+				+ "this.binding.variables.each {k,v -> TestAssignmentProcessor2.variableCallback(k, v, '" + name + "')}\n"
+				+ "TestAssignmentProcessor2.finishCallback('" + name + "')\n"
+				+ "return null");
+		expression.getExpressionEvaluator().add(new ObjectFactory().createScript(script));
+		outbound.setExpression(expression);
+		nameDef.setOutbound(outbound);
+		c.getAttribute().add(nameDef);
+		AssignmentType a = new AssignmentType(prismContext);
+		a.setDescription("Assignment for " + c.getDescription());
+		a.setConstruction(c);
+		addAssignmentOrInducement(role, order, a);
+	}
+
 	private void createObjects(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
 		if (adjustment != null) {
 			adjustment.run();
@@ -1017,7 +1209,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			String name = StringUtils.substring(item, 0, -1);
 			char conditionType = item.charAt(item.length() - 1);
 			AbstractRoleType role = findRole(name);
-			role.setCondition(createCondition(conditionType));
+			role.setCondition(createCondition(item, conditionType));
 		}
 	}
 
@@ -1026,16 +1218,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			String assignmentText = StringUtils.substring(item, 0,-1);
 			char conditionType = item.charAt(item.length() - 1);
 			AssignmentType assignment = findAssignmentOrInducement(assignmentText);
-			assignment.setCondition(createCondition(conditionType));
+			assignment.setCondition(createCondition(item, conditionType));
 		}
 	}
 
-	private MappingType createCondition(char conditionType) {
+	private MappingType createCondition(String conditionName, char conditionType) {
 		ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
 		switch (conditionType) {
 			case '+': script.setCode("basic.stringify(name) == 'jack1'"); break;
 			case '-': script.setCode("basic.stringify(name) == 'jack'"); break;
 			case '0': script.setCode("basic.stringify(name) == 'never there'"); break;
+			case '!': script.setCode(createDumpConditionCode(conditionName)); break;
 			default: throw new AssertionError(conditionType);
 		}
 		ExpressionType expression = new ExpressionType();
@@ -1043,9 +1236,18 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		VariableBindingDefinitionType source = new VariableBindingDefinitionType();
 		source.setPath(new ItemPath(UserType.F_NAME).asItemPathType());
 		MappingType rv = new MappingType();
+		rv.setName(conditionName);
 		rv.setExpression(expression);
 		rv.getSource().add(source);
 		return rv;
+	}
+
+	private String createDumpConditionCode(String text) {
+		return    "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
+				+ "TestAssignmentProcessor2.startConditionCallback('" + text + "')\n"
+				+ "this.binding.variables.each {k,v -> TestAssignmentProcessor2.conditionVariableCallback(k, v, '" + text + "')}\n"
+				+ "TestAssignmentProcessor2.finishConditionCallback('" + text + "')\n"
+				+ "return true";
 	}
 
 	private void induce(AbstractRoleType source, AbstractRoleType target, int inducementOrder) {
@@ -1062,15 +1264,26 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private RoleType createRole(int level, int number) {
-		return prepareAbstractRole(new RoleType(prismContext), level, number, "R");
+		return prepareAbstractRole(new RoleType(prismContext), createName("R", level, number));
+	}
+
+	private RoleType createRole(String name) {
+		return prepareAbstractRole(new RoleType(prismContext), name);
+	}
+
+	private String createName(String prefix, int level, int number) {
+		return StringUtils.repeat('M', level-1) + prefix + number;
 	}
 
 	private OrgType createOrg(int number) {
-		return prepareAbstractRole(new OrgType(prismContext), 1, number, "O");
+		return prepareAbstractRole(new OrgType(prismContext), createName("O", 1, number));
 	}
 
-	private <R extends AbstractRoleType> R prepareAbstractRole(R abstractRole, int level, int number, String nameSymbol) {
-		String name = StringUtils.repeat('M', level-1) + nameSymbol + number;
+	private OrgType createOrg(String name) {
+		return prepareAbstractRole(new OrgType(prismContext), name);
+	}
+
+	private <R extends AbstractRoleType> R prepareAbstractRole(R abstractRole, String name) {
 		String oid = getRoleOid(name);
 
 		abstractRole.setName(PolyStringType.fromOrig(name));
@@ -1135,6 +1348,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private static String getRoleOid(String name) {
+		name = name.substring(0, Math.min(12, name.length()));
 		return "99999999-0000-0000-0000-" + StringUtils.repeat('0', 12-name.length()) + name;
 	}
 
@@ -1277,6 +1491,12 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	//endregion
 	//region ============================================================= helper methods (misc)
+
+	private <F extends FocusType> List<Construction<F>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
+		return evaluatedAssignment.getConstructions().getAllValues().stream()
+				.filter(c -> name.equals(c.getDescription()))
+				.collect(Collectors.toList());
+	}
 
 	private AssignmentType findAssignmentOrInducement(String assignmentText) {
 		String[] split = StringUtils.split(assignmentText, "-");

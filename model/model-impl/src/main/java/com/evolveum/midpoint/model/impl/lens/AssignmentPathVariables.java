@@ -27,12 +27,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
  *
  */
 public class AssignmentPathVariables {
-	
+
+	private AssignmentPathImpl assignmentPath;
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignment;
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> immediateAssignment;
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> thisAssignment;
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment;
 	private PrismObject<? extends AbstractRoleType> immediateRole;
+
+	public AssignmentPathImpl getAssignmentPath() {
+		return assignmentPath;
+	}
+
+	public void setAssignmentPath(AssignmentPathImpl assignmentPath) {
+		this.assignmentPath = assignmentPath;
+	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getMagicAssignment() {
 		return magicAssignment;

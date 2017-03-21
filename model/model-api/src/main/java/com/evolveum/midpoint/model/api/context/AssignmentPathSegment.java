@@ -46,7 +46,19 @@ public interface AssignmentPathSegment extends DebugDumpable {
 	ObjectType getTarget();
 
 	QName getRelation();
-	
+
+	/**
+	 *  Whether this assignment/inducement matches the focus level, i.e. if we should collect constructions,
+	 *  focus mappings, focus policy rules and similar items from it.
+	 */
+	boolean isMatchingOrder();
+
+	/**
+	 *  Whether this assignment/inducement matches the target level, i.e. if we should collect target
+	 *  policy rules from it.
+	 */
+	boolean isMatchingOrderForTarget();
+
 	/**
 	 * True if the relation is a delegation one.
 	 */
