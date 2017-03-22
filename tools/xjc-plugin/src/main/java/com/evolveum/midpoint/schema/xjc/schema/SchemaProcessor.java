@@ -50,6 +50,7 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.w3c.dom.Element;
@@ -1263,23 +1264,17 @@ public class SchemaProcessor implements Processor {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
         JClass clazz = CLASS_MAP.get(PrismReferenceArrayList.class).narrow(type);
 
-        JDefinedClass anonymous;
-        try {
-            CPropertyInfo propertyInfo = classOutline.target.getProperty(field.name());
-            anonymous = classOutline.implClass._class(JMod.PRIVATE | JMod.STATIC, "Anon" + propertyInfo.getName(true));
-            JDocComment comment = anonymous.javadoc();
-            comment.append("todo can't be anonymous because of NPE bug in CodeModel generator, will be fixed later.");
-        } catch (JClassAlreadyExistsException ex) {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+        JDefinedClass anonymous = createAnonListClass(field, classOutline);
 
         anonymous._implements(Serializable.class);
         anonymous._extends(clazz);
         JMethod constructor = anonymous.constructor(JMod.PUBLIC);
         constructor.param(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME);
-        JBlock constructorBody = constructor.body();
+		constructor.param(CLASS_MAP.get(PrismContainerValue.class), "parent");
+		JBlock constructorBody = constructor.body();
         JInvocation invocation = constructorBody.invoke("super");
         invocation.arg(constructor.listParams()[0]);
+        invocation.arg(constructor.listParams()[1]);
 
         JMethod createItem = anonymous.method(JMod.PROTECTED, type, "createItem");
         createItem.annotate(CLASS_MAP.get(Override.class));
@@ -1293,6 +1288,20 @@ public class SchemaProcessor implements Processor {
         willClear.annotate(CLASS_MAP.get(Override.class));
         willClear.param(CLASS_MAP.get(PrismReferenceValue.class), "value");
 
+        return anonymous;
+    }
+
+    @NotNull
+    private JDefinedClass createAnonListClass(JFieldVar field, ClassOutline classOutline) {
+        JDefinedClass anonymous;
+        try {
+            CPropertyInfo propertyInfo = classOutline.target.getProperty(field.name());
+            anonymous = classOutline.implClass._class(JMod.PRIVATE | JMod.STATIC, "Anon" + propertyInfo.getName(true));
+            JDocComment comment = anonymous.javadoc();
+            comment.append("TODO Can't be anonymous because of NPE bug in CodeModel generator, will be fixed later.");
+        } catch (JClassAlreadyExistsException ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
         return anonymous;
     }
 
@@ -1342,17 +1351,25 @@ public class SchemaProcessor implements Processor {
         JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name()));
         if (isList) {
             //if it's List<ObjectReferenceType> ...
-            JInvocation invoke = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE); 
-            invoke.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
-            invoke.arg(qnameRef);
-            JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invoke);
+			// PrismContainerValue pcv = asPrismContainerValue();
+			JVar pcv = body.decl(CLASS_MAP.get(PrismContainerValue.class), "pcv", JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
 
+			// PrismReference reference = PrismForJAXBUtil.getReference(pcv, F_LINK_REF);
+            JInvocation invoke = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE); 
+            invoke.arg(pcv);
+            invoke.arg(qnameRef);
+            JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invoke);
+
+            // FocusType.AnonLinkRef + its methods
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
             createFieldReferenceCreateItemBody(field, findMethod(anonymous, "createItem"));
             createFieldReferenceGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
             createFieldReferenceWillClear(field, findMethod(anonymous, "willClear"));
+
+            // return new FocusType.AnonLinkRef(reference, pcv);
             JInvocation newList = JExpr._new(anonymous);
-            newList.arg(ref);
+            newList.arg(reference);
+            newList.arg(pcv);
             body._return(newList);
         } else {
             //if it's ObjectReferenceType
@@ -1380,6 +1397,7 @@ public class SchemaProcessor implements Processor {
         return classOutline.implClass.fields().get(propertyInfo.getName(false));
     }
 
+    // e.g. c:link (as opposed to c:linkRef)
     private boolean updateFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
         //getter method update
         JMethod method = recreateGetter(field, classOutline);
@@ -1388,12 +1406,10 @@ public class SchemaProcessor implements Processor {
         createFieldReferenceUseGetterBody(field, classOutline, method.body(), isList);
 
         //setter method update
-        if (isList) {
-            return true;
-        }
-        method = recreateSetter(field, classOutline);
-        createFieldReferenceUseSetterBody(field, classOutline, method.listParams()[0], method.body());
-
+        if (!isList) {
+			method = recreateSetter(field, classOutline);
+			createFieldReferenceUseSetterBody(field, classOutline, method.listParams()[0], method.body());
+		}
         return true;
     }
 
@@ -1448,18 +1464,25 @@ public class SchemaProcessor implements Processor {
         JFieldRef qnameRef = JExpr.ref(fieldFPrefixUnderscoredUpperCase(refField.name()));
 
         if (isList) {
-        	JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE);
-            invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
-            invocation.arg(qnameRef);
-            JVar ref = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invocation);
+        	// PrismContainerValue pcv = asPrismContainerValue()
+        	JVar pcv = body.decl(CLASS_MAP.get(PrismContainerValue.class), "pcv", JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
 
+        	// PrismReference reference = PrismForJAXBUtil.getReference(pcv, F_LINK_REF);
+        	JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE);
+            invocation.arg(pcv);
+            invocation.arg(qnameRef);
+            JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invocation);
+
+            // anonymous class (e.g. FocusType.AnonLink) and its methods
             JDefinedClass anonymous = createFieldReferenceGetterListAnon(field, classOutline);
             createFieldReferenceUseCreateItemBody(field, findMethod(anonymous, "createItem"));
             createFieldReferenceUseGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
             createFieldReferenceUseWillClear(field, findMethod(anonymous, "willClear"));
 
+            // return new FocusType.AnonLinkRef(reference, pcv);
             JInvocation newList = JExpr._new(anonymous);
-            newList.arg(ref);
+            newList.arg(reference);
+            newList.arg(pcv);
             body._return(newList);
         } else {
             JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE_VALUE);
@@ -1472,7 +1495,7 @@ public class SchemaProcessor implements Processor {
                     .eq(JExpr._null())))._then();
             then._return(JExpr._null());
 
-            body._return(JExpr.cast((JClass) field.type(), JExpr.invoke(reference, "getObject").invoke("asObjectable")));
+            body._return(JExpr.cast(field.type(), JExpr.invoke(reference, "getObject").invoke("asObjectable")));
         }
     }
 
@@ -1493,6 +1516,7 @@ public class SchemaProcessor implements Processor {
         return false;
     }
 
+    // e.g. c:link (as opposed to c:linkRef)
     private QName getFieldReferenceUseAnnotationQName(JFieldVar field, ClassOutline classOutline) {
         BIDeclaration declaration = hasAnnotation(classOutline, field, A_OBJECT_REFERENCE);
         if (!(declaration instanceof BIXPluginCustomization)) {
@@ -1610,15 +1634,7 @@ public class SchemaProcessor implements Processor {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
         JClass clazz = CLASS_MAP.get(PrismContainerArrayList.class).narrow(type);
 
-        JDefinedClass anonymous;
-        try {
-            CPropertyInfo propertyInfo = classOutline.target.getProperty(field.name());
-            anonymous = classOutline.implClass._class(JMod.PRIVATE | JMod.STATIC, "Anon" + propertyInfo.getName(true));
-            JDocComment comment = anonymous.javadoc();
-            comment.append("todo can't be anonymous because of NPE bug in CodeModel generator, will be fixed later.");
-        } catch (JClassAlreadyExistsException ex) {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
+        JDefinedClass anonymous = createAnonListClass(field, classOutline);
 
         anonymous._implements(Serializable.class);
         anonymous._extends(clazz);
@@ -1626,14 +1642,13 @@ public class SchemaProcessor implements Processor {
         JClass list = (JClass) field.type();
         JClass listType = list.getTypeParameters().get(0);
 
-        JClass container = CLASS_MAP.get(PrismContainer.class);
-        container.narrow(listType);
-
         JMethod constructor = anonymous.constructor(JMod.PUBLIC);
-        constructor.param(container, "container");
+        constructor.param(CLASS_MAP.get(PrismContainer.class), "container");
+        constructor.param(CLASS_MAP.get(PrismContainerValue.class), "parent");
         JBlock constructorBody = constructor.body();
         JInvocation invocation = constructorBody.invoke("super");
         invocation.arg(constructor.listParams()[0]);
+        invocation.arg(constructor.listParams()[1]);
 
         // Default constructor, for deserialization
         JMethod defaultConstructor = anonymous.constructor(JMod.PUBLIC);
@@ -1688,23 +1703,27 @@ public class SchemaProcessor implements Processor {
         }
         
         if (isList(field.type())) {
-            JClass list = (JClass) field.type();
-            JClass listType = list.getTypeParameters().get(0);
+            //JClass list = (JClass) field.type();
+            //JClass listType = list.getTypeParameters().get(0);
 
+            // PrismContainerValue pcv = asPrismContainerValue()
+            JVar pcvVar = body.decl(CLASS_MAP.get(PrismContainerValue.class), "pcv", JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
+
+            // PrismContainer container = PrismForJAXBUtil.getContainer(pcv, F_ASSIGNMENT);
             JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_CONTAINER);
-            invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
+            invocation.arg(pcvVar);
             invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
+            JVar containerVar = body.decl(CLASS_MAP.get(PrismContainer.class), "container", invocation);
 
-            JClass container = CLASS_MAP.get(PrismContainer.class);
-            container.narrow(listType);
-            JVar values = body.decl(container, "container", invocation);
+            // anonymous class (e.g. FocusType.AnonAssignment and its methods)
+            JDefinedClass anonymousClass = createFieldContainerGetterListAnon(field, classOutline);
+            createFieldContainerCreateItemBody(field, findMethod(anonymousClass, "createItem"));
+            createFieldContainerGetValueFrom(field, findMethod(anonymousClass, "getValueFrom"));
 
-            JDefinedClass anonymous = createFieldContainerGetterListAnon(field, classOutline);
-            createFieldContainerCreateItemBody(field, findMethod(anonymous, "createItem"));
-            createFieldContainerGetValueFrom(field, findMethod(anonymous, "getValueFrom"));
-
-            JInvocation newList = JExpr._new(anonymous);
-            newList.arg(values);
+            // return new FocusType.AnonAssignment(container, pcv);
+            JInvocation newList = JExpr._new(anonymousClass);
+            newList.arg(containerVar);
+            newList.arg(pcvVar);
             body._return(newList);
 
             return;

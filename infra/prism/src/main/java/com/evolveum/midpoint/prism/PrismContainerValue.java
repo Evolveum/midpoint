@@ -707,20 +707,23 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         return matching;
     }
 
-    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createImmutableSubItem(QName name, Class<I> type, ID itemDefinition) throws SchemaException {
-		I newItem = createNewItemInternal(name, type, itemDefinition);
-		newItem.setImmutable(true);
+    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createDetachedSubItem(QName name,
+			Class<I> type, ID itemDefinition, boolean immutable) throws SchemaException {
+		I newItem = createDetachedNewItemInternal(name, type, itemDefinition);
+		if (immutable) {
+			newItem.setImmutable(true);
+		}
 		return newItem;
 	}
 
 	private <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createSubItem(QName name, Class<I> type, ID itemDefinition) throws SchemaException {
 		checkMutability();
-		I newItem = createNewItemInternal(name, type, itemDefinition);
+		I newItem = createDetachedNewItemInternal(name, type, itemDefinition);
 		add(newItem);
 		return newItem;
     }
 
-	private <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createNewItemInternal(QName name, Class<I> type,
+	private <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createDetachedNewItemInternal(QName name, Class<I> type,
 			ID itemDefinition) throws SchemaException {
 		I newItem;
 		if (itemDefinition == null) {
@@ -793,29 +796,6 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
             return property;
         }
         return createProperty(propertyDef);
-    }
-
-//    public PrismProperty findOrCreateProperty(PropertyPath parentPath, QName propertyQName, Class<?> valueClass) {
-//        PrismContainer container = findOrCreatePropertyContainer(parentPath);
-//        if (container == null) {
-//            throw new IllegalArgumentException("No container");
-//        }
-//        return container.findOrCreateProperty(propertyQName, valueClass);
-//    }
-
-    public <X extends Containerable> PrismContainer<X> createContainer(QName containerName) throws SchemaException {
-		checkMutability();
-		ComplexTypeDefinition complexTypeDefinition = getComplexTypeDefinition();
-		if (complexTypeDefinition == null) {
-            throw new IllegalStateException("No definition of container "+containerName);
-        }
-        PrismContainerDefinition<X> containerDefinition = complexTypeDefinition.findContainerDefinition(containerName);
-        if (containerDefinition == null) {
-            throw new IllegalArgumentException("No definition of container '" + containerName + "' in " + complexTypeDefinition);
-        }
-        PrismContainer<X> container = containerDefinition.instantiate();
-        add(container);
-        return container;
     }
 
     public <X> PrismProperty<X> createProperty(QName propertyName) throws SchemaException {
