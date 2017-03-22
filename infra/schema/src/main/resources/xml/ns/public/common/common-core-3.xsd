@@ -9520,7 +9520,11 @@
                     			E.g. when applied to passwords the minOccurs=0 means that the policy will
                     			accept no password at all. But it will still validate the password using
                     			stringPolicy if a password is present.
+                    			DEPRECATED. Use equivalent setting in security policy instead.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
@@ -9528,7 +9532,11 @@
                     		<xsd:documentation>
                     			Maximal number of value occurences.
                     			If not specified then the default schema limitation is imposed.
+                    			DEPRECATED. Use equivalent setting in security policy instead.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -11810,6 +11818,25 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="minOccurs" type="xsd:string" minOccurs="0" default="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Minimal number of value occurences. minOccurs set to zero means that the value
+            			is optional.
+            			E.g. when applied to passwords the minOccurs=0 means that the policy will
+            			accept no password at all. But it will still validate the password using
+            			stringPolicy if a password is present.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Maximal number of value occurences.
+            			If not specified then the default schema limitation is imposed.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
 			<xsd:element name="maxAge" type="xsd:duration" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -11860,6 +11887,16 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Reference to the value policy for the credential.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="historyLength" type="xsd:int" minOccurs="0" maxOccurs="1" default="0">
 			    <xsd:annotation>
 			        <xsd:documentation>
@@ -11880,7 +11917,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			
 			<!-- TODO: similarity criteria (history vs new password) -->
 		</xsd:sequence>
 	</xsd:complexType>
@@ -12098,9 +12134,11 @@
 					    <xsd:annotation>
 					        <xsd:documentation>
 					            Reference to the password policy settings.
+					            DEPRECATED. Use valuePolicyRef instead.
 					        </xsd:documentation>
 					        <xsd:appinfo>
 								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+								<a:deprecated>true</a:deprecated>
 							</xsd:appinfo>
 					    </xsd:annotation>
 					</xsd:element>
@@ -12254,8 +12292,7 @@
 	 <xsd:complexType name="NonceCredentialsPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Structure that specifies policy for nonce management. It is in fact only a simple reference
-				to a password policy.
+				Structure that specifies policy for nonce management.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
@@ -12267,20 +12304,10 @@
 					<xsd:element name="name" type="xsd:string" maxOccurs="1">
 		        	    <xsd:annotation>
 		                    <xsd:documentation>
-		                        The question itself, or the localization identifier to it.
+		                        TODO
 		                    </xsd:documentation>
 		                </xsd:annotation>
 		        	</xsd:element>
-					<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-					    <xsd:annotation>
-					        <xsd:documentation>
-					            Reference to the nonce policy settings.
-					        </xsd:documentation>
-					        <xsd:appinfo>
-								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-							</xsd:appinfo>
-					    </xsd:annotation>
-					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>

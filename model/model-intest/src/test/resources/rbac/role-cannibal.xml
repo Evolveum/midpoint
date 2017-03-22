@@ -26,6 +26,10 @@
     			<minAssignees>
 		    		<multiplicity>2</multiplicity>
 		    	</minAssignees>
+				<minAssignees>
+					<multiplicity>1</multiplicity>
+					<relation>owner</relation>
+				</minAssignees>
 		    	<maxAssignees>
 		    		<multiplicity>3</multiplicity>
 		    	</maxAssignees>

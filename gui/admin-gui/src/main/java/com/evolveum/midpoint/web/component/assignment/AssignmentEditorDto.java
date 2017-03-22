@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -227,11 +228,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private Boolean determineUserOrgRelation(AssignmentType assignment) {
 
 		if (assignment == null || assignment.getTargetRef() == null
-				|| assignment.getTargetRef().getRelation() == null) {
+				|| ObjectTypeUtil.isDefaultRelation(assignment.getTargetRef().getRelation())) {
 			return Boolean.FALSE;
 		}
 
-		if (SchemaConstants.ORG_MANAGER.equals(assignment.getTargetRef().getRelation())) {
+		if (ObjectTypeUtil.isManagerRelation(assignment.getTargetRef().getRelation())) {
 			return Boolean.TRUE;
 		}
 
@@ -581,7 +582,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public String getRelation() {
 		ObjectReferenceType ref = newAssignment.getTargetRef();
 		if (ref == null || ref.getRelation() == null) {
-			return null;
+			return null;		// TODO default vs. null ?
 		}
 
 		return ref.getRelation().getLocalPart();

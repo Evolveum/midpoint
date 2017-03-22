@@ -22,8 +22,11 @@ import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.marshaller.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -41,6 +44,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * Methods that would belong to the ObjectType class but cannot go there because
@@ -536,5 +541,93 @@ public class ObjectTypeUtil {
 		}
 		Item item = extension.asPrismContainerValue().findItem(itemName);
     	return item != null ? (T) item.getRealValue() : null;
+	}
+
+	public static QName normalizeRelation(QName name) {
+    	if (name == null) {
+    		return SchemaConstants.ORG_DEFAULT;
+		} else {
+    		return QNameUtil.setNamespaceIfMissing(name, SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG);
+		}
+	}
+
+	public static void normalizeRelation(ObjectReferenceType reference) {
+    	if (reference != null) {
+			reference.setRelation(normalizeRelation(reference.getRelation()));
+		}
+	}
+
+	public static void normalizeRelation(PrismReferenceValue reference) {
+    	if (reference != null) {
+			reference.setRelation(normalizeRelation(reference.getRelation()));
+		}
+	}
+
+	public static void normalizeAllRelations(PrismValue value) {
+    	if (value != null) {
+			value.accept(createNormalizingVisitor());
+		}
+	}
+
+	public static void normalizeAllRelations(Item<?,?> item) {
+    	if (item != null) {
+			item.accept(createNormalizingVisitor());
+		}
+	}
+
+	private static Visitor createNormalizingVisitor() {
+		return v -> {
+			if (v instanceof PrismReferenceValue) {
+				normalizeRelation((PrismReferenceValue) v);
+			}
+		};
+	}
+
+	public static void normalizeFilter(ObjectFilter filter) {
+		if (filter != null) {
+			filter.accept(f -> {
+				if (f instanceof RefFilter) {
+					emptyIfNull(((RefFilter) f).getValues()).forEach(v -> normalizeRelation(v));
+				}
+			});
+		}
+	}
+
+	// This is not the right place for this. But let's leave it here for now.
+	// See MID-3581
+	public static boolean isDelegationRelation(QName relation) {
+		return QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY);
+	}
+
+	// This is not the right place for this. But let's leave it here for now.
+	// See MID-3581
+	public static boolean isMembershipRelation(QName relation) {
+		return isDefaultRelation(relation)
+				|| isManagerRelation(relation)
+				|| QNameUtil.match(relation, SchemaConstants.ORG_META);
+	}
+
+	// This is not the right place for this. But let's leave it here for now.
+	// See MID-3581
+	public static boolean isManagerRelation(QName relation) {
+		return QNameUtil.match(relation, SchemaConstants.ORG_MANAGER);
+	}
+
+	// This is not the right place for this. But let's leave it here for now.
+	// See MID-3581
+	public static boolean isDefaultRelation(QName relation) {
+		return relation == null || QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT);
+	}
+
+	public static boolean relationMatches(QName relationQuery, QName relation) {
+		return QNameUtil.match(relationQuery, PrismConstants.Q_ANY) || relationsEquivalent(relationQuery, relation);
+	}
+
+	public static boolean relationsEquivalent(QName relation1, QName relation2) {
+		if (ObjectTypeUtil.isDefaultRelation(relation1)) {
+			return ObjectTypeUtil.isDefaultRelation(relation2);
+		} else {
+			return QNameUtil.match(relation1, relation2);
+		}
 	}
 }

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -71,6 +72,7 @@ public class ResourceObjectPattern implements Serializable {
 
 	public boolean matches(PrismObject<ShadowType> shadowToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		if (objectFilter != null) {
+			ObjectTypeUtil.normalizeFilter(objectFilter);	// we suppose references in shadowToMatch are normalized (on return from repo)
 			return ObjectQuery.match(shadowToMatch, objectFilter, matchingRuleRegistry);
 		} else {
 			// Deprecated method

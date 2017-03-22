@@ -17,9 +17,12 @@
 package com.evolveum.midpoint.model.common.stringpolicy;
 
 /**
- *  Generator for values that match value policies (mostly passwords).
- * Mishmash or old and new code. Only partially refactored.
- * Still need to align with ValuePolicyGenerator and the utils.
+ * Processor for values that match value policies (mostly passwords).
+ * This class is supposed to process the parts of the value policy
+ * as defined in the ValuePolicyType. So it will validate the values
+ * and generate the values. It is NOT supposed to process
+ * more complex credential policies such as password lifetime
+ * and history.
  * 
  *  @author mamut
  *  @author semancik 

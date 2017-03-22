@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -75,7 +76,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_PASSWORD_VALID_3 = "abcd323";
 	protected static final String USER_PASSWORD_VALID_4 = "abcd423";
 
-	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
 
 	protected static final File RESOURCE_DUMMY_UGLY_FILE = new File(TEST_DIR, "resource-dummy-ugly.xml");
 	protected static final String RESOURCE_DUMMY_UGLY_OID = "10000000-0000-0000-0000-000000344104";
@@ -93,11 +94,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
 	
-	protected DummyResource dummyResourceUgly;
-	protected DummyResourceContoller dummyResourceCtlUgly;
-	protected ResourceType resourceDummyUglyType;
-	protected PrismObject<ResourceType> resourceDummyUgly;
-
 	protected String accountJackOid;
 	protected String accountJackRedOid;
 	protected String accountJackUglyOid;
@@ -115,12 +111,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		
 		setGlobalSecurityPolicy(getSecurityPolicyOid(), initResult);
 
-		dummyResourceCtlUgly = DummyResourceContoller.create(RESOURCE_DUMMY_UGLY_NAME, resourceDummyUgly);
-		dummyResourceCtlUgly.extendSchemaPirate();
-		dummyResourceUgly = dummyResourceCtlUgly.getDummyResource();
-		resourceDummyUgly = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
-		resourceDummyUglyType = resourceDummyUgly.asObjectable();
-		dummyResourceCtlUgly.setResource(resourceDummyUgly);
+		initDummyResourcePirate(RESOURCE_DUMMY_UGLY_NAME, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
 
 		login(USER_ADMINISTRATOR_USERNAME);
 	}
@@ -147,7 +138,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicy.getOid());
 
 		// Check object
-        PrismObject<ValuePolicyType> accountShadow = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, result);
+        PrismObject<ValuePolicyType> valuePolicy = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, result);
 
         // TODO: more asserts
 	}
@@ -703,10 +694,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
 		PrismReferenceValue passPolicyRef = new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE);
+		
 		// WHEN
 		modifyObjectReplaceReference(SecurityPolicyType.class, getSecurityPolicyOid(),
 				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF),
         		task, result, passPolicyRef);
+		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+        		task, result, 3);
 		
 		// THEN
 		result.computeStatus();
@@ -1557,5 +1552,121 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		} else {
 			PrismAsserts.assertPropertyValue(shadow, ObjectType.F_LIFECYCLE_STATE, expectedLifecycle);
 		}
+	}
+	
+	/**
+	 * Let's have a baseline for other 90x tests.
+	 */
+	@Test
+    public void test900ModifyUserElainePassword() throws Exception {
+		final String TEST_NAME = "test900ModifyUserElainePassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
+                        
+		// WHEN
+        modifyUserChangePassword(USER_ELAINE_OID, USER_PASSWORD_VALID_1, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
+		display("User after", userAfter);
+        
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+	}
+	
+	@Test
+    public void test902SetPasswordMinAge() throws Exception {
+		final String TEST_NAME = "test900SetPasswordMinAge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+        		task, result, XmlTypeConverter.createDuration("PT10M"));
+		
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		PrismObject<SecurityPolicyType> securityPolicy = getObject(SecurityPolicyType.class, getSecurityPolicyOid());
+		display("Security policy after", securityPolicy);
+		PrismAsserts.assertPropertyValue(securityPolicy, 
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE), 
+				XmlTypeConverter.createDuration("PT10M"));
+	}
+	
+	/**
+	 * Password modification is obviously before the password minAge has passed.
+	 * Therefore this should fail.
+	 */
+	@Test
+    public void test904ModifyUserElainePasswordAgain() throws Exception {
+		final String TEST_NAME = "test904ModifyUserElainePasswordAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+        	
+			// WHEN
+	        modifyUserChangePassword(USER_ELAINE_OID, USER_PASSWORD_VALID_2, task, result);
+	        
+	        assertNotReached();
+	        
+        } catch (PolicyViolationException e) {
+        	
+        }
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
+		display("User after", userAfter);
+        
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+	}
+	
+	@Test
+    public void test906ModifyUserElainePasswordLater() throws Exception {
+		final String TEST_NAME = "test906ModifyUserElainePasswordLater";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        clock.overrideDuration("PT15M");
+        
+        lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserChangePassword(USER_ELAINE_OID, USER_PASSWORD_VALID_3, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
+		display("User after", userAfter);
+        
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
 	}
 }

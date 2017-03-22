@@ -46,7 +46,8 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialPolicyEvaluator;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
@@ -220,7 +221,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	private static final String GROUP_CORPSES_NAME = "corpses";
 	
 	@Autowired(required = true)
-	private PasswordPolicyProcessor passwordPolicyProcessor;
+	private ValuePolicyProcessor valuePolicyProcessor;
 
 	protected DummyResource dummyResourceAzure;
 	protected DummyResourceContoller dummyResourceCtlAzure;
@@ -1566,7 +1567,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID);
         
-        boolean isPasswordValid = passwordPolicyProcessor.validatePassword(stringPassword, null, passwordPolicy.asObjectable(),
+        boolean isPasswordValid = valuePolicyProcessor.validateValue(stringPassword, passwordPolicy.asObjectable(),
         		userRapp, TEST_NAME, task, result);
         assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);        
         

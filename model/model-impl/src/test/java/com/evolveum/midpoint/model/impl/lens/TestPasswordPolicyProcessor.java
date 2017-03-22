@@ -77,19 +77,19 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 		repoAddObjectFromFile(PASSWORD_NO_HISTORY_POLICY_FILE, initResult);
 
 		deleteObject(UserType.class, USER_JACK_OID);
-
 	}
 
 	@Test
 	public void test000initPasswordPolicyForHistory() throws Exception {
-		String title = "test000initPasswordPolicyForHistory";
-		initPasswordPolicy(title, PASSWORD_HISTORY_POLICY_OID);
+		final String TEST_NAME = "test000initPasswordPolicyForHistory";
+		initPasswordPolicy(TEST_NAME, PASSWORD_HISTORY_POLICY_OID);
 
 	}
 
 	@Test
 	public void test100CreateUserWithPassword() throws Exception {
-		display("test100CreateUserWithPassword");
+		final String TEST_NAME = "test100CreateUserWithPassword";
+		TestUtil.displayTestTile(TEST_NAME);
 		// WHEN
 		addObject(USER_JACK_FILE);
 
@@ -102,8 +102,9 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 
 	@Test
 	public void test101ModifyUserPassword() throws Exception {
-		final String TEST_NAME = "test100ModifyUserPassword";
-		display(TEST_NAME);
+		final String TEST_NAME = "test101ModifyUserPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -133,7 +134,8 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test102ModifyUserPassword() throws Exception {
 		final String TEST_NAME = "test102ModifyUserPassword";
-		display(TEST_NAME);
+		TestUtil.displayTestTile(TEST_NAME);
+		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -162,8 +164,10 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 
 	@Test
 	public void test103ModifyUserPasswordAgain() throws Exception {
-		String title = "test103ModifyUserPasswordAgain";
-		Task task = taskManager.createTaskInstance(title);
+		final String TEST_NAME = "test103ModifyUserPasswordAgain";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN

@@ -230,5 +230,8 @@ public interface PrismContext {
 
 	void setMonitor(PrismMonitor monitor);
 
-
+	/**
+	 * If defined, it is considered to be the same as the relation of 'null'. Currently in midPoint, it is the value of org:default.
+	 */
+	QName getDefaultRelation();
 }

@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang.StringUtils;
@@ -198,7 +199,7 @@ public class MidPointAsserts {
             ObjectReferenceType targetRef = assignmentType.getTargetRef();
             if (targetRef != null) {
                 if (OrgType.COMPLEX_TYPE.equals(targetRef.getType())) {
-                    if (orgOid.equals(targetRef.getOid()) && QNameUtil.match(targetRef.getRelation(), relation)) {
+                    if (orgOid.equals(targetRef.getOid()) && ObjectTypeUtil.relationMatches(relation, targetRef.getRelation())) {
                         AssertJUnit.fail(user + " does have assigned OrgType "+orgOid+" with relation "+relation+" while not expecting it");
                     }
                 }
@@ -226,7 +227,7 @@ public class MidPointAsserts {
 	public static <O extends ObjectType> boolean hasOrg(PrismObject<O> user, String orgOid, QName relation) {
 		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid()) &&
-					MiscSchemaUtil.compareRelation(orgRef.getRelation(), relation)) {
+					MiscSchemaUtil.compareRelation(relation, orgRef.getRelation())) {
 				return true;
 			}
 		}

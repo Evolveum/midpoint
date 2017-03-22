@@ -33,7 +33,6 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -66,11 +65,10 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
 		PrismContextImpl context = PrismContextImpl.create(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
-		
+		context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
 		if (InternalsConfig.isPrismMonitoring()) {
 			context.setMonitor(new InternalMonitor());
 		}
-		
 		return context;
 	}
 	
@@ -78,6 +76,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
 		PrismContextImpl context = PrismContextImpl.createEmptyContext(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
+		context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
 		return context;
 	}
 	

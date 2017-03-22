@@ -239,6 +239,19 @@
             	<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
             
+            <association>
+                <ref>ri:org-group</ref>
+                <displayName>AD Org Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>org-group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:member</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+                <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            	<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            
             <activation>
 				<administrativeStatus>
 					<outbound/>
@@ -624,6 +637,70 @@
 				</inbound>
             </attribute>
         </objectType>
+        
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>org-group</intent>
+            <displayName>Organizational Group</displayName>
+            <description>Groups in the parent (top) domain that are part of organizational units</description>
+            <default>false</default>
+            <objectClass>ri:group</objectClass>
+            <baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>OU=Org,DC=ad,DC=evolveum,DC=com</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>
+            <attribute>
+                <ref>dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                            	def parent = midpoint.getParentOrgByOrgType(focus,null)
+                                basic.composeDnWithSuffix('CN', name, 'OU', parent.getName(), 'OU=Org,DC=ad,DC=evolveum,DC=com')
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                </outbound>
+                <inbound>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>description</path>
+                    </source>
+                </outbound>
+                <inbound>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
+            </attribute>
+        </objectType>
+        
 
     </schemaHandling>
     

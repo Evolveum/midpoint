@@ -21,10 +21,24 @@
     <name>Governor</name>
     <assignment>
     	<policyRule>
-    		<name>min1</name>
+    		<name>max1</name>
     		<policyConstraints>
 		    	<maxAssignees>
 		    		<multiplicity>1</multiplicity>
+		    	</maxAssignees>
+		    </policyConstraints>
+			<policyActions>
+				<enforcement/>
+			</policyActions>
+    	</policyRule>
+	</assignment>
+	<assignment>
+    	<policyRule>
+    		<name>no-approvers</name>
+    		<policyConstraints>
+		    	<maxAssignees>
+		    		<multiplicity>0</multiplicity>
+					<relation>approver</relation>
 		    	</maxAssignees>
 		    </policyConstraints>
 			<policyActions>

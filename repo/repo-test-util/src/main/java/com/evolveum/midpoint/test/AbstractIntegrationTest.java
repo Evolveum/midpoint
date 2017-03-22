@@ -1412,7 +1412,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 					AssertJUnit.fail(message + "Unexpected value saved in between password hisotry entries: " 
 							+ getHumanReadablePassword(historyEntry.getValue())
 							+ ". Expected "+ Arrays.toString(changedPasswords)+"("+changedPasswords.length+"), was "
-							+ getPasswordHistoryHumanReadable(historyEntriesType) + "("+historyEntriesType.size()+")");
+							+ getPasswordHistoryHumanReadable(historyEntriesType) + "("+historyEntriesType.size()+"); expected storage type: "+storageType);
 				}
 			} catch (EncryptionException | SchemaException e) {
 				AssertJUnit.fail(message + "Could not encrypt password: "+e.getMessage());
@@ -1480,5 +1480,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue(password);
 		passwordType.setValue(ps);
+	}
+	
+	protected <O extends ObjectType> PrismObject<O> instantiateObject(Class<O> type) throws SchemaException {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
 	}
 }

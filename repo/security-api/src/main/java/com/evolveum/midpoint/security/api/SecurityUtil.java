@@ -17,17 +17,31 @@ package com.evolveum.midpoint.security.api;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.MiscUtil;
+
+import org.apache.lucene.document.Field.Store;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author Radovan Semancik
@@ -125,4 +139,140 @@ public class SecurityUtil {
 		return null;
 	}
 	
+	public static PasswordCredentialsPolicyType getEffectivePasswordCredentialsPolicy(SecurityPolicyType securityPolicy) {
+		if (securityPolicy == null) {
+			return null;
+		}
+		CredentialsPolicyType creds = securityPolicy.getCredentials();
+		if (creds == null) {
+			return null;
+		}
+		if (creds.getDefault() == null) {
+			return creds.getPassword();
+		}
+		PasswordCredentialsPolicyType passPolicy = creds.getPassword();
+		if (passPolicy == null) {
+			passPolicy = new PasswordCredentialsPolicyType();
+		} else {
+			passPolicy = passPolicy.clone();
+		}
+		copyDefaults(creds.getDefault(), passPolicy);
+		return passPolicy;
+	}
+	
+	public static List<NonceCredentialsPolicyType> getEffectiveNonceCredentialsPolicies(SecurityPolicyType securityPolicy) {
+		if (securityPolicy == null) {
+			return null;
+		}
+		CredentialsPolicyType creds = securityPolicy.getCredentials();
+		if (creds == null) {
+			return null;
+		}
+		if (creds.getDefault() == null) {
+			return creds.getNonce();
+		}
+		List<NonceCredentialsPolicyType> existingNoncePolicies = creds.getNonce();
+		List<NonceCredentialsPolicyType> newNoncePolicies = new ArrayList<>(existingNoncePolicies.size());
+		for(NonceCredentialsPolicyType noncePolicy: existingNoncePolicies) {
+			NonceCredentialsPolicyType newNoncePolicy = noncePolicy.clone();
+			copyDefaults(creds.getDefault(), newNoncePolicy);
+			newNoncePolicies.add(newNoncePolicy);
+		}
+		return newNoncePolicies;
+	}
+	
+	public static NonceCredentialsPolicyType getEffectiveNonceCredentialsPolicy(SecurityPolicyType securityPolicy) throws SchemaException {
+		List<NonceCredentialsPolicyType> noncePolies = getEffectiveNonceCredentialsPolicies(securityPolicy);
+		if (noncePolies.isEmpty()) {
+			return null;
+		}
+		if (noncePolies.size() > 1) {
+			throw new SchemaException("More than one nonce policy");
+		}
+		return noncePolies.get(0);
+	}
+
+	private static void copyDefaults(CredentialPolicyType defaults,
+			CredentialPolicyType target) {
+		// Primitive, but efficient
+		if (target.getHistoryLength() == null && defaults.getHistoryLength() != null) {
+			target.setHistoryLength(defaults.getHistoryLength());
+		}
+		if (target.getHistoryStorageMethod() == null && defaults.getHistoryStorageMethod() != null) {
+			target.setHistoryStorageMethod(defaults.getHistoryStorageMethod());
+		}
+		if (target.getLockoutDuration() == null && defaults.getLockoutDuration() != null) {
+			target.setLockoutDuration(defaults.getLockoutDuration());
+		}
+		if (target.getLockoutFailedAttemptsDuration() == null && defaults.getLockoutFailedAttemptsDuration() != null) {
+			target.setLockoutFailedAttemptsDuration(defaults.getLockoutFailedAttemptsDuration());
+		}
+		if (target.getLockoutMaxFailedAttempts() == null && defaults.getLockoutMaxFailedAttempts() != null) {
+			target.setLockoutMaxFailedAttempts(defaults.getLockoutMaxFailedAttempts());
+		}
+		if (target.getMaxAge() == null && defaults.getMaxAge() != null) {
+			target.setMaxAge(defaults.getMaxAge());
+		}
+		if (target.getMinAge() == null && defaults.getMinAge() != null) {
+			target.setMinAge(defaults.getMinAge());
+		}
+		if (target.getPropagationUserControl() == null && defaults.getPropagationUserControl() != null) {
+			target.setPropagationUserControl(defaults.getPropagationUserControl());
+		}
+		if (target.getResetMethod() == null && defaults.getResetMethod() != null) {
+			target.setResetMethod(defaults.getResetMethod());
+		}
+		if (target.getStorageMethod() == null && defaults.getStorageMethod() != null) {
+			target.setStorageMethod(defaults.getStorageMethod());
+		}
+		if (target.getWarningBeforeExpirationDuration() == null && defaults.getWarningBeforeExpirationDuration() != null) {
+			target.setWarningBeforeExpirationDuration(defaults.getWarningBeforeExpirationDuration());
+		}
+	}
+	
+	public static int getCredentialHistoryLength(CredentialPolicyType credentialPolicy) {
+		if (credentialPolicy == null) {
+			return 0;
+		}
+		Integer historyLength = credentialPolicy.getHistoryLength();
+		if (historyLength == null) {
+			return 0;
+		}
+		return historyLength;
+	}
+
+	public static CredentialsStorageTypeType getCredentialStoragetTypeType(CredentialsStorageMethodType storageMethod) {
+		if (storageMethod == null) {
+			return null;
+		}
+		return storageMethod.getStorageType();
+	}
+	
+	/**
+	 * Not very systematic. Used mostly in hacks.
+	 * @param securityPolicy
+	 * @return
+	 */
+	public static ValuePolicyType getPasswordPolicy(SecurityPolicyType securityPolicy) {
+		if (securityPolicy == null) {
+			return null;
+		}
+		CredentialsPolicyType creds = securityPolicy.getCredentials();
+		if (creds == null) {
+			return null;
+		}
+		PasswordCredentialsPolicyType passd = creds.getPassword();
+		if (passd == null) {
+			return null;
+		}
+		ObjectReferenceType valuePolicyRef = passd.getValuePolicyRef();
+		if (valuePolicyRef == null) {
+			return null;
+		}
+		PrismObject<ValuePolicyType> policyObj = valuePolicyRef.asReferenceValue().getObject();
+		if (policyObj == null) {
+			return null;
+		}
+		return policyObj.asObjectable();
+	}
 }

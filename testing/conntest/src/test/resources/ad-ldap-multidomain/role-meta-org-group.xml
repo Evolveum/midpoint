@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (c) 2015-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role oid="c5d3294a-0d8e-11e7-bd9d-ff848c2e7e3f"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Org Group Metarole</name>
+    
+    <inducement>
+    	<construction>
+    		<resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="c:ResourceType"/>
+    		<kind>entitlement</kind>
+            <intent>org-group</intent>
+    	</construction>
+    </inducement>
+    
+    <inducement>
+    	<construction>
+    		<resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="c:ResourceType"/>
+    		<kind>account</kind>
+    		<intent>default</intent>
+    		<association>
+            	<ref>ri:org-group</ref>
+            	<outbound>
+            		<expression>
+            			<associationFromLink>
+            				<projectionDiscriminator>
+	            				<kind>entitlement</kind>
+	            				<intent>org-group</intent>
+            				</projectionDiscriminator>
+            			</associationFromLink>
+            		</expression>
+            	</outbound>
+            </association>
+    	</construction>  
+    	<order>2</order>
+    	<focusType>UserType</focusType>
+    </inducement>
+    
+</role>

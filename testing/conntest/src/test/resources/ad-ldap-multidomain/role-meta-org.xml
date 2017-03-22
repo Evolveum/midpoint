@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 Evolveum
+  ~ Copyright (c) 2015-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -32,6 +32,14 @@
     <inducement>
     	<construction>
     		<resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="c:ResourceType"/>
+    		<kind>generic</kind>
+            <intent>ou-top</intent>
+    	</construction>
+    </inducement>
+    
+    <inducement>
+    	<construction>
+    		<resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="c:ResourceType"/>
     		<kind>account</kind>
     		<intent>default</intent>
     		<association>
@@ -49,6 +57,7 @@
             </association>
     	</construction>  
     	<order>2</order>
+    	<focusType>UserType</focusType>
     </inducement>
     
 </role>

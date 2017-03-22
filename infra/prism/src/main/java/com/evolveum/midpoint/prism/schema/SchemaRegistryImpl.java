@@ -1130,7 +1130,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	public PrismSchema findSchemaByCompileTimeClass(@NotNull Class<?> compileTimeClass) {
 		Package compileTimePackage = compileTimeClass.getPackage();
 		if (compileTimePackage == null) {
-			throw new IllegalStateException("No Java package for " + compileTimeClass);
+			return null;			// e.g. for arrays
 		}
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {

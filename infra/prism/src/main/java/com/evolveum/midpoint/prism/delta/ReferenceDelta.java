@@ -112,12 +112,12 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue,PrismReference
 
     public static <O extends Objectable> ReferenceDelta createModificationReplace(QName refName, Class<O> type, PrismContext ctx , String oid) {
     	PrismObjectDefinition<O> objectDefinition = ctx.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createModificationReplace(refName, objectDefinition, new PrismReferenceValue(oid));
+		return createModificationReplace(refName, objectDefinition, oid==null?null:new PrismReferenceValue(oid));
 	}
     
     public static <O extends Objectable> ReferenceDelta createModificationReplace(ItemPath path, Class<O> type, PrismContext ctx, String oid) {
     	PrismObjectDefinition<O> objectDefinition = ctx.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createModificationReplace(path, objectDefinition, new PrismReferenceValue(oid));
+		return createModificationReplace(path, objectDefinition, oid==null?null:new PrismReferenceValue(oid));
 	}
 
     public static ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition,
@@ -144,7 +144,11 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue,PrismReference
     		PrismReferenceValue refValue) {
     	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(refName, PrismReferenceDefinition.class);
     	ReferenceDelta referenceDelta = new ReferenceDelta(refName, referenceDefinition, objectDefinition.getPrismContext());              // hoping the prismContext is there
-    	referenceDelta.setValueToReplace(refValue);
+    	if (refValue == null) {
+    		referenceDelta.setValueToReplace();
+    	} else {
+    		referenceDelta.setValueToReplace(refValue);
+    	}
     	return referenceDelta;
     }
 

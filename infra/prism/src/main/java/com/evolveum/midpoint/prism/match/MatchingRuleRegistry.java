@@ -31,12 +31,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MatchingRuleRegistry {
 	
-	@NotNull public final MatchingRule <? extends Object> defaultMatchingRule;
-	public Map<QName, ? extends MatchingRule<?>> matchingRules = new HashMap<QName, MatchingRule<?>>();
+	@NotNull public final MatchingRule<?> defaultMatchingRule;
+	public Map<QName, ? extends MatchingRule<?>> matchingRules = new HashMap<>();
 	
 	public MatchingRuleRegistry() {
 		super();
-		this.defaultMatchingRule = new DefaultMatchingRule<Object>();
+		this.defaultMatchingRule = new DefaultMatchingRule<>();
 	}
 	
 	public MatchingRuleRegistry(Collection<? extends MatchingRule<?>> matchingRules) {

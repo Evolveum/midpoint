@@ -15,42 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import javax.xml.datatype.Duration;
+import javax.xml.soap.SOAPMessage;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.wss4j.common.ext.WSSecurityException;
@@ -63,10 +30,35 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.soap.SOAPMessage;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordLifeTimeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
@@ -181,112 +173,173 @@ public class SecurityHelper {
         return msg.getContent(SOAPMessage.class);
     }
     
-    public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException {
-    	SecurityPolicyType orgSecurityPolicy = determineOrgSecurityPolicy(user, task, result);
+    /**
+     * Returns security policy applicable for the specified user. It looks for organization and global policies and takes into account
+     * deprecated properties and password policy references. The resulting security policy has all the (non-deprecated) properties set.
+     * If there is also referenced value policy, it is will be stored as "object" in the value policy reference inside the
+     * returned security policy.
+     */
+    public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration, 
+    		Task task, OperationResult result) throws SchemaException {
+    	
+    	PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
+    	LOGGER.trace("Found organization security policy: {}", orgSecurityPolicy);
     	if (orgSecurityPolicy != null) {
-    		return orgSecurityPolicy;
+    		SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();
+    		postProcessSecurityPolicy(orgSecurityPolicyType, task, result);
+    		traceSecurityPolicy(orgSecurityPolicyType, user);
+    		return orgSecurityPolicyType;
     	}
-    	if (systemConfiguration == null) {
-			return null;
-		}
-		ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
-		if (globalSecurityPolicyRef == null) {
-			return null;
-		}
-		try {
-			return objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.error(e.getMessage(), e);
-			return null;
-		}
-	}
-
-	private <O extends ObjectType> SecurityPolicyType determineOrgSecurityPolicy(PrismObject<O> object, Task task, OperationResult result)
-			throws SchemaException {
-		LOGGER.trace("Determining security policies from object: {}", object);
-		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
-		if (orgRef == null) {
-			return null;
-		}
-		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
-		SecurityPolicyType resultingSecurityPolicy = null;
-		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
-
-		for (PrismReferenceValue orgRefValue : orgRefValues) {
-			if (orgRefValue != null) {
-
+    	
+    	if (systemConfiguration != null) {
+			ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
+			if (globalSecurityPolicyRef != null) {
 				try {
-					PrismObject<OrgType> org = objectResolver.resolve(orgRefValue, "resolving parent org ref", null, null, result);
-					orgs.add(org);
-					SecurityPolicyType securityPolicy = resolveOrgSecurityPolicy(org, task, result);
-
-					if (securityPolicy != null) {
-						if (resultingSecurityPolicy == null) {
-							resultingSecurityPolicy = securityPolicy;
-						} else if (!StringUtils.equals(securityPolicy.getOid(), resultingSecurityPolicy.getOid())) {
-							throw new SchemaException(
-									"Found more than one security policy for user. Please check your configuration");
-						}
-					}
-				} catch (ObjectNotFoundException ex) {
-					// Just log the error, but do not fail on that. Failing would prohibit login
-					// and that may mean the misconfiguration could not be easily fixed.
-					LOGGER.warn("Cannot find organization {} referenced in , cannot use it do determine security policy.", orgRefValue.getOid(), object);
+					SecurityPolicyType globalSecurityPolicyType = objectResolver.resolve(globalSecurityPolicyRef, SecurityPolicyType.class, null, "global security policy reference in system configuration", task, result);
+					LOGGER.trace("Using global security policy: {}", globalSecurityPolicyType);
+					postProcessSecurityPolicy(globalSecurityPolicyType, task, result);
+					traceSecurityPolicy(globalSecurityPolicyType, user);
+					return globalSecurityPolicyType;
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error(e.getMessage(), e);
+					traceSecurityPolicy(null, user);
+					return null;
 				}
+			}
+    	}
+    	
+    	
+    	// DEPRECATED, legacy
+    	PrismObject<ValuePolicyType> orgPasswordPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getPasswordPolicyRef(), "security policy", task, result);
+    	LOGGER.trace("Found organization password policy: {}", orgPasswordPolicy);
+    	if (orgPasswordPolicy != null) {
+    		SecurityPolicyType policy = postProcessPasswordPolicy(orgPasswordPolicy.asObjectable());
+    		traceSecurityPolicy(policy, user);
+    		return policy;
+    	}
+    	
+    	if (systemConfiguration != null) {
+			ObjectReferenceType globalPasswordPolicyRef = systemConfiguration.asObjectable().getGlobalPasswordPolicyRef();
+			if (globalPasswordPolicyRef != null) {
+				try {
+					ValuePolicyType globalPasswordPolicyType = objectResolver.resolve(globalPasswordPolicyRef, ValuePolicyType.class, null, "global security policy reference in system configuration", task, result);
+					LOGGER.trace("Using global password policy: {}", globalPasswordPolicyType);
+					SecurityPolicyType policy = postProcessPasswordPolicy(globalPasswordPolicyType);
+					traceSecurityPolicy(policy, user);
+		    		return policy;
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error(e.getMessage(), e);
+					traceSecurityPolicy(null, user);
+					return null;
+				}
+			}
+    	}
+    	
+    	return null;
+	}
+    
+ 
+	private <F extends FocusType> void traceSecurityPolicy(SecurityPolicyType securityPolicyType, PrismObject<F> user) {
+		if (LOGGER.isTraceEnabled()) {
+			if (securityPolicyType == null) {
+				LOGGER.trace("Located security policy for {}: null", user);
+			} else {
+				LOGGER.trace("Located security policy for {}:\n{}", user, securityPolicyType.asPrismObject().debugDump(1));
 			}
 		}
 		
-		// go deeper
-		if (resultingSecurityPolicy == null) {
-			for (PrismObject<OrgType> orgType : orgs) {
-				resultingSecurityPolicy = determineOrgSecurityPolicy(orgType, task, result);
-				if (resultingSecurityPolicy != null) {
-					return resultingSecurityPolicy;
-				}
-			}
-		}
-		return resultingSecurityPolicy;
 	}
 
-	private SecurityPolicyType resolveOrgSecurityPolicy(PrismObject<OrgType> org, Task task, OperationResult result)
-			throws SchemaException {
-		try {
-			SecurityPolicyType securityPolicy = null;
-			OrgType orgType = org.asObjectable();
-			ObjectReferenceType securityPolicyRef = orgType.getSecurityPolicyRef();
-			if (securityPolicyRef != null) {
-				LOGGER.trace("Org {} has specified security policy.", orgType);
-				securityPolicy = objectResolver.resolve(securityPolicyRef, SecurityPolicyType.class, null,
-						"resolving security policy for organization", task, result);
-				LOGGER.trace("Resolved security policy {}", securityPolicy);				
-			} else {
-				ObjectReferenceType paswordPolicyRef = orgType.getPasswordPolicyRef();
-				if (paswordPolicyRef != null) {
-					LOGGER.trace("Org {} has specified password policy.", orgType);
-					ValuePolicyType passordPolicy = objectResolver.resolve(paswordPolicyRef, ValuePolicyType.class, null,
-							"resolving password policy for organization", task, result);
-					LOGGER.trace("Resolved password policy {}", securityPolicy);
-					securityPolicy = createSecurityPolicy(passordPolicy);
-				}
+	private void postProcessSecurityPolicy(SecurityPolicyType securityPolicyType, Task task, OperationResult result) {
+		CredentialsPolicyType creds = securityPolicyType.getCredentials();
+		if (creds != null) {
+			PasswordCredentialsPolicyType passwd = creds.getPassword();
+			if (passwd != null) {
+				postProcessPasswordCredentialPolicy(securityPolicyType, passwd, task, result);
 			}
-			
-			return securityPolicy;
-
-		} catch (ObjectNotFoundException e) {
-			LOGGER.error("Cannot find policy: {}", e.getMessage(), e);
-			return null;
+			for (NonceCredentialsPolicyType nonce: creds.getNonce()) {
+				postProcessCredentialPolicy(securityPolicyType, nonce, "nonce credential policy", task, result);
+			}
+			SecurityQuestionsCredentialsPolicyType securityQuestions = creds.getSecurityQuestions();
+			if (securityQuestions != null) {
+				postProcessCredentialPolicy(securityPolicyType, securityQuestions, "security questions credential policy", task, result);
+			}
 		}
 	}
 	
-	private SecurityPolicyType createSecurityPolicy(ValuePolicyType passordPolicy) {
-		SecurityPolicyType securityPolicy = new SecurityPolicyType();
-		CredentialsPolicyType creds = new CredentialsPolicyType();
-		PasswordCredentialsPolicyType passd = new PasswordCredentialsPolicyType();
-		ObjectReferenceType passwordPolicyRef = new ObjectReferenceType();
-		passwordPolicyRef.asReferenceValue().setObject(passordPolicy.asPrismObject());
-		passd.setPasswordPolicyRef(passwordPolicyRef);
-		creds.setPassword(passd);
-		securityPolicy.setCredentials(creds);
-		return securityPolicy;
+	private void postProcessPasswordCredentialPolicy(SecurityPolicyType securityPolicyType, PasswordCredentialsPolicyType passwd, Task task, OperationResult result) {
+		// Deprecated settings
+		Integer passwordHistoryLength = passwd.getPasswordHistoryLength();
+		if (passwordHistoryLength != null && passwd.getHistoryLength() == null) {
+			passwd.setHistoryLength(passwordHistoryLength);
+		}
+		
+		ObjectReferenceType passwordPolicyRef = passwd.getPasswordPolicyRef();
+		if (passwordPolicyRef != null && passwd.getValuePolicyRef() == null) {
+			passwd.setValuePolicyRef(passwordPolicyRef.clone());
+		}
+		
+		ValuePolicyType valuePolicyType = postProcessCredentialPolicy(securityPolicyType, passwd, "password credential policy", task, result);
+		
+		if (valuePolicyType != null) {
+			setDeprecatedPasswordPolicyProperties(valuePolicyType, passwd);
+		}
 	}
+	
+	private ValuePolicyType postProcessCredentialPolicy(SecurityPolicyType securityPolicyType, CredentialPolicyType credPolicy, String credShortDesc, Task task, OperationResult result) {
+		ObjectReferenceType valuePolicyRef = credPolicy.getValuePolicyRef();
+		if (valuePolicyRef == null) {
+			return null;
+		}
+		ValuePolicyType valuePolicyType;
+		try {
+			valuePolicyType = objectResolver.resolve(valuePolicyRef, ValuePolicyType.class, null, credShortDesc + " in " + securityPolicyType, task, result);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			LOGGER.warn("{} {} referenced from {} was not found", credShortDesc, valuePolicyRef.getOid(), securityPolicyType);
+			return null;
+		}
+		valuePolicyRef.asReferenceValue().setObject(valuePolicyType.asPrismObject());
+		return valuePolicyType;
+	}
+
+	private SecurityPolicyType postProcessPasswordPolicy(ValuePolicyType passwordPolicyType) {
+		SecurityPolicyType securityPolicyType = new SecurityPolicyType();
+		CredentialsPolicyType creds = new CredentialsPolicyType();
+		PasswordCredentialsPolicyType passwd = new PasswordCredentialsPolicyType();
+		ObjectReferenceType passwordPolicyRef = new ObjectReferenceType();
+		passwordPolicyRef.asReferenceValue().setObject(passwordPolicyType.asPrismObject());
+		passwd.setValuePolicyRef(passwordPolicyRef);
+		creds.setPassword(passwd);
+		securityPolicyType.setCredentials(creds);
+		setDeprecatedPasswordPolicyProperties(passwordPolicyType, passwd);
+		return securityPolicyType;
+	}
+
+	private void setDeprecatedPasswordPolicyProperties(ValuePolicyType passwordPolicyType,
+			PasswordCredentialsPolicyType passwd) {
+		PasswordLifeTimeType lifetime = passwordPolicyType.getLifetime();
+		if (lifetime != null) {
+			Integer expiration = lifetime.getExpiration();
+			if (expiration != null && expiration != 0 && passwd.getMaxAge() == null) {
+				passwd.setMaxAge(daysToDuration(expiration));
+			}
+			Integer minPasswordAge = lifetime.getMinPasswordAge();
+			if (minPasswordAge != null && minPasswordAge != 0 && passwd.getMinAge() == null) {
+				passwd.setMinAge(daysToDuration(minPasswordAge));
+			}
+			Integer passwordHistoryLength = lifetime.getPasswordHistoryLength();
+			if (passwordHistoryLength != null && passwd.getHistoryLength() == null) {
+				passwd.setHistoryLength(passwordHistoryLength);
+			}
+		}
+		String minOccurs = passwordPolicyType.getMinOccurs();
+		if (minOccurs != null && passwd.getMinOccurs() == null) {
+			passwd.setMinOccurs(minOccurs);
+		}
+	}
+	
+	private Duration daysToDuration(int days) {
+		return XmlTypeConverter.createDuration(days * 1000 * 60 * 60 * 24);
+	}
+	
 }

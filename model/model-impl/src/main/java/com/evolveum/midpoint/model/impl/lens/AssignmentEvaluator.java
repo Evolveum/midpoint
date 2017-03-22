@@ -679,7 +679,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		ObjectType orderOneObject = getOrderOneObject(segment);
 
-		if (DeputyUtils.isDelegationRelation(relation)) {
+		if (ObjectTypeUtil.isDelegationRelation(relation)) {
 			// We have to handle assignments as though they were inducements here.
 			if (!isInducementAllowedByLimitations(segment, roleAssignment)) {
 				if (LOGGER.isTraceEnabled()) {
@@ -826,7 +826,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (targetType instanceof AbstractRoleType) {
 			// OK, just go on
 		} else if (targetType instanceof UserType) {
-			if (!DeputyUtils.isDelegationRelation(relation)) {
+			if (!ObjectTypeUtil.isDelegationRelation(relation)) {
 				throw new SchemaException("Unsupported relation " + relation + " for assignment of target type " + targetType + " in " + segment.sourceDescription);
 			}
 		} else {
@@ -945,7 +945,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	@Nullable
 	private QName getRelation(AssignmentType assignmentType) {
-		return assignmentType.getTargetRef() != null ? assignmentType.getTargetRef().getRelation() : null;
+		return assignmentType.getTargetRef() != null ?
+				ObjectTypeUtil.normalizeRelation(assignmentType.getTargetRef().getRelation()) : null;
 	}
 
 	public static final class Builder<F extends FocusType> {

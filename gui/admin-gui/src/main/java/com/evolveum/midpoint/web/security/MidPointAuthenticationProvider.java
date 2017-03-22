@@ -64,8 +64,8 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 		MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
 		
-		LOGGER.debug("User '{}' authenticated ({}), authorities: {}", new Object[]{authentication.getPrincipal(), 
-				authentication.getClass().getSimpleName(), principal.getAuthorities()});	
+		LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
+				authentication.getClass().getSimpleName(), principal.getAuthorities());
 		return token;
 	}
 

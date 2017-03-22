@@ -19,7 +19,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -346,17 +345,15 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		this.processMembership = processMembership;
 	}
 
-	/**
-	 *  Whether this assignment/inducement matches the focus level, i.e. if we should collect constructions,
-	 *  focus mappings, and focus policy rules from it.
-	 */
+	@Override
 	public boolean isMatchingOrder() {
 		if (isMatchingOrder == null) {
 			isMatchingOrder = computeMatchingOrder(evaluationOrder, getAssignment());
 		}
 		return isMatchingOrder;
 	}
-	
+
+	@Override
 	public boolean isMatchingOrderForTarget() {
 		if (isMatchingOrderForTarget == null) {
 			isMatchingOrderForTarget = computeMatchingOrder(evaluationOrderForTarget, getAssignment());
@@ -393,7 +390,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		if (!extraRelations.isEmpty()) {
 			rv = false;
 		}
-		LOGGER.trace("computeMatchingOrder => {}, for offset={}; assignment.order={}, assignment.orderConstraint={}, evaluationOrder={}, remainingExtraRelations={}",
+		LOGGER.trace("computeMatchingOrder => {}, for assignment.order={}, assignment.orderConstraint={}, evaluationOrder={}, remainingExtraRelations={}",
 				rv, assignmentOrder, assignmentOrderConstraint, evaluationOrder, extraRelations);
 		return rv;
 	}
@@ -417,7 +414,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	
 	@Override
 	public boolean isDelegation() {
-		return DeputyUtils.isDelegationRelation(relation);
+		return ObjectTypeUtil.isDelegationRelation(relation);
 	}
 
 	@Override
@@ -469,6 +466,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		}
 		sb.append(": ");
 		sb.append(source).append(" ");
+		if (!isAssignment) {
+			sb.append("inducement ");
+		}
 		PrismContainer<AssignmentType> assignment = (PrismContainer<AssignmentType>) assignmentIdi.getAnyItem();
 		AssignmentType assignmentType = assignment != null ? assignment.getValue().asContainerable() : null;
 		if (assignmentType != null) {
