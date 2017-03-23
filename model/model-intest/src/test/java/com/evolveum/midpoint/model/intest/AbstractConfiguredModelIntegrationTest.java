@@ -163,6 +163,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_BLACK_OID = "10000000-0000-0000-0000-000000000305";
 	protected static final String RESOURCE_DUMMY_BLACK_NAME = "black";
 	protected static final String RESOURCE_DUMMY_BLACK_NAMESPACE = MidPointConstants.NS_RI;
+	
+	// Black dummy resource for testing tolerant attributes
+	protected static final File RESOURCE_DUMMY_RELATIVE_FILE = new File(COMMON_DIR, "resource-dummy-relative.xml");
+	protected static final String RESOURCE_DUMMY_RELATIVE_OID = "adcd4654-0f15-11e7-8337-0bdf60ad7bcd";
+	protected static final String RESOURCE_DUMMY_RELATIVE_NAME = "relative";
+	protected static final String RESOURCE_DUMMY_RELATIVE_NAMESPACE = MidPointConstants.NS_RI;
 
 	// Orange dummy resource for testing associations with resource-provided referential integrity
 	// It also have very little outbound expressions and it has some strange inbound expressions.
@@ -195,7 +201,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String ROLE_PIRATE_DESCRIPTION = "Scurvy Pirates";
     protected static final String ROLE_PIRATE_TITLE = "Bloody Pirate";
     protected static final String ROLE_PIRATE_WEAPON = "cutlass";
-    
+       
     protected static final File ROLE_CARIBBEAN_PIRATE_FILE = new File(COMMON_DIR, "role-caribbean-pirate.xml");
 	protected static final String ROLE_CARIBBEAN_PIRATE_OID = "0719ec66-edd9-11e6-bd70-03a74157ff9e";
     
@@ -203,6 +209,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_PIRATE_GREEN_OID = "12345678-d34d-b33f-f00d-555555557777";
     protected static final String ROLE_PIRATE_GREEN_NAME = "Pirate Green";
     protected static final String ROLE_PIRATE_GREEN_DESCRIPTION = "Scurvy Pirates";
+    
+    protected static final File ROLE_PIRATE_RELATIVE_FILE = new File(COMMON_DIR, "role-pirate-relative.xml");
+	protected static final String ROLE_PIRATE_RELATIVE_OID = "4a579cd0-0f17-11e7-967c-130ecd6fb7dc";
+    protected static final String ROLE_PIRAT_RELATIVEE_NAME = "Relative Pirate";
     
     protected static final File ROLE_BUCCANEER_GREEN_FILE = new File(COMMON_DIR, "role-buccaneer-green.xml");
 	protected static final String ROLE_BUCCANEER_GREEN_OID = "12345678-d34d-b33f-f00d-555555558888";

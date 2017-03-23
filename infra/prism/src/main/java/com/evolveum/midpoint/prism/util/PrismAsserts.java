@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -480,6 +480,14 @@ public class PrismAsserts {
 		assert !objectDelta.hasItemDelta(itemPath) : "Delta for item "+itemPath+" present while not expecting it";
 	}
 	
+	public static <T> void assertPropertyDelta(PropertyDelta<T> delta, T[] expectedOldValues, T[] expectedAddValues, T[] expectedDeleteValues, T[] expectedReplaceValues) {
+		assertNotNull("No delta",delta);
+		assertSet("delta "+delta, "old", delta.getEstimatedOldValues(), expectedOldValues);
+		assertSet("delta "+delta, "add", delta.getValuesToAdd(), expectedAddValues);
+		assertSet("delta "+delta, "delete", delta.getValuesToDelete(), expectedDeleteValues);
+		assertSet("delta "+delta, "replace", delta.getValuesToReplace(), expectedReplaceValues);
+	}
+	
 	public static ContainerDelta<?> assertContainerAddGetContainerDelta(ObjectDelta<?> objectDelta, QName name) {
 		return assertContainerAddGetContainerDelta(objectDelta, new ItemPath(name));
 	}
@@ -846,21 +854,25 @@ public class PrismAsserts {
 	}
 	
 	public static <T> void assertValues(String message, MatchingRule<T> matchingRule, Collection<PrismPropertyValue<T>> actualPValues, T... expectedValues) throws SchemaException {
-		assertNotNull("Null set in " + message, actualPValues);
-		if (expectedValues.length != actualPValues.size()) {
-			fail("Wrong number of values in " + message+ "; expected "+expectedValues.length+" (real values) "
-					+PrettyPrinter.prettyPrint(expectedValues)+"; has "+actualPValues.size()+" (pvalues) "+actualPValues);
-		}
-		for (PrismPropertyValue<T> actualPValue: actualPValues) {
-			boolean found = false;
-			for (T value: expectedValues) {
-				if (PrismUtil.equals(value, actualPValue.getValue(), matchingRule)) {
-					found = true;
-				}
+		if (expectedValues == null) {
+			assertNull("Unexpected set in" +message+": "+actualPValues, actualPValues);
+		} else {
+			assertNotNull("Null set in " + message, actualPValues);
+			if (expectedValues.length != actualPValues.size()) {
+				fail("Wrong number of values in " + message+ "; expected "+expectedValues.length+" (real values) "
+						+PrettyPrinter.prettyPrint(expectedValues)+"; has "+actualPValues.size()+" (pvalues) "+actualPValues);
 			}
-			if (!found) {
-				fail("Unexpected value "+actualPValue+" in " + message + "; expected (real values) "
-						+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualPValues);
+			for (PrismPropertyValue<T> actualPValue: actualPValues) {
+				boolean found = false;
+				for (T value: expectedValues) {
+					if (PrismUtil.equals(value, actualPValue.getValue(), matchingRule)) {
+						found = true;
+					}
+				}
+				if (!found) {
+					fail("Unexpected value "+actualPValue+" in " + message + "; expected (real values) "
+							+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualPValues);
+				}
 			}
 		}
 	}
@@ -1049,6 +1061,10 @@ public class PrismAsserts {
 	
 	static void assertNotNull(String string, Object object) {
 		assert object != null : string;
+	}
+	
+	static void assertNull(String string, Object object) {
+		assert object == null : string;
 	}
 
     private static void assertTrue(String message, boolean test) {

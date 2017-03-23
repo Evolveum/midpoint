@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+  <!-- Dummy resource with purely relative setting. So strong or weak mappings. Nothing that could trigger recon. -->
+
+<resource oid="adcd4654-0f15-11e7-8337-0bdf60ad7bcd"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+		  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource Relative</name>
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>relative</icfi:instanceId>
+		</icfc:configurationProperties>
+		
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+
+	</connectorConfiguration>
+
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<outbound>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:title</ref>
+			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<outbound>
+					<source>
+						<path>
+							$user/locality
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+			</attribute>
+			<attribute>
+				<ref>ri:loot</ref>
+			</attribute>
+			<attribute>
+				<ref>ri:weapon</ref>
+				<outbound>
+					<source>
+						<path>
+                            declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+							$user/extension/piracy:weapon
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<tolerant>false</tolerant>
+				<outbound>
+					<expression>
+						<value>rum</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<tolerant>true</tolerant>
+				<outbound>
+					<expression>
+						<value>Arr!</value>
+					</expression>
+				</outbound>
+			</attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <displayName>Gossip</displayName>
+                <tolerant>true</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <limitations>
+                	<ignore>true</ignore>
+                </limitations>
+                <outbound>
+                	<!-- Make sure this mapping is really ignored -->
+					<expression>
+						<value>fishy</value>
+					</expression>
+				</outbound>
+            </attribute>
+            
+            <association>
+            	<ref>ri:group</ref>
+            	<tolerant>false</tolerant>
+            	<kind>entitlement</kind>
+            	<intent>group</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:members</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
+
+            <association>
+            	<ref>ri:priv</ref>
+            	<kind>entitlement</kind>
+            	<intent>privilege</intent>
+            	<direction>subjectToObject</direction>
+            	<associationAttribute>ri:privileges</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
+
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+            
+            <activation>
+            	<administrativeStatus>
+            		<outbound/>
+            	</administrativeStatus>
+            </activation>
+            
+            <credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+            
+		</objectType>
+		
+		<objectType>
+			<kind>entitlement</kind>
+        	<intent>group</intent>
+        	<default>true</default>
+        	<objectClass>ri:GroupObjectClass</objectClass>
+        	<attribute>
+				<ref>icfs:name</ref>
+				<outbound>
+				    <source>
+				    	<path>$focus/name</path>
+				    </source>
+                    <expression>
+                        <path>declare namespace t="http://prism.evolveum.com/xml/ns/public/types-3";
+                            t:norm</path>
+                    </expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+				    <source>
+				    	<path>$focus/description</path>
+				    </source>
+				</outbound>
+			</attribute>
+            <attribute>
+				<ref>ri:members</ref>
+				<fetchStrategy>minimal</fetchStrategy>
+			</attribute>
+        </objectType>
+        
+        <objectType>
+        	<kind>entitlement</kind>
+        	<intent>privilege</intent>
+        	<default>false</default>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+		
+	</schemaHandling>
+		
+</resource>

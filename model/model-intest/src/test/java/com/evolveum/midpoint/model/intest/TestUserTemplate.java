@@ -108,7 +108,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 	private static final String EMPLOYEE_TYPE_MAROONED = "marooned";
 
-	private static final int NUMBER_OF_ROLES = 19;
+	private static final int NUMBER_OF_ROLES = 20;
 
 	private static String jackEmployeeNumber;
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,6 +160,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		initDummyResourcePirate(RESOURCE_DUMMY_BLACK_NAME, 
 				RESOURCE_DUMMY_BLACK_FILE, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
 		
+		initDummyResourcePirate(RESOURCE_DUMMY_RELATIVE_NAME, 
+				RESOURCE_DUMMY_RELATIVE_FILE, RESOURCE_DUMMY_RELATIVE_OID, initTask, initResult);
+		
 		dummyResourceCtlBlue = DummyResourceContoller.create(RESOURCE_DUMMY_BLUE_NAME, resourceDummyBlue);
 		dummyResourceCtlBlue.extendSchemaPirate();
 		dummyResourceBlue = dummyResourceCtlBlue.getDummyResource();
@@ -253,6 +256,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// Roles
 		repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PIRATE_GREEN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PIRATE_RELATIVE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CARIBBEAN_PIRATE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_BUCCANEER_GREEN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, initResult);

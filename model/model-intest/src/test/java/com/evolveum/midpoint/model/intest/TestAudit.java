@@ -77,7 +77,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/audit");
 	
-	public static final int INITIAL_NUMBER_OF_AUDIT_RECORDS = 24;
+	public static final int INITIAL_NUMBER_OF_AUDIT_RECORDS = 26;
 	
 	private XMLGregorianCalendar initialTs;
 	private XMLGregorianCalendar jackKidTs;
