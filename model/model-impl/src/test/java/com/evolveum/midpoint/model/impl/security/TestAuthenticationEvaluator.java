@@ -41,6 +41,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -83,7 +84,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestAuthenticationEvaluator.class);
 
-	private static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
+	protected final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 	
 	@Autowired(required=true)
 	private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
