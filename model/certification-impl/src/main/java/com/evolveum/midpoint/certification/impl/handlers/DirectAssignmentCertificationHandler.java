@@ -179,7 +179,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     }
 
     private boolean isIncludeUsers(AccessCertificationAssignmentReviewScopeType scope) {
-        return scope == null || !Boolean.FALSE.equals(scope.isIncludeServices());
+        return scope == null || !Boolean.FALSE.equals(scope.isIncludeUsers());
     }
 
     private boolean isEnabledItemsOnly(AccessCertificationAssignmentReviewScopeType scope) {
