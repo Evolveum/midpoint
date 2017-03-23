@@ -54,6 +54,7 @@ public class DefinitionScopeDto implements Serializable {
     private boolean includeRoles;
     private boolean includeOrgs;
     private boolean includeServices;
+    private boolean includeUsers;
     private boolean enabledItemsOnly;
 	private ExpressionType itemSelectionExpression;
 	private List<QName> relationList;
@@ -165,6 +166,14 @@ public class DefinitionScopeDto implements Serializable {
 
 	public void setIncludeServices(boolean includeServices) {
 		this.includeServices = includeServices;
+	}
+
+	public boolean isIncludeUsers() {
+		return includeUsers;
+	}
+
+	public void setIncludeUsers(boolean includeUsers) {
+		this.includeUsers = includeUsers;
 	}
 
 	public boolean isEnabledItemsOnly() {

@@ -16,15 +16,16 @@
 
 package com.evolveum.midpoint.prism.xjc;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * This class is used to wrap {@link PrismProperty} values for JAXB objects with
@@ -38,10 +39,11 @@ import java.util.Iterator;
 public class PropertyArrayList<T> extends AbstractList<T> implements Serializable {
 
     private PrismProperty property;
+	private PrismContainerValue<?> parent;
 
-    public PropertyArrayList(PrismProperty property) {
-        Validate.notNull(property, "Property must not be null.");
+    public PropertyArrayList(@NotNull PrismProperty property, @NotNull PrismContainerValue<?> parent) {
         this.property = property;
+        this.parent = parent;
     }
 
     @Override
@@ -64,9 +66,17 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
             return false;
         }
 
-        for (T jaxbObject : ts) {
+		try {
+        	if (property.getParent() == null) {
+				parent.add(property);
+			}
+		} catch (SchemaException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
+
+		for (T jaxbObject : ts) {
         	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(jaxbObject);
-            property.addValue(new PrismPropertyValue<Object>(propertyRealValue, null, null));
+            property.addValue(new PrismPropertyValue<>(propertyRealValue, null, null));
         }
 
         return true;
@@ -79,10 +89,7 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
 
     @Override
     public boolean add(T t) {
-        Collection<T> collection = new ArrayList<T>();
-        collection.add(t);
-
-        return addAll(collection);
+        return addAll(Collections.singleton(t));
     }
 
     @Override
