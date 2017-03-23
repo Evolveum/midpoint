@@ -117,6 +117,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
      */
     
     public List<Item<?,?>> getItems() {
+    	if (items == null) {
+    		return null;
+		}
 		if (isImmutable()) {
 			return Collections.unmodifiableList(items);
 		} else {

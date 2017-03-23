@@ -175,6 +175,28 @@ public final class PrismForJAXBUtil {
         }
     }
 
+    public static PrismContainer<?> createContainer(PrismContainerValue parentValue, QName name) {
+    	return createItem(parentValue, name, PrismContainer.class);
+	}
+
+    public static PrismReference createReference(PrismContainerValue parentValue, QName name) {
+    	return createItem(parentValue, name, PrismReference.class);
+	}
+
+    public static PrismProperty<?> createProperty(PrismContainerValue parentValue, QName name) {
+    	return createItem(parentValue, name, PrismProperty.class);
+	}
+
+    public static <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createItem(PrismContainerValue parentValue, QName name, Class<I> type) {
+        Validate.notNull(parentValue, "Parent container value must not be null.");
+        Validate.notNull(name, "QName must not be null.");
+        try {
+			return (I) parentValue.findOrCreateItem(name, type);
+        } catch (SchemaException ex) {
+            throw new SystemException(ex.getMessage(),  ex);
+        }
+    }
+
     public static <T extends Containerable> boolean setFieldContainerValue(PrismContainerValue<?> parent, QName fieldName,
     		PrismContainerValue<T> fieldContainerValue) {
         Validate.notNull(parent, "Prism container value must not be null.");

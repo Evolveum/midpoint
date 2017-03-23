@@ -17,9 +17,10 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.testng.annotations.BeforeSuite;
@@ -71,7 +72,7 @@ public class TestEmptyItems {
 		UserType user = new UserType(getPrismContext());
 		user.setName(PolyStringType.fromOrig("jack"));
 		System.out.println("User before:\n" + user.asPrismObject().debugDump());
-		assertEquals("Wrong # of user sub-items before 'get' operations", 1, CollectionUtils.emptyIfNull(user.asPrismContainerValue().getItems()).size());
+		assertEquals("Wrong # of user sub-items before serialization/reparsing", 1, CollectionUtils.emptyIfNull(user.asPrismContainerValue().getItems()).size());
 
 		// WHEN
 		String xml = getPrismContext().xmlSerializer().serialize(user.asPrismObject());
@@ -79,7 +80,50 @@ public class TestEmptyItems {
 
 		// THEN
 		System.out.println("User after:\n" + user.asPrismObject().debugDump());
-		assertEquals("Wrong # of user sub-items after 'get' operations", 1, CollectionUtils.emptyIfNull(user.asPrismContainerValue().getItems()).size());
+		assertEquals("Wrong # of user sub-items after serialization/reparsing", 1, CollectionUtils.emptyIfNull(user.asPrismContainerValue().getItems()).size());
+	}
+
+	@Test
+	public void testEmptyItemsOnConstructed() throws Exception {
+		System.out.println("===[ testEmptyItemsOnConstructed ]===");
+		UserType jack = new UserType(getPrismContext())
+				.oid("00000000-0000-0000-0000-000000000002").version("42")
+				.name("jack")
+				.givenName("Jack")
+				.familyName("Sparrow")
+				.honorificPrefix("Cpt.")
+				.honorificSuffix("PhD.")
+				.beginAssignment()
+					.beginActivation()
+						.administrativeStatus(ActivationStatusType.ENABLED)
+						.enableTimestamp("2016-12-31T23:59:59+01:00")
+					.<AssignmentType>end()
+					.beginConstruction()
+						.resourceRef("00000000-1233-4443-3123-943412324212", ResourceType.COMPLEX_TYPE)
+					.<AssignmentType>end()
+				.<UserType>end()
+				.beginAssignment()
+					.beginActivation()
+						.validFrom("2017-01-01T12:00:00+01:00")
+						.validTo("2017-03-31T00:00:00+01:00")
+					.<AssignmentType>end()
+					.targetRef("83138913-4329-4323-3432-432432143612", RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER)
+				.<UserType>end()
+				.employeeType("pirate")
+				.employeeType("captain")
+				.organization("O123456");
+		System.out.println("User:\n" + jack.asPrismObject().debugDump());
+
+		assertEquals("Wrong # of user sub-items before 'get' operations", 8, CollectionUtils.emptyIfNull(jack.asPrismContainerValue().getItems()).size());
+
+		// WHEN
+		jack.getAssignment();
+		jack.getLinkRef();
+		jack.getEmployeeType();
+
+		// THEN
+		System.out.println("User after:\n" + jack.asPrismObject().debugDump());
+		assertEquals("Wrong # of user sub-items after 'get' operations", 8, CollectionUtils.emptyIfNull(jack.asPrismContainerValue().getItems()).size());
 	}
 
 }
