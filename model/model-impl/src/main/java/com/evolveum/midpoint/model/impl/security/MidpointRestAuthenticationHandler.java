@@ -41,6 +41,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.model.impl.ModelRestService;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.PrismObject;
