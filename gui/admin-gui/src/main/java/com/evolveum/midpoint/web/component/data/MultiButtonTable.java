@@ -18,17 +18,12 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,6 +31,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +57,6 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
-    private static final String OPERATION_LOAD_ASSIGNMENT_CONSTRAINTS = DOT_CLASS + "loadAssignmentConstraints";
 
     private String addToCartLinkIcon = "fa fa-times-circle fa-lg text-danger";
     private String detailsLinkIcon = "fa fa-arrow-circle-right";
@@ -219,37 +214,14 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     }
 
     private boolean canAssign(final AssignmentEditorDto assignment) {
-    	AssignmentConstraintsType assignmentConstraints = getAssignmentConstraints();
-    	if (assignmentConstraints == null) {
-    		return true;
-    	}
-    	// TODO
-//    	return !(AssignmentMultiplicityType.SINGLE.equals(getAssignmentMultiplicity())
-//                && assignment.isAlreadyAssigned());
-    	return true;
+    	return assignment.isAssignable();
     }
     
     private void assignmentDetailsPerformed(final AssignmentEditorDto assignment, AjaxRequestTarget target){
         if (!plusIconClicked) {
-            IModel<AssignmentEditorDto> assignmentModel = new IModel<AssignmentEditorDto>() {
-                @Override
-                public AssignmentEditorDto getObject() {
-                    assignment.setMinimized(false);
-                    assignment.setSimpleView(true);
-                    return assignment;
-                }
-
-                @Override
-                public void setObject(AssignmentEditorDto assignmentEditorDto) {
-
-                }
-
-                @Override
-                public void detach() {
-
-                }
-            };
-            setResponsePage(new PageAssignmentDetails(assignmentModel));
+            assignment.setMinimized(false);
+            assignment.setSimpleView(true);
+            pageBase.navigateToNext(new PageAssignmentDetails(Model.of(assignment)));
         } else {
             plusIconClicked = false;
         }
@@ -284,30 +256,15 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
         plusIconClicked = true;
-        RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
+        RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
         if (storage.getAssignmentShoppingCart() == null){
             storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
         }
-        List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
-        assignmentsToAdd.add(assignment);
-        storage.setAssignmentShoppingCart(assignmentsToAdd);
+        assignment.setDefaultRelation();
+        storage.getAssignmentShoppingCart().add(assignment);
         AssignmentCatalogPanel parent = MultiButtonTable.this.findParent(AssignmentCatalogPanel.class);
         parent.reloadCartButton(target);
 
     }
 
-    private AssignmentConstraintsType getAssignmentConstraints() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_CONSTRAINTS);
-        SystemConfigurationType systemConfig = null;
-        try {
-            systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
-        } catch (ObjectNotFoundException | SchemaException e) {
-            LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
-            return null;
-        }
-        if (systemConfig != null && systemConfig.getRoleManagement() != null) {
-            return systemConfig.getRoleManagement().getDefaultAssignmentConstraints();
-        }
-        return null;
-    }
 }

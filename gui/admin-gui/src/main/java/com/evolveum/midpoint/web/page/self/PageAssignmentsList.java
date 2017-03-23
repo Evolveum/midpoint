@@ -19,7 +19,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.assignment.ShoppingCartEditorPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -33,6 +35,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -85,7 +88,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENT_TABLE_PANEL,
+        AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_ASSIGNMENT_TABLE_PANEL,
                 createStringResource("FocusType.assignment"), assignmentsModel){
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
@@ -101,7 +104,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                         });
                 items.add(item);
                 return items;
-
             }
         };
         mainForm.add(panel);

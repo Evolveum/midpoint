@@ -146,7 +146,10 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     }
 
     public List<AssignmentEditorDto> getAssignmentShoppingCart() {
-        return assignmentShoppingCart == null ? new ArrayList<AssignmentEditorDto>() : assignmentShoppingCart;
+        if (assignmentShoppingCart == null){
+            assignmentShoppingCart = new ArrayList<>();
+        }
+        return assignmentShoppingCart;
     }
 
     public void setAssignmentShoppingCart(List<AssignmentEditorDto> assignmentShoppingCart) {

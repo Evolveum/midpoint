@@ -70,9 +70,8 @@ public class PageAssignmentDetails extends PageBase{
                 if (storage.getAssignmentShoppingCart() == null){
                     storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
                 }
-                List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
-                assignmentsToAdd.add(assignmentModel.getObject());
-                storage.setAssignmentShoppingCart(assignmentsToAdd);
+                AssignmentEditorDto dto = assignmentModel.getObject();
+                storage.getAssignmentShoppingCart().add(dto);
 
                 redirectBack();
             }
