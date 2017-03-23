@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.model.impl.security.NonceAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -117,8 +118,8 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 		ConnectionEnvironment connEnv = new ConnectionEnvironment();
 		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
 		try {
-			return getAuthenticationEvaluator().authenticateUserNonce(connEnv, username,
-					nonce, getResetPasswordPolicy().getNoncePolicy());
+			return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext(username,
+					nonce, getResetPasswordPolicy().getNoncePolicy()));
 		} catch (AuthenticationException ex) {
 			getSession()
 					.error(getString(ex.getMessage()));

@@ -86,7 +86,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	private static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 	
 	@Autowired(required=true)
-	private AuthenticationEvaluator authenticationEvaluator;
+	private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 	
 	@Autowired(required=true)
 	private UserProfileService userProfileService;
@@ -101,7 +101,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		((AuthenticationEvaluatorImpl)authenticationEvaluator).userProfileService = new UserProfileService() {
+		((PasswordAuthenticationEvaluatorImpl)passwordAuthenticationEvaluator).userProfileService = new UserProfileService() {
 			
 			@Override
 			public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
@@ -134,7 +134,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		final String TEST_NAME = "test000Sanity";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		assertNotNull(authenticationEvaluator);
+		assertNotNull(passwordAuthenticationEvaluator);
 		MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
 		assertPrincipalJack(principal);
 	}
@@ -150,7 +150,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		Authentication authentication = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, USER_JACK_PASSWORD));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -177,7 +177,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "thisIsNotMyPassword");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, "thisIsNotMyPassword"));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -211,7 +211,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, null);
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, null));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -244,7 +244,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, ""));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -276,7 +276,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, null, null);
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(null, null));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -304,7 +304,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, "", "bad Bad BAD");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext("", "bad Bad BAD"));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -332,7 +332,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, "NoSuchUser", "bad Bad BAD");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext("NoSuchUser", "bad Bad BAD"));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -367,7 +367,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "thisIsNotMyPassword");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, "thisIsNotMyPassword"));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -402,7 +402,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "not my password either");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, "not my password either"));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -419,7 +419,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "absoLUTELY NOT my PASSword");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, "absoLUTELY NOT my PASSword"));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -454,7 +454,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, USER_JACK_PASSWORD));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (LockedException e) {
@@ -484,7 +484,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "bad bad password!");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, "bad bad password!"));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (LockedException e) {
@@ -518,7 +518,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		Authentication authentication = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, USER_JACK_PASSWORD));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -545,7 +545,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "not my password either");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, "not my password either"));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -564,7 +564,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "absoLUTELY NOT my PASSword");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, "absoLUTELY NOT my PASSword"));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -583,7 +583,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "no, no NO!");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, "no, no NO!"));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -617,7 +617,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, USER_JACK_PASSWORD));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (LockedException e) {
@@ -663,7 +663,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		Authentication authentication = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, USER_JACK_PASSWORD));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -915,7 +915,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
+		Authentication authentication = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -942,7 +942,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, "thisIsNotMyPassword");
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_GUYBRUSH_USERNAME, "thisIsNotMyPassword"));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -975,7 +975,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
+		Authentication authentication = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1004,7 +1004,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -1114,7 +1114,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		Authentication authentication = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, USER_JACK_PASSWORD));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1136,7 +1136,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+			passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(USER_JACK_USERNAME, USER_JACK_PASSWORD));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (DisabledException e) {

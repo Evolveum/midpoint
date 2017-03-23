@@ -453,7 +453,7 @@
     </bean>
 
     <bean id="passwordCallback" class="com.evolveum.midpoint.model.impl.security.PasswordCallback">
-        <constructor-arg name="authenticationEvaluatorImpl" ref="authenticationEvaluator"/>
+        <constructor-arg name="passwordAuthenticationEvaluatorImpl" ref="passwordAuthenticationEvaluator"/>
     </bean>
 
     <!--Example of authorization for WS-->

@@ -58,7 +58,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-@Component("authenticationEvaluator")
 public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialType, T extends AbstractAuthenticationContext> implements AuthenticationEvaluator<T> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AuthenticationEvaluatorImpl.class);

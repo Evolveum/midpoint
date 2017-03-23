@@ -5,6 +5,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.impl.security.NonceAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -22,10 +23,10 @@ public class PageRegistrationBase extends PageBase {
 	private static final String DOT_CLASS = PageRegistrationBase.class.getName() + ".";
 	private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageSelfRegistration.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationBase.class);
 
-	@SpringBean(name = "authenticationEvaluator")
-	private AuthenticationEvaluator authenticationEvaluator;
+	@SpringBean(name = "nonceAuthenticationEvaluator")
+	private AuthenticationEvaluator<NonceAuthenticationContext> authenticationEvaluator;
 
 	private ResetPolicyDto resetPasswordPolicy;
 	private SelfRegistrationDto selfRegistrationDto;
@@ -119,7 +120,7 @@ public class PageRegistrationBase extends PageBase {
 		return resetPasswordPolicy;
 	}
 
-	public AuthenticationEvaluator getAuthenticationEvaluator() {
+	public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
 		return authenticationEvaluator;
 	}
 

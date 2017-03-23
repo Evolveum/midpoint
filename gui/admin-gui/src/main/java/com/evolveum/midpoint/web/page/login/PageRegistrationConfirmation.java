@@ -15,6 +15,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.impl.security.NonceAuthenticationContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -117,8 +118,8 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		ConnectionEnvironment connEnv = new ConnectionEnvironment();
 		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
 		try {
-			return getAuthenticationEvaluator().authenticateUserNonce(connEnv, username,
-					nonce, getSelfRegistrationConfiguration().getNoncePolicy());
+			return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext( username,
+					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
 		} catch (AuthenticationException ex) {
 			getSession()
 					.error(getString(ex.getMessage()));

@@ -24,14 +24,10 @@ import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
-import org.apache.http.protocol.RequestContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -46,6 +42,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.ModelRestService;
+import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -72,7 +70,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
 	 
 	@Autowired(required=true)
-	private AuthenticationEvaluator authenticationEvaluator;
+	private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 	
 	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
@@ -112,7 +110,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         String enteredPassword = policy.getPassword();
         UsernamePasswordAuthenticationToken token;
         try {
-        	token = authenticationEvaluator.authenticateUserPassword(connEnv, enteredUsername, enteredPassword);
+        	token = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword));
         } catch (UsernameNotFoundException | BadCredentialsException e) {
         	LOGGER.trace("Exception while authenticating username '{}' to REST service: {}", enteredUsername, e.getMessage(), e);
         	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());

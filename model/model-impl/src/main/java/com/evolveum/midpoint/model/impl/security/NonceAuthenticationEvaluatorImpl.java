@@ -3,6 +3,7 @@ package com.evolveum.midpoint.model.impl.security;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -14,6 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPoli
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
+@Component("nonceAuthenticationEvaluator")
 public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl<NonceType, NonceAuthenticationContext>{
 
 	
