@@ -62,6 +62,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -360,6 +363,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     	return layeredROCD;
 	}
 
+	public <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target) throws SchemaException, SecurityViolationException  {
+		return securityEnforcer.getAllowedRequestAssignmentItems(securityEnforcer.getPrincipal(), object, target, null);
+	}
 
 	@Override
 	public Collection<? extends DisplayableValue<String>> getActionUrls() {

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -95,7 +96,9 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private boolean editable = true;
 	private boolean simpleView = false;
 
-	private boolean isAlreadyAssigned = false;
+	private boolean isAlreadyAssigned = false;		//used only for role request functionality
+	private AssignmentConstraintsType defualtAssignmentConstraints;				//used only for role request functionality
+	private List<RelationTypes> assignedRelationsList = new ArrayList<>(); //used only for role request functionalityp
 
 	private Boolean isOrgUnitManager = Boolean.FALSE;
 	private AssignmentType newAssignment;
@@ -674,6 +677,22 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		isAlreadyAssigned = alreadyAssigned;
 	}
 
+	public AssignmentConstraintsType getDefualtAssignmentConstraints() {
+		return defualtAssignmentConstraints;
+	}
+
+	public void setDefualtAssignmentConstraints(AssignmentConstraintsType defualtAssignmentConstraints) {
+		this.defualtAssignmentConstraints = defualtAssignmentConstraints;
+	}
+
+	public List<RelationTypes> getAssignedRelationsList() {
+		return assignedRelationsList;
+	}
+
+	public void setAssignedRelationsList(List<RelationTypes> assignedRelationsList) {
+		this.assignedRelationsList = assignedRelationsList;
+	}
+
 	public List<AssignmentsPreviewDto> getPrivilegeLimitationList() {
 		return privilegeLimitationList;
 	}
@@ -703,6 +722,76 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 	public void setDelegationOwner(UserType delegationOwner) {
 		this.delegationOwner = delegationOwner;
+	}
+
+	public List<RelationTypes> getNotAssignedRelationsList(){
+		List<RelationTypes> relations = new ArrayList<>(Arrays.asList(RelationTypes.values()));
+		if (getAssignedRelationsList() == null || getAssignedRelationsList().size() == 0){
+			return relations;
+		}
+		for (RelationTypes relation : getAssignedRelationsList()){
+			if (relations.contains(relation)){
+				relations.remove(relation);
+			}
+		}
+		return relations;
+	}
+
+	public boolean isAssignable() {
+		if (!isAlreadyAssigned){
+			return true;
+		}
+		if (defualtAssignmentConstraints == null) {
+			return true;
+		}
+		if (defualtAssignmentConstraints.isAllowSameTarget() && defualtAssignmentConstraints.isAllowSameRelation()){
+			return true;
+		}
+		if (defualtAssignmentConstraints.isAllowSameTarget() && !defualtAssignmentConstraints.isAllowSameRelation()
+				&& getAssignedRelationsList().size() < RelationTypes.values().length){
+			return true;
+		}
+		if (!defualtAssignmentConstraints.isAllowSameTarget() && defualtAssignmentConstraints.isAllowSameRelation()
+				&& getAssignedRelationsList().size() < RelationTypes.values().length){
+			return true;
+		}
+		if (!defualtAssignmentConstraints.isAllowSameTarget() && !defualtAssignmentConstraints.isAllowSameRelation()){
+			return false;
+		}
+		return false;
+	}
+
+	public boolean isMultyAssignable(){
+		if (defualtAssignmentConstraints == null) {
+			return true;
+		}
+		if (defualtAssignmentConstraints.isAllowSameTarget() && defualtAssignmentConstraints.isAllowSameRelation()){
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isSingleAssignable(){
+		if (defualtAssignmentConstraints == null) {
+			return false;
+		}
+		if (!defualtAssignmentConstraints.isAllowSameTarget() && !defualtAssignmentConstraints.isAllowSameRelation()){
+			return true;
+		}
+		return false;
+	}
+
+	public void setDefaultRelation(){
+		if (getTargetRef() == null){
+			return;
+		}
+		if (!getAssignedRelationsList().contains(RelationTypes.MEMBER)){
+			getTargetRef().setRelation(SchemaConstants.ORG_DEFAULT);
+		}
+		List<RelationTypes> availableRelations = getNotAssignedRelationsList();
+		if (availableRelations.size() > 0){
+			getTargetRef().setRelation(availableRelations.get(0).getRelation());
+		}
 	}
 
 	@Override

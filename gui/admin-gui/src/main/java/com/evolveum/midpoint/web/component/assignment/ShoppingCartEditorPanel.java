@@ -16,12 +16,20 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by honchar.

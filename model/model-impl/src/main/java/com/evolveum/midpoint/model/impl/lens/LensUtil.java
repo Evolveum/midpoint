@@ -419,6 +419,13 @@ public class LensUtil {
 			LOGGER.trace("Existing values for item {} in {}, weak mapping processing skipped",
 					new Object[]{itemPath, contextDescription});
 		}
+		
+		if (itemExisting != null) {
+			List<V> existingValues = itemExisting.getValues();
+			if (existingValues != null) {
+				itemDelta.setEstimatedOldValues(PrismValue.cloneCollection(existingValues));
+			}
+		}
         
         return itemDelta;
         

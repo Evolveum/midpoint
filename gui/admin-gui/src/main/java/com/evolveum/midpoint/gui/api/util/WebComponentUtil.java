@@ -581,9 +581,13 @@ public final class WebComponentUtil {
 	}
 	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
 			final IModel<E> model, final Component component, boolean allowNull) {
-		// final Class clazz = model.getObject().getClass();
-		final Object o = model.getObject();
-		return new DropDownChoicePanel(id, model, WebComponentUtil.createReadonlyModelFromEnum(clazz),
+		return createEnumPanel(clazz, id, WebComponentUtil.createReadonlyModelFromEnum(clazz),
+				model, component, allowNull );
+	}
+
+	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
+			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull) {
+		return new DropDownChoicePanel(id, model, choicesList,
 				new IChoiceRenderer<E>() {
 
 					@Override
