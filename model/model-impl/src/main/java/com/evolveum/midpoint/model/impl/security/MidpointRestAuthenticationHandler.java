@@ -25,9 +25,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
+import org.apache.http.protocol.RequestContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -40,6 +44,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.ModelRestService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,6 +54,9 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -74,7 +82,10 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	
 	@Autowired(required=true)
 	private TaskManager taskManager;
-		
+	
+	@Autowired(required=true)
+	private ModelService model;
+	
     public void handleRequest(Message m, ContainerRequestContext requestCtx) {
         AuthorizationPolicy policy = (AuthorizationPolicy)m.get(AuthorizationPolicy.class);
         
@@ -116,34 +127,73 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         UserType user = ((MidPointPrincipal)token.getPrincipal()).getUser();
         task.setOwner(user.asPrismObject());
         
+        //  m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
+        if (!authorizeUser(user, enteredUsername, false, connEnv, requestCtx)){
+        	return;
+        }
+        
+        String oid = requestCtx.getHeaderString("X-authorized-user");
+        OperationResult result = task.getResult();
+        if (StringUtils.isNotBlank(oid)){
+        	try {
+				PrismObject<UserType> authorizedUser = model.getObject(UserType.class, oid, null, task, result);
+				task.setOwner(authorizedUser);
+				user = authorizedUser.asObjectable();
+			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
+					| CommunicationException | ConfigurationException e) {
+				LOGGER.trace("Exception while authenticating user identified with '{}' to REST service: {}", oid, e.getMessage(), e);
+	        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());
+				return;
+			}
+        	
+        	if (!authorizeUser(user, user.getName().getOrig(), true, connEnv, requestCtx)){
+        		return;
+        	}
+        }
+        
         m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
-        try {
+        
+        LOGGER.trace("Authorized to use REST service ({})", user);
+        
+    }
+    
+    private boolean authorizeUser(UserType user, String enteredUsername, boolean isProxyUser, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
+    	try {
         	securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
         } catch (SchemaException e) {
 			securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Schema error: "+e.getMessage());
 			requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
-			return;
+			return false;
 		}
         
         LOGGER.trace("Authenticated to REST service as {}", user);
-           
-        OperationResult authorizeResult = new OperationResult("Rest authentication/authorization operation.");
         
+        if (!authorizeUser(AuthorizationConstants.AUTZ_REST_ALL_URL, user, enteredUsername, connEnv, requestCtx)){
+        	return false;
+        }
         
-        try {
+        if (isProxyUser) {
+        	return authorizeUser(AuthorizationConstants.AUTZ_REST_PROXY_URL, user, enteredUsername, connEnv, requestCtx);
+        }
+        
+        return true;
+        
+    }
+    
+    private boolean authorizeUser(String authorization, UserType user, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx){
+    	OperationResult authorizeResult = new OperationResult("Rest authentication/authorization operation.");
+    	try {
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_REST_ALL_URL, null, null, null, null, null, authorizeResult);
 		} catch (SecurityViolationException e){
 			securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");
 			requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());
-			return;
+			return false;
 		} catch (SchemaException e) {
 			securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Schema error: "+e.getMessage());
 			requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
-			return;
+			return false;
 		}
-        
-        LOGGER.trace("Authorized to use REST service ({})", user);
-        
+    	return true;
     }
 
 	@Override
