@@ -82,9 +82,6 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
         </classes>
     </test>
-
-
-
     <test name="Schema" preserve-order="false" verbose="1">
         <classes>
             <class name="com.evolveum.midpoint.schema.TestDiffEquals"/>
@@ -111,6 +108,7 @@
             <class name="com.evolveum.midpoint.schema.TestSerialization"/>
             <class name="com.evolveum.midpoint.schema.TestOperationResult"/>
             <class name="com.evolveum.midpoint.schema.util.SelectorOptionsTest"/>
+            <class name="com.evolveum.midpoint.schema.TestEmptyItems"/>
         </classes>
     </test>
 </suite>

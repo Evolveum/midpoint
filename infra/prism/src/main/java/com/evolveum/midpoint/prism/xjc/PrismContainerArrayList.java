@@ -38,6 +38,7 @@ import java.util.List;
 public abstract class PrismContainerArrayList<T extends Containerable> extends AbstractList<T> implements Serializable {
 
     private PrismContainer<T> container;
+    private PrismContainerValue<?> parent;
 
     // For deserialization
     public PrismContainerArrayList() {
@@ -46,6 +47,12 @@ public abstract class PrismContainerArrayList<T extends Containerable> extends A
     public PrismContainerArrayList(PrismContainer<T> container) {
         Validate.notNull(container);
         this.container = container;
+    }
+
+    public PrismContainerArrayList(PrismContainer<T> container, PrismContainerValue<?> parent) {
+        Validate.notNull(container);
+        this.container = container;
+        this.parent = parent;
     }
 
     protected abstract PrismContainerValue getValueFrom(T t);
@@ -132,6 +139,9 @@ public abstract class PrismContainerArrayList<T extends Containerable> extends A
     public boolean add(T t) {
         PrismContainerValue value = getValueFrom(t);
         try {
+            if (container.getParent() == null) {
+                parent.add(container);
+            }
             return container.add(value);
         } catch (SchemaException ex) {
             throw new SystemException(ex.getMessage(), ex);

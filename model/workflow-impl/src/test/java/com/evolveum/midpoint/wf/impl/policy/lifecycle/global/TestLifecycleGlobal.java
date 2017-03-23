@@ -47,77 +47,39 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		/*
-		    <!-- ruleAll -->
-			<globalPolicyRule>
-				<policyConstraints>
-					<modification/>
-				</policyConstraints>
-				<policyActions>
-					<approval>
-					    <approvalSchema>
-					    	<level>
-								<approverRelation>owner</approverRelation>
-								<outcomeIfNoApprovers>approve</outcomeIfNoApprovers>
-							</level>
-					    </approvalSchema>
-					</approval>
-				</policyActions>
-				<focusSelector>
-					<type>RoleType</type>
-				</focusSelector>
-			</globalPolicyRule>
+		GlobalPolicyRuleType ruleAll = new GlobalPolicyRuleType(prismContext)
+				.beginPolicyConstraints()
+					.beginModification()
+					.<PolicyConstraintsType>end()
+				.<GlobalPolicyRuleType>end()
+				.beginPolicyActions()
+					.beginApproval()
+						.beginApprovalSchema()
+							.beginLevel()
+								.approverRelation(new QName("owner"))		// intentionally no namespace
+								.outcomeIfNoApprovers(ApprovalLevelOutcomeType.APPROVE)
+							.<ApprovalSchemaType>end()
+						.<ApprovalPolicyActionType>end()
+					.<PolicyActionsType>end()
+				.<GlobalPolicyRuleType>end()
+				.beginFocusSelector()
+					.type(RoleType.COMPLEX_TYPE)
+				.end();
 
-			<!-- ruleAdd -->
-			<globalPolicyRule>
-				<policyConstraints>
-					<modification>
-						<operation>add</operation>
-					</modification>
-				</policyConstraints>
-				<policyActions>
-					<approval>
-						<approverRef oid="...userLead1Oid..." type="UserType" />
-					</approval>
-				</policyActions>
-				<focusSelector>
-					<type>RoleType</type>
-				</focusSelector>
-			</globalPolicyRule>
-
-		 */
-
-		ObjectSelectorType focusSelector = new ObjectSelectorType(prismContext);
-		focusSelector.setType(RoleType.COMPLEX_TYPE);
-
-		GlobalPolicyRuleType ruleAll = new GlobalPolicyRuleType(prismContext);
-		PolicyConstraintsType constraintsAll = new PolicyConstraintsType(prismContext);
-		constraintsAll.getModification().add(new ModificationPolicyConstraintType(prismContext));
-		ruleAll.setPolicyConstraints(constraintsAll);
-		PolicyActionsType actionsAll = new PolicyActionsType(prismContext);
-		ApprovalPolicyActionType approvalActionAll = new ApprovalPolicyActionType(prismContext);
-		ApprovalSchemaType approvalSchema = new ApprovalSchemaType(prismContext);
-		ApprovalLevelType level = new ApprovalLevelType(prismContext);
-		level.getApproverRelation().add(new QName("owner"));		// intentionally no namespace
-		level.setOutcomeIfNoApprovers(ApprovalLevelOutcomeType.APPROVE);
-		approvalSchema.getLevel().add(level);
-		approvalActionAll.setApprovalSchema(approvalSchema);
-		actionsAll.setApproval(approvalActionAll);
-		ruleAll.setFocusSelector(focusSelector.clone());
-		ruleAll.setPolicyActions(actionsAll);
-
-		GlobalPolicyRuleType ruleAdd = new GlobalPolicyRuleType(prismContext);
-		PolicyConstraintsType constraintsAdd = new PolicyConstraintsType(prismContext);
-		ModificationPolicyConstraintType modificationConstraintAdd = new ModificationPolicyConstraintType(prismContext);
-		modificationConstraintAdd.getOperation().add(ChangeTypeType.ADD);
-		constraintsAdd.getModification().add(modificationConstraintAdd);
-		ruleAdd.setPolicyConstraints(constraintsAdd);
-		PolicyActionsType actionsAdd = new PolicyActionsType(prismContext);
-		ApprovalPolicyActionType approvalActionAdd = new ApprovalPolicyActionType(prismContext);
-		approvalActionAdd.getApproverRef().add(createObjectRef(userLead1Oid, USER));
-		actionsAdd.setApproval(approvalActionAdd);
-		ruleAdd.setFocusSelector(focusSelector.clone());
-		ruleAdd.setPolicyActions(actionsAdd);
+		GlobalPolicyRuleType ruleAdd = new GlobalPolicyRuleType(prismContext)
+				.beginPolicyConstraints()
+					.beginModification()
+						.operation(ChangeTypeType.ADD)
+					.<PolicyConstraintsType>end()
+				.<GlobalPolicyRuleType>end()
+				.beginPolicyActions()
+					.beginApproval()
+						.approverRef(userLead1Oid, UserType.COMPLEX_TYPE)
+					.<PolicyActionsType>end()
+				.<GlobalPolicyRuleType>end()
+				.beginFocusSelector()
+					.type(RoleType.COMPLEX_TYPE)
+				.end();
 
 		List<ItemDelta<?, ?>> deltas =
 				DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
