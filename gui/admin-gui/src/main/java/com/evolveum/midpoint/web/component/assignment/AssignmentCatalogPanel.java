@@ -19,18 +19,11 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -46,18 +39,14 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
-import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.EnumUtils;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -72,7 +61,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.model.util.ListModel;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -83,11 +71,11 @@ import java.util.*;
 public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePanel {
 	private static final long serialVersionUID = 1L;
 
-	private static String ID_TREE_PANEL_CONTAINER = "treePanelContainer";
-    private static String ID_TREE_PANEL = "treePanel";
-    private static String ID_CATALOG_ITEMS_PANEL_CONTAINER = "catalogItemsPanelContainer";
-    private static String ID_ASSIGNMENTS_OWNER_NAME = "assignmentsOwnerName";
-    private static String ID_CATALOG_ITEMS_PANEL = "catalogItemsPanel";
+	private static final String ID_TREE_PANEL_CONTAINER = "treePanelContainer";
+    private static final String ID_TREE_PANEL = "treePanel";
+    private static final String ID_CATALOG_ITEMS_PANEL_CONTAINER = "catalogItemsPanelContainer";
+    private static final String ID_ASSIGNMENTS_OWNER_NAME = "assignmentsOwnerName";
+    private static final String ID_CATALOG_ITEMS_PANEL = "catalogItemsPanel";
     private static final String ID_CART_BUTTON = "cartButton";
     private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_HEADER_PANEL = "headerPanel";
@@ -102,6 +90,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
+    private static final String OPERATION_LOAD_ASSIGNMENT_CONSTRAINTS = DOT_CLASS + "loadAssignmentConstraints";
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     private PageBase pageBase;
@@ -111,11 +100,9 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private IModel<AssignmentViewType> viewModel;
     private IModel<PrismObject<UserType>> targetUserModel;
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> objectProvider;
-    private ListDataProvider<AssignmentEditorDto> listProvider;
     private int itemsPerRow = 4;
     private boolean showUserSelectionPopup = true;
     private List<AssignmentEditorDto> listProviderData;
-    private AssignmentViewType defaultAssignmentViewType = AssignmentViewType.ROLE_CATALOG_VIEW;
     List<AssignmentViewType> viewTypeList = new ArrayList<>();
 
     public AssignmentCatalogPanel(String id) {
@@ -153,7 +140,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 @Override
                 public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
                     AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, pageBase);
-                    dto.setAlreadyAssigned(isAlreadyAssigned(obj));
+                    dto.setAlreadyAssigned(isAlreadyAssigned(obj, dto));
+                    dto.setDefualtAssignmentConstraints(getAssignmentConstraints());
                     return dto;
                 }
 
@@ -534,9 +522,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         ObjectFilter filter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
 
         TypeFilter roleTypeFilter = TypeFilter.createType(RoleType.COMPLEX_TYPE, filter);
-        TypeFilter orgTypeFilter = TypeFilter.createType(OrgType.COMPLEX_TYPE, filter);
         TypeFilter serviceTypeFilter = TypeFilter.createType(ServiceType.COMPLEX_TYPE, filter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(roleTypeFilter, orgTypeFilter, serviceTypeFilter));
+        ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(roleTypeFilter, serviceTypeFilter));
         return query;
 
     }
@@ -642,7 +629,9 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 super.onSelectPerformed(target, targetUser);
                 if (targetUserSelection) {
                     pageBase.getSessionStorage().getRoleCatalog().setTargetUser(targetUser.asPrismContainer());
-                    target.add(getTargetUserContainer());
+                    AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
+                    target.add(getHeaderPanel());
+                    target.add(getCatalogItemsPanelContainer());
                 } else {
                     pageBase.getSessionStorage().getRoleCatalog().setAssignmentsUserOwner(targetUser.asPrismContainer());
                     AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
@@ -689,17 +678,21 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         };
     }
 
-    private boolean isAlreadyAssigned(PrismObject<AbstractRoleType> obj){
+    private boolean isAlreadyAssigned(PrismObject<AbstractRoleType> obj, AssignmentEditorDto assignmentDto){
         PrismObject<UserType> user = getTargetUser();
         if (user == null || user.asObjectable().getAssignment() == null){
             return false;
         }
+        boolean isAssigned = false;
+        List<RelationTypes> assignedRelationsList = new ArrayList<>();
         for (AssignmentType assignment : user.asObjectable().getAssignment()){
             if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(obj.getOid())){
-                return true;
+                isAssigned = true;
+                assignedRelationsList.add(RelationTypes.getRelationType(assignment.getTargetRef().getRelation()));
             }
         }
-        return false;
+        assignmentDto.setAssignedRelationsList(assignedRelationsList);
+        return isAssigned;
     }
 
     private PrismObject<UserType> getTargetUser(){
@@ -708,6 +701,21 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             return targetUser;
         }
         return pageBase.loadUserSelf(pageBase);
+    }
+
+    private AssignmentConstraintsType getAssignmentConstraints() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_CONSTRAINTS);
+        SystemConfigurationType systemConfig = null;
+        try {
+            systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
+            return null;
+        }
+        if (systemConfig != null && systemConfig.getRoleManagement() != null) {
+            return systemConfig.getRoleManagement().getDefaultAssignmentConstraints();
+        }
+        return null;
     }
 
 }

@@ -215,7 +215,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            public void populateItem(ListItem<AssignmentEditorDto> item) {
+                            public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
                                         new ArrayList<AssignmentsPreviewDto>(), PageUserHistory.this);
                                 item.add(editor);

@@ -29,6 +29,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -211,6 +211,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_META_UNTOUCHABLE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_FOOL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BLOODY_FOOL_FILE, RoleType.class, initResult);
+
+		repoAddObjectFromFile(USER_RAPP_FILE, initResult);
 
 		dummyResourceCtl.addGroup(GROUP_FOOLS_NAME);
 		dummyResourceCtl.addGroup(GROUP_SIMPLETONS_NAME);
@@ -1845,6 +1847,43 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * Governor has maxAssignees=0 for 'approver'
+	 */
+	@Test
+    public void test613JackAssignRoleGovernorAsApprover() throws Exception {
+
+		if (!testMultiplicityConstraintsForNonDefaultRelations()) {
+			return;
+		}
+
+		final String TEST_NAME = "test613JackAssignRoleGovernorAsApprover";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        try {
+	        // WHEN
+	        assignRole(USER_JACK_OID, ROLE_GOVERNOR_OID, SchemaConstants.ORG_APPROVER, task, result);
+
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+
+        assertNoAssignments(USER_JACK_OID);
+
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
+	}
+
+	/**
 	 * Role cannibal has minAssignees=2. It is assigned to nobody. Even though assigning
 	 * it to lemonhead would result in assignees=1 which violates the policy, the assignment
 	 * should pass because it makes the situation better.
@@ -2043,7 +2082,73 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignees(ROLE_CANNIBAL_OID, 2);
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
-	
+
+	@Test
+    public void test630RappAssignRoleCanibalAsOwner() throws Exception {
+
+		if (!testMultiplicityConstraintsForNonDefaultRelations()) {
+			return;
+		}
+
+		final String TEST_NAME = "test630RappAssignRoleCanibalAsOwner";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        assertAssignees(ROLE_CANNIBAL_OID, 2);
+
+        // WHEN
+		assignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+        assertAssignees(ROLE_CANNIBAL_OID, 2);
+        assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 1);
+	}
+
+	@Test
+    public void test632RappUnassignRoleCanibalAsOwner() throws Exception {
+
+		if (!testMultiplicityConstraintsForNonDefaultRelations()) {
+			return;
+		}
+
+		final String TEST_NAME = "test632RappUnassignRoleCanibalAsOwner";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+		assertAssignees(ROLE_CANNIBAL_OID, 2);
+		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 1);
+
+        try {
+	        // WHEN
+        	TestUtil.displayWhen(TEST_NAME);
+        	// null namespace to test no-namespace "approver" relation
+	        unassignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, QNameUtil.nullNamespace(SchemaConstants.ORG_OWNER), task, result);
+
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+
+		assertAssignees(ROLE_CANNIBAL_OID, 2);
+		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 1);
+	}
+
 	@Test
     public void test649ElaineUnassignRoleGovernor() throws Exception {
 		final String TEST_NAME = "test649ElaineUnassignRoleGovernor";
@@ -4110,4 +4215,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
 	}
 
+	protected boolean testMultiplicityConstraintsForNonDefaultRelations() {
+		return true;
+	}
 }

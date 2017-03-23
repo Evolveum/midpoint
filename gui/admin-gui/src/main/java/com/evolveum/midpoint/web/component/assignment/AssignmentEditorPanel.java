@@ -107,7 +107,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_RELATION_CONTAINER = "relationContainer";
 	private static final String ID_FOCUS_TYPE = "focusType";
-	private static final String ID_RELATION = "relation";
+	protected static final String ID_RELATION = "relation";
 	private static final String ID_RELATION_LABEL = "relationLabel";
 	private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
 	private static final String ID_VALID_FROM = "validFrom";
@@ -417,42 +417,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		ObjectTypeSelectPanel<FocusType> focusType = new ObjectTypeSelectPanel<>(ID_FOCUS_TYPE,
 				new PropertyModel<QName>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
 		body.add(focusType);
-
-        IModel<RelationTypes> relationModel = new IModel<RelationTypes>() {
-            @Override
-            public RelationTypes getObject() {
-                if (getModelObject().getTargetRef() == null) {
-                    return RelationTypes.MEMBER;
-                }
-                return RelationTypes.getRelationType(getModelObject().getTargetRef().getRelation());
-            }
-
-            @Override
-            public void setObject(RelationTypes newValue) {
-                ObjectReferenceType ref = getModelObject().getTargetRef();
-                if (ref != null){
-                    ref.setRelation(newValue.getRelation());
-                }
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-        DropDownChoicePanel relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-                relationModel, this, false);
-        relation.setEnabled(getModel().getObject().isEditable());
-		relation.setOutputMarkupId(true);
-		relation.setOutputMarkupPlaceholderTag(true);
-		relation.add(new VisibleEnableBehaviour() {
-
-			@Override
-			public boolean isVisible() {
-				return isCreatingNewAssignment();
-			}
-		});
-		relationContainer.add(relation);
+        addRelationDropDown(relationContainer);
 
 		Label relationLabel = new Label(ID_RELATION_LABEL, new AbstractReadOnlyModel<String>() {
 
@@ -936,6 +901,83 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				}
 
 				return WebComponentUtil.getName(targetObject);
+			}
+		};
+	}
+
+	private void addRelationDropDown(WebMarkupContainer relationContainer){
+		List<RelationTypes> availableRelations = getModelObject().getNotAssignedRelationsList();
+		DropDownChoicePanel relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
+				getModelObject().isMultyAssignable() ?
+						WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class) : Model.ofList(availableRelations),
+				getRelationModel(availableRelations), this, false);
+		relation.setEnabled(getModel().getObject().isEditable());
+		relation.setOutputMarkupId(true);
+		relation.setOutputMarkupPlaceholderTag(true);
+		relation.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return isCreatingNewAssignment();
+			}
+		});
+		relationContainer.add(relation);
+
+	}
+
+	private IModel<RelationTypes> getRelationModel(List<RelationTypes> availableRelations){
+		return new IModel<RelationTypes>() {
+			@Override
+			public RelationTypes getObject() {
+				RelationTypes defaultRelation = RelationTypes.MEMBER;
+				if (!getModelObject().isMultyAssignable() &&
+						getModelObject().getAssignedRelationsList().contains(defaultRelation)){
+					defaultRelation = availableRelations.get(0);
+				}
+				if (getModelObject().getTargetRef() == null){
+					return defaultRelation;
+				}
+				return RelationTypes.getRelationType(getModelObject().getTargetRef().getRelation());
+			}
+
+			@Override
+			public void setObject(RelationTypes relationTypes) {
+				if (getModelObject().getTargetRef() != null){
+					getModelObject().getTargetRef().setRelation(relationTypes.getRelation());
+				}
+			}
+
+			@Override
+			public void detach() {
+
+			}
+		};
+	}
+
+
+	protected IModel<RelationTypes> getRelationModel(){
+		return new IModel<RelationTypes>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public RelationTypes getObject() {
+				if (getModelObject().getTargetRef() == null) {
+					return RelationTypes.MEMBER;
+				}
+				return RelationTypes.getRelationType(getModelObject().getTargetRef().getRelation());
+			}
+
+			@Override
+			public void setObject(RelationTypes newValue) {
+				ObjectReferenceType ref = getModelObject().getTargetRef();
+				if (ref != null){
+					ref.setRelation(newValue.getRelation());
+				}
+			}
+
+			@Override
+			public void detach() {
+
 			}
 		};
 	}

@@ -691,6 +691,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+					<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Relation(s) which are to be considered. Value of q:any means "any relation".
+								If no relation is present, org:default (i.e. null) is assumed.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

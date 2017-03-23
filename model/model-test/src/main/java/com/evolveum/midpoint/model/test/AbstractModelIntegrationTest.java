@@ -71,6 +71,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
@@ -98,6 +99,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -926,7 +928,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			if (targetRef != null) {
 				if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
 					ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-					PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+					PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
 					cval.setId(assignment.getId());
 					assignmentDelta.addValueToDelete(cval);
 					modifications.add(assignmentDelta);
@@ -1201,18 +1203,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAssignees(String targetOid, int expectedAssignees) throws SchemaException {
+		assertAssignees(targetOid, SchemaConstants.ORG_DEFAULT, expectedAssignees);
+	}
+
+	protected void assertAssignees(String targetOid, QName relation, int expectedAssignees) throws SchemaException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName()+".assertAssignees");
-		int count = countAssignees(targetOid, result);
+		int count = countAssignees(targetOid, relation, result);
 		if (count != expectedAssignees) {
 			SearchResultList<PrismObject<FocusType>> assignees = listAssignees(targetOid, result);
-			AssertJUnit.fail("Unexpected number of assignees of "+targetOid+", expected "+expectedAssignees+", but was " + count+ ": "+assignees);
+			AssertJUnit.fail("Unexpected number of assignees of "+targetOid+" as '"+relation+"', expected "+expectedAssignees+", but was " + count+ ": "+assignees);
 		}
 		
 	}
 	
 	protected int countAssignees(String targetOid, OperationResult result) throws SchemaException {
+		return countAssignees(targetOid, SchemaConstants.ORG_DEFAULT, result);
+	}
+
+	protected int countAssignees(String targetOid, QName relation, OperationResult result) throws SchemaException {
+		PrismReferenceValue refVal = new PrismReferenceValue();
+		refVal.setOid(targetOid);
+		refVal.setRelation(relation);
 		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(targetOid)
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(refVal)
 				.build();
 		return repositoryService.countObjects(FocusType.class, query, result);
 	}
@@ -3759,6 +3772,42 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         		AssertJUnit.fail("Expected role type "+expectedRoleType+" but it was not present (got "+roleTypes+")");
         	}
         }
+	}
+	
+	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException {
+		PrismObject<UserType> user = getUser(userOid);
+		PrismObject<RoleType> target = getRole(targetRoleOid);
+		
+		ItemSecurityDecisions decisions = modelInteractionService.getAllowedRequestAssignmentItems(user, target);
+		display("Request decisions for "+target, decisions);
+		assertEquals("Wrong assign default decision", expectedDefaultDecision, decisions.getDefaultDecision());
+		assertEquals("Unexpected number of allowed items", expectedAllowedItemQNames.length, decisions.getItemDecisionMap().size());
+		
+		decisions.getItemDecisionMap().forEach(
+				(path,decision) -> {
+					assertEquals("wrong item "+path+" decision", AuthorizationDecisionType.ALLOW, decision);
+					QName lastPathName = path.lastNamed().getName();
+					if (!Arrays.stream(expectedAllowedItemQNames).anyMatch(qname -> QNameUtil.match(qname, lastPathName) )) {
+						AssertJUnit.fail("Unexpected path "+path);
+					}
+				}
+		);
+	}
+
+	
+	protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertEncryptedUserPassword");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		assertEncryptedUserPassword(user, expectedClearPassword);
+	}
+	
+	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
+		UserType userType = user.asObjectable();
+		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
+		String actualClearPassword = protector.decryptString(protectedActualPassword);
+		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
 	}
 
 	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {

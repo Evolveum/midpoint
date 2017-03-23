@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="4a579cd0-0f17-11e7-967c-130ecd6fb7dc"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Relative Pirate</name>
+    <inducement>
+    	<construction>
+    		<resourceRef oid="adcd4654-0f15-11e7-8337-0bdf60ad7bcd"/> <!-- Dummy Relative -->
+    		<kind>account</kind>
+    		<attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                	<expression>
+						<value>Bloody Pirate</value>
+					</expression>
+				</outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <outbound>
+                	<source>
+						<path>locality</path>
+					</source>
+					<condition>
+						<script>
+							<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+							<code>
+								assert resource != null
+								locality?.getNorm() != "hidden"
+							</code>
+						</script>
+					</condition>
+				</outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <outbound>
+                	<expression>
+						<value>cutlass</value>
+					</expression>
+				</outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <outbound>
+                	<source>
+                		<path>$user/fullName</path>
+                	</source>
+                	<source>
+                		<path>$user/locality</path>
+                	</source>
+                	<expression>
+						<script>
+							<code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code> 
+						</script>
+					</expression>
+				</outbound>
+            </attribute>
+    	</construction>
+    </inducement>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
+    	<phase>execution</phase>
+    </authorization>
+</role>

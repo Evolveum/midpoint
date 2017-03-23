@@ -11202,13 +11202,13 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
-        	<xsd:element name="prohibitSameTarget" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+        	<xsd:element name="allowSameTarget" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
 			    <xsd:annotation>
 			        <xsd:documentation>
 			            Constraint all assignments that have the same target. I.e. multiple assignments
 			            of the same (abstract) role.
-			            If prohibitSameTarget=false then multiple assignments of the same role are allowed.
-			            If prohibitSameTarget=true then multiple assignments of the same role are prohibited.
+			            If allowSameTarget=true then multiple assignments of the same role are allowed.
+			            If allowSameTarget=false then multiple assignments of the same role are prohibited.
 			            (but see also other constraints in this type)
 			        </xsd:documentation>
 			        <xsd:appinfo>
@@ -11216,13 +11216,12 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
-			<xsd:element name="prohibitSameRelation" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+			<xsd:element name="allowSameRelation" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
 			    <xsd:annotation>
 			        <xsd:documentation>
 			            Constraint all assignments that have the same relation.
-			            E.g. if prohibitSameTarget=true and prohibitSameRelation=false then multiple assignments
+			            E.g. if allowSameTarget=true and allowSameRelation=false then multiple assignments
 			            of the same role are allowed as long as they have different relation.
-			            If prohibitSameTarget=true and prohibitSameRelation=false
 			        </xsd:documentation>
 			        <xsd:appinfo>
 						<a:since>3.6</a:since>

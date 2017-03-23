@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,11 +36,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.bag.TreeBag;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 import java.util.function.Function;
@@ -49,6 +54,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayObjectTypeCollection;
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 /**
  * Comprehensive test of assignment evaluator and processor.
@@ -92,6 +98,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	private static final boolean FIRST_PART = true;
 	private static final boolean SECOND_PART = true;
+	private static final boolean THIRD_PART = true;
 
 	private static final File RESOURCE_DUMMY_EMPTY_FILE = new File(TEST_DIR, "resource-dummy-empty.xml");
 	private static final String RESOURCE_DUMMY_EMPTY_OID = "10000000-0000-0000-0000-00000000EEE4";
@@ -111,11 +118,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	private RoleType metarole7, metarole8, metarole9;
 	private RoleType metametarole7;
 
+	// third part
+	private RoleType rolePirate, roleSailor, roleMan, roleWoman, roleHuman;
+	private RoleType metaroleCrewMember, metarolePerson;
+
 	private List<ObjectType> objects;
 
 	private static final String ROLE_R1_OID = getRoleOid("R1");
 	private static final String ROLE_R7_OID = getRoleOid("R7");
 	private static final String ROLE_MR1_OID = getRoleOid("MR1");
+	private static final String ROLE_PIRATE_OID = getRoleOid("Pirate");
+	private static final String ROLE_MAN_OID = getRoleOid("Man");
 
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -456,6 +469,85 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				"barbossa-0 R1-1 R2-1 MR2-2 O3-1 MR1-2 MR3-2 R5-1 R4-1 MMR1-3 MR4-2 R6-1");
 		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+	}
+
+	/**
+	 *                MMR1 -----------I------------------------------*
+	 *                 ^                                             |
+	 *                 |                                             I
+	 *                 |                                             V
+	 *                MR1 -----------I-------------*-----> MR3      MR4
+	 *                 ^        MR2 --I---*        |        |        |
+	 *                 |         ^        I        I        I        I
+	 *                 |         |        V        V        V        V
+	 *                 R1 --I--> R2       O3       R4       R5       R6
+	 *                 ^
+	 *                 A
+	 *                 |
+	 *  jack --D--> barbossa
+	 *
+	 *  (D = deputy assignment) (A = approver)
+	 *
+	 */
+	@Test(enabled = FIRST_PART)
+	public void test070JackDeputyOfBarbossaApproverOfR1() throws Exception {
+		final String TEST_NAME = "test070JackDeputyOfBarbossaApproverOfR1";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		unassignAllRoles(USER_JACK_OID);
+		unassignAllRoles(USER_GUYBRUSH_OID);
+		unassignAllRoles(USER_BARBOSSA_OID);
+
+		// barbossa has a policy rule barbossa-0 from test050
+		assignRole(USER_BARBOSSA_OID, ROLE_R1_OID, SchemaConstants.ORG_APPROVER, task, result);
+
+		display("barbossa", getUser(USER_BARBOSSA_OID));
+
+		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, UserType.class, USER_BARBOSSA_OID,
+				SchemaConstants.ORG_DEPUTY, null, result);
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "barbossa R1 R2 O3 R4 R5 R6 MR1 MR2 MR3 MR4 MMR1", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "");
+		assertOrgRef(evaluatedAssignment, "");
+		assertDelegation(evaluatedAssignment, "barbossa R1");
+		PrismReferenceValue barbossaRef = evaluatedAssignment.getDelegationRefVals().stream()
+				.filter(v -> USER_BARBOSSA_OID.equals(v.getOid())).findFirst().orElseThrow(
+						() -> new AssertionError("No barbossa ref in delegation ref vals"));
+		assertEquals("Wrong relation for barbossa delegation", SchemaConstants.ORG_DEPUTY, barbossaRef.getRelation());
+		PrismReferenceValue r1Ref = evaluatedAssignment.getDelegationRefVals().stream()
+				.filter(v -> ROLE_R1_OID.equals(v.getOid())).findFirst().orElseThrow(
+						() -> new AssertionError("No R1 ref in delegation ref vals"));
+		assertEquals("Wrong relation for R1 delegation", SchemaConstants.ORG_APPROVER, r1Ref.getRelation());
+
+		// Constructions are named "role-level". We expect e.g. that from R1 we get a construction induced with order=1 (R1-1).
+		assertConstructions(evaluatedAssignment, "Brethren_account_construction Undead_monkey_account_construction", null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, "");
+		assertFocusPolicyRules(evaluatedAssignment, "barbossa-0");
+
+		// Rules for other targets are empty, which is very probably OK. All rules are bound to target "barbossa".
+		// There is no alternative target, as barbossa does not induce anything.
+		assertTargetPolicyRules(evaluatedAssignment, "barbossa-0", "");
+		assertAuthorizations(evaluatedAssignment, "");
+		assertGuiConfig(evaluatedAssignment, "");
 	}
 
 
@@ -839,6 +931,474 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertAuthorizations(evaluatedAssignment, "R7 R8 R9");
 		assertGuiConfig(evaluatedAssignment, "R7 R8 R9");
 	}
+
+	/**
+	 * Testing assignment path variables
+	 *
+	 *           MetaroleCrewMember (C3) -----I-----> MetarolePerson (C4) --I--+
+	 *             ^            ^                       ^     ^                |
+	 *             |            |                       |     |                |
+	 *             |            |                       |     |                V
+	 *     (C1) Pirate --I--> Sailor (C2)              Man  Woman           Human (C5)
+	 *             ^                                    |
+	 *             | +----------------------------------+
+	 *             | |             (added later)
+	 *            jack
+	 *
+	 * Assume these constructions:
+	 *  - C1 giving each Pirate some account (attached via inducement)
+	 *  - C2 giving each Sailor some account (attached via inducement)
+	 *  - C3 giving each crew member some account (attached via inducement of order 2)
+	 *  - C4 giving each person some account (attached via inducement of order 2)
+	 *  - C5 giving each Human some account (attached via inducement)
+	 */
+
+	@Test(enabled = THIRD_PART)
+	public void test400AssignJackPirate() throws Exception {
+		final String TEST_NAME = "test400AssignJackPirate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		createObjectsInThirdPart(false, task, result, () -> {
+
+			createCustomConstruction(rolePirate, "C1", 1);
+			createCustomConstruction(roleSailor, "C2", 1);
+			createCustomConstruction(metaroleCrewMember, "C3", 2);
+			createCustomConstruction(metarolePerson, "C4", 2);
+			createCustomConstruction(roleHuman, "C5", 1);
+
+			addConditionToRoles("Pirate! Sailor! MetaroleCrewMember! MetarolePerson! Man! Human!");
+			addConditionToAssignments("Pirate-Sailor! Pirate-MetaroleCrewMember! Sailor-MetaroleCrewMember! MetaroleCrewMember-MetarolePerson! Man-MetarolePerson! MetarolePerson-Human!");
+		});
+
+		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_PIRATE_OID, null, null, result);
+
+		// WHEN
+		recording = true;
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		recording = false;
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "Pirate Sailor Human Human", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "MetaroleCrewMember MetaroleCrewMember MetarolePerson MetarolePerson", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "Pirate Sailor Human");
+		assertOrgRef(evaluatedAssignment, "");
+		assertDelegation(evaluatedAssignment, "");
+
+		String expectedItems = "Pirate-1 Sailor-1 MetaroleCrewMember-2 MetaroleCrewMember-2 MetarolePerson-2 MetarolePerson-2 Human-1 Human-1";
+		assertConstructions(evaluatedAssignment, expectedItems + " C1 C2 C3 C3 C4 C4 C5 C5", null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
+
+		assertTargetPolicyRules(evaluatedAssignment,
+				"Pirate-0 MetaroleCrewMember-1 MetarolePerson-1",
+				"Sailor-0 MetaroleCrewMember-1 MetarolePerson-1 Human-0 Human-0");
+		assertAuthorizations(evaluatedAssignment, "Pirate Sailor Human");
+		assertGuiConfig(evaluatedAssignment, "Pirate Sailor Human");
+
+		dump("Pirate!", 0);
+		dump("Sailor!", 0);
+		dump("MetaroleCrewMember!", 1);
+		dump("MetaroleCrewMember!", 0);
+		dump("MetarolePerson!", 1);
+		dump("MetarolePerson!", 0);
+		dump("Human!", 1);
+		dump("Human!", 0);
+
+		dump("Pirate-Sailor!", 0);
+		dump("Pirate-MetaroleCrewMember!", 0);
+		dump("Sailor-MetaroleCrewMember!", 0);
+		dump("MetaroleCrewMember-MetarolePerson!", 1);
+		dump("MetaroleCrewMember-MetarolePerson!", 0);
+		dump("MetarolePerson-Human!", 1);
+		dump("MetarolePerson-Human!", 0);
+
+		dump("C1", 0);
+		dump("C2", 0);
+		dump("C3", 1);
+		dump("C3", 0);
+		dump("C4", 1);
+		dump("C4", 0);
+		dump("C5", 1);
+		dump("C5", 0);
+
+		runs.values().forEach(r -> r.assertFocus("jack").assertFocusAssignment("->Pirate"));
+
+		getRunInfo("Pirate!", 0)
+				.assertThisAssignment("->Pirate")
+				.assertImmediateAssignment(null)
+				.assertSource("jack")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(1);
+
+		getRunInfo("Sailor!", 0)
+				.assertThisAssignment("->Sailor")
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		// swap indices if internals of evaluator change and "Pirate" branch is executed first
+		getRunInfo("MetaroleCrewMember!", 1)
+				.assertThisAssignment("->MetaroleCrewMember")
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		getRunInfo("MetaroleCrewMember!", 0)
+				.assertThisAssignment("->MetaroleCrewMember")
+				.assertImmediateAssignment("->Sailor")
+				.assertSource("Sailor")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetarolePerson!", 1)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetarolePerson!", 0)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Sailor")
+				.assertAssignmentPath(4);
+
+		getRunInfo("Human!", 1)
+				.assertThisAssignment("->Human")
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(4);
+
+		getRunInfo("Human!", 0)
+				.assertThisAssignment("->Human")
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(5);
+
+		// assignments
+
+		getRunInfo("Pirate-Sailor!", 0)
+				.assertThisAssignment("->Sailor")
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		getRunInfo("Pirate-MetaroleCrewMember!", 0)
+				.assertThisAssignment("->MetaroleCrewMember")
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		getRunInfo("Sailor-MetaroleCrewMember!", 0)
+				.assertThisAssignment("->MetaroleCrewMember")
+				.assertImmediateAssignment("->Sailor")
+				.assertSource("Sailor")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetaroleCrewMember-MetarolePerson!", 1)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetaroleCrewMember-MetarolePerson!", 0)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Sailor")
+				.assertAssignmentPath(4);
+
+		getRunInfo("MetarolePerson-Human!", 1)
+				.assertThisAssignment("->Human")
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(4);
+
+		getRunInfo("MetarolePerson-Human!", 0)
+				.assertThisAssignment("->Human")
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(5);
+
+		getRunInfo("C1", 0)
+				.assertImmediateAssignment("->Pirate")
+				.assertSource("Pirate")
+				.assertThisObject("Pirate")
+				.assertImmediateRole(null)
+				.assertAssignmentPath(2);
+
+		getRunInfo("C2", 0)
+				.assertImmediateAssignment("->Sailor")
+				.assertSource("Sailor")
+				.assertThisObject("Sailor")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("C3", 1)
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertThisObject("Pirate")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("C3", 0)
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
+				.assertThisObject("Sailor")
+				.assertImmediateRole("Sailor")
+				.assertAssignmentPath(4);
+
+		getRunInfo("C4", 1)
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertThisObject("MetaroleCrewMember")			// TODO
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(4);
+
+		getRunInfo("C4", 0)
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertThisObject("MetaroleCrewMember")			// TODO
+				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(5);
+
+		getRunInfo("C5", 1)
+				.assertImmediateAssignment("->Human")
+				.assertSource("Human")
+				.assertThisObject("Human")
+				.assertImmediateRole("MetarolePerson")
+				.assertAssignmentPath(5);
+
+		getRunInfo("C5", 0)
+				.assertImmediateAssignment("->Human")
+				.assertSource("Human")
+				.assertThisObject("Human")
+				.assertImmediateRole("MetarolePerson")
+				.assertAssignmentPath(6);
+	}
+
+	private void dump(String runName, int index) {
+		System.out.println(getRunInfo(runName, index).dump());
+	}
+
+	private RunInfo getRunInfo(String runName, int index) {
+		return getRunInfos(runName).stream().filter(r -> r.index == index)
+					.findFirst()
+					.orElseThrow(() -> new AssertionError("No run " + runName + " with index " + index));
+	}
+
+	private Collection<RunInfo> getRunInfos(String name) {
+		return CollectionUtils.emptyIfNull(runs.get(name));
+	}
+
+	private RunInfo getRunInfo(String name) {
+		Collection<RunInfo> runs = getRunInfos(name);
+		assertEquals("Wrong # of run infos for " + name, 1, runs.size());
+		return runs.iterator().next();
+	}
+
+	private void showEvaluations(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String name, int expectedConstructions, Task task, OperationResult result)
+			throws Exception {
+		List<Construction<UserType>> constructions = getConstructions(evaluatedAssignment, name);
+		assertEquals("Wrong # of constructions: " + name, expectedConstructions, constructions.size());
+		for (int i = 0; i < constructions.size(); i++) {
+			Construction<UserType> construction = constructions.get(i);
+			System.out.println("Evaluating " + name + " #" + (i+1));
+			construction.evaluate(task, result);
+			System.out.println("Done");
+		}
+	}
+
+
+	private static boolean recording() {
+		return recording && ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew();
+	}
+
+	private static class RunInfo {
+		private String name;
+		private int index;
+		private AssignmentType assignment;
+		private AssignmentType thisAssignment;
+		private AssignmentType immediateAssignment;
+		private AssignmentType focusAssignment;
+		private FocusType source;
+		private FocusType immediateRole;
+		private FocusType thisObject;
+		private FocusType focus;
+		private AssignmentPathImpl assignmentPath;
+		private String dump() {
+			String p = name + "#" + (index+1);
+			StringBuilder sb = new StringBuilder();
+			sb.append("------------------------------------------------------------------------------------\n");
+			sb.append(p).append(" ").append("assignment:          ").append(assignment).append("\n");
+			sb.append(p).append(" ").append("thisAssignment:      ").append(thisAssignment).append("\n");
+			sb.append(p).append(" ").append("immediateAssignment: ").append(immediateAssignment).append("\n");
+			sb.append(p).append(" ").append("focusAssignment:     ").append(focusAssignment).append("\n");
+			sb.append(p).append(" ").append("source:              ").append(source).append("\n");
+			sb.append(p).append(" ").append("immediateRole:       ").append(immediateRole).append("\n");
+			sb.append(p).append(" ").append("thisObject:          ").append(thisObject).append("\n");
+			sb.append(p).append(" ").append("focus:               ").append(focus).append("\n");
+			sb.append(p).append(" ").append("assignmentPath:      ").append(shortString(assignmentPath)).append("\n");
+			return sb.toString();
+		}
+
+		private String shortString(AssignmentPathImpl assignmentPath) {
+			StringBuilder sb = new StringBuilder();
+			boolean first = true;
+			for (AssignmentPathSegmentImpl segment : assignmentPath.getSegments()) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append("; ");
+				}
+				sb.append(segment.getSource().getName());
+				if (segment.getTarget() != null) {
+					sb.append(" -> ").append(segment.getTarget().getName());
+				}
+			}
+			return sb.toString();
+		}
+
+		public RunInfo assertThisAssignment(String name) {
+			return assertAssignment(thisAssignment, name);
+		}
+
+		private RunInfo assertAssignment(AssignmentType assignment, String name) {
+			if (name == null) {
+				assertNull("Assignment is not null", assignment);
+			} else {
+				name = name.substring(2);
+				assertEquals("Wrong target OID in assignment", getRoleOid(name), assignment.getTargetRef().getOid());
+			}
+			return this;
+		}
+
+		public RunInfo assertImmediateAssignment(String name) {
+			return assertAssignment(immediateAssignment, name);
+		}
+
+		public RunInfo assertFocusAssignment(String name) {
+			return assertAssignment(focusAssignment, name);
+		}
+
+		public RunInfo assertSource(String name) {
+			return assertObject(source, name);
+		}
+
+		public RunInfo assertThisObject(String name) {
+			return assertObject(thisObject, name);
+		}
+
+		public RunInfo assertFocus(String name) {
+			return assertObject(focus, name);
+		}
+
+		public RunInfo assertImmediateRole(String name) {
+			return assertObject(immediateRole, name);
+		}
+
+		public RunInfo assertObject(ObjectType object, String name) {
+			if (name == null) {
+				assertNull("Object is not null", object);
+			} else {
+				assertEquals("Wrong object", name, object.getName().getOrig());
+			}
+			return this;
+		}
+
+		public RunInfo assertAssignmentPath(int expected) {
+			assertEquals("Wrong length of assignmentPath", expected, assignmentPath.size());
+			return this;
+		}
+	}
+
+	private static boolean recording = false;
+
+	private static MultiValuedMap<String,RunInfo> runs = new ArrayListValuedHashMap<>();
+
+	private static RunInfo currentRun;
+
+	// called from the script
+	public static void startCallback(String desc) {
+		if (recording()) {
+			System.out.println("Starting execution: " + desc);
+			currentRun = new RunInfo();
+			currentRun.name = desc;
+			currentRun.index = CollectionUtils.emptyIfNull(runs.get(desc)).size();
+		}
+	}
+
+	private static final List<String> RECORDED_VARIABLES = Arrays.asList(
+			ExpressionConstants.VAR_ASSIGNMENT.getLocalPart(),
+			ExpressionConstants.VAR_FOCUS_ASSIGNMENT.getLocalPart(),
+			ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.getLocalPart(),
+			ExpressionConstants.VAR_THIS_ASSIGNMENT.getLocalPart(),
+			ExpressionConstants.VAR_FOCUS.getLocalPart(),
+			ExpressionConstants.VAR_ORDER_ONE_OBJECT.getLocalPart(),
+			ExpressionConstants.VAR_IMMEDIATE_ROLE.getLocalPart(),
+			ExpressionConstants.VAR_SOURCE.getLocalPart(),
+			ExpressionConstants.VAR_ASSIGNMENT_PATH.getLocalPart());
+
+	@SuppressWarnings("unchecked")
+	public static void variableCallback(String name, Object value, String desc) {
+		if (recording()) {
+			if (RECORDED_VARIABLES.contains(name)) {
+				System.out.println(desc + ": name = " + name + ", value = " + value);
+				if (ExpressionConstants.VAR_ASSIGNMENT.getLocalPart().equals(name)) {
+					currentRun.assignment = (AssignmentType) value;
+				} else if (ExpressionConstants.VAR_FOCUS_ASSIGNMENT.getLocalPart().equals(name)) {
+					currentRun.focusAssignment = (AssignmentType) value;
+				} else if (ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT.getLocalPart().equals(name))
+					currentRun.immediateAssignment = (AssignmentType) value;
+				else if (ExpressionConstants.VAR_THIS_ASSIGNMENT.getLocalPart().equals(name)) {
+					currentRun.thisAssignment = (AssignmentType) value;
+				} else if (ExpressionConstants.VAR_FOCUS.getLocalPart().equals(name)) {
+					currentRun.focus = (FocusType) value;
+				} else if (ExpressionConstants.VAR_ORDER_ONE_OBJECT.getLocalPart().equals(name)) {
+					currentRun.thisObject = (FocusType) value;
+				} else if (ExpressionConstants.VAR_IMMEDIATE_ROLE.getLocalPart().equals(name)) {
+					currentRun.immediateRole = (FocusType) value;
+				} else if (ExpressionConstants.VAR_SOURCE.getLocalPart().equals(name)) {
+					currentRun.source = (FocusType) value;
+				} else if (ExpressionConstants.VAR_ASSIGNMENT_PATH.getLocalPart().equals(name)) {
+					currentRun.assignmentPath = (AssignmentPathImpl) value;
+				}
+			}
+		}
+	}
+
+	public static void finishCallback(String desc) {
+		if (recording()) {
+			System.out.println("Finishing execution: " + desc);
+			runs.put(desc, currentRun);
+		}
+	}
+
 	//region ============================================================= helper methods (preparing scenarios)
 
 	private void createObjectsInFirstPart(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
@@ -894,6 +1454,56 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		createObjects(deleteFirst, task, result, adjustment);
 	}
 
+	private void createObjectsInThirdPart(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
+		rolePirate = createRole("Pirate");
+		rolePirate.setDelegable(true);
+		roleSailor = createRole("Sailor");
+		metaroleCrewMember = createRole("MetaroleCrewMember");
+		metarolePerson = createRole("MetarolePerson");
+		roleMan = createRole("Man");
+		roleWoman = createRole("Woman");
+		roleHuman = createRole("Human");
+
+		assign(rolePirate, metaroleCrewMember);
+		assign(roleSailor, metaroleCrewMember);
+		induce(rolePirate, roleSailor, 1);
+		assign(roleMan, metarolePerson);
+		assign(roleWoman, metarolePerson);
+		induce(metaroleCrewMember, metarolePerson, 1);
+		induce(metarolePerson, roleHuman, 2);
+
+		objects = new ArrayList<>(
+				Arrays.asList(rolePirate, roleSailor, metaroleCrewMember, metarolePerson, roleMan, roleWoman, roleHuman));
+
+		createObjects(deleteFirst, task, result, adjustment);
+	}
+
+	private void createCustomConstruction(RoleType role, String name, int order) {
+		ConstructionType c = new ConstructionType(prismContext);
+		c.setDescription(name);
+		c.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_DUMMY_EMPTY_OID, ObjectTypes.RESOURCE));
+		ResourceAttributeDefinitionType nameDef = new ResourceAttributeDefinitionType();
+		nameDef.setRef(new ItemPath(new QName(SchemaConstants.NS_ICF_SCHEMA, "name")).asItemPathType());
+		MappingType outbound = new MappingType();
+		outbound.setName(name);
+		ExpressionType expression = new ExpressionType();
+		ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
+		script.setCode(
+				  "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
+				+ "TestAssignmentProcessor2.startCallback('" + name + "')\n"
+				+ "this.binding.variables.each {k,v -> TestAssignmentProcessor2.variableCallback(k, v, '" + name + "')}\n"
+				+ "TestAssignmentProcessor2.finishCallback('" + name + "')\n"
+				+ "return null");
+		expression.getExpressionEvaluator().add(new ObjectFactory().createScript(script));
+		outbound.setExpression(expression);
+		nameDef.setOutbound(outbound);
+		c.getAttribute().add(nameDef);
+		AssignmentType a = new AssignmentType(prismContext);
+		a.setDescription("Assignment for " + c.getDescription());
+		a.setConstruction(c);
+		addAssignmentOrInducement(role, order, a);
+	}
+
 	private void createObjects(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
 		if (adjustment != null) {
 			adjustment.run();
@@ -938,7 +1548,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			String name = StringUtils.substring(item, 0, -1);
 			char conditionType = item.charAt(item.length() - 1);
 			AbstractRoleType role = findRole(name);
-			role.setCondition(createCondition(conditionType));
+			role.setCondition(createCondition(item, conditionType));
 		}
 	}
 
@@ -947,16 +1557,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			String assignmentText = StringUtils.substring(item, 0,-1);
 			char conditionType = item.charAt(item.length() - 1);
 			AssignmentType assignment = findAssignmentOrInducement(assignmentText);
-			assignment.setCondition(createCondition(conditionType));
+			assignment.setCondition(createCondition(item, conditionType));
 		}
 	}
 
-	private MappingType createCondition(char conditionType) {
+	private MappingType createCondition(String conditionName, char conditionType) {
 		ScriptExpressionEvaluatorType script = new ScriptExpressionEvaluatorType();
 		switch (conditionType) {
 			case '+': script.setCode("basic.stringify(name) == 'jack1'"); break;
 			case '-': script.setCode("basic.stringify(name) == 'jack'"); break;
 			case '0': script.setCode("basic.stringify(name) == 'never there'"); break;
+			case '!': script.setCode(createDumpConditionCode(conditionName)); break;
 			default: throw new AssertionError(conditionType);
 		}
 		ExpressionType expression = new ExpressionType();
@@ -964,9 +1575,18 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		VariableBindingDefinitionType source = new VariableBindingDefinitionType();
 		source.setPath(new ItemPath(UserType.F_NAME).asItemPathType());
 		MappingType rv = new MappingType();
+		rv.setName(conditionName);
 		rv.setExpression(expression);
 		rv.getSource().add(source);
 		return rv;
+	}
+
+	private String createDumpConditionCode(String text) {
+		return    "import com.evolveum.midpoint.model.impl.lens.TestAssignmentProcessor2\n\n"
+				+ "TestAssignmentProcessor2.startCallback('" + text + "')\n"
+				+ "this.binding.variables.each {k,v -> TestAssignmentProcessor2.variableCallback(k, v, '" + text + "')}\n"
+				+ "TestAssignmentProcessor2.finishCallback('" + text + "')\n"
+				+ "return true";
 	}
 
 	private void induce(AbstractRoleType source, AbstractRoleType target, int inducementOrder) {
@@ -983,15 +1603,26 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private RoleType createRole(int level, int number) {
-		return prepareAbstractRole(new RoleType(prismContext), level, number, "R");
+		return prepareAbstractRole(new RoleType(prismContext), createName("R", level, number));
+	}
+
+	private RoleType createRole(String name) {
+		return prepareAbstractRole(new RoleType(prismContext), name);
+	}
+
+	private String createName(String prefix, int level, int number) {
+		return StringUtils.repeat('M', level-1) + prefix + number;
 	}
 
 	private OrgType createOrg(int number) {
-		return prepareAbstractRole(new OrgType(prismContext), 1, number, "O");
+		return prepareAbstractRole(new OrgType(prismContext), createName("O", 1, number));
 	}
 
-	private <R extends AbstractRoleType> R prepareAbstractRole(R abstractRole, int level, int number, String nameSymbol) {
-		String name = StringUtils.repeat('M', level-1) + nameSymbol + number;
+	private OrgType createOrg(String name) {
+		return prepareAbstractRole(new OrgType(prismContext), name);
+	}
+
+	private <R extends AbstractRoleType> R prepareAbstractRole(R abstractRole, String name) {
 		String oid = getRoleOid(name);
 
 		abstractRole.setName(PolyStringType.fromOrig(name));
@@ -1056,6 +1687,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private static String getRoleOid(String name) {
+		name = name.substring(0, Math.min(12, name.length()));
 		return "99999999-0000-0000-0000-" + StringUtils.repeat('0', 12-name.length()) + name;
 	}
 
@@ -1198,6 +1830,12 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	//endregion
 	//region ============================================================= helper methods (misc)
+
+	private <F extends FocusType> List<Construction<F>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
+		return evaluatedAssignment.getConstructions().getAllValues().stream()
+				.filter(c -> name.equals(c.getDescription()))
+				.collect(Collectors.toList());
+	}
 
 	private AssignmentType findAssignmentOrInducement(String assignmentText) {
 		String[] split = StringUtils.split(assignmentText, "-");

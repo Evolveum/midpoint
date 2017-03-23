@@ -419,6 +419,13 @@ public class LensUtil {
 			LOGGER.trace("Existing values for item {} in {}, weak mapping processing skipped",
 					new Object[]{itemPath, contextDescription});
 		}
+		
+		if (itemExisting != null) {
+			List<V> existingValues = itemExisting.getValues();
+			if (existingValues != null) {
+				itemDelta.setEstimatedOldValues(PrismValue.cloneCollection(existingValues));
+			}
+		}
         
         return itemDelta;
         
@@ -868,6 +875,7 @@ public class LensUtil {
     		return null;
     	}
     	AssignmentPathVariables vars = new AssignmentPathVariables();
+    	vars.setAssignmentPath(assignmentPath.clone());
     	
     	Iterator<AssignmentPathSegmentImpl> iterator = assignmentPath.getSegments().iterator();
 		while (iterator.hasNext()) {
@@ -969,13 +977,16 @@ public class LensUtil {
     public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	if (assignmentPathVariables != null ) {
 			return builder
+					.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath())
 					.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment())
 					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment())
 					.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment())
 					.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment())
 					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
 		} else {
-			return builder;
+    		// to avoid "no such variable" exceptions in boundary cases
+			// for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
+			return builder.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, (Object) null);
 		}
     }
     

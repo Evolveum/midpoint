@@ -220,7 +220,7 @@ public class CertDefinitionDto implements Serializable {
     private DefinitionScopeDto createDefinitionScopeDto(AccessCertificationScopeType scopeTypeObj, PrismContext prismContext) {
         DefinitionScopeDto dto = new DefinitionScopeDto();
 
-        // default values, optionally overriden below
+        // default values, optionally overridden below
         dto.setIncludeAssignments(true);
         dto.setIncludeInducements(true);
         dto.setIncludeResources(true);
@@ -233,10 +233,8 @@ public class CertDefinitionDto implements Serializable {
             dto.setName(scopeTypeObj.getName());
             dto.setDescription(scopeTypeObj.getDescription());
             if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
-                dto.setItemSelectionExpression(((AccessCertificationObjectBasedScopeType) scopeTypeObj).getItemSelectionExpression());
-            }
-            if (scopeTypeObj instanceof AccessCertificationObjectBasedScopeType) {
                 AccessCertificationObjectBasedScopeType objScopeType = (AccessCertificationObjectBasedScopeType) scopeTypeObj;
+                dto.setItemSelectionExpression(objScopeType.getItemSelectionExpression());
                 if (objScopeType.getObjectType() != null) {
                     dto.setObjectType(DefinitionScopeObjectType.valueOf(objScopeType.getObjectType().getLocalPart()));
                 }
@@ -251,6 +249,7 @@ public class CertDefinitionDto implements Serializable {
                     dto.setIncludeOrgs(!Boolean.FALSE.equals(assignmentScope.isIncludeOrgs()));
                     dto.setIncludeServices(!Boolean.FALSE.equals(assignmentScope.isIncludeServices()));
                     dto.setEnabledItemsOnly(!Boolean.FALSE.equals(assignmentScope.isEnabledItemsOnly()));
+                    dto.setRelationList(new ArrayList<>(assignmentScope.getRelation()));
                 }
             }
         }
@@ -304,6 +303,7 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setIncludeServices(definitionScopeDto.isIncludeServices());
             scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
             scopeTypeObj.setItemSelectionExpression(definitionScopeDto.getItemSelectionExpression());
+            scopeTypeObj.getRelation().addAll(definitionScopeDto.getRelationList());
         }
         definition.setScopeDefinition(scopeTypeObj);
     }

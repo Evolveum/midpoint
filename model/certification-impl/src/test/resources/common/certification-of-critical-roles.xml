@@ -55,15 +55,15 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
             <script>
                 <code>
                     role = midpoint.resolveReferenceIfExists(assignment.targetRef)
-                    role != null &amp;&amp; role.riskLevel == 'critical' &amp;&amp;
-							assignment.targetRef != null &amp;&amp;
-							(assignment.targetRef.relation == null || assignment.targetRef.relation.localPart != 'owner')
+                    role != null &amp;&amp; role.riskLevel == 'critical'
                 </code>
             </script>
         </itemSelectionExpression>
         <includeRoles>true</includeRoles>
         <includeOrgs>false</includeOrgs>
         <includeResources>false</includeResources>
+        <relation>default</relation>
+        <relation>approver</relation>       <!-- just to test this -->
     </scopeDefinition>
     <remediationDefinition>
         <style>automated</style>

@@ -345,17 +345,15 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		this.processMembership = processMembership;
 	}
 
-	/**
-	 *  Whether this assignment/inducement matches the focus level, i.e. if we should collect constructions,
-	 *  focus mappings, and focus policy rules from it.
-	 */
+	@Override
 	public boolean isMatchingOrder() {
 		if (isMatchingOrder == null) {
 			isMatchingOrder = computeMatchingOrder(evaluationOrder, getAssignment());
 		}
 		return isMatchingOrder;
 	}
-	
+
+	@Override
 	public boolean isMatchingOrderForTarget() {
 		if (isMatchingOrderForTarget == null) {
 			isMatchingOrderForTarget = computeMatchingOrder(evaluationOrderForTarget, getAssignment());
@@ -468,6 +466,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		}
 		sb.append(": ");
 		sb.append(source).append(" ");
+		if (!isAssignment) {
+			sb.append("inducement ");
+		}
 		PrismContainer<AssignmentType> assignment = (PrismContainer<AssignmentType>) assignmentIdi.getAnyItem();
 		AssignmentType assignmentType = assignment != null ? assignment.getValue().asContainerable() : null;
 		if (assignmentType != null) {

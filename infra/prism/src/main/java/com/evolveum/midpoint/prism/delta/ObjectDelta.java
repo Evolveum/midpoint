@@ -766,6 +766,10 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         return addModification(referenceDelta);
     }
     
+    public <C extends Containerable> ContainerDelta<C> createContainerModification(QName qname) {
+    	return createContainerModification(new ItemPath(qname));
+    }
+    
     public <C extends Containerable> ContainerDelta<C> createContainerModification(ItemPath path) {
 	    PrismObjectDefinition<T> objDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
 		PrismContainerDefinition<C> propDef = objDef.findContainerDefinition(path);

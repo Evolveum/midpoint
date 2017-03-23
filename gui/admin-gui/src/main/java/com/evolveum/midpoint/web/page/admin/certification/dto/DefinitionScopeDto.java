@@ -23,7 +23,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Kate
@@ -54,6 +56,7 @@ public class DefinitionScopeDto implements Serializable {
     private boolean includeServices;
     private boolean enabledItemsOnly;
 	private ExpressionType itemSelectionExpression;
+	private List<QName> relationList;
 
 	public void loadSearchFilter(SearchFilterType searchFilterType, PrismContext prismContext)  {
         if (searchFilterType == null) {
@@ -179,4 +182,12 @@ public class DefinitionScopeDto implements Serializable {
 	public void setItemSelectionExpression(ExpressionType itemSelectionExpression) {
 		this.itemSelectionExpression = itemSelectionExpression;
 	}
+
+    public List<QName> getRelationList() {
+        return relationList;
+    }
+
+    public void setRelationList(List<QName> relationList) {
+        this.relationList = relationList;
+    }
 }
