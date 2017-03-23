@@ -21,16 +21,13 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -81,11 +78,14 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         certificationDefinition = repoAddObjectFromFile(CERT_DEF_USER_ASSIGNMENT_BASIC_FILE,
                 AccessCertificationDefinitionType.class, initResult).asObjectable();
+
+        // to test MID-3838
+		assignFocus(UserType.class, USER_JACK_OID, UserType.COMPLEX_TYPE, USER_GUYBRUSH_OID, SchemaConstants.ORG_DEPUTY, null, initTask, initResult);
     }
 
-    /*
-     *  "Foreign" campaign - generates a few cases, just to test authorizations.
-     */
+	/*
+	 *  "Foreign" campaign - generates a few cases, just to test authorizations.
+	 */
     @Test
     public void test001CreateForeignCampaign() throws Exception {
         final String TEST_NAME = "test001CreateForeignCampaign";
@@ -743,7 +743,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         userJack = getUser(USER_JACK_OID).asObjectable();
         display("jack", userJack);
-        assertEquals("wrong # of jack's assignments", 2, userJack.getAssignment().size());
+        assertEquals("wrong # of jack's assignments", 3, userJack.getAssignment().size());
         assertEquals("wrong target OID", ORG_EROOT_OID, userJack.getAssignment().get(0).getTargetRef().getOid());
 
         assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
