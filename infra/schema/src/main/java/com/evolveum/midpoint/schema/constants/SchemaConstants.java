@@ -117,6 +117,7 @@ public abstract class SchemaConstants {
 	public static final QName C_CONNECTOR_CONNECTOR_TYPE = new QName(NS_C, "connectorType");
 	public static final QName C_SHADOW = new QName(NS_C, "shadow");
 	public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
+        public static final QName C_ORG_TYPE = new QName(NS_C, "OrgType");
 	public static final QName C_ATTRIBUTES = new QName(NS_C, "attributes");
 	public static final QName C_ASSOCIATION = new QName(NS_C, "association");
 	public static final QName C_CREDENTIALS_TYPE = new QName(NS_C, "CredentialsType");
