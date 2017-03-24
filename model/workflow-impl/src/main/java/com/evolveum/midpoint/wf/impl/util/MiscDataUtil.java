@@ -67,9 +67,11 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.ADD;
 import static com.evolveum.midpoint.schema.ObjectTreeDeltas.fromObjectTreeDeltasType;
+import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 
 /**
  * @author mederly
@@ -79,9 +81,6 @@ import static com.evolveum.midpoint.schema.ObjectTreeDeltas.fromObjectTreeDeltas
 public class MiscDataUtil {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(MiscDataUtil.class);
-
-    public static final String ROLE_PREFIX = "role";
-    public static final String ORG_PREFIX = "org";
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -113,7 +112,7 @@ public class MiscDataUtil {
 		}
 	}
 
-    //region ========================================================================== Miscellaneous
+	//region ========================================================================== Miscellaneous
     public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
         if (oid == null) {
             return null;
@@ -264,27 +263,36 @@ public class MiscDataUtil {
     @NotNull
 	public static String refToString(@NotNull ObjectReferenceType ref) {
     	return
-				(ref.getType() != null ? ref.getType().getLocalPart() : "")
+				(ref.getType() != null ? ref.getType().getLocalPart() : UserType.COMPLEX_TYPE.getLocalPart())
 				+ CommonProcessVariableNames.TYPE_NAME_SEPARATOR
 				+ ref.getOid();
+	}
+
+	public static List<String> refsToStrings(@NotNull Collection<ObjectReferenceType> refs) {
+    	return refs.stream().map(r -> refToString(r)).collect(Collectors.toList());
+	}
+
+	@NotNull
+	public static List<String> prismRefsToStrings(Collection<PrismReferenceValue> refs) {
+		List<String> rv = new ArrayList<>();
+		for (PrismReferenceValue ref : refs) {
+			addIgnoreNull(rv, refToString(ObjectTypeUtil.createObjectRef(ref)));
+		}
+		return rv;
 	}
 
 	@NotNull
 	public static ObjectReferenceType stringToRef(@NotNull String s) {
     	String[] parts = s.split(CommonProcessVariableNames.TYPE_NAME_SEPARATOR);
-		ObjectReferenceType ref = new ObjectReferenceType();
     	if (parts.length == 0 || parts.length > 2) {
     		throw new IllegalArgumentException("Incorrect reference string representation: " + s);
 		} else if (parts.length == 1) {
-    		ref.setOid(parts[0]);
-    		ref.setType(UserType.COMPLEX_TYPE);
+    		return new ObjectReferenceType().oid(parts[0]).type(UserType.COMPLEX_TYPE);
 		} else {
-    		ref.setOid(parts[1]);
 			// TODO support namespaces other than c:
     		QName type = StringUtils.isEmpty(parts[0]) ? UserType.COMPLEX_TYPE : new QName(SchemaConstants.NS_C, parts[0]);
-    		ref.setType(type);
+			return new ObjectReferenceType().oid(parts[1]).type(type);
 		}
-    	return ref;
 	}
 
 	public enum RequestedOperation {
@@ -392,7 +400,7 @@ public class MiscDataUtil {
     }
 
     public boolean isMemberOfActivitiGroup(UserType userType, String activitiGroupId) {
-        ObjectReferenceType groupRef = groupIdToObjectReference(activitiGroupId);
+        ObjectReferenceType groupRef = stringToRef(activitiGroupId);
         return userType.getRoleMembershipRef().stream().anyMatch(ref -> matches(groupRef, ref))
 				|| userType.getDelegatedRef().stream().anyMatch(ref -> matches(groupRef, ref));
     }
@@ -454,30 +462,6 @@ public class MiscDataUtil {
         ref = ref.clone();
         ref.setTargetName(PolyString.toPolyStringType(object.getName()));
         return ref;
-    }
-
-    public ObjectReferenceType groupIdToObjectReference(String groupId) {
-        String parts[] = groupId.split(":");
-        if (parts.length != 2) {
-            throw new IllegalStateException("Invalid format of group id: " + groupId);
-        }
-        if (ROLE_PREFIX.equals(parts[0])) {
-            return MiscSchemaUtil.createObjectReference(parts[1], RoleType.COMPLEX_TYPE);
-        } else if (ORG_PREFIX.equals(parts[0])) {
-            return MiscSchemaUtil.createObjectReference(parts[1], OrgType.COMPLEX_TYPE);
-        } else {
-            throw new IllegalStateException("Unknown kind of group id: " + parts[0] + " in: " + groupId);
-        }
-    }
-
-    private String objectReferenceToGroupName(ObjectReferenceType ref) {
-        if (RoleType.COMPLEX_TYPE.equals(ref.getType())) {
-            return ROLE_PREFIX + ":" + ref.getOid();
-        } else if (OrgType.COMPLEX_TYPE.equals(ref.getType())) {
-            return ORG_PREFIX + ":" + ref.getOid();
-        } else {
-            return null;
-        }
     }
 
 	public void generateFocusOidIfNeeded(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change) {

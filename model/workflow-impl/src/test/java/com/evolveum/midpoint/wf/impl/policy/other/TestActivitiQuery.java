@@ -21,17 +21,18 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.TaskQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,9 +42,7 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -51,6 +50,8 @@ import static org.testng.AssertJUnit.assertNull;
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestActivitiQuery extends AbstractWfTestPolicy {
+
+	protected static final Trace LOGGER = TraceManager.getTrace(TestActivitiQuery.class);
 
 	@Override
 	protected PrismObject<UserType> getDefaultActor() {
@@ -99,6 +100,10 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		}
 	}
 
+	/**
+	 * Actually, this mechanism is not used anymore. We use identity links to store information about assignees.
+	 * But keeping this test - just in case something like that would be needed later.
+	 */
 	@Test
 	public void test200TestQueryByTaskVariable() throws Exception {
 		final String TEST_NAME = "test200TestQueryByTaskVariable";
@@ -112,14 +117,12 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		assertNotNull("No task", task);
 
 		final String TASK_NAME = "Approve assigning Role1a to jack";
-		final String VAR = CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES;
+		final String VAR = "someVariable";
 		taskService.setVariableLocal(task.getId(), VAR, "[:abc];[:def];[UserType:"+userLead1Oid+"]");
 		TaskQuery tq1 = taskService.createTaskQuery().includeTaskLocalVariables()
 				.taskVariableValueLike(VAR, "%:def]%")
 				.taskName(TASK_NAME);
-		org.activiti.engine.task.Task task1 = tq1.singleResult();
-		System.out.println("Task1 = " + task1);
-		assertNotNull("No task1", task1);
+		assertFound(tq1, "#1");
 
 		TaskQuery tq2 = taskService.createTaskQuery().includeTaskLocalVariables().taskVariableValueLike(VAR, "%:xyz]%");
 		org.activiti.engine.task.Task task2 = tq2.singleResult();
@@ -175,16 +178,109 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 				.or()
 					.taskVariableValueLike(VAR, "%:xxx]%")
 					.taskVariableValueLike(VAR, "%:yyy]%")
-					.taskAssignee("xxx;" + userLead1Oid)
+					.taskAssignee("xxx;UserType:" + userLead1Oid)
 				.endOr();
 		org.activiti.engine.task.Task task7 = tq7.singleResult();
 		System.out.println("Task7 = " + task7);
 		assertNotNull("No task7", task7);
-
 	}
 
 	@Test
-	public void test210SearchByAssignee() throws Exception {
+	public void test210TestQueryByIdentityLink() throws Exception {
+		final String TEST_NAME = "test210TestQueryByIdentityLink";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		TaskService taskService = activitiEngine.getTaskService();
+		TaskQuery tq = taskService.createTaskQuery();
+		org.activiti.engine.task.Task task = tq.singleResult();
+		System.out.println("Task = " + task);
+		assertNotNull("No task", task);
+
+		final String TASK_NAME = "Approve assigning Role1a to jack";
+		List<IdentityLink> linksBefore = taskService.getIdentityLinksForTask(task.getId());
+		System.out.println("Identity links (before)" + linksBefore);
+		taskService.addUserIdentityLink(task.getId(), "123", CommonProcessVariableNames.MIDPOINT_ASSIGNEE);
+		taskService.addUserIdentityLink(task.getId(), "456", CommonProcessVariableNames.MIDPOINT_ASSIGNEE);
+		List<IdentityLink> linksAfter = taskService.getIdentityLinksForTask(task.getId());
+		System.out.println("Identity links (after)" + linksAfter);
+
+		TaskQuery tq1 = taskService.createTaskQuery()
+				.taskInvolvedUser("UserType:"+userLead1Oid)
+				.taskName(TASK_NAME);
+		assertFound(tq1, "involved user (assignee)");
+
+		assertFound(taskService.createTaskQuery()
+				.taskInvolvedUser("123")
+				.taskName(TASK_NAME),
+				"involved user (midpoint-assignee 123)");
+
+		assertFound(taskService.createTaskQuery()
+				.taskInvolvedUser("456")
+				.taskName(TASK_NAME),
+				"involved user (midpoint-assignee 456)");
+
+		assertNotFound(taskService.createTaskQuery()
+				.taskInvolvedUser("123xxx")
+				.taskName(TASK_NAME),
+				"involved user (wrong user)");
+
+		assertFound(taskService.createTaskQuery()
+				.taskInvolvedUser("123;124")
+				.taskName(TASK_NAME),
+				"involved user (123 or 124)");
+
+		assertFound(taskService.createTaskQuery()
+				.taskInvolvedUser("124;123")
+				.taskName(TASK_NAME),
+				"involved user (124 or 123)");
+
+		assertNotFound(taskService.createTaskQuery()
+				.taskInvolvedUser("124x;123x")
+				.taskName(TASK_NAME),
+				"involved user (124x or 123x)");
+
+		assertFound(taskService.createTaskQuery()
+				.or()
+					.taskInvolvedUser("123")
+					.taskCandidateGroup("xxxxxxx")
+				.endOr()
+				.taskName(TASK_NAME),
+				"involved user (123 or candidate group xxxxxxx)");
+
+		assertFound(taskService.createTaskQuery()
+				.or()
+					.taskInvolvedUser("123;124")
+					.taskCandidateGroup("xxxxxxx")
+				.endOr()
+				.taskName(TASK_NAME),
+				"involved user (123 or 124 or candidate group xxxxxxx)");
+
+		assertNotFound(taskService.createTaskQuery()
+				.or()
+					.taskInvolvedUser("123x;124x")
+					.taskCandidateGroup("xxxxxxx")
+				.endOr()
+				.taskName(TASK_NAME),
+				"involved user (123x or 124x or candidate group xxxxxxx)");
+	}
+
+	private void assertFound(TaskQuery tq1, String desc) {
+		LOGGER.trace("Executing query {}", desc);
+		org.activiti.engine.task.Task task1 = tq1.singleResult();
+		System.out.println("Task for " + desc + ": " + task1);
+		assertNotNull("No task for " + desc, task1);
+	}
+
+	private void assertNotFound(TaskQuery tq1, String desc) {
+		LOGGER.trace("Executing query {}", desc);
+		org.activiti.engine.task.Task task1 = tq1.singleResult();
+		System.out.println("Task for " + desc + ": " + task1);
+		assertNull("Found task for " + desc + " even if there shouldn't be one", task1);
+	}
+
+	@Test
+	public void test300SearchByAssignee() throws Exception {
 		final String TEST_NAME = "test210SearchByAssignee";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		login(userAdministrator);

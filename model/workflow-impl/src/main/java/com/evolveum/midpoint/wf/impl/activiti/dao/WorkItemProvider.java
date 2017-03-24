@@ -45,8 +45,6 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.task.IdentityLink;
@@ -59,16 +57,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.USER;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.FilterComponents;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutQuery;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -152,12 +147,12 @@ public class WorkItemProvider {
 		}
 
 		if (assigneeFilter != null) {
-			taskQuery = addAssignees(taskQuery, assigneeFilter);
+			taskQuery = addAssigneesToQuery(taskQuery, assigneeFilter);
 		}
 
         if (candidateRolesFilter != null) {
-			List<String> candidateGroups = prismReferenceValueListToGroupNames(
-					(Collection<PrismReferenceValue>) candidateRolesFilter.getValue());
+			// TODO what about candidate users? (currently these are not supported)
+			List<String> candidateGroups = MiscDataUtil.prismRefsToStrings((Collection<PrismReferenceValue>) candidateRolesFilter.getValue());
 			if (!candidateGroups.isEmpty()) {
 				taskQuery = taskQuery.taskCandidateGroupIn(candidateGroups);
 			} else {
@@ -194,39 +189,14 @@ public class WorkItemProvider {
 		}
     }
 
-	private TaskQuery addAssignees(TaskQuery taskQuery, Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter) {
+	private TaskQuery addAssigneesToQuery(TaskQuery taskQuery, Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter) {
 		@SuppressWarnings("unchecked")
 		Collection<PrismReferenceValue> assigneeRefs = (Collection<PrismReferenceValue>) assigneeFilter.getValue();
 		if (isEmpty(assigneeRefs)) {
 			return taskQuery.taskUnassigned();
-		}
-		List<String> oids = assigneeRefs.stream()
-				.map(PrismReferenceValue::getOid)
-				.collect(Collectors.toList());
-		taskQuery = taskQuery.or()
-				.taskAssignee(StringUtils.join(oids, ';'));
-		for (String oid : oids) {
-			taskQuery = taskQuery.taskVariableValueLike(
-					VARIABLE_ADDITIONAL_ASSIGNEES, "%" + TYPE_NAME_SEPARATOR + oid + ADDITIONAL_ASSIGNEES_SUFFIX + "%");
-		}
-		return taskQuery.endOr();
-	}
-
-	private List<String> prismReferenceValueListToGroupNames(Collection<PrismReferenceValue> refs) {
-		List<String> rv = new ArrayList<>();
-		for (PrismReferenceValue ref : refs) {
-			addIgnoreNull(rv, prismReferenceValueToGroupName(ref));
-		}
-		return rv;
-	}
-
-	private String prismReferenceValueToGroupName(PrismReferenceValue ref) {
-		if (RoleType.COMPLEX_TYPE.equals(ref.getTargetType())) {
-			return "role:" + ref.getOid();
-		} else if (OrgType.COMPLEX_TYPE.equals(ref.getTargetType())) {
-			return "org:" + ref.getOid();
 		} else {
-			return null;
+			List<String> values = MiscDataUtil.prismRefsToStrings(assigneeRefs);
+			return taskQuery.taskInvolvedUser(StringUtils.join(values, ';'));
 		}
 	}
 
@@ -266,23 +236,15 @@ public class WorkItemProvider {
     }
 
     @NotNull
-	public List<ObjectReferenceType> getAdditionalAssignees(Map<String, Object> variables, String contextDescription) {
+	public List<ObjectReferenceType> getMidpointAssignees(TaskExtract taskExtract) {
 		List<ObjectReferenceType> rv = new ArrayList<>();
-		Object o = variables.get(VARIABLE_ADDITIONAL_ASSIGNEES);
-		if (o instanceof String) {
-			String s = (String) o;
-			if (!s.isEmpty()) {
-				for (String wrappedRef : s.split(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR)) {
-					if (!wrappedRef.startsWith(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_PREFIX)
-							|| !wrappedRef.endsWith(ADDITIONAL_ASSIGNEES_SUFFIX)) {
-						throw new IllegalStateException("Wrongly-formatted '"
-								+ VARIABLE_ADDITIONAL_ASSIGNEES + "' variable contents: '"
-								+ o + "' in " + contextDescription);
-					} else {
-						String stringRef = wrappedRef.substring(ADDITIONAL_ASSIGNEES_PREFIX.length(),
-								wrappedRef.length() - ADDITIONAL_ASSIGNEES_SUFFIX.length());
-						rv.add(MiscDataUtil.stringToRef(stringRef));
-					}
+		for (IdentityLink link : taskExtract.getTaskIdentityLinks()) {
+			if (CommonProcessVariableNames.MIDPOINT_ASSIGNEE.equals(link.getType())) {
+				if (link.getUserId() != null) {
+					rv.add(MiscDataUtil.stringToRef(link.getUserId()));
+				}
+				if (link.getGroupId() != null) {		// just for completeness (currently we don't expect groups to be here)
+					rv.add(MiscDataUtil.stringToRef(link.getGroupId()));
 				}
 			}
 		}
@@ -305,40 +267,9 @@ public class WorkItemProvider {
         private Map<String,Object> variables;
         private List<String> candidateUsers;
         private List<String> candidateGroups;
+		private final List<IdentityLink> taskIdentityLinks;
 
-        TaskExtract(Task task) {
-            id = task.getId();
-            assignee = task.getAssignee();
-            name = task.getName();
-            processInstanceId = task.getProcessInstanceId();
-            createTime = task.getCreateTime();
-            dueDate = task.getDueDate();
-            owner = task.getOwner();
-            executionId = task.getExecutionId();
-            variables = new HashMap<>();
-            if (task.getProcessVariables() != null) {
-                variables.putAll(task.getProcessVariables());
-            }
-            if (task.getTaskLocalVariables() != null) {
-                variables.putAll(task.getTaskLocalVariables());
-            }
-            candidateUsers = new ArrayList<>();
-            candidateGroups = new ArrayList<>();
-            TaskService taskService = activitiEngine.getTaskService();
-            for (IdentityLink link : taskService.getIdentityLinksForTask(task.getId())) {
-                if (IdentityLinkType.CANDIDATE.equals(link.getType())) {
-                    if (link.getUserId() != null) {
-                        candidateUsers.add(link.getUserId());
-                    } else if (link.getGroupId() != null) {
-                        candidateGroups.add(link.getGroupId());
-                    } else {
-                        throw new IllegalStateException("A link is defined to neither a user nor a group for task " + task.getId());
-                    }
-                }
-            }
-        }
-
-        TaskExtract(TaskEvent task) {
+        TaskExtract(TaskEvent task, Map<String, Object> processVariables, List<IdentityLink> taskIdentityLinks) {
             id = task.getTaskId();
             assignee = task.getAssigneeOid();
             name = task.getTaskName();
@@ -350,25 +281,57 @@ public class WorkItemProvider {
             variables = task.getVariables();
             candidateUsers = task.getCandidateUsers();
             candidateGroups = task.getCandidateGroups();
+			addProcessVariables(processVariables);
+			this.taskIdentityLinks = taskIdentityLinks;
         }
 
-        public TaskExtract(Task task, Map<String, Object> processVariables) {
-            this(task);
-            if (processVariables != null) {
-                for (Map.Entry<String, Object> variable: processVariables.entrySet()) {
-                    if (!variables.containsKey(variable.getKey())) {
-                        variables.put(variable.getKey(), variable.getValue());
-                    }
-                }
-            }
-        }
+        TaskExtract(Task task, Map<String, Object> processVariables, List<IdentityLink> taskIdentityLinks) {
+			id = task.getId();
+			assignee = task.getAssignee();
+			name = task.getName();
+			processInstanceId = task.getProcessInstanceId();
+			createTime = task.getCreateTime();
+			dueDate = task.getDueDate();
+			owner = task.getOwner();
+			executionId = task.getExecutionId();
+			variables = new HashMap<>();
+			if (task.getProcessVariables() != null) {
+				variables.putAll(task.getProcessVariables());
+			}
+			if (task.getTaskLocalVariables() != null) {
+				variables.putAll(task.getTaskLocalVariables());
+			}
+			candidateUsers = new ArrayList<>();
+			candidateGroups = new ArrayList<>();
+			for (IdentityLink link : taskIdentityLinks) {
+				if (IdentityLinkType.CANDIDATE.equals(link.getType())) {
+					if (link.getUserId() != null) {
+						candidateUsers.add(link.getUserId());
+					} else if (link.getGroupId() != null) {
+						candidateGroups.add(link.getGroupId());
+					}
+				}
+			}
+			addProcessVariables(processVariables);
+			this.taskIdentityLinks = taskIdentityLinks;
+		}
 
-        String getId() {
+		private void addProcessVariables(Map<String, Object> processVariables) {
+			if (processVariables != null) {
+				for (Map.Entry<String, Object> variable: processVariables.entrySet()) {
+					if (!variables.containsKey(variable.getKey())) {
+						variables.put(variable.getKey(), variable.getValue());
+					}
+				}
+			}
+		}
+
+		String getId() {
             return id;
         }
 
-        String getAssignee() {
-            return assignee;
+        ObjectReferenceType getAssignee() {
+            return assignee != null ? MiscDataUtil.stringToRef(assignee) : null;
         }
 
         String getName() {
@@ -407,7 +370,11 @@ public class WorkItemProvider {
             return candidateGroups;
         }
 
-        @Override
+		public List<IdentityLink> getTaskIdentityLinks() {
+			return taskIdentityLinks;
+		}
+
+		@Override
         public String toString() {
             return "Task{" +
                     "id='" + id + '\'' +
@@ -422,13 +389,17 @@ public class WorkItemProvider {
     	if (task == null) {
     		return null;
 		}
-		TaskExtract taskExtract = new TaskExtract(task, processVariables);
+		TaskExtract taskExtract = new TaskExtract(task, processVariables, getTaskIdentityLinks(task.getId()));
 		return taskExtractToWorkItem(taskExtract, resolveTask, resolveAssignee, resolveCandidates, fetchAllVariables, result);
     }
 
-    public WorkItemType taskEventToWorkItemNew(TaskEvent taskEvent, Map<String, Object> processVariables, boolean resolveTask,
+	private List<IdentityLink> getTaskIdentityLinks(String taskId) {
+		return activitiEngine.getTaskService().getIdentityLinksForTask(taskId);
+	}
+
+	public WorkItemType taskEventToWorkItemNew(TaskEvent taskEvent, Map<String, Object> processVariables, boolean resolveTask,
 			boolean resolveAssignee, boolean resolveCandidates, OperationResult result) {
-		TaskExtract taskExtract = new TaskExtract(taskEvent);
+		TaskExtract taskExtract = new TaskExtract(taskEvent, processVariables, getTaskIdentityLinks(taskEvent.getTaskId()));
 		return taskExtractToWorkItem(taskExtract, resolveTask, resolveAssignee, resolveCandidates, false, result);
     }
 
@@ -459,10 +430,7 @@ public class WorkItemProvider {
 			}
 
 			// assignees
-			if (task.getAssignee() != null) {
-				wi.getAssigneeRef().add(createObjectRef(task.getAssignee(), USER));
-			}
-			wi.getAssigneeRef().addAll(getAdditionalAssignees(variables, "task " + task.getId()));
+			wi.getAssigneeRef().addAll(getMidpointAssignees(task));
 			String originalAssigneeString = ActivitiUtil.getVariable(variables,
 					CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, String.class, prismContext);
 			if (originalAssigneeString != null) {
@@ -475,7 +443,7 @@ public class WorkItemProvider {
 
 			// candidates
 			task.getCandidateUsers().forEach(s -> wi.getCandidateRef().add(createObjectRef(s, USER)));
-			task.getCandidateGroups().forEach(s -> wi.getCandidateRef().add(miscDataUtil.groupIdToObjectReference(s)));
+			task.getCandidateGroups().forEach(s -> wi.getCandidateRef().add(MiscDataUtil.stringToRef(s)));
 			if (resolveCandidates) {
 				miscDataUtil.resolveAndStoreObjectReferences(wi.getCandidateRef(), result);
 			}
