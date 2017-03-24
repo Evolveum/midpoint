@@ -94,7 +94,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  it with the order (or, more generally, order constraints) of the inducement. If they match, we say that inducement
 	 *  has matching order.
 	 *
-	 *  As for #2: It is not usual that inducements have targets with another assignments, i.e. that evaluation continues
+	 *  As for #2: It is not usual that inducements have targets (roles) with another assignments, i.e. that evaluation continues
 	 *  after inducement segments. But it definitely could happen. We can look at it this way: inducement is something like
 	 *  a "shortcut" that creates an assignment where no assignment was before. E.g. if we have R1 -A-> MR1 -I-> MR2,
 	 *  the "newly created" assignment is R1 -A-> MR2. I.e. as if the " -A-> MR1 -I-> " part was just replaced by " -A-> ".
@@ -106,12 +106,42 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  	TODO think this through, perhaps based on concrete examples
 	 *
 	 *  It is almost certain that for some inducements we would not be able to determine the resulting order.
-	 *  Such problematic inducements are those that do not have strict order, but an interval of orders instead.
+	 *  Such problematic inducements are those that do not have strict (scalar) order constraint, but something
+	 *  more complex, e.g. interval of orders.
 	 *
 	 *  Until no better algorithm is devised, we will do an approximation: when "traditional" inducement order is given,
 	 *  the we will compute the resulting order as "previous - (N-1)", where N is the order of the inducement
-	 *  (unspecified means 1). But beware, we will not manipulate evaluation order parts that are specific to relations.
-	 *  So, it is not safe to combine "higher-order inducements with targets" with non-scalar order constraints.
+	 *  (unspecified means 1). But beware, we will not decrease evaluation order for non-default relations!
+	 *  Also, if the traditional inducement order is not given, but orderConstraints are present instead, we will
+	 *  simply stop evaluation of further path segments altogether.
+	 *
+	 *  So, it is not supported to combine inducements with complex (non-scalar) order constraints with further
+	 *  targets (assignments/inducements). Only membership, authorizations and GUI config from such inducement targets
+	 *  will be collected. See test500/test510 in TestAssignmentProcessor2.
+	 *
+	 *  Unfortunately, this is by no means a rare case. It can easily occur when org structures are used.
+	 *  As depicted in that test, imagine this:
+	 *
+	 *           Org1 -----I----+                                              Org2 -----I----+
+	 *             ^            | (orderConstraints 1..N)                        ^            | (orderConstraints: manager: 1)
+	 *             |            |                                                |            |
+	 *             |            V                                                |            V
+	 *           Org11        Admin                                            Org21        Admin
+	 *             ^                                                             ^
+	 *             |                                                         (manager)
+	 *             |                                                             |
+	 *            jack                                                          jack
+	 *
+	 *  So, we are in trouble when we try to attach an inducement to a organization hierarchy top; to be applied to
+	 *  users that are part of the organizational structure (at any level). The reason is that the inducement has
+	 *  to have non-scalar constraint.
+	 *
+	 *  TODO think this through.
+	 *
+	 *  Maybe something like "continue with specified evaluation order" could be provided in OrgX->Admin inducement.
+	 *  But this would be quite complicated.
+	 *
+	 *  ----
 	 *
 	 *  Because evaluation order can "increase" and "decrease", it is possible that it goes to zero or below, and then
 	 *  increase back to positive numbers. Is that OK? Imagine this:

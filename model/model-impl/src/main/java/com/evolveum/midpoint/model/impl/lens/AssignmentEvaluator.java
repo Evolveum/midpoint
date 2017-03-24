@@ -639,8 +639,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			evaluateAssignment(segment, mode, isValid, ctx, targetType, relation, roleAssignment);
 		}
 
-		boolean matchesOrder = AssignmentPathSegmentImpl.computeMatchingOrder(segment.getEvaluationOrder(), 1, Collections.emptyList());
-		if (matchesOrder && targetType instanceof AbstractRoleType && isNonNegative(mode)) {
+		//boolean matchesOrder = AssignmentPathSegmentImpl.computeMatchingOrder(segment.getEvaluationOrder(), 1, Collections.emptyList());
+		if (segment.isMatchingOrder() && targetType instanceof AbstractRoleType && isNonNegative(mode)) {
 			for (AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
 				Authorization authorization = createAuthorization(authorizationType, targetType.toString());
 				if (!ctx.evalAssignment.getAuthorizations().contains(authorization)) {
@@ -755,11 +755,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 				nextEvaluationOrder = EvaluationOrderImpl.UNDEFINED;
 				nextEvaluationOrderForTarget = EvaluationOrderImpl.UNDEFINED;
 			}
-		} else {
+		} else if (inducement.getOrderConstraint().isEmpty()) {
+			// i.e. order is null or 1
 			nextEvaluationOrder = segment.getEvaluationOrder();
 			nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget();
+		} else {
+			nextEvaluationOrder = EvaluationOrderImpl.UNDEFINED;
+			nextEvaluationOrderForTarget = EvaluationOrderImpl.UNDEFINED;
 		}
-		// TODO undefined if intervals
 		nextSegment.setEvaluationOrder(nextEvaluationOrder, nextIsMatchingOrder);
 		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTarget, nextIsMatchingOrderForTarget);
 
