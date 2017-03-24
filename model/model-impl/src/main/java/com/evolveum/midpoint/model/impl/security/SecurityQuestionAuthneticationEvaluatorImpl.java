@@ -34,11 +34,6 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 	}
 
 	@Override
-	protected boolean supportsLockoutCheck() {
-		return true;
-	}
-
-	@Override
 	protected boolean suportsAuthzCheck() {
 		return true;
 	}

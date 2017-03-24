@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -57,7 +58,10 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -65,6 +69,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
@@ -107,11 +112,16 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	public abstract V getBadPasswordGuybrush();
 	public abstract V get103EmptyPasswordJack();
 	
+	public abstract AbstractCredentialType getCredentialUsedForAuthentication(UserType user);
+	public abstract QName getCredentialType();
+	
+	public abstract void modifyUserCredential(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		((PasswordAuthenticationEvaluatorImpl)getAuthenticationEvaluator()).userProfileService = new UserProfileService() {
+		((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).userProfileService = new UserProfileService() {
 			
 			@Override
 			public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
@@ -883,23 +893,19 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	}
 		
 	@Test
-	public void test200UserGuybrushSetPassword() throws Exception {
+	public void test200UserGuybrushSetCredentials() throws Exception {
 		final String TEST_NAME = "test200UserGuybrushSetPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-
-		ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue(USER_GUYBRUSH_PASSWORD);
         
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		modifyUserReplace(USER_GUYBRUSH_OID, PASSWORD_VALUE_PATH,
-        		task, result, userPasswordPs);
+		modifyUserCredential(task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -908,8 +914,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("user after", userAfter);
 		
-		assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD);
-		assertPasswordMetadata(userAfter, false, startTs, endTs, null, SchemaConstants.CHANNEL_GUI_USER_URI);
+//		assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD);
+		assertPasswordMetadata(userAfter, getCredentialType(), false, startTs, endTs, null, SchemaConstants.CHANNEL_GUI_USER_URI);
 		
 		assertFailedLogins(userAfter, 0);
 	}
@@ -1075,15 +1081,15 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	}
 	
 	private void assertFailedLogins(PrismObject<UserType> user, int expected) {
-		if (expected == 0 && user.asObjectable().getCredentials().getPassword().getFailedLogins() == null) {
+		if (expected == 0 && getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins() == null) {
 			return;
 		}
-		assertEquals("Wrong failed logins in "+user, (Integer)expected, user.asObjectable().getCredentials().getPassword().getFailedLogins());
+		assertEquals("Wrong failed logins in "+user, (Integer)expected, getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins());
 	}
 
 	private void assertLastSuccessfulLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
 			XMLGregorianCalendar endTs) {
-		LoginEventType lastSuccessfulLogin = user.asObjectable().getCredentials().getPassword().getLastSuccessfulLogin();
+		LoginEventType lastSuccessfulLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastSuccessfulLogin();
 		assertNotNull("no last successful login in "+user, lastSuccessfulLogin);
 		XMLGregorianCalendar successfulLoginTs = lastSuccessfulLogin.getTimestamp();
 		TestUtil.assertBetween("wrong last successful login timestamp", startTs, endTs, successfulLoginTs);
@@ -1091,7 +1097,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	
 	private void assertLastFailedLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
 			XMLGregorianCalendar endTs) {
-		LoginEventType lastFailedLogin = user.asObjectable().getCredentials().getPassword().getLastFailedLogin();
+		LoginEventType lastFailedLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastFailedLogin();
 		assertNotNull("no last failed login in "+user, lastFailedLogin);
 		XMLGregorianCalendar failedLoginTs = lastFailedLogin.getTimestamp();
 		TestUtil.assertBetween("wrong last failed login timestamp", startTs, endTs, failedLoginTs);

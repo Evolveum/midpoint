@@ -30,11 +30,6 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
 	}
 
 	@Override
-	protected boolean supportsLockoutCheck() {
-		return false;
-	}
-
-	@Override
 	protected boolean suportsAuthzCheck() {
 		return false;
 	}

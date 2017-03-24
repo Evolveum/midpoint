@@ -76,7 +76,6 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	private SecurityHelper securityHelper;
 	
 	protected abstract void checkEnteredCredentials(ConnectionEnvironment connEnv, T authCtx);
-	protected abstract boolean supportsLockoutCheck();
 	protected abstract boolean suportsAuthzCheck();
 	protected abstract C getCredential(CredentialsType credentials);
 	protected abstract void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credential);
@@ -109,20 +108,18 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			throw new AuthenticationServiceException("Bad config");
 		}
 
-		if (supportsLockoutCheck()){
 		// Lockout
 		if (isLockedOut(getCredential(credentials), credentialsPolicy)) {
 			recordAuthenticationFailure(principal, connEnv, "password locked-out");
 			throw new LockedException("web.security.provider.locked");
 		}
-		}
-
-		if (suportsAuthzCheck()){
-		// Authorizations
-		if (!hasAnyAuthorization(principal)) {
-			recordAuthenticationFailure(principal, connEnv, "no authorizations");
-			throw new DisabledException("web.security.provider.access.denied");
-		}
+	
+		if (suportsAuthzCheck()) {
+			// Authorizations
+			if (!hasAnyAuthorization(principal)) {
+				recordAuthenticationFailure(principal, connEnv, "no authorizations");
+				throw new DisabledException("web.security.provider.access.denied");
+			}
 		}
 		
 		// Password age
@@ -404,7 +401,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	}
 	
 	private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-			@NotNull C passwordType, CredentialPolicyType passwordCredentialsPolicy, String reason) {
+			@NotNull C passwordType, CredentialPolicyType credentialsPolicy, String reason) {
 		Integer failedLogins = passwordType.getFailedLogins();
 		LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
 		XMLGregorianCalendar lastFailedLoginTs = null;
@@ -412,8 +409,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			lastFailedLoginTs = lastFailedLogin.getTimestamp();
 		}
 		
-		if (passwordCredentialsPolicy != null) {
-			Duration lockoutFailedAttemptsDuration = passwordCredentialsPolicy.getLockoutFailedAttemptsDuration();
+		if (credentialsPolicy != null) {
+			Duration lockoutFailedAttemptsDuration = credentialsPolicy.getLockoutFailedAttemptsDuration();
 			if (lockoutFailedAttemptsDuration != null) {
 				if (lastFailedLoginTs != null) {
 					XMLGregorianCalendar failedLoginsExpirationTs = XmlTypeConverter.addDuration(lastFailedLoginTs, lockoutFailedAttemptsDuration);
@@ -439,15 +436,15 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		
 		ActivationType activationType = principal.getUser().getActivation();
 		
-		if (failedLogins != null && isOverFailedLockoutAttempts(failedLogins, passwordCredentialsPolicy)) {
+		if (failedLogins != null && isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
 			if (activationType == null) {
 				activationType = new ActivationType();
 				principal.getUser().setActivation(activationType);
 			}
 			activationType.setLockoutStatus(LockoutStatusType.LOCKED);
 			XMLGregorianCalendar lockoutExpirationTs = null;
-			if (passwordCredentialsPolicy != null) {
-				Duration lockoutDuration = passwordCredentialsPolicy.getLockoutDuration();
+			if (credentialsPolicy != null) {
+				Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
 				if (lockoutDuration != null) {
 					lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
 				}

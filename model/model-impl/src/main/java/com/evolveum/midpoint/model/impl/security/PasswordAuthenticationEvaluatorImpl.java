@@ -29,11 +29,6 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
 	}
 
 	@Override
-	protected boolean supportsLockoutCheck() {
-		return true;
-	}
-
-	@Override
 	protected boolean suportsAuthzCheck() {
 		return true;
 	}

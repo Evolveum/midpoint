@@ -25,12 +25,12 @@
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
 		</password>
-		<password>
+		<nonce>
 			<maxAge>P30D</maxAge>
 			<lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
-		</password>
+		</nonce>
 		<securityQuestions>
 			<question>
 				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
