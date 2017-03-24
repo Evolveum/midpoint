@@ -673,9 +673,8 @@ public class InboundProcessor {
 	        }
       }
         
-        MappingInitializer initializer = new MappingInitializer() {
-			@Override
-			public Mapping.Builder initialize(Mapping.Builder builder) throws SchemaException {
+        MappingInitializer initializer = 
+			(builder) -> {
 				if (accContext.getObjectNew() == null) {
 					accContext.recompute();
 					if (accContext.getObjectNew() == null) {
@@ -713,24 +712,22 @@ public class InboundProcessor {
 						.originType(OriginType.INBOUND)
 						.originObject(accContext.getResource());
 				return builder;
-			}
-        };
+			};
         
-        MappingOutputProcessor<PrismValue> processor = new MappingOutputProcessor<PrismValue>() {
-			@Override
-			public void process(ItemPath mappingOutputPath, PrismValueDeltaSetTriple<PrismValue> outputTriple)
-					throws ExpressionEvaluationException, SchemaException {
+        MappingOutputProcessor<PrismValue> processor = 
+			(mappingOutputPath, outputStruct) -> {
+				PrismValueDeltaSetTriple<PrismValue> outputTriple = outputStruct.getOutputTriple();
 		        if (outputTriple == null){
 		        	LOGGER.trace("Mapping for property {} evaluated to null. Skipping inboud processing for that property.", sourcePath);
 		        	return;
 		        }
 		        
-		        ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
-		        if (userSecondaryDelta != null) {
-			        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
+		        ObjectDelta<F> userSecondaryDeltaInt = context.getFocusContext().getProjectionWaveSecondaryDelta();
+		        if (userSecondaryDeltaInt != null) {
+			        PropertyDelta<?> delta = userSecondaryDeltaInt.findPropertyDelta(sourcePath);
 			        if (delta != null) {
 			            //remove delta if exists, it will be handled by inbound
-			            userSecondaryDelta.getModifications().remove(delta);
+			            userSecondaryDeltaInt.getModifications().remove(delta);
 			        }
 		        }
 		        
@@ -767,8 +764,7 @@ public class InboundProcessor {
 		        	}
 		        }
 
-			}
-		};
+			};
         
         MappingEvaluatorParams<PrismValue, ItemDefinition, F, F> params = new MappingEvaluatorParams<>();
         params.setMappingTypes(inboundMappingTypes);

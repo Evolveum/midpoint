@@ -850,15 +850,13 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
+        DebugUtil.indentDebugDump(sb, indent);
         if (DebugUtil.isDetailedDebugDump()) {
         	sb.append(getDebugDumpClassName()).append(": ");
         }
         sb.append(DebugUtil.formatElementName(getElementName()));
         sb.append(": ");
-        sb.append(additionalDumpDescription());
+        appendDebugDumpSuffix(sb);
         PrismContainerDefinition<C> def = getDefinition();
         if (DebugUtil.isDetailedDebugDump()) {
 	        if (def != null) {
@@ -885,10 +883,6 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
             }
         }
         return sb.toString();
-    }
-
-    protected String additionalDumpDescription() {
-        return "";
     }
 
     public static <V extends Containerable> PrismContainer<V> newInstance(PrismContext prismContext, QName type) throws SchemaException {

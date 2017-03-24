@@ -986,6 +986,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (!passwordAttributeInfo.isReturnedByDefault()) {
 				capPass.setReturnedByDefault(false);
 			}
+			if (passwordAttributeInfo.isReadable()) {
+				capPass.setReadable(true);
+			}
 			capCred.setPassword(capPass);
 			capabilities.add(capabilityObjectFactory.createCredentials(capCred));
 		}

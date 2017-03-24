@@ -94,7 +94,7 @@ public class ActivationProcessor {
     private PrismContext prismContext;
 
     @Autowired
-    private MappingEvaluator mappingHelper;
+    private MappingEvaluator mappingEvaluator;
     
     @Autowired
     private MidpointFunctions midpointFunctions;
@@ -501,7 +501,8 @@ public class ActivationProcessor {
         });
         
         final MutableBoolean output = new MutableBoolean(false);
-		params.setProcessor((mappingOutputPath,outputTriple) -> {
+		params.setProcessor((mappingOutputPath,outputStruct) -> {
+			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = outputStruct.getOutputTriple();
 			if (outputTriple == null) {
 				// The "default existence mapping"
 				output.setValue(legal);
@@ -529,33 +530,19 @@ public class ActivationProcessor {
         shadowExistsDef.setMinOccurs(1);
         shadowExistsDef.setMaxOccurs(1);
         params.setTargetItemDefinition(shadowExistsDef);
-		mappingHelper.evaluateMappingSetProjection(params, task, result);
+		mappingEvaluator.evaluateMappingSetProjection(params, task, result);
     	
 		return (boolean) output.getValue();
 
     }
     
-	private <T, F extends FocusType> void evaluateActivationMapping(final LensContext<F> context, 
+    private <T, F extends FocusType> void evaluateActivationMapping(final LensContext<F> context, 
 			final LensProjectionContext projCtx, ResourceBidirectionalMappingType bidirectionalMappingType, 
 			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
    			final ActivationCapabilityType capActivation, XMLGregorianCalendar now, final boolean current, 
    			String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-        
-   		String accCtxDesc = projCtx.toHumanReadableString();
-
-        if (bidirectionalMappingType == null) {
-            LOGGER.trace("No '{}' definition in activation in projection {}, skipping", desc, accCtxDesc);
-            return;
-        }
-        List<MappingType> outbound = bidirectionalMappingType.getOutbound();
-        if (outbound == null || outbound.isEmpty()) {
-            LOGGER.trace("No outbound definition in '{}' definition in activation in projection {}, skipping", desc, accCtxDesc);
-            return;
-        }
-
-        PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
-
-        MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer = new MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>>() {
+    	
+    	MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer = new MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>>() {
 			@Override
 			public Mapping.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initialize(Mapping.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> builder) throws SchemaException {
 				// Source: administrativeStatus, validFrom or validTo
@@ -579,14 +566,14 @@ public class ActivationProcessor {
 			        
 			        Source<PrismPropertyValue<ActivationStatusType>,PrismPropertyDefinition<ActivationStatusType>> computedSource = new Source<>(computedIdi, ExpressionConstants.VAR_INPUT);
 			        
-			        builder.setDefaultSource(computedSource);
+			        builder.defaultSource(computedSource);
 			        
 			        Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS);
 					builder.addSource(source);
 			        
 		        } else {
 		        	Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_INPUT);
-					builder.setDefaultSource(source);
+					builder.defaultSource(source);
 		        }
 		        
 				// Source: legal
@@ -605,36 +592,14 @@ public class ActivationProcessor {
 		        	= new Source<>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS);
 		        builder.addSource(focusExistsSource);
 		        
-		        // Variable: focus
-		        builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
-
-		        // Variable: user (for convenience, same as "focus")
-		        builder.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
-		        
-		        builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
-				
-		        builder.setOriginType(OriginType.OUTBOUND);
-				builder.setOriginObject(projCtx.getResource());
 				return builder;
 			}
 
 		};
-
-		MappingEvaluatorParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorParams<>();
-		params.setMappingTypes(outbound);
-		params.setMappingDesc(desc + " outbound activation mapping in projection " + accCtxDesc);
-		params.setNow(now);
-		params.setInitializer(initializer);
-		params.setProcessor(null);
-		params.setAPrioriTargetObject(shadowNew);
-		params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
-		params.setTargetContext(projCtx);
-		params.setDefaultTargetItemPath(projectionPropertyPath);
-		params.setEvaluateCurrent(current);
-		params.setContext(context);
-		params.setHasFullTargetObject(projCtx.hasFullShadow());
-		mappingHelper.evaluateMappingSetProjection(params, task, result);
-
+		
+		mappingEvaluator.evaluateOutboundMapping(context, projCtx, bidirectionalMappingType, focusPropertyPath, projectionPropertyPath, initializer, null,
+				now, current, desc + " outbound activation mapping", task, result);
+    	
     }
 
 	private ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> getLegalIdi(LensProjectionContext accCtx) throws SchemaException {

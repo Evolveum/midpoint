@@ -126,8 +126,13 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
                 if(credentials == null || credentials.getPassword() == null){
                     return null;
                 }
-
-                return MappingTypeDto.createMappingLabel(credentials.getPassword().getOutbound(), LOGGER, getPageBase().getPrismContext(),
+                // TODO: support multiple password mappings
+                MappingType outbound = null;
+                List<MappingType> outbounds = credentials.getPassword().getOutbound();
+                if (!outbounds.isEmpty()) {
+                	outbound = outbounds.get(0);
+                }
+                return MappingTypeDto.createMappingLabel(outbound, LOGGER, getPageBase().getPrismContext(),
                         getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
             }
         });

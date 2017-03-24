@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialPolicyEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -51,12 +53,16 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
@@ -67,6 +73,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
@@ -74,11 +81,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -137,6 +148,70 @@ public class MappingEvaluator {
 			}
 		}
 	}
+    
+    public <T, F extends FocusType> void evaluateOutboundMapping(final LensContext<F> context, 
+			final LensProjectionContext projCtx, ResourceBidirectionalMappingType bidirectionalMappingType, 
+			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
+			final MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer, MappingOutputProcessor<PrismPropertyValue<T>> processor, 
+			XMLGregorianCalendar now, final boolean evaluateCurrent, String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
+        if (bidirectionalMappingType == null) {
+            LOGGER.trace("No '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
+            return;
+        }
+        List<MappingType> outboundMappingTypes = bidirectionalMappingType.getOutbound();
+        if (outboundMappingTypes == null || outboundMappingTypes.isEmpty()) {
+            LOGGER.trace("No outbound definition in '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
+            return;
+        }
+        
+        evaluateOutboundMapping(context, projCtx, outboundMappingTypes, focusPropertyPath, projectionPropertyPath, 
+        		initializer, processor, now, evaluateCurrent, true, desc, task, result);
+    }
+
+    public <T, F extends FocusType> void evaluateOutboundMapping(final LensContext<F> context, 
+			final LensProjectionContext projCtx, List<MappingType> outboundMappings,
+			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
+			final MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer, MappingOutputProcessor<PrismPropertyValue<T>> processor, 
+			XMLGregorianCalendar now, final boolean evaluateCurrent, boolean evaluateWeak,
+   			String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        
+    	String projCtxDesc = projCtx.toHumanReadableString();
+        PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
+
+        MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer = new MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>>() {
+			@Override
+			public Mapping.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initialize(Mapping.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> builder) throws SchemaException {
+
+				builder.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, projCtx).getMap());
+								
+		        builder.originType(OriginType.OUTBOUND);
+				builder.originObject(projCtx.getResource());
+				
+				initializer.initialize(builder);
+				
+				return builder;
+			}
+
+		};
+
+		MappingEvaluatorParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorParams<>();
+		params.setMappingTypes(outboundMappings);
+		params.setMappingDesc(desc + " in projection " + projCtxDesc);
+		params.setNow(now);
+		params.setInitializer(internalInitializer);
+		params.setProcessor(processor);
+		params.setProcessor(null);
+		params.setAPrioriTargetObject(shadowNew);
+		params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
+		params.setTargetContext(projCtx);
+		params.setDefaultTargetItemPath(projectionPropertyPath);
+		params.setEvaluateCurrent(evaluateCurrent);
+		params.setEvaluateWeak(evaluateWeak);
+		params.setContext(context);
+		params.setHasFullTargetObject(projCtx.hasFullShadow());
+		evaluateMappingSetProjection(params, task, result);
+    }
 		
 	public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> void evaluateMappingSetProjection(
 			MappingEvaluatorParams<V,D,T,F> params,
@@ -160,16 +235,16 @@ public class MappingEvaluator {
 	        	continue;
 	        }
 			
-			mappingBuilder.setNow(params.getNow());
+			mappingBuilder.now(params.getNow());
 			if (defaultTargetItemPath != null && targetObjectDefinition != null) {
 				D defaultTargetItemDef = targetObjectDefinition.findItemDefinition(defaultTargetItemPath);
-				mappingBuilder.setDefaultTargetDefinition(defaultTargetItemDef);
-				mappingBuilder.setDefaultTargetPath(defaultTargetItemPath);
+				mappingBuilder.defaultTargetDefinition(defaultTargetItemDef);
+				mappingBuilder.defaultTargetPath(defaultTargetItemPath);
 			} else {
-				mappingBuilder.setDefaultTargetDefinition(params.getTargetItemDefinition());
-				mappingBuilder.setDefaultTargetPath(defaultTargetItemPath);
+				mappingBuilder.defaultTargetDefinition(params.getTargetItemDefinition());
+				mappingBuilder.defaultTargetPath(defaultTargetItemPath);
 			}
-			mappingBuilder.setTargetContext(targetObjectDefinition);
+			mappingBuilder.targetContext(targetObjectDefinition);
 			
 			// Initialize mapping (using Inversion of Control)
 			mappingBuilder = params.getInitializer().initialize(mappingBuilder);
@@ -239,45 +314,49 @@ public class MappingEvaluator {
 			
 		}
 
-		
-		// Second pass, evaluate only weak mappings
-		for (Mapping<V,D> mapping: mappings) {
-
-			ItemPath mappingOutputPath = mapping.getOutputPath();
-			if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
-				throw new ExpressionEvaluationException("Target cannot be overridden in "+mappingDesc);
-			}
-			
-			MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPath);
-			if (mappingOutputStruct == null) {
-				mappingOutputStruct = new MappingOutputStruct<>();
-				outputTripleMap.put(mappingOutputPath, mappingOutputStruct);
-			}
-			
-			PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
-			
-			Item<V,D> aPrioriTargetItem = null;
-			PrismObject<T> aPrioriTargetObject = params.getAPrioriTargetObject();
-			if (aPrioriTargetObject != null && mappingOutputPath != null) {
-				aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
-			}
-			if ((aPrioriTargetItem == null || aPrioriTargetItem.isEmpty()) && outputTriple == null) {
+		if (params.isEvaluateWeak()) {
+			// Second pass, evaluate only weak mappings
+			for (Mapping<V,D> mapping: mappings) {
+	
+				ItemPath mappingOutputPath = mapping.getOutputPath();
+				if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
+					throw new ExpressionEvaluationException("Target cannot be overridden in "+mappingDesc);
+				}
 				
-				if (mapping.getStrength() != MappingStrengthType.WEAK) {
-					continue;
+				MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPath);
+				if (mappingOutputStruct == null) {
+					mappingOutputStruct = new MappingOutputStruct<>();
+					outputTripleMap.put(mappingOutputPath, mappingOutputStruct);
 				}
-
-				evaluateMapping(mapping, params.getContext(), task, result);
-
-				PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
-				if (mappingOutputTriple != null) {
-					if (outputTriple == null) {
-						mappingOutputStruct.setOutputTriple(mappingOutputTriple);
-					} else {
-						outputTriple.merge(mappingOutputTriple);
+				
+				PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
+				
+				Item<V,D> aPrioriTargetItem = null;
+				PrismObject<T> aPrioriTargetObject = params.getAPrioriTargetObject();
+				if (aPrioriTargetObject != null && mappingOutputPath != null) {
+					aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
+				}
+				LOGGER.info("PPPPPPPPPPP aPrioriTargetItem: {}", aPrioriTargetItem);
+				if (hasNoValue(aPrioriTargetItem) && outputTriple == null) {
+					
+					if (mapping.getStrength() != MappingStrengthType.WEAK) {
+						continue;
 					}
+	
+					mappingOutputStruct.setWeakMappingWasUsed(true);
+					
+					evaluateMapping(mapping, params.getContext(), task, result);
+	
+					PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
+					if (mappingOutputTriple != null) {
+						if (outputTriple == null) {
+							mappingOutputStruct.setOutputTriple(mappingOutputTriple);
+						} else {
+							outputTriple.merge(mappingOutputTriple);
+						}
+					}
+	
 				}
-
 			}
 		}
 		
@@ -288,7 +367,7 @@ public class MappingEvaluator {
 			PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
 			
 			if (processor != null) {
-				processor.process(mappingOutputPath, outputTriple);
+				processor.process(mappingOutputPath, mappingOutputStruct);
 			} else {
 			
 				if (outputTriple == null) {
@@ -423,31 +502,13 @@ public class MappingEvaluator {
 			}
 		}
 	}
-	
-	private class MappingOutputStruct<V extends PrismValue> {
-		private PrismValueDeltaSetTriple<V> outputTriple = null;
-		private boolean strongMappingWasUsed = false;
 
-		public PrismValueDeltaSetTriple<V> getOutputTriple() {
-			return outputTriple;
-		}
-		
-		public void setOutputTriple(PrismValueDeltaSetTriple<V> outputTriple) {
-			this.outputTriple = outputTriple;
-		}
-
-		public boolean isStrongMappingWasUsed() {
-			return strongMappingWasUsed;
-		}
-
-		public void setStrongMappingWasUsed(boolean strongMappingWasUsed) {
-			this.strongMappingWasUsed = strongMappingWasUsed;
-		}
-		
-		
+    private boolean hasNoValue(Item aPrioriTargetItem) {
+		return aPrioriTargetItem == null 
+				|| (aPrioriTargetItem.isEmpty() && !aPrioriTargetItem.isIncomplete());
 	}
-	
-    public <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
+
+	public <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {

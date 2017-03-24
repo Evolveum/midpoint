@@ -38,7 +38,7 @@
 				<clearValue>Dead men tell no tales</clearValue>
 			</icfi:uselessGuardedString>
 			<icfi:supportValidity>true</icfi:supportValidity>
-			<icfi:passwordReadabilityMode>readable</icfi:passwordReadabilityMode>
+			<icfi:passwordReadabilityMode>incomplete</icfi:passwordReadabilityMode>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>

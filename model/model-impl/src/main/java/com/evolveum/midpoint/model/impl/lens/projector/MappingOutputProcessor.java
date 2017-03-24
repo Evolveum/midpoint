@@ -27,6 +27,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface MappingOutputProcessor<V extends PrismValue> {
 
-	void process(ItemPath mappingOutputPath, PrismValueDeltaSetTriple<V> outputTriple) throws SchemaException, ExpressionEvaluationException;
+	void process(ItemPath mappingOutputPath, MappingOutputStruct<V> outputStruct) throws SchemaException, ExpressionEvaluationException;
 	
 }

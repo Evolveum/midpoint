@@ -1482,6 +1482,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		passwordType.setValue(ps);
 	}
 	
+	protected void assertIncompleteShadowPassword(PrismObject<ShadowType> shadow) {
+		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+		assertNotNull("No password value property in "+shadow, passValProp);
+		assertTrue("Password value property does not have 'incomplete' flag in "+shadow, passValProp.isIncomplete());
+	}
+	
+	protected void assertNoShadowPassword(PrismObject<ShadowType> shadow) {
+		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+		assertNull("Unexpected password value property in "+shadow+": "+passValProp, passValProp);
+	}
+	
 	protected <O extends ObjectType> PrismObject<O> instantiateObject(Class<O> type) throws SchemaException {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
 	}

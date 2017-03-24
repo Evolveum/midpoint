@@ -5030,7 +5030,7 @@
     <xsd:complexType name="ResourcePasswordDefinitionType">
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
-            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how the password value is constructed in case of information flow from IDM to the
