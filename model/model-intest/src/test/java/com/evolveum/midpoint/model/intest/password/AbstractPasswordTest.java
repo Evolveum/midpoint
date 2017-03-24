@@ -1243,8 +1243,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 *  Remove password. It should be removed from red resource as well. (MID-3111)
 	 */
 	@Test
-	public void test318RemovePassword() throws Exception {
-		final String TEST_NAME = "test318RemovePassword";
+	public void test314RemovePassword() throws Exception {
+		final String TEST_NAME = "test314RemovePassword";
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
@@ -1288,7 +1288,97 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 	}
+	
+	/*
+	 *  User has no password. There is an inbound/generate mapping from default dummy
+	 *  resource. This should kick in now and set a random password.
+	 */
+	@Test
+	public void test316UserRecompute() throws Exception {
+		final String TEST_NAME = "test316UserRecompute";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
+		// GIVEN
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after change execution", userAfter);
+		assertNotNull("User password is still null", userAfter.asObjectable().getCredentials().getPassword().getValue());
+		assertLinks(userAfter, 4);
+		
+		// TODO: why are the resource passwords null ???
+		
+		// password mapping is normal
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, null);			
+
+		// password mapping is strong
+		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
+
+        // password mapping is weak here - so no change is expected
+        assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assert31xBluePasswordAfterPasswordChange(userAfter);
+		
+		assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+
+		// this one is not changed
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+	}
+
+	/**
+	 * Change password again so we have predictable password instead of
+	 * randomly-generated one.
+	 */
+	@Test
+	public void test318ChangeUserPassword() throws Exception {
+		final String TEST_NAME = "test318ChangeUserPassword";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_3, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after change execution", userAfter);
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
+		assertLinks(userAfter, 4);
+
+		// password mapping is normal
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
+
+		// password mapping is strong
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
+
+        // password mapping is weak
+        assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assert31xBluePasswordAfterPasswordChange(userAfter);
+
+		// this one is not changed
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+	}
+	
 	@Test
 	public void test320ChangeEmployeeNumber() throws Exception {
 		final String TEST_NAME = "test320ChangeEmployeeNumber";
@@ -1311,10 +1401,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after change execution", userAfter);
 		//assertUserJack(userJack, "Jack Sparrow");			// we changed employeeNumber, so this would fail
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
 
-		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, null);
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 		assert31xBluePasswordAfterPasswordChange(userAfter);
-		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
+		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp0000");
 	}
@@ -1341,10 +1432,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after change execution", userAfter);
 		//assertUserJack(userJack, "Jack Sparrow");					// we changed employeeNumber, so this would fail
+		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
 
-		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, null);
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 		assert31xBluePasswordAfterPasswordChange(userAfter);
-		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
+		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
 	}
