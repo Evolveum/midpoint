@@ -61,11 +61,11 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 		
 		SecurityQuestionsCredentialsPolicyType policy = authCtx.getPolicy();
 		Integer iNumberOfQuestions = policy.getQuestionNumber();
-		if (iNumberOfQuestions == null){
-			return false;
+		int numberOfQuestions = 0;
+		if (iNumberOfQuestions != null){
+			numberOfQuestions = iNumberOfQuestions.intValue();
 		}
 		
-		int numberOfQuestions = iNumberOfQuestions.intValue();
 		Map<String, String> enteredQuestionsAnswers = authCtx.getQuestionAnswerMap();
 		if (numberOfQuestions > enteredQuestionsAnswers.size()){
 			return false;
@@ -82,7 +82,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 			}
 		}
 		
-		return matched >= numberOfQuestions;
+		return matched > 0 && matched >= numberOfQuestions;
 		
 	}
 

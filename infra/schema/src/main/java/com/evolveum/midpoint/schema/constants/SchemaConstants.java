@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -208,6 +209,10 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_NONCE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE);
 	public static final ItemPath PATH_NONCE_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE,
 			NonceType.F_VALUE);
+	
+	public static final ItemPath PATH_SECURITY_QUESTIONS = new ItemPath(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
+	public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER = new ItemPath(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS,
+			SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
 	public static final ItemPath PATH_ACTIVATION = new ItemPath(C_ACTIVATION);
 	public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = new ItemPath(C_ACTIVATION,
 			ActivationType.F_ADMINISTRATIVE_STATUS);
