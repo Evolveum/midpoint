@@ -195,7 +195,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
 
 		if (!userType.getAssignment().isEmpty()) {
-			LensContext<UserType> lensContext = new LensContextPlaceholder<>(prismContext);
+			LensContext<UserType> lensContext = new LensContextPlaceholder<>(userType.asPrismObject(), prismContext);
 			AssignmentEvaluator.Builder<UserType> builder =
 					new AssignmentEvaluator.Builder<UserType>()
 							.repository(repositoryService)
