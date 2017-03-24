@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -172,7 +173,11 @@ public class WorkItemManager {
 				throw new SecurityViolationException("You are not authorized to claim the selected work item.");
 			}
 			taskService.claim(workItemId, principal.getOid());
-			// TODO assignees in identity links!
+			task = taskService.createTaskQuery().taskId(workItemId).singleResult();
+			if (task == null) {
+				throw new ObjectNotFoundException("The work item does not exist");
+			}
+			setNewAssignees(task, Collections.singletonList(ObjectTypeUtil.createObjectRef(principal.getOid(), ObjectTypes.USER)), taskService);
 		} catch (ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
 			result.recordFatalError("Couldn't claim the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
@@ -214,6 +219,11 @@ public class WorkItemManager {
                 throw new SystemException("It has no candidates to be offered to");
             }
             taskService.unclaim(workItemId);
+			task = taskService.createTaskQuery().taskId(workItemId).singleResult();
+			if (task == null) {
+				throw new ObjectNotFoundException("The work item does not exist");
+			}
+			setNewAssignees(task, Collections.emptyList(), taskService);
         } catch (ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
             result.recordFatalError("Couldn't release work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
