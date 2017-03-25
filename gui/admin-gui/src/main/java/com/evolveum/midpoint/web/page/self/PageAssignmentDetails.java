@@ -47,7 +47,7 @@ public class PageAssignmentDetails extends PageBase{
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        AssignmentDetailsPanel detailsPanel = new AssignmentDetailsPanel(ID_DETAILS_PANEL, assignmentModel);
+        AssignmentDetailsPanel detailsPanel = new AssignmentDetailsPanel(ID_DETAILS_PANEL, assignmentModel, PageAssignmentDetails.this);
         detailsPanel.setOutputMarkupId(true);
         mainForm.add(detailsPanel);
 

@@ -39,13 +39,13 @@
             <div class="row">
                 <div class="container-fluid prism-container">
 
-                    <div class="row prism-header">
+                    <div wicket:id="propertyContainer" class="row prism-header">
                         <span class="prism-title"><wicket:message key="ActivationType.properties"/></span>
                     </div>
 
                     <div class="prism-properties">
 
-                        <div>
+                        <div wicket:id="descriptionContainer" >
                             <div class="row prism-property">
                                 <div class="col-xs-4">
                                     <span><wicket:message key="AssignmentEditorPanel.description"/></span>
@@ -76,7 +76,7 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div wicket:id="focusTypeContainer" >
                             <div class="row prism-property">
                                 <div class="col-xs-4">
                                     <span><wicket:message key="AssignmentEditorPanel.focusType"/></span>
@@ -123,7 +123,7 @@
                     <div class="prism-properties">
 
                         <div>
-                            <div class="row prism-property">
+                            <div wicket:id="administrativeStatusContainer" class="row prism-property">
                                 <div class="col-xs-4">
                                     <span><wicket:message key="ActivationType.administrativeStatus"/></span>
                                 </div>
@@ -137,7 +137,7 @@
                             </div>
                         </div>
 
-                        <div class="stripe">
+                        <div wicket:id="validFromContainer"  class="stripe">
                             <div class="row prism-property">
                                 <div class="col-xs-4">
                                     <span><wicket:message key="ActivationType.validFrom"/></span>
@@ -153,7 +153,7 @@
                         </div>
 
                         <div>
-                            <div class="row prism-property">
+                            <div wicket:id="validToContainer" class="row prism-property">
                                 <div class="col-xs-4">
                                     <span><wicket:message key="ActivationType.validTo"/></span>
                                 </div>
@@ -222,7 +222,7 @@
                     </div>
                 </div>
             </div>
-
+            <div class="row" wicket:id="metadataContainer"></div>
         </div>
     </div>
 </wicket:panel>
