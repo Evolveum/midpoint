@@ -3816,8 +3816,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
 	}
 
+	@Deprecated
 	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
 		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
+		assertNotNull("No password metadata in "+user, metadataContainer);
+		MetadataType metadataType = metadataContainer.getValue().asContainerable();
+		assertMetadata("password metadata in "+user, metadataType, create, false, start, end, actorOid, channel);
+	}
+	
+	protected void assertPasswordMetadata(PrismObject<UserType> user, QName credentialType, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, credentialType, PasswordType.F_METADATA));
 		assertNotNull("No password metadata in "+user, metadataContainer);
 		MetadataType metadataType = metadataContainer.getValue().asContainerable();
 		assertMetadata("password metadata in "+user, metadataType, create, false, start, end, actorOid, channel);

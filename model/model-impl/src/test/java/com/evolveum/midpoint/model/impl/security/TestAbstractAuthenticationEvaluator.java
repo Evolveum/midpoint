@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -41,6 +42,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -56,11 +58,15 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -68,7 +74,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -77,16 +82,14 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class TestAuthenticationEvaluator extends AbstractInternalModelIntegrationTest {
+public abstract class TestAbstractAuthenticationEvaluator<V, AC extends AbstractAuthenticationContext, T extends AuthenticationEvaluator<AC>> extends AbstractInternalModelIntegrationTest {
 	
 	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "security");
 	
-	private static final Trace LOGGER = TraceManager.getTrace(TestAuthenticationEvaluator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestAbstractAuthenticationEvaluator.class);
 
-	private static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
-	
-	@Autowired(required=true)
-	private AuthenticationEvaluator authenticationEvaluator;
+	protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
+		
 	
 	@Autowired(required=true)
 	private UserProfileService userProfileService;
@@ -97,11 +100,26 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
+	
+	public abstract T getAuthenticationEvaluator();
+	public abstract AC getAuthenticationContext(String username, V value);
+	
+	public abstract V getGoodPasswordJack();
+	public abstract V getBadPasswordJack();
+	public abstract V getGoodPasswordGuybrush();
+	public abstract V getBadPasswordGuybrush();
+	public abstract V get103EmptyPasswordJack();
+	
+	public abstract AbstractCredentialType getCredentialUsedForAuthentication(UserType user);
+	public abstract QName getCredentialType();
+	
+	public abstract void modifyUserCredential(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		((AuthenticationEvaluatorImpl)authenticationEvaluator).userProfileService = new UserProfileService() {
+		((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).userProfileService = new UserProfileService() {
 			
 			@Override
 			public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
@@ -134,7 +152,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		final String TEST_NAME = "test000Sanity";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		assertNotNull(authenticationEvaluator);
+		assertNotNull(getAuthenticationEvaluator());
 		MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
 		assertPrincipalJack(principal);
 	}
@@ -150,7 +168,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -177,7 +195,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "thisIsNotMyPassword");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -211,7 +229,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, null);
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, null));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -244,7 +262,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, get103EmptyPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -276,7 +294,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, null, null);
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(null, null));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -293,7 +311,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	
 	@Test
 	public void test106PasswordLoginEmptyUsernameBadPassword() throws Exception {
-		final String TEST_NAME = "test106PasswordLoginEmptyUsernameEmptyPassword";
+		final String TEST_NAME = "test106PasswordLoginEmptyUsernameBadPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -304,7 +322,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, "", "bad Bad BAD");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext("", getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -332,7 +350,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, "NoSuchUser", "bad Bad BAD");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext("NoSuchUser", getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -367,7 +385,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "thisIsNotMyPassword");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -402,7 +420,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "not my password either");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -419,7 +437,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "absoLUTELY NOT my PASSword");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -454,7 +472,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (LockedException e) {
@@ -484,7 +502,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "bad bad password!");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (LockedException e) {
@@ -518,7 +536,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -545,7 +563,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "not my password either");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -564,7 +582,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "absoLUTELY NOT my PASSword");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -583,7 +601,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, "no, no NO!");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (BadCredentialsException e) {
@@ -617,7 +635,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (LockedException e) {
@@ -641,7 +659,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 				
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -663,7 +681,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -686,7 +704,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 				
 		// WHEN
@@ -717,7 +735,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 		
@@ -730,7 +748,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
@@ -743,7 +761,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		XMLGregorianCalendar validFrom = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "PT1H");
@@ -764,7 +782,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		// GIVEN
 		clock.overrideDuration("PT2H");
 		
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 				
 		loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
@@ -778,7 +796,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		// GIVEN
 		clock.overrideDuration("P2D");
 		
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
@@ -790,7 +808,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
@@ -803,7 +821,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
@@ -818,7 +836,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
@@ -833,7 +851,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
@@ -848,7 +866,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
@@ -863,7 +881,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
@@ -873,23 +891,19 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 		
 	@Test
-	public void test200UserGuybrushSetPassword() throws Exception {
+	public void test200UserGuybrushSetCredentials() throws Exception {
 		final String TEST_NAME = "test200UserGuybrushSetPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-
-		ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue(USER_GUYBRUSH_PASSWORD);
         
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		modifyUserReplace(USER_GUYBRUSH_OID, PASSWORD_VALUE_PATH,
-        		task, result, userPasswordPs);
+		modifyUserCredential(task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -898,8 +912,8 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("user after", userAfter);
 		
-		assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD);
-		assertPasswordMetadata(userAfter, false, startTs, endTs, null, SchemaConstants.CHANNEL_GUI_USER_URI);
+//		assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD);
+		assertPasswordMetadata(userAfter, getCredentialType(), false, startTs, endTs, null, SchemaConstants.CHANNEL_GUI_USER_URI);
 		
 		assertFailedLogins(userAfter, 0);
 	}
@@ -915,7 +929,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
+		Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -942,7 +956,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, "thisIsNotMyPassword");
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getBadPasswordGuybrush()));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -975,7 +989,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
+		Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1004,7 +1018,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_PASSWORD);
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 			
 			AssertJUnit.fail("Unexpected success");
 			
@@ -1065,15 +1079,15 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	}
 	
 	private void assertFailedLogins(PrismObject<UserType> user, int expected) {
-		if (expected == 0 && user.asObjectable().getCredentials().getPassword().getFailedLogins() == null) {
+		if (expected == 0 && getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins() == null) {
 			return;
 		}
-		assertEquals("Wrong failed logins in "+user, (Integer)expected, user.asObjectable().getCredentials().getPassword().getFailedLogins());
+		assertEquals("Wrong failed logins in "+user, (Integer)expected, getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins());
 	}
 
 	private void assertLastSuccessfulLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
 			XMLGregorianCalendar endTs) {
-		LoginEventType lastSuccessfulLogin = user.asObjectable().getCredentials().getPassword().getLastSuccessfulLogin();
+		LoginEventType lastSuccessfulLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastSuccessfulLogin();
 		assertNotNull("no last successful login in "+user, lastSuccessfulLogin);
 		XMLGregorianCalendar successfulLoginTs = lastSuccessfulLogin.getTimestamp();
 		TestUtil.assertBetween("wrong last successful login timestamp", startTs, endTs, successfulLoginTs);
@@ -1081,7 +1095,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 	
 	private void assertLastFailedLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
 			XMLGregorianCalendar endTs) {
-		LoginEventType lastFailedLogin = user.asObjectable().getCredentials().getPassword().getLastFailedLogin();
+		LoginEventType lastFailedLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastFailedLogin();
 		assertNotNull("no last failed login in "+user, lastFailedLogin);
 		XMLGregorianCalendar failedLoginTs = lastFailedLogin.getTimestamp();
 		TestUtil.assertBetween("wrong last failed login timestamp", startTs, endTs, failedLoginTs);
@@ -1114,7 +1128,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1136,7 +1150,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		TestUtil.displayWhen(TEST_NAME);
 		try {
 			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+			getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (DisabledException e) {

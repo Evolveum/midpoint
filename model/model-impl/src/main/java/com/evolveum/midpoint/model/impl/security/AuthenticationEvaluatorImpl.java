@@ -15,8 +15,29 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
+import java.util.Collection;
+
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -32,25 +53,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
 
 /**
  * @author semancik
  *
  */
-@Component("authenticationEvaluator")
-public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
+public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialType, T extends AbstractAuthenticationContext> implements AuthenticationEvaluator<T> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AuthenticationEvaluatorImpl.class);
 	
@@ -67,16 +75,22 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	@Autowired
 	private SecurityHelper securityHelper;
 	
+	protected abstract void checkEnteredCredentials(ConnectionEnvironment connEnv, T authCtx);
+	protected abstract boolean suportsAuthzCheck();
+	protected abstract C getCredential(CredentialsType credentials);
+	protected abstract void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credential);
+	protected abstract boolean passwordMatches(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C passwordType,
+			T authCtx);
+	protected abstract CredentialPolicyType getEffectiveCredentialPolicy(SecurityPolicyType securityPolicy, T authnCtx) throws SchemaException;
+	
 	@Override
-	public UsernamePasswordAuthenticationToken authenticateUserPassword(ConnectionEnvironment connEnv, String enteredUsername, String enteredPassword) 
+	public UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx) 
 			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {		
-		if (StringUtils.isBlank(enteredPassword)) {
-			recordAuthenticationFailure(enteredUsername, connEnv, "empty password provided");
-			throw new BadCredentialsException("web.security.provider.password.encoding");
-		}
 		
-		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername, true);
+		checkEnteredCredentials(connEnv, authnCtx);
+		
+		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), true);
 		
 		UserType userType = principal.getUser();
 		CredentialsType credentials = userType.getCredentials();
@@ -84,79 +98,47 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
 		}
-		PasswordType passwordType = credentials.getPassword();
+//		PasswordType passwordType = credentials.getPassword();
 		SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
-		PasswordCredentialsPolicyType passwordCredentialsPolicy = SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
+		CredentialPolicyType credentialsPolicy = null;
+		try {
+			credentialsPolicy = getEffectiveCredentialPolicy(securityPolicy, authnCtx);
+		} catch (SchemaException e) {
+			// TODO how to properly hanlde the error????
+			throw new AuthenticationServiceException("Bad config");
+		}
 
 		// Lockout
-		if (isLockedOut(passwordType, passwordCredentialsPolicy)) {
+		if (isLockedOut(getCredential(credentials), credentialsPolicy)) {
 			recordAuthenticationFailure(principal, connEnv, "password locked-out");
 			throw new LockedException("web.security.provider.locked");
 		}
-
-		// Authorizations
-		if (!hasAnyAuthorization(principal)) {
-			recordAuthenticationFailure(principal, connEnv, "no authorizations");
-			throw new DisabledException("web.security.provider.access.denied");
+	
+		if (suportsAuthzCheck()) {
+			// Authorizations
+			if (!hasAnyAuthorization(principal)) {
+				recordAuthenticationFailure(principal, connEnv, "no authorizations");
+				throw new DisabledException("web.security.provider.access.denied");
+			}
 		}
 		
 		// Password age
-		checkPasswordValidityAndAge(connEnv, principal, passwordType.getValue(), passwordType.getMetadata(), passwordCredentialsPolicy);
+		checkPasswordValidityAndAge(connEnv, principal, getCredential(credentials), credentialsPolicy);
 		
-		if (passwordMatches(connEnv, principal, passwordType, enteredPassword)) {
+		if (passwordMatches(connEnv, principal, getCredential(credentials), authnCtx)) {
 			
-			recordPasswordAuthenticationSuccess(principal, connEnv, passwordType, passwordCredentialsPolicy);
+			recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), credentialsPolicy);
 			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, 
-					enteredPassword, principal.getAuthorities());
+					authnCtx.getEnteredCredential(), principal.getAuthorities());
 			return token;
 			
 		} else {
-			recordPasswordAuthenticationFailure(principal, connEnv, passwordType, passwordCredentialsPolicy, "password mismatch");
+			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
 			
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 	}
 	
-	@Override
-	public UsernamePasswordAuthenticationToken authenticateUserNonce(ConnectionEnvironment connEnv, String enteredUsername, String enteredNonce, NonceCredentialsPolicyType noncePolicy) 
-			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
-			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {		
-		if (StringUtils.isBlank(enteredNonce)) {
-			recordAuthenticationFailure(enteredUsername, connEnv, "empty password provided");
-			throw new BadCredentialsException("web.security.provider.password.encoding");
-		}
-		
-		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername, false);
-		
-		UserType userType = principal.getUser();
-		CredentialsType credentials = userType.getCredentials();
-		if (credentials == null) {
-			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
-			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
-		}
-		NonceType nonceType = credentials.getNonce();
-		
-		// Password age
-		
-		if (nonceType == null) {
-			throw new BadCredentialsException("web.security.provider.invalid.link");
-		}
-		
-		checkPasswordValidityAndAge(connEnv, principal, nonceType.getValue(), nonceType.getMetadata(), noncePolicy);
-		
-		if (nonceMatches(connEnv, principal, nonceType, enteredNonce)) {
-			
-			recordNonceAuthenticationSuccess(principal, connEnv, nonceType, noncePolicy);
-			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, 
-					credentials.getPassword() != null ? getPassword(connEnv, principal, credentials.getPassword().getValue()) : enteredNonce, principal.getAuthorities());
-			return token;
-			
-		} else {
-//			recordPasswordAuthenticationFailure(principal, connEnv, nonceType, noncePolicy, "password mismatch");
-			//TODO what to do after expiration?
-			throw new BadCredentialsException("web.security.provider.invalid");
-		}
-	}
 	
 	/**
 	 * Special-purpose method used for Web Service authentication based on javax.security callbacks.
@@ -261,9 +243,36 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 		return false;
 	}
+	
+	private <P extends CredentialPolicyType> void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credentials,
+			P passwordCredentialsPolicy) {
+		if (credentials == null) {
+			recordAuthenticationFailure(principal, connEnv, "no stored credential value");
+			throw new AuthenticationCredentialsNotFoundException("web.security.provider.credential.bad");
+		}
+		
+		validateCredentialNotNull(connEnv, principal, credentials);
+		
+		if (passwordCredentialsPolicy == null) {
+			return;
+		}
+		
+		Duration maxAge = passwordCredentialsPolicy.getMaxAge();
+		if (maxAge != null) {
+			MetadataType credentialMetedata = credentials.getMetadata();
+			XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(credentialMetedata);
+			if (changeTimestamp != null) {
+				XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
+				if (clock.isPast(passwordValidUntil)) {
+					recordAuthenticationFailure(principal, connEnv, "password expired");
+					throw new CredentialsExpiredException("web.security.provider.password.bad");
+				}
+			}
+		}
+	}
 
-	private <T extends CredentialPolicyType> void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString, MetadataType passwordMetadata, 
-			T passwordCredentialsPolicy) {
+	private void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString, MetadataType passwordMetadata, 
+			CredentialPolicyType passwordCredentialsPolicy) {
 		if (protectedString == null) {
 			recordAuthenticationFailure(principal, connEnv, "no stored password value");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
@@ -284,16 +293,33 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 	}
 	
-	private boolean nonceMatches(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, NonceType nonceType,
-			String enteredNonce) {
-		String decryptedPassword = getPassword(connEnv, principal, nonceType.getValue());
-		return enteredNonce.equals(decryptedPassword);
+	
+	protected boolean matchDecryptedValue(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, String decryptedValue,
+			String enteredPassword){
+		return enteredPassword.equals(decryptedValue);
 	}
-
-	private boolean passwordMatches(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType passwordType,
+	
+	protected boolean decryptAndMatch(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString,
 			String enteredPassword) {
-		String decryptedPassword = getPassword(connEnv, principal, passwordType.getValue());
+		String decryptedPassword = getDecryptedValue(connEnv, principal, protectedString);
 		return enteredPassword.equals(decryptedPassword);
+	}
+	
+	protected String getDecryptedValue(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString) {
+		String decryptedPassword;
+		if (protectedString.getEncryptedDataType() != null) {
+			try {
+				decryptedPassword = protector.decryptString(protectedString);
+			} catch (EncryptionException e) {
+				recordAuthenticationFailure(principal, connEnv, "error decrypting password: "+e.getMessage());
+				throw new AuthenticationServiceException("web.security.provider.unavailable", e);
+			}
+		} else {
+			LOGGER.warn("Authenticating user based on clear value. Please check objects, "
+					+ "this should not happen. Protected string should be encrypted.");
+			decryptedPassword = protectedString.getClearValue();
+		}
+		return decryptedPassword;
 	}
 	
 	private String getPassword(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString) {
@@ -345,7 +371,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	}
 
 	private void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
-			PasswordType passwordType, PasswordCredentialsPolicyType passwordCredentialsPolicy) {
+			C passwordType, CredentialPolicyType passwordCredentialsPolicy) {
 		Integer failedLogins = passwordType.getFailedLogins();
 		if (failedLogins != null && failedLogins > 0) {
 			passwordType.setFailedLogins(0);
@@ -368,30 +394,14 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		recordAuthenticationSuccess(principal, connEnv);
 	}
 	
-	private void recordNonceAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
-			NonceType nonceType, NonceCredentialsPolicyType passwordCredentialsPolicy) {
-		
-		LoginEventType event = new LoginEventType();
-		event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-		event.setFrom(connEnv.getRemoteHost());
 
-		ActivationType activation = principal.getUser().getActivation();
-		if (activation != null) {
-			activation.setLockoutStatus(LockoutStatusType.NORMAL);
-			activation.setLockoutExpirationTimestamp(null);
-		}
-
-		userProfileService.updateUser(principal);
-		
-		recordAuthenticationSuccess(principal, connEnv);
-	}
 	
 	private void recordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv) {
 		securityHelper.auditLoginSuccess(principal.getUser(), connEnv);
 	}
 	
 	private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-			@NotNull PasswordType passwordType, PasswordCredentialsPolicyType passwordCredentialsPolicy, String reason) {
+			@NotNull C passwordType, CredentialPolicyType credentialsPolicy, String reason) {
 		Integer failedLogins = passwordType.getFailedLogins();
 		LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
 		XMLGregorianCalendar lastFailedLoginTs = null;
@@ -399,8 +409,8 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			lastFailedLoginTs = lastFailedLogin.getTimestamp();
 		}
 		
-		if (passwordCredentialsPolicy != null) {
-			Duration lockoutFailedAttemptsDuration = passwordCredentialsPolicy.getLockoutFailedAttemptsDuration();
+		if (credentialsPolicy != null) {
+			Duration lockoutFailedAttemptsDuration = credentialsPolicy.getLockoutFailedAttemptsDuration();
 			if (lockoutFailedAttemptsDuration != null) {
 				if (lastFailedLoginTs != null) {
 					XMLGregorianCalendar failedLoginsExpirationTs = XmlTypeConverter.addDuration(lastFailedLoginTs, lockoutFailedAttemptsDuration);
@@ -426,15 +436,15 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		
 		ActivationType activationType = principal.getUser().getActivation();
 		
-		if (failedLogins != null && isOverFailedLockoutAttempts(failedLogins, passwordCredentialsPolicy)) {
+		if (failedLogins != null && isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
 			if (activationType == null) {
 				activationType = new ActivationType();
 				principal.getUser().setActivation(activationType);
 			}
 			activationType.setLockoutStatus(LockoutStatusType.LOCKED);
 			XMLGregorianCalendar lockoutExpirationTs = null;
-			if (passwordCredentialsPolicy != null) {
-				Duration lockoutDuration = passwordCredentialsPolicy.getLockoutDuration();
+			if (credentialsPolicy != null) {
+				Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
 				if (lockoutDuration != null) {
 					lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
 				}
@@ -447,11 +457,11 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		recordAuthenticationFailure(principal, connEnv, reason);
 	}
 	
-	private void recordAuthenticationFailure(@NotNull MidPointPrincipal principal, ConnectionEnvironment connEnv, String reason) {
+	protected void recordAuthenticationFailure(@NotNull MidPointPrincipal principal, ConnectionEnvironment connEnv, String reason) {
 		securityHelper.auditLoginFailure(principal.getUsername(), principal.getUser(), connEnv, reason);
 	}
 	
-	private void recordAuthenticationFailure(String username, ConnectionEnvironment connEnv, String reason) {
+	protected void recordAuthenticationFailure(String username, ConnectionEnvironment connEnv, String reason) {
 		securityHelper.auditLoginFailure(username, null, connEnv, reason);
 	}
 		

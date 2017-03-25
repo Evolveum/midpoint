@@ -26,6 +26,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -41,7 +42,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
 	
 	@Autowired
-	private transient AuthenticationEvaluator authenticationEvaluator;
+	private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -54,9 +55,9 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		Authentication token;
 		if (authentication instanceof UsernamePasswordAuthenticationToken) {
 			String enteredPassword = (String) authentication.getCredentials();
-			token = authenticationEvaluator.authenticateUserPassword(connEnv, enteredUsername, enteredPassword);
+			token = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword));
 		} else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-			token = authenticationEvaluator.authenticateUserPreAuthenticated(connEnv, enteredUsername);
+			token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, enteredUsername);
 		} else {
 			LOGGER.error("Unsupported authentication {}", authentication);
 			throw new AuthenticationServiceException("web.security.provider.unavailable");
