@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,12 +57,12 @@ public class PrepareForTaskCreation implements JavaDelegate {
 
         String assignee = null;
         String candidateGroups = null;
-        if (approverRef.getType() == null || UserType.COMPLEX_TYPE.equals(approverRef.getType())) {
-            assignee = approverRef.getOid();
-        } else if (RoleType.COMPLEX_TYPE.equals(approverRef.getType())) {
-            candidateGroups = MiscDataUtil.ROLE_PREFIX + ":" + approverRef.getOid();
-        } else if (OrgType.COMPLEX_TYPE.equals(approverRef.getType())) {
-            candidateGroups = MiscDataUtil.ORG_PREFIX + ":" + approverRef.getOid();
+        if (approverRef.getType() == null || QNameUtil.match(UserType.COMPLEX_TYPE, approverRef.getType())) {
+            assignee = MiscDataUtil.refToString(new ObjectReferenceType().oid(approverRef.getOid()).type(UserType.COMPLEX_TYPE));
+        } else if (QNameUtil.match(RoleType.COMPLEX_TYPE, approverRef.getType()) ||
+				QNameUtil.match(OrgType.COMPLEX_TYPE, approverRef.getType()) ||
+				QNameUtil.match(ServiceType.COMPLEX_TYPE, approverRef.getType())) {
+            candidateGroups = MiscDataUtil.refToString(approverRef.toObjectReferenceType());
         } else {
             throw new IllegalStateException("Unsupported type of the approver: " + approverRef.getType());
         }

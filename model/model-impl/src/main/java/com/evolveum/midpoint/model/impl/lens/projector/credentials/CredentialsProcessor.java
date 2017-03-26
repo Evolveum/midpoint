@@ -107,7 +107,7 @@ public class CredentialsProcessor {
 		processSecurityPolicy(context, now, task, result);
 		processFocusPassword((LensContext<UserType>) context, now, task, result);
 		processFocusNonce((LensContext<UserType>) context, now, task, result);
-		// TODO: security questions
+		processFocusSecurityQuestions((LensContext<UserType>) context, now, task, result);
 	}
 	
 	private <F extends FocusType> void processSecurityPolicy(LensContext<F> context, XMLGregorianCalendar now,
@@ -155,6 +155,25 @@ public class CredentialsProcessor {
 					SchemaException, PolicyViolationException {
 		
 		NoncePolicyEvaluator evaluator = new NoncePolicyEvaluator();
+		evaluator.setContext(context);
+		evaluator.setMetadataManager(metadataManager);
+		evaluator.setNow(now);
+		evaluator.setPrismContext(prismContext);
+		evaluator.setProtector(protector);
+		evaluator.setResolver(resolver);
+		evaluator.setResult(result);
+		evaluator.setTask(task);
+		evaluator.setValuePolicyProcessor(valuePolicyProcessor);
+
+		evaluator.process();
+
+	}
+	
+	private void processFocusSecurityQuestions(LensContext<UserType> context, XMLGregorianCalendar now,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		
+		SecurityQuestionsPolicyEvaluator evaluator = new SecurityQuestionsPolicyEvaluator();
 		evaluator.setContext(context);
 		evaluator.setMetadataManager(metadataManager);
 		evaluator.setNow(now);

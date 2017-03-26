@@ -37,6 +37,7 @@ public class TaskCreateListener implements TaskListener {
 	public void notify(DelegateTask delegateTask) {
 		OperationResult result = new OperationResult(TaskCreateListener.class.getName() + ".notify");
 		Task wfTask = ActivitiUtil.getTask(delegateTask.getExecution(), result);
+		String taskId = delegateTask.getId();
 
 		// duration/deadline
 		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
@@ -49,14 +50,15 @@ public class TaskCreateListener implements TaskListener {
 
 		// triggers
 		int escalationLevel = ActivitiUtil.getEscalationLevelNumber(delegateTask.getVariables());
-		MidpointUtil.createTriggersForTimedActions(delegateTask.getId(), escalationLevel, delegateTask.getCreateTime(),
+		MidpointUtil.createTriggersForTimedActions(taskId, escalationLevel, delegateTask.getCreateTime(),
 				delegateTask.getDueDate(), wfTask, level.getTimedActions(), result);
 
 		// originalAssignee
 		String assignee = delegateTask.getAssignee();
 		if (assignee != null) {
 			TaskService taskService = delegateTask.getExecution().getEngineServices().getTaskService();
-			taskService.setVariableLocal(delegateTask.getId(), CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, assignee);
+			taskService.setVariableLocal(taskId, CommonProcessVariableNames.VARIABLE_ORIGINAL_ASSIGNEE, assignee);
+			taskService.addUserIdentityLink(taskId, assignee, CommonProcessVariableNames.MIDPOINT_ASSIGNEE);
 		}
 
 		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);
