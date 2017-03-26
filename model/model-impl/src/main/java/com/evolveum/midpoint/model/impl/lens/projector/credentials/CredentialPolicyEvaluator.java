@@ -344,7 +344,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		}
 	}
 
-	private void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	protected void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
 		OperationResult validationResult = getObjectValuePolicyEvaluator().validateProtectedStringValue(value);
 		result.addSubresult(validationResult);

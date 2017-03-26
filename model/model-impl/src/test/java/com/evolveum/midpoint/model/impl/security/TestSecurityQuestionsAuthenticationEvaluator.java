@@ -106,15 +106,5 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
 		return questionAnswers;
 	}
 	
-// TODO: temporarily disabled:
-	@Override
-	public void test200UserGuybrushSetCredentials() throws Exception {
-		
-	}
 	
-	@Override
-	public void test210UserGuybrushPasswordLoginGoodPasswordExpired() throws Exception {
-	
-	}
-
 }
