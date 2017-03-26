@@ -48,6 +48,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private static final String ID_INNER = "inner";
     private static final String ID_INNER_LABEL = "innerLabel";
     private static final String ID_TYPE_ICON = "typeIcon";
+    private static final String ID_ALREADY_ASSIGNED_ICON = "alreadyAssignedIcon";
     private static final String ID_ADD_TO_CART_LINK = "addToCartLink";
     private static final String ID_ADD_TO_CART_LINK_LABEL = "addToCartLinkLabel";
     private static final String ID_ADD_TO_CART_LINK_ICON = "addToCartLinkIcon";
@@ -211,6 +212,17 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         icon.add(new AttributeAppender("class", getIconClass(assignment.getType())));
         cellContainer.add(icon);
 
+        WebMarkupContainer alreadyAssignedIcon = new WebMarkupContainer(ID_ALREADY_ASSIGNED_ICON);
+        alreadyAssignedIcon.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return assignment.isAlreadyAssigned();
+            }
+        });
+        cellContainer.add(alreadyAssignedIcon);
+
     }
 
     private boolean canAssign(final AssignmentEditorDto assignment) {
@@ -241,7 +253,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     }
 
     private String getBackgroundClass(AssignmentEditorDto dto){
-        if (dto.isAlreadyAssigned()){
+        if (!canAssign(dto)){
             return GuiStyleConstants.CLASS_DISABLED_OBJECT_ROLE_BG;
         } else if (AssignmentEditorDtoType.ROLE.equals(dto.getType())){
             return GuiStyleConstants.CLASS_OBJECT_ROLE_BG;

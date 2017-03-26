@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -94,6 +96,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 	private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
+	private static final String OPERATION_LOAD_TARGET_OBJECT = DOT_CLASS + "loadUser";
 
 	private static final String ID_HEADER_ROW = "headerRow";
 	private static final String ID_SELECTED = "selected";
@@ -107,6 +110,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_RELATION_CONTAINER = "relationContainer";
 	private static final String ID_FOCUS_TYPE = "focusType";
+	private static final String ID_FOCUS_TYPE_CONTAINER = "focusTypeContainer";
 	protected static final String ID_RELATION = "relation";
 	private static final String ID_RELATION_LABEL = "relationLabel";
 	private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
@@ -127,12 +131,18 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_BUTTON_SHOW_MORE = "errorLink";
 	private static final String ID_ERROR_ICON = "errorIcon";
 	private static final String ID_METADATA_CONTAINER = "metadataContainer";
+	private static final String ID_PROPERTY_CONTAINER = "propertyContainer";
+	private static final String ID_DESCRIPTION_CONTAINER = "descriptionContainer";
+	private static final String ID_ADMIN_STATUS_CONTAINER = "administrativeStatusContainer";
+	private static final String ID_VALID_FROM_CONTAINER = "validFromContainer";
+	private static final String ID_VALID_TO_CONTAINER = "validToContainer";
 
 	private IModel<List<ACAttributeDto>> attributesModel;
 	protected WebMarkupContainer headerRow;
 	protected PageBase pageBase;
 	protected List<AssignmentsPreviewDto> privilegesList;
 	protected boolean delegatedToMe;
+	private LoadableModel<ItemSecurityDecisions> decisionsModel;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean delegatedToMe,
 								 List<AssignmentsPreviewDto> privilegesList,
@@ -142,11 +152,17 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		this.privilegesList = privilegesList;
 		this.delegatedToMe = delegatedToMe;
 
+		initDecisionsModel();
 		initLayout();
 	}
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
+		this(id, model, null);
+	}
+
+	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
 		super(id, model);
+		this.pageBase = pageBase;
 
 		attributesModel = new LoadableModel<List<ACAttributeDto>>(false) {
 			@Override
@@ -154,7 +170,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return loadAttributes();
 			}
 		};
-
+		initDecisionsModel();
 		initLayout();
 	}
 
@@ -389,10 +405,33 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	protected void initBodyLayout(WebMarkupContainer body) {
+		WebMarkupContainer propertyContainer = new WebMarkupContainer(ID_PROPERTY_CONTAINER);
+		propertyContainer.setOutputMarkupId(true);
+		body.add(propertyContainer);
+
+		WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
+		descriptionContainer.setOutputMarkupId(true);
+		descriptionContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION));
+			}
+		});
+		body.add(descriptionContainer);
+
 		TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
 				new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
-		description.setEnabled(getModel().getObject().isEditable());
-		body.add(description);
+		description.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isEnabled() {
+				return getModel().getObject().isEditable();
+			}
+		});
+		descriptionContainer.add(description);
 
 		WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
 		relationContainer.setOutputMarkupId(true);
@@ -401,6 +440,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible() {
+				if (!isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF,
+						ObjectReferenceType.F_RELATION))){
+					return false;
+				}
 				AssignmentEditorDto dto = getModel().getObject();
 				if (dto != null) {
 					if (AssignmentEditorDtoType.ORG_UNIT.equals(dto.getType()) ||
@@ -414,10 +457,23 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			}
 		});
 		body.add(relationContainer);
+		addRelationDropDown(relationContainer);
+
+		WebMarkupContainer focusTypeContainer = new WebMarkupContainer(ID_FOCUS_TYPE_CONTAINER);
+		focusTypeContainer.setOutputMarkupId(true);
+		focusTypeContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE));
+			}
+		});
+		body.add(focusTypeContainer);
+
 		ObjectTypeSelectPanel<FocusType> focusType = new ObjectTypeSelectPanel<>(ID_FOCUS_TYPE,
 				new PropertyModel<QName>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
-		body.add(focusType);
-        addRelationDropDown(relationContainer);
+		focusTypeContainer.add(focusType);
 
 		Label relationLabel = new Label(ID_RELATION_LABEL, new AbstractReadOnlyModel<String>() {
 
@@ -446,12 +502,124 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		relationContainer.add(relationLabel);
 
 		WebMarkupContainer tenantRefContainer = createTenantContainer();
+		tenantRefContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF));
+			}
+		});
 		body.add(tenantRefContainer);
 
 		WebMarkupContainer orgRefContainer = createOrgContainer();
+		orgRefContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF));
+			}
+		});
 		body.add(orgRefContainer);
+		propertyContainer.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION))
+						|| isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF,
+						ObjectReferenceType.F_RELATION))
+						|| isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE))
+						|| isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF))
+						|| isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF));
+			}
+
+		});
 
 		WebMarkupContainer activationBlock = new WebMarkupContainer(ID_ACTIVATION_BLOCK);
+		body.add(activationBlock);
+
+		WebMarkupContainer adminStatusContainer = new WebMarkupContainer(ID_ADMIN_STATUS_CONTAINER);
+		adminStatusContainer.setOutputMarkupId(true);
+		adminStatusContainer.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
+						ActivationType.F_ADMINISTRATIVE_STATUS));
+			}
+		});
+		activationBlock.add(adminStatusContainer);
+
+		DropDownChoicePanel administrativeStatus = WebComponentUtil.createEnumPanel(
+				ActivationStatusType.class, ID_ADMINISTRATIVE_STATUS,
+				new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
+						+ ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()),
+				this);
+		administrativeStatus.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isEnabled(){
+				return getModel().getObject().isEditable();
+			}
+		});
+		adminStatusContainer.add(administrativeStatus);
+
+		WebMarkupContainer validFromContainer = new WebMarkupContainer(ID_VALID_FROM_CONTAINER);
+		validFromContainer.setOutputMarkupId(true);
+		validFromContainer.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
+						ActivationType.F_VALID_FROM));
+			}
+		});
+		activationBlock.add(validFromContainer);
+
+		DateInput validFrom = new DateInput(ID_VALID_FROM,
+				createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+						AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
+		validFrom.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isEnabled(){
+				return getModel().getObject().isEditable();
+			}
+		});
+		validFromContainer.add(validFrom);
+
+		WebMarkupContainer validToContainer = new WebMarkupContainer(ID_VALID_TO_CONTAINER);
+		validToContainer.setOutputMarkupId(true);
+		validToContainer.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
+						ActivationType.F_VALID_TO));
+			}
+		});
+		activationBlock.add(validToContainer);
+
+		DateInput validTo = new DateInput(ID_VALID_TO,
+				createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+						AssignmentEditorDto.F_ACTIVATION + ".validTo")));
+		validTo.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isEnabled(){
+				return getModel().getObject().isEditable();
+			}
+		});
+		validToContainer.add(validTo);
+
 		activationBlock.add(new VisibleEnableBehaviour() {
 
 			@Override
@@ -460,32 +628,17 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return true;
 			}
 		});
-		body.add(activationBlock);
 
-		DropDownChoicePanel administrativeStatus = WebComponentUtil.createEnumPanel(
-				ActivationStatusType.class, ID_ADMINISTRATIVE_STATUS,
-				new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
-						+ ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()),
-				this);
-		administrativeStatus.setEnabled(getModel().getObject().isEditable());
-		activationBlock.add(administrativeStatus);
 
-		DateInput validFrom = new DateInput(ID_VALID_FROM,
-				createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
-						AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
-		validFrom.setEnabled(getModel().getObject().isEditable());
-		activationBlock.add(validFrom);
 
-		DateInput validTo = new DateInput(ID_VALID_TO,
-				createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
-						AssignmentEditorDto.F_ACTIVATION + ".validTo")));
-		validTo.setEnabled(getModel().getObject().isEditable());
-		activationBlock.add(validTo);
 		WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
 		targetContainer.add(new VisibleEnableBehaviour() {
 
 			@Override
 			public boolean isVisible() {
+				if (!isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET))){
+					return false;
+				}
 				AssignmentEditorDto dto = getModel().getObject();
 				return !AssignmentEditorDtoType.CONSTRUCTION.equals(dto.getType());
 			}
@@ -1036,5 +1189,57 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	protected boolean ignoreMandatoryAttributes(){
 		return false;
+	}
+
+	private void initDecisionsModel(){
+		decisionsModel = new LoadableModel<ItemSecurityDecisions>(false) {
+			@Override
+			protected ItemSecurityDecisions load() {
+				return loadSecurityDecisions();
+			}
+		};
+
+	}
+
+	private boolean isItemAllowed(ItemPath itemPath){
+		ItemSecurityDecisions decisions = decisionsModel.getObject();
+		if (decisions == null){
+			decisions = loadSecurityDecisions();
+		}
+		if (itemPath == null || decisions == null || decisions.getItemDecisionMap() == null
+				|| decisions.getItemDecisionMap().size() == 0){
+			return true;
+		}
+		Map<ItemPath, AuthorizationDecisionType> decisionsMap = decisions.getItemDecisionMap();
+		boolean isAllowed = false;
+		for (ItemPath path : decisionsMap.keySet()) {
+			if (path.equivalent(itemPath)
+					&& AuthorizationDecisionType.ALLOW.value().equals(decisionsMap.get(path).value())) {
+				return true;
+			}
+		}
+		return isAllowed;
+	}
+
+	private ItemSecurityDecisions loadSecurityDecisions(){
+		if (pageBase == null || getModelObject().getTargetRef() == null){
+			return null;
+		}
+		PrismObject<UserType> currentUser = pageBase.loadUserSelf(pageBase);
+		String targetObjectOid = getModelObject().getTargetRef().getOid();
+
+		Task task = pageBase.createSimpleTask(OPERATION_LOAD_TARGET_OBJECT);
+		OperationResult result = new OperationResult(OPERATION_LOAD_TARGET_OBJECT);
+		PrismObject<AbstractRoleType> targetRefObject = WebModelServiceUtils.loadObject(AbstractRoleType.class, targetObjectOid, pageBase,
+				task, result);
+		ItemSecurityDecisions decisions = null;
+		try{
+			decisions =
+					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(currentUser, targetRefObject);
+
+		} catch (SchemaException|SecurityViolationException ex){
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security decisions for assignment items.", ex);
+		}
+		return decisions;
 	}
 }

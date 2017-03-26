@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -46,8 +43,8 @@ public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
 
-    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model) {
-        super(id, model);
+    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
+        super(id, model, pageBase);
     }
 
     @Override

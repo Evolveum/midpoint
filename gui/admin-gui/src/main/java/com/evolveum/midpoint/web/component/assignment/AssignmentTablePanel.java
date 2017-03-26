@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
@@ -90,13 +91,17 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private static final String ID_MENU = "assignmentsMenu";
 	private static final String ID_LIST = "assignmentList";
 	protected static final String ID_ROW = "assignmentEditor";
-	// private static final String ID_MODAL_ASSIGN = "assignablePopup";
-	// private static final String ID_MODAL_ASSIGN_ORG = "assignableOrgPopup";
+	private PageBase pageBase = null;
 
 	public AssignmentTablePanel(String id, IModel<String> label,
 			IModel<List<AssignmentEditorDto>> assignmentModel) {
-		super(id, assignmentModel);
+		this(id, label, assignmentModel, null);
+	}
 
+	public AssignmentTablePanel(String id, IModel<String> label,
+			IModel<List<AssignmentEditorDto>> assignmentModel, PageBase pageBase) {
+		super(id, assignmentModel);
+		this.pageBase = pageBase;
 		initLayout(label);
 	}
 
@@ -169,7 +174,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	}
 
 	protected void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item){
-		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel()){
+		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel(), pageBase){
 			@Override
 			protected boolean ignoreMandatoryAttributes(){
 				return AssignmentTablePanel.this.ignoreMandatoryAttributes();

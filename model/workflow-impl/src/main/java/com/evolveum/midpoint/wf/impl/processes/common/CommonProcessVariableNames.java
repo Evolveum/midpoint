@@ -123,15 +123,9 @@ public class CommonProcessVariableNames {
 	// [SafeSerializationContainer of List<InformationType>]
 	public static final String ADDITIONAL_INFORMATION = "additionalInformation";
 
-	// Additional assignees, if any. [String]
-	// Formatted as type:OID
-	public static final String VARIABLE_ADDITIONAL_ASSIGNEES = "additionalAssignees";
-	public static final String ADDITIONAL_ASSIGNEES_SEPARATOR = ";";
-	public static final String ADDITIONAL_ASSIGNEES_PREFIX = "[";
-	public static final String ADDITIONAL_ASSIGNEES_SUFFIX = "]";
-
 	// Original assignee, if any. [String]
 	// Formatted as type:OID
+	// (Note that assignee itself is formatted like this since 3.6)
 	public static final String VARIABLE_ORIGINAL_ASSIGNEE = "originalAssignee";
 
 	public static final String TYPE_NAME_SEPARATOR = ":";
@@ -143,4 +137,8 @@ public class CommonProcessVariableNames {
 	// Who completed this work item (OID of the user)
 	// [String]
 	public static final String VARIABLE_WORK_ITEM_COMPLETED_BY = "workItemCompletedBy";
+
+	// Identity link type to denote an assignee. MidPoint uses it (instead of assignee), because we need to have potentially
+	// more than one assignee
+	public static final String MIDPOINT_ASSIGNEE = "midpoint-assignee";
 }
