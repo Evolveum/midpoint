@@ -1988,7 +1988,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyGreen);
-        display("Account mancomb", accountMancomb);
+        display("Account shadow after", accountMancomb);
+        
+        DummyAccount dummyAccountAfter = dummyResourceGreen.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        display("Account after", dummyAccountAfter);
+        
         assertNotNull("No mancomb account shadow", accountMancomb);
         accountMancombOid = accountMancomb.getOid();
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_GREEN_OID, 

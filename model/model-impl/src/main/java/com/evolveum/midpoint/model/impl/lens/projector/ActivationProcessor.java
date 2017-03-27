@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
@@ -27,6 +26,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -39,10 +39,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -90,17 +93,17 @@ public class ActivationProcessor {
 	private PrismObjectDefinition<UserType> userDefinition;
 	private PrismContainerDefinition<ActivationType> activationDefinition;
 
-    @Autowired
+    @Autowired(required=true)
     private PrismContext prismContext;
 
-    @Autowired
+    @Autowired(required=true)
     private MappingEvaluator mappingEvaluator;
     
-    @Autowired
+    @Autowired(required=true)
     private MidpointFunctions midpointFunctions;
 
     public <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context,
-    		LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    		LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext != null && !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
@@ -112,7 +115,7 @@ public class ActivationProcessor {
     }
     
     private <F extends FocusType> void processActivationFocal(LensContext<F> context, 
-    		LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    		LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		processActivationMetadata(context, projectionContext, now, result);
@@ -124,7 +127,7 @@ public class ActivationProcessor {
     }
 
     public <F extends FocusType> void processActivationUserCurrent(LensContext<F> context, LensProjectionContext projCtx, 
-    		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
     	String accCtxDesc = projCtx.toHumanReadableString();
     	SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
@@ -364,7 +367,7 @@ public class ActivationProcessor {
     }
     
     public <F extends FocusType> void processActivationUserFuture(LensContext<F> context, LensProjectionContext accCtx,
-    		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	String accCtxDesc = accCtx.toHumanReadableString();
     	SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
     	SynchronizationIntent synchronizationIntent = accCtx.getSynchronizationIntent();
@@ -429,7 +432,7 @@ public class ActivationProcessor {
     private <F extends FocusType> boolean evaluateExistenceMapping(final LensContext<F> context,
     		final LensProjectionContext accCtx, final XMLGregorianCalendar now, final boolean current,
             Task task, final OperationResult result)
-    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	final String accCtxDesc = accCtx.toHumanReadableString();
     	
     	final Boolean legal = accCtx.isLegal();
@@ -506,7 +509,7 @@ public class ActivationProcessor {
 			if (outputTriple == null) {
 				// The "default existence mapping"
 				output.setValue(legal);
-				return;
+				return false;
 			}
 			        
 			Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
@@ -522,6 +525,8 @@ public class ActivationProcessor {
 	        }
 	    	
 	        output.setValue(nonNegativeValues.iterator().next().getValue());
+	        
+	        return false;
 		});
         
         PrismPropertyDefinitionImpl<Boolean> shadowExistsDef = new PrismPropertyDefinitionImpl<>(
@@ -540,7 +545,7 @@ public class ActivationProcessor {
 			final LensProjectionContext projCtx, ResourceBidirectionalMappingType bidirectionalMappingType, 
 			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
    			final ActivationCapabilityType capActivation, XMLGregorianCalendar now, final boolean current, 
-   			String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+   			String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer = new MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>>() {
 			@Override
@@ -597,10 +602,60 @@ public class ActivationProcessor {
 
 		};
 		
-		mappingEvaluator.evaluateOutboundMapping(context, projCtx, bidirectionalMappingType, focusPropertyPath, projectionPropertyPath, initializer, null,
+		evaluateOutboundMapping(context, projCtx, bidirectionalMappingType, focusPropertyPath, projectionPropertyPath, initializer,
 				now, current, desc + " outbound activation mapping", task, result);
     	
     }
+
+	private <T, F extends FocusType> void evaluateOutboundMapping(final LensContext<F> context, 
+			final LensProjectionContext projCtx, ResourceBidirectionalMappingType bidirectionalMappingType, 
+			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,
+			final MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer, 
+			XMLGregorianCalendar now, final boolean evaluateCurrent, String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		
+		if (bidirectionalMappingType == null) {
+            LOGGER.trace("No '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
+            return;
+        }
+        List<MappingType> outboundMappingTypes = bidirectionalMappingType.getOutbound();
+        if (outboundMappingTypes == null || outboundMappingTypes.isEmpty()) {
+            LOGGER.trace("No outbound definition in '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
+            return;
+        }
+        
+    	String projCtxDesc = projCtx.toHumanReadableString();
+        PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
+
+        MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer = 
+			builder -> {
+
+				builder.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, projCtx).getMap());
+								
+		        builder.originType(OriginType.OUTBOUND);
+				builder.originObject(projCtx.getResource());
+				
+				initializer.initialize(builder);
+				
+				return builder;
+			};
+
+		MappingEvaluatorParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorParams<>();
+		params.setMappingTypes(outboundMappingTypes);
+		params.setMappingDesc(desc + " in projection " + projCtxDesc);
+		params.setNow(now);
+		params.setInitializer(internalInitializer);
+		// do NOT set loader here. We do not want loading at this stage. we do not yet know whether we care at all.
+		params.setAPrioriTargetObject(shadowNew);
+		params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
+		params.setTargetContext(projCtx);
+		params.setDefaultTargetItemPath(projectionPropertyPath);
+		params.setEvaluateCurrent(evaluateCurrent);
+		params.setEvaluateWeak(true);
+		params.setContext(context);
+		params.setHasFullTargetObject(projCtx.hasFullShadow());
+		mappingEvaluator.evaluateMappingSetProjection(params, task, result);
+
+	}
 
 	private ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> getLegalIdi(LensProjectionContext accCtx) throws SchemaException {
 		Boolean legal = accCtx.isLegal();
@@ -672,7 +727,7 @@ public class ActivationProcessor {
 	}
     
     public <O extends ObjectType> void processLifecycle(LensContext<O> context, LensProjectionContext projCtx, 
-    		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext != null && !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
@@ -684,7 +739,7 @@ public class ActivationProcessor {
     }
     
     private <F extends FocusType> void processLifecycleFocus(LensContext<F> context, LensProjectionContext projCtx, 
-    		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,23 +153,12 @@ public class ConsolidationProcessor {
     	
     	// "Squeeze" all the relevant mappings into a data structure that we can process conveniently. We want to have all the
     	// (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
-    	MappingExtractor<PrismPropertyValue<?>,PrismPropertyDefinition<?>,F> attributeExtractor = new MappingExtractor<PrismPropertyValue<?>,PrismPropertyDefinition<?>,F>() {
-			@Override
-			public Collection<Mapping<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> getMappings(Construction<F> construction) {
-				return (Collection)construction.getAttributeMappings();
-			}
-		};
-    	Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = sqeeze(projCtx, attributeExtractor); 
+    	Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = 
+    			sqeeze(projCtx, construction -> (Collection)construction.getAttributeMappings()); 
     	projCtx.setSqueezedAttributes(squeezedAttributes);
     	
-    	MappingExtractor<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>,F> associationExtractor = new MappingExtractor<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>,F>() {
-			@Override
-			public Collection<Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> getMappings(Construction<F> construction) {
-				return construction.getAssociationMappings();
-			}
-		};
     	Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = 
-    			sqeeze(projCtx, associationExtractor); 
+    			sqeeze(projCtx, construction -> construction.getAssociationMappings());
     	projCtx.setSqueezedAssociations(squeezedAssociations);
 
         // Association values in squeezed associations do not contain association name attribute.
@@ -179,9 +168,8 @@ public class ConsolidationProcessor {
             fillInAssociationNames(squeezedAssociations);
         }
         
-        MappingExtractor<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>,F> auxiliaryObjectClassExtractor = new MappingExtractor<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>,F>() {
-			@Override
-			public Collection<PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> getMappings(final Construction<F> construction) {
+        MappingExtractor<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>,F> auxiliaryObjectClassExtractor = 
+    		construction -> {
 				PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> prod = new PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>() {
 					@Override
 					public QName getMappingQName() {
@@ -221,8 +209,8 @@ public class ConsolidationProcessor {
 				Collection<PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> col = new ArrayList<>(1);
 				col.add(prod);
 				return col;
-			}
-		};
+			};
+			
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses = 
     			sqeeze(projCtx, auxiliaryObjectClassExtractor); 
     	projCtx.setSqueezedAuxiliaryObjectClasses(squeezedAuxiliaryObjectClasses);

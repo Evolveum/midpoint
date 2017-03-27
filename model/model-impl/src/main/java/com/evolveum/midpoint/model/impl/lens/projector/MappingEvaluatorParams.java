@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	private String mappingDesc;
 	private XMLGregorianCalendar now;
 	private MappingInitializer<V,D> initializer;
+	private MappingLoader<T> targetLoader;
 	private MappingOutputProcessor<V> processor;
 	private PrismObject<T> aPrioriTargetObject;
 	private ObjectDelta<T> aPrioriTargetDelta;
@@ -85,7 +86,15 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	public void setInitializer(MappingInitializer<V,D> initializer) {
 		this.initializer = initializer;
 	}
-	
+
+	public MappingLoader<T> getTargetLoader() {
+		return targetLoader;
+	}
+
+	public void setTargetLoader(MappingLoader<T> targetLoader) {
+		this.targetLoader = targetLoader;
+	}
+
 	public MappingOutputProcessor<V> getProcessor() {
 		return processor;
 	}

@@ -1460,7 +1460,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 				"Elaine Threepwood");
 		
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+        assertNull("Unexpected account secondary delta: "+accountSecondaryDelta, accountSecondaryDelta);
 	}
 	
 	/**

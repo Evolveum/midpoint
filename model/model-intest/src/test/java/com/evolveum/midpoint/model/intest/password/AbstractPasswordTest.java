@@ -1647,7 +1647,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 	
 	/**
-	 * initialize the account (password and lifecycle delta), check accoutn password and lifecycle
+	 * initialize the account (password and lifecycle delta), check account password and lifecycle
 	 */
 	@Test
 	public void test404InitializeRappDummyRed() throws Exception {
@@ -1681,7 +1681,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User after", userAfter);
 		
 		String accountDefaultOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
-		accountRedOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
+		getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
 
         // Check account in dummy RED resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);

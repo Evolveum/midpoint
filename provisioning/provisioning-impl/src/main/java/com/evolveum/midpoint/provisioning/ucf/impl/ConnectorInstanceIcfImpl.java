@@ -2777,11 +2777,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNewMatchingPath();
 		if (newPassword == null || newPassword.isEmpty()) {
+			// This is the case of setting no password. E.g. removing existing password
 			LOGGER.debug("Setting null password.");
 			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, Collections.EMPTY_LIST));
-		} else {
-			GuardedString guardedPassword = IcfUtil.toGuardedString(newPassword.getValue().getValue(), "new password", protector);
+		} else if (newPassword.getRealValue().canGetCleartext()) {
+			// We have password and we can get a cleartext value of the passowrd. This is normal case
+			GuardedString guardedPassword = IcfUtil.toGuardedString(newPassword.getRealValue(), "new password", protector);
 			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
+		} else {
+			// We have password, but we cannot get a cleartext value. Just to nothing.
+			LOGGER.debug("We would like to set password, but we do not have cleartext value. Skipping the opearation.");
 		}
 	}
 	
