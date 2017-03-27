@@ -331,18 +331,8 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		if (assignmentPathVariables == null) {
 			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 		}
-		
-		if (assignmentPathVariables != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE,
-					assignmentPathVariables.getImmediateRole());
-			variables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT,
-					assignmentPathVariables.getImmediateAssignment());
-			variables.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT,
-					assignmentPathVariables.getThisAssignment());
-			variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT,
-					assignmentPathVariables.getFocusAssignment());
-		}
-		LOGGER.info("Expression valriables for filter evaluation: {}", variables);
+		Utils.addAssignmentPathVariables(assignmentPathVariables, variables);
+		LOGGER.info("Expression variables for filter evaluation: {}", variables);
 
 		ObjectFilter origFilter = QueryConvertor.parseFilter(constructionType.getResourceRef().getFilter(),
 				ResourceType.class, prismContext);
@@ -358,27 +348,21 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 
 		final Collection<PrismObject<ResourceType>> results = new ArrayList<>();
-		ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
-
-			@Override
-			public boolean handle(PrismObject<ResourceType> object, OperationResult parentResult) {
-				LOGGER.info("Found object {}", object);
-				return results.add(object);
-			}
+		ResultHandler<ResourceType> handler = (object, parentResult) -> {
+			LOGGER.info("Found object {}", object);
+			return results.add(object);
 		};
 		objectResolver.searchIterative(ResourceType.class, ObjectQuery.createObjectQuery(evaluatedFilter),
 				null, handler, task, result);
 
 		if (org.apache.commons.collections.CollectionUtils.isEmpty(results)) {
-			throw new IllegalArgumentException("Got null target from repository, filter:" + evaluatedFilter
-					+ ", class:" + ResourceType.class + " (should not happen, probably a bug) in "
-					+ sourceDescription);
+			throw new IllegalArgumentException("Got no target from repository, filter:" + evaluatedFilter
+					+ ", class:" + ResourceType.class + " in " + sourceDescription);
 		}
 
 		if (results.size() > 1) {
 			throw new IllegalArgumentException("Got more than one target from repository, filter:"
-					+ evaluatedFilter + ", class:" + ResourceType.class
-					+ " (should not happen, probably a bug) in " + sourceDescription);
+					+ evaluatedFilter + ", class:" + ResourceType.class + " in " + sourceDescription);
 		}
 
 		PrismObject<ResourceType> target = results.iterator().next();

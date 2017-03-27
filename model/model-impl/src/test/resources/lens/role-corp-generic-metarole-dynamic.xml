@@ -51,7 +51,10 @@ metaroles:
             		<q:equal>
             			<q:path>name</q:path>
             			<expression>
-            				<path>$immediateRole/extension/ext:resourceName</path>  <!--  should be Dummy Resource -->
+            				<path>$assignment/extension/ext:resourceName</path>  <!--  should be Dummy Resource -->
+									<!-- originally here was "immediateRole"; however, this does not work on the path of
+									     (e.g.) Engineer->JobMetarole->GenericMetarole ... so perhaps the easier solution
+									     is to use magic assignment that contains all the extensions on the path -->
             			</expression>
             		</q:equal>
             	</filter>

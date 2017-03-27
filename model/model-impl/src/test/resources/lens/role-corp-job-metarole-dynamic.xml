@@ -20,13 +20,11 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Job Metarole Dynamic</name>
     <description>Metarole for all job roles</description>
-    <!--<inducement id="1">-->
-        <!--<targetRef oid="12345678-d34d-b33f-f00d-55555555a020" type="RoleType"/>-->
-        <!-- generic metarole -->
+    <inducement id="1">
+        <targetRef oid="12345678-d34d-b33f-f00d-55555555a020" type="RoleType"/> <!-- generic metarole -->
         <!-- Generic metarole should be induced to any bearer of this role (job metarole) -->
         <!-- So roles of Contractor, Employee, Engineer and Manager should be assigned the Generic Metarole as well as they are assigned Job Metarole -->
-        <!-- THIS DOES NOT WORK (MID-2192) SO IT IS COMMENTED OUT HERE, AND REPLACED BY DIRECT ASSIGNMENTS IN CORRESPONDING ROLES -->
-    <!--</inducement>-->
+    </inducement>
     <inducement id="2">
         <construction>
             <resourceRef type="ResourceType"> <!-- should be evaluated to oid="10000000-0000-0000-0000-000000000004"  -->
