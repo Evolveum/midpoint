@@ -1203,9 +1203,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	private boolean isItemAllowed(ItemPath itemPath){
 		ItemSecurityDecisions decisions = decisionsModel.getObject();
-		if (decisions == null){
-			decisions = loadSecurityDecisions();
-		}
 		if (itemPath == null || decisions == null || decisions.getItemDecisionMap() == null
 				|| decisions.getItemDecisionMap().size() == 0){
 			return true;
