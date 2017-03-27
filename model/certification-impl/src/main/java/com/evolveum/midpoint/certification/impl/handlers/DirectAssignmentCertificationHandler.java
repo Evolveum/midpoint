@@ -109,6 +109,8 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
                 valid = isIncludeOrgs(scope);
             } else if (ServiceType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
                 valid = isIncludeServices(scope);
+            } else if (UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                valid = isIncludeUsers(scope);
             } else {
                 throw new IllegalStateException("Unexpected targetRef type: " + assignment.getTargetRef().getType() + " in " + ObjectTypeUtil.toShortString(assignment));
             }
@@ -174,6 +176,10 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     private boolean isIncludeServices(AccessCertificationAssignmentReviewScopeType scope) {
         return scope == null || !Boolean.FALSE.equals(scope.isIncludeServices());
+    }
+
+    private boolean isIncludeUsers(AccessCertificationAssignmentReviewScopeType scope) {
+        return scope == null || !Boolean.FALSE.equals(scope.isIncludeUsers());
     }
 
     private boolean isEnabledItemsOnly(AccessCertificationAssignmentReviewScopeType scope) {

@@ -72,6 +72,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -713,16 +714,9 @@ public class FocusProcessor {
 			
 			CredentialsType credentialsTypeNew = focusNew.asObjectable().getCredentials();
 			if (credentialsTypeNew != null) {
-				PasswordType passwordTypeNew = credentialsTypeNew.getPassword();
-				if (passwordTypeNew != null) {
-					Integer failedLogins = passwordTypeNew.getFailedLogins();
-					if (failedLogins != null && failedLogins != 0) {
-						PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
-						PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
-						failedLoginsDelta.setValueToReplace(new PrismPropertyValue<Integer>(0, OriginType.USER_POLICY, null));
-						focusContext.swallowToProjectionWaveSecondaryDelta(failedLoginsDelta);
-					}
-				}
+				resetFailedLogins(focusContext, credentialsTypeNew.getPassword(), SchemaConstants.PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS);
+				resetFailedLogins(focusContext, credentialsTypeNew.getNonce(), SchemaConstants.PATH_CREDENTIALS_NONCE_FAILED_LOGINS);
+				resetFailedLogins(focusContext, credentialsTypeNew.getSecurityQuestions(), SchemaConstants.PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS);
 			}
 			
 			if (activationNew != null && activationNew.getLockoutExpirationTimestamp() != null) {
@@ -735,6 +729,18 @@ public class FocusProcessor {
 			}
 		}
 		
+	}
+	
+	private void resetFailedLogins(LensFocusContext<UserType> focusContext, AbstractCredentialType credentialTypeNew, ItemPath path) throws SchemaException{
+		if (credentialTypeNew != null) {
+			Integer failedLogins = credentialTypeNew.getFailedLogins();
+			if (failedLogins != null && failedLogins != 0) {
+				PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
+				PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
+				failedLoginsDelta.setValueToReplace(new PrismPropertyValue<Integer>(0, OriginType.USER_POLICY, null));
+				focusContext.swallowToProjectionWaveSecondaryDelta(failedLoginsDelta);
+			}
+		}
 	}
 	
 	private <F extends ObjectType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,

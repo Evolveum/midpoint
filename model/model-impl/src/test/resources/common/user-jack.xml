@@ -50,6 +50,19 @@
 	            <t:clearValue>deadmentellnotales</t:clearValue>
             </value>
         </password>
+        <nonce>
+        	<value>
+	            <t:clearValue>asdfghjkl123456</t:clearValue>
+            </value>
+        </nonce>
+        <securityQuestions>
+			<questionAnswer>
+				<questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+				<questionAnswer>
+					<t:clearValue>Some generic answer</t:clearValue>
+				</questionAnswer>
+			</questionAnswer>
+		</securityQuestions>
     </credentials>
     
 </user>

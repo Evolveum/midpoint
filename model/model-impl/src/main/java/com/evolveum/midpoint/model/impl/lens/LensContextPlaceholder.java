@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -28,8 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class LensContextPlaceholder<F extends ObjectType> extends LensContext<F> {
 
-	public LensContextPlaceholder(PrismContext prismContext) {
+	public LensContextPlaceholder(PrismObject<F> focus, PrismContext prismContext) {
 		super(prismContext);
+		createFocusContext((Class<F>) focus.asObjectable().getClass());
+		getFocusContext().setLoadedObject(focus);
 	}
 
 	@Override

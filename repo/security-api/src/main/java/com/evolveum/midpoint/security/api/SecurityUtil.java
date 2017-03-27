@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPoli
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
@@ -159,6 +160,28 @@ public class SecurityUtil {
 		copyDefaults(creds.getDefault(), passPolicy);
 		return passPolicy;
 	}
+	
+	public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {
+		if (securityPolicy == null) {
+			return null;
+		}
+		CredentialsPolicyType creds = securityPolicy.getCredentials();
+		if (creds == null) {
+			return null;
+		}
+		if (creds.getDefault() == null) {
+			return creds.getSecurityQuestions();
+		}
+		SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = creds.getSecurityQuestions();
+		if (securityQuestionsPolicy == null) {
+			securityQuestionsPolicy = new SecurityQuestionsCredentialsPolicyType();
+		} else {
+			securityQuestionsPolicy = securityQuestionsPolicy.clone();
+		}
+		copyDefaults(creds.getDefault(), securityQuestionsPolicy);
+		return securityQuestionsPolicy;
+	}
+	
 	
 	public static List<NonceCredentialsPolicyType> getEffectiveNonceCredentialsPolicies(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {

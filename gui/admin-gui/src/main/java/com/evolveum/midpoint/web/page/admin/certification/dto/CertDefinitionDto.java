@@ -248,6 +248,7 @@ public class CertDefinitionDto implements Serializable {
                     dto.setIncludeRoles(!Boolean.FALSE.equals(assignmentScope.isIncludeRoles()));
                     dto.setIncludeOrgs(!Boolean.FALSE.equals(assignmentScope.isIncludeOrgs()));
                     dto.setIncludeServices(!Boolean.FALSE.equals(assignmentScope.isIncludeServices()));
+                    dto.setIncludeUsers(!Boolean.FALSE.equals(assignmentScope.isIncludeUsers()));
                     dto.setEnabledItemsOnly(!Boolean.FALSE.equals(assignmentScope.isEnabledItemsOnly()));
                     dto.setRelationList(new ArrayList<>(assignmentScope.getRelation()));
                 }
@@ -301,6 +302,7 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setIncludeRoles(definitionScopeDto.isIncludeRoles());
             scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
             scopeTypeObj.setIncludeServices(definitionScopeDto.isIncludeServices());
+            scopeTypeObj.setIncludeUsers(definitionScopeDto.isIncludeUsers());
             scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
             scopeTypeObj.setItemSelectionExpression(definitionScopeDto.getItemSelectionExpression());
             scopeTypeObj.getRelation().addAll(definitionScopeDto.getRelationList());

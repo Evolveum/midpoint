@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
@@ -72,6 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.w3c.dom.Attr;
 
 /**
  * @author shood
@@ -89,13 +91,17 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private static final String ID_MENU = "assignmentsMenu";
 	private static final String ID_LIST = "assignmentList";
 	protected static final String ID_ROW = "assignmentEditor";
-	// private static final String ID_MODAL_ASSIGN = "assignablePopup";
-	// private static final String ID_MODAL_ASSIGN_ORG = "assignableOrgPopup";
+	private PageBase pageBase = null;
 
 	public AssignmentTablePanel(String id, IModel<String> label,
 			IModel<List<AssignmentEditorDto>> assignmentModel) {
-		super(id, assignmentModel);
+		this(id, label, assignmentModel, null);
+	}
 
+	public AssignmentTablePanel(String id, IModel<String> label,
+			IModel<List<AssignmentEditorDto>> assignmentModel, PageBase pageBase) {
+		super(id, assignmentModel);
+		this.pageBase = pageBase;
 		initLayout(label);
 	}
 
@@ -128,7 +134,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 			@Override
 			protected void populateItem(ListItem<AssignmentEditorDto> item) {
-				AssignmentTablePanel.this.populateItem(item);
+				AssignmentTablePanel.this.populateAssignmentDetailsPanel(item);
 			}
 		};
 		list.setOutputMarkupId(true);
@@ -167,8 +173,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 	}
 
-	protected void populateItem(ListItem<AssignmentEditorDto> item){
-		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel()){
+	protected void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item){
+		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel(), pageBase){
 			@Override
 			protected boolean ignoreMandatoryAttributes(){
 				return AssignmentTablePanel.this.ignoreMandatoryAttributes();
@@ -176,7 +182,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		};
 		item.add(editor);
 
-		editor.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+		editor.add(getClassModifier(item));
+	}
+
+	protected AttributeModifier getClassModifier(ListItem<AssignmentEditorDto> item){
+		return AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -189,7 +199,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
 				}
 			}
-		}));
+		});
 	}
 
 	protected List<InlineMenuItem> createAssignmentMenu() {

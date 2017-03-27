@@ -860,6 +860,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyFocusAssignment(focusClass, focusOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
 	}
 
+	protected void assignFocus(Class<? extends FocusType> focusClass, String focusOid, QName targetType, String targetOid, QName relation, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyFocusAssignment(focusClass, focusOid, targetOid, targetType, relation, task, null, activationType, true, result);
+	}
+
 	protected void assignRole(String userOid, String roleOid, QName relation, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 	PolicyViolationException, SecurityViolationException {
@@ -3810,8 +3816,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
 	}
 
+	@Deprecated
 	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
 		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
+		assertNotNull("No password metadata in "+user, metadataContainer);
+		MetadataType metadataType = metadataContainer.getValue().asContainerable();
+		assertMetadata("password metadata in "+user, metadataType, create, false, start, end, actorOid, channel);
+	}
+	
+	protected void assertPasswordMetadata(PrismObject<UserType> user, QName credentialType, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, credentialType, PasswordType.F_METADATA));
 		assertNotNull("No password metadata in "+user, metadataContainer);
 		MetadataType metadataType = metadataContainer.getValue().asContainerable();
 		assertMetadata("password metadata in "+user, metadataType, create, false, start, end, actorOid, channel);
@@ -4114,5 +4128,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			modelService.recompute(object.getClass(), object.getOid(), null, task, result);
 			objects.set(i, repositoryService.getObject(object.getClass(), object.getOid(), null, result).asObjectable());
 		}
+	}
+
+	protected void dumpAllUsers(OperationResult initResult) throws SchemaException {
+		SearchResultList<PrismObject<UserType>> users = repositoryService
+				.searchObjects(UserType.class, null, null, initResult);
+		display("Users", users);
 	}
 }

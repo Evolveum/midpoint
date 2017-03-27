@@ -197,7 +197,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            public void populateItem(ListItem<AssignmentEditorDto> item) {
+                            public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
                                         privilegesList, PageUser.this);
                                 item.add(editor);
@@ -330,7 +330,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            public void populateItem(ListItem<AssignmentEditorDto> item) {
+                            public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
                                         privilegesList, PageUser.this);
                                 item.add(editor);

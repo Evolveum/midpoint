@@ -311,7 +311,7 @@ class EntitlementConverter {
 		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef);
 		TA normalizedRealValue = matchingRule.normalize(converted.getValue());
 		PrismPropertyValue<TA> normalized = new PrismPropertyValue<TA>(normalizedRealValue);
-		LOGGER.trace("Converted entitlement filter: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
+		LOGGER.trace("Converted entitlement filter value: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)
 				.build();

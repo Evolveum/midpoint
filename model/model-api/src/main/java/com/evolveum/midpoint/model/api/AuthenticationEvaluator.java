@@ -26,25 +26,19 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 
 /**
  * @author semancik
  *
  */
-public interface AuthenticationEvaluator {
+public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext> {
 	
-	UsernamePasswordAuthenticationToken authenticateUserPassword(ConnectionEnvironment connEnv, String enteredUsername, String enteredPassword) 
+	UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx) 
 			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
-
+	
 	PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, String enteredUsername);
-
-	UsernamePasswordAuthenticationToken authenticateUserNonce(ConnectionEnvironment connEnv,
-			String enteredUsername, String enteredNonce, NonceCredentialsPolicyType noncePolicy)
-					throws BadCredentialsException, AuthenticationCredentialsNotFoundException,
-					DisabledException, LockedException, CredentialsExpiredException,
-					AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
 }

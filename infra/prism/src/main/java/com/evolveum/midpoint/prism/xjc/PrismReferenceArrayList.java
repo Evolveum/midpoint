@@ -16,8 +16,11 @@
 
 package com.evolveum.midpoint.prism.xjc;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -34,10 +37,12 @@ import java.util.List;
 public abstract class PrismReferenceArrayList<T> extends AbstractList<T>  implements Serializable {
 
     private PrismReference reference;
+    private PrismContainerValue<?> parent;
 
-    public PrismReferenceArrayList(PrismReference reference) {
+    public PrismReferenceArrayList(PrismReference reference, PrismContainerValue<?> parent) {
         Validate.notNull(reference, "Prism reference must not be null.");
         this.reference = reference;
+        this.parent = parent;
     }
     
     protected PrismReference getReference() {
@@ -101,6 +106,13 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T>  implem
     @Override
     public boolean add(T t) {
         PrismReferenceValue value = getValueFrom(t);
+        if (reference.getParent() == null) {
+            try {
+                parent.add(reference);
+            } catch (SchemaException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
+        }
         return reference.merge(value);
     }
 

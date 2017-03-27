@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -117,6 +118,7 @@ public abstract class SchemaConstants {
 	public static final QName C_CONNECTOR_CONNECTOR_TYPE = new QName(NS_C, "connectorType");
 	public static final QName C_SHADOW = new QName(NS_C, "shadow");
 	public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
+        public static final QName C_ORG_TYPE = new QName(NS_C, "OrgType");
 	public static final QName C_ATTRIBUTES = new QName(NS_C, "attributes");
 	public static final QName C_ASSOCIATION = new QName(NS_C, "association");
 	public static final QName C_CREDENTIALS_TYPE = new QName(NS_C, "CredentialsType");
@@ -207,6 +209,10 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_NONCE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE);
 	public static final ItemPath PATH_NONCE_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE,
 			NonceType.F_VALUE);
+	
+	public static final ItemPath PATH_SECURITY_QUESTIONS = new ItemPath(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
+	public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER = new ItemPath(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS,
+			SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
 	public static final ItemPath PATH_ACTIVATION = new ItemPath(C_ACTIVATION);
 	public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = new ItemPath(C_ACTIVATION,
 			ActivationType.F_ADMINISTRATIVE_STATUS);
@@ -228,6 +234,10 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
 	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(
 			UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+	public static final ItemPath PATH_CREDENTIALS_NONCE_FAILED_LOGINS = new ItemPath(
+			UserType.F_CREDENTIALS, CredentialsType.F_NONCE, PasswordType.F_FAILED_LOGINS);
+	public static final ItemPath PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS = new ItemPath(
+			UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, PasswordType.F_FAILED_LOGINS);
 	public static final ItemPath PATH_LINK_REF = new ItemPath(FocusType.F_LINK_REF);
 	public static final ItemPath PATH_LIFECYCLE_STATE = new ItemPath(ObjectType.F_LIFECYCLE_STATE);
 

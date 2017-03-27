@@ -30,4 +30,19 @@
     <familyName>Threepwood</familyName>
     <locality>Melee Island</locality>
 
+ <credentials>
+        <nonce>
+        	<value>
+	            <t:clearValue>asdfghjkl654321</t:clearValue>
+            </value>
+        </nonce>
+        <securityQuestions>
+			<questionAnswer>
+				<questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+				<questionAnswer>
+					<t:clearValue>Some some generic answer</t:clearValue>
+				</questionAnswer>
+			</questionAnswer>
+		</securityQuestions>
+    </credentials>
 </user>

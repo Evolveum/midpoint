@@ -47,7 +47,7 @@ public class PageAssignmentDetails extends PageBase{
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        AssignmentDetailsPanel detailsPanel = new AssignmentDetailsPanel(ID_DETAILS_PANEL, assignmentModel);
+        AssignmentDetailsPanel detailsPanel = new AssignmentDetailsPanel(ID_DETAILS_PANEL, assignmentModel, PageAssignmentDetails.this);
         detailsPanel.setOutputMarkupId(true);
         mainForm.add(detailsPanel);
 
@@ -70,9 +70,8 @@ public class PageAssignmentDetails extends PageBase{
                 if (storage.getAssignmentShoppingCart() == null){
                     storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
                 }
-                List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
-                assignmentsToAdd.add(assignmentModel.getObject());
-                storage.setAssignmentShoppingCart(assignmentsToAdd);
+                AssignmentEditorDto dto = assignmentModel.getObject();
+                storage.getAssignmentShoppingCart().add(dto);
 
                 redirectBack();
             }

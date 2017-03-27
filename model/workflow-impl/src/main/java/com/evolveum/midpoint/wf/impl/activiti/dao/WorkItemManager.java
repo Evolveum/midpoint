@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -60,11 +61,8 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_PREFIX;
-import static com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SUFFIX;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.ESCALATE;
 
@@ -168,13 +166,18 @@ public class WorkItemManager {
 				throw new ObjectNotFoundException("The work item does not exist");
 			}
 			if (task.getAssignee() != null) {
-				String desc = task.getAssignee().equals(principal.getOid()) ? "the current" : "another";
+				String desc = MiscDataUtil.stringToRef(task.getAssignee()).getOid().equals(principal.getOid()) ? "the current" : "another";
 				throw new SystemException("The work item is already assigned to "+desc+" user");
 			}
 			if (!miscDataUtil.isAuthorizedToClaim(task.getId())) {
 				throw new SecurityViolationException("You are not authorized to claim the selected work item.");
 			}
 			taskService.claim(workItemId, principal.getOid());
+			task = taskService.createTaskQuery().taskId(workItemId).singleResult();
+			if (task == null) {
+				throw new ObjectNotFoundException("The work item does not exist");
+			}
+			setNewAssignees(task, Collections.singletonList(ObjectTypeUtil.createObjectRef(principal.getOid(), ObjectTypes.USER)), taskService);
 		} catch (ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
 			result.recordFatalError("Couldn't claim the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
@@ -202,7 +205,7 @@ public class WorkItemManager {
             if (task.getAssignee() == null) {
 				throw new SystemException("The work item is not assigned to a user");
             }
-            if (!task.getAssignee().equals(principal.getOid())) {
+            if (!MiscDataUtil.stringToRef(task.getAssignee()).getOid().equals(principal.getOid())) {
                 throw new SystemException("The work item is not assigned to the current user");
             }
             boolean candidateFound = false;
@@ -216,6 +219,11 @@ public class WorkItemManager {
                 throw new SystemException("It has no candidates to be offered to");
             }
             taskService.unclaim(workItemId);
+			task = taskService.createTaskQuery().taskId(workItemId).singleResult();
+			if (task == null) {
+				throw new ObjectNotFoundException("The work item does not exist");
+			}
+			setNewAssignees(task, Collections.emptyList(), taskService);
         } catch (ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
             result.recordFatalError("Couldn't release work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
@@ -345,23 +353,42 @@ public class WorkItemManager {
 		return dueDate;
 	}
 
-	private void setNewAssignees(Task task, List<ObjectReferenceType> newAssignees, TaskService taskService) {
-		if (task.getAssignee() != null) {
-			boolean removed = newAssignees.removeIf(newAssignee -> task.getAssignee().equals(newAssignee.getOid()));
-			if (!removed) {
-				// we will nominate the first delegate (if present) as a new assignee
-				if (!newAssignees.isEmpty()) {
-					taskService.setAssignee(task.getId(), newAssignees.get(0).getOid());
-					newAssignees.remove(0);
+	private void setNewAssignees(Task task, List<ObjectReferenceType> assigneeRefList, TaskService taskService) {
+    	List<String> assignees = MiscDataUtil.refsToStrings(assigneeRefList);
+
+    	// check and optionally set task assignee
+		if (task.getAssignee() != null && !assignees.contains(task.getAssignee())
+				|| task.getAssignee() == null && !assignees.isEmpty()) {
+			// we will nominate the first delegate (if present) as a new assignee
+			taskService.setAssignee(task.getId(), !assignees.isEmpty() ? assignees.get(0) :  null);
+		}
+
+		// set task identity links
+		List<IdentityLink> currentLinks = taskService.getIdentityLinksForTask(task.getId());
+		for (IdentityLink currentLink : currentLinks) {
+			if (!CommonProcessVariableNames.MIDPOINT_ASSIGNEE.equals(currentLink.getType())) {
+				continue;
+			}
+			String assigneeFromLink = currentLink.getUserId() != null ? currentLink.getUserId() : currentLink.getGroupId();
+			if (assignees.contains(assigneeFromLink)) {
+				assignees.remove(assigneeFromLink);
+			} else {
+				if (currentLink.getUserId() != null) {
+					taskService.deleteUserIdentityLink(task.getId(), currentLink.getUserId(), CommonProcessVariableNames.MIDPOINT_ASSIGNEE);
 				} else {
-					taskService.setAssignee(task.getId(), null);
+					taskService.deleteGroupIdentityLink(task.getId(), currentLink.getGroupId(), CommonProcessVariableNames.MIDPOINT_ASSIGNEE);
 				}
 			}
 		}
-		String additionalAssigneesAsString = newAssignees.isEmpty() ? null : newAssignees.stream()
-				.map(d -> ADDITIONAL_ASSIGNEES_PREFIX + MiscDataUtil.refToString(d) + ADDITIONAL_ASSIGNEES_SUFFIX)
-				.collect(Collectors.joining(CommonProcessVariableNames.ADDITIONAL_ASSIGNEES_SEPARATOR));
-		taskService.setVariableLocal(task.getId(), CommonProcessVariableNames.VARIABLE_ADDITIONAL_ASSIGNEES, additionalAssigneesAsString);
+		// process remaining assignees
+		for (String assignee : assignees) {
+			ObjectReferenceType assigneeRef = MiscDataUtil.stringToRef(assignee);
+			if (assigneeRef.getType() == null || QNameUtil.match(UserType.COMPLEX_TYPE, assigneeRef.getType())) {
+				taskService.addUserIdentityLink(task.getId(), assignee, CommonProcessVariableNames.MIDPOINT_ASSIGNEE);
+			} else {
+				taskService.addGroupIdentityLink(task.getId(), assignee, CommonProcessVariableNames.MIDPOINT_ASSIGNEE);
+			}
+		}
 	}
 
 }

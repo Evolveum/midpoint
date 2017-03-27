@@ -36,10 +36,10 @@ public class PasswordCallback implements CallbackHandler {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(PasswordCallback.class);
 
-    private AuthenticationEvaluatorImpl authenticationEvaluatorImpl;
+    private PasswordAuthenticationEvaluatorImpl passwordAuthenticationEvaluatorImpl;
 
-    public PasswordCallback(AuthenticationEvaluatorImpl authenticationEvaluatorImpl) {
-        this.authenticationEvaluatorImpl = authenticationEvaluatorImpl;
+    public PasswordCallback(PasswordAuthenticationEvaluatorImpl passwordAuthenticationEvaluatorImpl) {
+        this.passwordAuthenticationEvaluatorImpl = passwordAuthenticationEvaluatorImpl;
     }
 
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
@@ -53,7 +53,7 @@ public class PasswordCallback implements CallbackHandler {
         try {
         	ConnectionEnvironment connEnv = new ConnectionEnvironment();
         	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-        	pc.setPassword(authenticationEvaluatorImpl.getAndCheckUserPassword(connEnv, username));
+        	pc.setPassword(passwordAuthenticationEvaluatorImpl.getAndCheckUserPassword(connEnv, username));
         } catch (Exception e) {
         	LOGGER.trace("Exception in password callback: {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
         	throw new PasswordCallbackException("Authentication failed");

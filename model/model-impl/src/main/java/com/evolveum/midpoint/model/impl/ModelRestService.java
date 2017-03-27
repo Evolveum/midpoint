@@ -83,6 +83,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -111,6 +112,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LogFileContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -137,6 +139,7 @@ public class ModelRestService {
 	public static final String CLASS_DOT = ModelRestService.class.getName() + ".";
 	public static final String OPERATION_REST_SERVICE = CLASS_DOT + "restService";
 	public static final String OPERATION_GET = CLASS_DOT + "get";
+	public static final String OPERATION_SELF = CLASS_DOT + "self";
 	public static final String OPERATION_ADD_OBJECT = CLASS_DOT + "addObject";
 	public static final String OPERATION_DELETE_OBJECT = CLASS_DOT + "deleteObject";
 	public static final String OPERATION_MODIFY_OBJECT = CLASS_DOT + "modifyObject";
@@ -154,6 +157,7 @@ public class ModelRestService {
 	public static final String OPERATION_GET_LOG_FILE_CONTENT = CLASS_DOT + "getLogFileContent";
 	public static final String OPERATION_GET_LOG_FILE_SIZE = CLASS_DOT + "getLogFileSize";
 	public static final String OPERATION_VALIDATE_VALUE = CLASS_DOT +  "validateValue";
+	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
 	
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
@@ -205,7 +209,7 @@ public class ModelRestService {
 			@Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
-		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE);
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
 		Response response = null;
@@ -539,6 +543,31 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		return response;
 	}
 
+	@GET
+	@Path("/self")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	public <T extends ObjectType> Response getSelf(@Context MessageContext mc){
+		LOGGER.debug("model rest service for get operation start");
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SELF);
+
+		Response response;
+
+		try {
+			UserType user = SecurityUtil.getPrincipal().getUser();
+			ResponseBuilder builder = Response.ok();
+			builder.entity(user.asPrismObject());
+			response = builder.build();
+			parentResult.recordSuccessIfUnknown();
+		} catch (SecurityViolationException e) {
+			response = RestServiceUtil.handleException(parentResult, e);
+		}
+
+		finishRequest(task);
+		return response;
+	}
+	
 
 	@POST
 	@Path("/{type}")
@@ -588,6 +617,53 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
+	}
+	
+	@GET
+	@Path("/{type}")
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	public <T extends ObjectType> Response searchObjectsByType(@PathParam("type") String type, @QueryParam("options") List<String> options,
+			@Context UriInfo uriInfo, @Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
+
+		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
+		Response response;
+		try {
+			
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null);
+			List<PrismObject<T>> objects = model.searchObjects(clazz, null, searchOptions, task, parentResult);
+
+			ObjectListType listType = new ObjectListType();
+			if (objects != null){
+				List<ObjectType> list = objects.stream().map(o -> convert(clazz, o, parentResult.createOperationResultType())).collect(Collectors.toList());
+				listType.getObject().addAll(list);
+			}
+			
+
+			response = Response.ok().entity(listType).build();
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(parentResult, ex);
+		}
+
+		parentResult.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+	
+	private ObjectType convert(Class clazz, PrismObject<? extends ObjectType> o, OperationResultType result) {
+		ObjectType objType = null;
+		try {
+			objType = (ObjectType) prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).instantiate().asObjectable();
+			objType.setOid(o.getOid());
+			objType.setName(o.asObjectable().getName());
+			return objType;
+		} catch (SchemaException e) {
+			// TODO Auto-generated catch block
+			return objType;
+		}
+		
+		
 	}
 
 	// currently unused; but potentially useful in future
@@ -797,7 +873,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		try {
 			ObjectQuery query = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
 			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
-			List<PrismObject<? extends ShadowType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
+			List<PrismObject<? extends ObjectType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ObjectType> o : objects) {

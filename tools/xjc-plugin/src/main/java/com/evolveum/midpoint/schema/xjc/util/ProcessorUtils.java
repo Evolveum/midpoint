@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.xjc.util;
 
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
+import com.evolveum.midpoint.schema.xjc.schema.SchemaProcessor;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
@@ -95,7 +96,7 @@ public final class ProcessorUtils {
         }
     }
 
-    public static String getGetterMethod(ClassOutline classOutline, JFieldVar field) {
+    public static String getGetterMethodName(ClassOutline classOutline, JFieldVar field) {
         CPropertyInfo prop = classOutline.target.getProperty(field.name());
         JType type = field.type();
         Options options = classOutline.parent().getModel().options;
@@ -109,13 +110,27 @@ public final class ProcessorUtils {
         }
     }
 
-    public static String getSetterMethod(ClassOutline classOutline, JFieldVar field) {
-        CPropertyInfo prop = classOutline.target.getProperty(field.name());
+    public static String getSetterMethodName(ClassOutline classOutline, JFieldVar field) {
+        return getMethodName(classOutline, field, "set");
+    }
 
-        return "set" + prop.getName(true);
+    public static String getFluentSetterMethodName(ClassOutline classOutline, JFieldVar field) {
+		return classOutline.target.getProperty(field.name()).getName(false);
+    }
+
+    public static String getMethodName(ClassOutline classOutline, JFieldVar field, String prefix) {
+        CPropertyInfo prop = classOutline.target.getProperty(field.name());
+        if (prop == null) {
+			throw new IllegalStateException("No property info for classOutline=" + classOutline.target.fullName() + ", field=" + field.name()+" of " + field.type());
+		}
+        return prefix + prop.getName(true);
     }
 
     public static JMethod recreateMethod(JMethod method, JDefinedClass definedClass) {
+    	return recreateMethod(method, definedClass, null);
+	}
+
+    public static JMethod recreateMethod(JMethod method, JDefinedClass definedClass, JType overrideReturnType) {
         Iterator<JMethod> methods = definedClass.methods().iterator();
         while (methods.hasNext()) {
             if (method.equals(methods.next())) {
@@ -125,16 +140,14 @@ public final class ProcessorUtils {
         }
 
         JMods mods = method.mods();
-        JMethod newMethod = definedClass.method(mods.getValue(), method.type(), method.name());
+        JType newReturnType = overrideReturnType != null ? overrideReturnType : method.type();
+        JMethod newMethod = definedClass.method(mods.getValue(), newReturnType, method.name());
         JVar[] params = method.listParams();
-        if (params == null) {
-            return newMethod;
+        if (params != null) {
+            for (JVar param : params) {
+                newMethod.param(param.type(), param.name());
+            }
         }
-
-        for (JVar param : params) {
-            newMethod.param(param.type(), param.name());
-        }
-
         return newMethod;
     }
 
@@ -150,7 +163,7 @@ public final class ProcessorUtils {
             return;
         }
 
-        System.out.println("Copying " + annotations.size() + " annotations.");
+        SchemaProcessor.print("Copying " + annotations.size() + " annotations.");
 
         //let's try dirty copy (it's only inside class)
         try {

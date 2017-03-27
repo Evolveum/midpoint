@@ -16,12 +16,17 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by honchar.
@@ -38,8 +43,8 @@ public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
 
-    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model) {
-        super(id, model);
+    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
+        super(id, model, pageBase);
     }
 
     @Override

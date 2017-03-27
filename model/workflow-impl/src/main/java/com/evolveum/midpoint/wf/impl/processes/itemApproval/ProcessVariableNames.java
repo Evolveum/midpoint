@@ -45,7 +45,8 @@ public class ProcessVariableNames {
     // Oid of the approver if approverRef is a user (in that case, the task is assigned directly to the user)
     public static final String ASSIGNEE = "assignee";
 
-    // Oid of the abstract role if approverRef is an abstract role (in that case, it is used as a candidate group)
+    // type:oid of the abstract role if approverRef is an abstract role (in that case, it is used as a candidate group)
+    // syntax was changed in midPoint 3.6 (e.g. from role:oid to RoleType:oid)
     public static final String CANDIDATE_GROUPS = "candidateGroups";
 
     // Whether we have to stop evaluating current level (e.g. because strategy was 'firstDecides' and the first person decided (approved or rejected).

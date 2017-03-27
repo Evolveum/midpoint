@@ -597,12 +597,15 @@
           </if>
         )
       </if>
-      <if test="involvedUser != null">
+      <if test='involvedUser != null &amp;&amp; !involvedUser.contains(";")'>
         and (
           exists(select LINK.USER_ID_ from ${prefix}ACT_RU_IDENTITYLINK LINK where USER_ID_ = #{involvedUser} and LINK.TASK_ID_ = RES.ID_)
           or RES.ASSIGNEE_ = #{involvedUser}
           or RES.OWNER_ = #{involvedUser}
           )
+      </if>
+      <if test='involvedUser != null &amp;&amp; involvedUser.contains(";")'>
+        and exists(select LINK.USER_ID_ from ${prefix}ACT_RU_IDENTITYLINK LINK where USER_ID_ in <foreach item="item" index="index" collection='involvedUser.split(";")' open="(" separator="," close=")">#{item}</foreach> and LINK.TASK_ID_ = RES.ID_)
       </if>
       <foreach item="var" collection="queryVariableValues" index="index">
         <if test="!var.local">
@@ -918,14 +921,18 @@
                 </if>
               ))
             </if>
-            <if test="orQueryObject.involvedUser != null">
+            <if test='orQueryObject.involvedUser != null &amp;&amp; !orQueryObject.involvedUser.contains(";")'>
               or (
                 exists(select LINK.USER_ID_ from ${prefix}ACT_RU_IDENTITYLINK LINK where USER_ID_ = #{orQueryObject.involvedUser} and LINK.TASK_ID_ = RES.ID_)
                 or RES.ASSIGNEE_ = #{orQueryObject.involvedUser}
                 or RES.OWNER_ = #{orQueryObject.involvedUser}
                 )
             </if>
-            <foreach item="var" collection="orQueryObject.queryVariableValues" index="index">
+            <if test='orQueryObject.involvedUser != null &amp;&amp; orQueryObject.involvedUser.contains(";")'>
+              or exists(select LINK.USER_ID_ from ${prefix}ACT_RU_IDENTITYLINK LINK where USER_ID_ in <foreach item="item" index="index" collection='orQueryObject.involvedUser.split(";")' open="(" separator="," close=")">#{item}</foreach> and LINK.TASK_ID_ = RES.ID_)
+            </if>
+
+          <foreach item="var" collection="orQueryObject.queryVariableValues" index="index">
               or 
               <trim prefix="(" prefixOverrides="AND" suffix=")">
               <choose>
