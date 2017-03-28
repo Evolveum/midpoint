@@ -570,11 +570,18 @@ public final class Utils {
 	}
     
     public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, ExpressionVariables expressionVariables) {
-    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment());
-    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
-    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
-    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
-    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+		if (assignmentPathVariables != null) {
+			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment());
+			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath());
+			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
+			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
+			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
+			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+		} else {
+			// to avoid "no such variable" exceptions in boundary cases
+			// for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
+			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, null);
+		}
     }
 
 	public static String getPolicyDesc(ObjectSynchronizationType synchronizationPolicy) {

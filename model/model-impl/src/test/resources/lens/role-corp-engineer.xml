@@ -26,9 +26,6 @@ xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy"
     <assignment id="1">
         <targetRef oid="12345678-d34d-b33f-f00d-55555555a010" type="RoleType"/>     <!-- job metarole -->
     </assignment>
-    <assignment id="2">
-        <targetRef oid="12345678-d34d-b33f-f00d-55555555a020" type="RoleType"/>     <!-- generic metarole (see comment in that role) -->
-    </assignment>
     <inducement id="3">
         <targetRef oid="12345678-d34d-b33f-f00d-55555555a001" type="RoleType"/>     <!-- employee role -->
     </inducement>
