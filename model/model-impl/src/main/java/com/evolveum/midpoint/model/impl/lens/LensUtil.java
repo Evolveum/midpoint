@@ -31,6 +31,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.expression.*;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -980,19 +981,9 @@ public class LensUtil {
 	}
     
     public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
-    	if (assignmentPathVariables != null ) {
-			return builder
-					.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath())
-					.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment())
-					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment())
-					.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment())
-					.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment())
-					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
-		} else {
-    		// to avoid "no such variable" exceptions in boundary cases
-			// for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
-			return builder.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, (Object) null);
-		}
+    	ExpressionVariables expressionVariables = new ExpressionVariables();
+		Utils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
+		return builder.addVariableDefinitions(expressionVariables.getMap());
     }
     
     public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription, 

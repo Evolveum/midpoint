@@ -11168,6 +11168,17 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="defaultCollection" type="tns:ObjectCollectionUseType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the default object collections ("role catalog view") to display in role
+						catalog.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="defaultAssignmentConstraints" type="tns:AssignmentConstraintsType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>

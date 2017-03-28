@@ -35,6 +35,14 @@ metaroles:
   - Generic Metarole:                                   assigned to Visitor and Customer
     - Job Metarole (induces Generic Metarole):          assigned to Contractor, Employee, Engineer, Manager
 
+                              Job  Metarole ========[I]===========> Generic Metarole
+                              ^^          ^                          ^            ^
+                              ||          |                          |            |
+                    +=========||          |                          |            |
+                    |          |  +=======|==+===[I]====+            |            |
+                    |          |  |       |  |          |            |            |
+                    |          |  |       |  |          V            |            |
+               Contractor   Engineer    Manager    Employee      Visitor     Customer
 -->
 
 <role oid="12345678-d34d-b33f-f00d-55555555a020"
