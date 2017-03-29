@@ -159,7 +159,9 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 						throw new IllegalStateException("No resource item for " + resource.getOid() + ":" + kind + ":" + intent + ":" + pwdPath);
 					}
 					if (pwdDef.getOutbound() != null) {
-						processOutboundMapping(ctx, resourceDataItem, pwdDef.getOutbound(), pwdPath);
+						for (MappingType outbound : pwdDef.getOutbound()) {
+							processOutboundMapping(ctx, resourceDataItem, outbound, pwdPath);
+						}
 					}
 					for (MappingType inbound : pwdDef.getInbound()) {
 						processInboundMapping(ctx, resourceDataItem, inbound, pwdPath);

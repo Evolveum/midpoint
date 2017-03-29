@@ -63,8 +63,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	private boolean validityOverride = false;		// Should we evaluate content of the assignment even if it's not valid i.e. enabled?
 													// This is set to true on the first assignment in the chain.
 
+	// Last segment with the same evaluation order. Used for higher-order (summary-rewriting) inducements.
+	// See e.g. TestAssignmentProcessor2.test600.
+
+	private Integer lastEqualOrderSegmentIndex;
+
 	/**
-	 *  Assignments and inducements can carry constructions, focus mappings, and focus policy rules.
+	 *  Assignments and inducements can carry constructions, focus mappings, and policy rules.
 	 *  We can call these "assignment/inducement payload", or "payload" for short.
 	 *
 	 *  When looking at assignments/inducements in assignment path, payload of some assignments/inducements will be collected
@@ -82,7 +87,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *
 	 *  Each assignment path segment has an evaluation order. First assignment has an evaluation order of 1, second
 	 *  assignment has an order of 2, etc. Order of a segment can be seen as the number of assignments segments in the path
-	 *  (including itself). And, for "real" assignments (i.e. not inducements), we collect content from assignment segments
+	 *  (including itself). And, for "real" assignments (i.e. not inducements), we collect payload from assignment segments
 	 *  of order 1.
 	 *
 	 *  But what about inducements? There are two - somewhat related - questions:
@@ -95,7 +100,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  has matching order.
 	 *
 	 *  As for #2: It is not usual that inducements have targets (roles) with another assignments, i.e. that evaluation continues
-	 *  after inducement segments. But it definitely could happen. We can look at it this way: inducement is something like
+	 *  after an inducement segment. But it definitely could happen. We can look at it this way: inducement is something like
 	 *  a "shortcut" that creates an assignment where no assignment was before. E.g. if we have R1 -A-> MR1 -I-> MR2,
 	 *  the "newly created" assignment is R1 -A-> MR2. I.e. as if the " -A-> MR1 -I-> " part was just replaced by " -A-> ".
 	 *  If the inducement is of higher order, even more assignments are "cut out". From R1 -A-> MR1 -A-> MMR1 -(I2)-> MR2
@@ -103,24 +108,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  So it looks like that when computing new evaluation order of an inducement, we have to "go back" few steps
 	 *  through the assignment path.
 	 *
-	 *  	TODO think this through, perhaps based on concrete examples
-	 *
-	 *  It is almost certain that for some inducements we would not be able to determine the resulting order.
-	 *  Such problematic inducements are those that do not have strict (scalar) order constraint, but something
-	 *  more complex, e.g. interval of orders.
-	 *
-	 *  Until no better algorithm is devised, we will do an approximation: when "traditional" inducement order is given,
-	 *  the we will compute the resulting order as "previous - (N-1)", where N is the order of the inducement
-	 *  (unspecified means 1). But beware, we will not decrease evaluation order for non-default relations!
-	 *  Also, if the traditional inducement order is not given, but orderConstraints are present instead, we will
-	 *  simply stop evaluation of further path segments altogether.
-	 *
-	 *  So, it is not supported to combine inducements with complex (non-scalar) order constraints with further
-	 *  targets (assignments/inducements). Only membership, authorizations and GUI config from such inducement targets
-	 *  will be collected. See test500/test510 in TestAssignmentProcessor2.
-	 *
-	 *  Unfortunately, this is by no means a rare case. It can easily occur when org structures are used.
-	 *  As depicted in that test, imagine this:
+	 *  Such situation can also easily occur when org structures are used. As depicted in TestAssignmentProcessor2.test500
+	 *  and later, imagine this:
 	 *
 	 *           Org1 -----I----+                                              Org2 -----I----+
 	 *             ^            | (orderConstraints 1..N)                        ^            | (orderConstraints: manager: 1)
@@ -132,14 +121,21 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *             |                                                             |
 	 *            jack                                                          jack
 	 *
-	 *  So, we are in trouble when we try to attach an inducement to a organization hierarchy top; to be applied to
-	 *  users that are part of the organizational structure (at any level). The reason is that the inducement has
-	 *  to have non-scalar constraint.
+	 *  In order to resolve such cases, we created the "resetOrder" attribute. It can be applied either to
+	 *  summary order, or to one or more specific relations (please, don't specify it for both summary order
+	 *  and specific relations!)
 	 *
-	 *  TODO think this through.
+	 *  In the above examples, we could specify e.g. resetOrder=1 for summary order (for both left and right situation).
+	 *  For the right one, we could instead specify resetOrder=0 for org:manager relation; although the former solution
+	 *  is preferable.
 	 *
-	 *  Maybe something like "continue with specified evaluation order" could be provided in OrgX->Admin inducement.
-	 *  But this would be quite complicated.
+	 *  By simply specifying inducement order greater than 1 (e.g. 5) without any specific order constraints,
+	 *  we implicitly provide resetOrder instruction for summary order that points order-1 levels back (i.e. 4 levels back
+	 *  for order=5).
+	 *
+	 *  Generally, it is preferred to use resetOrder for summary order. It works well with both normal and target
+	 *  evaluation order. When resetting individual components, target evaluation order can have problems, as shown
+	 *  in TestEvaluationProcessor2.test520.
 	 *
 	 *  ----
 	 *
@@ -175,7 +171,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *
 	 *  Pirate -----I-----> Sailor
 	 *    A
-	 *    | (member)
+	 *    | (default)
 	 *    |
 	 *   jack
 	 *    A
@@ -189,12 +185,12 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  the fact that the deputy is on the assignment path; therefore, besides traditional "scalar" evaluation order
 	 *  (called "summaryOrder") we maintain evaluation orders for each relation separately. In the above example,
 	 *  the evaluation orders would be:
-	 *     barbossa--->jack     summary: 0, deputy: 1, member: 0
-	 *     jack--->Pirate       summary: 1, deputy: 1, member: 1
-	 *     Pirate-I->Sailor     summary: 1, deputy: 1, member: 1 (because the inducement has a default order of 1)
+	 *     barbossa--->jack     summary: 0, deputy: 1, default: 0
+	 *     jack--->Pirate       summary: 1, deputy: 1, default: 1
+	 *     Pirate-I->Sailor     summary: 1, deputy: 1, default: 1 (because the inducement has a default order of 1)
 	 *
 	 *  When we determine matchingOrder for an inducement (question #1 above), we can ask about summary order,
-	 *  as well as about individual components (deputy and member, in this case).
+	 *  as well as about individual components (deputy and default, in this case).
 	 *
 	 *  Actually, we have three categories of relations (see MID-3581):
 	 *
@@ -203,7 +199,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *  - other relations: apply membership references but in limited way; payload, authorizations and gui config
 	 *    are - by default - not applied.
 	 *
-	 *  Currently, membership relations are: null (i.e. member), manager, and meta.
+	 *  Currently, membership relations are: default (i.e. member), manager, and meta.
 	 *  Delegation: deputy.
 	 *  Other: approver, owner, and custom ones.
 	 *
@@ -249,7 +245,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	 *   Finally, how we distinguish between "this target" and "other targets" policy rules? Current approach
 	 *   is like this: count the number of times the evaluation order for target reached ZERO level. First encounter with
 	 *   that level is on "this target". And we assume that each subsequent marks a target that is among "others".
-	 *   TODO revise this algorithm, if needed
 	 *
 	 *   @see AssignmentEvaluator#appliesDirectly
 	 */
@@ -526,6 +521,10 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 				sb.append(ObjectTypeUtil.toShortString(targetRef, true));
 			}
 		}
+		// TODO eventually remove this
+		if (lastEqualOrderSegmentIndex != null) {
+			sb.append(", lastEqualOrder: ").append(lastEqualOrderSegmentIndex);
+		}
 		sb.append(")");
 		return sb.toString();
 	}
@@ -557,6 +556,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		DebugUtil.debugDumpWithLabelLn(sb, "pathToSourceValid", pathToSourceValid, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "validityOverride", validityOverride, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "processMembership", processMembership, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "lastEqualOrderSegmentIndex", lastEqualOrderSegmentIndex, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
 		return sb.toString();
 	}
@@ -580,5 +580,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		}
 		rv.setMatchingOrder(isMatchingOrder());
 		return rv;
+	}
+
+	public Integer getLastEqualOrderSegmentIndex() {
+		return lastEqualOrderSegmentIndex;
+	}
+
+	public void setLastEqualOrderSegmentIndex(Integer lastEqualOrderSegmentIndex) {
+		this.lastEqualOrderSegmentIndex = lastEqualOrderSegmentIndex;
 	}
 }

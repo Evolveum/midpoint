@@ -1205,6 +1205,7 @@ public class ContextLoader {
 		}
 		try {	
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
+			applyAttributesToGet(projCtx, options);
 			PrismObject<ShadowType> objectCurrent = provisioningService.getObject(ShadowType.class,
 					projCtx.getOid(), options, task, result);
 			// TODO: use setLoadedObject() instead?
@@ -1288,6 +1289,13 @@ public class ContextLoader {
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDump(1));
+		}
+	}
+
+	private void applyAttributesToGet(LensProjectionContext projCtx, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+		if ( !LensUtil.isPasswordReturnedByDefault(projCtx)
+				&& LensUtil.needsFullShadowForCredentialProcessing(projCtx)) {
+			options.add(SelectorOptions.create(SchemaConstants.PATH_PASSWORD_VALUE, GetOperationOptions.createRetrieve()));
 		}
 	}
 

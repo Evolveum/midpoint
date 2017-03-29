@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -46,6 +48,7 @@ public class ProvisioningContext extends StateReporter {
 	private ResourceManager resourceManager;
 	private ConnectorManager connectorManager;
 	private OperationResult parentResult;
+	private Collection<SelectorOptions<GetOperationOptions>> getOperationOptions;
 	
 	private PrismObject<ShadowType> originalShadow;
 	private ResourceShadowDiscriminator shadowCoordinates;
@@ -71,6 +74,14 @@ public class ProvisioningContext extends StateReporter {
 		this.refinedSchema = null;
 	}
 	
+	public Collection<SelectorOptions<GetOperationOptions>> getGetOperationOptions() {
+		return getOperationOptions;
+	}
+
+	public void setGetOperationOptions(Collection<SelectorOptions<GetOperationOptions>> getOperationOptions) {
+		this.getOperationOptions = getOperationOptions;
+	}
+
 	public ResourceShadowDiscriminator getShadowCoordinates() {
 		return shadowCoordinates;
 	}
@@ -277,7 +288,7 @@ public class ProvisioningContext extends StateReporter {
 			throw e;
 		}
 	}
-
+	
 	@Override
 	public String toString() {
 		return "ProvisioningContext("+getDesc()+")";

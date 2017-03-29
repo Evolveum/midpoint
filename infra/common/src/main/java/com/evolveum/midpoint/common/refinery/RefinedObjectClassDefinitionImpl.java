@@ -449,7 +449,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
-	public MappingType getPasswordOutbound() {
+	public List<MappingType> getPasswordOutbound() {
 		ResourcePasswordDefinitionType password = getPasswordDefinition();
 		if (password == null || password.getOutbound() == null) {
 			return null;

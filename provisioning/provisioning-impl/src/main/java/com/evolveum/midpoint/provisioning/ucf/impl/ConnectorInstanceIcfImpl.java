@@ -986,6 +986,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (!passwordAttributeInfo.isReturnedByDefault()) {
 				capPass.setReturnedByDefault(false);
 			}
+			if (passwordAttributeInfo.isReadable()) {
+				capPass.setReadable(true);
+			}
 			capCred.setPassword(capPass);
 			capabilities.add(capabilityObjectFactory.createCredentials(capCred));
 		}
@@ -1333,6 +1336,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				|| (attributesToReturn.isReturnDefaultAttributes() && lockoutReturnedByDefault())) {
 			icfAttrsToGet.add(OperationalAttributes.LOCK_OUT_NAME);
 		}
+		if (attributesToReturn.isReturnValidFromExplicit()
+				|| (attributesToReturn.isReturnDefaultAttributes() && validFromReturnedByDefault())) {
+			icfAttrsToGet.add(OperationalAttributes.ENABLE_DATE_NAME);
+		}
+		if (attributesToReturn.isReturnValidToExplicit()
+				|| (attributesToReturn.isReturnDefaultAttributes() && validToReturnedByDefault())) {
+			icfAttrsToGet.add(OperationalAttributes.DISABLE_DATE_NAME);
+		}
+		
 		if (attrs != null) {
 			for (ResourceAttributeDefinition attrDef: attrs) {
 				String attrName = icfNameMapper.convertAttributeNameToIcf(attrDef);
@@ -1341,6 +1353,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 			}
 		}
+		// Log full list here. ConnId is shortening it and it cannot be seen in logs.
+		LOGGER.trace("Converted attributes ConnId attibutesToGet: {}", icfAttrsToGet);
 		optionsBuilder.setAttributesToGet(icfAttrsToGet);
 	}
 
@@ -1357,6 +1371,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private boolean lockoutReturnedByDefault() {
 		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
 		return CapabilityUtil.isActivationLockoutStatusReturnedByDefault(capability);
+	}
+	
+	private boolean validFromReturnedByDefault() {
+		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
+		return CapabilityUtil.isActivationValidFromReturnedByDefault(capability);
+	}
+	
+	private boolean validToReturnedByDefault() {
+		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
+		return CapabilityUtil.isActivationValidToReturnedByDefault(capability);
 	}
 
 	@Override
@@ -2774,11 +2798,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNewMatchingPath();
 		if (newPassword == null || newPassword.isEmpty()) {
+			// This is the case of setting no password. E.g. removing existing password
 			LOGGER.debug("Setting null password.");
 			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, Collections.EMPTY_LIST));
-		} else {
-			GuardedString guardedPassword = IcfUtil.toGuardedString(newPassword.getValue().getValue(), "new password", protector);
+		} else if (newPassword.getRealValue().canGetCleartext()) {
+			// We have password and we can get a cleartext value of the passowrd. This is normal case
+			GuardedString guardedPassword = IcfUtil.toGuardedString(newPassword.getRealValue(), "new password", protector);
 			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
+		} else {
+			// We have password, but we cannot get a cleartext value. Just to nothing.
+			LOGGER.debug("We would like to set password, but we do not have cleartext value. Skipping the opearation.");
 		}
 	}
 	

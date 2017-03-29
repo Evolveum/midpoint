@@ -3210,8 +3210,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
-        // First time the blue resource is used
-        assertResourceSchemaParseCountIncrement(1);
         assertSteadyResources();
     }
 	

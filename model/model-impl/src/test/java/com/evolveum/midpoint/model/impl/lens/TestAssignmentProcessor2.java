@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -55,6 +56,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.displayObjectTypeC
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * Comprehensive test of assignment evaluator and processor.
@@ -92,14 +94,15 @@ import static org.testng.AssertJUnit.assertNull;
 @SuppressWarnings({ "FieldCanBeLocal", "SameParameterValue" })
 public class TestAssignmentProcessor2 extends AbstractLensTest {
 
-	private static final int CONSTRUCTION_LEVELS = 5;
-	private static final int FOCUS_MAPPING_LEVELS = 5;
-	private static final int POLICY_RULES_LEVELS = 5;
+	private static int constructionLevels = 5;
+	private static int focusMappingLevels = 5;
+	private static int policyRulesLevels = 5;
 
 	private static final boolean FIRST_PART = true;
 	private static final boolean SECOND_PART = true;
 	private static final boolean THIRD_PART = true;
 	private static final boolean FOURTH_PART = true;
+	private static final boolean FIFTH_PART = true;
 
 	private static final File RESOURCE_DUMMY_EMPTY_FILE = new File(TEST_DIR, "resource-dummy-empty.xml");
 	private static final String RESOURCE_DUMMY_EMPTY_OID = "10000000-0000-0000-0000-00000000EEE4";
@@ -124,8 +127,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	private RoleType metaroleCrewMember, metarolePerson;
 
 	// fourth part
-	private OrgType org1, org11, org2, org21;
+	private OrgType org1, org11, org2, org21, org4, org41;		// org3 is used in first part
 	private RoleType roleAdmin;
+
+	// fifth part
+	private RoleType roleA1, roleA2, roleA3, roleA4, roleA5, roleA6, roleA7, roleA8;
 
 	private List<ObjectType> objects;
 
@@ -136,6 +142,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	private static final String ROLE_MAN_OID = getRoleOid("Man");
 	private static final String ORG11_OID = getRoleOid("org11");
 	private static final String ORG21_OID = getRoleOid("org21");
+	private static final String ORG41_OID = getRoleOid("org41");
+	private static final String ROLE_A1_OID = getRoleOid("A1");
 
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -143,7 +151,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		initDummyResourcePirate(RESOURCE_DUMMY_EMPTY_INSTANCE_NAME, RESOURCE_DUMMY_EMPTY_FILE,
 				RESOURCE_DUMMY_EMPTY_OID, initTask, initResult);
 
-		createObjectsInFirstPart(false, initTask, initResult, null);
+		if (FIRST_PART) {
+			createObjectsInFirstPart(false, initTask, initResult, null);
+		}
 	}
 
 	@Test(enabled = FIRST_PART)
@@ -1411,7 +1421,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 *
 	 *           Org1 -----I----+                                              Org2 -----I----+
 	 *             ^            | (orderConstraints 1..N)                        ^            | (orderConstraints: manager: 1)
-	 *             |            |                                                |            |
+	 *             |            | (reset summary to 1)                           |            | (reset default to 0)
 	 *             |            V                                                |            V
 	 *           Org11        Admin                                            Org21        Admin
 	 *             ^                                                             ^
@@ -1419,7 +1429,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	 *             |                                                             |
 	 *            jack                                                          jack
 	 *
-	 * Authorizations and GUI configuration from role Admin should be given to jack.
+	 *
 	 */
 
 	@Test(enabled = FOURTH_PART)
@@ -1455,21 +1465,208 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertOrgRef(evaluatedAssignment, "org11");
 		assertDelegation(evaluatedAssignment, "");
 
-		String expectedItems = "org11-1 org1-2";
+		String expectedItems = "org11-1 org1-2 Admin-1";
 		assertConstructions(evaluatedAssignment, expectedItems, null, null, null, null, null);
 		assertFocusMappings(evaluatedAssignment, expectedItems);
 		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
 		assertTargetPolicyRules(evaluatedAssignment,
 				"org11-0 org1-1",
-				"");
+				"Admin-0");
 		assertAuthorizations(evaluatedAssignment, "org11 Admin");
 		assertGuiConfig(evaluatedAssignment, "org11 Admin");
 	}
 
+	/**
+	 *
+	 *           Org1 -----I----+
+	 *             ^            | (orderConstraints 1..N)
+	 *             |            | (reset summary to 1)
+	 *             |            V
+	 *           Org11        Admin
+	 *             ^
+	 *             |
+	 *         (manager)
+	 *             |
+	 *           jack
+	 *
+	 */
+
+
+	@Test(enabled = FOURTH_PART)
+	public void test505AssignJackOrg11AsManager() throws Exception {
+		final String TEST_NAME = "test505AssignJackOrg11AsManager";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, SchemaConstants.ORG_MANAGER, null, result);
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "org11 Admin", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "org1", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "org11 Admin");
+		assertOrgRef(evaluatedAssignment, "org11");
+		assertDelegation(evaluatedAssignment, "");
+
+		String expectedItems = "org11-1 org1-2 Admin-1";
+		assertConstructions(evaluatedAssignment, expectedItems, null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
+
+		assertTargetPolicyRules(evaluatedAssignment,
+				"org11-0 org1-1",
+				"Admin-0");
+		assertAuthorizations(evaluatedAssignment, "org11 Admin");
+		assertGuiConfig(evaluatedAssignment, "org11 Admin");
+	}
+
+	/**
+	 *
+	 *           Org1 -----I----+
+	 *             ^            | (orderConstraints 1..N)
+	 *             |            | (reset summary to 1)
+	 *             |            V
+	 *           Org11        Admin
+	 *             ^
+	 *             |
+	 *         (approver)
+	 *             |
+	 *           jack
+	 *
+	 */
+
+	@Test(enabled = FOURTH_PART)
+	public void test507AssignJackOrg11AsApprover() throws Exception {
+		final String TEST_NAME = "test507AssignJackOrg11AsApprover";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, SchemaConstants.ORG_APPROVER, null, result);
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "org11 org1 Admin", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "org11");		// approver
+		assertOrgRef(evaluatedAssignment, "");
+		assertDelegation(evaluatedAssignment, "");
+
+		assertConstructions(evaluatedAssignment, "", null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, "");
+		assertFocusPolicyRules(evaluatedAssignment, "");
+
+		assertTargetPolicyRules(evaluatedAssignment,
+				"org11-0 org1-1",
+				"Admin-0");
+		assertAuthorizations(evaluatedAssignment, "");
+		assertGuiConfig(evaluatedAssignment, "");
+	}
+
+	/**
+	 *        Org2 -----I----+
+	 *          ^            | (orderConstraints: manager: 1)
+	 *          |            | (reset default to 0)
+	 *          |            V
+	 *        Org21        Admin
+	 *          ^
+	 *          |
+	 *          |
+	 *         jack
+	 *
+	 *   Target policy rules from Admin are not taken into account. (That's probably OK,
+	 *   because Admin is not matched for the focus neither.)
+	 */
+
 	@Test(enabled = FOURTH_PART)
 	public void test510AssignJackOrg21() throws Exception {
 		final String TEST_NAME = "test510AssignJackOrg21";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG21_OID,
+				null, null, result);	// intentionally unqualified
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "org21", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "org2 Admin", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "org21");
+		assertOrgRef(evaluatedAssignment, "org21");
+		assertDelegation(evaluatedAssignment, "");
+
+		String expectedItems = "org21-1 org2-2";
+		assertConstructions(evaluatedAssignment, expectedItems, null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
+
+		assertTargetPolicyRules(evaluatedAssignment,
+				"org21-0 org2-1",
+				"");
+		assertAuthorizations(evaluatedAssignment, "org21");
+		assertGuiConfig(evaluatedAssignment, "org21");
+	}
+
+	/**
+	 *        Org2 -----I----+
+	 *          ^            | (orderConstraints: manager: 1)
+	 *          |            | (reset default to 0)
+	 *          |            V
+	 *        Org21        Admin
+	 *          ^
+	 *      (manager)
+	 *          |
+	 *         jack
+	 */
+
+	@Test(enabled = FOURTH_PART)
+	public void test515AssignJackOrg21AsManager() throws Exception {
+		final String TEST_NAME = "test515AssignJackOrg21AsManager";
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
@@ -1499,16 +1696,163 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertOrgRef(evaluatedAssignment, "org21");
 		assertDelegation(evaluatedAssignment, "");
 
-		String expectedItems = "org21-1 org2-2";
+		String expectedItems = "org21-1 org2-2 Admin-1";
 		assertConstructions(evaluatedAssignment, expectedItems, null, null, null, null, null);
 		assertFocusMappings(evaluatedAssignment, expectedItems);
 		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
 
 		assertTargetPolicyRules(evaluatedAssignment,
 				"org21-0 org2-1",
-				"");
+				"Admin-0");
 		assertAuthorizations(evaluatedAssignment, "org21 Admin");
 		assertGuiConfig(evaluatedAssignment, "org21 Admin");
+	}
+
+	/**
+	 *        Org4 -----I----+
+	 *          ^            | (orderConstraints: any)
+	 *          |            | (focusType = UserType)
+	 *          |            | (reset approver to 0)
+	 *          |            | (reset default to 1)
+	 *          |            V
+	 *        Org41        Admin
+	 *          ^
+	 *      (approver)
+	 *          |
+	 *         jack
+	 *
+	 *  As for target evaluation order, it is:
+	 *    @ org41:  (zero)
+	 *    @ org4:   (default:1)
+	 *    @ admin:  changed from @org4 by the same vector as the normal evaluation order
+	 *
+	 *   Because normal evaluation order was changed from: approver:1, default:1 to approver: 0, default: 1 (i.e. "- 1 approver"),
+	 *   the target evaluation order would be: default:1, approver:-1, which is nonsense.
+	 *
+	 *   For such invalid cases we define target evaluation order as undefined.
+	 *
+	 *   Therefore, Admin-0 is not among target policy rules.
+	 */
+
+	@Test(enabled = FOURTH_PART)
+	public void test520AssignJackOrg41AsApprover() throws Exception {
+		final String TEST_NAME = "test520AssignJackOrg41AsApprover";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG41_OID,
+				new QName("approver"), null, result);	// intentionally unqualified
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "Admin", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "org41 org4", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "org41 Admin");
+		assertOrgRef(evaluatedAssignment, "");
+		assertDelegation(evaluatedAssignment, "");
+
+		String expectedItems = "Admin-1";
+		assertConstructions(evaluatedAssignment, expectedItems, null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
+
+		assertTargetPolicyRules(evaluatedAssignment,
+				"org4-1 org41-0",
+				"");
+		assertAuthorizations(evaluatedAssignment, "Admin");
+		assertGuiConfig(evaluatedAssignment, "Admin");
+	}
+
+	/**
+	 * "Go back N" inducements in the presence of various relations.
+	 * Each target has a note about expected evaluation order ("a", "ab", "abc", ...).
+	 *
+	 *                  abde/A6 ----[I]----+
+	 *                        |            |
+	 *                       (e)           |
+	 *                        |            V
+	 *   abc/A3 ----[I]----+ A5/abd ...... A7/abd----[I]----+
+	 *        |            | |                              |
+	 *       (c)           |(d)                             |
+	 *        |            V |                              |
+	 *       A2/ab ....... A4/ab                            |
+	 *        |                                             |
+	 *       (b)                                            |
+	 *        |                                             |
+	 *       A1/a <.........same evaluation order......... A8/a
+	 *        ^
+	 *       (a)
+	 *        |
+	 *      jack
+	 */
+
+	@Test(enabled = FIFTH_PART)
+	public void test600AssignA1ToJack() throws Exception {
+		final String TEST_NAME = "test600AssignA1ToJack";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		createObjectsInFifthPart(false, task, result, null);
+
+		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, RoleType.class, ROLE_A1_OID,
+				new QName("a"), null, result);	// intentionally unqualified
+
+		// WHEN
+		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
+
+		result.computeStatus();
+		assertSuccess("Assignment processor failed (result)", result);
+
+		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "A1 A2 A3 A4 A5 A6 A7 A8", null, null, null, null, null);
+		assertTargetPath(evaluatedAssignment, "A1", "a");
+		assertTargetPath(evaluatedAssignment, "A2", "a b");
+		assertTargetPath(evaluatedAssignment, "A3", "a b c");
+		assertTargetPath(evaluatedAssignment, "A4", "a b");
+		assertTargetPath(evaluatedAssignment, "A5", "a b d");
+		assertTargetPath(evaluatedAssignment, "A6", "a b d e");
+		assertTargetPath(evaluatedAssignment, "A7", "a b d");
+		assertTargetPath(evaluatedAssignment, "A8", "a");
+		assertMembershipRef(evaluatedAssignment, "A1");
+		assertOrgRef(evaluatedAssignment, "");
+		assertDelegation(evaluatedAssignment, "");
+
+		String expectedItems = "";
+		assertConstructions(evaluatedAssignment, expectedItems, null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, expectedItems);
+		assertFocusPolicyRules(evaluatedAssignment, expectedItems);
+
+		assertTargetPolicyRules(evaluatedAssignment,
+				"A1-0",
+				"A8-0");			// a bit questionable but seems OK
+		assertAuthorizations(evaluatedAssignment, "");
+		assertGuiConfig(evaluatedAssignment, "");
 	}
 
 	//region ============================================================= helper methods (preparing scenarios)
@@ -1595,6 +1939,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		org11 = createOrg("org11");
 		org2 = createOrg("org2");
 		org21 = createOrg("org21");
+		org4 = createOrg("org4");
+		org41 = createOrg("org41");
 		roleAdmin = createRole("Admin");
 
 		assign(org11, org1);
@@ -1604,6 +1950,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.beginOrderConstraint()
 					.orderMin("1")
 					.orderMax("unbounded")
+					.resetOrder(1)
 				.end();
 		org1.getInducement().add(inducement);
 
@@ -1612,10 +1959,67 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.beginOrderConstraint()
 					.order(1)
 					.relation(SchemaConstants.ORG_MANAGER)
+				.<AssignmentType>end()
+				.beginOrderConstraint()
+					.resetOrder(0)
+					.relation(SchemaConstants.ORG_DEFAULT)
 				.end();
 		org2.getInducement().add(inducement2);
 
-		objects = new ArrayList<>(Arrays.asList(roleAdmin, org1, org11, org2, org21));
+		/*
+	   	 *        Org4 -----I----+
+		 *          ^            | (orderConstraints: everything goes)
+		 *          |            | (focusType = UserType)
+		 *          |            | (reset approver to 0)
+		 *          |            | (reset default to 1)
+		 *          |            V
+		 *        Org41        Admin
+		 */
+		assign(org41, org4);
+		AssignmentType inducement4 = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject())
+				.beginOrderConstraint()
+					.orderMin("0")
+					.orderMax("unbounded")
+					.resetOrder(0)
+					.relation(SchemaConstants.ORG_APPROVER)
+				.<AssignmentType>end()
+				.beginOrderConstraint()
+					.orderMin("0")
+					.orderMax("unbounded")
+					.resetOrder(1)
+					.relation(SchemaConstants.ORG_DEFAULT)
+				.<AssignmentType>end()
+				.focusType(UserType.COMPLEX_TYPE);
+		org4.getInducement().add(inducement4);
+
+		objects = new ArrayList<>(Arrays.asList(roleAdmin, org1, org11, org2, org21, org4, org41));
+
+		createObjects(deleteFirst, task, result, adjustment);
+	}
+
+	private void createObjectsInFifthPart(boolean deleteFirst, Task task, OperationResult result, Runnable adjustment) throws Exception {
+
+		constructionLevels = focusMappingLevels = policyRulesLevels = 2;
+
+		roleA1 = createRole("A1");
+		roleA2 = createRole("A2");
+		roleA3 = createRole("A3");
+		roleA4 = createRole("A4");
+		roleA5 = createRole("A5");
+		roleA6 = createRole("A6");
+		roleA7 = createRole("A7");
+		roleA8 = createRole("A8");
+
+		assign(roleA1, roleA2, new QName("b"));
+		assign(roleA2, roleA3, new QName("c"));
+		induce(roleA3, roleA4, 2);
+		assign(roleA4, roleA5, new QName("d"));
+		assign(roleA5, roleA6, new QName("e"));
+		induce(roleA6, roleA7, 2);
+		induce(roleA7, roleA8, 3);
+
+		objects = new ArrayList<>(
+				Arrays.asList(roleA1, roleA2, roleA3, roleA4, roleA5, roleA6, roleA7, roleA8));
 
 		createObjects(deleteFirst, task, result, adjustment);
 	}
@@ -1744,6 +2148,12 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		source.getAssignment().add(assignment);
 	}
 
+	private void assign(AbstractRoleType source, AbstractRoleType target, QName relation) {
+		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(target.asPrismObject());
+		assignment.getTargetRef().setRelation(relation);
+		source.getAssignment().add(assignment);
+	}
+
 	private RoleType createRole(int level, int number) {
 		return prepareAbstractRole(new RoleType(prismContext), createName("R", level, number));
 	}
@@ -1771,7 +2181,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		abstractRole.setOid(oid);
 
 		// constructions
-		for (int i = 0; i <= CONSTRUCTION_LEVELS; i++) {
+		for (int i = 0; i <= constructionLevels; i++) {
 			ConstructionType c = new ConstructionType(prismContext);
 			c.setDescription(name + "-" + i);
 			c.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_DUMMY_EMPTY_OID, ObjectTypes.RESOURCE));
@@ -1782,7 +2192,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		}
 
 		// focus mappings
-		for (int i = 0; i <= FOCUS_MAPPING_LEVELS; i++) {
+		for (int i = 0; i <= focusMappingLevels; i++) {
 			MappingType mapping = new MappingType();
 			mapping.setName(name + "-" + i);
 			VariableBindingDefinitionType source = new VariableBindingDefinitionType();
@@ -1799,7 +2209,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		}
 
 		// policy rules
-		for (int i = 0; i <= POLICY_RULES_LEVELS; i++) {
+		for (int i = 0; i <= policyRulesLevels; i++) {
 			PolicyRuleType rule = new PolicyRuleType(prismContext);
 			rule.setName(name + "-" + i);
 			AssignmentType a = new AssignmentType(prismContext);
@@ -1835,6 +2245,36 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	//endregion
 	//region ============================================================= helper methods (asserts)
+
+	private void assertTargetPath(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String targetName, String expectedPath) {
+		EvaluatedAssignmentTargetImpl target = evaluatedAssignment.getRoles().getAllValues().stream()
+				.filter(tgt -> targetName.equals(tgt.getTarget().getName().getOrig()))
+				.findFirst().orElseThrow(() -> new AssertionError("Target " + targetName + " is not present"));
+		String realPath = getStringRepresentation(target.getAssignmentPath());
+		System.out.println("Path for " + targetName + " is: " + realPath);
+		assertEquals("Wrong evaluation order for " + targetName, expectedPath, realPath);
+	}
+
+	private String getStringRepresentation(AssignmentPathImpl path) {
+		return getStringRepresentation(path.last().getEvaluationOrder());
+	}
+
+	private String getStringRepresentation(EvaluationOrder order) {
+		List<String> names = new ArrayList<>();
+		for (QName relation : order.getRelations()) {
+			int count = order.getMatchingRelationOrder(relation);
+			if (count == 0) {
+				continue;
+			} else if (count < 0) {
+				fail("Negative count for " + relation + " in " + order);
+			}
+			while (count-- > 0) {
+				names.add(relation.getLocalPart());
+			}
+		}
+		names.sort(String::compareTo);
+		return StringUtils.join(names, " ");
+	}
 
 	private void assertMembershipRef(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, String text) {
 		assertPrismRefValues("membershipRef", evaluatedAssignment.getMembershipRefVals(), findObjects(text));

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -26,6 +25,10 @@ import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MultiSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -35,12 +38,31 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 
 	public static EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
 	public static EvaluationOrder ZERO = createZero();
-	public static EvaluationOrder ONE = ZERO.advance();
+	public static EvaluationOrder ONE = ZERO.advance(SchemaConstants.ORG_DEFAULT);
 
-	private int summaryOrder = 0;
-	private final HashMap<QName,Integer> orderMap = new HashMap<>();
+	@NotNull private final HashMap<QName, Integer> orderMap;		// see checkConsistence
+
+	private void checkConsistence() {
+		if (CHECK_CONSISTENCE) {
+			orderMap.forEach((r, v) -> {
+				if (r == null || QNameUtil.noNamespace(r)) {
+					throw new IllegalStateException("Null or unqualified relation " + r + " in " + this);
+				}
+				if (v == null) {
+					throw new IllegalStateException("Null value in for relation " + r + " in " + this);
+				}
+			});
+		}
+	}
+
+	private static final boolean CHECK_CONSISTENCE = true;
 
 	private EvaluationOrderImpl() {
+		orderMap = new HashMap<>();
+	}
+
+	private EvaluationOrderImpl(EvaluationOrderImpl that) {
+		this.orderMap = new HashMap<>(that.orderMap);
 	}
 
 	private static EvaluationOrderImpl createZero() {
@@ -51,103 +73,110 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 
 	@Override
 	public int getSummaryOrder() {
-		return summaryOrder;
-	}
-	
-	@Override
-	public EvaluationOrder advance() {
-		return advance(null);
+		int rv = 0;
+		for (Entry<QName, Integer> entry : orderMap.entrySet()) {
+			if (!ObjectTypeUtil.isDelegationRelation(entry.getKey())) {
+				rv += entry.getValue();
+			}
+		}
+		return rv;
 	}
 	
 	@Override
 	public EvaluationOrder advance(QName relation) {
-		return advance(1, relation);
+		checkConsistence();
+		return advance(relation, 1);
 	}
 
-	private EvaluationOrder advance(int amount, QName relation) {
+	private EvaluationOrder advance(QName relation, int amount) {
+		EvaluationOrderImpl clone = clone();
+		clone.advanceThis(relation, amount);
+		clone.checkConsistence();
+		return clone;
+	}
+
+	@Override
+	public EvaluationOrder decrease(MultiSet<QName> relations) {
+		EvaluationOrderImpl clone = clone();
+		for (QName relation : relations) {
+			clone.advanceThis(relation, -1);
+		}
+		clone.checkConsistence();
+		return clone;
+	}
+
+	// must always be private: public interface will not allow to modify object state!
+	private void advanceThis(QName relation, int amount) {
 		relation = ObjectTypeUtil.normalizeRelation(relation);
-		EvaluationOrderImpl advanced = new EvaluationOrderImpl();
-		boolean found = false;
-		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
-			if (ObjectTypeUtil.relationMatches(relation, entry.getKey())) {
-				advanced.orderMap.put(entry.getKey(), entry.getValue() + amount);
-				found = true;
-			} else {
-				advanced.orderMap.put(entry.getKey(), entry.getValue());
-			}
-		}
-		if (!found) {
-			advanced.orderMap.put(relation, amount);
-		}
-		if (ObjectTypeUtil.isDelegationRelation(relation)) {
-			advanced.summaryOrder = this.summaryOrder;
-		} else {
-			advanced.summaryOrder = this.summaryOrder + amount;
-		}
-		return advanced;
-	}
-
-	@Override
-	public EvaluationOrder decrease(int amount) {
-		return decrease(amount, null);
-	}
-
-	@Override
-	public EvaluationOrder decrease(int amount, QName relation) {
-		return advance(-amount, relation);
+		orderMap.put(relation, getMatchingRelationOrder(relation) + amount);
 	}
 
 	@Override
 	public int getMatchingRelationOrder(QName relation) {
-		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
-			if (ObjectTypeUtil.relationMatches(relation, entry.getKey())) {
-				return entry.getValue();
-			}
+		checkConsistence();
+		return orderMap.getOrDefault(ObjectTypeUtil.normalizeRelation(relation), 0);
+	}
+
+	@Override
+	public EvaluationOrder resetOrder(QName relation, int newOrder) {
+		EvaluationOrderImpl clone = clone();
+		clone.orderMap.put(ObjectTypeUtil.normalizeRelation(relation), newOrder);
+		clone.checkConsistence();
+		return clone;
+	}
+
+	@Override
+	public Map<QName, Integer> diff(EvaluationOrder newState) {
+		if (!newState.isDefined()) {
+			throw new IllegalArgumentException("Cannot compute diff to undefined evaluation order");
 		}
-		return 0;
+		@SuppressWarnings({"unchecked", "raw"})
+		Collection<QName> relations = CollectionUtils.union(getRelations(), newState.getRelations());
+		Map<QName, Integer> rv = new HashMap<>();
+		relations.forEach(relation -> rv.put(relation, newState.getMatchingRelationOrder(relation) - getMatchingRelationOrder(relation)));
+		return rv;
+	}
+
+	@Override
+	public EvaluationOrder applyDifference(Map<QName,Integer> difference) {
+		EvaluationOrderImpl clone = clone();
+		difference.forEach((relation, count) -> clone.advanceThis(relation, count));
+		clone.checkConsistence();
+		return clone;
+	}
+
+	@Override
+	public boolean isDefined() {
+		return true;
+	}
+
+	@Override
+	public Set<QName> getRelations() {
+		return orderMap.keySet();
 	}
 
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabelLn(sb, "EvaluationOrder", indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "summaryOrder", summaryOrder, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "summaryOrder", getSummaryOrder(), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "orderMap", orderMap, indent + 1);
 		return sb.toString();
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((orderMap == null) ? 0 : orderMap.hashCode());
-		result = prime * result + summaryOrder;
-		return result;
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof EvaluationOrderImpl))
+			return false;
+		EvaluationOrderImpl that = (EvaluationOrderImpl) o;
+		return Objects.equals(orderMap, that.orderMap);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		EvaluationOrderImpl other = (EvaluationOrderImpl) obj;
-		if (orderMap == null) {
-			if (other.orderMap != null) {
-				return false;
-			}
-		} else if (!orderMap.equals(other.orderMap)) {
-			return false;
-		}
-		if (summaryOrder != other.summaryOrder) {
-			return false;
-		}
-		return true;
+	public int hashCode() {
+		return Objects.hash(orderMap);
 	}
 
 	@Override
@@ -162,21 +191,32 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 			if (entry.getKey() != null) {
 				sb.append(entry.getKey().getLocalPart());
 			} else {
-				sb.append("null");
+				sb.append("null");		// actually shouldn't occur (relations are normalized)
 			}
 			sb.append(":");
 			sb.append(entry.getValue());
 			sb.append(",");
 		}
 		sb.setLength(sb.length() - 1);
-		sb.append("=").append(summaryOrder);
+		sb.append("=").append(getSummaryOrder());
 		return sb.toString();
 	}
 
 	@Override
 	public Collection<QName> getExtraRelations() {
-		return orderMap.keySet().stream()
-				.filter(r -> !ObjectTypeUtil.isMembershipRelation(r) && !ObjectTypeUtil.isDelegationRelation(r))
+		return orderMap.entrySet().stream()
+				.filter(e -> !ObjectTypeUtil.isMembershipRelation(e.getKey()) && !ObjectTypeUtil.isDelegationRelation(e.getKey()) && e.getValue() > 0)
+				.map(e -> e.getKey())
 				.collect(Collectors.toSet());
+	}
+
+	@Override
+	public EvaluationOrderImpl clone() {
+		return new EvaluationOrderImpl(this);
+	}
+
+	@Override
+	public boolean isValid() {
+		return orderMap.values().stream().allMatch(c -> c >= 0);
 	}
 }

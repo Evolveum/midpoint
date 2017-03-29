@@ -137,7 +137,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_WHITE_NAME = "white";
 	protected static final String RESOURCE_DUMMY_WHITE_NAMESPACE = MidPointConstants.NS_RI;
 
-    // YELLOW dummy resource is the same as default one but with strong asIs administrativeStatus mapping
+    // YELLOW dummy resource is almost the same as default one but with strong asIs administrativeStatus mapping
+	// it also has minimal password length
     protected static final File RESOURCE_DUMMY_YELLOW_FILE = new File(COMMON_DIR, "resource-dummy-yellow.xml");
     protected static final String RESOURCE_DUMMY_YELLOW_OID = "10000000-0000-0000-0000-000000000704";
     protected static final String RESOURCE_DUMMY_YELLOW_NAME = "yellow";

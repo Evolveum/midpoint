@@ -269,27 +269,33 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 			}
 		
 		} else if (focusContext.isModify()) {
+			boolean credentialValueChanged = false;
 			ObjectDelta<UserType> focusDelta = focusContext.getDelta();
 			ContainerDelta<R> containerDelta = focusDelta.findContainerDelta(getCredentialsContainerPath());
 			if (containerDelta != null) {
 				if (containerDelta.isAdd()) {
 					for (PrismContainerValue<R> cVal : containerDelta.getValuesToAdd()) {
+						credentialValueChanged = true;
 						processCredentialContainerValue(focus, cVal);
 					}
 				}
 				if (containerDelta.isReplace()) {
 					for (PrismContainerValue<R> cVal : containerDelta.getValuesToReplace()) {
+						credentialValueChanged = true;
 						processCredentialContainerValue(focus, cVal);
 					}
 				}
 			} else {
 				if (hasValueDelta(focusDelta, getCredentialsContainerPath())) {
+					credentialValueChanged = true;
 					processValueDelta(focusDelta);
 					addMetadataDelta();
 				}
 			}
 			
-			addHistoryDeltas();
+			if (credentialValueChanged) {
+				addHistoryDeltas();
+			}
 			
 		} else if (focusContext.isDelete()) {
 			LOGGER.trace("Skipping processing {} policies. User will be deleted.", getCredentialHumanReadableName());
@@ -300,8 +306,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
 	/**
 	 * Process values from credential deltas that add/replace the whole container.
-	 * E.g. $user/credentials/password, $user/credentials/securityQuestions  
-	 * @throws PolicyViolationException 
+	 * E.g. $user/credentials/password, $user/credentials/securityQuestions   
 	 */
 	protected void processCredentialContainerValue(PrismObject<UserType> focus, PrismContainerValue<R> cVal)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
