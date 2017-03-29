@@ -613,7 +613,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         return "PP";
     }
 
-	public static <T> PrismProperty<T> createRaw(@NotNull XNode node, @NotNull QName itemName, @NotNull PrismContext prismContext)
+	public static <T> PrismProperty<T> createRaw(@NotNull XNode node, @NotNull QName itemName, PrismContext prismContext)
 			throws SchemaException {
 		Validate.isTrue(!(node instanceof RootXNode));
 		PrismProperty<T> property = new PrismProperty<>(itemName, prismContext);
