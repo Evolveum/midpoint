@@ -29,11 +29,13 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentCatalogPanel;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.util.StringUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -58,12 +60,15 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
     private String catalogOid = null;
     private boolean isFirstInit = true;
+    private RoleManagementConfigurationType roleManagementConfigurationType;
 
     public PageAssignmentShoppingKart() {
         initLayout();
     }
 
     private void initLayout() {
+        roleManagementConfigurationType = getRoleManagementConfigurationType();
+
         Form mainForm = new org.apache.wicket.markup.html.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
@@ -96,82 +101,63 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
     private Component initMainPanel() {
         List<AssignmentViewType> viewTypeList = getAssignmentViewList();
-        AssignmentViewType viewType = null;
-        AssignmentViewType viewTypeIfNoRoleCatalog = null;
-        if (viewTypeList != null && viewTypeList.size() > 0){
-            for (AssignmentViewType assignmentViewType : viewTypeList){
-                if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(assignmentViewType)){
-                    viewType = AssignmentViewType.ROLE_CATALOG_VIEW;
-                    break;
-                }
-            }
-            if (viewType == null){
-                viewType = viewTypeList.get(0);
-                viewTypeIfNoRoleCatalog = viewTypeList.get(0);
-            } else {
-                if (viewTypeList.size() == 1){
-                    viewTypeIfNoRoleCatalog = viewTypeList.get(0);
-                } else {
-                    for (AssignmentViewType assignmentViewType : viewTypeList){
-                        if (!viewType.equals(assignmentViewType)){
-                            viewTypeIfNoRoleCatalog = assignmentViewType;
-                            break;
-                        }
-                    }
-                }
-            }
-        } else {
-            viewType = AssignmentViewType.ROLE_CATALOG_VIEW;
-            viewTypeIfNoRoleCatalog = AssignmentViewType.ROLE_TYPE;
+        AssignmentViewType defaultViewType = getDefaultAssignmentViewType();
+        if (viewTypeList == null || viewTypeList.size() == 0){
+            viewTypeList = new ArrayList<>(Arrays.asList(AssignmentViewType.values()));
         }
-        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewType)) {
-            if (StringUtils.isEmpty(catalogOid)) {
-                if (isFirstInit && !viewTypeIfNoRoleCatalog.equals(AssignmentViewType.ROLE_CATALOG_VIEW)) {
-                    isFirstInit = false;
-                    AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, viewTypeIfNoRoleCatalog, viewTypeList, PageAssignmentShoppingKart.this);
-                    panel.setOutputMarkupId(true);
-                    return panel;
-                } else {
-                    Label panel = new Label(ID_MAIN_PANEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
-                    panel.setOutputMarkupId(true);
-                    return panel;
-                }
+        if (defaultViewType != null && !viewTypeList.contains(defaultViewType)) {
+            viewTypeList.add(defaultViewType);
+        } else if (defaultViewType == null) {
+            if (viewTypeList.size() == 1) {
+                defaultViewType = viewTypeList.get(0);
             } else {
-                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, viewTypeList, PageAssignmentShoppingKart.this);
+                if (StringUtils.isEmpty(catalogOid) && AssignmentViewType.ROLE_CATALOG_VIEW.getUri().equals(viewTypeList.get(0).getUri())) {
+                    defaultViewType = viewTypeList.get(1);
+                } else {
+                    defaultViewType = viewTypeList.get(0);
+                }
+            }
+        }
+                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, defaultViewType, viewTypeList, PageAssignmentShoppingKart.this);
                 panel.setOutputMarkupId(true);
                 return panel;
-            }
-        } else {
-            AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, viewType, viewTypeList, PageAssignmentShoppingKart.this);
-            panel.setRootOid(catalogOid);
-            panel.setOutputMarkupId(true);
-            return panel;
-        }
     }
 
-    private List<AssignmentViewType> getAssignmentViewList() {
+    private RoleManagementConfigurationType getRoleManagementConfigurationType() {
         OperationResult result = new OperationResult(OPERATION_GET_ASSIGNMENT_VIEW_LIST);
-        SystemConfigurationType config;
-        List<AssignmentViewType> assignmentViewTypes = new ArrayList<>();
+        SystemConfigurationType config = null;
         try {
             config = getModelInteractionService().getSystemConfiguration(result);
         } catch (ObjectNotFoundException | SchemaException e) {
             LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
             return null;
         }
-        if (config != null && config.getRoleManagement() != null
-                && config.getRoleManagement().getRoleCatalogCollections() != null
-                && config.getRoleManagement().getRoleCatalogCollections().getCollection() != null) {
+        if (config != null) {
+            return config.getRoleManagement();
+        }
+        return null;
+    }
+
+    private List<AssignmentViewType> getAssignmentViewList() {
+        List<AssignmentViewType> assignmentViewTypes = new ArrayList<>();
+        if (roleManagementConfigurationType != null
+                && roleManagementConfigurationType.getRoleCatalogCollections() != null
+                && roleManagementConfigurationType.getRoleCatalogCollections().getCollection() != null) {
             for (ObjectCollectionUseType collection :
-                    config.getRoleManagement().getRoleCatalogCollections().getCollection()){
-                for (AssignmentViewType viewType : AssignmentViewType.values()){
-                    if (viewType.getUri().equals(collection.getCollectionUri())){
-                        assignmentViewTypes.add(viewType);
-                    }
+                    roleManagementConfigurationType.getRoleCatalogCollections().getCollection()){
+                AssignmentViewType viewType = AssignmentViewType.getViewType(collection);
+                if (viewType != null){
+                    assignmentViewTypes.add(viewType);
                 }
             }
         }
         return assignmentViewTypes;
     }
 
+    private AssignmentViewType getDefaultAssignmentViewType(){
+        if (roleManagementConfigurationType == null){
+            return null;
+        }
+        return AssignmentViewType.getViewType(roleManagementConfigurationType.getDefaultCollection());
+    }
 }

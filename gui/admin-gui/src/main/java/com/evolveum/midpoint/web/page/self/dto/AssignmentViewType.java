@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.self.dto;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionUseType;
 
 /**
  * Created by honchar.
@@ -48,5 +49,17 @@ public enum AssignmentViewType {
     public static void saveViewTypeToSession(PageBase pageBase, AssignmentViewType viewType){
         SessionStorage storage = pageBase.getSessionStorage();
         storage.getRoleCatalog().setViewType(viewType);
+    }
+
+    public static AssignmentViewType getViewType(ObjectCollectionUseType collectionType){
+        if (collectionType == null){
+            return null;
+        }
+        for (AssignmentViewType viewType : values()){
+            if (viewType.getUri().equals(collectionType.getCollectionUri())){
+                return viewType;
+            }
+        }
+        return null;
     }
 }
