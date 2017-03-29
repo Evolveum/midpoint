@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -240,7 +241,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         	
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+                onCancelPerformed(target);
             }
 
             @Override
@@ -306,6 +307,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         }
         if (selectedAccounts.isEmpty()) {
             warn(getString("PageSelfCredentials.noAccountSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+        if (getModelObject().getPassword() == null ) {
+            warn(getString("PageSelfCredentials.emptyPasswordFiled"));
             target.add(getFeedbackPanel());
             return;
         }
