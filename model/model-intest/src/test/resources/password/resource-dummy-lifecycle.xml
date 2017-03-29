@@ -82,14 +82,11 @@
             	<lifecycleState>
             		<outbound>
             			<name>lifecycle-lifecycle</name>
-            			<trace>true</trace>
             			<source>
             				<path>employeeType</path>
             			</source>
             			<expression>
-            				<trace>true</trace>
             				<script>
-            					<trace>true</trace>
             					<code>
             						if (employeeType == 'WRECK') {
             							return 'archived';
