@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,37 +201,71 @@ public class ProvisioningUtil {
 			}
 		}
 
-		// Activation/administrativeStatus
+		// Activation
 		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapabilityType != null) {
-			if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
-				// There resource is capable of returning enable flag but it does
-				// not do it by default
-				if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ctx.getGetOperationOptions())) {
-					attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-					apply = true;
-				} else {
-					AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
-							.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
-					if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getStatus())) {			
+				if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
+					// There resource is capable of returning enable flag but it does
+					// not do it by default
+					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnAdministrativeStatusExplicit(true);
 						apply = true;
+					} else {
+						AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+								.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
+						if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+							attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+							apply = true;
+						}
 					}
 				}
 			}
-			if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
-				// There resource is capable of returning lockout flag but it does
-				// not do it by default
-				if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, ctx.getGetOperationOptions())) {
-					attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-					apply = true;
-				} else {
-					AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition
-							.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
-					if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-						attributesToReturn.setReturnLockoutStatusExplicit(true);
+			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidFrom())) {
+				if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapabilityType)) {
+					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_VALID_FROM, ctx.getGetOperationOptions())) {
+						attributesToReturn.setReturnValidFromExplicit(true);
 						apply = true;
+					} else {
+						AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+								.getActivationFetchStrategy(ActivationType.F_VALID_FROM);
+						if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+							attributesToReturn.setReturnValidFromExplicit(true);
+							apply = true;
+						}
+					}
+				}
+			}
+			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidTo())) {
+				if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapabilityType)) {
+					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_VALID_TO, ctx.getGetOperationOptions())) {
+						attributesToReturn.setReturnValidToExplicit(true);
+						apply = true;
+					} else {
+						AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+								.getActivationFetchStrategy(ActivationType.F_VALID_TO);
+						if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+							attributesToReturn.setReturnValidToExplicit(true);
+							apply = true;
+						}
+					}
+				}
+			}
+			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getLockoutStatus())) {
+				if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
+					// There resource is capable of returning lockout flag but it does
+					// not do it by default
+					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, ctx.getGetOperationOptions())) {
+						attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+						apply = true;
+					} else {
+						AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition
+								.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
+						if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+							attributesToReturn.setReturnLockoutStatusExplicit(true);
+							apply = true;
+						}
 					}
 				}
 			}

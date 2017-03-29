@@ -822,7 +822,9 @@ public abstract class ShadowCache {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> resourceShadow) {
-				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(resourceShadow));
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Found resource object\n{}", resourceShadow.debugDump(1));
+				}
 				PrismObject<ShadowType> resultShadow;
 				try {
 					// The shadow does not have any kind or intent at this

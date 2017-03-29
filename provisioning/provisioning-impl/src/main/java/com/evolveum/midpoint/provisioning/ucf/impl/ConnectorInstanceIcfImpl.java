@@ -1336,6 +1336,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				|| (attributesToReturn.isReturnDefaultAttributes() && lockoutReturnedByDefault())) {
 			icfAttrsToGet.add(OperationalAttributes.LOCK_OUT_NAME);
 		}
+		if (attributesToReturn.isReturnValidFromExplicit()
+				|| (attributesToReturn.isReturnDefaultAttributes() && validFromReturnedByDefault())) {
+			icfAttrsToGet.add(OperationalAttributes.ENABLE_DATE_NAME);
+		}
+		if (attributesToReturn.isReturnValidToExplicit()
+				|| (attributesToReturn.isReturnDefaultAttributes() && validToReturnedByDefault())) {
+			icfAttrsToGet.add(OperationalAttributes.DISABLE_DATE_NAME);
+		}
+		
 		if (attrs != null) {
 			for (ResourceAttributeDefinition attrDef: attrs) {
 				String attrName = icfNameMapper.convertAttributeNameToIcf(attrDef);
@@ -1344,6 +1353,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 			}
 		}
+		// Log full list here. ConnId is shortening it and it cannot be seen in logs.
+		LOGGER.trace("Converted attributes ConnId attibutesToGet: {}", icfAttrsToGet);
 		optionsBuilder.setAttributesToGet(icfAttrsToGet);
 	}
 
@@ -1360,6 +1371,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private boolean lockoutReturnedByDefault() {
 		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
 		return CapabilityUtil.isActivationLockoutStatusReturnedByDefault(capability);
+	}
+	
+	private boolean validFromReturnedByDefault() {
+		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
+		return CapabilityUtil.isActivationValidFromReturnedByDefault(capability);
+	}
+	
+	private boolean validToReturnedByDefault() {
+		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
+		return CapabilityUtil.isActivationValidToReturnedByDefault(capability);
 	}
 
 	@Override
