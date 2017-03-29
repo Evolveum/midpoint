@@ -39,6 +39,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem.TABLE;
+
 /**
  * @author mederly
  */
@@ -46,13 +48,14 @@ import java.util.Set;
 @JaxbType(type = AccessCertificationWorkItemType.class)
 @Entity
 @IdClass(RCertWorkItemId.class)
-@Table(name = "m_acc_cert_wi", indexes = {
+@Table(name = TABLE, indexes = {
 })
 @Persister(impl = MidPointSingleTablePersister.class)
 public class RAccessCertificationWorkItem implements L2Container<RAccessCertificationCase> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationWorkItem.class);
 
+	public static final String TABLE = "m_acc_cert_wi";
     public static final String F_OWNER = "owner";
 
     private Boolean trans;

@@ -60,7 +60,7 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
 			ClassDefinitionParser classDefinitionParser = new ClassDefinitionParser();
 
 			final Map<QName, JpaEntityDefinition> map = new HashMap<>();
-			final Map<Class<? extends RObject>, JpaEntityDefinition> definitionsByClass = new HashMap<>();
+			final Map<Class<?>, JpaEntityDefinition> definitionsByClass = new HashMap<>();
 
 			Collection<RObjectType> types = ClassMapper.getKnownTypes();
 			for (RObjectType type : types) {
@@ -81,6 +81,7 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
 
 			// TODO fix this hack
 			JpaEntityDefinition caseDefinition = classDefinitionParser.parseRootClass(RAccessCertificationCase.class);
+			definitionsByClass.put(RAccessCertificationCase.class, caseDefinition);
 			map.put(AccessCertificationCaseType.COMPLEX_TYPE, caseDefinition);
 
 			// link parents (maybe not needed at all, we'll see) and referenced entity definitions

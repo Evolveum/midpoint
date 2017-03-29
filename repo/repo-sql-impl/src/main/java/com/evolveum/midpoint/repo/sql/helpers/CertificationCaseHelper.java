@@ -29,7 +29,9 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertCaseReference;
+import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetContainerableResult;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
@@ -131,6 +133,14 @@ public class CertificationCaseHelper {
         deleteReferences.setParameter("oid", oid);
         deleteReferences.executeUpdate();
 
+        Query deleteWorkItemReferences = session.getNamedQuery("delete.campaignCasesWorkItemReferences");
+        deleteWorkItemReferences.setParameter("oid", oid);
+        deleteWorkItemReferences.executeUpdate();
+
+        Query deleteWorkItems = session.getNamedQuery("delete.campaignCasesWorkItems");
+        deleteWorkItems.setParameter("oid", oid);
+        deleteWorkItems.executeUpdate();
+
         Query deleteCases = session.getNamedQuery("delete.campaignCases");
         deleteCases.setParameter("oid", oid);
         deleteCases.executeUpdate();
@@ -202,6 +212,16 @@ public class CertificationCaseHelper {
                         deleteCaseReferences.setString("oid", campaignOid);
                         deleteCaseReferences.setInteger("id", integerCaseId);
                         deleteCaseReferences.executeUpdate();
+                        Query deleteWorkItemReferences = session.createSQLQuery("delete from " + RCertWorkItemReference.TABLE +
+                                " where owner_owner_owner_oid=:oid and owner_owner_id=:id");
+                        deleteWorkItemReferences.setString("oid", campaignOid);
+                        deleteWorkItemReferences.setInteger("id", integerCaseId);
+                        deleteWorkItemReferences.executeUpdate();
+                        Query deleteCaseWorkItems = session.createSQLQuery("delete from " + RAccessCertificationWorkItem.TABLE +
+                                " where owner_owner_oid=:oid and owner_id=:id");
+                        deleteCaseWorkItems.setString("oid", campaignOid);
+                        deleteCaseWorkItems.setInteger("id", integerCaseId);
+                        deleteCaseWorkItems.executeUpdate();
                         Query deleteCase = session.getNamedQuery("delete.campaignCase");
                         deleteCase.setString("oid", campaignOid);
                         deleteCase.setInteger("id", integerCaseId);
