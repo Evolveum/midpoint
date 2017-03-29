@@ -826,10 +826,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 					}
 					AssignmentPathSegmentImpl segment = assignmentPath.getSegments().get(i);
 					if (segment.isAssignment()) {
-//						backRelations.add(segment.getRelation());
-						assignmentsSeen++;
-						LOGGER.trace("Going back {}: relation at assignment -{} (position -{}): {}", summaryBackwards,
-								assignmentsSeen, assignmentPath.size()-i, segment.getRelation());
+						if (!ObjectTypeUtil.isDelegationRelation(segment.getRelation())) {
+							// backRelations.add(segment.getRelation());
+							assignmentsSeen++;
+							LOGGER.trace("Going back {}: relation at assignment -{} (position -{}): {}", summaryBackwards,
+									assignmentsSeen, assignmentPath.size() - i, segment.getRelation());
+						}
 					} else {
 						AssignmentType inducement = segment.getAssignment();
 						for (OrderConstraintsType constraint : inducement.getOrderConstraint()) {
