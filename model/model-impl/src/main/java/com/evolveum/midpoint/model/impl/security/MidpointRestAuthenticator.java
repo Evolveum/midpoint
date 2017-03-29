@@ -117,7 +117,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        	return;
 	        }
 	        
-	        String oid = requestCtx.getHeaderString("Authorized-user");
+	        String oid = requestCtx.getHeaderString("Switch-To-Principal");
 	        OperationResult result = task.getResult();
 	        if (StringUtils.isNotBlank(oid)){
 	        	try {
