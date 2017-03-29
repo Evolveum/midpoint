@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1209,6 +1209,8 @@ public class TestMappingDynamicSimple {
 		System.out.println("Generated value (1): " + value1);
 		assertGeneratedValue(value1, stringPolicy, null, false, false);
 
+		mapping = evaluator.createMapping("mapping-generate.xml", TEST_NAME, stringPolicy, "employeeNumber", null);
+		
 		// WHEN (2)
 		mapping.evaluate(null, opResult);
 
@@ -1282,6 +1284,9 @@ public class TestMappingDynamicSimple {
 		assertNotNull("Generated null value", value1);
 		assertGeneratedValue(value1, stringPolicy, pattern, false, ignoreMax);
 
+		// GIVEN (2)
+		mapping = evaluator.createMapping(mappingFileName, TEST_NAME, stringPolicy, "employeeNumber", null);
+		
 		// WHEN (2)
 		mapping.evaluate(null, opResult);
 
@@ -1368,6 +1373,14 @@ public class TestMappingDynamicSimple {
 		// We need to ignore the minLength. Conversion string -> number -> string may lose the leading zeroes
 		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC, true, false);
 
+		// GIVEN (2)
+		
+		mapping = evaluator.<T>createMappingBuilder(mappingFileName,
+    			TEST_NAME, stringPolicy, new ItemPath(
+    					UserType.F_EXTENSION,
+    					new QName(NS_EXTENSION, extensionPropName)), null)
+				.build();
+		
 		// WHEN (2)
 		mapping.evaluate(null, opResult);
 

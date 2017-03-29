@@ -5038,7 +5038,7 @@
     <xsd:complexType name="ResourcePasswordDefinitionType">
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
-            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how the password value is constructed in case of information flow from IDM to the
@@ -14879,7 +14879,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Free form description that specifies the details of this deployment.
-						It may be significantly long (few paragraps). It has no special purpose
+						It may be significantly long (few paragraps). It has no special purpose	
 						other then a form of "on-line" documentation for the deployment. It will
 						NOT be displayed on every page. It will most likely be displayed on a system
 						configuration pages or in configuration summaries.

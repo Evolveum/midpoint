@@ -15,8 +15,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
@@ -26,26 +26,31 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
- * Almost the same as TestDummy but with some extra things, such as:
- * readable password
+ * Almost the same as TestDummy but using incomplete attribute flags
+ * 
+ * MID-3573
  * 
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestDummyExtra extends TestDummy {
+public class TestDummyIncomplete extends TestDummy {
 	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-extra/");
+	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-incomplete/");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override
@@ -65,7 +70,14 @@ public class TestDummyExtra extends TestDummy {
 	@Override
 	protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
 		super.checkAccountWill(shadow, result, startTs, endTs);
-		assertPassword(shadow.asObjectable(), "3lizab3th");
+		CredentialsType credentials = shadow.asObjectable().getCredentials();
+		assertNotNull("No credentials in "+shadow, credentials);
+		PasswordType password = credentials.getPassword();
+		assertNotNull("No password in "+shadow, password);
+		PrismContainerValue<PasswordType> passwordContainerValue = password.asPrismContainerValue();
+		PrismProperty<ProtectedStringType> valueProperty = passwordContainerValue.findProperty(PasswordType.F_VALUE);
+		assertTrue("Unexpected password value in "+shadow+": "+valueProperty, valueProperty.getValues().isEmpty());
+		assertTrue("No incompleteness in password value in "+shadow+": "+valueProperty, valueProperty.isIncomplete());
 	}
 	
 	@Test

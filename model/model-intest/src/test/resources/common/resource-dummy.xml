@@ -309,7 +309,6 @@
             <credentials>
                 <password>
                     <outbound>
-                    	<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>

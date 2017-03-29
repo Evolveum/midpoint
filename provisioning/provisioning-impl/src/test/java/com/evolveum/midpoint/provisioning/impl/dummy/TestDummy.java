@@ -150,6 +150,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 
@@ -619,7 +620,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
 		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
-		assertNotNull("password native capability not present", capCred.getPassword());
+		assertNativeCredentialsCapability(capCred);
 		
 		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
@@ -663,6 +664,15 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 	
+	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
+		PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
+		assertNotNull("password native capability not present", passwordCapabilityType);
+		Boolean readable = passwordCapabilityType.isReadable();
+		if (readable != null) {
+			assertFalse("Unexpected 'readable' in password capability", readable);
+		}
+	}
+
 	/**
 	 * Check if the cached native capabilities were properly stored in the repo 
 	 */

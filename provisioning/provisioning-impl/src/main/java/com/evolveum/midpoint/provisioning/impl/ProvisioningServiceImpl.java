@@ -279,7 +279,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 					resultingObject = (PrismObject<T>) getShadowCache(Mode.STANDARD).getShadow(oid,
 							(PrismObject<ShadowType>) (repositoryObject), options, task, result);
-		
+					
 				} catch (ObjectNotFoundException e) {
 					if (!GetOperationOptions.isAllowNotFound(rootOptions)){
 						ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);

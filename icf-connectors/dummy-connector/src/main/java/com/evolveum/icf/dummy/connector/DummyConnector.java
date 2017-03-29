@@ -1048,7 +1048,23 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getAccountObjectClassName(), dummyAccountObjectClass, supportsActivation);
         
         // __PASSWORD__ attribute
-        objClassBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
+		AttributeInfo passwordAttrInfo;
+		switch (configuration.getPasswordReadabilityMode()) {
+			case DummyConfiguration.PASSWORD_READABILITY_MODE_READABLE:
+			case DummyConfiguration.PASSWORD_READABILITY_MODE_INCOMPLETE:
+				AttributeInfoBuilder aib = new AttributeInfoBuilder();
+				aib.setName(OperationalAttributes.PASSWORD_NAME);
+				aib.setType(GuardedString.class);
+				aib.setMultiValued(false);
+				aib.setReadable(true);
+				aib.setReturnedByDefault(false);
+				passwordAttrInfo = aib.build();
+				break;
+			default:
+				passwordAttrInfo = OperationalAttributeInfos.PASSWORD;
+				break;
+		}
+        objClassBuilder.addAttributeInfo(passwordAttrInfo);
         
         return objClassBuilder.build();
 	}
@@ -1639,10 +1655,21 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		builder.setObjectClass(ObjectClass.ACCOUNT);
 		
 		// Password is not returned by default (hardcoded ICF specification)
-		if (account.getPassword() != null && configuration.getReadablePassword() && 
-				attributesToGet != null && attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
-			GuardedString gs = new GuardedString(account.getPassword().toCharArray());
-			builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
+		if (account.getPassword() != null && attributesToGet != null && attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
+			switch (configuration.getPasswordReadabilityMode()) {
+				case DummyConfiguration.PASSWORD_READABILITY_MODE_READABLE:
+					GuardedString gs = new GuardedString(account.getPassword().toCharArray());
+					builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
+					break;
+				case DummyConfiguration.PASSWORD_READABILITY_MODE_INCOMPLETE:
+					AttributeBuilder ab = new AttributeBuilder();
+					ab.setName(OperationalAttributes.PASSWORD_NAME);
+					ab.setAttributeValueCompleteness(AttributeValueCompleteness.INCOMPLETE);
+					builder.addAttribute(ab.build());
+					break;
+				default:
+					// nothing to do
+			}
 		}
 		
 		if (account.isLockout() != null) {

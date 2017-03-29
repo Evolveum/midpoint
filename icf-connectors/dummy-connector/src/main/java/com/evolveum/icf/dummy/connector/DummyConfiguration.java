@@ -27,8 +27,12 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  */
 public class DummyConfiguration extends AbstractConfiguration {
 
-	public static String UID_MODE_NAME = "name";
-	public static String UID_MODE_UUID = "uuid";
+	public static final String UID_MODE_NAME = "name";
+	public static final String UID_MODE_UUID = "uuid";
+	
+	public static final String PASSWORD_READABILITY_MODE_UNREADABLE = "unreadable";
+	public static final String PASSWORD_READABILITY_MODE_INCOMPLETE = "incomplete";
+	public static final String PASSWORD_READABILITY_MODE_READABLE = "readable";
 	
     private static final Log log = Log.getLog(DummyConfiguration.class);
 
@@ -38,7 +42,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean supportValidity = false;
     private String uidMode =  UID_MODE_NAME;
     private boolean enforceUniqueName = true;
-    private boolean readablePassword = false;
+    private String passwordReadabilityMode = PASSWORD_READABILITY_MODE_UNREADABLE;
     private boolean requireExplicitEnable = false;
     private boolean caseIgnoreId = false;
     private boolean caseIgnoreValues = false;
@@ -133,18 +137,18 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setEnforceUniqueName(boolean enforceUniqueName) {
 		this.enforceUniqueName = enforceUniqueName;
 	}
-
+	
 	/**
      * If set to true then the password can be read from the resource.
      */
 	@ConfigurationProperty(displayMessageKey = "UI_INSTANCE_READABLE_PASSWORD",
     		helpMessageKey = "UI_INSTANCE_READABLE_PASSWORD_HELP")
-	public boolean getReadablePassword() {
-		return readablePassword;
+	public String getPasswordReadabilityMode() {
+		return passwordReadabilityMode;
 	}
 
-	public void setReadablePassword(boolean readablePassword) {
-		this.readablePassword = readablePassword;
+	public void setPasswordReadabilityMode(String passwordReadabilityMode) {
+		this.passwordReadabilityMode = passwordReadabilityMode;
 	}
 
 	/**

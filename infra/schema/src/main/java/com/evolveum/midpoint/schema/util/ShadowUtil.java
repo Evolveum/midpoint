@@ -323,6 +323,22 @@ public class ShadowUtil {
 		}
 		passwordType.setValue(password);
 	}
+	
+	public static void setPasswordIncomplete(ShadowType shadowType) throws SchemaException {
+		CredentialsType credentialsType = shadowType.getCredentials();
+		if (credentialsType == null) {
+			credentialsType = new CredentialsType();
+			shadowType.setCredentials(credentialsType);
+		}
+		PasswordType passwordType = credentialsType.getPassword();
+		if (passwordType == null) {
+			passwordType = new PasswordType();
+			credentialsType.setPassword(passwordType);
+		}
+		PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
+		PrismProperty<ProtectedStringType> valueProperty = passwordContainer.findOrCreateProperty(PasswordType.F_VALUE);
+		valueProperty.setIncomplete(true);
+	}
 
 	public static ActivationType getOrCreateActivation(ShadowType shadowType) {
 		ActivationType activation = shadowType.getActivation();

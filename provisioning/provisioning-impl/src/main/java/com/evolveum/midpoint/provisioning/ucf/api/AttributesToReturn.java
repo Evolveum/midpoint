@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ public class AttributesToReturn implements Serializable {
 	private boolean returnPasswordExplicit = false;
 	private boolean returnAdministrativeStatusExplicit = false;
 	private boolean returnLockoutStatusExplicit = false;
+	private boolean returnValidFromExplicit = false;
+	private boolean returnValidToExplicit = false;
 	Collection<? extends ResourceAttributeDefinition> attributesToReturn = null;
 	
 	public boolean isReturnDefaultAttributes() {
@@ -74,11 +76,30 @@ public class AttributesToReturn implements Serializable {
 		this.returnLockoutStatusExplicit = returnLockoutStatusExplicit;
 	}
 
+	public boolean isReturnValidFromExplicit() {
+		return returnValidFromExplicit;
+	}
+
+	public void setReturnValidFromExplicit(boolean returnValidFromExplicit) {
+		this.returnValidFromExplicit = returnValidFromExplicit;
+	}
+
+	public boolean isReturnValidToExplicit() {
+		return returnValidToExplicit;
+	}
+
+	public void setReturnValidToExplicit(boolean returnValidToExplicit) {
+		this.returnValidToExplicit = returnValidToExplicit;
+	}
+
 	@Override
 	public String toString() {
 		return "AttributesToReturn(returnDefaultAttributes=" + returnDefaultAttributes + ", returnPasswordExplicit="
-				+ returnPasswordExplicit + ", returnAdministrativeStatusExplicit="
-						+ returnAdministrativeStatusExplicit + ", attributesToReturn=" + attributesToReturn + ")";
+				+ returnPasswordExplicit
+				+ ", returnAdministrativeStatusExplicit="+ returnAdministrativeStatusExplicit
+				+ ", returnValidFromExplicit="+ returnValidFromExplicit
+				+ ", returnValidToExplicit="+ returnValidToExplicit
+				+ ", attributesToReturn=" + attributesToReturn + ")";
 	}
 
 }

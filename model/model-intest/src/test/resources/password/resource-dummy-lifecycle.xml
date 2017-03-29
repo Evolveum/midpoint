@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<resource oid="10000000-0000-0000-0000-000000344104"
+<resource oid="519f131a-147b-11e7-a270-c38e2b225751"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -24,9 +24,9 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	
-	<!-- Resource with ugly (non-typical) password mapping with explicit password policy -->
+	<!-- Resource with explicit lifecycle expression -->
 								  
-	<name>Dummy Resource Ugly</name>
+	<name>Dummy Resource Lifecycle</name>
 	<connectorRef type="ConnectorType">
 		<filter>
 			<q:and>
@@ -45,7 +45,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>ugly</icfi:instanceId>
+			<icfi:instanceId>lifecycle</icfi:instanceId>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -65,21 +65,41 @@
 				    </source>
 				</outbound>
 			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
 			<credentials>
                 <password>
-                    <outbound>
-						<source>
-							<path>$user/employeeNumber</path>		<!-- something other than the default (MID-3320) -->
-						</source>
-						<expression>
-							<script>
-								<code>employeeNumber</code>
-							</script>
-						</expression>
-                    </outbound>
-                    <passwordPolicyRef oid="cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee"/>
+                    <outbound/>
                 </password>
             </credentials>
+            <lifecycle>
+            	<lifecycleState>
+            		<outbound>
+            			<name>lifecycle-lifecycle</name>
+            			<source>
+            				<path>employeeType</path>
+            			</source>
+            			<expression>
+            				<script>
+            					<code>
+            						if (employeeType == 'WRECK') {
+            							return 'archived';
+            						} else {
+	            						// default algorithm
+	            						return midpoint.computeProjectionLifecycle(focus, shadow, resource);
+	            					}
+            					</code>
+            				</script>
+            			</expression>
+            		</outbound>
+            	</lifecycleState>
+            </lifecycle>
 		</objectType>
 	</schemaHandling>
 	

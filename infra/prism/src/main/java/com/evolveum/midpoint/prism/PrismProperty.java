@@ -563,6 +563,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 			}
 		}
         
+		appendDebugDumpSuffix(sb);
+		
         if (def != null && DebugUtil.isDetailedDebugDump()) {
             sb.append(" def(");
             def.debugDumpShortToString(sb);

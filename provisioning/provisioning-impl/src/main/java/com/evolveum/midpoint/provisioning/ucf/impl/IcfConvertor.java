@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeValueCompleteness;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
@@ -162,10 +163,19 @@ public class IcfConvertor {
 				// password has to go to the credentials section
 				ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
 				if (password == null) {
-					continue;
+					// equals() instead of == is needed. The AttributeValueCompleteness enum may be loaded by different classloader
+					if (!AttributeValueCompleteness.INCOMPLETE.equals(icfAttr.getAttributeValueCompleteness())) {
+						continue;
+					}
+					// There is no password value in the ConnId attribute. But it was indicated that
+					// that attribute is incomplete. Therefore we can assume that there in fact is a value.
+					// We just do not know it.
+					ShadowUtil.setPasswordIncomplete(shadow);
+					LOGGER.trace("Converted password: (incomplete)");
+				} else {
+					ShadowUtil.setPassword(shadow, password);
+					LOGGER.trace("Converted password: {}", password);
 				}
-				ShadowUtil.setPassword(shadow, password);
-				LOGGER.trace("Converted password: {}", password);
 				continue;
 			}
 			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {

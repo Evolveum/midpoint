@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
             Defines resource capabilities such as ability to enable/disable account,
             ability to reset passwords, etc.
             
-            Version: 3.1
+            Version: 3.6-SNAPSHOT
             Recommended namespace prefix: cap
         </xsd:documentation>
         <xsd:appinfo>
@@ -293,6 +293,7 @@
 			<xsd:extension base="tns:CapabilityType">
 				<xsd:sequence>
 					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+					<xsd:element name="readable" type="xsd:boolean" minOccurs="0" default="false"/>
 					<!-- TODO: password expiration -->
 				</xsd:sequence>
 			</xsd:extension>

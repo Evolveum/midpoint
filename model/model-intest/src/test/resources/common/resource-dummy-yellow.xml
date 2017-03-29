@@ -284,9 +284,16 @@
             <credentials>
                 <password>
                     <outbound>
-                    	<strength>weak</strength>
+                    	<name>passwd-asis</name>
                     	<expression>
                         	<asIs/>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                    	<name>passwd-generate</name>
+                    	<strength>weak</strength>
+                    	<expression>
+                        	<generate/>
                         </expression>
                     </outbound>
                     <inbound>

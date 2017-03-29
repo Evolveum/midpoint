@@ -167,6 +167,34 @@ public class CapabilityUtil {
 		}
 		return statusCap.isReturnedByDefault();
 	}
+	
+	public static boolean isActivationValidFromReturnedByDefault(ActivationCapabilityType capability) {
+		if (capability == null) {
+			return false;
+		}
+		ActivationValidityCapabilityType valCap = capability.getValidFrom();
+		if (valCap == null) {
+			return false;
+		}
+		if (valCap.isReturnedByDefault() == null) {
+			return true;
+		}
+		return valCap.isReturnedByDefault();
+	}
+	
+	public static boolean isActivationValidToReturnedByDefault(ActivationCapabilityType capability) {
+		if (capability == null) {
+			return false;
+		}
+		ActivationValidityCapabilityType valCap = capability.getValidTo();
+		if (valCap == null) {
+			return false;
+		}
+		if (valCap.isReturnedByDefault() == null) {
+			return true;
+		}
+		return valCap.isReturnedByDefault();
+	}
 
 	@SuppressWarnings("unchecked")
 	public static CapabilityType asCapabilityType(Object capabilityObject) {
