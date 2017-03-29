@@ -359,7 +359,6 @@ public class MappingEvaluator {
 				if (aPrioriTargetObject != null && mappingOutputPath != null) {
 					aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
 				}
-				LOGGER.info("PPPPPPPPPPP aPrioriTargetItem: {}", aPrioriTargetItem);
 				if (hasNoValue(aPrioriTargetItem)) {
 						
 					mappingOutputStruct.setWeakMappingWasUsed(true);
