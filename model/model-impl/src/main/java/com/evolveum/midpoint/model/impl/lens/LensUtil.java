@@ -31,16 +31,21 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.expression.*;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -59,6 +64,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -975,19 +981,9 @@ public class LensUtil {
 	}
     
     public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
-    	if (assignmentPathVariables != null ) {
-			return builder
-					.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath())
-					.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment())
-					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment())
-					.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment())
-					.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment())
-					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
-		} else {
-    		// to avoid "no such variable" exceptions in boundary cases
-			// for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
-			return builder.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, (Object) null);
-		}
+    	ExpressionVariables expressionVariables = new ExpressionVariables();
+		Utils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
+		return builder.addVariableDefinitions(expressionVariables.getMap());
     }
     
     public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription, 
@@ -1265,4 +1261,28 @@ public class LensUtil {
 			throw new ObjectAlreadyExistsException(sb.toString());
 		}
 	}
+	
+	public static boolean needsFullShadowForCredentialProcessing(LensProjectionContext projCtx) throws SchemaException {
+		RefinedObjectClassDefinition refinedProjDef = projCtx.getStructuralObjectClassDefinition();
+		if (refinedProjDef == null) {
+			return false;
+		}
+
+		List<MappingType> outboundMappingType = refinedProjDef.getPasswordOutbound();
+		if (outboundMappingType == null) {
+			return false;
+		}
+		for (MappingType mappingType: outboundMappingType) {
+			if (mappingType.getStrength() == MappingStrengthType.STRONG || mappingType.getStrength() == MappingStrengthType.WEAK) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean isPasswordReturnedByDefault(LensProjectionContext projCtx) {
+		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), CredentialsCapabilityType.class);
+		return CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType);
+	}
+	
 }

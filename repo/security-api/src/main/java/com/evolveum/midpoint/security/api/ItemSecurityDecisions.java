@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
  * @author semancik
  *
  */
-public class ItemSecurityDecisions implements DebugDumpable {
+public class ItemSecurityDecisions implements DebugDumpable, Serializable {
 	
 	private AuthorizationDecisionType defaultDecision = null;
 	private Map<ItemPath,AuthorizationDecisionType> itemDecisionMap = new HashMap<>();

@@ -109,31 +109,19 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         super(id);
     }
 
-    public AssignmentCatalogPanel(String id, String rootOid, List<AssignmentViewType> viewTypeList, PageBase pageBase) {
+     public AssignmentCatalogPanel(String id, String rootOid,
+                                   AssignmentViewType viewType, List<AssignmentViewType> viewTypeList, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
-        this.rootOid = rootOid;
-        this.viewTypeList = viewTypeList;
-        AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
-        initLayout();
-    }
-
-    public AssignmentCatalogPanel(String id, List<AssignmentViewType> viewTypeList, PageBase pageBase) {
-        this(id, AssignmentViewType.getViewTypeFromSession(pageBase), viewTypeList, pageBase);
-    }
-
-     public AssignmentCatalogPanel(String id, AssignmentViewType viewType, List<AssignmentViewType> viewTypeList, PageBase pageBase) {
-        super(id);
-        this.pageBase = pageBase;
-         AssignmentViewType.saveViewTypeToSession(pageBase, viewType);
+         this.rootOid = rootOid;
          this.viewTypeList = viewTypeList;
+         if (AssignmentViewType.getViewTypeFromSession(pageBase) == null) {
+             AssignmentViewType.saveViewTypeToSession(pageBase, viewType);
+         }
          initLayout();
     }
 
-    protected void initProvider() {
-        if (isCatalogOidEmpty()){
-            objectProvider = null;
-        } else {
+    private void initProvider() {
             objectProvider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
                 private static final long serialVersionUID = 1L;
 
@@ -157,7 +145,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                     return createContentQuery(null);
                 }
             };
-        }
     }
 
     private void initLayout() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOpera
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -179,44 +180,93 @@ public class ProvisioningUtil {
 			apply = true;
 		}
 
-		// Password
+		// Password					
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(
 				resource, CredentialsCapabilityType.class);
 		if (credentialsCapabilityType != null) {
-			if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
-				// There resource is capable of returning password but it does not
-				// do it by default
-				AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition
-						.getPasswordFetchStrategy();
-				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-					attributesToReturn.setReturnPasswordExplicit(true);
-					apply = true;
+			if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_PASSWORD_VALUE, ctx.getGetOperationOptions())) {
+				attributesToReturn.setReturnPasswordExplicit(true);
+				apply = true;
+			} else {
+				if (!CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
+					// There resource is capable of returning password but it does not
+					// do it by default
+					AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition
+							.getPasswordFetchStrategy();
+					if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+						attributesToReturn.setReturnPasswordExplicit(true);
+						apply = true;
+					}
 				}
 			}
 		}
 
-		// Activation/administrativeStatus
+		// Activation
 		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapabilityType != null) {
-			if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
-				// There resource is capable of returning enable flag but it does
-				// not do it by default
-				AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
-						.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
-				if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-					attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-					apply = true;
+			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getStatus())) {			
+				if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
+					// There resource is capable of returning enable flag but it does
+					// not do it by default
+					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ctx.getGetOperationOptions())) {
+						attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+						apply = true;
+					} else {
+						AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+								.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
+						if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+							attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+							apply = true;
+						}
+					}
 				}
 			}
-			if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
-				// There resource is capable of returning lockout flag but it does
-				// not do it by default
-				AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition
-						.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
-				if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-					attributesToReturn.setReturnLockoutStatusExplicit(true);
-					apply = true;
+			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidFrom())) {
+				if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapabilityType)) {
+					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_VALID_FROM, ctx.getGetOperationOptions())) {
+						attributesToReturn.setReturnValidFromExplicit(true);
+						apply = true;
+					} else {
+						AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+								.getActivationFetchStrategy(ActivationType.F_VALID_FROM);
+						if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+							attributesToReturn.setReturnValidFromExplicit(true);
+							apply = true;
+						}
+					}
+				}
+			}
+			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidTo())) {
+				if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapabilityType)) {
+					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_VALID_TO, ctx.getGetOperationOptions())) {
+						attributesToReturn.setReturnValidToExplicit(true);
+						apply = true;
+					} else {
+						AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition
+								.getActivationFetchStrategy(ActivationType.F_VALID_TO);
+						if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+							attributesToReturn.setReturnValidToExplicit(true);
+							apply = true;
+						}
+					}
+				}
+			}
+			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getLockoutStatus())) {
+				if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
+					// There resource is capable of returning lockout flag but it does
+					// not do it by default
+					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, ctx.getGetOperationOptions())) {
+						attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+						apply = true;
+					} else {
+						AttributeFetchStrategyType statusFetchStrategy = objectClassDefinition
+								.getActivationFetchStrategy(ActivationType.F_LOCKOUT_STATUS);
+						if (statusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+							attributesToReturn.setReturnLockoutStatusExplicit(true);
+							apply = true;
+						}
+					}
 				}
 			}
 		}

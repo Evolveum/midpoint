@@ -31,12 +31,14 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -1130,6 +1132,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Wrong password in "+shadow, expectedPassword, passwordValue.getClearValue());
 	}
 	
+	protected void assertPasswordDelta(ObjectDelta<ShadowType> shadowDelta) {
+		ItemDelta<PrismValue, ItemDefinition> passwordDelta = shadowDelta.findItemDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+		assertNotNull("No password delta in "+shadowDelta, passwordDelta);
+		
+	}
+	
 	protected void assertFilter(ObjectFilter filter, Class<? extends ObjectFilter> expectedClass) {
 		if (expectedClass == null) {
 			assertNull("Expected that filter is null, but it was "+filter, filter);
@@ -1480,6 +1488,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue(password);
 		passwordType.setValue(ps);
+	}
+	
+	protected void assertIncompleteShadowPassword(PrismObject<ShadowType> shadow) {
+		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+		assertNotNull("No password value property in "+shadow, passValProp);
+		assertTrue("Password value property does not have 'incomplete' flag in "+shadow, passValProp.isIncomplete());
+	}
+	
+	protected void assertNoShadowPassword(PrismObject<ShadowType> shadow) {
+		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+		assertNull("Unexpected password value property in "+shadow+": "+passValProp, passValProp);
 	}
 	
 	protected <O extends ObjectType> PrismObject<O> instantiateObject(Class<O> type) throws SchemaException {

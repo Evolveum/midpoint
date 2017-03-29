@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -374,8 +373,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	}
 
 	@Override
-	protected String additionalDumpDescription() {
-		StringBuilder sb = new StringBuilder();
+	protected void appendDebugDumpSuffix(StringBuilder sb) {
 		sb.append("(").append(getOid());
 		if (getVersion() != null) {
 			sb.append(", v").append(getVersion());
@@ -385,21 +383,14 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 			sb.append(", ").append(DebugUtil.formatElementName(def.getTypeName()));
 		}
 		sb.append(")");
-		return sb.toString();
 	}
         
-        /**
+    /**
 	 * Return display name intended for business users of midPoint
 	 */        
-        public String getBusinessDisplayName() {
-            return getNamePropertyStringValue();
-        }
-
-//	public Node serializeToDom() throws SchemaException {
-//		Node doc = DOMUtil.getDocument();
-//		serializeToDom(doc);
-//		return doc;
-//	}
+    public String getBusinessDisplayName() {
+        return getNamePropertyStringValue();
+    }
 
 	@Override
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,

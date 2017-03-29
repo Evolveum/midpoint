@@ -21,13 +21,17 @@ import static org.testng.AssertJUnit.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Listeners;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Password test with NONE password storage (default storage for other types)
@@ -43,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestPasswordNone extends AbstractPasswordTest {
 			
 	@Override
@@ -68,4 +73,19 @@ public class TestPasswordNone extends AbstractPasswordTest {
 			assertShadowLifecycle(shadow, SchemaConstants.LIFECYCLE_PROPOSED);
 		}
 	}
+	
+	@Override
+	protected void assert31xBluePasswordAfterAssignment(PrismObject<UserType> userAfter) throws Exception {
+		assertDummyPassword(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
+		PrismObject<ShadowType> shadow = getBlueShadow(userAfter);
+		assertNoShadowPassword(shadow);
+	}
+	
+	@Override
+	protected void assert31xBluePasswordAfterPasswordChange(PrismObject<UserType> userAfter) throws Exception {
+		assertDummyPassword(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_2);
+		PrismObject<ShadowType> shadow = getBlueShadow(userAfter);
+		assertIncompleteShadowPassword(shadow);
+	}
+
 }

@@ -113,6 +113,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	// working and output properties
 	private D outputDefinition;
 	private ItemPath outputPath;
+	private MappingEvaluationState state = MappingEvaluationState.UNINITIALIZED;
 
 	private PrismValueDeltaSetTriple<V> outputTriple;
 	private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionOutputTriple;
@@ -344,13 +345,65 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return refinedObjectClassDefinition;
 	}
 
+	// TODO: rename to evaluateAll
 	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		prepare(task, parentResult);
+
+//		if (!isActivated()) {
+//			outputTriple = null;
+//			LOGGER.debug("Skipping evaluation of mapping {} in {} because it is not activated",
+//					mappingType.getName() == null?null:mappingType.getName(), contextDescription);
+//			return;
+//		}
+
+		evaluateBody(task, parentResult);
+	}
+
+	/**
+	 * Prepare mapping for evaluation.  Parse the values
+	 * After this call it can checked if a mapping is activated
+	 * (i.e. if the input changes will "trigger" the mapping).
+	 */
+	public void prepare(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".prepare");
+		assertState(MappingEvaluationState.UNINITIALIZED);
+		try {
+			
+			parseSources(task, result);
+			
+			parseTarget();
+			if (outputPath != null && outputDefinition == null) {
+				throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
+			}
+			
+		} catch (ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | SchemaException | Error e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		
+		transitionState(MappingEvaluationState.PREPARED);
+		result.recordSuccess();
+	}
+	
+	public boolean isActivated() {
+		// TODO
+//		return isActivated;
+		return sourcesChanged();
+	}
+	
+	// TODO: rename to evaluate
+	public void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		
+		assertState(MappingEvaluationState.PREPARED);
 		
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
 
         traceEvaluationStart();
 		
 		try {
+			
+			// We may need to re-parse the sources here
+			
 			evaluateTimeConstraintValid(task, result);
 			
 			if (!timeConstraintValid) {
@@ -358,13 +411,6 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				result.recordNotApplicableIfUnknown();
 				traceDeferred();
 				return;
-			}
-
-			parseSources(task, result);
-			parseTarget();
-
-			if (outputPath != null && outputDefinition == null) {
-				throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
 			}
 			
 			evaluateCondition(task, result);
@@ -375,17 +421,24 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
 			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 			
-			if (conditionResultOld || conditionResultNew) {
-				// TODO: input filter
-				evaluateExpression(task, result, conditionResultOld, conditionResultNew);
-				fixDefinition();
-				recomputeValues();
-				setOrigin();
-				// TODO: output filter
-
-				checkRange(task, result);
+			if (!conditionResultOld && !conditionResultNew) {
+				outputTriple = null;
+				transitionState(MappingEvaluationState.EVALUATED);
+				result.recordNotApplicableIfUnknown();
+				traceNotApplicable("condition is false");
+				return;
 			}
+			
+			// TODO: input filter
+			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
+			fixDefinition();
+			recomputeValues();
+			setOrigin();
+			// TODO: output filter
 
+			checkRange(task, result);
+
+			transitionState(MappingEvaluationState.EVALUATED);
 			result.recordSuccess();
 			traceSuccess(conditionResultOld, conditionResultNew);
 			
@@ -550,6 +603,24 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		trace(sb.toString());
 	}
 	
+	private void traceNotApplicable(String reason) {
+		traceEvaluationEnd();
+		if (!isTrace()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("Mapping trace:\n");
+		appendTraceHeader(sb);
+		sb.append("\nEvaluation is NOT APPLICABLE because "+reason);
+		if (profiling) {
+			sb.append("\nEtime: ");
+			sb.append(getEtime());
+			sb.append(" ms");
+		}
+		appendTraceFooter(sb);
+		trace(sb.toString());
+	}
+	
 	private void traceFailure(Throwable e) {
 		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
 		traceEvaluationEnd();
@@ -557,7 +628,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("Mapping failure:\n");
+		sb.append("Mapping FAILURE:\n");
 		appendTraceHeader(sb);
 		sb.append("\nERROR: ").append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
 		if (profiling) {
@@ -835,6 +906,15 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return source;
 	}
 	
+	private boolean sourcesChanged() {
+		for (Source<?,?> source: sources) {
+			if (source.getDelta() != null) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private void parseTarget() throws SchemaException {
 		VariableBindingDefinitionType targetType = mappingType.getTarget();
 		if (targetType == null) {
@@ -1027,6 +1107,16 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
         return filteredValue;
     }
+	
+	private void transitionState(MappingEvaluationState newState) {
+		state = newState;
+	}
+	
+	private void assertState(MappingEvaluationState expecetdState) {
+		if (state != expecetdState) {
+			throw new IllegalArgumentException("Expected mapping state "+expecetdState+", but was "+state);
+		}
+	}
 	
 	/**
 	 * Shallow clone. Only the output is cloned deeply.

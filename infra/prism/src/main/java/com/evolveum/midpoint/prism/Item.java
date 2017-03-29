@@ -57,6 +57,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     private transient Map<String,Object> userData = new HashMap<>();;
 
 	protected boolean immutable;
+	protected boolean incomplete;
     
     protected transient PrismContext prismContext;          // beware, this one can easily be null
 
@@ -177,7 +178,28 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         return getDefinition() == null ? null : getDefinition().getHelp();
     }
     
-    @Override
+    /**
+     * Flag that indicates incomplete item. If set to true then the
+     * values in this item are not complete. If this flag is true
+     * then it can be assumed that the object that this item represents
+     * has at least one value. This is a method how to indicate that
+     * the item really has some values, but are not here. This may
+     * be used for variety of purposes. It may indicate that the
+     * account has a password, but the password value is not revealed.
+     * This may indicate that a user has a photo, but the photo was not
+     * requested and therefore is not returned. This may be used to indicate
+     * that only part of the attribute values were returned from the search. 
+     * And so on.
+     */
+    public boolean isIncomplete() {
+		return incomplete;
+	}
+
+	public void setIncomplete(boolean incomplete) {
+		this.incomplete = incomplete;
+	}
+
+	@Override
     public PrismContext getPrismContext() {
 		if (prismContext != null) {
 			return prismContext;
@@ -638,6 +660,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         // another item
         clone.parent = null;
         clone.userData = MiscUtil.cloneMap(this.userData);
+        clone.incomplete = this.incomplete;
 		// Also do not copy 'immutable' flag so the clone is free to be modified
     }
     
@@ -853,6 +876,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 				return false;
 		} else if (!elementName.equals(other.elementName))
 			return false;
+		if (incomplete != other.incomplete) {
+				return false;
+		}
 		// Do not compare parent at all. This is not relevant.
 		if (values == null) {
 			if (other.values != null)
@@ -880,6 +906,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 				return false;
 		} else if (!elementName.equals(other.elementName))
 			return false;
+		if (incomplete != other.incomplete) {
+			return false;
+		}
 		// Do not compare parent at all. This is not relevant.
 		if (values == null) {
 			if (other.values != null)
@@ -894,18 +923,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         return getClass().getSimpleName() + "(" + PrettyPrinter.prettyPrint(getElementName()) + ")";
     }
 
-    /**
-     * Provide terse and readable dump of the object suitable for log (at debug level).
-     */
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
+        DebugUtil.indentDebugDump(sb, indent);
         if (DebugUtil.isDetailedDebugDump()) {
         	sb.append(getDebugDumpClassName()).append(": ");
         }
@@ -920,6 +940,12 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         return "Item";
     }
 
+    protected void appendDebugDumpSuffix(StringBuilder sb) {
+    	if (incomplete) {
+    		sb.append(" (incomplete)");
+    	}
+    }
+    
 	public boolean isImmutable() {
 		return immutable;
 	}
