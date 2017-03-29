@@ -131,9 +131,7 @@ public class ProjectionCredentialsProcessor {
 		ValuePolicyType passwordPolicy = determinePasswordPolicy(context, projectionContext, now, task, result);
 		
 		processProjectionPasswordMapping(context, projectionContext, passwordPolicy, now, task, result);
-		
-		LOGGER.info("PPPPPPPPPPPPPP(2) context {}\n{}", projectionContext.getHumanReadableName(), projectionContext.debugDump());
-		
+				
 		validateProjectionPassword(context, projectionContext, passwordPolicy, now, task, result);
 	}
 	
@@ -221,8 +219,6 @@ public class ProjectionCredentialsProcessor {
 						return false;
 					}
 
-					LOGGER.info("PPPPPPPPPPPPPP processor: outputTriple\n{}", outputTriple.debugDump(1));
-					
 					boolean projectionIsNew = projDelta != null && (projDelta.getChangeType() == ChangeType.ADD
 							|| projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD);
 
@@ -255,13 +251,9 @@ public class ProjectionCredentialsProcessor {
 				};
 		
 		
-		LOGGER.info("PPPPPPPPPPPPPP(1.1) context {}\n{}", projCtx.getHumanReadableName(), projCtx.debugDump());
-				
 		mappingEvaluator.evaluateOutboundMapping(context, projCtx, outboundMappingTypes, 
 				SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE, initializer, processor,
 				now, true, evaluateWeak, "password mapping", task, result);
-		
-		LOGGER.info("PPPPPPPPPPPPPP(1.2) context {}\n{}", projCtx.getHumanReadableName(), projCtx.debugDump());
 		
 	}
 	
@@ -335,8 +327,6 @@ public class ProjectionCredentialsProcessor {
 			LOGGER.trace("Skipping processing password policies. Shadow delta not specified.");
 			return;
 		}
-		
-		LOGGER.info("PPPPPPPPPPPPPP accountDelta\n{}", accountDelta.debugDump());
 		
 		if (ChangeType.DELETE == accountDelta.getChangeType()){
 			return;

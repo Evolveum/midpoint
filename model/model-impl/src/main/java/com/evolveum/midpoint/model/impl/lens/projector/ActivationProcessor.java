@@ -547,9 +547,8 @@ public class ActivationProcessor {
    			final ActivationCapabilityType capActivation, XMLGregorianCalendar now, final boolean current, 
    			String desc, final Task task, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
-    	MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer = new MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>>() {
-			@Override
-			public Mapping.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initialize(Mapping.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> builder) throws SchemaException {
+    	MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer =
+			builder -> {
 				// Source: administrativeStatus, validFrom or validTo
 		        ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
 		        
@@ -598,9 +597,7 @@ public class ActivationProcessor {
 		        builder.addSource(focusExistsSource);
 		        
 				return builder;
-			}
-
-		};
+			};
 		
 		evaluateOutboundMapping(context, projCtx, bidirectionalMappingType, focusPropertyPath, projectionPropertyPath, initializer,
 				now, current, desc + " outbound activation mapping", task, result);
@@ -647,6 +644,9 @@ public class ActivationProcessor {
 		// do NOT set loader here. We do not want loading at this stage. we do not yet know whether we care at all.
 		params.setAPrioriTargetObject(shadowNew);
 		params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
+		if (context.getFocusContext() != null) {
+			params.setSourceContext(context.getFocusContext().getObjectDeltaObject());
+		}
 		params.setTargetContext(projCtx);
 		params.setDefaultTargetItemPath(projectionPropertyPath);
 		params.setEvaluateCurrent(evaluateCurrent);
@@ -726,23 +726,26 @@ public class ActivationProcessor {
 		}
 	}
     
-    public <O extends ObjectType> void processLifecycle(LensContext<O> context, LensProjectionContext projCtx, 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	public <O extends ObjectType> void processLifecycle(LensContext<O> context, LensProjectionContext projCtx, 
     		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext != null && !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
     		// We can do this only for focal object.
+    		LOGGER.trace("Skipping lifecycle evaluation because focus is not FocusType");
     		return;
     	}
     	
     	processLifecycleFocus((LensContext)context, projCtx, now, task, result);
     }
     
-    private <F extends FocusType> void processLifecycleFocus(LensContext<F> context, LensProjectionContext projCtx, 
+	private <F extends FocusType> void processLifecycleFocus(LensContext<F> context, LensProjectionContext projCtx, 
     		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
+    		LOGGER.trace("Skipping lifecycle evaluation because there is no focus");
     		return;
     	}
     	
@@ -759,16 +762,19 @@ public class ActivationProcessor {
         if (lifecycleStateMappingType == null || lifecycleStateMappingType.getOutbound() == null) {
         
         	if (!projCtx.isAdd()) {
+        		LOGGER.trace("Skipping lifecycle evaluation because this is not add operation (default expression)");
         		return;
         	}
         	
         	PrismObject<F> focusNew = focusContext.getObjectNew();
         	if (focusNew == null) {
+        		LOGGER.trace("Skipping lifecycle evaluation because there is no new focus (default expression)");
         		return;
         	}
         	
         	PrismObject<ShadowType> projectionNew = projCtx.getObjectNew();
         	if (projectionNew == null) {
+        		LOGGER.trace("Skipping lifecycle evaluation because there is no new projection (default expression)");
         		return;
         	}
         	
@@ -788,9 +794,10 @@ public class ActivationProcessor {
         	
         } else {
         
+        	LOGGER.trace("Computing projection lifecycle (mapping): {}", lifecycleStateMappingType);
 	    	evaluateActivationMapping(context, projCtx, lifecycleStateMappingType,
 	    			SchemaConstants.PATH_LIFECYCLE_STATE, SchemaConstants.PATH_LIFECYCLE_STATE, 
-	    			null, now, false, ObjectType.F_LIFECYCLE_STATE.getLocalPart(), task, result);
+	    			null, now, true, ObjectType.F_LIFECYCLE_STATE.getLocalPart(), task, result);
         }
     	
     }

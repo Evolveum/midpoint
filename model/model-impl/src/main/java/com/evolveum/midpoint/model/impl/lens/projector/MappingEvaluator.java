@@ -191,6 +191,9 @@ public class MappingEvaluator {
 		params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
 		params.setTargetContext(projCtx);
 		params.setDefaultTargetItemPath(projectionPropertyPath);
+		if (context.getFocusContext() != null) {
+			params.setSourceContext(context.getFocusContext().getObjectDeltaObject());
+		}
 		params.setEvaluateCurrent(evaluateCurrent);
 		params.setEvaluateWeak(evaluateWeak);
 		params.setContext(context);
@@ -215,8 +218,13 @@ public class MappingEvaluator {
 		for (MappingType mappingType: mappingTypes) {
 			
 			Mapping.Builder<V,D> mappingBuilder = mappingFactory.createMappingBuilder(mappingType, mappingDesc);
+			String mappingName = null;
+			if (mappingType.getName() != null) {
+				mappingName = mappingType.getName();
+			}
 		
 			if (!mappingBuilder.isApplicableToChannel(params.getContext().getChannel())) {
+				LOGGER.trace("Mapping {} not applicable to channel, skipping {}", mappingName, params.getContext().getChannel());
 	        	continue;
 	        }
 			
@@ -231,6 +239,10 @@ public class MappingEvaluator {
 			}
 			mappingBuilder.targetContext(targetObjectDefinition);
 			
+			if (params.getSourceContext() != null) {
+				mappingBuilder.sourceContext(params.getSourceContext());
+			}
+			
 			// Initialize mapping (using Inversion of Control)
 			mappingBuilder = params.getInitializer().initialize(mappingBuilder);
 
@@ -239,9 +251,11 @@ public class MappingEvaluator {
 			
 			if (params.getEvaluateCurrent() != null) {
 				if (params.getEvaluateCurrent() && !timeConstraintValid) {
+					LOGGER.trace("Mapping {} is non-current, but evulating current mappings, skipping {}", mappingName, params.getContext().getChannel());
 					continue;
 				}
 				if (!params.getEvaluateCurrent() && timeConstraintValid) {
+					LOGGER.trace("Mapping {} is current, but evulating non-current mappings, skipping {}", mappingName, params.getContext().getChannel());
 					continue;
 				}
 			}
@@ -251,6 +265,8 @@ public class MappingEvaluator {
 		
 		boolean hasFullTargetObject = params.hasFullTargetObject();
 		PrismObject<T> aPrioriTargetObject = params.getAPrioriTargetObject();
+		
+		LOGGER.trace("Going to process {} mappings for {}", mappings.size(), mappingDesc);
 		
 		for (Mapping<V,D> mapping: mappings) {
 			

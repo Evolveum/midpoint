@@ -377,7 +377,7 @@ public class Projector {
 				    	if (consistencyChecks) context.checkConsistence();
 				    	
 				    	projectionContext.recompute();
-				    	LensUtil.traceContext(LOGGER, activityDescription, "projection lifecycle of "+projectionDesc, false, context, false);
+//				    	LensUtil.traceContext(LOGGER, activityDescription, "projection lifecycle of "+projectionDesc, false, context, false);
 				    	if (consistencyChecks) context.checkConsistence();
 					},
 					partialProcessingOptions::getProjectionLifecycle);

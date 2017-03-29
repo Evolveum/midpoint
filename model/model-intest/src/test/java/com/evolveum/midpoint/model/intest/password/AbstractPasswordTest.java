@@ -93,6 +93,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final File RESOURCE_DUMMY_UGLY_FILE = new File(TEST_DIR, "resource-dummy-ugly.xml");
 	protected static final String RESOURCE_DUMMY_UGLY_OID = "10000000-0000-0000-0000-000000344104";
 	protected static final String RESOURCE_DUMMY_UGLY_NAME = "ugly";
+	
+	protected static final File RESOURCE_DUMMY_LIFECYCLE_FILE = new File(TEST_DIR, "resource-dummy-lifecycle.xml");
+	protected static final String RESOURCE_DUMMY_LIFECYCLE_OID = "519f131a-147b-11e7-a270-c38e2b225751";
+	protected static final String RESOURCE_DUMMY_LIFECYCLE_NAME = "lifecycle";
 
 	protected static final File PASSWORD_POLICY_UGLY_FILE = new File(TEST_DIR, "password-policy-ugly.xml");
 	protected static final String PASSWORD_POLICY_UGLY_OID = "cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee";
@@ -124,6 +128,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		setGlobalSecurityPolicy(getSecurityPolicyOid(), initResult);
 
 		initDummyResourcePirate(RESOURCE_DUMMY_UGLY_NAME, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_LIFECYCLE_NAME, RESOURCE_DUMMY_LIFECYCLE_FILE, RESOURCE_DUMMY_LIFECYCLE_OID, initTask, initResult);
 
 		login(USER_ADMINISTRATOR_USERNAME);
 	}
@@ -1554,6 +1559,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
+		assertLinks(userAfter, 2);
 		
 		String accountDefaultOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
 		String accountRedOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
@@ -1613,6 +1619,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
+		assertLinks(userAfter, 2);
 		
 		String accountDefaultOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
 		String accountRedOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
@@ -1679,6 +1686,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
+		assertLinks(userAfter, 2);
 		
 		String accountDefaultOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
 		getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
@@ -1738,6 +1746,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
+		assertLinks(userAfter, 2);
 		
 		String accountDefaultOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
 		String accountRedOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
@@ -1770,7 +1779,266 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 	}
+	
+	/**
+	 * add new assignment to the user. This resource has explicit lifecycle mapping.
+	 */
+	@Test
+	public void test410AssignRappDummyLifecycle() throws Exception {
+		final String TEST_NAME = "test410AssignRappDummyLifecycle";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
+		// GIVEN
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
+		display("User before", userBefore);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		assignAccount(USER_RAPP_OID, RESOURCE_DUMMY_LIFECYCLE_OID, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+		display("User after", userAfter);
+		assertLinks(userAfter, 3);
+		
+		String accountLifecycleOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_LIFECYCLE_OID);
+		
+		assertDummyAccount(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPasswordConditional(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+
+		PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
+		display("Repo shadow LIFECYCLE", accountShadowLifecycle);
+		assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
+		assertShadowLifecycle(accountShadowLifecycle, false);
+//        assertShadowLifecycle(accountShadowLifecycle, SchemaConstants.LIFECYCLE_ACTIVE);
+
+		
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+        assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+	}
+	
+	@Test
+	public void test412InitializeRappDummyLifecycle() throws Exception {
+		final String TEST_NAME = "test412InitializeRappDummyLifecycle";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
+		display("User before", userBefore);
+		String accountLifecycleOid = getLinkRefOid(userBefore, RESOURCE_DUMMY_LIFECYCLE_OID);
+
+		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountLifecycleOid, prismContext);
+		ProtectedStringType passwordPs = new ProtectedStringType();
+        passwordPs.setClearValue(USER_PASSWORD_VALID_1);
+        shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);
+        shadowDelta.addModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		executeChanges(shadowDelta, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+		display("User after", userAfter);
+		assertLinks(userAfter, 3);
+		
+		accountLifecycleOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_LIFECYCLE_OID);
+		
+		assertDummyAccount(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+
+		PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
+		display("Repo shadow LIFECYCLE", accountShadowLifecycle);
+		assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
+        assertShadowLifecycle(accountShadowLifecycle, SchemaConstants.LIFECYCLE_ACTIVE);
+
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+        assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        // RED shadows
+        String accountRedOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
+        
+		PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
+		display("Repo shadow RED", accountShadowRed);
+		assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
+        assertShadowLifecycle(accountShadowRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        
+        PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
+        display("Model shadow RED", accountModelRed);
+        assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
+        assertShadowLifecycle(accountModelRed, SchemaConstants.LIFECYCLE_ACTIVE);
+
+        // DEFAULT shadows
+        String accountDefaultOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
+		
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
+        assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
+        assertShadowLifecycle(accountModel, null);
+
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
+        assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
+        assertShadowLifecycle(accountShadow, null);
+
+	}
+
+	@Test
+	public void test414UserRappRecompute() throws Exception {
+		final String TEST_NAME = "test414UserRappRecompute";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
+		display("User before", userBefore);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(USER_RAPP_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+		display("User after", userAfter);
+		assertLinks(userAfter, 3);
+		
+		assertDummyAccount(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+        assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        // LIFECYCLE shadows
+        
+        String accountLifecycleOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_LIFECYCLE_OID);
+
+		PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
+		display("Repo shadow LIFECYCLE", accountShadowLifecycle);
+		assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
+        assertShadowLifecycle(accountShadowLifecycle, SchemaConstants.LIFECYCLE_ACTIVE);
+        
+        // RED shadows
+        String accountRedOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
+        
+		PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
+		display("Repo shadow RED", accountShadowRed);
+		assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
+        assertShadowLifecycle(accountShadowRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        
+        PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
+        display("Model shadow RED", accountModelRed);
+        assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
+        assertShadowLifecycle(accountModelRed, SchemaConstants.LIFECYCLE_ACTIVE);
+
+        // DEFAULT shadows
+        String accountDefaultOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
+		
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
+        assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
+        assertShadowLifecycle(accountModel, null);
+
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
+        assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
+        assertShadowLifecycle(accountShadow, null);
+
+	}
+
+	@Test
+	public void test416UserRappEmployeeTypeWreck() throws Exception {
+		final String TEST_NAME = "test416UserRappEmployeeTypeWreck";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
+		display("User before", userBefore);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modifyUserReplace(USER_RAPP_OID, UserType.F_EMPLOYEE_TYPE, task, result, "WRECK");
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
+		display("User after", userAfter);
+		assertLinks(userAfter, 3);
+		
+		assertDummyAccount(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+        assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
+        assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        // LIFECYCLE shadows
+        
+        String accountLifecycleOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_LIFECYCLE_OID);
+
+		PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
+		display("Repo shadow LIFECYCLE", accountShadowLifecycle);
+		assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
+        assertShadowLifecycle(accountShadowLifecycle, SchemaConstants.LIFECYCLE_ARCHIVED);
+        
+        // RED shadows
+        String accountRedOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);
+        
+		PrismObject<ShadowType> accountShadowRed = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
+		display("Repo shadow RED", accountShadowRed);
+		assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
+        assertShadowLifecycle(accountShadowRed, SchemaConstants.LIFECYCLE_ACTIVE);
+        
+        PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
+        display("Model shadow RED", accountModelRed);
+        assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
+        assertShadowLifecycle(accountModelRed, SchemaConstants.LIFECYCLE_ACTIVE);
+
+        // DEFAULT shadows
+        String accountDefaultOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
+		
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountDefaultOid, null, task, result);
+        assertDummyAccountShadowModel(accountModel, accountDefaultOid, USER_RAPP_USERNAME, USER_RAPP_FULLNAME);
+        assertShadowLifecycle(accountModel, null);
+
+		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
+        assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
+        assertShadowLifecycle(accountShadow, null);
+
+	}
+	// TODO: employeeType->WRECK
 
 	protected void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
 		assertDummyPassword(null, userId, expectedClearPassword);
