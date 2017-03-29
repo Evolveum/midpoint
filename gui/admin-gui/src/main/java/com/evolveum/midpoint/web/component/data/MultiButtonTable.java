@@ -18,12 +18,22 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -58,6 +68,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
+    private static final String OPERATION_LOAD_TARGET_OBJECT = DOT_CLASS + "." + "loadTargetObject";
 
     private String addToCartLinkIcon = "fa fa-times-circle fa-lg text-danger";
     private String detailsLinkIcon = "fa fa-arrow-circle-right";
@@ -120,7 +131,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                assignmentDetailsPerformed(assignment, ajaxRequestTarget);
+                targetObjectDetailsPerformed(assignment, ajaxRequestTarget);
             }
         };
         inner.add(new VisibleEnableBehaviour(){
@@ -239,6 +250,22 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         }
     }
 
+    private void targetObjectDetailsPerformed(final AssignmentEditorDto assignment, AjaxRequestTarget target){
+        if (assignment.getTargetRef() == null || assignment.getTargetRef().getOid() == null){
+            return;
+        }
+        if (!plusIconClicked) {
+            String targetObjectOid = assignment.getTargetRef().getOid();
+            OperationResult result = new OperationResult(OPERATION_LOAD_TARGET_OBJECT);
+            Task task = pageBase.createSimpleTask(OPERATION_LOAD_TARGET_OBJECT);
+            PrismObject<AbstractRoleType> targetObject = WebModelServiceUtils.loadObject(AbstractRoleType.class,
+                    targetObjectOid, pageBase, task, result);
+            pageBase.navigateToNext(getTargetObjectDetailsPage(assignment.getType(), targetObject));
+        } else {
+            plusIconClicked = false;
+        }
+    }
+
     private String getIconClass(AssignmentEditorDtoType type){
     	// TODO: switch to icon constants
         if (AssignmentEditorDtoType.ROLE.equals(type)){
@@ -279,4 +306,41 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     }
 
+    private PageBase getTargetObjectDetailsPage(AssignmentEditorDtoType type, PrismObject<AbstractRoleType> targetObject){
+        if (targetObject == null){
+            return pageBase;
+        }
+        if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
+            return new PageOrgUnit(((OrgType)targetObject.asObjectable()).asPrismObject()){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected IModel<String> createPageTitleModel() {
+                    return createStringResource("PageAdminObjectDetails.title.editOrgType",
+                            WebComponentUtil.getName(targetObject.asObjectable()));
+                }
+            };
+        } else if (AssignmentEditorDtoType.ROLE.equals(type)){
+            return new PageRole(((RoleType)targetObject.asObjectable()).asPrismObject()){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected IModel<String> createPageTitleModel() {
+                    return createStringResource("PageAdminObjectDetails.title.editRoleType",
+                            WebComponentUtil.getName(targetObject.asObjectable()));
+                }
+            };
+        } else if (AssignmentEditorDtoType.SERVICE.equals(type)){
+            return new PageService(((ServiceType)targetObject.asObjectable()).asPrismObject()){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected IModel<String> createPageTitleModel() {
+                    return createStringResource("PageAdminObjectDetails.title.editServiceType",
+                            WebComponentUtil.getName(targetObject.asObjectable()));
+                }
+            };
+        }
+        return pageBase;
+    }
 }

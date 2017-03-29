@@ -17,29 +17,44 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import org.apache.commons.collections4.MultiSet;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author semancik
  * @author mederly
  */
-public interface EvaluationOrder extends DebugDumpable {
+public interface EvaluationOrder extends DebugDumpable, Cloneable {
 
 	int getSummaryOrder();
 
-	EvaluationOrder advance();
-
 	EvaluationOrder advance(QName relation);
 
-	EvaluationOrder decrease(int amount);
-
-	EvaluationOrder decrease(int amount, QName relation);
+	EvaluationOrder decrease(MultiSet<QName> relations);
 
 	int getMatchingRelationOrder(QName relation);
 
 	String shortDump();
 
 	Collection<QName> getExtraRelations();
+
+	EvaluationOrder clone();
+
+	EvaluationOrder resetOrder(QName relation, int newOrder);
+
+	// returns the delta that would transform current object state to the newState
+	// both current and new states must be defined
+	Map<QName, Integer> diff(EvaluationOrder newState);
+
+	EvaluationOrder applyDifference(Map<QName,Integer> difference);
+
+	boolean isDefined();
+
+	Set<QName> getRelations();
+
+	boolean isValid();
 }

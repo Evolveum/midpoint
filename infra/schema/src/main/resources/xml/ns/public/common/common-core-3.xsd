@@ -3383,10 +3383,18 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
+			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The new value for order for this relation (or summary order), to be used when
+						evaluating subsequent inducements.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
     		<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
 	   			<xsd:annotation>
     				<xsd:documentation>
-    					Relation to which the order constraints apply.
+    					Relation to which the order constraints apply. If none present, summary (i.e. non-delegation) order is considered.
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
