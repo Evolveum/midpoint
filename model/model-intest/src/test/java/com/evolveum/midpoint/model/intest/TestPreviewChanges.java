@@ -43,12 +43,15 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -1829,14 +1832,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
-		PrismAsserts.assertModifications(accountSecondaryDelta, 8);
+		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
 		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
 				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+		assertPasswordDelta(accountSecondaryDelta);
 		
 	}
 
 	// testing multiple resources with dependencies (dummy -> dummy lemon)
-
 	@Test
 	public void test630AddUserRogers() throws Exception {
 		final String TEST_NAME = "test630AddUserRogers";

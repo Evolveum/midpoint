@@ -31,12 +31,14 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -1128,6 +1130,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("No password value in "+shadow, passwordValue);
 		protector.decrypt(passwordValue);
 		assertEquals("Wrong password in "+shadow, expectedPassword, passwordValue.getClearValue());
+	}
+	
+	protected void assertPasswordDelta(ObjectDelta<ShadowType> shadowDelta) {
+		ItemDelta<PrismValue, ItemDefinition> passwordDelta = shadowDelta.findItemDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+		assertNotNull("No password delta in "+shadowDelta, passwordDelta);
+		
 	}
 	
 	protected void assertFilter(ObjectFilter filter, Class<? extends ObjectFilter> expectedClass) {
