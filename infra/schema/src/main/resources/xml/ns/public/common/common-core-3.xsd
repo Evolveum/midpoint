@@ -14879,7 +14879,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Free form description that specifies the details of this deployment.
-						It may be significantly long (few paragraps). It has no special purpose
+						It may be significantly long (few paragraps). It has no special purpose	
 						other then a form of "on-line" documentation for the deployment. It will
 						NOT be displayed on every page. It will most likely be displayed on a system
 						configuration pages or in configuration summaries.
