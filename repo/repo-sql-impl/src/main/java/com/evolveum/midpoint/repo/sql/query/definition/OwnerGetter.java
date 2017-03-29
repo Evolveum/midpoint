@@ -33,5 +33,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OwnerGetter {
 
-    Class<? extends RObject> ownerClass();
+    Class<?> ownerClass();
 }

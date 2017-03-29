@@ -337,4 +337,9 @@ public class CertCampaignTypeUtil {
         rv.removeAll(advanceToNextStageOn);
         return rv;
     }
+
+    // TODO temporary implementation: replace by work items based approach where possible
+    public static List<ObjectReferenceType> getReviewers(AccessCertificationCaseType _case) {
+        throw new UnsupportedOperationException("TODO");
+    }
 }

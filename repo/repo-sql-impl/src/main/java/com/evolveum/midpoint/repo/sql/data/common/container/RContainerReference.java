@@ -28,6 +28,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 
+import java.util.Objects;
+
 /**
  * @author lazyman
  * @author mederly
@@ -39,7 +41,7 @@ import org.apache.commons.lang.Validate;
  * almost all the code.
  *
  */
-public abstract class RContainerReference implements ObjectReference {
+public abstract class RContainerReference extends RReference implements ObjectReference {
 
     public static final String REFERENCE_TYPE = "reference_type";
 
@@ -50,10 +52,6 @@ public abstract class RContainerReference implements ObjectReference {
     //owner
     private String ownerOid;
     private Integer ownerId;
-    //other primary key fields
-    private String targetOid;
-    private String relation;
-    private RObjectType type;
 
     public RContainerReference() {
     }
@@ -81,21 +79,6 @@ public abstract class RContainerReference implements ObjectReference {
         return null;
     }
 
-    @Override
-    public String getTargetOid() {
-        return targetOid;
-    }
-
-    @Override
-    public String getRelation() {
-        return relation;
-    }
-
-    @Override
-    public RObjectType getType() {
-        return type;
-    }
-
     protected RCReferenceOwner getReferenceType() {
         return referenceType;
     }
@@ -110,41 +93,21 @@ public abstract class RContainerReference implements ObjectReference {
         this.ownerId = ownerId;
     }
 
-    public void setRelation(String relation) {
-        this.relation = relation;
-    }
-
-    public void setTarget(RObject target) {     // shouldn't be called
-    }
-
-    public void setTargetOid(String targetOid) {
-        this.targetOid = targetOid;
-    }
-
-    public void setType(RObjectType type) {
-        this.type = type;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RContainerReference ref = (RContainerReference) o;
-
-        if (targetOid != null ? !targetOid.equals(ref.targetOid) : ref.targetOid != null) return false;
-        if (type != ref.type) return false;
-
-        return true;
+        if (this == o)
+            return true;
+        if (!(o instanceof RContainerReference))
+            return false;
+        if (!super.equals(o))
+            return false;
+        RContainerReference that = (RContainerReference) o;
+        return referenceType == that.referenceType;
     }
 
     @Override
     public int hashCode() {
-        int result = targetOid != null ? targetOid.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (relation != null ? relation.hashCode() : 0);
-
-        return result;
+        return super.hashCode();
     }
 
     public static void copyToJAXB(RContainerReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {

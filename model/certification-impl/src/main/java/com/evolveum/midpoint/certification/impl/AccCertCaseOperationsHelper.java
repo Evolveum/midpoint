@@ -275,7 +275,8 @@ public class AccCertCaseOperationsHelper {
             _case.setCurrentReviewRequestedTimestamp(stage.getStart());
             _case.setCurrentReviewDeadline(stage.getDeadline());
 
-            List<AccessCertificationDecisionType> decisions = createEmptyDecisionsForCase(_case.getCurrentReviewerRef(), 1);
+            // TODO create work items instead
+            List<AccessCertificationDecisionType> decisions = createEmptyDecisionsForCase(CertCampaignTypeUtil.getReviewers(_case), 1);
             _case.getDecision().addAll(decisions);
 
             final AccessCertificationResponseType currentStageOutcome = computationHelper
@@ -298,6 +299,7 @@ public class AccCertCaseOperationsHelper {
 
     // workaround for a query interpreter deficiency: we fill-in decisions when in stage 1
     // (in order to be able to find cases that were not responded to by a given reviewer)
+    // TODO create work items instead!
     private List<AccessCertificationDecisionType> createEmptyDecisionsForCase(List<ObjectReferenceType> forReviewers, int forStage) {
         List<AccessCertificationDecisionType> decisions = new ArrayList<>();
         for (ObjectReferenceType reviewer : forReviewers) {
@@ -393,8 +395,9 @@ public class AccCertCaseOperationsHelper {
                     stageToBe);
             rv.add(currentStageNumberDelta);
 
+            // TODO create work items instead
             final List<AccessCertificationDecisionType> emptyDecisions = createEmptyDecisionsForCase(
-                    _case.getCurrentReviewerRef(), stageToBe);
+                    CertCampaignTypeUtil.getReviewers(_case), stageToBe);
             final ItemDelta emptyDecisionsDelta = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                     .item(F_CASE, caseId, F_DECISION).add(emptyDecisions.toArray())
                     .asItemDelta();

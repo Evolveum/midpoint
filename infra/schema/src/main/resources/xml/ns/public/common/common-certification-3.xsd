@@ -800,13 +800,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentReviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="workItem" type="tns:AccessCertificationWorkItemType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Who are the reviewers? They are related to the stage mentioned in "currentStageNumber".
+                        Work items for this stage. Some might be completed; however, they remains here until the stage is closed.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.6</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -874,7 +874,7 @@
                         A bit of hack. Sometimes it is necessary for a case (viewed out of context of any
                         campaign) point back to its owning certification campaign.
 
-                        This is only a temporary information - not to be stored in the repository.
+                        This is only a temporary information - not to be stored in the XML object in the repository.
                         It is used only for objects that are returned from certification API.
 
                         EXPERIMENTAL
@@ -898,6 +898,43 @@
         <xsd:sequence>
             <xsd:element name="stageNumber" type="xsd:int" minOccurs="1" />
             <xsd:element name="outcome" type="tns:AccessCertificationResponseType" minOccurs="1" />
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationWorkItemType">
+        <xsd:annotation>
+			<xsd:documentation>
+				A work item for a certification case.
+			</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+				<a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="originalReviewerRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Original reviewer for this work item.
+						TODO allow also roles/orgs here.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="reviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Current reviewer(s) for this work item.
+						TODO allow also roles/orgs here.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>

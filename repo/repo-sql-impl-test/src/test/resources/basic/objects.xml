@@ -1421,7 +1421,9 @@
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
             <currentStageNumber>1</currentStageNumber>
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+				<reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+			</workItem>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
             <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
             <decision id="1">
@@ -1442,7 +1444,9 @@
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
             <currentStageNumber>1</currentStageNumber>
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+            	<reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+			</workItem>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
             <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
             <decision id="1">
@@ -1460,7 +1464,9 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="3"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+            	<reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+			</workItem>
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
@@ -1481,7 +1487,9 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="4"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+				<reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+			</workItem>
             <objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"><!-- u001 --></objectRef>
             <targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></targetRef>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
@@ -1522,7 +1530,9 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="5"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+            	<reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+			</workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
@@ -1543,7 +1553,9 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="6"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+            	<reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+			</workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
@@ -1564,7 +1576,9 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="7"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+            	<reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+			</workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
