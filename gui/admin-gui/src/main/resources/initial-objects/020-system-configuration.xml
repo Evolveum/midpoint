@@ -142,7 +142,7 @@
         </userDashboardLink>
     </adminGuiConfiguration>
     <deploymentInformation>
-    	<name>IoP Edition</name>
+    	<name>IoP Home Edition</name>
     	<description>midPoint 3.C "Cimrman", Internet of People Edition</description>
     	<headerColor>#f00000</headerColor>
     </deploymentInformation>
