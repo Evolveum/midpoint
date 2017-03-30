@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -747,24 +749,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		boolean nextIsMatchingOrderForTarget = AssignmentPathSegmentImpl.computeMatchingOrder(
 				segment.getEvaluationOrderForTarget(), nextSegment.getAssignment());
 
-		EvaluationOrder nextEvaluationOrder, nextEvaluationOrderForTarget;
-		if (inducement.getOrder() != null && inducement.getOrder() > 1) {
-			nextEvaluationOrder = segment.getEvaluationOrder().decrease(inducement.getOrder()-1);		// TODO what about relations?
-			nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget().decrease(inducement.getOrder()-1);		// TODO what about relations?
-			if (nextEvaluationOrder.getSummaryOrder() <= 0) {		// TODO TODO TODO TODO TODO
-				nextEvaluationOrder = EvaluationOrderImpl.UNDEFINED;
-				nextEvaluationOrderForTarget = EvaluationOrderImpl.UNDEFINED;
-			}
-		} else if (inducement.getOrderConstraint().isEmpty()) {
-			// i.e. order is null or 1
-			nextEvaluationOrder = segment.getEvaluationOrder();
-			nextEvaluationOrderForTarget = segment.getEvaluationOrderForTarget();
-		} else {
-			nextEvaluationOrder = EvaluationOrderImpl.UNDEFINED;
-			nextEvaluationOrderForTarget = EvaluationOrderImpl.UNDEFINED;
-		}
-		nextSegment.setEvaluationOrder(nextEvaluationOrder, nextIsMatchingOrder);
-		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTarget, nextIsMatchingOrderForTarget);
+		Holder<EvaluationOrder> nextEvaluationOrderHolder = new Holder<>(segment.getEvaluationOrder().clone());
+		Holder<EvaluationOrder> nextEvaluationOrderForTargetHolder = new Holder<>(segment.getEvaluationOrderForTarget().clone());
+		adjustOrder(nextEvaluationOrderHolder, nextEvaluationOrderForTargetHolder, inducement.getOrderConstraint(), inducement.getOrder(), ctx.assignmentPath, nextSegment);
+		nextSegment.setEvaluationOrder(nextEvaluationOrderHolder.getValue(), nextIsMatchingOrder);
+		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTargetHolder.getValue(), nextIsMatchingOrderForTarget);
 
 		nextSegment.setOrderOneObject(orderOneObject);
 		nextSegment.setPathToSourceValid(isValid);
@@ -780,10 +769,138 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("orig EO({}): evaluate {} inducement({}) {}; new EO({})",
 					segment.getEvaluationOrder().shortDump(), targetType, FocusTypeUtil.dumpInducementConstraints(inducement),
-					FocusTypeUtil.dumpAssignment(inducement), nextEvaluationOrder.shortDump());
+					FocusTypeUtil.dumpAssignment(inducement), nextEvaluationOrderHolder.getValue().shortDump());
 		}
 		assert !ctx.assignmentPath.isEmpty();
 		evaluateFromSegment(nextSegment, mode, ctx);
+	}
+
+	private void adjustOrder(Holder<EvaluationOrder> evaluationOrderHolder, Holder<EvaluationOrder> targetEvaluationOrderHolder,
+			List<OrderConstraintsType> constraints, Integer order, AssignmentPathImpl assignmentPath,
+			AssignmentPathSegmentImpl nextSegment) {
+
+		if (constraints.isEmpty()) {
+			if (order == null || order == 1) {
+				return;
+			} else if (order <= 0) {
+				throw new IllegalStateException("Wrong inducement order: it must be positive but it is " + order + " instead");
+			}
+			// converting legacy -> new specification
+			int currentOrder = evaluationOrderHolder.getValue().getSummaryOrder();
+			if (order > currentOrder) {
+				LOGGER.trace("order of the inducement ({}) is greater than the current evaluation order ({}), marking as undefined",
+						order, currentOrder);
+				makeUndefined(evaluationOrderHolder, targetEvaluationOrderHolder);
+				return;
+			}
+			// i.e. currentOrder >= order, i.e. currentOrder > order-1
+			int newOrder = currentOrder - (order - 1);
+			assert newOrder > 0;
+			constraints = Collections.singletonList(new OrderConstraintsType(prismContext)
+					.order(order)
+					.resetOrder(newOrder));
+		}
+
+		OrderConstraintsType summaryConstraints = ObjectTypeUtil.getConstraintFor(constraints, null);
+		Integer resetSummaryTo = summaryConstraints != null && summaryConstraints.getResetOrder() != null ?
+				summaryConstraints.getResetOrder() : null;
+
+		if (resetSummaryTo != null) {
+			int summaryBackwards = evaluationOrderHolder.getValue().getSummaryOrder() - resetSummaryTo;
+			if (summaryBackwards < 0) {
+				// or should we throw an exception?
+				LOGGER.warn("Cannot move summary order backwards to a negative value ({}). Current order: {}, requested order: {}",
+						summaryBackwards, evaluationOrderHolder.getValue().getSummaryOrder(), resetSummaryTo);
+				makeUndefined(evaluationOrderHolder, targetEvaluationOrderHolder);
+				return;
+			} else if (summaryBackwards > 0) {
+//				MultiSet<QName> backRelations = new HashMultiSet<>();
+				int assignmentsSeen = 0;
+				int i = assignmentPath.size()-1;
+				while (assignmentsSeen < summaryBackwards) {
+					if (i < 0) {
+						LOGGER.trace("Cannot move summary order backwards by {}; only {} assignments segment seen: {}",
+								summaryBackwards, assignmentsSeen, assignmentPath);
+						makeUndefined(evaluationOrderHolder, targetEvaluationOrderHolder);
+						return;
+					}
+					AssignmentPathSegmentImpl segment = assignmentPath.getSegments().get(i);
+					if (segment.isAssignment()) {
+						if (!ObjectTypeUtil.isDelegationRelation(segment.getRelation())) {
+							// backRelations.add(segment.getRelation());
+							assignmentsSeen++;
+							LOGGER.trace("Going back {}: relation at assignment -{} (position -{}): {}", summaryBackwards,
+									assignmentsSeen, assignmentPath.size() - i, segment.getRelation());
+						}
+					} else {
+						AssignmentType inducement = segment.getAssignment();
+						for (OrderConstraintsType constraint : inducement.getOrderConstraint()) {
+							if (constraint.getResetOrder() != null && constraint.getRelation() != null) {
+								LOGGER.debug("Going back {}: an inducement with non-summary resetting constraint found"
+										+ " in the chain (at position -{}): {} in {}", summaryBackwards, assignmentPath.size()-i,
+										constraint, segment);
+								makeUndefined(evaluationOrderHolder, targetEvaluationOrderHolder);
+								return;
+							}
+						}
+						if (segment.getLastEqualOrderSegmentIndex() != null) {
+							i = segment.getLastEqualOrderSegmentIndex();
+							continue;
+						}
+					}
+					i--;
+				}
+				nextSegment.setLastEqualOrderSegmentIndex(i);
+				evaluationOrderHolder.setValue(assignmentPath.getSegments().get(i).getEvaluationOrder());
+				targetEvaluationOrderHolder.setValue(assignmentPath.getSegments().get(i).getEvaluationOrderForTarget());
+			} else {
+				// summaryBackwards is 0 - nothing to change
+			}
+			for (OrderConstraintsType constraint : constraints) {
+				if (constraint.getRelation() != null && constraint.getResetOrder() != null) {
+					LOGGER.warn("Ignoring resetOrder (with a value of {} for {}) because summary order was already moved backwards by {} to {}: {}",
+							constraint.getResetOrder(), constraint.getRelation(), summaryBackwards, evaluationOrderHolder.getValue().getSummaryOrder(), constraint);
+				}
+			}
+		} else {
+			EvaluationOrder beforeChange = evaluationOrderHolder.getValue().clone();
+			for (OrderConstraintsType constraint : constraints) {
+				if (constraint.getResetOrder() != null) {
+					assert constraint.getRelation() != null;		// already processed above
+					int currentOrder = evaluationOrderHolder.getValue().getMatchingRelationOrder(constraint.getRelation());
+					int newOrder = constraint.getResetOrder();
+					if (newOrder > currentOrder) {
+						LOGGER.warn("Cannot increase evaluation order for {} from {} to {}: {}", constraint.getRelation(),
+								currentOrder, newOrder, constraint);
+					} else if (newOrder < currentOrder) {
+						evaluationOrderHolder.setValue(evaluationOrderHolder.getValue().resetOrder(constraint.getRelation(), newOrder));
+						LOGGER.trace("Reset order for {} from {} to {} -> {}", constraint.getRelation(), currentOrder, newOrder, evaluationOrderHolder.getValue());
+					} else {
+						LOGGER.trace("Keeping order for {} at {} -> {}", constraint.getRelation(), currentOrder, evaluationOrderHolder.getValue());
+					}
+				}
+			}
+			Map<QName, Integer> difference = beforeChange.diff(evaluationOrderHolder.getValue());
+			targetEvaluationOrderHolder.setValue(targetEvaluationOrderHolder.getValue().applyDifference(difference));
+		}
+
+		if (evaluationOrderHolder.getValue().getSummaryOrder() <= 0) {
+			makeUndefined(evaluationOrderHolder, targetEvaluationOrderHolder);
+		}
+		if (!targetEvaluationOrderHolder.getValue().isValid()) {
+			// some extreme cases like the one described in TestAssignmentProcessor2.test520
+			makeUndefined(targetEvaluationOrderHolder);
+		}
+		if (!evaluationOrderHolder.getValue().isValid()) {
+			throw new AssertionError("Resulting evaluation order path is invalid: " + evaluationOrderHolder.getValue());
+		}
+	}
+
+	@SafeVarargs
+	private final void makeUndefined(Holder<EvaluationOrder>... holders) {
+		for (Holder<EvaluationOrder> holder : holders) {
+			holder.setValue(EvaluationOrderImpl.UNDEFINED);
+		}
 	}
 
 	private void collectMembership(FocusType targetType, QName relation, EvaluationContext ctx) {
@@ -802,7 +919,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 						"membershipRef", targetType);
 			}
 		}
-		if (targetType instanceof OrgType) {
+		if (targetType instanceof OrgType && (ObjectTypeUtil.isDefaultRelation(relation) || ObjectTypeUtil.isManagerRelation(relation))) {
 			addIfNotThere(ctx.evalAssignment.getOrgRefVals(), ctx.evalAssignment::addOrgRefVal, refVal,
 					"orgRef", targetType);
 		}

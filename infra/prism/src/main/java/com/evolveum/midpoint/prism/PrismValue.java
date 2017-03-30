@@ -298,6 +298,9 @@ public abstract class PrismValue implements IPrismValue {
 		// and setting the parent will make it difficult to add it there.
 		clone.parent = null;
 		// Do not clone immutable flag.
+		if (clone.prismContext == null) {
+			clone.prismContext = this.prismContext;
+		}
 	}
 
 	@NotNull

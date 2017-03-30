@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -40,14 +41,17 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	private String mappingDesc;
 	private XMLGregorianCalendar now;
 	private MappingInitializer<V,D> initializer;
+	private MappingLoader<T> targetLoader;
 	private MappingOutputProcessor<V> processor;
 	private PrismObject<T> aPrioriTargetObject;
 	private ObjectDelta<T> aPrioriTargetDelta;
 	private LensElementContext<T> targetContext;
+	private ObjectDeltaObject<?> sourceContext;
 	private ItemPath defaultTargetItemPath;
 	// Only needed if defaultTargetItemPath == null
 	private D targetItemDefinition;
 	private Boolean evaluateCurrent;
+	private boolean evaluateWeak = true;
 	private LensContext<F> context;
 	private boolean hasFullTargetObject;
 	// If set to true then the target cannot be overridden in mapping
@@ -60,57 +64,99 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	public void setMappingTypes(Collection<MappingType> mappingTypes) {
 		this.mappingTypes = mappingTypes;
 	}
+	
 	public String getMappingDesc() {
 		return mappingDesc;
 	}
+	
 	public void setMappingDesc(String mappingDesc) {
 		this.mappingDesc = mappingDesc;
 	}
+	
 	public XMLGregorianCalendar getNow() {
 		return now;
 	}
+	
 	public void setNow(XMLGregorianCalendar now) {
 		this.now = now;
 	}
+	
 	public MappingInitializer<V,D> getInitializer() {
 		return initializer;
 	}
+	
 	public void setInitializer(MappingInitializer<V,D> initializer) {
 		this.initializer = initializer;
 	}
+
+	public MappingLoader<T> getTargetLoader() {
+		return targetLoader;
+	}
+
+	public void setTargetLoader(MappingLoader<T> targetLoader) {
+		this.targetLoader = targetLoader;
+	}
+
 	public MappingOutputProcessor<V> getProcessor() {
 		return processor;
 	}
+	
 	public void setProcessor(MappingOutputProcessor<V> processor) {
 		this.processor = processor;
 	}
+	
 	public PrismObject<T> getAPrioriTargetObject() {
 		return aPrioriTargetObject;
 	}
+	
 	public void setAPrioriTargetObject(PrismObject<T> aPrioriTargetObject) {
 		this.aPrioriTargetObject = aPrioriTargetObject;
 	}
+	
 	public ObjectDelta<T> getAPrioriTargetDelta() {
 		return aPrioriTargetDelta;
 	}
+	
 	public void setAPrioriTargetDelta(ObjectDelta<T> aPrioriTargetDelta) {
 		this.aPrioriTargetDelta = aPrioriTargetDelta;
 	}
+	
 	public LensElementContext<T> getTargetContext() {
 		return targetContext;
 	}
+	
 	public void setTargetContext(LensElementContext<T> targetContext) {
 		this.targetContext = targetContext;
 	}
+	
+	public ObjectDeltaObject<?> getSourceContext() {
+		return sourceContext;
+	}
+
+	public void setSourceContext(ObjectDeltaObject<?> sourceContext) {
+		this.sourceContext = sourceContext;
+	}
+
 	public Boolean getEvaluateCurrent() {
 		return evaluateCurrent;
 	}
+	
 	public void setEvaluateCurrent(Boolean evaluateCurrent) {
 		this.evaluateCurrent = evaluateCurrent;
 	}
+	
+	public boolean isEvaluateWeak() {
+		return evaluateWeak;
+	}
+
+	public void setEvaluateWeak(boolean evaluateWeak) {
+		this.evaluateWeak = evaluateWeak;
+	}
+
 	public LensContext<F> getContext() {
 		return context;
 	}
+	
 	public void setContext(LensContext<F> context) {
 		this.context = context;
 	}
@@ -145,7 +191,6 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 
 	public void setTargetItemDefinition(D targetItemDefinition) {
 		this.targetItemDefinition = targetItemDefinition;
-	} 
-	
+	}
 	
 }

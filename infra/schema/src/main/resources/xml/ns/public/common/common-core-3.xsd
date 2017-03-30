@@ -3383,10 +3383,18 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
+			<xsd:element name="resetOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The new value for order for this relation (or summary order), to be used when
+						evaluating subsequent inducements.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
     		<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
 	   			<xsd:annotation>
     				<xsd:documentation>
-    					Relation to which the order constraints apply.
+    					Relation to which the order constraints apply. If none present, summary (i.e. non-delegation) order is considered.
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
@@ -5030,7 +5038,7 @@
     <xsd:complexType name="ResourcePasswordDefinitionType">
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
-            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how the password value is constructed in case of information flow from IDM to the
@@ -11168,6 +11176,17 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="defaultCollection" type="tns:ObjectCollectionUseType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the default object collections ("role catalog view") to display in role
+						catalog.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="defaultAssignmentConstraints" type="tns:AssignmentConstraintsType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -14860,7 +14879,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Free form description that specifies the details of this deployment.
-						It may be significantly long (few paragraps). It has no special purpose
+						It may be significantly long (few paragraps). It has no special purpose	
 						other then a form of "on-line" documentation for the deployment. It will
 						NOT be displayed on every page. It will most likely be displayed on a system
 						configuration pages or in configuration summaries.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+
 import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -28,6 +31,8 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
 /**
  * Almost the same as TestDummy but with some extra things, such as:
@@ -46,6 +51,15 @@ public class TestDummyExtra extends TestDummy {
 	@Override
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
+	}
+	
+	@Override
+	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
+		PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
+		assertNotNull("password native capability not present", passwordCapabilityType);
+		Boolean readable = passwordCapabilityType.isReadable();
+		assertNotNull("No 'readable' inducation in password capability", readable);
+		assertTrue("Password not 'readable' in password capability", readable);
 	}
 
 	@Override

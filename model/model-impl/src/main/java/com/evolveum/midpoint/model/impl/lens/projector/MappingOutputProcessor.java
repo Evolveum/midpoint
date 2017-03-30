@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface MappingOutputProcessor<V extends PrismValue> {
 
-	void process(ItemPath mappingOutputPath, PrismValueDeltaSetTriple<V> outputTriple) throws SchemaException, ExpressionEvaluationException;
+	/**
+	 * 
+	 * @return if true is returned then the detaul processing will take place
+	 *         after the processor is finished. If false then the defaul processing
+	 *         will be skipped.
+	 */
+	boolean process(ItemPath mappingOutputPath, MappingOutputStruct<V> outputStruct) throws SchemaException, ExpressionEvaluationException;
 	
 }

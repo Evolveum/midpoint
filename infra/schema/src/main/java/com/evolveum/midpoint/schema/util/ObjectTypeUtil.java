@@ -34,6 +34,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -629,5 +630,11 @@ public class ObjectTypeUtil {
 		} else {
 			return QNameUtil.match(relation1, relation2);
 		}
+	}
+
+	public static OrderConstraintsType getConstraintFor(List<OrderConstraintsType> constraints, QName relation) {
+		return CollectionUtils.emptyIfNull(constraints).stream()
+				.filter(c -> QNameUtil.match(c.getRelation(), relation))		// intentionally not using default/null equivalence here
+				.findFirst().orElse(null);
 	}
 }

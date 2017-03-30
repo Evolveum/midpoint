@@ -287,7 +287,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public MappingType getPasswordOutbound() {
+	public List<MappingType> getPasswordOutbound() {
 		return structuralObjectClassDefinition.getPasswordOutbound();
 	}
 

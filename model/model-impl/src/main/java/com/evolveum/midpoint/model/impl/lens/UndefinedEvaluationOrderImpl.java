@@ -17,10 +17,13 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.apache.commons.collections4.MultiSet;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author semancik
@@ -37,27 +40,48 @@ public class UndefinedEvaluationOrderImpl implements EvaluationOrder {
 	}
 	
 	@Override
-	public EvaluationOrder advance() {
-		return this;
-	}
-	
-	@Override
 	public EvaluationOrder advance(QName relation) {
 		return this;
 	}
 
-	private EvaluationOrder advance(int amount, QName relation) {
+	@Override
+	public EvaluationOrder decrease(MultiSet<QName> relations) {
 		return this;
 	}
 
 	@Override
-	public EvaluationOrder decrease(int amount) {
+	public EvaluationOrder clone() {
 		return this;
 	}
 
 	@Override
-	public EvaluationOrder decrease(int amount, QName relation) {
+	public EvaluationOrder resetOrder(QName relation, int newOrder) {
 		return this;
+	}
+
+	@Override
+	public Map<QName, Integer> diff(EvaluationOrder newState) {
+		throw new IllegalStateException("Cannot compute diff on undefined evaluation order");
+	}
+
+	@Override
+	public EvaluationOrder applyDifference(Map<QName, Integer> difference) {
+		return this;
+	}
+
+	@Override
+	public boolean isDefined() {
+		return false;
+	}
+
+	@Override
+	public boolean isValid() {
+		return true;					// undefined order is always valid
+	}
+
+	@Override
+	public Set<QName> getRelations() {
+		return Collections.emptySet();
 	}
 
 	@Override

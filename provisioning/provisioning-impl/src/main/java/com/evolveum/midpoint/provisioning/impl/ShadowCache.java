@@ -184,6 +184,7 @@ public abstract class ShadowCache {
 		}
 
 		ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
+		ctx.setGetOperationOptions(options);
 		try {
 			ctx.assertDefinition();
 			applyAttributesDefinition(ctx, repositoryShadow);
@@ -792,6 +793,7 @@ public abstract class ShadowCache {
 
 		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
+		ctx.setGetOperationOptions(options);
 		ctx.assertDefinition();
 
 		return searchObjectsIterative(ctx, query, options, handler, readFromRepository, parentResult);
@@ -820,7 +822,9 @@ public abstract class ShadowCache {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> resourceShadow) {
-				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(resourceShadow));
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Found resource object\n{}", resourceShadow.debugDump(1));
+				}
 				PrismObject<ShadowType> resultShadow;
 				try {
 					// The shadow does not have any kind or intent at this

@@ -336,7 +336,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
     @Override
-	public MappingType getPasswordOutbound() {
+	public List<MappingType> getPasswordOutbound() {
 		return refinedObjectClassDefinition.getPasswordOutbound();
 	}
 

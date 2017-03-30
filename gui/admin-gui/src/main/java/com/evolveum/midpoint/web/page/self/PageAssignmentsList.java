@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -138,8 +139,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 onRequestPerformed(target);
-                SessionStorage storage = getSessionStorage();
-                storage.getRoleCatalog().getAssignmentShoppingCart().clear();
             }
 
         };
@@ -197,6 +196,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
 
             result.recordSuccess();
+            SessionStorage storage = getSessionStorage();
+            storage.getRoleCatalog().getAssignmentShoppingCart().clear();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
             error("Could not save assignments. Reason: " + e);
@@ -216,6 +217,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         showResult(result);
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             target.add(getFeedbackPanel());
+            target.add(PageAssignmentsList.this.get(ID_FORM));
         } else {
             setResponsePage(PageAssignmentShoppingKart.class);
         }

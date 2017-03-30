@@ -225,8 +225,10 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			checkMapping(ctx, itemPath.append(ResourcePasswordDefinitionType.F_INBOUND), objectType, itemName, inbound, false, i, true);
 			i++;
 		}
-		if (passwordDefinition.getOutbound() != null) {
-			checkMapping(ctx, itemPath.append(ResourcePasswordDefinitionType.F_OUTBOUND), objectType, itemName, passwordDefinition.getOutbound(), true, 0, true);
+		i = 1;
+		for (MappingType outbound : passwordDefinition.getOutbound()) {
+			checkMapping(ctx, itemPath.append(ResourcePasswordDefinitionType.F_OUTBOUND), objectType, itemName, outbound, true, i, true);
+			i++;
 		}
 	}
 
