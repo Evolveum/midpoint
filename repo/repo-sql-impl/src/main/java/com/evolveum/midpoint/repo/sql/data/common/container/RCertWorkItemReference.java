@@ -68,9 +68,11 @@ public class RCertWorkItemReference extends RReference {
 
 	public void setOwner(RAccessCertificationWorkItem owner) {
 		this.owner = owner;
-		this.ownerOwnerOwnerOid = owner.getOwnerOwnerOid();
-		this.ownerOwnerId = owner.getOwnerId();
-		this.ownerId = owner.getId();
+		if (owner != null) {
+			this.ownerOwnerOwnerOid = owner.getOwnerOwnerOid();
+			this.ownerOwnerId = owner.getOwnerId();
+			this.ownerId = owner.getId();
+		}
 	}
 
 	@Column(name = "owner_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)

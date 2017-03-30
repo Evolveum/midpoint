@@ -119,8 +119,10 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 
     public void setOwner(RAccessCertificationCase _case) {
     	this.owner = _case;
-    	this.ownerId = _case != null ? _case.getId() : null;
-    	this.ownerOwnerOid = _case != null ? _case.getOwnerOid() : null;
+    	if (_case != null) {            // sometimes we are called with null _case but non-null IDs
+			this.ownerId = _case.getId();
+			this.ownerOwnerOid = _case.getOwnerOid();
+		}
 	}
 
 	public void setOwnerId(Integer ownerId) {

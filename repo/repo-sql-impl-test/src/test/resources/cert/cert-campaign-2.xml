@@ -57,8 +57,12 @@
         <objectRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
-        <currentReviewerRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></currentReviewerRef>
+        <workItem id="1">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        </workItem>
+        <workItem id="2">
+            <reviewerRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
+        </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">

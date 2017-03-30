@@ -77,8 +77,12 @@
         <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
-        <currentReviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></currentReviewerRef>
+        <workItem id="1">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        </workItem>
+        <workItem id="2">
+            <reviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
+        </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
@@ -100,7 +104,9 @@
         <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <workItem id="1">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
@@ -122,7 +128,9 @@
         <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <workItem id="1">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
@@ -143,7 +151,9 @@
         <targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                    type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <workItem id="1">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
@@ -186,7 +196,9 @@
         <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <workItem id="1">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
@@ -208,7 +220,9 @@
         <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+        <workItem id="1">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">
@@ -234,8 +248,12 @@
         <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
         <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
-        <currentReviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></currentReviewerRef>
+        <workItem id="1">
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+        </workItem>
+        <workItem id="2">
+            <reviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
+        </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <decision id="1">

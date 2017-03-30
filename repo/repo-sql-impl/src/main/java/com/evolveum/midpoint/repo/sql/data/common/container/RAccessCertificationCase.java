@@ -25,7 +25,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
@@ -45,23 +44,9 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Where;
 import org.jetbrains.annotations.NotNull;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Index;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -83,7 +68,7 @@ import java.util.Set;
         @Index(name = "iCaseOrgRefTargetOid", columnList = "orgRef_targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
-public class RAccessCertificationCase implements Container {
+public class RAccessCertificationCase implements Container<RAccessCertificationCampaign> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationCase.class);
 
@@ -93,7 +78,7 @@ public class RAccessCertificationCase implements Container {
 
     private byte[] fullObject;
 
-    private RObject owner;                          // owning campaign
+    private RAccessCertificationCampaign owner;
     private String ownerOid;
     private Integer id;
 
@@ -113,11 +98,6 @@ public class RAccessCertificationCase implements Container {
     private RAccessCertificationResponse overallOutcome;
 
     public RAccessCertificationCase() {
-        this(null);
-    }
-
-    public RAccessCertificationCase(RObject owner) {
-        this.setOwner(owner);
     }
 
     @Id
@@ -125,7 +105,7 @@ public class RAccessCertificationCase implements Container {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RAccessCertificationCampaign.class)
-    public RObject getOwner() {
+    public RAccessCertificationCampaign getOwner() {
         return owner;
     }
 
@@ -214,9 +194,11 @@ public class RAccessCertificationCase implements Container {
         return overallOutcome;
     }
 
-    public void setOwner(RObject owner) {
+    public void setOwner(RAccessCertificationCampaign owner) {
         this.owner = owner;
-        this.ownerOid = owner != null ? owner.getOid() : null;
+        if (owner != null) {        // sometimes we are called with null owner but non-null ownerOid
+            this.ownerOid = owner.getOid();
+        }
     }
 
     public void setOwnerOid(String ownerOid) {
