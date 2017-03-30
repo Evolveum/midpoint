@@ -79,6 +79,7 @@
             <class name="com.evolveum.midpoint.model.impl.ModelWebServiceTest"/>
             <class name="com.evolveum.midpoint.model.impl.security.TestPasswordAuthenticationEvaluator"/>
             <class name="com.evolveum.midpoint.model.impl.security.TestNonceAuthenticationEvaluator"/>
+            <class name="com.evolveum.midpoint.model.impl.security.TestSecurityQuestionsAuthenticationEvaluator"/>
         </classes>
     </test>
 </suite>

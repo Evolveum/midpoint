@@ -1953,9 +1953,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue("nbusr123");
-        LOGGER.debug("PPPPP: modify password request");
         assertModifyAllow(UserType.class, USER_JACK_OID, PASSWORD_PATH, passwordPs);
-        LOGGER.debug("PPPPP: modify password done");
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, PASSWORD_PATH, passwordPs);
 
         OperationResult result = new OperationResult(TEST_NAME);

@@ -347,7 +347,9 @@ public class PrismUnmarshaller {
                         node.getTypeQName()
                 );
         if (typeName == null) {
-            return PrismPropertyValue.createRaw(node);
+            PrismPropertyValue<T> ppv = PrismPropertyValue.createRaw(node);
+            ppv.setPrismContext(prismContext);
+            return ppv;
         } else if (getBeanUnmarshaller().canProcess(typeName)) {
             T realValue = getBeanUnmarshaller().unmarshal(node, typeName, pc);
             // Postprocessing after returning from unmarshaller. It speaks bean language (e.g. PolyStringType, not PolyString).
@@ -362,7 +364,12 @@ public class PrismUnmarshaller {
                 pc.warnOrThrow(LOGGER, "Unknown (not allowed) value of type " + typeName + ". Value: " + realValue + ". Allowed values: " + definition.getAllowedValues());
                 return null;
             }
-            return realValue != null ? new PrismPropertyValue<>(realValue) : null;
+            if (realValue == null) {
+                return null;
+            }
+            PrismPropertyValue<T> ppv = new PrismPropertyValue<>(realValue);
+            ppv.setPrismContext(prismContext);
+            return ppv;
         } else {
             throw new IllegalStateException("Cannot parse as " + typeName + ": " + node.debugDump());
         }
