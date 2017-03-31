@@ -86,7 +86,14 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 			passwordAuthenticator.handleRequest(policy, m, requestCtx);
 			return;
 		}
+		
 		String authorization = requestCtx.getHeaderString("Authorization");
+		
+		if (StringUtils.isBlank(authorization)){
+			createAbortMessage(requestCtx);
+			return;
+		}
+		
 		String[] parts = authorization.split(" ");
 		String authenticationType = parts[0];
 
