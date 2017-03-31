@@ -424,7 +424,15 @@ public class ObjectRetriever {
 				}
 			} else {
             	assert workItems;
-            	// TODO
+				List<GetCertificationWorkItemResult> items = rQuery.list();
+				LOGGER.trace("Found {} items, translating to JAXB.", items.size());
+				Map<String,PrismContainerValue<AccessCertificationCaseType>> casesCache = new HashMap<>();
+				Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
+				for (GetCertificationWorkItemResult item : items) {
+					@SuppressWarnings({ "raw", "unchecked" })
+					C value = (C) caseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
+					list.add(value);
+				}
 			}
 
             session.getTransaction().commit();

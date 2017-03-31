@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -32,10 +34,10 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertification
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertCaseReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.GetContainerableResult;
-import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query.RQuery;
+import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -48,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
@@ -338,6 +341,45 @@ public class CertificationCaseHelper {
             campaign.asObjectable().getCase().add(aCase);
         }
         return aCase;
+    }
+
+    public AccessCertificationWorkItemType updateLoadedCertificationWorkItem(GetCertificationWorkItemResult result,
+            Map<String, PrismContainerValue<AccessCertificationCaseType>> casesCache,		// key=OID:ID
+            Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache,		// key=OID
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			QueryEngine2 engine, Session session, OperationResult operationResult) throws SchemaException, QueryException {
+
+		String campaignOid = result.getCampaignOid();
+		Integer caseId = result.getCaseId();
+		Integer workItemId = result.getId();
+		String caseKey = campaignOid + ":" + caseId;
+		PrismContainerValue<AccessCertificationCaseType> casePcv = casesCache.get(caseKey);
+		if (casePcv == null) {
+			ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+					.ownerId(campaignOid)
+					.and().id(caseId)
+					.build();
+			RQuery caseQuery = engine.interpret(query, AccessCertificationCaseType.class, null, false, session);
+			List<GetContainerableResult> cases = caseQuery.list();
+			if (cases.size() > 1) {
+				throw new IllegalStateException(
+						"More than one certification case found for campaign " + campaignOid + ", ID " + caseId);
+			} else if (cases.isEmpty()) {
+				// we need it, because otherwise we have only identifiers for the work item, no data
+				throw new IllegalStateException("No certification case found for campaign " + campaignOid + ", ID " + caseId);
+			}
+			AccessCertificationCaseType _case = updateLoadedCertificationCase(cases.get(0), campaignsCache, null, session, operationResult);
+			casePcv = _case.asPrismContainerValue();
+			casesCache.put(caseKey, casePcv);
+		}
+		@SuppressWarnings({"raw", "unchecked"})
+		PrismContainerValue<AccessCertificationWorkItemType> workItemPcv = (PrismContainerValue<AccessCertificationWorkItemType>)
+				casePcv.find(new ItemPath(AccessCertificationCaseType.F_WORK_ITEM, workItemId));
+		if (workItemPcv == null) {
+			throw new IllegalStateException("No work item " + workItemId + " in " + casePcv);
+		} else {
+			return workItemPcv.asContainerable();
+		}
     }
 
     private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid, Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache, Session session,

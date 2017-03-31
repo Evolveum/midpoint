@@ -80,13 +80,14 @@ import static org.testng.AssertJUnit.fail;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CertificationTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
     private static final File TEST_DIR = new File("src/test/resources/cert");
     public static final File CAMPAIGN_1_FILE = new File(TEST_DIR, "cert-campaign-1.xml");
     public static final File CAMPAIGN_2_FILE = new File(TEST_DIR, "cert-campaign-2.xml");
     public static final long NEW_CASE_ID = 100L;
+	public static final long SECOND_NEW_CASE_ID = 110L;
 
-    private String campaign1Oid;
+	private String campaign1Oid;
     private String campaign2Oid;
     private PrismObjectDefinition<AccessCertificationCampaignType> campaignDef;
 
@@ -107,12 +108,10 @@ public class CertificationTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
 
         checkCampaign(campaign1Oid, result, prismContext.parseObject(CAMPAIGN_1_FILE), null, null);
-        checkCasesForCampaign(campaign1Oid, 7, result);
-        checkCasesTotal(7, result);
-        checkWorkItemsTotal(9, result);
+		checksCountsStandard(result);
     }
 
-    @Test(expectedExceptions = ObjectAlreadyExistsException.class)
+	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
     public void test105AddCampaignNonOverwriteExisting() throws Exception {
         PrismObject<AccessCertificationCampaignType> campaign = prismContext.parseObject(CAMPAIGN_1_FILE);
         OperationResult result = new OperationResult("test105AddCampaignNonOverwriteExisting");
@@ -126,7 +125,8 @@ public class CertificationTest extends BaseSQLRepoTest {
         campaign.setOid(campaign1Oid);       // doesn't work without specifying OID
         campaign1Oid = repositoryService.addObject(campaign, RepoAddOptions.createOverwrite(), result);
 
-        checkCampaign(campaign1Oid, result, (PrismObject) prismContext.parseObject(CAMPAIGN_1_FILE), null, null);
+        checkCampaign(campaign1Oid, result, prismContext.parseObject(CAMPAIGN_1_FILE), null, null);
+		checksCountsStandard(result);
     }
 
     @Test
@@ -138,7 +138,8 @@ public class CertificationTest extends BaseSQLRepoTest {
         modifications.add(createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
 
         executeAndCheckModification(modifications, result, 1);
-    }
+		checksCountsStandard(result);
+	}
 
     @Test
     public void test210ModifyCaseProperties() throws Exception {
@@ -150,6 +151,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
+		checksCountsStandard(result);
     }
 
     @Test
@@ -162,6 +164,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         modifications.add(createModificationReplaceProperty(d1.subPath(F_COMMENT), campaignDef, "hi"));
 
         executeAndCheckModification(modifications, result, 0);
+		checksCountsStandard(result);
     }
 
     @Test
@@ -178,6 +181,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 1);
+		checksCountsStandard(result);
     }
 
     @Test
@@ -194,7 +198,9 @@ public class CertificationTest extends BaseSQLRepoTest {
         case100.setId(NEW_CASE_ID);
         case100.setObjectRef(createObjectRef("100123", ObjectTypes.USER));
         case100.setTargetRef(createObjectRef("100456", ObjectTypes.ROLE));
-        //case100.getCurrentReviewerRef().add(createObjectRef("100789", ObjectTypes.USER));
+        case100.beginWorkItem()
+				.reviewerRef(createObjectRef("ref1", ObjectTypes.USER))
+				.end();
         case100.setCurrentStageNumber(1);
 
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
@@ -202,6 +208,13 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
+		checkCasesForCampaign(campaign1Oid, 9, result);
+		checkCasesTotal(9, result);
+		checkWorkItemsForCampaign(campaign1Oid, 10, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,1, result);
+		checkWorkItemsTotal(10, result);
     }
 
     @Test
@@ -216,6 +229,13 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
+		checkCasesForCampaign(campaign1Oid, 8, result);
+		checkCasesTotal(8, result);
+		checkWorkItemsForCampaign(campaign1Oid, 8, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,1, result);
+		checkWorkItemsTotal(8, result);
     }
 
     @Test
@@ -235,7 +255,13 @@ public class CertificationTest extends BaseSQLRepoTest {
         executeAndCheckModification(modifications, result, 0);
 
         // THEN
-        // TODO search for work items
+		checkCasesForCampaign(campaign1Oid, 8, result);
+		checkCasesTotal(8, result);
+		checkWorkItemsForCampaign(campaign1Oid, 9, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,2, result);
+		checkWorkItemsTotal(9, result);
     }
 
     @Test
@@ -245,9 +271,9 @@ public class CertificationTest extends BaseSQLRepoTest {
 		PrismObject<AccessCertificationCampaignType> campaign = getFullCampaign(campaign1Oid, result);
 		AccessCertificationCaseType case100 = campaign.asObjectable().getCase().stream()
 				.filter(c -> c.getId() == NEW_CASE_ID).findFirst().orElseThrow(() -> new AssertionError("No case 100"));
-		assertEquals("Wrong # of work items in case 100", 1, case100.getWorkItem().size());
-		AccessCertificationWorkItemType workItem = case100.getWorkItem().get(0);
-		assertNotNull("No ID in new work item", workItem);
+		assertEquals("Wrong # of work items in case 100", 2, case100.getWorkItem().size());
+		AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalReviewerRef() != null).findFirst().orElse(null);
+		assertNotNull("No new work item", workItem);
 
 		XMLGregorianCalendar closedTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 		List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
@@ -259,7 +285,13 @@ public class CertificationTest extends BaseSQLRepoTest {
         executeAndCheckModification(modifications, result, 0);
 
         // THEN
-        // TODO
+		checkCasesForCampaign(campaign1Oid, 8, result);
+		checkCasesTotal(8, result);
+		checkWorkItemsForCampaign(campaign1Oid, 9, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,2, result);
+		checkWorkItemsTotal(9, result);
     }
 
     @Test
@@ -269,9 +301,9 @@ public class CertificationTest extends BaseSQLRepoTest {
 		PrismObject<AccessCertificationCampaignType> campaign = getFullCampaign(campaign1Oid, result);
 		AccessCertificationCaseType case100 = campaign.asObjectable().getCase().stream()
 				.filter(c -> c.getId() == NEW_CASE_ID).findFirst().orElseThrow(() -> new AssertionError("No case 100"));
-		assertEquals("Wrong # of work items in case 100", 1, case100.getWorkItem().size());
-		AccessCertificationWorkItemType workItem = case100.getWorkItem().get(0);
-		assertNotNull("No ID in new work item", workItem);
+		assertEquals("Wrong # of work items in case 100", 2, case100.getWorkItem().size());
+		AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalReviewerRef() != null).findFirst().orElse(null);
+		assertNotNull("No new work item", workItem);
 
 		List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM).delete(workItem.clone())
@@ -281,7 +313,13 @@ public class CertificationTest extends BaseSQLRepoTest {
         executeAndCheckModification(modifications, result, 0);
 
         // THEN
-        // TODO
+		checkCasesForCampaign(campaign1Oid, 8, result);
+		checkCasesTotal(8, result);
+		checkWorkItemsForCampaign(campaign1Oid, 8, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,1, result);
+		checkWorkItemsTotal(8, result);
     }
 
     @Test
@@ -295,7 +333,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         // explicit ID is dangerous
         AccessCertificationCaseType case110 = new AccessCertificationCaseType(prismContext)
-				.id(110L)
+				.id(SECOND_NEW_CASE_ID)
 				.objectRef(createObjectRef("x100123", ObjectTypes.USER))
 				.targetRef(createObjectRef("x100456", ObjectTypes.ROLE))
 				.currentStageNumber(1)
@@ -312,7 +350,15 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
-    }
+		checkCasesForCampaign(campaign1Oid, 9, result);
+		checkCasesTotal(9, result);
+		checkWorkItemsForCampaign(campaign1Oid, 8, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID,1, result);
+		checkWorkItemsTotal(8, result);
+
+	}
 
     @Test
     public void test320AddDeleteModifyResponse() throws Exception {
@@ -337,6 +383,13 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
+		checkCasesForCampaign(campaign1Oid, 9, result);
+		checkCasesTotal(9, result);
+		checkWorkItemsForCampaign(campaign1Oid, 8, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID,1, result);
+		checkWorkItemsTotal(8, result);
     }
 
     @Test
@@ -353,6 +406,13 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
+		checkCasesForCampaign(campaign1Oid, 9, result);
+		checkCasesTotal(9, result);
+		checkWorkItemsForCampaign(campaign1Oid, 8, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID,1, result);
+		checkWorkItemsTotal(8, result);
     }
 
     @Test
@@ -373,6 +433,13 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
+		checkCasesForCampaign(campaign1Oid, 9, result);
+		checkCasesTotal(9, result);
+		checkWorkItemsForCampaign(campaign1Oid, 8, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID,1, result);
+		checkWorkItemsTotal(8, result);
     }
 
     @Test
@@ -404,6 +471,10 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
+		checkCasesForCampaign(campaign1Oid, 1, result);
+		checkCasesTotal(1, result);
+		checkWorkItemsForCampaign(campaign1Oid, 1, result);
+		checkWorkItemsTotal(1, result);
     }
 
     @Test
@@ -529,6 +600,29 @@ public class CertificationTest extends BaseSQLRepoTest {
         PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, campaign.getCase().toArray(new AccessCertificationCaseType[0]));
     }
 
+    private void checkWorkItemsForCampaign(String oid, Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+				.exists(T_PARENT)
+				.block()
+					.ownerId(oid)
+				.endBlock()
+                .build();
+        List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, query, null, result);
+		assertWorkItemsCount(expected, workItems, " for " + oid);
+    }
+
+    private void checkWorkItemsForCampaignAndCase(String oid, long caseId, Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+				.exists(T_PARENT)
+				.block()
+					.ownerId(oid)
+					.and().id(caseId)
+				.endBlock()
+                .build();
+        List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, query, null, result);
+		assertWorkItemsCount(expected, workItems, " for " + oid + ":" + caseId);
+    }
+
     private void checkCasesTotal(Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                 .build();
@@ -618,5 +712,14 @@ public class CertificationTest extends BaseSQLRepoTest {
             aCase.asPrismContainerValue().removeReference(F_CAMPAIGN_REF);
         }
     }
+
+	private void checksCountsStandard(OperationResult result) throws SchemaException, ObjectNotFoundException {
+		checkCasesForCampaign(campaign1Oid, 7, result);
+		checkCasesTotal(7, result);
+		checkWorkItemsForCampaign(campaign1Oid, 9, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
+		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
+		checkWorkItemsTotal(9, result);
+	}
 
 }
