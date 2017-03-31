@@ -20,6 +20,8 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>father</name>
     <fullName>Father</fullName>
+    <title>Parent</title>
+    <locality>garage</locality>
     <assignment>
         <targetRef oid="00000000-0000-3333-3333-200000000001" type="RoleType"/> <!-- Human -->
     </assignment>

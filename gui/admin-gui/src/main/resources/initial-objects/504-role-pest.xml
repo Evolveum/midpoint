@@ -14,11 +14,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-3333-3333-200000000003"
+<role oid="00000000-0000-3333-3333-200000000004"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Ruler of the Universe</name>
-    <description>Sovereign ruler of the universe and its dependencies</description>
-    <requestable>false</requestable>
-    <delegable>false</delegable>
-    <riskLevel>none, everything is perfectly OK</riskLevel>
+    <name>Pest</name>
+    <assignment>
+		<policyRule>
+			<policyConstraints>
+				<exclusion>
+					<targetRef oid="00000000-0000-3333-3333-200000000002" type="RoleType"/>	<!-- Pet -->
+				</exclusion>
+			</policyConstraints>
+		</policyRule>
+	</assignment>
+	<requestable>false</requestable>
+    <delegable>true</delegable>
+    <riskLevel>high</riskLevel>
 </role>

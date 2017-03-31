@@ -20,6 +20,9 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>son</name>
     <fullName>Son</fullName>
+    <title>Child</title>
+    <locality>kids-bedroom</locality>
+    <costCenter>very costly</costCenter>
     <assignment>
         <targetRef oid="00000000-0000-3333-3333-200000000001" type="RoleType"/> <!-- Human -->
     </assignment>

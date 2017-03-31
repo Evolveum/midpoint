@@ -2370,7 +2370,6 @@
                             <xsd:appinfo>
 		                    	<a:displayName>UserType.givenName</a:displayName>
 		                    	<a:displayOrder>110</a:displayOrder>
-		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2398,7 +2397,6 @@
                             <xsd:appinfo>
 		                    	<a:displayName>UserType.familyName</a:displayName>
 		                    	<a:displayOrder>120</a:displayOrder>
-		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2753,6 +2751,7 @@
                             <xsd:appinfo>
                                 <a:displayName>UserType.locality</a:displayName>
                                 <a:displayOrder>450</a:displayOrder>
+                                <a:valueEnumerationRef oid="00000000-0000-3333-3333-500000000001" type="tns:LookupTableType"/>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

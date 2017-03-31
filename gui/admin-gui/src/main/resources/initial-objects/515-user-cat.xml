@@ -20,6 +20,9 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>cat</name>
     <fullName>Cat</fullName>
+    <honorificPrefix>His Majesty</honorificPrefix>
+    <title>Ruler of the Universe</title>
+    <locality>living-room</locality>
     <assignment>
         <targetRef oid="00000000-0000-3333-3333-200000000003" type="RoleType"/> <!-- Ruler -->
     </assignment>

@@ -17,4 +17,16 @@
 <role oid="00000000-0000-3333-3333-200000000002"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Pet</name>
+    <assignment>
+		<policyRule>
+			<policyConstraints>
+				<exclusion>
+					<targetRef oid="00000000-0000-3333-3333-200000000004" type="RoleType"/>	<!-- Pest -->
+				</exclusion>
+			</policyConstraints>
+		</policyRule>
+	</assignment>
+	<requestable>true</requestable>
+    <delegable>false</delegable>
+    <riskLevel>medium</riskLevel>
 </role>

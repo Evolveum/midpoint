@@ -20,6 +20,8 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>dog</name>
     <fullName>Dog</fullName>
+    <title>Pet</title>
+    <locality>master-bedroom</locality>
     <assignment>
         <targetRef oid="00000000-0000-3333-3333-200000000002" type="RoleType"/> <!-- Pet -->
     </assignment>

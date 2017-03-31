@@ -14,34 +14,21 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<c:user oid="00000000-0000-3333-3333-300000000002"
+<c:user oid="00000000-0000-3333-3333-300000000006"
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-    <name>mother</name>
-    <description>She Who Must Be Obeyed</description>
-    <fullName>Mother</fullName>
-    <title>Parent</title>
-    <locality>kitchen</locality>
-    <costCenter>costly</costCenter>
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>mouse</name>
+    <fullName>Mouse</fullName>
+    <title>Pest</title>
+    <locality>attic</locality>
     <assignment>
-        <targetRef oid="00000000-0000-3333-3333-200000000001" type="RoleType"/> <!-- Human -->
+        <targetRef oid="00000000-0000-3333-3333-200000000004" type="RoleType"/> <!-- Pest -->
     </assignment>
     <assignment>
         <targetRef oid="00000000-0000-3333-3333-100000000000" type="OrgType"/> <!-- Family -->
     </assignment>
-    <assignment>
-        <targetRef oid="00000000-0000-3333-3333-100000000000" type="OrgType" relation="org:manager"/> <!-- Family -->
-    </assignment>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
     </activation>
-    <credentials>
-        <password>
-            <value>
-         		<t:clearValue>5ecr3t</t:clearValue>
-         	</value>
-        </password>
-    </credentials>
 </c:user>
