@@ -1,41 +1,18 @@
-Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
-
-midPoint 3.5 "Einstein"
+midPoint 3.C "Cimrman"
 ------------------------------------
+
+Release date: 1st April 2017
 
 General information:
 
 MidPoint is a comprehensive Identity Governance and Administration (IGA) platform. It is used by the organizations around the world to deal with Identity Provisioning, Identity Governance & Compliance and also Access Management. As for the identity being a security perimeter, midPoint keeps safe both organization’s internal network and external resources.
 The most important features of midPoint are:
 
-- Identity Governance
-- Security auditing and reporting
-- Organizational structure management
-- Credential Management
-- Workflow
-- Entitlement Management 
+- Support for Internet of People (IoP)
+- All imaginary, fictional and unreal features imaginable. 
+- Too many features to list.
 
 Read more about these features at https://evolveum.com/midpoint/about-midpoint/
-
-Other features: 
-
-- User provisioning and deprovisioning
-- Administration GUI
-- Identity repository implemention (SQL)
-- Custom schema extensibility
-- Identity synchronization (liveSync, reconciliation, discovery, import)
-- Support for expressions in synchronization mappings (Groovy, JavaScript, Python)
-- Advanced RBAC support with temporal constraints
-- Identity management process automation (workflow, notifications)
-- Password policies
-- Password reset
-- Entitlements
-- Support for ConnId and OpenICF connectors
-- Provisioning consistency and error handling
-- Reporting
-- Notifications
-- Local Java APIs, Remote web service interface (SOAP), REST API
-- High availablity (HA) support
 
 For more information bout midPoint identity manager please go to:
 http://midpoint.evolveum.com/

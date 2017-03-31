@@ -1,5 +1,7 @@
-midPoint 3.5 "Einstein"
+midPoint 3.C "Cimrman"
 ------------------------------------
+
+Release date: 1st April 2017
 
 General information:
 
@@ -10,27 +12,9 @@ make the data available in unified form, apply and manage policies,
 manage object lifecycle, maitain audit trails and many other things.
 
 The most important features of midPoint are:
-   - User provisioning and deprovisioning
-   - Identity governance
-   - Administration GUI
-   - Identity repository implemention (SQL)
-   - Custom schema extensibility
-   - Identity synchronization (liveSync, reconciliation, discovery, import)
-   - Support for expressions in synchronization mappings (Groovy, JavaScript, Python)
-   - Advanced RBAC support with temporal constraints
-   - Identity management process automation (workflow, notifications)
-   - Password policies
-   - Password reset
-   - Organizational structure management
-   - Entitlements
-   - Support for ConnId and OpenICF connectors
-   - Provisioning consistency and error handling
-   - Support for security auditing and reporting
-   - Workflow
-   - Reporting
-   - Notifications
-   - Local Java APIs, Remote web service interface (SOAP), REST API
-   - High availablity (HA) support
+   - Support for Internet of People (IoP)
+   - All imaginary, fictional and unreal features imaginable. 
+   - Too many features to list.
 
 For more information please go to:
 

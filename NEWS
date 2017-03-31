@@ -1,38 +1,19 @@
-midPoint 3.5 "Einstein"
+midPoint 3.C "Cimrman"
 ----------------------------------
 
-Release 3.5 is eighteenth midPoint release code-named Einstein. The 3.5
-release brings lots of features related to identity governance,
-self-registration and support for JSON/YAML.
+Release 3.C is a nineteenth midPoint release code-named Cimrman. 
+The 3.C release brings revolutionary features that support the 
+Internet of People (IoP) concepts in the home environment.
 
-Release date: 21st December 2016
+Release date: 1st April 2017
 
 Changes with respect to version 3.4.1:
-    Role catalog
-    Role request based on shopping cart paradigm
-    JSON/YAML support
-    Object lifecycle property
-    Passive Attribute Caching (EXPERIMENTAL)
-    Deputy (ad-hoc privilege delegation)
-    Object history (time machine)
-    Interactive audit log viewer
-    Audit log indexing improvements
-    Assignment metadata
-    Basic role lifecycle management (role approvals)
-    Improved approval processes
-    Self-registration
-    E-mail based password reset
-    Experimental support for policy rules
-    Weak construction
-    Improvements to AD connector in multi-domain environment
-    Identity merge
-    Better control over administration GUI forms
-    MariaDB support
-    Configurable limitations of parallel execution of tasks
-    Various user interface improvements
-    Internal code cleanup
-    Documentation improvements
+    Change of versioning scheme. The version numbers are 
+        too dull for expressing the excellence of this midPoint version.
+    Change of color scheme to mark the importance of midPoint 3.C.
+    Pre-configured objects and roles to support the IoP concept
+        in home environment. MidPoint 3.C is ready for IoP 
+        deployments out-of-the-box.
 
-Java 7 environment is no longer supported.
-XPath2 scripting is no longer supported.
-CSVFile Connector is deprecated.
+All serious, sober, real and down-to-the-earth features are deprecated and
+they are no longer supported.
