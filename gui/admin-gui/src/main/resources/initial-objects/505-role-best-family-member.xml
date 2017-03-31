@@ -19,7 +19,7 @@
     <name>Best Family Member</name>
 	<requestable>true</requestable>
     <delegable>true</delegable>
-    <approverRef oid="00000000-0000-3333-3333-300000000001" type="UserType" /> <!-- father -->
-    <approverRef oid="00000000-0000-3333-3333-300000000002" type="UserType" /> <!-- mother -->
+    <approverRef oid="00000000-0000-3333-3333-300000000000" type="UserType" /> <!-- father -->
+    <approverRef oid="00000000-0000-3333-3333-300000000001" type="UserType" /> <!-- mother -->
     <riskLevel>low</riskLevel>
 </role>
