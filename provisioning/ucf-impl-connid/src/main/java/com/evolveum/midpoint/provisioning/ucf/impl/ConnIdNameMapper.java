@@ -14,6 +14,8 @@ import org.identityconnectors.framework.common.objects.OperationalAttributeInfos
 import org.identityconnectors.framework.common.objects.Uid;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -55,8 +57,8 @@ public class ConnIdNameMapper {
 	}
 
 	private static void initialize() {
-		addSpecialAttributeMapping(Name.NAME, ConnectorFactoryIcfImpl.ICFS_NAME);
-		addSpecialAttributeMapping(Uid.NAME, ConnectorFactoryIcfImpl.ICFS_UID);
+		addSpecialAttributeMapping(Name.NAME, SchemaConstants.ICFS_NAME);
+		addSpecialAttributeMapping(Uid.NAME, SchemaConstants.ICFS_UID);
 		
 		addOperationalAttributeMapping(OperationalAttributeInfos.CURRENT_PASSWORD);
 		addOperationalAttributeMapping(OperationalAttributeInfos.DISABLE_DATE);
@@ -107,7 +109,7 @@ public class ConnIdNameMapper {
 			return specialAttributeMapIcf.get(icfAttrName);
 		}
 		QName attrXsdName = new QName(resourceSchemaNamespace, QNameUtil.escapeElementName(icfAttrName),
-				ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+				MidPointConstants.PREFIX_NS_RI);
 		return attrXsdName;
 	}
 	
@@ -184,7 +186,7 @@ public class ConnIdNameMapper {
 			lastIndex = nextIndex + 1;
 		}
 		
-		return new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, sb.toString());
+		return new QName(SchemaConstants.NS_ICF_SCHEMA, sb.toString());
 	}
 
 	private static String toCamelCase(String upcase, boolean lowCase) {
@@ -212,14 +214,14 @@ public class ConnIdNameMapper {
 		}
 		if (legacySchema) {
 			if (icfObjectClass.is(ObjectClass.ACCOUNT_NAME)) {
-				return new QName(schemaNamespace, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,
-						ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
+				return new QName(schemaNamespace, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,
+						SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 			} else if (icfObjectClass.is(ObjectClass.GROUP_NAME)) {
-				return new QName(schemaNamespace, ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME,
-						ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
+				return new QName(schemaNamespace, SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME,
+						SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 			} else {
 				return new QName(schemaNamespace, CUSTOM_OBJECTCLASS_PREFIX + icfObjectClass.getObjectClassValue()
-						+ CUSTOM_OBJECTCLASS_SUFFIX, ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+						+ CUSTOM_OBJECTCLASS_SUFFIX, MidPointConstants.PREFIX_NS_RI);
 			}
 		} else {
 			return new QName(schemaNamespace, icfObjectClass.getObjectClassValue());
@@ -265,9 +267,9 @@ public class ConnIdNameMapper {
 		
 		String lname = qnameObjectClass.getLocalPart();
 		if (legacySchema) {
-			if (ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
+			if (SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
 				return ObjectClass.ACCOUNT;
-			} else if (ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
+			} else if (SchemaConstants.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
 				return ObjectClass.GROUP;
 			} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
 				String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()

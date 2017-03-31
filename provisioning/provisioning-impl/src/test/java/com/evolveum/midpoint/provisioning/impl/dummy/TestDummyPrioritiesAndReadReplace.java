@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -152,8 +152,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 		display("account from provisioning", accountTypeProvisioning);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeProvisioning.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-		assertAttribute(accountProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(accountProvisioning, getUidMatchingRule(), ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid);
+		assertAttribute(accountProvisioning, SchemaConstants.ICFS_NAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(accountProvisioning, getUidMatchingRule(), SchemaConstants.ICFS_UID, willIcfUid);
 
 		ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
 		if (supportsActivation()) {
@@ -165,7 +165,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 		}
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				accountTypeProvisioning, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+				accountTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
 

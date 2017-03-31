@@ -39,7 +39,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -300,7 +300,7 @@ public class ConnIdConvertor {
 		// e.g. if Uid and Name represent the same attribute
 		Uid uid = co.getUid();
 		ObjectClassComplexTypeDefinition ocDef = attributesContainerDefinition.getComplexTypeDefinition();
-		ResourceAttributeDefinition<String> uidDefinition = IcfUtil.getUidDefinition(ocDef);
+		ResourceAttributeDefinition<String> uidDefinition = ConnIdUtil.getUidDefinition(ocDef);
 		if (uidDefinition == null) {
 			throw new SchemaException("No definition for ConnId UID attribute found in definition "
 					+ ocDef);
@@ -337,7 +337,7 @@ public class ConnIdConvertor {
 	
 	Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 		QName midPointAttrQName = mpAttribute.getElementName();
-		if (midPointAttrQName.equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+		if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {
 			throw new SchemaException("ICF UID explicitly specified in attributes");
 		}
 
@@ -345,7 +345,7 @@ public class ConnIdConvertor {
 
 		Set<Object> connIdAttributeValues = new HashSet<Object>();
 		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
-			connIdAttributeValues.add(UcfUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
+			connIdAttributeValues.add(ConnIdUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
 		}
 
 		try {

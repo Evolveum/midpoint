@@ -360,7 +360,8 @@ public abstract class SchemaConstants {
 	// This constant should not be here. It is used by schema processor to
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
-	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3";
+	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
+	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
 	public static final QName ICF_CONFIGURATION_PROPERTIES = new QName(NS_ICF_CONFIGURATION,
 			"configurationProperties");
 	public static final QName ICF_TIMEOUTS = new QName(NS_ICF_CONFIGURATION, "timeouts");
@@ -369,11 +370,16 @@ public abstract class SchemaConstants {
 	public static final QName ICF_CONNECTOR_POOL_CONFIGURATION = new QName(NS_ICF_CONFIGURATION,
 			"connectorPoolConfiguration");
 
-	// These are used in script expressions, they should remain here
-	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+	// Note! This is also specified in SchemaConstants (MID-356)
+	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
 	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
+	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
+	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new QName(NS_ICF_CONFIGURATION, 
+			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
+	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
+	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
 
 	// OTHER (temporary? [mederly])
 

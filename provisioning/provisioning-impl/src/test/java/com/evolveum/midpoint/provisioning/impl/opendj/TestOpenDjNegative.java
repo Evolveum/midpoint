@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,10 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -420,7 +420,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 		
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID, 
-				new QName(RESOURCE_NS, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+				new QName(RESOURCE_NS, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
 		
 		try {
 
@@ -742,7 +742,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 		
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_OPENDJ_OID, 
-				new QName(RESOURCE_NS, ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+				new QName(RESOURCE_NS, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
 		
 		try {
 

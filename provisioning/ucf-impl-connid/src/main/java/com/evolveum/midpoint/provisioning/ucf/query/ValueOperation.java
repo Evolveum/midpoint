@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdNameMapper;
-import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -143,7 +143,7 @@ public class ValueOperation extends Operation {
     	}
         Collection<Object> convertedValues = new ArrayList<>();
         for (PrismValue value : values) {
-            Object converted = UcfUtil.convertValueToIcf(value, null, propName);
+            Object converted = ConnIdUtil.convertValueToIcf(value, null, propName);
             convertedValues.add(converted);
         }
 

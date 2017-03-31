@@ -49,6 +49,8 @@
 	<modules>
 		<module>provisioning-api</module>
 		<module>provisioning-impl</module>
+		<module>ucf-api</module>
+		<module>ucf-impl-connid</module>
 	</modules>
 	<dependencies> 
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->

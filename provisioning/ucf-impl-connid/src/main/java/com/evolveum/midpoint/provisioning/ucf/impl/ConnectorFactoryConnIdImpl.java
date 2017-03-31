@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
-import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfException;
+import static com.evolveum.midpoint.provisioning.ucf.impl.ConnIdUtil.processIcfException;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,6 +78,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -94,46 +95,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Currently the only implementation of the UCF Connector Manager API interface.
- * 
- * It is hardcoded to ICF now.
- * 
- * This class holds a list of all known ICF connectors in the system.
+ * Implementation of the UCF Connector Manager API interface for ConnId framework.
  * 
  * @author Radovan Semancik
  */
 
 @Component
-public class ConnectorFactoryIcfImpl implements ConnectorFactory {
+public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
-	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
-	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
-	// Note! This is also specified in SchemaConstants (MID-356)
-	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
-	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
-	public static final String NS_ICF_RESOURCE_INSTANCE_PREFIX = "ri";
-	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
 	public static final String ICFS_NAME_DISPLAY_NAME = "ConnId Name";
 	public static final int ICFS_NAME_DISPLAY_ORDER = 110;
-	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 	public static final String ICFS_UID_DISPLAY_NAME = "ConnId UID";
 	public static final int ICFS_UID_DISPLAY_ORDER = 100;
-	public static final QName ICFS_ACCOUNT = new QName(NS_ICF_SCHEMA, "account");
-	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
-	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
+	public static final QName ICFS_ACCOUNT = new QName(SchemaConstants.NS_ICF_SCHEMA, "account");
+	
 
-	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
-	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new QName(NS_ICF_CONFIGURATION, 
-			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
-	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(NS_ICF_CONFIGURATION, 
+	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION, 
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
 
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			"connectorPoolConfiguration");
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(NS_ICF_CONFIGURATION,
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			"ConnectorPoolConfigurationType");
 	protected static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS = "minEvictableIdleTimeMillis";
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE = "minIdle";
@@ -142,24 +127,24 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT = "maxWait";
 
 	public static final String CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME = "producerBufferSize";
-	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INT;
 	
 	public static final String CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME = "legacySchema";
-	public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+	public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE = DOMUtil.XSD_BOOLEAN;
 
 	public static final String CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME = "timeouts";
-	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
-	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(NS_ICF_CONFIGURATION, "TimeoutsType");
+	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION, "TimeoutsType");
 
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME = "resultsHandlerConfiguration";
-    public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+    public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
             CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
-    public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE = new QName(NS_ICF_CONFIGURATION,
+    public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
             "ResultsHandlerConfigurationType");
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER = "enableNormalizingResultsHandler";
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER = "enableFilteredResultsHandler";
@@ -169,17 +154,17 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
     static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<String, Class<? extends APIOperation>>();
 
-	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = ICF_FRAMEWORK_URI + "/bundle/";
+	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
 	
 	public static final int ATTR_DISPLAY_ORDER_START = 120;
 	public static final int ATTR_DISPLAY_ORDER_INCREMENT = 10;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryConnIdImpl.class);
 	
 	// This is not really used in the code. It is here just to make sure that the JUL logger is loaded
 	// by the parent classloader so we can correctly adjust the log levels from the main code
-	static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryIcfImpl.class.getName());
+	static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
 	
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
@@ -196,7 +181,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
-	public ConnectorFactoryIcfImpl() {
+	public ConnectorFactoryConnIdImpl() {
 	}
 
 	/**
@@ -293,7 +278,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul)
 			throws CommunicationException {
 		OperationResult result = parentRestul.createSubresult(ConnectorFactory.OPERATION_LIST_CONNECTOR);
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryIcfImpl.class);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryConnIdImpl.class);
 		result.addParam("host", host);
 
 		try {
@@ -381,7 +366,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			
 		}
 		connectorType.setName(new PolyStringType(connectorName.toString()));
-		connectorType.setFramework(ICF_FRAMEWORK_URI);
+		connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
 		connectorType.setConnectorType(key.getConnectorName());
 		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID);
 		connectorType.setConnectorVersion(key.getBundleVersion());
@@ -472,7 +457,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		Enumeration<URL> en = null;
 		try {
 			// Search all jars in classpath
-			en = ConnectorFactoryIcfImpl.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+			en = ConnectorFactoryConnIdImpl.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
 		} catch (IOException ex) {
 			LOGGER.debug("Error during reding content from class path");
 		}
@@ -684,9 +669,9 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 * @throws ObjectNotFoundException
 	 */
 	private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
-		if (!ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
+		if (!SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
 			throw new ObjectNotFoundException("Requested connector for framework " + connectorType.getFramework()
-					+ " cannot be found in framework " + ICF_FRAMEWORK_URI);
+					+ " cannot be found in framework " + SchemaConstants.ICF_FRAMEWORK_URI);
 		}
 		ConnectorKey key = getConnectorKey(connectorType);
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() == null) {
@@ -721,9 +706,9 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
     }
 
     private void selfTestGuardedString(OperationResult parentTestResult) {
-		OperationResult result = parentTestResult.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString");
+		OperationResult result = parentTestResult.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString");
 		
-		OperationResult subresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.encryptorReflection");
+		OperationResult subresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptorReflection");
 		EncryptorFactory encryptorFactory = EncryptorFactory.getInstance();
 		subresult.addReturn("encryptorFactoryImpl", encryptorFactory.getClass());
 		LOGGER.debug("Encryptor factory implementation class: {}", encryptorFactory.getClass());
@@ -752,7 +737,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			}
 		}
 		
-		OperationResult encryptorSubresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.encryptor");
+		OperationResult encryptorSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptor");
 		try {
 			String plainString = "Scurvy seadog";
 			byte[] encryptedBytes = encryptor.encrypt(plainString.getBytes());
@@ -769,7 +754,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		}
 		
 		
-		final OperationResult guardedStringSubresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.guardedString");
+		final OperationResult guardedStringSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.guardedString");
 		// try to encrypt and decrypt GuardedString
 		try {
 			final String origString = "Shiver me timbers";

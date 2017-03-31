@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -154,7 +154,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_FETTUCINI_NAME, accountTypeRepo.getName());
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
-		assertAttribute(accountRepo, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
+		assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
 		String icfUid = getIcfUid(accountRepo);
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -166,8 +166,8 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		display("account from provisioning", accountTypeProvisioning);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_FETTUCINI_NAME, accountTypeProvisioning.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-		assertAttribute(accountProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
-		assertAttribute(accountProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, icfUid);
+		assertAttribute(accountProvisioning, SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
+		assertAttribute(accountProvisioning, SchemaConstants.ICFS_UID, icfUid);
 
 		// Check if the account was created in the dummy resource
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_FETTUCINI_NAME, icfUid);
@@ -203,7 +203,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	}
 
 	private PrismPropertyDefinition<String> getIcfNameDefinition() {
-		return new PrismPropertyDefinitionImpl<>(ConnectorFactoryIcfImpl.ICFS_NAME,
+		return new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 	}
 		

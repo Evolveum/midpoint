@@ -84,8 +84,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.dummy.TestDummy;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -141,6 +139,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 
 /**
  * Test for provisioning service implementation.
@@ -252,7 +252,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		
 		ObjectClassComplexTypeDefinition inetOrgPersonDefinition = parsedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
-				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
+				new QName(SchemaConstants.NS_ICF_SCHEMA,"password")));
 		assertNull("The userPassword attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeRepoAfter),"userPassword")));
 		
@@ -470,7 +470,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals("Wrong createTimestamp matching rule", null, createTimestampDef.getMatchingRuleQName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
-				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+				accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertNull("The userPassword attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "userPassword")));
@@ -615,7 +615,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("ds-pwp-account-disabled is NOT ignored", dsDef.isIgnored());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
-				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+				accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		RefinedObjectClassDefinition posixAccountDef = refinedSchema.getRefinedDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
 		assertNotNull("posixAccount definition is missing", posixAccountDef);

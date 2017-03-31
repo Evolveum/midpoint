@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NoPermissionException;
@@ -37,6 +39,7 @@ import javax.naming.directory.AttributeInUseException;
 import javax.naming.directory.InvalidAttributeValueException;
 import javax.naming.directory.NoSuchAttributeException;
 import javax.naming.directory.SchemaViolationException;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -54,6 +57,7 @@ import org.identityconnectors.framework.common.exceptions.PermissionDeniedExcept
 import org.identityconnectors.framework.common.exceptions.RetryableException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
@@ -63,12 +67,14 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -86,9 +92,9 @@ import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
  * @author Radovan Semancik
  *
  */
-class IcfUtil {
+public class ConnIdUtil {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(IcfUtil.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConnIdUtil.class);
     private static final String DOT_NET_EXCEPTION_PACKAGE_PLUS_DOT = "Org.IdentityConnectors.Framework.Common.Exceptions.";
     private static final String JAVA_EXCEPTION_PACKAGE = AlreadyExistsException.class.getPackage().getName();
     private static final String DOT_NET_ARGUMENT_EXCEPTION = "System.ArgumentException";
@@ -531,7 +537,7 @@ class IcfUtil {
 			return primaryIdentifiers.iterator().next();
 		} else {
 			// fallback, compatibility
-			return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+			return def.findAttributeDefinition(SchemaConstants.ICFS_UID);
 		}
 	}
 	
@@ -544,7 +550,7 @@ class IcfUtil {
 			return secondaryIdentifiers.iterator().next();
 		} else {
 			// fallback, compatibility
-			return def.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+			return def.findAttributeDefinition(SchemaConstants.ICFS_NAME);
 		}
 	}
 	
@@ -600,4 +606,64 @@ class IcfUtil {
 					+ e.getMessage(), e);
 		}
 	}
+	
+	public static Object convertValueToIcf(Object value, Protector protector, QName propName) throws SchemaException {
+		if (value == null) {
+			return null;
+		}
+
+		if (value instanceof PrismPropertyValue) {
+			return convertValueToIcf(((PrismPropertyValue) value).getValue(), protector, propName);
+		}
+
+		if (value instanceof ProtectedStringType) {
+			ProtectedStringType ps = (ProtectedStringType) value;
+			return toGuardedString(ps, protector, propName.toString());
+		}
+		return value;
+	}
+	
+	public static GuardedString toGuardedString(ProtectedStringType ps, Protector protector, String propertyName) {
+		if (ps == null) {
+			return null;
+		}
+		if (!protector.isEncrypted(ps)) {
+			if (ps.getClearValue() == null) {
+				return null;
+			}
+//			LOGGER.warn("Using cleartext value for {}", propertyName);
+			return new GuardedString(ps.getClearValue().toCharArray());
+		}
+		try {
+			return new GuardedString(protector.decryptString(ps).toCharArray());
+		} catch (EncryptionException e) {
+//			LOGGER.error("Unable to decrypt value of element {}: {}",
+//					new Object[] { propertyName, e.getMessage(), e });
+			throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
+					+ e.getMessage(), e);
+		}
+	}
+
+	public static String dumpOptions(OperationOptions options) {
+		if (options == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("OperationOptions(");
+		Map<String, Object> map = options.getOptions();
+		if (map == null) {
+			sb.append("null");
+		} else {
+			for (Entry<String,Object> entry: map.entrySet()) {
+				sb.append(entry.getKey());
+				sb.append("=");
+				sb.append(PrettyPrinter.prettyPrint(entry.getValue()));
+				sb.append(",");
+			}
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
+
 }

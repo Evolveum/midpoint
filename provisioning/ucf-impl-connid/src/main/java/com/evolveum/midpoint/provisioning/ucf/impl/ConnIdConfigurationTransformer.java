@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,15 +53,15 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-public class IcfConfigurationTransformer {
+public class ConnIdConfigurationTransformer {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(IcfConfigurationTransformer.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConnIdConfigurationTransformer.class);
 	
 	private ConnectorType connectorType;
 	private ConnectorInfo cinfo;
 	private Protector protector;
 	
-	public IcfConfigurationTransformer(ConnectorType connectorType, ConnectorInfo cinfo, Protector protector) {
+	public ConnIdConfigurationTransformer(ConnectorType connectorType, ConnectorInfo cinfo, Protector protector) {
 		super();
 		this.connectorType = connectorType;
 		this.cinfo = cinfo;
@@ -95,36 +96,36 @@ public class IcfConfigurationTransformer {
 		String connectorConfNs = connectorType.getNamespace();
 
 		PrismContainer configurationPropertiesContainer = configuration
-				.findContainer(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+				.findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		if (configurationPropertiesContainer == null) {
 			// Also try this. This is an older way.
 			configurationPropertiesContainer = configuration.findContainer(new QName(connectorConfNs,
-					ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME));
+					SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME));
 		}
 
 		transformConnectorConfiguration(configProps, configurationPropertiesContainer, connectorConfNs);
 
 		PrismContainer connectorPoolContainer = configuration.findContainer(new QName(
-				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME));
+				SchemaConstants.NS_ICF_CONFIGURATION,
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME));
 		ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
 		transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer);
 
 		PrismProperty producerBufferSizeProperty = configuration.findProperty(new QName(
-				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME));
+				SchemaConstants.NS_ICF_CONFIGURATION,
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME));
 		if (producerBufferSizeProperty != null) {
 			apiConfig.setProducerBufferSize(parseInt(producerBufferSizeProperty));
 		}
 
 		PrismContainer connectorTimeoutsContainer = configuration.findContainer(new QName(
-				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME));
+				SchemaConstants.NS_ICF_CONFIGURATION,
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME));
 		transformConnectorTimeoutsConfiguration(apiConfig, connectorTimeoutsContainer);
 
         PrismContainer resultsHandlerConfigurationContainer = configuration.findContainer(new QName(
-                ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
-                ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME));
+        		SchemaConstants.NS_ICF_CONFIGURATION,
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME));
         ResultsHandlerConfiguration resultsHandlerConfiguration = apiConfig.getResultsHandlerConfiguration();
         transformResultsHandlerConfiguration(resultsHandlerConfiguration, resultsHandlerConfigurationContainer);
         
@@ -195,21 +196,21 @@ public class IcfConfigurationTransformer {
 
 		for (PrismProperty prismProperty : connectorPoolContainer.getValue().getProperties()) {
 			QName propertyQName = prismProperty.getElementName();
-			if (propertyQName.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)) {
+			if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
 				String subelementName = propertyQName.getLocalPart();
-				if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
+				if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
 						.equals(subelementName)) {
 					connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
-				} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
+				} else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
 						.equals(subelementName)) {
 					connectorPoolConfiguration.setMinIdle(parseInt(prismProperty));
-				} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
+				} else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
 						.equals(subelementName)) {
 					connectorPoolConfiguration.setMaxIdle(parseInt(prismProperty));
-				} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS
+				} else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS
 						.equals(subelementName)) {
 					connectorPoolConfiguration.setMaxObjects(parseInt(prismProperty));
-				} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
+				} else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
 						.equals(subelementName)) {
 					connectorPoolConfiguration.setMaxWait(parseLong(prismProperty));
 				} else {
@@ -217,14 +218,14 @@ public class IcfConfigurationTransformer {
 							"Unexpected element "
 									+ propertyQName
 									+ " in "
-									+ ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
+									+ ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
 				}
 			} else {
 				throw new SchemaException(
 						"Unexpected element "
 								+ propertyQName
 								+ " in "
-								+ ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
+								+ ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
 			}
 		}
 	}
@@ -239,14 +240,14 @@ public class IcfConfigurationTransformer {
 		for (PrismProperty prismProperty : connectorTimeoutsContainer.getValue().getProperties()) {
 			QName propertQName = prismProperty.getElementName();
 
-			if (ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION.equals(propertQName.getNamespaceURI())) {
+			if (SchemaConstants.NS_ICF_CONFIGURATION.equals(propertQName.getNamespaceURI())) {
 				String opName = propertQName.getLocalPart();
-				Class<? extends APIOperation> apiOpClass = ConnectorFactoryIcfImpl.resolveApiOpClass(opName);
+				Class<? extends APIOperation> apiOpClass = ConnectorFactoryConnIdImpl.resolveApiOpClass(opName);
 				if (apiOpClass != null) {
 					apiConfig.setTimeout(apiOpClass, parseInt(prismProperty));
 				} else {
 					throw new SchemaException("Unknown operation name " + opName + " in "
-							+ ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
+							+ ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
 				}
 			}
 		}
@@ -261,21 +262,21 @@ public class IcfConfigurationTransformer {
 
         for (PrismProperty prismProperty : resultsHandlerConfigurationContainer.getValue().getProperties()) {
             QName propertyQName = prismProperty.getElementName();
-            if (propertyQName.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)) {
+            if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
                 String subelementName = propertyQName.getLocalPart();
-                if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER
+                if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setEnableNormalizingResultsHandler(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER
+                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setEnableFilteredResultsHandler(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE
+                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setFilteredResultsHandlerInValidationMode(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER
+                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setEnableCaseInsensitiveFilter(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER
+                } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER
                         .equals(subelementName)) {
                     resultsHandlerConfiguration.setEnableAttributesToGetSearchResultsHandler(parseBoolean(prismProperty));
                 } else {
@@ -283,14 +284,14 @@ public class IcfConfigurationTransformer {
                             "Unexpected element "
                                     + propertyQName
                                     + " in "
-                                    + ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
+                                    + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
                 }
             } else {
                 throw new SchemaException(
                         "Unexpected element "
                                 + propertyQName
                                 + " in "
-                                + ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
+                                + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
             }
         }
     }
@@ -342,7 +343,7 @@ public class IcfConfigurationTransformer {
 			// The value must be ProtectedStringType
 			if (midPointRealValue instanceof ProtectedStringType) {
 				ProtectedStringType ps = (ProtectedStringType) pval.getValue();
-				return IcfUtil.toGuardedString(ps, pval.getParent().getElementName().getLocalPart(), protector);
+				return ConnIdUtil.toGuardedString(ps, pval.getParent().getElementName().getLocalPart(), protector);
 			} else {
 				throw new ConfigurationException(
 						"Expected protected string as value of configuration property "

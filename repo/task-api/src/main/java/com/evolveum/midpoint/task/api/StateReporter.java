@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.identityconnectors.framework.common.objects.Uid;
 
 import javax.xml.namespace.QName;
 import java.util.Date;
@@ -73,7 +71,7 @@ public class StateReporter {
     private ObjectClassComplexTypeDefinition lastObjectClass = null;
     private Date lastStarted = null;
 
-    public void recordIcfOperationStart(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, Uid uid) {
+    public void recordIcfOperationStart(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, String identifier) {
         if (lastOperation != null) {
             LOGGER.warn("Unfinished operation: {}, resource: {}, OC: {}, started: {}", lastOperation, getResourceName(), lastObjectClass, lastStarted);
         }
@@ -81,8 +79,8 @@ public class StateReporter {
         lastObjectClass = objectClassDef;
         lastStarted = new Date();
         String object = "";
-        if (uid != null) {
-            object = " " + uid.getUidValue();
+        if (identifier != null) {
+            object = " " + identifier;
         }
         recordState("Starting " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName());
     }
@@ -125,7 +123,7 @@ public class StateReporter {
         return objectClassDef != null ? objectClassDef.getTypeName() : null;
     }
 
-    public void recordIcfOperationEnd(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, Throwable ex, Uid uid) {
+    public void recordIcfOperationEnd(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef, Throwable ex, String identifier) {
         long duration = -1L;
         if (lastOperation != operation) {
             LOGGER.warn("Finishing operation other than current: finishing {}, last recorded {}",
@@ -150,8 +148,8 @@ public class StateReporter {
             durationString = "";
         }
         String object = "";
-        if (uid != null) {
-            object = " " + uid.getUidValue();
+        if (identifier != null) {
+            object = " " + identifier;
         }
 		final String stateMessage =
 				finished + " " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName() + durationString;

@@ -17,9 +17,9 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Provisioning - impl</name>
+	<name>Unified Connector Framework - ConnId impl</name>
 	<groupId>com.evolveum.midpoint.provisioning</groupId>
-	<artifactId>provisioning-impl</artifactId>
+	<artifactId>ucf-impl-connid</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>provisioning</artifactId>
@@ -54,39 +54,13 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
-			<artifactId>provisioning-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>ucf-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-cache</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>system-init</artifactId>
 			<version>3.6-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
 			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.provisioning</groupId>
-			<artifactId>ucf-impl-connid</artifactId>
-			<version>3.6-SNAPSHOT</version>
-			<scope>runtime</scope>
 		</dependency>
 		
 		<dependency>
@@ -108,10 +82,6 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jetbrains</groupId>
-			<artifactId>annotations-java5</artifactId>
 		</dependency>
 
 		<dependency>

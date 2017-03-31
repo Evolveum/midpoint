@@ -93,6 +93,10 @@ public class OpenDJController extends AbstractResourceController {
 	
 	public static final String DEFAULT_TEMPLATE_NAME = "opendj.template";
 	public static final String RI_TEMPLATE_NAME = "opendj.template.ri";
+	
+	public static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
+	public static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
+	public static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
 
 	protected File serverRoot = new File(SERVER_ROOT);
 	protected File configFile = null;

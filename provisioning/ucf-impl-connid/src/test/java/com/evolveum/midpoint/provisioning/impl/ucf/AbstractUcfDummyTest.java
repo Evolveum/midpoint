@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -56,8 +55,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
 public abstract class AbstractUcfDummyTest extends AbstractTestNGSpringContextTests {
 
-	protected static final File RESOURCE_DUMMY_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-dummy.xml");
-	protected static final File CONNECTOR_DUMMY_FILE = new File(ProvisioningTestUtil.TEST_DIR_UCF_FILE, "connector-dummy.xml");
+	protected static final File RESOURCE_DUMMY_FILE = new File(UcfTestUtil.COMMON_TEST_DIR_FILE, "resource-dummy.xml");
+	protected static final File CONNECTOR_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR_UCF_FILE, "connector-dummy.xml");
 	protected static final String ACCOUNT_JACK_USERNAME = "jack";
 
 	protected ConnectorFactory connectorFactory;

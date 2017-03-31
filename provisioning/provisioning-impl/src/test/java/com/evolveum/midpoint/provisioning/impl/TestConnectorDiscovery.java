@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,20 +27,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -136,7 +131,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 				+ ".testSearchConnector");
 
 		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
-				.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI)
+				.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(SchemaConstants.ICF_FRAMEWORK_URI)
 				.and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(LDAP_CONNECTOR_TYPE)
 				.build();
 
@@ -147,6 +142,6 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		assertEquals("Unexpected number of results", 1, connectors.size());
 		PrismObject<ConnectorType> ldapConnector = connectors.get(0);
 		assertEquals("Type does not match", LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
-		assertEquals("Framework does not match", ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI, ldapConnector.asObjectable().getFramework());
+		assertEquals("Framework does not match", SchemaConstants.ICF_FRAMEWORK_URI, ldapConnector.asObjectable().getFramework());
 	}
 }
