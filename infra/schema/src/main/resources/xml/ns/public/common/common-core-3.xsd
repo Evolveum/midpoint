@@ -12088,8 +12088,8 @@
             <xsd:enumeration value="encryption">
                 <xsd:annotation>
                 	<xsd:documentation>
-                		Credential will be stored in an ecrypted form.
-                		This is a symetric (reversible) encryption.
+                		Credential will be stored in an encrypted form.
+                		This is a symmetric (reversible) encryption.
                 		MidPoint will be able to get a cleartext form of
                 		the credential if needed.
                 	</xsd:documentation>
@@ -12102,7 +12102,7 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		Credential will be stored in a hashed form.
-                		One-way (ireversible) cryptographic hash or key derivation function
+                		One-way (irreversible) cryptographic hash or key derivation function
                 		will be used to transform the credential before storage.
                 		MidPoint will NOT be able to get a cleartext form of
                 		the credential, but it can still compare credential values.
@@ -12116,14 +12116,15 @@
                 <xsd:annotation>
                 	<xsd:documentation>
                 		MidPoint will not store the credential at all.
-                		MidPoitn will only work with credential in the memory
+                		MidPoint will only work with credential in the memory
                 		while it is needed to complete current operation.
                 		The credential will be discarded after the operation.
                 		
                 		THIS IS ONLY PARTIALLY SUPPORTED
                 		
                 		MidPoint should be able not to store the credentials when
-                		this setting is used. But there may be side effects.
+                		this setting is used. But there may be side effects
+                		that are not completely addressed yet.
                 		This is not entirelly tests and not supported.
                 		Use at your own risk.
                 	</xsd:documentation>
