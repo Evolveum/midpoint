@@ -18,6 +18,7 @@ package com.evolveum.midpoint.report.impl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -36,12 +37,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedExclusionTriggerType;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.logging.TraceManager;   
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -607,6 +611,29 @@ public class ReportUtils {
             return "";
         }
         return getPropertyString("AccessCertificationResponseType."+response.name());
+    }
+    
+    public static String prettyPrintForReport(EvaluatedPolicyRuleTriggerType trigger) {
+        return prettyPrintRuleTriggerForReport(trigger);
+    }    
+    
+    public static String prettyPrintForReport(EvaluatedSituationTriggerType trigger) {
+        return prettyPrintRuleTriggerForReport(trigger);
+    } 
+    
+    public static String prettyPrintForReport(EvaluatedExclusionTriggerType trigger) {
+        return prettyPrintRuleTriggerForReport(trigger);
+    }
+    
+    public static String prettyPrintForReport(PrismObjectValue pov) {
+        return prettyPrintForReport((PrismContainerValue) pov);
+    }
+            
+    private static String prettyPrintRuleTriggerForReport(EvaluatedPolicyRuleTriggerType trigger) {
+        if (trigger == null) {
+            return "";
+        }
+        return "Rule: " + (trigger.getRuleName()!=null?trigger.getRuleName():"N/A");
     }
 
     public static String prettyPrintForReport(Enum e) {

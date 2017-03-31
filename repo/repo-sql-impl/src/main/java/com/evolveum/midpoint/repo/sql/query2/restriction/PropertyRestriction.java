@@ -32,9 +32,11 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 
@@ -155,6 +157,14 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
         if (String.class.equals(expectedType) && (value instanceof QName)) {
             //eg. shadow/objectClass
             value = RUtil.qnameToString((QName) value);
+        }
+
+        if (value instanceof RawType) {     // MID-3850: but it's quite a workaround. Maybe we should treat RawType's earlier than this.
+            try {
+                return ((RawType) value).getParsedRealValue(expectedType);
+            } catch (SchemaException e) {
+                throw new QueryException("Couldn't parse value " + value + " as " + expectedType + ": " + e.getMessage(), e);
+            }
         }
 
         if (!expectedType.isAssignableFrom(value.getClass())) {

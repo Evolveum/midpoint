@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="519f131a-147b-11e7-a270-c38e2b225751"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	
+	<!-- Resource with explicit lifecycle expression -->
+								  
+	<name>Dummy Resource Lifecycle</name>
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>lifecycle</icfi:instanceId>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<outbound>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+            <lifecycle>
+            	<lifecycleState>
+            		<outbound>
+            			<name>lifecycle-lifecycle</name>
+            			<source>
+            				<path>employeeType</path>
+            			</source>
+            			<expression>
+            				<script>
+            					<code>
+            						if (employeeType == 'WRECK') {
+            							return 'archived';
+            						} else {
+	            						// default algorithm
+	            						return midpoint.computeProjectionLifecycle(focus, shadow, resource);
+	            					}
+            					</code>
+            				</script>
+            			</expression>
+            		</outbound>
+            	</lifecycleState>
+            </lifecycle>
+		</objectType>
+	</schemaHandling>
+	
+</resource>

@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -45,6 +46,7 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	private PrismObject<T> aPrioriTargetObject;
 	private ObjectDelta<T> aPrioriTargetDelta;
 	private LensElementContext<T> targetContext;
+	private ObjectDeltaObject<?> sourceContext;
 	private ItemPath defaultTargetItemPath;
 	// Only needed if defaultTargetItemPath == null
 	private D targetItemDefinition;
@@ -127,6 +129,14 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 		this.targetContext = targetContext;
 	}
 	
+	public ObjectDeltaObject<?> getSourceContext() {
+		return sourceContext;
+	}
+
+	public void setSourceContext(ObjectDeltaObject<?> sourceContext) {
+		this.sourceContext = sourceContext;
+	}
+
 	public Boolean getEvaluateCurrent() {
 		return evaluateCurrent;
 	}
