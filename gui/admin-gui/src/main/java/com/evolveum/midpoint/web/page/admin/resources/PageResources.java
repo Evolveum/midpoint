@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -140,9 +141,10 @@ public class PageResources extends PageAdminResources {
         if (storage == null) {
             storage = getSessionStorage().initPageStorage(SessionStorage.KEY_RESOURCES);
         }
-        Search search = SearchFactory.createSearch(UserType.class, getPrismContext(), getModelInteractionService());
-
-        if (search.getItems() != null && search.getItems().size() > 0){
+        Search search = SearchFactory.createSearch(ResourceType.class, getPrismContext(), getModelInteractionService());
+		if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
+			search.setFullText(text);
+		} else if (search.getItems() != null && search.getItems().size() > 0){
             SearchItem searchItem = search.getItems().get(0);
             searchItem.getValues().add(new SearchValue<>(text));
         }

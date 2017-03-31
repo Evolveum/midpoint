@@ -96,7 +96,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 	private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
-	private static final String OPERATION_LOAD_TARGET_OBJECT = DOT_CLASS + "loadUser";
+	private static final String OPERATION_LOAD_TARGET_OBJECT = DOT_CLASS + "loadItemSecurityDecisions";
 
 	private static final String ID_HEADER_ROW = "headerRow";
 	private static final String ID_SELECTED = "selected";
@@ -887,10 +887,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private List<ACAttributeDto> loadAttributes() {
 		AssignmentEditorDto dto = getModel().getObject();
 
-		if (dto.getAttributes() != null && !dto.getAttributes().isEmpty()) {
-			return dto.getAttributes();
-		}
-
 		OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
 		List<ACAttributeDto> attributes = new ArrayList<>();
 		try {
@@ -955,6 +951,18 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return String.CASE_INSENSITIVE_ORDER.compare(a1.getName(), a2.getName());
 			}
 		});
+
+
+		if (dto.getAttributes() != null && !dto.getAttributes().isEmpty()) {
+			for (ACAttributeDto assignmentAttribute : dto.getAttributes()) {
+				for (ACAttributeDto attributeDto : attributes){
+					if (attributeDto.getName().equals(assignmentAttribute.getName())){
+						attributes.set(attributes.indexOf(attributeDto), assignmentAttribute);
+						continue;
+					}
+				}
+			}
+		}
 
 		dto.setAttributes(attributes);
 
@@ -1222,17 +1230,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		if (pageBase == null || getModelObject().getTargetRef() == null){
 			return null;
 		}
-		PrismObject<UserType> currentUser = pageBase.loadUserSelf(pageBase);
+		PrismObject<UserType> user = pageBase.getSessionStorage().getRoleCatalog().getTargetUser();
+		if (user == null){
+			user = pageBase.loadUserSelf(pageBase);
+		}
 		String targetObjectOid = getModelObject().getTargetRef().getOid();
 
 		Task task = pageBase.createSimpleTask(OPERATION_LOAD_TARGET_OBJECT);
 		OperationResult result = new OperationResult(OPERATION_LOAD_TARGET_OBJECT);
-		PrismObject<AbstractRoleType> targetRefObject = WebModelServiceUtils.loadObject(AbstractRoleType.class, targetObjectOid, pageBase,
-				task, result);
+		PrismObject<AbstractRoleType> targetRefObject = WebModelServiceUtils.loadObject(AbstractRoleType.class,
+				targetObjectOid, pageBase, task, result);
 		ItemSecurityDecisions decisions = null;
 		try{
 			decisions =
-					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(currentUser, targetRefObject);
+					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(user, targetRefObject);
 
 		} catch (SchemaException|SecurityViolationException ex){
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security decisions for assignment items.", ex);
