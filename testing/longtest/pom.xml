@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.6-SNAPSHOT</version>
+		<version>3.C</version>
 		<relativePath>../../build-system/pom.xml</relativePath>
 	</parent>
     <scm>
@@ -60,76 +60,76 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>prism</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-test</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-quartz-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>audit-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-test-util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 		</dependency>
 		
 		<dependency>
@@ -158,7 +158,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -181,19 +181,19 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl-test</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -209,7 +209,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.C</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
