@@ -264,7 +264,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		
 		// Create new midPoint ConnectorInstance and pass it the ICF connector
 		// facade
-		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace,
+		ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType, namespace,
 				connectorSchema, protector, prismContext);
 		connectorImpl.setDescription(desc);
 		

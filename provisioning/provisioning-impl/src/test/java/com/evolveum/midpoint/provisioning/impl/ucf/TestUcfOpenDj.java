@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,7 +289,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
 		Set<Operation> operation = new HashSet<Operation>();
-		Collection<ResourceAttribute<?>> resourceAttributes = cc.addObject(shadow, operation, null, result);
+		ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> ret = cc.addObject(shadow, operation, null, result);
+		Collection<ResourceAttribute<?>> resourceAttributes = ret.getReturnValue();
 		return resourceAttributes;
 	}
 

@@ -19,7 +19,7 @@ package com.evolveum.midpoint.provisioning.ucf.query;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdNameMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class Operation {
@@ -32,7 +32,7 @@ public abstract class Operation {
 	}
 	
 	// TODO: HACK: FIXME: this is wrong! it brings ICF concepts (Filter, IcfNameMapper) to non-ICF interface
-	public abstract <T> Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException;
+	public abstract <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException;
 	
 
 	public FilterInterpreter getInterpreter() {

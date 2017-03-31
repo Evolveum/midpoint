@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,25 +59,25 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-public class IcfConvertor {
+public class ConnIdConvertor {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(IcfConvertor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConnIdConvertor.class);
 	
 	private String resourceSchemaNamespace;
 	private Protector protector;
-	private IcfNameMapper icfNameMapper;
+	private ConnIdNameMapper icfNameMapper;
 	
-	public IcfConvertor(Protector protector, String resourceSchemaNamespace) {
+	public ConnIdConvertor(Protector protector, String resourceSchemaNamespace) {
 		super();
 		this.protector = protector;
 		this.resourceSchemaNamespace = resourceSchemaNamespace;
 	}
 
-	public IcfNameMapper getIcfNameMapper() {
+	public ConnIdNameMapper getIcfNameMapper() {
 		return icfNameMapper;
 	}
 
-	public void setIcfNameMapper(IcfNameMapper icfNameMapper) {
+	public void setIcfNameMapper(ConnIdNameMapper icfNameMapper) {
 		this.icfNameMapper = icfNameMapper;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -237,7 +237,7 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, StateReporter reporter,
+    ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, StateReporter reporter,
 													  OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException,
 			ObjectAlreadyExistsException, ConfigurationException;
 	
@@ -259,12 +259,12 @@ public interface ConnectorInstance {
 	 * @throws SchemaException 
 	 * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
 	 */
-	Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
+    ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
 																  OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 			SecurityViolationException, ObjectAlreadyExistsException;
 	
-	void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
+    ConnectorOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 							 OperationResult parentResult)
 					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	

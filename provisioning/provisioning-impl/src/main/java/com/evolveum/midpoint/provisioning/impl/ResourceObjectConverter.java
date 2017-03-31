@@ -261,7 +261,8 @@ public class ResourceObjectConverter {
 				throw new UnsupportedOperationException("Resource does not support 'create' operation");
 			}
 			
-			resourceAttributesAfterAdd = connector.addObject(shadowClone, additionalOperations, ctx, parentResult);
+			ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> ret = connector.addObject(shadowClone, additionalOperations, ctx, parentResult);
+			resourceAttributesAfterAdd = ret.getReturnValue();
 
 			if (LOGGER.isDebugEnabled()) {
 				// TODO: reduce only to new/different attributes. Dump all
@@ -650,8 +651,8 @@ public class ResourceObjectConverter {
 					operationsWave = convertToReplace(ctx, operationsWave, currentShadow);
 				}
 				if (!operationsWave.isEmpty()) {
-					Collection<PropertyModificationOperation> sideEffects =
-							connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					Collection<PropertyModificationOperation> sideEffects = ret.getReturnValue();
 					sideEffectChanges.addAll(sideEffects);
 					// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
 				}

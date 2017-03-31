@@ -21,7 +21,7 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdNameMapper;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -33,7 +33,7 @@ public class FilterInterpreter {
 		this.objectClassDefinition = objectClassDefinition;
 	}
 	
-	public Filter interpret(ObjectFilter filter, IcfNameMapper icfNameMapper) throws SchemaException{
+	public Filter interpret(ObjectFilter filter, ConnIdNameMapper icfNameMapper) throws SchemaException{
 		
 		Operation operation = null;
 		

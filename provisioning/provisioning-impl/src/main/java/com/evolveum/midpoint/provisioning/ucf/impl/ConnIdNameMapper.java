@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class IcfNameMapper {
+public class ConnIdNameMapper {
 	
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
@@ -38,7 +38,7 @@ public class IcfNameMapper {
 	// Used when there is no schema (schemaless resource)
 	private String resourceSchemaNamespace = null;
 	
-	public IcfNameMapper(String resourceSchemaNamespace) {
+	public ConnIdNameMapper(String resourceSchemaNamespace) {
 		super();
 		this.resourceSchemaNamespace = resourceSchemaNamespace;
 	}

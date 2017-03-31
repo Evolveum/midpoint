@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdNameMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,7 +41,7 @@ public class LogicalOperation extends Operation{
 	}
 
 	@Override
-	public <T> Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException{
+	public <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException{
 		
 		if (objectFilter instanceof NotFilter){
 			NotFilter not = (NotFilter) objectFilter;

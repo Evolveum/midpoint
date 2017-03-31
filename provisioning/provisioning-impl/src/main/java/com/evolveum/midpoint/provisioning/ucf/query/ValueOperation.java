@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -52,7 +52,7 @@ public class ValueOperation extends Operation {
 	}
 
 	@Override
-	public <T> Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException {
+	public <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException {
 
 		OperationResult parentResult = new OperationResult("interpret");
 

@@ -95,7 +95,7 @@ class IcfUtil {
 
     private static final String CONNECTIONS_EXCEPTION_CLASS_NAME = "CommunicationsException";
 
-    static Throwable processIcfException(Throwable icfException, ConnectorInstanceIcfImpl conn,
+    static Throwable processIcfException(Throwable icfException, ConnectorInstanceConnIdImpl conn,
 			OperationResult icfResult) {
 		return processIcfException(icfException, conn.getHumanReadableName(), icfResult);
 	}
