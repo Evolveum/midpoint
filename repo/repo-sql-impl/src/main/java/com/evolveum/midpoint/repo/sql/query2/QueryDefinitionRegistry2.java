@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.ClassDefinitionParser;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
@@ -83,6 +85,9 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
 			JpaEntityDefinition caseDefinition = classDefinitionParser.parseRootClass(RAccessCertificationCase.class);
 			definitionsByClass.put(RAccessCertificationCase.class, caseDefinition);
 			map.put(AccessCertificationCaseType.COMPLEX_TYPE, caseDefinition);
+			JpaEntityDefinition certWorkItemDefinition = classDefinitionParser.parseRootClass(RAccessCertificationWorkItem.class);
+			definitionsByClass.put(RAccessCertificationWorkItem.class, certWorkItemDefinition);
+			map.put(AccessCertificationWorkItemType.COMPLEX_TYPE, certWorkItemDefinition);
 
 			// link parents (maybe not needed at all, we'll see) and referenced entity definitions
 			// sort definitions
@@ -182,7 +187,9 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
         }
         if (AccessCertificationCaseType.class.equals(type)) {           // TODO generalize
             return AccessCertificationCaseType.COMPLEX_TYPE;
-        }
+        } else if (AccessCertificationWorkItemType.class.equals(type)) {           // TODO generalize
+			return AccessCertificationWorkItemType.COMPLEX_TYPE;
+		}
         throw new QueryException("Unsupported type " + type);
     }
 

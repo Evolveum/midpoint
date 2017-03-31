@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemReferenceId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
@@ -128,7 +129,14 @@ public class RCertWorkItemReference extends RReference {
         return super.getRelation();
     }
 
-    public static Set<RCertWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
+	@Column(name = "containerType")
+	@Enumerated(EnumType.ORDINAL)
+	@Override
+	public RObjectType getType() {
+		return super.getType();
+	}
+
+	public static Set<RCertWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
 			RAccessCertificationWorkItem owner) {
         Set<RCertWorkItemReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {

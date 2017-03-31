@@ -396,14 +396,15 @@ public class ObjectRetriever {
 	}
 
 	public <C extends Containerable> SearchResultList<C> searchContainersAttempt(Class<C> type, ObjectQuery query,
-                                                                                 Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                                 OperationResult result) throws SchemaException {
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-        if (!(AccessCertificationCaseType.class.equals(type))) {
-            throw new UnsupportedOperationException("Only AccessCertificationCaseType is supported here now.");
+    	boolean cases = AccessCertificationCaseType.class.equals(type);
+    	boolean workItems = AccessCertificationWorkItemType.class.equals(type);
+        if (!cases && !workItems) {
+            throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType is supported here now.");
         }
 
-        LOGGER_PERFORMANCE.debug("> search containers {}", new Object[]{type.getSimpleName()});
+        LOGGER_PERFORMANCE.debug("> search containers {}", type.getSimpleName());
         List<C> list = new ArrayList<>();
         Session session = null;
         try {
@@ -412,14 +413,19 @@ public class ObjectRetriever {
             QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
-            List<GetContainerableResult> items = rQuery.list();
-            LOGGER.trace("Found {} items, translating to JAXB.", items.size());
-
-            Map<String,PrismObject> ownersCache = new HashMap<>();
-            for (GetContainerableResult item : items) {
-                C value = (C) caseHelper.updateLoadedCertificationCase(item, ownersCache, options, session, result);
-                list.add(value);
-            }
+            if (cases) {
+				List<GetContainerableResult> items = rQuery.list();
+				LOGGER.trace("Found {} items, translating to JAXB.", items.size());
+				Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
+				for (GetContainerableResult item : items) {
+					@SuppressWarnings({ "raw", "unchecked" })
+					C value = (C) caseHelper.updateLoadedCertificationCase(item, campaignsCache, options, session, result);
+					list.add(value);
+				}
+			} else {
+            	assert workItems;
+            	// TODO
+			}
 
             session.getTransaction().commit();
         } catch (QueryException | RuntimeException ex) {

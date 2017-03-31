@@ -35,6 +35,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -66,6 +67,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     private Integer id;
 
     private Set<RCertWorkItemReference> reviewerRef = new HashSet<>();
+    private XMLGregorianCalendar closedTimestamp;
 
     public RAccessCertificationWorkItem() {
     }
@@ -133,6 +135,15 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         this.id = id;
     }
 
+    @Column
+	public XMLGregorianCalendar getClosedTimestamp() {
+		return closedTimestamp;
+	}
+
+	public void setClosedTimestamp(XMLGregorianCalendar closedTimestamp) {
+		this.closedTimestamp = closedTimestamp;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -143,7 +154,8 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		return Objects.equals(ownerOwnerOid, that.ownerOwnerOid) &&
 				Objects.equals(ownerId, that.ownerId) &&
 				Objects.equals(id, that.id) &&
-				Objects.equals(reviewerRef, that.reviewerRef);
+				Objects.equals(reviewerRef, that.reviewerRef) &&
+				Objects.equals(closedTimestamp, that.closedTimestamp);
 	}
 
 	@Override
@@ -186,6 +198,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		rWorkItem.setId(idInt);
         rWorkItem.getReviewerRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
                 workItem.getReviewerRef(), context.prismContext, rWorkItem));
+        rWorkItem.setClosedTimestamp(workItem.getClosedTimestamp());
     }
 
 }

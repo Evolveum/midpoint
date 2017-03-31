@@ -248,10 +248,10 @@
         <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
         <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
         <currentStageNumber>1</currentStageNumber>
-        <workItem id="1">
+        <workItem> <!-- no ID on purpose -->
             <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
         </workItem>
-        <workItem id="2">
+        <workItem> <!-- no ID on purpose -->
             <reviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>

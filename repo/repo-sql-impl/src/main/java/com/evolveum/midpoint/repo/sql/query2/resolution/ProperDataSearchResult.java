@@ -18,21 +18,21 @@ package com.evolveum.midpoint.repo.sql.query2.resolution;
 
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
-import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly
  */
 public class ProperDataSearchResult<T extends JpaDataNodeDefinition> extends DataSearchResult<T> {
 
-    JpaEntityDefinition entityDefinition;      // entity in which the item was found
+    @NotNull private final JpaEntityDefinition entityDefinition;      // entity in which the item was found
 
-    public ProperDataSearchResult(JpaEntityDefinition entityDefinition, DataSearchResult<T> result) {
+    public ProperDataSearchResult(@NotNull JpaEntityDefinition entityDefinition, @NotNull DataSearchResult<T> result) {
         super(result.getLinkDefinition(), result.getRemainder());
-        Validate.notNull(entityDefinition, "entityDefinition");
         this.entityDefinition = entityDefinition;
     }
 
+    @NotNull
     public JpaEntityDefinition getEntityDefinition() {
         return entityDefinition;
     }

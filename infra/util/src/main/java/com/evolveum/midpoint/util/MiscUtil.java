@@ -42,6 +42,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -561,5 +562,15 @@ public class MiscUtil {
 	public static String getFirstNonNullString(Object... values) {
 		Object value = getFirstNonNull(values);
 		return value != null ? value.toString() : null;
+	}
+
+	public static <T> T extractSingleton(Collection<T> collection) {
+		if (collection == null || collection.isEmpty()) {
+			return null;
+		} else if (collection.size() == 1) {
+			return collection.iterator().next();
+		} else {
+			throw new IllegalArgumentException("Expected a collection with at most one item; got the one with " + collection.size() + " items");
+		}
 	}
 }

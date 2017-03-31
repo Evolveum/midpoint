@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -29,19 +28,21 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
 
@@ -53,78 +54,111 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     private static final Trace LOGGER = TraceManager.getTrace(ReferenceRestriction.class);
 
     // Definition of the item being queried.
-    private final JpaLinkDefinition<JpaReferenceDefinition> linkDefinition;
+    @NotNull private final JpaLinkDefinition<JpaReferenceDefinition> linkDefinition;
 
     public ReferenceRestriction(InterpretationContext context, RefFilter filter, JpaEntityDefinition baseEntityDefinition,
-                                Restriction parent, JpaLinkDefinition<JpaReferenceDefinition> linkDefinition) {
+                                Restriction parent, @NotNull JpaLinkDefinition<JpaReferenceDefinition> linkDefinition) {
         super(context, filter, baseEntityDefinition, parent);
-        Validate.notNull(linkDefinition, "linkDefinition");
         this.linkDefinition = linkDefinition;
     }
 
     @Override
     public Condition interpretInternal() throws QueryException {
 
-        String hqlPath = getHqlDataInstance().getHqlPath();
-        LOGGER.trace("interpretInternal starting with hqlPath = {}", hqlPath);
+		String hqlPath = hqlDataInstance.getHqlPath();
+		LOGGER.trace("interpretInternal starting with hqlPath = {}", hqlPath);
 
-        List<? extends PrismValue> values = filter.getValues();
-        if (values != null && values.size() > 1) {
-            throw new QueryException("Ref filter '" + filter + "' contain more than one reference value (which is not supported for now).");
-        }
-        PrismReferenceValue refValue = null;
-        if (values != null && !values.isEmpty()) {
-            refValue = (PrismReferenceValue) values.get(0);
-        }
+		RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 
-        InterpretationContext context = getContext();
-        RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+		List<PrismReferenceValue> values = filter.getValues();
+		if (CollectionUtils.isEmpty(values)) {
+			if (linkDefinition.getCollectionSpecification() != null) {
+				// TODO implement
+				throw new QueryException("'isNull' conditions on multivalued references are not supported: " + linkDefinition);
+			}
+			return hibernateQuery.createIsNull(getTargetOidPropertyName());
+		}
+		Set<String> oids = new HashSet<>();
+		Set<QName> relations = new HashSet<>();
+		Set<QName> targetTypes = new HashSet<>();
+		for (PrismReferenceValue value : values) {
+			if (value.getOid() == null) {
+				throw new QueryException("Null OID is not allowed in the reference query. Use empty reference list if needed.");
+			}
+			oids.add(value.getOid());
+			if (value.getRelation() == null) {
+				relations.add(SchemaConstants.ORG_DEFAULT);
+			} else {
+				// we intentionally don't normalize relations namespaces, to be able to do namespace-insensitive searches
+				// so the caller is responsible to unify namespaces if he needs to optimize queries (use IN instead of OR)
+				relations.add(value.getRelation());
+			}
+			targetTypes.add(qualifyTypeName(value.getTargetType()));
+		}
 
-        String refValueOid = null;
-        QName refValueRelation = null;
-        QName refValueTargetType = null;
-        if (refValue != null) {
-        	refValueOid = refValue.getOid();
-        	refValueRelation = refValue.getRelation();
-        	refValueTargetType = refValue.getTargetType();
-        }
+		if (relations.size() > 1 || targetTypes.size() > 1) {
+			// we must use 'OR' clause
+			OrCondition rootOr = hibernateQuery.createOr();
+			values.forEach(prv -> rootOr
+					.add(createRefCondition(hibernateQuery, Collections.singleton(prv.getOid()), prv.getRelation(), prv.getTargetType())));
+			return rootOr;
+		} else {
+			return createRefCondition(hibernateQuery, oids, MiscUtil.extractSingleton(relations), MiscUtil.extractSingleton(targetTypes));
+		}
+	}
+
+	private QName qualifyTypeName(QName typeName) throws QueryException {
+    	if (typeName != null) {
+			try {
+				return context.getPrismContext().getSchemaRegistry().qualifyTypeName(typeName);
+			} catch (SchemaException e) {
+				throw new QueryException("Cannot qualify name of the target type: " + typeName + ": " + e.getMessage(), e);
+			}
+		} else {
+    		return null;
+		}
+	}
+
+	private Condition createRefCondition(RootHibernateQuery hibernateQuery,
+			Collection<String> oids, QName relation, QName targetType) {
+		String hqlPath = hqlDataInstance.getHqlPath();
+
         AndCondition conjunction = hibernateQuery.createAnd();
-        conjunction.add(handleEqOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_TARGET_OID, refValueOid));
+        conjunction.add(hibernateQuery.createEqOrInOrNull(getTargetOidPropertyName(), oids));
 
-        if (refValueOid != null) {
-	        if (ObjectTypeUtil.isDefaultRelation(refValueRelation)) {
-	        	// Return references without relation or with "member" relation
-				conjunction.add(hibernateQuery.createIn(hqlPath + "." + ObjectReference.F_RELATION,
-						Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT))));
-	        } else if (QNameUtil.match(refValueRelation, PrismConstants.Q_ANY)) {
-	        	// Return all relations => no restriction
-	        } else {
-	        	// return references with specific relation
-				List<String> relationsToTest = new ArrayList<>();
-				relationsToTest.add(qnameToString(refValueRelation));
-				if (QNameUtil.noNamespace(refValueRelation)) {
-					relationsToTest.add(qnameToString(QNameUtil.setNamespaceIfMissing(refValueRelation, SchemaConstants.NS_ORG, null)));
-				} else if (SchemaConstants.NS_ORG.equals(refValueRelation.getNamespaceURI())) {
-					relationsToTest.add(qnameToString(new QName(refValueRelation.getLocalPart())));
-				} else {
-					// non-empty non-standard NS => nothing to add
-				}
-				conjunction.add(hibernateQuery.createEqOrIn(hqlPath + "." + ObjectReference.F_RELATION, relationsToTest));
-	        }
-	
-	        if (refValueTargetType != null) {
-	            conjunction.add(handleEqOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_TYPE,
-	                    ClassMapper.getHQLTypeForQName(refValueTargetType)));
-	        }
-        }
+		if (ObjectTypeUtil.isDefaultRelation(relation)) {
+			// Return references without relation or with "member" relation
+			conjunction.add(hibernateQuery.createIn(hqlPath + "." + ObjectReference.F_RELATION,
+					Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT))));
+		} else if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
+			// Return all relations => no restriction
+		} else {
+			// return references with specific relation
+			List<String> relationsToTest = new ArrayList<>();
+			relationsToTest.add(qnameToString(relation));
+			if (QNameUtil.noNamespace(relation)) {
+				relationsToTest.add(qnameToString(QNameUtil.setNamespaceIfMissing(relation, SchemaConstants.NS_ORG, null)));
+			} else if (SchemaConstants.NS_ORG.equals(relation.getNamespaceURI())) {
+				relationsToTest.add(qnameToString(new QName(relation.getLocalPart())));
+			} else {
+				// non-empty non-standard NS => nothing to add
+			}
+			conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + ObjectReference.F_RELATION, relationsToTest));
+		}
 
-        // TODO what about isNotNull if necessary ?
-
+		if (targetType != null) {
+			conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_TYPE,
+					ClassMapper.getHQLTypeForQName(targetType)));
+		}
         return conjunction;
     }
 
+	@NotNull
+	private String getTargetOidPropertyName() {
+		return hqlDataInstance.getHqlPath() + "." + ObjectReference.F_TARGET_OID;
+	}
 
-    private Condition handleEqOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {
+	private Condition handleEqInOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {
         if (value == null) {
             return hibernateQuery.createIsNull(propertyName);
         } else {

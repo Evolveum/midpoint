@@ -83,6 +83,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WO
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author lazyman
@@ -1027,6 +1028,22 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    l.relation in (:relation)\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test142QueryUserAccountRefNull() throws Exception {
+        Session session = open();
+        try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(UserType.F_LINK_REF).isNull()
+					.build();
+			getInterpretedQuery2(session, UserType.class, query);
+			fail("isNull query for multivalued reference should fail, but it has not.");
+		} catch (QueryException e) {
+        	// ok
         } finally {
             close(session);
         }
@@ -2121,7 +2138,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         for (String property : properties) {
             for (String token : array) {
                 if (token.endsWith(property + "=?") && !token.startsWith(alias + ".")) {
-                    AssertJUnit.fail("Property '" + property + "' doesn't have proper alias '"
+                    fail("Property '" + property + "' doesn't have proper alias '"
                             + alias + "' in token '" + token + "'");
                 }
             }
@@ -2645,7 +2662,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-
     @Test
     public void test700QueryCertCaseAll() throws Exception {
         Session session = open();
@@ -2655,6 +2671,23 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  a.fullObject, a.ownerOid\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test705QueryCertWorkItemAll() throws Exception {
+        Session session = open();
+        try {
+            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, (ObjectQuery) null, false);
+            String expected = "select\n"
+                    + "  a.ownerOwnerOid,\n"
+                    + "  a.ownerId,\n"
+                    + "  a.id\n"
+                    + "from\n"
+                    + "  RAccessCertificationWorkItem a\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -2676,6 +2709,36 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  a.ownerOid in :ownerOid";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test715QueryWorkItemsForCase() throws Exception {
+        Session session = open();
+        try {
+			ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+					.exists(PrismConstants.T_PARENT)
+					.block()
+						.id(1)
+						.and().ownerId("123456")
+					.endBlock()
+					.build();
+			String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
+			String expected = "select\n"
+					+ "  a.ownerOwnerOid,\n"
+					+ "  a.ownerId,\n"
+					+ "  a.id\n"
+					+ "from\n"
+					+ "  RAccessCertificationWorkItem a\n"
+					+ "    left join a.owner o\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    o.id in :id and\n"
+					+ "    o.ownerOid in :ownerOid\n"
+					+ "  )\n";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
             close(session);
         }
     }
@@ -2707,30 +2770,91 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    // FIXME!!!
-//    @Test
-//    public void test730QueryCertCaseReviewer() throws Exception {
-//        Session session = open();
-//        try {
-//            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-//                    .item(F_CURRENT_REVIEWER_REF).ref("1234567890")
-//                    .build();
-//            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
-//            String expected = "select\n" +
-//                    "  a.fullObject, a.ownerOid\n" +
-//                    "from\n" +
-//                    "  RAccessCertificationCase a\n" +
-//                    "    left join a.reviewerRef r\n" +
-//                    "where\n" +
-//                    "  (\n" +
-//                    "    r.targetOid = :targetOid and\n" +
-//                    "    r.relation in (:relation)\n" +
-//                    "  )\n";
-//            assertEqualsIgnoreWhitespace(expected, real);
-//        } finally {
-//            close(session);
-//        }
-//    }
+	@Test
+    public void test730QueryCertCaseReviewer() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_REVIEWER_REF).ref("1234567890")
+                    .build();
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected = "select\n"
+                    + "  a.fullObject,\n"
+                    + "  a.ownerOid\n"
+                    + "from\n"
+                    + "  RAccessCertificationCase a\n"
+                    + "    left join a.workItems w\n"
+                    + "    left join w.reviewerRef r\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    r.targetOid = :targetOid and\n"
+                    + "    r.relation in (:relation)\n"
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+	@Test
+    public void test735QueryCertWorkItemReviewers() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                    .item(AccessCertificationWorkItemType.F_REVIEWER_REF).ref("oid1")
+                    .or().item(AccessCertificationWorkItemType.F_REVIEWER_REF).ref("oid2")
+                    .build();
+            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
+            String expected = "select\n"
+					+ "  a.ownerOwnerOid,\n"
+					+ "  a.ownerId,\n"
+					+ "  a.id\n"
+					+ "from\n"
+					+ "  RAccessCertificationWorkItem a\n"
+					+ "    left join a.reviewerRef r\n"
+					+ "    left join a.reviewerRef r2\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    (\n"
+					+ "      r.targetOid = :targetOid and\n"
+					+ "      r.relation in (:relation)\n"
+					+ "    ) or\n"
+					+ "    (\n"
+					+ "      r2.targetOid = :targetOid2 and\n"
+					+ "      r2.relation in (:relation2)\n"
+					+ "    )\n"
+					+ "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+	@Test
+    public void test737QueryCertWorkItemReviewersMulti() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                    .item(AccessCertificationWorkItemType.F_REVIEWER_REF).ref("oid1", "oid2")
+                    .build();
+            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
+            String expected = "select\n"
+					+ "  a.ownerOwnerOid,\n"
+					+ "  a.ownerId,\n"
+					+ "  a.id\n"
+					+ "from\n"
+					+ "  RAccessCertificationWorkItem a\n"
+					+ "    left join a.reviewerRef r\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    r.targetOid in (:targetOid) and\n"
+					+ "    r.relation in (:relation)\n"
+					+ "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
 
     @Test
     public void test740QueryCertCasesByCampaignOwner() throws Exception {
@@ -2766,131 +2890,166 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
-    // FIXME!!!!!!!!!
-//    @Test
-//    public void test735QueryCertCaseReviewerAndEnabled() throws Exception {
-//        Session session = open();
-//        try {
-//            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
-//            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-//                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
-//                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-//                    .build();
-//
-//            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
-//            String expected =
-//                    "select\n" +
-//                            "  a.fullObject, a.ownerOid\n" +
-//                            "from\n" +
-//                            "  RAccessCertificationCase a\n" +
-//                            "    left join a.reviewerRef r\n" +
-//                            "    left join a.owner o\n" +
-//                            "where\n" +
-//                            "  (\n" +
-//                            "    (\n" +
-//                            "      r.targetOid = :targetOid and\n" +
-//                            "      r.relation in (:relation) and\n" +
-//                            "      r.type = :type\n" +
-//                            "    ) and\n" +
-//                            "    (\n" +
-//                            "      a.currentStageNumber = o.stageNumber or\n" +
-//                            "      (\n" +
-//                            "        a.currentStageNumber is null and\n" +
-//                            "        o.stageNumber is null\n" +
-//                            "      )\n" +
-//                            "    )\n" +
-//                            "  )\n";
-//            assertEqualsIgnoreWhitespace(expected, real);
-//        } finally {
-//            close(session);
-//        }
-//    }
+    @Test
+    public void test735QueryCertCaseReviewerAndEnabled() throws Exception {
+        Session session = open();
+        try {
+            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_REVIEWER_REF).ref(reviewerRef)
+                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .build();
 
-    // FIXME!!!!!!!!!
-//    @Test
-//    public void test745QueryCertCaseReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
-//        Session session = open();
-//        try {
-//            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
-//
-//            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-//                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
-//                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-//                    .asc(F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
-//                    .build();
-//
-//            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
-//            String expected =
-//                    "select\n" +
-//                            "  a.fullObject, a.ownerOid\n" +
-//                            "from\n" +
-//                            "  RAccessCertificationCase a\n" +
-//                            "    left join a.reviewerRef r\n" +
-//                            "    left join a.owner o\n" +
-//                            "where\n" +
-//                            "  (\n" +
-//                            "    (\n" +
-//                            "      r.targetOid = :targetOid and\n" +
-//                            "      r.relation in (:relation) and\n" +
-//                            "      r.type = :type\n" +
-//                            "    ) and\n" +
-//                            "    (\n" +
-//                            "      a.currentStageNumber = o.stageNumber or\n" +
-//                            "      (\n" +
-//                            "        a.currentStageNumber is null and\n" +
-//                            "        o.stageNumber is null\n" +
-//                            "      )\n" +
-//                            "    )\n" +
-//                            "  )\n" +
-//                            "order by a.reviewDeadline asc, a.id asc\n";
-//            assertEqualsIgnoreWhitespace(expected, real);
-//        } finally {
-//            close(session);
-//        }
-//    }
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected =
+                    "select\n" +
+                            "  a.fullObject, a.ownerOid\n" +
+                            "from\n" +
+                            "  RAccessCertificationCase a\n" +
+                            "    left join a.workItems w\n" +
+                            "    left join w.reviewerRef r\n" +
+                            "    left join a.owner o\n" +
+                            "where\n" +
+                            "  (\n" +
+                            "    (\n" +
+                            "      r.targetOid = :targetOid and\n" +
+                            "      r.relation in (:relation) and\n" +
+                            "      r.type = :type\n" +
+                            "    ) and\n" +
+                            "    (\n" +
+                            "      a.currentStageNumber = o.stageNumber or\n" +
+                            "      (\n" +
+                            "        a.currentStageNumber is null and\n" +
+                            "        o.stageNumber is null\n" +
+                            "      )\n" +
+                            "    )\n" +
+                            "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
 
-    // FIXME!!!!!!!!!
-//    @Test
-//    public void test747QueryCertCaseReviewerAndEnabledByRequestedDesc() throws Exception {
-//        Session session = open();
-//        try {
-//            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
-//            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-//                    .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
-//                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-//                    .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
-//                    .desc(F_CURRENT_REVIEW_REQUESTED_TIMESTAMP)
-//                    .build();
-//            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
-//
-//            String expected = "select\n" +
-//                    "  a.fullObject, a.ownerOid\n" +
-//                    "from\n" +
-//                    "  RAccessCertificationCase a\n" +
-//                    "    left join a.reviewerRef r\n" +
-//                    "    left join a.owner o\n" +
-//                    "where\n" +
-//                    "  (\n" +
-//                    "    (\n" +
-//                    "      r.targetOid = :targetOid and\n" +
-//                    "      r.relation in (:relation) and\n" +
-//                    "      r.type = :type\n" +
-//                    "    ) and\n" +
-//                    "    (\n" +
-//                    "      a.currentStageNumber = o.stageNumber or\n" +
-//                    "      (\n" +
-//                    "        a.currentStageNumber is null and\n" +
-//                    "        o.stageNumber is null\n" +
-//                    "      )\n" +
-//                    "    ) and\n" +
-//                    "    o.state = :state\n" +
-//                    "  )\n" +
-//                    "order by a.reviewRequestedTimestamp desc";
-//            assertEqualsIgnoreWhitespace(expected, real);
-//        } finally {
-//            close(session);
-//        }
-//    }
+    @Test
+    public void test745QueryCertCaseReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
+        Session session = open();
+        try {
+            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_REVIEWER_REF).ref(reviewerRef)
+                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .asc(F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
+                    .build();
+
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String expected =
+                    "select\n" +
+                            "  a.fullObject, a.ownerOid\n" +
+                            "from\n" +
+                            "  RAccessCertificationCase a\n" +
+                            "    left join a.workItems w\n" +
+                            "    left join w.reviewerRef r\n" +
+                            "    left join a.owner o\n" +
+                            "where\n" +
+                            "  (\n" +
+                            "    (\n" +
+                            "      r.targetOid = :targetOid and\n" +
+                            "      r.relation in (:relation) and\n" +
+                            "      r.type = :type\n" +
+                            "    ) and\n" +
+                            "    (\n" +
+                            "      a.currentStageNumber = o.stageNumber or\n" +
+                            "      (\n" +
+                            "        a.currentStageNumber is null and\n" +
+                            "        o.stageNumber is null\n" +
+                            "      )\n" +
+                            "    )\n" +
+                            "  )\n" +
+                            "order by a.reviewDeadline asc, a.id asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test746QueryCertWorkItemReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                    .item(AccessCertificationWorkItemType.F_REVIEWER_REF).ref("oid1", "oid2")
+                    .and().item(AccessCertificationWorkItemType.F_CLOSED_TIMESTAMP).isNull()
+                    .asc(PrismConstants.T_PARENT, F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
+                    .build();
+
+            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
+            String expected =
+                    "select\n"
+							+ "  a.ownerOwnerOid,\n"
+							+ "  a.ownerId,\n"
+							+ "  a.id\n"
+							+ "from\n"
+							+ "  RAccessCertificationWorkItem a\n"
+							+ "    left join a.reviewerRef r\n"
+							+ "    left join a.owner o\n"
+							+ "where\n"
+							+ "  (\n"
+							+ "    (\n"
+							+ "      r.targetOid in (:targetOid) and\n"
+							+ "      r.relation in (:relation)\n"
+							+ "    ) and\n"
+							+ "    a.closedTimestamp is null\n"
+							+ "  )\n"
+							+ "order by o.reviewDeadline asc, a.id asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test747QueryCertCaseReviewerAndEnabledByRequestedDesc() throws Exception {
+        Session session = open();
+        try {
+            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+            ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_REVIEWER_REF).ref(reviewerRef)
+                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
+                    .desc(F_CURRENT_REVIEW_REQUESTED_TIMESTAMP)
+                    .build();
+            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+
+            String expected = "select\n" +
+                    "  a.fullObject, a.ownerOid\n" +
+                    "from\n" +
+                    "  RAccessCertificationCase a\n" +
+                    "    left join a.workItems w\n" +
+                    "    left join w.reviewerRef r\n" +
+                    "    left join a.owner o\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    (\n" +
+                    "      r.targetOid = :targetOid and\n" +
+                    "      r.relation in (:relation) and\n" +
+                    "      r.type = :type\n" +
+                    "    ) and\n" +
+                    "    (\n" +
+                    "      a.currentStageNumber = o.stageNumber or\n" +
+                    "      (\n" +
+                    "        a.currentStageNumber is null and\n" +
+                    "        o.stageNumber is null\n" +
+                    "      )\n" +
+                    "    ) and\n" +
+                    "    o.state = :state\n" +
+                    "  )\n" +
+                    "order by a.reviewRequestedTimestamp desc";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
 
     @Test
     public void test750DereferenceLink() throws Exception {

@@ -324,7 +324,7 @@ public class CertificationCaseHelper {
 
 
     // TODO find a better name
-    public AccessCertificationCaseType updateLoadedCertificationCase(GetContainerableResult result, Map<String, PrismObject> ownersMap,
+    public AccessCertificationCaseType updateLoadedCertificationCase(GetContainerableResult result, Map<String, PrismObject<AccessCertificationCampaignType>> ownersMap,
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			Session session, OperationResult operationResult) throws SchemaException {
 
@@ -340,9 +340,9 @@ public class CertificationCaseHelper {
         return aCase;
     }
 
-    private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid, Map<String, PrismObject> campaignsCache, Session session,
+    private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid, Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache, Session session,
 			OperationResult operationResult) {
-        PrismObject campaign = campaignsCache.get(campaignOid);
+        PrismObject<AccessCertificationCampaignType> campaign = campaignsCache.get(campaignOid);
         if (campaign != null) {
             return campaign;
         }
