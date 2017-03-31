@@ -140,7 +140,9 @@ public class PageUsers extends PageAdminUsers {
             storage = getSessionStorage().initPageStorage(SessionStorage.KEY_USERS);
         }
         Search search = SearchFactory.createSearch(UserType.class, getPrismContext(), getModelInteractionService());
-        if (search.getItems() != null && search.getItems().size() > 0){
+		if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
+			search.setFullText(text);
+		} else if (search.getItems() != null && search.getItems().size() > 0){
             SearchItem searchItem = search.getItems().get(0);
             searchItem.getValues().add(new SearchValue<>(text));
         }
