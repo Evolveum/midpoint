@@ -887,10 +887,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private List<ACAttributeDto> loadAttributes() {
 		AssignmentEditorDto dto = getModel().getObject();
 
-		if (dto.getAttributes() != null && !dto.getAttributes().isEmpty()) {
-			return dto.getAttributes();
-		}
-
 		OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
 		List<ACAttributeDto> attributes = new ArrayList<>();
 		try {
@@ -955,6 +951,18 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return String.CASE_INSENSITIVE_ORDER.compare(a1.getName(), a2.getName());
 			}
 		});
+
+
+		if (dto.getAttributes() != null && !dto.getAttributes().isEmpty()) {
+			for (ACAttributeDto assignmentAttribute : dto.getAttributes()) {
+				for (ACAttributeDto attributeDto : attributes){
+					if (attributeDto.getName().equals(assignmentAttribute.getName())){
+						attributes.set(attributes.indexOf(attributeDto), assignmentAttribute);
+						continue;
+					}
+				}
+			}
+		}
 
 		dto.setAttributes(attributes);
 
