@@ -78,7 +78,7 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
         if (Boolean.FALSE.equals(stageDef.isNotifyOnlyWhenNoDecision())) {
             return true;
         }
-        if (reviewEvent.getCasesWithoutResponse().isEmpty()) {
+        if (reviewEvent.getCasesAwaitingResponseFromRequestee().isEmpty()) {
             return false;
         }
         return true;
@@ -128,7 +128,7 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
             }
             body.append("\n\n");
             body.append("There are ").append(reviewEvent.getCases().size()).append(" cases assigned to you. ");
-            body.append("Out of them, ").append(reviewEvent.getCasesWithoutResponse().size()).append(" have no response from you yet.");
+            body.append("Out of them, ").append(reviewEvent.getCasesAwaitingResponseFromRequestee().size()).append(" have no response from you yet.");
         }
 
         return body.toString();

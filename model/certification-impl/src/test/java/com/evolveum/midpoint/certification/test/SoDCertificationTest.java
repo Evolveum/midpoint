@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -247,7 +248,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         checkAllCases(caseList, campaignOid);
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
         AccessCertificationCaseType _case = checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);
-        assertEquals("Unexpected number of reviewers in a-test-2a case", 1, _case.getCurrentReviewerRef().size());
+        assertEquals("Unexpected number of reviewers in a-test-2a case", 1, CertCampaignTypeUtil.getReviewers(_case).size());
     }
 
     @Test

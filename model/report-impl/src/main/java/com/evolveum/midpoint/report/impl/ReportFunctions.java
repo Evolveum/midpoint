@@ -53,7 +53,6 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionForReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -400,18 +399,18 @@ public class ReportFunctions {
         return model.searchContainers(AccessCertificationCaseType.class, query, options, task, task.getResult());
     }
 
-    public List<PrismContainerValue<AccessCertificationDecisionType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-        List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
-        List<AccessCertificationDecisionType> decisions = new ArrayList<>();
-        for (AccessCertificationCaseType aCase : cases) {
-            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
-                if (stageNumber == null || decision.getStageNumber() == stageNumber) {
-                    decisions.add(decision);
-                }
-            }
-        }
-        return PrismContainerValue.toPcvList(decisions);
-    }
+//    public List<PrismContainerValue<AccessCertificationDecisionType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+//        List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
+//        List<AccessCertificationDecisionType> decisions = new ArrayList<>();
+//        for (AccessCertificationCaseType aCase : cases) {
+//            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
+//                if (stageNumber == null || decision.getStageNumber() == stageNumber) {
+//                    decisions.add(decision);
+//                }
+//            }
+//        }
+//        return PrismContainerValue.toPcvList(decisions);
+//    }
 
     public List<PrismObject<AccessCertificationCampaignType>> getCertificationCampaigns(Boolean alsoClosedCampaigns) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
         Task task = taskManager.createTaskInstance();

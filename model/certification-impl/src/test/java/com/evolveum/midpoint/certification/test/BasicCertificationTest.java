@@ -489,12 +489,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(ACCEPT);
-        decision.setComment("no comment");
-        decision.setStageNumber(0);     // will be replaced by current stage number
+        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
-        certificationService.recordDecision(campaignOid, id, decision, task, result);
+        certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -528,13 +525,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(ACCEPT);
-        decision.setComment("ok");
-        decision.setStageNumber(1);
+        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, USER_ADMINISTRATOR_OID);
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
-        certificationService.recordDecision(campaignOid, id, decision, task, result);
+        certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "ok", task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -568,13 +562,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(REVOKE);
-        decision.setComment("no way");
-        decision.setStageNumber(1);
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
-        certificationService.recordDecision(campaignOid, id, decision, task, result);
+        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, USER_ADMINISTRATOR_OID);
+        certificationService.recordDecision(campaignOid, id, workItem.getId(), REVOKE, "no way", task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

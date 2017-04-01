@@ -402,12 +402,12 @@ jack->CTO                   none (A) -> A       none (A) -> A
         AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         AccessCertificationCaseType jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-        assertDecisions(elaineCeoCase, 1);
-        assertDecisions(guybrushCooCase, 2);
-        assertDecisions(administratorCooCase, 1);
-        assertDecisions(administratorCeoCase, 1);
-        assertDecisions(jackCeoCase, 1);
-        assertDecisions(jackCtoCase, 0);
+        assertWorkItems(elaineCeoCase, 1);
+        assertWorkItems(guybrushCooCase, 2);
+        assertWorkItems(administratorCooCase, 1);
+        assertWorkItems(administratorCeoCase, 1);
+        assertWorkItems(jackCeoCase, 1);
+        assertWorkItems(jackCtoCase, 0);
 
         assertSingleDecision(elaineCeoCase, ACCEPT, null, 2, USER_ELAINE_OID, ACCEPT, false);
         assertSingleDecision(guybrushCooCase, REVOKE, "no", 2, USER_ADMINISTRATOR_OID, REVOKE, false);
@@ -606,12 +606,12 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-        assertDecisions(elaineCeoCase, 3);
-        assertDecisions(guybrushCooCase, 2);
-        assertDecisions(administratorCooCase, 3);
-        assertDecisions(administratorCeoCase, 3);
-        assertDecisions(jackCeoCase, 1);
-        assertDecisions(jackCtoCase, 2);
+        assertWorkItems(elaineCeoCase, 3);
+        assertWorkItems(guybrushCooCase, 2);
+        assertWorkItems(administratorCooCase, 3);
+        assertWorkItems(administratorCeoCase, 3);
+        assertWorkItems(jackCeoCase, 1);
+        assertWorkItems(jackCtoCase, 2);
 
         assertReviewerDecision(elaineCeoCase, NOT_DECIDED, null, 3, USER_ADMINISTRATOR_OID, NOT_DECIDED, false);
         assertNoDecision(guybrushCooCase, 3, REVOKE, false);
@@ -837,12 +837,12 @@ jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine:null,administrator:null -> NR       | NR   cheese:NR -> NR | NR
 */
 
-        assertDecisions(elaineCeoCase, 3);
-        assertDecisions(guybrushCooCase, 2);
-        assertDecisions(administratorCooCase, 4);
-        assertDecisions(administratorCeoCase, 4);
-        assertDecisions(jackCeoCase, 1);
-        assertDecisions(jackCtoCase, 3);
+        assertWorkItems(elaineCeoCase, 3);
+        assertWorkItems(guybrushCooCase, 2);
+        assertWorkItems(administratorCooCase, 4);
+        assertWorkItems(administratorCeoCase, 4);
+        assertWorkItems(jackCeoCase, 1);
+        assertWorkItems(jackCtoCase, 3);
 
         assertNoDecision(elaineCeoCase, 4, NOT_DECIDED, false);
         assertNoDecision(guybrushCooCase, 4, REVOKE, false);

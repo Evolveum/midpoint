@@ -20,13 +20,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -232,7 +229,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
         AccessCertificationCaseType _case = checkCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, roleSuperuser, campaignOid);
-        assertEquals("Unexpected number of reviewers in superuser case", 0, _case.getCurrentReviewerRef().size());
+        assertEquals("Unexpected number of reviewers in superuser case", 0, CertCampaignTypeUtil.getReviewers(_case).size());
     }
 
     @Test
@@ -246,8 +243,8 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList =
-                queryHelper.searchDecisions(null, USER_ADMINISTRATOR_OID, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                queryHelper.searchWorkItems(null, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         /* Expected cases - phase 1:
 
@@ -261,11 +258,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 3, caseList.size());
-        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo, campaignOid);
-        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo, campaignOid);
-        checkCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo, campaignOid);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification work items", 3, workItems.size());
+        checkWorkItem(workItems, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo, campaignOid);
+        checkWorkItem(workItems, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo, campaignOid);
+        checkWorkItem(workItems, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo, campaignOid);
     }
 
     @Test
@@ -279,8 +276,8 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList =
-                queryHelper.searchDecisions(null, USER_ELAINE_OID, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                queryHelper.searchWorkItems(null, USER_ELAINE_OID, false, null, task, result);
 
         /* Expected cases - phase 1:
 
@@ -292,9 +289,9 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 1, caseList.size());
-        checkCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo, campaignOid);
+        display("caseList", workItems);
+        assertEquals("Wrong number of work items", 1, workItems.size());
+        checkWorkItem(workItems, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo, campaignOid);
     }
 
     @Test
@@ -308,8 +305,8 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList =
-                queryHelper.searchDecisions(null, USER_JACK_OID, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                queryHelper.searchWorkItems(null, USER_JACK_OID, false, null, task, result);
 
         /* Expected cases - phase 1: NONE */
 
@@ -318,8 +315,8 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 0, caseList.size());
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification work items", 0, workItems.size());
     }
 
     /*
@@ -646,11 +643,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
         superuserDummyCase = findCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID);
 
-        assertDecisions(ceoDummyCase, 1);
-        assertDecisions(cooDummyCase, 1);
-        assertDecisions(cooDummyBlackCase, 3);
-        assertDecisions(cooSuperuserCase, 2);
-        assertDecisions(superuserDummyCase, 2);
+        assertWorkItems(ceoDummyCase, 1);
+        assertWorkItems(cooDummyCase, 1);
+        assertWorkItems(cooDummyBlackCase, 3);
+        assertWorkItems(cooSuperuserCase, 2);
+        assertWorkItems(superuserDummyCase, 2);
 
         assertDecision2(cooDummyBlackCase, ACCEPT, "OK", 2, USER_ADMINISTRATOR_OID, REVOKE);
         assertDecision2(cooDummyBlackCase, REVOKE, "Sorry", 2, USER_ELAINE_OID, REVOKE);

@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -29,10 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
@@ -85,13 +81,12 @@ public class CertCampaignTypeUtil {
         return null;
     }
 
-    public static void findDecision(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
-//        for (AccessCertificationDecisionType d : _case.getDecision()) {
-//            if (d.getStageNumber() == stageNumber && d.getReviewerRef().getOid().equals(reviewerOid)) {
-//                return d;
-//            }
-//        }
-//        return null;
+    // to be used in tests (beware: there could be more work items)
+    // TODO move to a test class
+    public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
+        return _case.getWorkItem().stream()
+                .filter(wi -> wi.getStageNumber() == stageNumber && ObjectTypeUtil.containsOid(wi.getReviewerRef(), reviewerOid))
+                .findFirst().orElse(null);
     }
 
     public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, long workItemId) {
@@ -335,8 +330,22 @@ public class CertCampaignTypeUtil {
         return rv;
     }
 
-    // TODO temporary implementation: replace by work items based approach where possible
-//    public static List<ObjectReferenceType> getReviewers(AccessCertificationCaseType _case) {
-//        throw new UnsupportedOperationException("TODO");
-//    }
+    // useful e.g. for tests
+    public static Set<ObjectReferenceType> getReviewers(AccessCertificationCaseType aCase) {
+        return aCase.getWorkItem().stream()
+                .flatMap(wi -> wi.getReviewerRef().stream())
+                .collect(Collectors.toSet());
+    }
+
+    public static AccessCertificationCaseType getCase(AccessCertificationWorkItemType workItem) {
+        PrismContainerable<AccessCertificationWorkItemType> parent = workItem.asPrismContainerValue().getParent();
+        if (!(parent instanceof PrismContainer)) {
+            return null;
+        }
+        PrismValue parentParent = ((PrismContainer<AccessCertificationWorkItemType>) parent).getParent();
+        if (!(parentParent instanceof PrismContainerValue)) {
+            return null;
+        }
+        return ((PrismContainerValue<AccessCertificationCaseType>) parentParent).asContainerable();
+    }
 }

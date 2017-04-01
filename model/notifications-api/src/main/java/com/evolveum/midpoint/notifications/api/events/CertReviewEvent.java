@@ -16,12 +16,9 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,20 +49,22 @@ public class CertReviewEvent extends AccessCertificationEvent {
                 EventCategoryType.CERT_CASE_EVENT.equals(eventCategoryType);
     }
 
-    public Collection<AccessCertificationCaseType> getCasesWithoutResponse() {
+    public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromRequestee() {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         for (AccessCertificationCaseType aCase : cases) {
-            if (!hasResponse(aCase, getRequesteeOid(), campaign.getStageNumber())) {
+            if (awaitsResponseFromRequestee(aCase, getRequesteeOid(), campaign.getStageNumber())) {
                 rv.add(aCase);
             }
         }
         return rv;
     }
 
-    private boolean hasResponse(AccessCertificationCaseType aCase, String reviewerOid, int currentStageNumber) {
-        for (AccessCertificationDecisionType decision : aCase.getDecision()) {
-            if (decision.getStageNumber() == currentStageNumber && decision.getReviewerRef().getOid().equals(reviewerOid)
-                && decision.getResponse() != null && decision.getResponse() != NO_RESPONSE) {
+    private boolean awaitsResponseFromRequestee(AccessCertificationCaseType aCase, String reviewerOid, int currentStageNumber) {
+        for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+            if (workItem.getStageNumber() == currentStageNumber
+					&& (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE)
+					&& workItem.getClosedTimestamp() == null
+					&& ObjectTypeUtil.containsOid(workItem.getReviewerRef(), reviewerOid)) {
                 return true;
             }
         }
