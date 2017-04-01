@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -66,7 +68,11 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     private Integer ownerId;
     private Integer id;
 
+    private Integer stageNumber;
     private Set<RCertWorkItemReference> reviewerRef = new HashSet<>();
+    private REmbeddedReference responderRef;
+    private RAccessCertificationResponse response;
+    private XMLGregorianCalendar timestamp;
     private XMLGregorianCalendar closedTimestamp;
 
     public RAccessCertificationWorkItem() {
@@ -74,7 +80,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 
     // ridiculous name, but needed in order to match case.owner_oid
     @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    //@OwnerIdGetter()
+    //@OwnerIdGetter()			// this is not a single-valued owner id
     public String getOwnerOwnerOid() {
         return ownerOwnerOid;
     }
@@ -92,13 +98,25 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         return owner;
     }
 
-    @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    @OwnerIdGetter()
+	public void setOwner(RAccessCertificationCase _case) {
+		this.owner = _case;
+		if (_case != null) {            // sometimes we are called with null _case but non-null IDs
+			this.ownerId = _case.getId();
+			this.ownerOwnerOid = _case.getOwnerOid();
+		}
+	}
+
+	@Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+	//@OwnerIdGetter()			// this is not a single-valued owner id
     public Integer getOwnerId() {
         return ownerId;
     }
 
-    @Id
+	public void setOwnerId(Integer ownerId) {
+		this.ownerId = ownerId;
+	}
+
+	@Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
@@ -107,7 +125,20 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         return id;
     }
 
-    @JaxbName(localPart = "reviewerRef")
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+    @Column
+	public Integer getStageNumber() {
+    	return stageNumber;
+	}
+
+	public void setStageNumber(Integer stageNumber) {
+		this.stageNumber = stageNumber;
+	}
+
+	@JaxbName(localPart = "reviewerRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -119,23 +150,34 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         this.reviewerRef = reviewerRef;
     }
 
-    public void setOwner(RAccessCertificationCase _case) {
-    	this.owner = _case;
-    	if (_case != null) {            // sometimes we are called with null _case but non-null IDs
-			this.ownerId = _case.getId();
-			this.ownerOwnerOid = _case.getOwnerOid();
-		}
-	}
-
-	public void setOwnerId(Integer ownerId) {
-    	this.ownerId = ownerId;
-	}
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     @Column
+	public REmbeddedReference getResponderRef() {
+		return responderRef;
+	}
+
+	public void setResponderRef(REmbeddedReference responderRef) {
+		this.responderRef = responderRef;
+	}
+
+	@Column
+	public RAccessCertificationResponse getResponse() {
+		return response;
+	}
+
+	public void setResponse(RAccessCertificationResponse response) {
+		this.response = response;
+	}
+
+	@Column
+	public XMLGregorianCalendar getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(XMLGregorianCalendar timestamp) {
+		this.timestamp = timestamp;
+	}
+
+	@Column
 	public XMLGregorianCalendar getClosedTimestamp() {
 		return closedTimestamp;
 	}
@@ -154,16 +196,21 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		return Objects.equals(ownerOwnerOid, that.ownerOwnerOid) &&
 				Objects.equals(ownerId, that.ownerId) &&
 				Objects.equals(id, that.id) &&
+				Objects.equals(stageNumber, that.stageNumber) &&
 				Objects.equals(reviewerRef, that.reviewerRef) &&
+				Objects.equals(responderRef, that.responderRef) &&
+				response == that.response &&
+				Objects.equals(timestamp, that.timestamp) &&
 				Objects.equals(closedTimestamp, that.closedTimestamp);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(ownerOwnerOid, ownerId, id, reviewerRef);
+		return Objects
+				.hash(ownerOwnerOid, ownerId, id, stageNumber, reviewerRef, responderRef, response, timestamp, closedTimestamp);
 	}
 
-    @Transient
+	@Transient
     public Boolean isTransient() {
         return trans;
     }
@@ -196,9 +243,12 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 			throw new IllegalArgumentException("No ID for access certification work item: " + workItem);
 		}
 		rWorkItem.setId(idInt);
+		rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.getReviewerRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
                 workItem.getReviewerRef(), context.prismContext, rWorkItem));
+        rWorkItem.setResponderRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getResponderRef(), context.prismContext));
+        rWorkItem.setResponse(RUtil.getRepoEnumValue(workItem.getResponse(), RAccessCertificationResponse.class));
+        rWorkItem.setTimestamp(workItem.getTimestamp());
         rWorkItem.setClosedTimestamp(workItem.getClosedTimestamp());
     }
-
 }

@@ -69,11 +69,10 @@ public class AccCertReviewersHelper {
         return stageDef.getReviewerSpecification();
     }
 
-    public void setupReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
+    public List<ObjectReferenceType> getReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
                                       AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        _case.getCurrentReviewerRef().clear();
         if (reviewerSpec == null) {
-            return;     // TODO issue a warning here?
+            return Collections.emptyList();     // TODO issue a warning here?
         }
 
 		List<ObjectReferenceType> reviewers = new ArrayList<>();
@@ -108,7 +107,7 @@ public class AccCertReviewersHelper {
         cloneAndMerge(reviewers, reviewerSpec.getAdditionalReviewerRef());
 		resolveRoleReviewers(reviewers, task, result);
 
-		_case.getCurrentReviewerRef().addAll(reviewers);
+		return reviewers;
     }
 
 	private void resolveRoleReviewers(List<ObjectReferenceType> reviewers, Task task, OperationResult result)

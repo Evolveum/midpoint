@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
@@ -38,7 +37,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -92,7 +90,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
     private XMLGregorianCalendar remediedTimestamp;
-    private Set<RAccessCertificationDecision> decisions = new HashSet<>();
     private RAccessCertificationResponse currentStageOutcome;
     private Integer currentStageNumber;
     private RAccessCertificationResponse overallOutcome;
@@ -175,13 +172,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return remediedTimestamp;
     }
 
-    @OneToMany(mappedBy = RAccessCertificationDecision.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAccessCertificationDecision> getDecision() {
-        return decisions;
-    }
-
     public RAccessCertificationResponse getCurrentStageOutcome() {
         return currentStageOutcome;
     }
@@ -241,10 +231,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.remediedTimestamp = remediedTimestamp;
     }
 
-    public void setDecision(Set<RAccessCertificationDecision> decisions) {
-        this.decisions = decisions != null ? decisions : new HashSet<>();
-    }
-
     public void setCurrentStageOutcome(RAccessCertificationResponse currentStageOutcome) {
         this.currentStageOutcome = currentStageOutcome;
     }
@@ -286,7 +272,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
                 Objects.equals(reviewRequestedTimestamp, that.reviewRequestedTimestamp) &&
                 Objects.equals(reviewDeadline, that.reviewDeadline) &&
                 Objects.equals(remediedTimestamp, that.remediedTimestamp) &&
-                Objects.equals(decisions, that.decisions) &&
                 currentStageOutcome == that.currentStageOutcome &&
                 Objects.equals(currentStageNumber, that.currentStageNumber) &&
                 overallOutcome == that.overallOutcome;
@@ -295,7 +280,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     @Override
     public int hashCode() {
         return Objects.hash(fullObject, ownerOid, id, workItems, objectRef, targetRef, tenantRef, orgRef, activation,
-                reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, decisions, currentStageOutcome, currentStageNumber,
+                reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, currentStageNumber,
                 overallOutcome);
     }
 
@@ -357,11 +342,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setCurrentStageOutcome(RUtil.getRepoEnumValue(case1.getCurrentStageOutcome(), RAccessCertificationResponse.class));
         rCase.setCurrentStageNumber(case1.getCurrentStageNumber());
         rCase.setOverallOutcome(RUtil.getRepoEnumValue(case1.getOverallOutcome(), RAccessCertificationResponse.class));
-        for (AccessCertificationDecisionType decision : case1.getDecision()) {
-            RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, context);
-            rCase.getDecision().add(rDecision);
-        }
-
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {

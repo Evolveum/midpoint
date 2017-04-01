@@ -43,7 +43,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -417,20 +416,15 @@ public class PageCertDecisions extends PageAdminCertification {
             return;
         }
 
-        PrismContext prismContext = getPrismContext();
-
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION_SELECTED);
         Task task = createSimpleTask(OPERATION_RECORD_ACTION_SELECTED);
         for (CertDecisionDto certDecisionDto : certDecisionDtoList) {
             OperationResult resultOne = result.createSubresult(OPERATION_RECORD_ACTION);
-            AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);
-            newDecision.setResponse(response);
-            newDecision.setStageNumber(0);
-            newDecision.setComment(certDecisionDto.getComment());
             try {
                 getCertificationService().recordDecision(
                         certDecisionDto.getCampaignRef().getOid(),
-                        certDecisionDto.getCaseId(), newDecision, task, resultOne);
+                        certDecisionDto.getCaseId(), workItemId,
+						response, certDecisionDto.getComment(), task, resultOne);
             } catch (Exception ex) {
                 resultOne.recordFatalError(ex);
             } finally {
@@ -449,21 +443,13 @@ public class PageCertDecisions extends PageAdminCertification {
     // if response is null this means keep the current one in decisionDto
     private void recordActionPerformed(AjaxRequestTarget target,
                                        CertDecisionDto decisionDto, AccessCertificationResponseType response) {
-        PrismContext prismContext = getPrismContext();
-        AccessCertificationDecisionType newDecision = new AccessCertificationDecisionType(prismContext);
-        if (response != null) {
-            newDecision.setResponse(response);
-        } else {
-            newDecision.setResponse(decisionDto.getResponse());
-        }
-        newDecision.setStageNumber(0);
-        newDecision.setComment(decisionDto.getComment());
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
         try {
             Task task = createSimpleTask(OPERATION_RECORD_ACTION);
+            // TODO work item ID
             getCertificationService().recordDecision(
                     decisionDto.getCampaignRef().getOid(),
-                    decisionDto.getCaseId(), newDecision, task, result);
+                    decisionDto.getCaseId(), response, decisionDto.getComment(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {

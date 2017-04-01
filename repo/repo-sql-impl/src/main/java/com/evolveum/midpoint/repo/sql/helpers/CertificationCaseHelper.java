@@ -128,10 +128,6 @@ public class CertificationCaseHelper {
 
     public void deleteCertificationCampaignCases(Session session, String oid) {
         // TODO couldn't this cascading be done by hibernate itself?
-        Query deleteDecisions = session.getNamedQuery("delete.campaignCasesDecisions");
-        deleteDecisions.setParameter("oid", oid);
-        deleteDecisions.executeUpdate();
-
         Query deleteReferences = session.getNamedQuery("delete.campaignCasesReferences");
         deleteReferences.setParameter("oid", oid);
         deleteReferences.executeUpdate();
@@ -206,10 +202,6 @@ public class CertificationCaseHelper {
                         affectedIds.add(id);
                         // TODO couldn't this cascading be done by hibernate itself?
                         Integer integerCaseId = RUtil.toInteger(id);
-                        Query deleteCaseDecisions = session.getNamedQuery("delete.campaignCaseDecisions");
-                        deleteCaseDecisions.setString("oid", campaignOid);
-                        deleteCaseDecisions.setInteger("id", integerCaseId);
-                        deleteCaseDecisions.executeUpdate();
                         Query deleteCaseReferences = session.createSQLQuery("delete from " + RCertCaseReference.TABLE +
                                 " where owner_owner_oid=:oid and owner_id=:id");
                         deleteCaseReferences.setString("oid", campaignOid);

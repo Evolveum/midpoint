@@ -58,20 +58,16 @@
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem id="1">
+            <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <response>accept</response>
+            <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
         </workItem>
         <workItem id="2">
             <reviewerRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
-            <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000001-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>accept</response>
-            <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
-        </decision>
         <currentStageOutcome>accept</currentStageOutcome>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"></targetRef>

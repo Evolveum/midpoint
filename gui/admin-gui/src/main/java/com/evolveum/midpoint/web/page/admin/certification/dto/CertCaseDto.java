@@ -107,7 +107,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     }
 
     private Date getReviewedTimestamp(AccessCertificationCaseType certCase) {
-        return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getDecision());
+        return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getWorkItem());
     }
 
     public AccessCertificationResponseType getOverallOutcome() {

@@ -828,13 +828,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="decision" type="tns:AccessCertificationDecisionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Decision(s) done.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="decision" type="tns:AccessCertificationDecisionType" minOccurs="0" maxOccurs="unbounded">-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                        <!--Decision(s) done.-->
+                    <!--</xsd:documentation>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="currentStageOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -913,6 +913,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of the stage this work item is part of.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="originalReviewerRef" type="tns:ObjectReferenceType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -933,6 +940,37 @@
 					<xsd:appinfo>
 						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="responderRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Who made the current decision?
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="response" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The response.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="comment" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The reviewer's comment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						When the decision was made.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
             <xsd:element name="closedTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -974,59 +1012,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="accessCertificationAssignmentCase" type="tns:AccessCertificationAssignmentCaseType"/>
-
-    <xsd:complexType name="AccessCertificationDecisionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Decision that has been done regarding a given certification case.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="stageNumber" type="xsd:int">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Stage to which this decision belong.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="reviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Who made this decision?
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="response" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The response.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="comment" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The reviewer's comment.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When the decision was made.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <!-- TODO expiration, delegation ... -->
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
-    </xsd:complexType>
 
     <xsd:simpleType name="AccessCertificationResponseType">
         <xsd:annotation>

@@ -87,6 +87,7 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
     public static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
     public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchDecisionsToReview";
+    public static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
 
@@ -313,25 +314,30 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
+    @Deprecated
     @Override
     public List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly,
-                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                     Task task, OperationResult parentResult)
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+        throw new UnsupportedOperationException("not available any more");
+    }
+
+    @Override
+    public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 
-        Validate.notNull(task, "task");
-        Validate.notNull(parentResult, "parentResult");
-
-        OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_DECISIONS);
+        OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_OPEN_WORK_ITEMS);
 
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
                     null, null, null, null, result);
 
             String reviewerOid = securityEnforcer.getPrincipal().getOid();
-            return queryHelper.searchDecisions(caseQuery, reviewerOid, notDecidedOnly, options, task, result);
+            return queryHelper.searchWorkItems(caseQuery, reviewerOid, notDecidedOnly, options, task, result);
         } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't search for certification decisions: unexpected exception: " + e.getMessage(), e);
+            result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
@@ -339,18 +345,19 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
-                               Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+    public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
+			String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			SecurityViolationException, ObjectAlreadyExistsException {
 
         Validate.notNull(campaignOid, "campaignOid");
-        Validate.notNull(decision, "decision");
+        Validate.notNull(response, "decision");
 
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(), null,
                     null, null, null, null, result);
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-            caseHelper.recordDecision(campaign, caseId, decision, task, result);
+            caseHelper.recordDecision(campaign, caseId, workItemId, response, comment, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
             throw e;

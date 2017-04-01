@@ -36,7 +36,6 @@ import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
@@ -86,13 +85,19 @@ public class CertCampaignTypeUtil {
         return null;
     }
 
-    public static AccessCertificationDecisionType findDecision(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
-        for (AccessCertificationDecisionType d : _case.getDecision()) {
-            if (d.getStageNumber() == stageNumber && d.getReviewerRef().getOid().equals(reviewerOid)) {
-                return d;
-            }
-        }
-        return null;
+    public static void findDecision(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
+//        for (AccessCertificationDecisionType d : _case.getDecision()) {
+//            if (d.getStageNumber() == stageNumber && d.getReviewerRef().getOid().equals(reviewerOid)) {
+//                return d;
+//            }
+//        }
+//        return null;
+    }
+
+    public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, long workItemId) {
+		return _case.getWorkItem().stream()
+				.filter(wi -> wi.getId() != null && wi.getId() == workItemId)
+				.findFirst().orElse(null);
     }
 
     public static int getNumberOfStages(AccessCertificationCampaignType campaign) {
@@ -167,23 +172,16 @@ public class CertCampaignTypeUtil {
     // "no reviewers" cases are treated as answered, because no answer can be provided
     public static int getUnansweredCases(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
         int unansweredCases = 0;
-        if (state == AccessCertificationCampaignStateType.IN_REMEDIATION || state == AccessCertificationCampaignStateType.CLOSED) {
-            campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
-        }
         for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getCurrentStageNumber() != campaignStageNumber) {
-                continue;
-            }
-            // we assume that an empty decision was created for each reviewer
-            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
-                if (decision.getStageNumber() != aCase.getCurrentStageNumber()) {
-                    continue;
-                }
-                if (decision.getResponse() == null || decision.getResponse() == NO_RESPONSE || decision.getResponse() == DELEGATE) {
-                    unansweredCases++;
-                    break;
-                }
-            }
+			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+				if (workItem.getStageNumber() != campaignStageNumber) {
+					continue;
+				}
+				if (workItem.getClosedTimestamp() == null && (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE)) {
+					unansweredCases++; // TODO what about delegations?
+					break;
+				}
+			}
         }
         return unansweredCases;
     }
@@ -231,7 +229,6 @@ public class CertCampaignTypeUtil {
         return getDecisionsDonePercentage(campaign.getCase(), campaign.getStageNumber(), campaign.getState());
     }
 
-    // we expect that we have a 'placeholder' decision for each reviewer
     public static float getDecisionsDonePercentage(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
         int decisionsRequested = 0;
         int decisionsDone = 0;
@@ -240,15 +237,15 @@ public class CertCampaignTypeUtil {
         }
 
         for (AccessCertificationCaseType aCase : caseList) {
-            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
-                if (decision.getStageNumber() != campaignStageNumber) {
-                    continue;
-                }
-                decisionsRequested++;
-                if (decision.getResponse() != null && decision.getResponse() != NO_RESPONSE && decision.getResponse() != DELEGATE) {
-                    decisionsDone++;
-                }
-            }
+			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+				if (workItem.getStageNumber() != campaignStageNumber) {
+					continue;
+				}
+				decisionsRequested++;
+				if (workItem.getResponse() != null && workItem.getResponse() != NO_RESPONSE) {	// TODO what about delegations?
+					decisionsDone++;
+				}
+			}
         }
         if (decisionsRequested == 0) {
             return 100.0f;
@@ -257,42 +254,42 @@ public class CertCampaignTypeUtil {
         }
     }
 
-    public static Date getReviewedTimestamp(List<AccessCertificationDecisionType> decisions) {
+    public static Date getReviewedTimestamp(List<AccessCertificationWorkItemType> workItems) {
         Date lastDate = null;
-        for (AccessCertificationDecisionType decision : decisions) {
-            if (isEmpty(decision)) {
+        for (AccessCertificationWorkItemType workItem : workItems) {
+            if (hasNoResponse(workItem)) {
                 continue;
             }
-            Date decisionDate = XmlTypeConverter.toDate(decision.getTimestamp());
-            if (lastDate == null || decisionDate.after(lastDate)) {
-                lastDate = decisionDate;
+            Date responseDate = XmlTypeConverter.toDate(workItem.getTimestamp());
+            if (lastDate == null || responseDate.after(lastDate)) {
+                lastDate = responseDate;
             }
         }
         return lastDate;
     }
 
-    protected static boolean isEmpty(AccessCertificationDecisionType decision) {
-        return (decision.getResponse() == null || decision.getResponse() == NO_RESPONSE) && StringUtils.isEmpty(decision.getComment());
+    private static boolean hasNoResponse(AccessCertificationWorkItemType workItem) {
+        return (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE) && StringUtils.isEmpty(workItem.getComment());
     }
 
-    public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationDecisionType> decisions) {
+    public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationWorkItemType> workItems) {
         List<ObjectReferenceType> rv = new ArrayList<>();
-        for (AccessCertificationDecisionType decision : decisions) {
-            if (isEmpty(decision)) {
+        for (AccessCertificationWorkItemType workItem : workItems) {
+            if (hasNoResponse(workItem)) {
                 continue;
             }
-            rv.add(decision.getReviewerRef());
+            rv.add(workItem.getResponderRef());
         }
         return rv;
     }
 
-    public static List<String> getComments(List<AccessCertificationDecisionType> decisions) {
+    public static List<String> getComments(List<AccessCertificationWorkItemType> workItems) {
         List<String> rv = new ArrayList<>();
-        for (AccessCertificationDecisionType decision : decisions) {
-            if (StringUtils.isEmpty(decision.getComment())) {
+        for (AccessCertificationWorkItemType workItem : workItems) {
+            if (StringUtils.isEmpty(workItem.getComment())) {
                 continue;
             }
-            rv.add(decision.getComment());
+            rv.add(workItem.getComment());
         }
         return rv;
     }
@@ -339,7 +336,7 @@ public class CertCampaignTypeUtil {
     }
 
     // TODO temporary implementation: replace by work items based approach where possible
-    public static List<ObjectReferenceType> getReviewers(AccessCertificationCaseType _case) {
-        throw new UnsupportedOperationException("TODO");
-    }
+//    public static List<ObjectReferenceType> getReviewers(AccessCertificationCaseType _case) {
+//        throw new UnsupportedOperationException("TODO");
+//    }
 }

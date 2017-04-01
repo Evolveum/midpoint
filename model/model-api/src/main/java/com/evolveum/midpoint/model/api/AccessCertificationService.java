@@ -146,11 +146,13 @@ public interface AccessCertificationService {
      *
      * @param campaignOid OID of the campaign to which the decision belongs.
      * @param caseId ID of the certification case to which the decision belongs.
-     * @param decision The decision itself.
+     * @param workItemId ID of the work item to which the decision belongs.
+     * @param response The response.
+     * @param comment Reviewer's comment.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
+    void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment,
                         Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
 
     /**

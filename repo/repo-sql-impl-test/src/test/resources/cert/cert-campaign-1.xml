@@ -78,20 +78,16 @@
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem id="1">
+            <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <response>noResponse</response>
+            <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
         </workItem>
         <workItem id="2">
             <reviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
-            <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>noResponse</response>
-            <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
-        </decision>
         <currentStageOutcome>notDecided</currentStageOutcome>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
@@ -105,17 +101,13 @@
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem id="1">
+            <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <response>accept</response>
+            <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
-            <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>accept</response>
-            <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
-        </decision>
         <currentStageOutcome>accept</currentStageOutcome>
         <assignment id="2">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
@@ -129,15 +121,11 @@
         <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem id="1">
+            <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
-            <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
-        </decision>
         <currentStageOutcome>noResponse</currentStageOutcome>
         <assignment id="3">
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
@@ -152,17 +140,13 @@
                    type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem id="1">
+            <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <response>revoke</response>
+            <timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
-            <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>revoke</response>
-            <timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
-        </decision>
         <currentStageOutcome>revoke</currentStageOutcome>
         <assignment id="1">
             <construction>
@@ -197,17 +181,13 @@
         <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem id="1">
+            <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <response>revoke</response>
+            <timestamp>2015-12-04T01:10:14.614+01:00</timestamp>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
-            <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>revoke</response>
-            <timestamp>2015-12-04T01:10:14.614+01:00</timestamp>
-        </decision>
         <currentStageOutcome>revoke</currentStageOutcome>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
@@ -221,22 +201,18 @@
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem id="1">
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-        </workItem>
-        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
             <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
+            <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
             <response>reduce</response>
             <timestamp>2015-12-04T01:10:15.375+01:00</timestamp>
-        </decision>
-        <decision id="2">
+        </workItem>
+        <workItem id="2">
             <stageNumber>2</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002"
                          type="c:UserType"><!-- administrator --></reviewerRef>
-        </decision>
+        </workItem>
+        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
         <currentStageOutcome>reduce</currentStageOutcome>
         <assignment id="2">
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
@@ -249,27 +225,19 @@
         <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem> <!-- no ID on purpose -->
+            <stageNumber>1</stageNumber>
             <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
+            <response>revoke</response>
+            <timestamp>2015-12-04T01:10:16.136+01:00</timestamp>
         </workItem>
         <workItem> <!-- no ID on purpose -->
+            <stageNumber>1</stageNumber>
             <reviewerRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></reviewerRef>
+            <response>accept</response>
+            <timestamp>2015-12-04T01:15:00.000+01:00</timestamp>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
         <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
-            <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000000-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>revoke</response>
-            <timestamp>2015-12-04T01:10:16.136+01:00</timestamp>
-        </decision>
-        <decision>      <!-- ID removed on purpose -->
-            <stageNumber>1</stageNumber>
-            <reviewerRef oid="99999999-0000-0000-0000-000000000002"
-                         type="c:UserType"></reviewerRef>
-            <response>accept</response>
-            <timestamp>2015-12-04T01:15:00.000+01:00</timestamp>
-        </decision>
         <currentStageOutcome>revoke</currentStageOutcome>
         <assignment id="3">
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>

@@ -90,7 +90,6 @@ public class PrismIdentifierGenerator {
             if (caseContainer != null) {
                 for (PrismContainerValue<?> casePcv : caseContainer.getValues()) {
                     CollectionUtils.addIgnoreNull(containers, casePcv.findContainer(AccessCertificationCaseType.F_WORK_ITEM));
-                    CollectionUtils.addIgnoreNull(containers, casePcv.findContainer(AccessCertificationCaseType.F_DECISION));
                 }
             }
             CollectionUtils.addIgnoreNull(containers, parent.findContainer(AccessCertificationCampaignType.F_STAGE));
@@ -122,7 +121,6 @@ public class PrismIdentifierGenerator {
         AccessCertificationCaseType aCase = (AccessCertificationCaseType) containerable;
         List<PrismContainer<?>> containers = new ArrayList<>();
         CollectionUtils.addIgnoreNull(containers, aCase.asPrismContainerValue().findContainer(AccessCertificationCaseType.F_WORK_ITEM));
-        CollectionUtils.addIgnoreNull(containers, aCase.asPrismContainerValue().findContainer(AccessCertificationCaseType.F_DECISION));
 		generateContainerIds(containers, result, operation);
         return result;
     }

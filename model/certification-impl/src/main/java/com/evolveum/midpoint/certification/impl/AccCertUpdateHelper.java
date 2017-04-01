@@ -217,8 +217,7 @@ public class AccCertUpdateHelper {
 
         final List<ItemDelta<?,?>> itemDeltaList = new ArrayList<>();
 
-        final PropertyDelta<Integer> stageNumberDelta = createStageNumberDelta(newStage.getNumber());
-        itemDeltaList.add(stageNumberDelta);
+        itemDeltaList.add(createStageNumberDelta(newStage.getNumber()));
 
         final PropertyDelta<AccessCertificationCampaignStateType> stateDelta = createStateDelta(IN_REVIEW_STAGE);
         itemDeltaList.add(stateDelta);
@@ -304,7 +303,7 @@ public class AccCertUpdateHelper {
         eventHelper.onCampaignStageStart(campaign, task, result);
 
         final List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
-        Collection<String> reviewers = eventHelper.getCurrentReviewers(campaign, caseList);
+        Collection<String> reviewers = eventHelper.getCurrentActiveReviewers(caseList);
         for (String reviewerOid : reviewers) {
             final List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
             final ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);

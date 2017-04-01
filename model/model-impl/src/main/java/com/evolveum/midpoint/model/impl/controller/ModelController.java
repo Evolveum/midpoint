@@ -2084,10 +2084,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
-	public void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
-		getCertificationManagerChecked().recordDecision(campaignOid, caseId, decision, task, parentResult);
+	public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+		getCertificationManagerChecked().recordDecision(campaignOid, caseId, workItemId, response, comment, task, parentResult);
 	}
 
+	@Deprecated
 	@Override
 	public List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		return getCertificationManagerChecked().searchDecisionsToReview(caseQuery, notDecidedOnly, options, task, parentResult);

@@ -716,7 +716,8 @@ public class TestQueryConvertor {
 						.id(123456L)
 						.or().item(F_OWNER_REF).ref(ownerRef)
 					.endBlock()
-				.and().item(AccessCertificationCaseType.F_DECISION, AccessCertificationDecisionType.F_STAGE_NUMBER).eq(3)
+				.and().exists(AccessCertificationCaseType.F_WORK_ITEM)
+					.item(AccessCertificationWorkItemType.F_STAGE_NUMBER).eq(3)
 				.build();
 		checkQueryRoundtripFile(AccessCertificationCaseType.class, q, TEST_NAME);
 	}
