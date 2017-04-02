@@ -31,8 +31,10 @@ import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -42,6 +44,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -255,12 +258,16 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
             return;
         }
         if (!plusIconClicked) {
-            String targetObjectOid = assignment.getTargetRef().getOid();
-            OperationResult result = new OperationResult(OPERATION_LOAD_TARGET_OBJECT);
-            Task task = pageBase.createSimpleTask(OPERATION_LOAD_TARGET_OBJECT);
-            PrismObject<AbstractRoleType> targetObject = WebModelServiceUtils.loadObject(AbstractRoleType.class,
-                    targetObjectOid, pageBase, task, result);
-            pageBase.navigateToNext(getTargetObjectDetailsPage(assignment.getType(), targetObject));
+            PageParameters parameters = new PageParameters();
+            parameters.add(OnePageParameterEncoder.PARAMETER, assignment.getTargetRef().getOid());
+
+            if (AssignmentEditorDtoType.ORG_UNIT.equals(assignment.getType())){
+                getPageBase().navigateToNext(PageOrgUnit.class, parameters);
+            } else if (AssignmentEditorDtoType.ROLE.equals(assignment.getType())){
+                getPageBase().navigateToNext(PageRole.class, parameters);
+            } else if (AssignmentEditorDtoType.SERVICE.equals(assignment.getType())){
+                getPageBase().navigateToNext(PageService.class, parameters);
+            }
         } else {
             plusIconClicked = false;
         }
