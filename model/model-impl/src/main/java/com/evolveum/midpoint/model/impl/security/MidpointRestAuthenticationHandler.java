@@ -32,6 +32,8 @@ import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
+
 /**
  * @author Katka Valalikova
  * @author Radovan Semancik
@@ -39,31 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class MidpointRestAuthenticationHandler implements ContainerRequestFilter, ContainerResponseFilter {
 	
 //	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
-	
-	private enum AuthenticationType {
-		BASIC("Basic"), SECURITY_QUESTIONS("SecQ");
-
-		private String authenticationType;
-
-		private AuthenticationType(String authneticationType) {
-			this.authenticationType = authneticationType;
-		}
-
-		protected boolean equals(String authenticationType) {
-			if (StringUtils.isBlank(authenticationType)) {
-				return false;
-			}
-
-			if (getAuthenticationType().equals(authenticationType)) {
-				return true;
-			}
-			return false;
-		}
-
-		protected String getAuthenticationType() {
-			return authenticationType;
-		}
-	}
 	
 	@Autowired(required=true)
 	private MidpointRestPasswordAuthenticator passwordAuthenticator;
@@ -90,7 +67,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 		String authorization = requestCtx.getHeaderString("Authorization");
 		
 		if (StringUtils.isBlank(authorization)){
-			createAbortMessage(requestCtx);
+			RestServiceUtil.createAbortMessage(requestCtx);
 			return;
 		}
 		
@@ -98,28 +75,28 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 		String authenticationType = parts[0];
 
 		if (parts.length == 1) {
-			if (AuthenticationType.SECURITY_QUESTIONS.equals(authenticationType)) {
-				createAbortMessage(requestCtx);
+			if (RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType)) {
+				RestServiceUtil.createAbortMessage(requestCtx);
 				return;
 			}
 		}
 
-		if (parts.length != 2 || (!"SecQ".equals(authenticationType))) {
-			createAbortMessage(requestCtx);
+		if (parts.length != 2 || (!RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType))) {
+			RestServiceUtil.createAbortMessage(requestCtx);
 			return;
 		}
 		String base64Credentials = (parts.length == 2) ? parts[1] : null;
 		try {
 			String decodedCredentials = new String(Base64Utility.decode(base64Credentials));
-			if ("SecQ".equals(authenticationType)) {
+			if (RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType)) {
 
 				policy = new AuthorizationPolicy();
-				policy.setAuthorizationType("SecQ");
+				policy.setAuthorizationType(RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod());
 				policy.setAuthorization(decodedCredentials);
 			}
 			securityQuestionAuthenticator.handleRequest(policy, m, requestCtx);
 		} catch (Base64Exception e) {
-			createAbortMessage(requestCtx);
+			RestServiceUtil.createAbortMessage(requestCtx);
 			return;
 
 		}
@@ -128,10 +105,10 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	
 
 
-	private void createAbortMessage(ContainerRequestContext requestCtx){
-		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
-				.header("WWW-Authenticate", AuthenticationType.BASIC.getAuthenticationType() + ", " + AuthenticationType.SECURITY_QUESTIONS.getAuthenticationType()).build());
-	}
-	
+//	protected void createAbortMessage(ContainerRequestContext requestCtx){
+//		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
+//				.header("WWW-Authenticate", AuthenticationType.BASIC.getAuthenticationType() + " realm=\"midpoint\", " + AuthenticationType.SECURITY_QUESTIONS.getAuthenticationType()).build());
+//	}
+//	
 
 }
