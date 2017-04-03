@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.ucf.impl;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 /**
  * This exception exists only for the purpose of passing checked exceptions where they are not allowed.

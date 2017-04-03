@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -33,10 +34,14 @@
      http://jax-ws.dev.java.net/spring/servlet
      https://jax-ws.dev.java.net/spring/servlet.xsd"
 	default-lazy-init="false" default-autowire="byName">
-
-	<context:annotation-config />
-	<!-- <context:spring-configured/> -->
-
-    <bean name="lightweightIdentifierGenerator"
+	
+	<context:component-scan base-package="com.evolveum.midpoint.provisioning.ucf.impl.connid" />
+	
+	<bean name="lightweightIdentifierGenerator"
           class="com.evolveum.midpoint.repo.sql.testing.LightweightIdentifierGeneratorMock"/>
+
+    <import resource="classpath:ctx-audit.xml"/>
+    <import resource="classpath:ctx-common.xml"/>
+    <import resource="classpath:ctx-configuration-test-no-repo.xml"/>
+
 </beans>

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.ucf.query;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid.query;
 
 import org.identityconnectors.framework.common.objects.filter.Filter;
 
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdNameMapper;
+import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 

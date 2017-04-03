@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.impl.ucf;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import java.io.File;
 
@@ -52,11 +52,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * except from the provisioning beans. But due to a general issue with spring context initialization
  * this is a lesser evil for now (MID-392)
  */
-@ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public abstract class AbstractUcfDummyTest extends AbstractTestNGSpringContextTests {
 
-	protected static final File RESOURCE_DUMMY_FILE = new File(UcfTestUtil.COMMON_TEST_DIR_FILE, "resource-dummy.xml");
-	protected static final File CONNECTOR_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR_UCF_FILE, "connector-dummy.xml");
+	protected static final File RESOURCE_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "resource-dummy.xml");
+	protected static final File CONNECTOR_DUMMY_FILE = new File(UcfTestUtil.TEST_DIR, "connector-dummy.xml");
 	protected static final String ACCOUNT_JACK_USERNAME = "jack";
 
 	protected ConnectorFactory connectorFactory;

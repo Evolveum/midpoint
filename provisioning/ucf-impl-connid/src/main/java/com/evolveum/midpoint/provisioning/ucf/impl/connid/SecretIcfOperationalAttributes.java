@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.ucf.impl;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 /**
  * This enum contains ICF operational attributes that are used in ICF but are not defined there.

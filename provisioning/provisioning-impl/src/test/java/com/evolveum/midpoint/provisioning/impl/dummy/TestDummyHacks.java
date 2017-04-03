@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
-import com.evolveum.midpoint.provisioning.ucf.impl.SecretIcfOperationalAttributes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -121,7 +121,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		accountObjectClass.addAttributeDefinition(SecretIcfOperationalAttributes.DESCRIPTION.getName(), String.class);
+		accountObjectClass.addAttributeDefinition(ProvisioningTestUtil.CONNID_DESCRIPTION_NAME, String.class);
 	}
 
 

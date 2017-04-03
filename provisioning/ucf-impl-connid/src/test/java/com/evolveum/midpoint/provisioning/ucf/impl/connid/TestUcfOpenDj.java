@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.impl.ucf;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -90,12 +90,12 @@ import static org.testng.AssertJUnit.*;
  *         But due to a general issue with spring context initialization this is
  *         a lesser evil for now (MID-392)
  */
-@ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
-	private static final File RESOURCE_OPENDJ_FILE = new File(UcfTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj.xml");
-	private static final File RESOURCE_OPENDJ_BAD_FILE = new File(UcfTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-bad.xml");
-	private static final File CONNECTOR_LDAP_FILE = new File(UcfTestUtil.TEST_DIR_UCF_FILE, "connector-ldap.xml");
+	private static final File RESOURCE_OPENDJ_FILE = new File(UcfTestUtil.TEST_DIR, "resource-opendj.xml");
+	private static final File RESOURCE_OPENDJ_BAD_FILE = new File(UcfTestUtil.TEST_DIR, "resource-opendj-bad.xml");
+	private static final File CONNECTOR_LDAP_FILE = new File(UcfTestUtil.TEST_DIR, "connector-ldap.xml");
 
 	private ResourceType resourceType;
 	private ResourceType badResourceType;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.impl.ucf;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -85,7 +85,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * except from the provisioning beans. But due to a general issue with spring context initialization
  * this is a lesser evil for now (MID-392)
  */
-@ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummy extends AbstractUcfDummyTest {
 	
 	private static Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);

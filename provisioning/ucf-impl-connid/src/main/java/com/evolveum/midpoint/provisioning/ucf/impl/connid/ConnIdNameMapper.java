@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.provisioning.ucf.impl;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import java.util.HashMap;
 import java.util.Map;

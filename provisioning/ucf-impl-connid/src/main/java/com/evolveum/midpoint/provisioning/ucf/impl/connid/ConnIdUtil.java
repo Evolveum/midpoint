@@ -17,7 +17,7 @@
 /**
  * 
  */
-package com.evolveum.midpoint.provisioning.ucf.impl;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;

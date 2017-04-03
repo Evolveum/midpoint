@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.ucf.impl;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import org.identityconnectors.common.logging.Log.Level;
 import org.identityconnectors.common.logging.LogSpi;

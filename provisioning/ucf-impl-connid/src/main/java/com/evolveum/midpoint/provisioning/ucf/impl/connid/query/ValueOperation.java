@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.ucf.query;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid.query;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,8 +36,8 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdNameMapper;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnIdUtil;
+import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
+import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;

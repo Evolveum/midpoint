@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.impl.ucf;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -62,7 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * 
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 	
 	private static Trace LOGGER = TraceManager.getTrace(TestUcfDummyMulti.class);

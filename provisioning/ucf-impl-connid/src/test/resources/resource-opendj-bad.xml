@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+								  
+	<name>Embedded Test OpenDJ</name>
+	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
+	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+					   
+		<icfc:configurationProperties>
+			<!-- Wrong port number -->
+			<icfcldap:port>1234</icfcldap:port>
+			<icfcldap:host>localhost</icfcldap:host>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+		</icfc:configurationProperties>
+		
+		<icfc:connectorPoolConfiguration>
+			<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+			<icfc:minIdle>1</icfc:minIdle>
+			<icfc:maxIdle>10</icfc:maxIdle>
+			<icfc:maxObjects>10</icfc:maxObjects>
+			<icfc:maxWait>150000</icfc:maxWait>
+		</icfc:connectorPoolConfiguration>
+		
+		<icfc:producerBufferSize>100</icfc:producerBufferSize>
+		
+		<icfc:timeouts>
+				<icfc:create>-1</icfc:create>
+				<icfc:get>-1</icfc:get>
+				<icfc:update>-1</icfc:update>
+				<icfc:delete>-1</icfc:delete>
+				<icfc:test>-1</icfc:test>
+				<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
+				<icfc:scriptOnResource>-1</icfc:scriptOnResource>
+				<icfc:authentication>-1</icfc:authentication>
+				<icfc:search>-1</icfc:search>
+				<icfc:validate>-1</icfc:validate>
+				<icfc:sync>-1</icfc:sync>
+				<icfc:schema>-1</icfc:schema>
+			</icfc:timeouts>
+
+	</connectorConfiguration>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+</resource>

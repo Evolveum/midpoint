@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.ucf.impl;
+package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.provisioning.ucf.impl.ConnIdUtil.processIcfException;
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processIcfException;
 
 import java.io.File;
 import java.io.IOException;
