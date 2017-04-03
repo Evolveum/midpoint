@@ -53,4 +53,5 @@
 		<rootLoggerLevel>INFO</rootLoggerLevel>
 	</logging>
 	<globalPasswordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffb" type="ValuePolicyType"/>
+	<globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b" type="SecurityPolicyType"/>
 </systemConfiguration>

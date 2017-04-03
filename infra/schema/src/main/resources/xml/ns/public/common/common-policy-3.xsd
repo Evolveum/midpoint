@@ -628,8 +628,14 @@
                                     Condition specifying when the approval is automatically granted (e.g.
                                     "user is from Board of Directors"). This is an expression that should yield a
                                     boolean value.
+
+                                    DEPRECATED. Use automaticallyCompleted in approval level definition.
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.6</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

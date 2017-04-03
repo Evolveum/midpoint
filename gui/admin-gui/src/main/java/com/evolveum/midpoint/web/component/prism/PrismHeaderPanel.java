@@ -68,7 +68,10 @@ public class PrismHeaderPanel extends Panel {
             public void onClick(AjaxRequestTarget target) {
             	ObjectWrapper objectWrapper = getObjectWrapper(model);
                 objectWrapper.setShowEmpty(!objectWrapper.isShowEmpty());
-                onButtonClick(target);
+//
+//				target.appendJavaScript("document.getElementsByClassName('tooltip').style.visibility = 'hidden';");
+
+				onButtonClick(target);
             }
 
 			@Override
@@ -76,7 +79,9 @@ public class PrismHeaderPanel extends Panel {
 				return getObjectWrapper(model).isShowEmpty();
 			}
         };
-        showEmptyFieldsButton.add(buttonsVisibleBehaviour);
+		showEmptyFieldsButton.setMarkupId(ID_SHOW_EMPTY_FIELDS);
+
+		showEmptyFieldsButton.add(buttonsVisibleBehaviour);
         add(showEmptyFieldsButton);
 
         ToggleIconButton sortPropertiesButton = new ToggleIconButton(ID_SORT_PROPERTIES,

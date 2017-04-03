@@ -427,4 +427,10 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private TextArea getDescriptionComponent(){
         return (TextArea) get(ID_FORM).get(ID_DESCRIPTION);
     }
+
+    @Override
+    public boolean canRedirectBack(){
+        return true;
+    }
+
 }

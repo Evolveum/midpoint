@@ -46,6 +46,16 @@
 				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002</identifier>
 				<questionText>What is your mother's best friend's uncle's grandaughter's dog's mother maiden name?</questionText>
 			</question>
+			<question>
+				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q003</identifier>
+				<enabled>true</enabled>
+				<questionText>What's your favorite color?</questionText>
+			</question>
+			<question>
+				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q004</identifier>
+				<enabled>false</enabled>
+				<questionText>What's your favorite film?</questionText>
+			</question>
 		</securityQuestions>
 	</credentials>
 </securityPolicy>
