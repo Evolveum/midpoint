@@ -67,7 +67,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	 public void handleRequest(AuthorizationPolicy policy, Message m, ContainerRequestContext requestCtx) {
 	        
 	    	if (policy == null){
-	        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic, SecQ").build());
+	    		RestServiceUtil.createAbortMessage(requestCtx);
 	        	return;
 	        }
 	        
@@ -76,14 +76,14 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 			try {
 				authenticationContext = createAuthenticationContext(policy);
 			} catch (IOException e1) {
-				requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic, SecQ").build());
+				RestServiceUtil.createAbortMessage(requestCtx);
 				return;
 			}	
 	        
 	        String enteredUsername = authenticationContext.getUsername();
 	        
 	        if (enteredUsername == null){
-	        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic, SecQ").build());
+	        	RestServiceUtil.createAbortMessage(requestCtx);
 	        	return;
 	        }
 	        

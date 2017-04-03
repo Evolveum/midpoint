@@ -80,5 +80,9 @@ public class PageAssignmentDetails extends PageBase{
         mainForm.add(addToCart);
     }
 
+    @Override
+    public boolean canRedirectBack(){
+        return true;
+    }
 
 }
