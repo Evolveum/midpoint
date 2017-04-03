@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.processor.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -52,13 +51,12 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -98,14 +96,14 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
-		PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION);
-		assertNotNull("ICFC schema not found in the context ("+ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION+")", schemaIcfc);
+		PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
+		assertNotNull("ICFC schema not found in the context ("+SchemaConstants.NS_ICF_CONFIGURATION+")", schemaIcfc);
 		PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef = 
-			schemaIcfc.findContainerDefinitionByElementName(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+			schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("icfc:configurationProperties not found in icfc schema ("+
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME+")", configurationPropertiesDef);
-		PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA);
-		assertNotNull("ICFS schema not found in the context ("+ConnectorFactoryIcfImpl.NS_ICF_SCHEMA+")", schemaIcfs);	
+				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME+")", configurationPropertiesDef);
+		PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
+		assertNotNull("ICFS schema not found in the context ("+SchemaConstants.NS_ICF_SCHEMA+")", schemaIcfs);	
 	}
 	
 	@Test
@@ -135,7 +133,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		assertEquals("Wrong number of config items", 2, configItems.size());
 		
 		PrismContainer<?> dummyConfigPropertiesContainer = configurationContainer.findContainer(
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("No icfc:configurationProperties container", dummyConfigPropertiesContainer);
 		List<Item<?,?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of dummy ConfigPropItems items", 4, dummyConfigPropItems.size());
@@ -150,7 +148,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		PrismSchema connectorSchema = cc.generateConnectorSchema();
-		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "generated");
+		IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "generated");
 		assertEquals("Unexpected number of definitions", 3, connectorSchema.getDefinitions().size());
 
 		
@@ -160,7 +158,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		
 		// Try to re-parse
 		PrismSchema reparsedConnectorSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "schema fetched from "+cc, PrismTestUtil.getPrismContext());
-		ProvisioningTestUtil.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed");
+		IntegrationTestTools.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed");
 		// TODO: 3 definitions would be cleaner. But we can live with this
 		assertEquals("Unexpected number of definitions in re-parsed schema", 6, reparsedConnectorSchema.getDefinitions().size());		
 	}
@@ -345,7 +343,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
 		PrismObject<ShadowType> shadow = shadowType.asPrismObject();
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
-		ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+		ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
 		icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
 		
 		// WHEN

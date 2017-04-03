@@ -43,7 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.identityconnectors.framework.api.ConnectorFacade;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -248,7 +247,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
 
 		// BEWARE: very brittle!
-		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result, ConnectorFacade.class.getName() + ".update");
+		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result, ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".update");
 		assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
 		checkAttributesUpdated(updatesExecuted.get(0), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
 		checkAttributesUpdated(updatesExecuted.get(1), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
@@ -260,7 +259,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	}
 
 	private void checkAttributesUpdated(OperationResult operationResult, String operation, String... attributeNames) {
-		assertEquals("Wrong operation name", ConnectorFacade.class.getName() + "." + operation, operationResult.getOperation());
+		assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
 		Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributes").toString());
 		assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
 	}
@@ -355,9 +354,9 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
 		// BEWARE: very brittle!
 		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result,
-				ConnectorFacade.class.getName() + ".update",
-				ConnectorFacade.class.getName() + ".addAttributeValues",
-				ConnectorFacade.class.getName() + ".removeAttributeValues");
+				ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".update",
+				ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".addAttributeValues",
+				ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".removeAttributeValues");
 		assertEquals("Wrong number of updates executed", 5, updatesExecuted.size());
 		checkAttributesUpdated(updatesExecuted.get(0), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);		// prio 0, read-replace
 		checkAttributesUpdated(updatesExecuted.get(1), "update", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);			// prio 1, read-replace

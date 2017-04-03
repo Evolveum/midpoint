@@ -94,10 +94,6 @@
 			<artifactId>commons-lang</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 		</dependency>
@@ -106,26 +102,8 @@
 			<artifactId>spring-beans</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations-java5</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>net.tirasa.connid</groupId>
-			<artifactId>connector-framework</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.tirasa.connid</groupId>
-			<artifactId>connector-framework-internal</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jul-to-slf4j</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 
 		<!-- Testing dependecies -->

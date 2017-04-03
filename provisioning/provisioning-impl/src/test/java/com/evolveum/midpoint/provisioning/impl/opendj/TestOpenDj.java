@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.StringUtils;
-import org.identityconnectors.framework.common.objects.Name;
-import org.identityconnectors.framework.common.objects.Uid;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -391,7 +389,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("UID has update", idPrimaryDef.canModify());
 		assertTrue("No UID read", idPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
 		assertEquals("Wrong primary identifier matching rule", UuidMatchingRule.NAME, idPrimaryDef.getMatchingRuleQName());
 
 
@@ -402,7 +400,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME update", idSecondaryDef.canModify());
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
 		assertEquals("Wrong secondary identifier matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
@@ -498,7 +496,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("UID has update", posixIdPrimaryDef.canModify());
 		assertTrue("No UID read", posixIdPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
 		ResourceAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
 		assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
@@ -507,7 +505,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME update", posixIdSecondaryDef.canModify());
 		assertTrue("No NAME read", posixIdSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
 		ObjectClassComplexTypeDefinition normalDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "normalTestingObjectClass"));
 		display("normalTestingObjectClass object class def", normalDef);
@@ -565,7 +563,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("UID has update", idPrimaryDef.canModify());
 		assertTrue("No UID read", idPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
 		assertEquals(1, idSecondaryDef.getMaxOccurs());
@@ -575,7 +573,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
 		assertEquals("Wrong NAME matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
@@ -634,7 +632,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("UID has update", posixIdPrimaryDef.canModify());
 		assertTrue("No UID read", posixIdPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
 		assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
@@ -643,7 +641,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME update", posixIdSecondaryDef.canModify());
 		assertTrue("No NAME read", posixIdSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
 		assertShadows(1);
 	}
@@ -2709,7 +2707,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		try {
 			provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
@@ -2727,7 +2725,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		try {
 			PrismObject<ShadowType> shadow = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class).asPrismObject();
@@ -2746,7 +2744,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		try {
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, parentResult);
@@ -2763,7 +2761,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);		
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, parentResult);		
 		
 		try {
 			PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
@@ -2785,7 +2783,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE);
-		fillInConnectorRef(resource, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, result);
+		fillInConnectorRef(resource, IntegrationTestTools.CONNECTOR_LDAP_TYPE, result);
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(resource, null, null, taskManager.createTaskInstance(), result);
@@ -2823,7 +2821,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_BIND_DN_FILE);
-		fillInConnectorRef(resource, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, result);
+		fillInConnectorRef(resource, IntegrationTestTools.CONNECTOR_LDAP_TYPE, result);
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(resource, null, null, taskManager.createTaskInstance(), result);

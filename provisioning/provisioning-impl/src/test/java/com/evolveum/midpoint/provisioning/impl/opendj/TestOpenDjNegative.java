@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -457,7 +458,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
-		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILE, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, result);
+		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, result);
 
 		result.computeStatus();
 		TestUtil.assertSuccess(result);

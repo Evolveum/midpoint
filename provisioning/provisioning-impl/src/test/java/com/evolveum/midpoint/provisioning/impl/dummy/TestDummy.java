@@ -92,7 +92,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
-import com.evolveum.midpoint.provisioning.impl.ucf.TestUcfDummy;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -248,7 +247,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		// Check connector schema
-		ProvisioningTestUtil.assertConnectorSchemaSanity(connector, prismContext);
+		IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
 		
 		IntegrationTestTools.assertNoSchema(resource);
 	}
@@ -994,7 +993,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
-		OperationResult testResult = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
+		OperationResult testResult = new OperationResult(TestDummy.class + "." + TEST_NAME);
 		
 		// WHEN
 		provisioningService.provisioningSelfTest(testResult, task);

@@ -54,6 +54,12 @@ public class ProvisioningTestUtil {
 	
 	public static final String DOT_JPG_FILENAME = "src/test/resources/dot.jpg";
 	
+	public static final File USER_ADMIN_FILE = new File(COMMON_TEST_DIR_FILE, "admin.xml");
+	
+	public static final String CONNID_CONNECTOR_FACADE_CLASS_NAME = "org.identityconnectors.framework.api.ConnectorFacade";
+	public static final String CONNID_UID_NAME = "__UID__";
+	public static final String CONNID_NAME_NAME = "__NAME__";
+	
 	public static void checkRepoAccountShadow(PrismObject<ShadowType> repoShadow) {
 		checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT);
 	}

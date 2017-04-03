@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -82,11 +83,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		for (PrismObject<ConnectorType> connector : connectors) {
 			ConnectorType conn = connector.asObjectable();
 			display("Found connector " +conn, conn);
-//			if (conn.getConnectorType().equals("org.identityconnectors.ldap.LdapConnector")) {
-//				// This connector is loaded manually, it has no schema
-//				continue;
-//			}
-			ProvisioningTestUtil.assertConnectorSchemaSanity(conn, prismContext);
+			IntegrationTestTools.assertConnectorSchemaSanity(conn, prismContext);
 		}
 		
 		assertEquals("Unexpected number of connectors found", 6, connectors.size());
