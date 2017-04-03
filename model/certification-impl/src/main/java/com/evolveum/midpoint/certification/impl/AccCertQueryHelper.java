@@ -86,7 +86,7 @@ public class AccCertQueryHelper {
     }
 
     // public because of testing
-    public List<AccessCertificationWorkItemType> searchWorkItems(ObjectQuery query, String reviewerOid, boolean notDecidedOnly,
+    public List<AccessCertificationWorkItemType> searchWorkItems(ObjectQuery baseWorkItemsQuery, String reviewerOid, boolean notDecidedOnly,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 
@@ -106,7 +106,7 @@ public class AccCertQueryHelper {
         } else {
             filterToAdd = reviewerAndEnabledFilter;
         }
-        newQuery = replaceFilter(query, filterToAdd);
+        newQuery = replaceFilter(baseWorkItemsQuery, filterToAdd);
 
         // retrieve cases, filtered
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, newQuery, options, result);

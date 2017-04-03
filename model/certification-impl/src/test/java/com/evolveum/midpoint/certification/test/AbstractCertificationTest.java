@@ -287,6 +287,19 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		return aCase;
 	}
 
+	protected AccessCertificationCaseType checkWorkItem(Collection<AccessCertificationWorkItemType> workItems, String objectOid,
+			String targetOid, FocusType focus, String campaignOid,
+			String tenantOid, String orgOid, ActivationStatusType administrativeStatus) {
+		AccessCertificationCaseType aCase = checkWorkItem(workItems, objectOid, targetOid, focus, campaignOid);
+		String realTenantOid = aCase.getTenantRef() != null ? aCase.getTenantRef().getOid() : null;
+		String realOrgOid = aCase.getOrgRef() != null ? aCase.getOrgRef().getOid() : null;
+		ActivationStatusType realStatus = aCase.getActivation() != null ? aCase.getActivation().getAdministrativeStatus() : null;
+		assertEquals("incorrect tenant org", tenantOid, realTenantOid);
+		assertEquals("incorrect org org", orgOid, realOrgOid);
+		assertEquals("incorrect admin status", administrativeStatus, realStatus);
+		return aCase;
+	}
+
 	protected AccessCertificationCaseType checkSpecificCase(AccessCertificationCaseType ccase, FocusType focus) {
 		assertEquals("Wrong class for case", AccessCertificationAssignmentCaseType.class, ccase.getClass());
 		AccessCertificationAssignmentCaseType acase = (AccessCertificationAssignmentCaseType) ccase;
@@ -398,15 +411,13 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			int currentStage, List<String> reviewerOidList) {
 		assertEquals("wrong current stage outcome for "+_case, currentStageOutcome, _case.getCurrentStageOutcome());
 		assertEquals("wrong current stage number for "+_case, currentStage, _case.getCurrentStageNumber());
-		Set<String> realReviewerOids = CertCampaignTypeUtil.getReviewers(_case).stream().map(ref -> ref.getOid()).collect(Collectors.toSet());
+		Set<String> realReviewerOids = CertCampaignTypeUtil.getCurrentReviewers(_case).stream().map(ref -> ref.getOid()).collect(Collectors.toSet());
 		assertEquals("wrong reviewer oids for "+_case, new HashSet<>(reviewerOidList), realReviewerOids);
 	}
 
-	protected void recordDecision(String campaignOid, AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
-			int stageNumber, String reviewerOid, Task task, OperationResult result)
+	protected void recordDecision(String campaignOid, AccessCertificationCaseType _case, AccessCertificationResponseType response,
+			String comment, String reviewerOid, Task task, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException {
-    	assertEquals("Wrong stage number", stageNumber, _case.getCurrentStageNumber());		// TODO consider removing stageNumber parameter
-
 		Authentication originalAuthentication = null;
 		String realReviewerOid;
 		if (reviewerOid != null) {
@@ -417,8 +428,10 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			realReviewerOid = securityEnforcer.getPrincipal().getOid();
 		}
 		List<AccessCertificationWorkItemType> workItems = _case.getWorkItem().stream()
-				.filter(wi -> ObjectTypeUtil.containsOid(wi.getReviewerRef(), realReviewerOid)).collect(Collectors.toList());
-		assertEquals("Wrong # of work items for " + realReviewerOid + " in " + _case, 1, workItems.size());
+				.filter(wi -> ObjectTypeUtil.containsOid(wi.getReviewerRef(), realReviewerOid))
+				.filter(wi -> wi.getStageNumber() == _case.getCurrentStageNumber())
+				.collect(Collectors.toList());
+		assertEquals("Wrong # of current work items for " + realReviewerOid + " in " + _case, 1, workItems.size());
 		long id = _case.asPrismContainerValue().getId();
 		certificationManager.recordDecision(campaignOid, id, workItems.get(0).getId(), response, comment, task, result);
 		if (reviewerOid != null) {

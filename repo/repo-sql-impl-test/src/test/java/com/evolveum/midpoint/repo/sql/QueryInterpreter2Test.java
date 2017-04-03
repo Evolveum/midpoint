@@ -2724,6 +2724,30 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test717QueryWorkItemsForCampaign() throws Exception {
+        Session session = open();
+        try {
+			ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+					.exists(PrismConstants.T_PARENT)
+                        .ownerId("campaignOid1")
+					.build();
+			String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
+			String expected = "select\n"
+					+ "  a.ownerOwnerOid,\n"
+					+ "  a.ownerId,\n"
+					+ "  a.id\n"
+					+ "from\n"
+					+ "  RAccessCertificationWorkItem a\n"
+					+ "    left join a.owner o\n"
+					+ "where\n"
+					+ "    o.ownerOid in :ownerOid\n";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test720QueryCertCaseOwnerAndTarget() throws Exception {
         Session session = open();
         try {

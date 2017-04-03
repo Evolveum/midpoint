@@ -2090,8 +2090,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Deprecated
 	@Override
-	public List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		return getCertificationManagerChecked().searchDecisionsToReview(caseQuery, notDecidedOnly, options, task, parentResult);
+	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
 	}
 
 	@Override

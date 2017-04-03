@@ -39,6 +39,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -86,7 +88,7 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_OPEN_NEXT_STAGE = INTERFACE_DOT + "openNextStage";
     public static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
     public static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
-    public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchDecisionsToReview";
+    public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
@@ -324,7 +326,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
+    public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 
@@ -335,7 +337,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     null, null, null, null, result);
 
             String reviewerOid = securityEnforcer.getPrincipal().getOid();
-            return queryHelper.searchWorkItems(caseQuery, reviewerOid, notDecidedOnly, options, task, result);
+            return queryHelper.searchWorkItems(baseWorkItemsQuery, reviewerOid, notDecidedOnly, options, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -345,19 +347,15 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
-			String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+    public void recordDecision(@NotNull String campaignOid, long caseId, long workItemId, @Nullable AccessCertificationResponseType response,
+			@Nullable String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			SecurityViolationException, ObjectAlreadyExistsException {
-
-        Validate.notNull(campaignOid, "campaignOid");
-        Validate.notNull(response, "decision");
 
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(), null,
                     null, null, null, null, result);
-            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-            caseHelper.recordDecision(campaign, caseId, workItemId, response, comment, task, result);
+            caseHelper.recordDecision(campaignOid, caseId, workItemId, response, comment, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
             throw e;

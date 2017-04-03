@@ -81,7 +81,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
                     SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 
             AccessCertificationService acs = getPage().getCertificationService();
-            List<AccessCertificationCaseType> caseList = acs.searchDecisionsToReview(caseQuery, notDecidedOnly, resolveNames, task, result);
+            List<AccessCertificationCaseType> caseList = acs.searchOpenWorkItems(caseQuery, notDecidedOnly, resolveNames, task, result);
 
             for (AccessCertificationCaseType _case : caseList) {
                 getAvailableData().add(new CertDecisionDto(_case, getPage()));
@@ -117,7 +117,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             AccessCertificationService acs = getPage().getCertificationService();
             ObjectQuery query = getQuery().clone();
             query.setPaging(null);          // when counting decisions we need to exclude offset+size (and sorting info is irrelevant)
-            List<AccessCertificationCaseType> caseList = acs.searchDecisionsToReview(query, notDecidedOnly, null, task, result);
+            List<AccessCertificationCaseType> caseList = acs.searchOpenWorkItems(query, notDecidedOnly, null, task, result);
             count = caseList.size();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);

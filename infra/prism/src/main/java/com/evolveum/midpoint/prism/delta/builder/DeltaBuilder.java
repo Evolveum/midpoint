@@ -258,7 +258,11 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         } else if (definition instanceof PrismContainerDefinition) {
             return ((Containerable) v).asPrismContainerValue();
         } else if (definition instanceof PrismReferenceDefinition) {
-            throw new IllegalStateException("Using real value for reference deltas is not supported: " + v);
+            if (v instanceof Referencable) {
+                return ((Referencable) v).asReferenceValue();
+            } else {
+                throw new IllegalStateException("Expected Referencable, got: " + v);
+            }
         } else {
             throw new IllegalStateException("Unsupported definition type: " + definition);
         }

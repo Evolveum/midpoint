@@ -248,7 +248,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         checkAllCases(caseList, campaignOid);
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
         AccessCertificationCaseType _case = checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);
-        assertEquals("Unexpected number of reviewers in a-test-2a case", 1, CertCampaignTypeUtil.getReviewers(_case).size());
+        assertEquals("Unexpected number of reviewers in a-test-2a case", 1, CertCampaignTypeUtil.getCurrentReviewers(_case).size());
     }
 
     @Test
@@ -271,11 +271,11 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
         AccessCertificationCaseType test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
-        recordDecision(campaignOid, test2aCase, REVOKE, "no way", 1, USER_JACK_OID, task, result);
-        recordDecision(campaignOid, test2bCase, ACCEPT, null, 1, USER_JACK_OID, task, result);
-        recordDecision(campaignOid, test2cCase, ACCEPT, null, 1, USER_JACK_OID, task, result);
-        recordDecision(campaignOid, test3aCase, ACCEPT, "OK", 1, USER_JACK_OID, task, result);
-        recordDecision(campaignOid, test3bCase, NOT_DECIDED, "dunno", 1, USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test2aCase, REVOKE, "no way", USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test2bCase, ACCEPT, null, USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test2cCase, ACCEPT, null, USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test3aCase, ACCEPT, "OK", USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test3bCase, NOT_DECIDED, "dunno", USER_JACK_OID, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

@@ -329,7 +329,7 @@ public class CertificationCaseHelper {
 
         String ownerOid = result.getOwnerOid();
         PrismObject<AccessCertificationCampaignType> campaign = resolveCampaign(ownerOid, ownersMap, session, operationResult);
-        if (campaign != null) {
+        if (campaign != null && !campaign.asObjectable().getCase().contains(aCase)) {
             campaign.asObjectable().getCase().add(aCase);
         }
         return aCase;

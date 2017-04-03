@@ -159,12 +159,12 @@ jack->CTO                   none (A) -> A
         checkSpecificCase(jackCeoCase, userJack);
         checkSpecificCase(jackCtoCase, userJack);
 
-        assertCaseReviewers(elaineCeoCase, ACCEPT, 1, Collections.<String>emptyList());
-        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 1, Arrays.asList(USER_CHEESE_OID));
-        assertCaseReviewers(administratorCooCase, ACCEPT, 1, Collections.<String>emptyList());
-        assertCaseReviewers(administratorCeoCase, ACCEPT, 1, Collections.<String>emptyList());
-        assertCaseReviewers(jackCeoCase, ACCEPT, 1, Collections.<String>emptyList());
-        assertCaseReviewers(jackCtoCase, ACCEPT, 1, Collections.<String>emptyList());
+        assertCaseReviewers(elaineCeoCase, ACCEPT, 1, Collections.emptyList());
+        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 1, Collections.singletonList(USER_CHEESE_OID));
+        assertCaseReviewers(administratorCooCase, ACCEPT, 1, Collections.emptyList());
+        assertCaseReviewers(administratorCeoCase, ACCEPT, 1, Collections.emptyList());
+        assertCaseReviewers(jackCeoCase, ACCEPT, 1, Collections.emptyList());
+        assertCaseReviewers(jackCtoCase, ACCEPT, 1, Collections.emptyList());
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -193,7 +193,7 @@ jack->CTO                   none (A) -> A
         assertEquals("unexpected # of cases", 6, caseList.size());
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
 
-        recordDecision(campaignOid, guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, task, result);
+        recordDecision(campaignOid, guybrushCooCase, ACCEPT, null, USER_CHEESE_OID, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -293,12 +293,12 @@ jack->CEO                   none (A) -> A       elaine
 jack->CTO                   none (A) -> A       none (A) -> A
          */
 
-        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCtoCase, ACCEPT, 2, Arrays.<String>asList());
+        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCtoCase, ACCEPT, 2, Collections.emptyList());
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -377,10 +377,10 @@ jack->CTO                   none (A) -> A       none (A) -> A
         AccessCertificationCaseType administratorCooCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID);
         AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);
 
-        recordDecision(campaignOid, elaineCeoCase, ACCEPT, null, 2, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, guybrushCooCase, REVOKE, "no", 2, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, administratorCooCase, ACCEPT, "ok", 2, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, 2, USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, elaineCeoCase, ACCEPT, null, USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, guybrushCooCase, REVOKE, "no", USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, administratorCooCase, ACCEPT, "ok", USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, USER_ELAINE_OID, task, result);
         // jackCeo: no response
         // jackCto: no reviewers
 
@@ -533,10 +533,10 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
          */
 
         assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(guybrushCooCase, REVOKE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(guybrushCooCase, REVOKE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
         assertCaseReviewers(administratorCooCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
         assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
         assertCaseReviewers(jackCtoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -582,10 +582,10 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         AccessCertificationCaseType jackCeoCase;
         AccessCertificationCaseType jackCtoCase;
 
-        recordDecision(campaignOid, elaineCeoCase, NOT_DECIDED, null, 3, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, administratorCooCase, ACCEPT, null, 3, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, administratorCeoCase, NO_RESPONSE, null, 3, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, administratorCeoCase, NO_RESPONSE, null, 3, USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, elaineCeoCase, NOT_DECIDED, null, USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, administratorCooCase, ACCEPT, null, USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, administratorCeoCase, NO_RESPONSE, null, USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, administratorCeoCase, NO_RESPONSE, null, USER_ADMINISTRATOR_OID, task, result);
         // no response for jackCto
 
         // THEN
@@ -748,11 +748,11 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
          */
 
         assertCaseReviewers(elaineCeoCase, NOT_DECIDED, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(guybrushCooCase, REVOKE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 4, Arrays.asList(USER_CHEESE_OID));
-        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 4, Arrays.asList(USER_CHEESE_OID));
-        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCtoCase, NO_RESPONSE, 4, Arrays.asList(USER_CHEESE_OID));
+        assertCaseReviewers(guybrushCooCase, REVOKE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
+        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
+        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCtoCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NOT_DECIDED, NOT_DECIDED, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, REVOKE, REVOKE, null);
@@ -801,8 +801,8 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         AccessCertificationCaseType jackCeoCase;
         AccessCertificationCaseType jackCtoCase;
 
-        recordDecision(campaignOid, administratorCooCase, ACCEPT, null, 4, USER_CHEESE_OID, task, result);
-        recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, 4, USER_CHEESE_OID, task, result);
+        recordDecision(campaignOid, administratorCooCase, ACCEPT, null, USER_CHEESE_OID, task, result);
+        recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, USER_CHEESE_OID, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

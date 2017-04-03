@@ -118,6 +118,8 @@ public interface AccessCertificationService {
     void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
 
     /**
+     * TODO update description
+     *
      * Returns a set of certification decisions for currently logged-in user.
      * Each decision is returned in context of its certification case. Case has to match a given query.
      * So, in contrast to model.searchContainers(AccessCertificationCaseType...) method that returns specified cases
@@ -127,7 +129,7 @@ public interface AccessCertificationService {
      *
      * Query argument for cases is the same as in the model.searchContainers(AccessCertificationCaseType...) call.
      *
-     * @param caseQuery Specification of the cases to retrieve.
+     * @param baseWorkItemsQuery Specification of the cases to retrieve.
      * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
      *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
      *                       the cleaner way is keep this knowledge inside certification module only.
@@ -137,9 +139,9 @@ public interface AccessCertificationService {
      * @return A list of relevant certification cases.
      *
      */
-    List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly,
-                                                              Collection<SelectorOptions<GetOperationOptions>> options,
-                                                              Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
+    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
 
     /**
      * Records a particular decision of a reviewer.

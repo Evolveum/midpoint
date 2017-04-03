@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.test;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -37,6 +38,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.getOrderBy;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
@@ -371,9 +373,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList =
-                certificationService.searchDecisionsToReview(
-                        CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
                         false, null, task, result);
 
         // THEN
@@ -381,9 +383,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 7, caseList.size());
-        checkAllCases(caseList, campaignOid);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification work items", 7, workItems.size());
+        checkAllWorkItems(workItems, campaignOid);
     }
 
     @Test
@@ -398,12 +400,15 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                .item(AccessCertificationCaseType.F_TENANT_REF).ref(ORG_GOVERNOR_OFFICE_OID)
-                .and().ownerId(campaignOid)
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                .exists(T_PARENT)
+                .block()
+                    .item(AccessCertificationCaseType.F_TENANT_REF).ref(ORG_GOVERNOR_OFFICE_OID)
+                    .and().ownerId(campaignOid)
+                .endBlock()
                 .build();
-        List<AccessCertificationCaseType> caseList =
-                certificationService.searchDecisionsToReview(
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(
                         query, false, null, task, result);
 
         // THEN
@@ -411,9 +416,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 1, caseList.size());
-        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification cases", 1, workItems.size());
+        checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
     }
 
     @Test
@@ -428,21 +433,24 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                .item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
-                .and().ownerId(campaignOid)
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+				.exists(T_PARENT)
+				.block()
+                	.item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
+                	.and().ownerId(campaignOid)
+				.endBlock()
                 .build();
-        List<AccessCertificationCaseType> caseList =
-                certificationService.searchDecisionsToReview(query, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(query, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 1, caseList.size());
-        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification work items", 1, workItems.size());
+        checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
     }
 
     @Test
@@ -457,21 +465,24 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                .item(F_ACTIVATION, F_ADMINISTRATIVE_STATUS).eq(ENABLED)
-                .and().ownerId(campaignOid)
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                .exists(T_PARENT)
+                .block()
+                    .item(F_ACTIVATION, F_ADMINISTRATIVE_STATUS).eq(ENABLED)
+                    .and().ownerId(campaignOid)
+                .endBlock()
                 .build();
-        List<AccessCertificationCaseType> caseList =
-                certificationService.searchDecisionsToReview(query, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(query, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 1, caseList.size());
-        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification cases", 1, workItems.size());
+        checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
     }
 
     @Test
@@ -593,6 +604,16 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         checkCase(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, userAdministrator, campaignOid);
         checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
         checkCase(caseList, USER_JACK_OID, ORG_EROOT_OID, userJack, campaignOid);
+    }
+
+    protected void checkAllWorkItems(Collection<AccessCertificationWorkItemType> workItems, String campaignOid) {
+        assertEquals("Wrong number of certification work items", 7, workItems.size());
+        checkWorkItem(workItems, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator, campaignOid);
+        checkWorkItem(workItems, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator, campaignOid);
+        checkWorkItem(workItems, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator, campaignOid);
+        checkWorkItem(workItems, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, userAdministrator, campaignOid);
+        checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+        checkWorkItem(workItems, USER_JACK_OID, ORG_EROOT_OID, userJack, campaignOid);
     }
 
     @Test

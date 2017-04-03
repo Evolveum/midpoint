@@ -229,7 +229,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
         AccessCertificationCaseType _case = checkCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, roleSuperuser, campaignOid);
-        assertEquals("Unexpected number of reviewers in superuser case", 0, CertCampaignTypeUtil.getReviewers(_case).size());
+        assertEquals("Unexpected number of reviewers in superuser case", 0, CertCampaignTypeUtil.getCurrentReviewers(_case).size());
     }
 
     @Test
@@ -349,10 +349,10 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType cooDummyBlackCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID);
         AccessCertificationCaseType cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
 
-        recordDecision(campaignOid, ceoDummyCase, REVOKE, "no way", 1, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, cooDummyCase, REVOKE, null, 0, null, task, result);          // default reviewer - administrator
-        recordDecision(campaignOid, cooDummyBlackCase, ACCEPT, "OK", 1, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", 0, null, task, result);
+        recordDecision(campaignOid, ceoDummyCase, REVOKE, "no way", USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, cooDummyCase, REVOKE, null, null, task, result);          // default reviewer - administrator
+        recordDecision(campaignOid, cooDummyBlackCase, ACCEPT, "OK", USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -621,10 +621,10 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
         AccessCertificationCaseType superuserDummyCase = findCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID);
 
-        recordDecision(campaignOid, cooDummyBlackCase, ACCEPT, "OK", 2, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, cooDummyBlackCase, REVOKE, "Sorry", 2, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, cooSuperuserCase, ACCEPT, null, 2, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, superuserDummyCase, ACCEPT, null, 2, USER_JACK_OID, task, result);       // decision of administrator is missing here
+        recordDecision(campaignOid, cooDummyBlackCase, ACCEPT, "OK", USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, cooDummyBlackCase, REVOKE, "Sorry", USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, cooSuperuserCase, ACCEPT, null, USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, superuserDummyCase, ACCEPT, null, USER_JACK_OID, task, result);       // decision of administrator is missing here
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -827,7 +827,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         PrismObject<AccessCertificationDefinitionType> def = getObject(AccessCertificationDefinitionType.class, certificationDefinition.getOid());
         assertApproximateTime("last campaign closed", new Date(), def.asObjectable().getLastCampaignClosedTimestamp());
 
-        // 80% cases has all decisions (or is not in current stage)
+        // 100% cases has all decisions (or is not in current stage)
         // 80% cases has an outcome
         // 80% decisions for this stage was done
         assertPercentComplete(campaign, 80, 80, 80);

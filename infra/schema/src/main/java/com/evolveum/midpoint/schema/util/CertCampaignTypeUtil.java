@@ -167,12 +167,14 @@ public class CertCampaignTypeUtil {
     // "no reviewers" cases are treated as answered, because no answer can be provided
     public static int getUnansweredCases(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
         int unansweredCases = 0;
+        if (state == AccessCertificationCampaignStateType.IN_REMEDIATION || state == AccessCertificationCampaignStateType.CLOSED) {
+            campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
+        }
         for (AccessCertificationCaseType aCase : caseList) {
 			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-				if (workItem.getStageNumber() != campaignStageNumber) {
-					continue;
-				}
-				if (workItem.getClosedTimestamp() == null && (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE)) {
+				if (workItem.getStageNumber() == campaignStageNumber
+                        && workItem.getClosedTimestamp() == null
+                        && (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE)) {
 					unansweredCases++; // TODO what about delegations?
 					break;
 				}
@@ -312,6 +314,13 @@ public class CertCampaignTypeUtil {
                 .build();
     }
 
+    public static ObjectQuery createWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) throws SchemaException {
+        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                .exists(PrismConstants.T_PARENT)
+                   .ownerId(campaignOid)
+                .build();
+    }
+
     public static AccessCertificationCaseStageOutcomeType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
         for (AccessCertificationCaseStageOutcomeType outcome : aCase.getCompletedStageOutcome()) {
             if (outcome.getStageNumber() == stageNumber) {
@@ -331,8 +340,10 @@ public class CertCampaignTypeUtil {
     }
 
     // useful e.g. for tests
-    public static Set<ObjectReferenceType> getReviewers(AccessCertificationCaseType aCase) {
+    public static Set<ObjectReferenceType> getCurrentReviewers(AccessCertificationCaseType aCase) {
         return aCase.getWorkItem().stream()
+                // TODO check also with campaign stage?
+                .filter(wi -> wi.getStageNumber() == aCase.getCurrentStageNumber() && wi.getClosedTimestamp() == null)
                 .flatMap(wi -> wi.getReviewerRef().stream())
                 .collect(Collectors.toSet());
     }
@@ -347,5 +358,20 @@ public class CertCampaignTypeUtil {
             return null;
         }
         return ((PrismContainerValue<AccessCertificationCaseType>) parentParent).asContainerable();
+    }
+
+    public static AccessCertificationCampaignType getCampaign(AccessCertificationCaseType aCase) {
+        @SuppressWarnings({"unchecked", "raw"})
+        PrismContainer<AccessCertificationCaseType> caseContainer = (PrismContainer<AccessCertificationCaseType>) aCase.asPrismContainerValue().getParent();
+        if (caseContainer == null) {
+            return null;
+        }
+        @SuppressWarnings({"unchecked", "raw"})
+        PrismContainerValue<AccessCertificationCampaignType> campaignValue = (PrismContainerValue<AccessCertificationCampaignType>) caseContainer.getParent();
+        if (campaignValue == null) {
+            return null;
+        }
+        PrismObject<AccessCertificationCampaignType> campaign = (PrismObject<AccessCertificationCampaignType>) campaignValue.getParent();
+        return campaign != null ? campaign.asObjectable() : null;
     }
 }

@@ -72,7 +72,7 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
         }
         List<String> names = new ArrayList<>();
         // TODO show by work items
-        for (ObjectReferenceType reviewerRef : CertCampaignTypeUtil.getReviewers(_case)) {
+        for (ObjectReferenceType reviewerRef : CertCampaignTypeUtil.getCurrentReviewers(_case)) {
             // TODO optimize - don't resolve reviewers twice
             PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(reviewerRef, page, task, result);
             if (reviewerObject != null) {
