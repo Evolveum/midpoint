@@ -1683,17 +1683,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public boolean canRedirectBack() {
 		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-		// first is icon (non clickable), last is for "current page" and if there
-		// is nothing in between then we don't know where to redirect
-		if (breadcrumbs.size() < getMinimalBreadcrumbsListSize()) {
-			return false;
+		if (breadcrumbs.size() > 2) {
+			return true;
+		}
+		if (breadcrumbs.size() == 2){
+			BreadcrumbPageClass breadcrumb =  null;
+			if ((breadcrumbs.get(breadcrumbs.size() - 2)) instanceof BreadcrumbPageClass){
+				breadcrumb = (BreadcrumbPageClass) breadcrumbs.get(breadcrumbs.size() - 2);
+			}
+			if (breadcrumb != null && breadcrumb.getPage() != null){
+				return true;
+			}
 		}
 
-		return true;
-	}
-
-	protected int getMinimalBreadcrumbsListSize(){
-		return 3;
+		return false;
 	}
 
 	public Breadcrumb redirectBack() {
