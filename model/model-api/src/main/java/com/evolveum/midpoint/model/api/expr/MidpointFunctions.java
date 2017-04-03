@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -987,7 +988,9 @@ public interface MidpointFunctions {
 
     String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) throws EncryptionException;
 
-    ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+	Task getCurrentTask();
+
+	ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
     
@@ -1049,4 +1052,6 @@ public interface MidpointFunctions {
 	 * Returns principal representing the user whose identity is used to execute the expression.
 	 */
 	MidPointPrincipal getPrincipal() throws SecurityViolationException;
+
+	String getChannel();
 }

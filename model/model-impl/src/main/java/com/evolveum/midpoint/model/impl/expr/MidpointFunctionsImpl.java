@@ -674,8 +674,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private LensProjectionContext getProjectionContext() {
     	return ModelExpressionThreadLocalHolder.getProjectionContext();
     }
-    
-    private Task getCurrentTask() {
+
+    @Override
+    public Task getCurrentTask() {
     	return ModelExpressionThreadLocalHolder.getCurrentTask();
     }
     
@@ -1282,5 +1283,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return securityEnforcer.getPrincipal();
+	}
+
+	@Override
+	public String getChannel() {
+		Task task = getCurrentTask();
+		return task != null ? task.getChannel() : null;
 	}
 }

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.activiti.engine.delegate.DelegateExecution;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -93,6 +94,7 @@ public class WfExpressionEvaluationHelper {
 	}
 
 	@SuppressWarnings("unchecked")
+	@NotNull
 	public <T> List<T> evaluateExpression(ExpressionType expressionType, ExpressionVariables variables,
 			String contextDescription, Class<T> clazz, QName typeName, Task task,
 			OperationResult result)
@@ -106,13 +108,9 @@ public class WfExpressionEvaluationHelper {
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, contextDescription, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResultTriple = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, task, result);
-		if (exprResultTriple.getZeroSet() == null) {
-			return Collections.emptyList();
-		} else {
-			return exprResultTriple.getZeroSet().stream()
-					.map(ppv -> (T) ppv.getRealValue())
-					.collect(Collectors.toList());
-		}
+		return exprResultTriple.getZeroSet().stream()
+				.map(ppv -> (T) ppv.getRealValue())
+				.collect(Collectors.toList());
 	}
 
 	public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
