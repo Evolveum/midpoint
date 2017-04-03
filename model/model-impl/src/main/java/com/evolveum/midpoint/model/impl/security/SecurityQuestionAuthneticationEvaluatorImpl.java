@@ -2,6 +2,7 @@ package com.evolveum.midpoint.model.impl.security;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -28,6 +29,19 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 	protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
 			SecurityQuestionsAuthenticationContext authCtx) {
 		if (MapUtils.isEmpty(authCtx.getQuestionAnswerMap())) {
+			recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
+			throw new BadCredentialsException("web.security.provider.password.encoding");
+		}
+		
+		Map<String, String> enteredQuestionAnswer = authCtx.getQuestionAnswerMap();
+		boolean allBlank = false;
+		for (String enteredAnswers : enteredQuestionAnswer.values()) {
+			if (StringUtils.isBlank(enteredAnswers)){
+				allBlank = true;
+			}
+		}
+		
+		if (allBlank) {
 			recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
 			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}

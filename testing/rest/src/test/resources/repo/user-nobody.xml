@@ -15,6 +15,7 @@
   ~ limitations under the License.
   -->
 <c:user oid="ffb9729c-d48b-11e4-9720-001e8c717e5b" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<c:name>nobody</c:name>
 	<c:activation>
@@ -29,5 +30,13 @@
 				<clearValue>nopassword</clearValue>
 			</c:value>
 		</c:password>
+		<securityQuestions>
+			<questionAnswer>
+				<questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+				<questionAnswer>
+					<t:clearValue>nopassword</t:clearValue>
+				</questionAnswer>
+			</questionAnswer>
+		</securityQuestions>
 	</c:credentials>
 </c:user>
