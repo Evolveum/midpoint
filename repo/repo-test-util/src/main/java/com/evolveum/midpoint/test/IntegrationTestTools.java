@@ -998,10 +998,10 @@ public class IntegrationTestTools {
 		} catch (SchemaException e) {
 			throw new SchemaException("Error parsing schema of "+conn+": "+e.getMessage(),e);
 		}
-		assertConnectorSchemaSanity(schema, conn.toString());
+		assertConnectorSchemaSanity(schema, conn.toString(), SchemaConstants.ICF_FRAMEWORK_URI.equals(conn.getFramework()));
 	}
 	
-	public static void assertConnectorSchemaSanity(PrismSchema schema, String connectorDescription) {
+	public static void assertConnectorSchemaSanity(PrismSchema schema, String connectorDescription, boolean expectConnIdSchema) {
 		assertNotNull("Cannot parse connector schema of "+connectorDescription,schema);
 		assertFalse("Empty connector schema in "+connectorDescription,schema.isEmpty());
 		display("Parsed connector schema of "+connectorDescription,schema);
@@ -1014,15 +1014,17 @@ public class IntegrationTestTools {
 		assertFalse("Empty definition of <configuration> property container in connector schema of "+connectorDescription,
 				configurationDefinition.isEmpty());
 		
-		// ICFC schema is used on other elements
-		PrismContainerDefinition configurationPropertiesDefinition = 
-			configurationDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-		assertNotNull("Definition of <configurationProperties> property container not found in connector schema of "+connectorDescription,
-				configurationPropertiesDefinition);
-		assertFalse("Empty definition of <configurationProperties> property container in connector schema of "+connectorDescription,
-				configurationPropertiesDefinition.isEmpty());
-		assertFalse("No definitions in <configurationProperties> in "+connectorDescription, configurationPropertiesDefinition.getDefinitions().isEmpty());
+		if (expectConnIdSchema) {
+			// ICFC schema is used on other elements
+			PrismContainerDefinition configurationPropertiesDefinition = 
+				configurationDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+			assertNotNull("Definition of <configurationProperties> property container not found in connector schema of "+connectorDescription,
+					configurationPropertiesDefinition);
+			assertFalse("Empty definition of <configurationProperties> property container in connector schema of "+connectorDescription,
+					configurationPropertiesDefinition.isEmpty());
+			assertFalse("No definitions in <configurationProperties> in "+connectorDescription, configurationPropertiesDefinition.getDefinitions().isEmpty());
 
-		// TODO: other elements
+			// TODO: other elements
+		}
 	}
 }

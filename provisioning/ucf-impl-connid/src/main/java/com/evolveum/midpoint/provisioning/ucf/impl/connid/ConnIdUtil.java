@@ -44,6 +44,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
@@ -66,6 +67,7 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -82,6 +84,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
@@ -665,5 +668,39 @@ public class ConnIdUtil {
 		return sb.toString();
 	}
 
+	public static QName icfTypeToXsdType(Class<?> type, boolean isConfidential) {
+		// For arrays we are only interested in the component type
+		if (isMultivaluedType(type)) {
+			type = type.getComponentType();
+		}
+		QName propXsdType = null;
+		if (GuardedString.class.equals(type) || 
+				(String.class.equals(type) && isConfidential)) {
+			// GuardedString is a special case. It is a ICF-specific
+			// type
+			// implementing Potemkin-like security. Use a temporary
+			// "nonsense" type for now, so this will fail in tests and
+			// will be fixed later
+//			propXsdType = SchemaConstants.T_PROTECTED_STRING_TYPE;
+			propXsdType = ProtectedStringType.COMPLEX_TYPE;
+		} else if (GuardedByteArray.class.equals(type) || 
+				(Byte.class.equals(type) && isConfidential)) {
+			// GuardedString is a special case. It is a ICF-specific
+			// type
+			// implementing Potemkin-like security. Use a temporary
+			// "nonsense" type for now, so this will fail in tests and
+			// will be fixed later
+//			propXsdType = SchemaConstants.T_PROTECTED_BYTE_ARRAY_TYPE;
+			propXsdType = ProtectedByteArrayType.COMPLEX_TYPE;
+		} else {
+			propXsdType = XsdTypeMapper.toXsdType(type);
+		}
+		return propXsdType;
+	}
 
+	public static boolean isMultivaluedType(Class<?> type) {
+		// We consider arrays to be multi-valued
+		// ... unless it is byte[] or char[]
+		return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
+	}
 }

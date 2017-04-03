@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -39,11 +38,8 @@ import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
-import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
-import org.identityconnectors.framework.api.ConfigurationProperties;
-import org.identityconnectors.framework.api.ConfigurationProperty;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
@@ -90,9 +86,7 @@ import org.identityconnectors.framework.impl.api.local.ObjectPool.Statistics;
 import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
-import org.omg.PortableInterceptor.SUCCESSFUL;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -118,6 +112,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PasswordChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterpreter;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -169,7 +164,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -193,6 +187,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	ConnectorType connectorType;
 	ConnectorFacade connIdConnectorFacade;
 	String resourceSchemaNamespace;
+	private PrismSchema connectorSchema;
 	private APIConfiguration apiConfig = null;
 	
 	Protector protector;
@@ -202,7 +197,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
-	private PrismSchema connectorSchema;
 	private String description;
 	private boolean caseIgnoreAttributeNames = false;
 	private Boolean legacySchema = null;
@@ -322,9 +316,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	private PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
-		if (connectorSchema == null) {
-			generateConnectorSchema();
-		}
 		QName configContainerQName = new QName(connectorType.getNamespace(),
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
 		PrismContainerDefinition<?> configContainerDef = connectorSchema
@@ -334,128 +325,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					+ " in configuration schema for connector " + this);
 		}
 		return configContainerDef;
-	}
-
-	public PrismSchema generateConnectorSchema() {
-
-		LOGGER.trace("Generating configuration schema for {}", this);
-		APIConfiguration defaultAPIConfiguration = cinfo.createDefaultAPIConfiguration();
-		ConfigurationProperties icfConfigurationProperties = defaultAPIConfiguration
-				.getConfigurationProperties();
-
-		if (icfConfigurationProperties == null || icfConfigurationProperties.getPropertyNames() == null
-				|| icfConfigurationProperties.getPropertyNames().isEmpty()) {
-			LOGGER.debug("No configuration schema for {}", this);
-			return null;
-		}
-
-		connectorSchema = new PrismSchemaImpl(connectorType.getNamespace(), prismContext);
-
-		// Create configuration type - the type used by the "configuration"
-		// element
-		PrismContainerDefinitionImpl<?> configurationContainerDef = ((PrismSchemaImpl) connectorSchema).createPropertyContainerDefinition(
-				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
-
-		// element with "ConfigurationPropertiesType" - the dynamic part of
-		// configuration schema
-		ComplexTypeDefinition configPropertiesTypeDef = ((PrismSchemaImpl) connectorSchema).createComplexTypeDefinition(new QName(
-				connectorType.getNamespace(),
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
-
-		// Create definition of "configurationProperties" type
-		// (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
-		int displayOrder = 1;
-		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
-			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
-
-			QName propXsdType = icfTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
-			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[] { this,
-					icfPropertyName, icfProperty.getType(), propXsdType });
-			PrismPropertyDefinitionImpl<?> propertyDefinifion = ((ComplexTypeDefinitionImpl) configPropertiesTypeDef).createPropertyDefinition(
-					icfPropertyName, propXsdType);
-			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
-			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
-			if (isMultivaluedType(icfProperty.getType())) {
-				propertyDefinifion.setMaxOccurs(-1);
-			} else {
-				propertyDefinifion.setMaxOccurs(1);
-			}
-			if (icfProperty.isRequired() && icfProperty.getValue() == null) {
-				// If ICF says that the property is required it may not be in fact really required if it also has a default value
-				propertyDefinifion.setMinOccurs(1);
-			} else {
-				propertyDefinifion.setMinOccurs(0);
-			}
-			propertyDefinifion.setDisplayOrder(displayOrder);
-			displayOrder++;
-		}
-
-		// Create common ICF configuration property containers as a references
-		// to a static schema
-		configurationContainerDef.createContainerDefinition(
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE, 0, 1);
-		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE, 0, 1);
-		configurationContainerDef.createContainerDefinition(
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE, 0, 1);
-        configurationContainerDef.createContainerDefinition(
-                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT,
-                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE, 0, 1);
-		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE, 0, 1);
-
-		// No need to create definition of "configuration" element.
-		// midPoint will look for this element, but it will be generated as part
-		// of the PropertyContainer serialization to schema
-
-		configurationContainerDef.createContainerDefinition(
-				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
-				configPropertiesTypeDef, 1, 1);
-
-		LOGGER.debug("Generated configuration schema for {}: {} definitions", this, connectorSchema.getDefinitions()
-				.size());
-		return connectorSchema;
-	}
-
-	private QName icfTypeToXsdType(Class<?> type, boolean isConfidential) {
-		// For arrays we are only interested in the component type
-		if (isMultivaluedType(type)) {
-			type = type.getComponentType();
-		}
-		QName propXsdType = null;
-		if (GuardedString.class.equals(type) || 
-				(String.class.equals(type) && isConfidential)) {
-			// GuardedString is a special case. It is a ICF-specific
-			// type
-			// implementing Potemkin-like security. Use a temporary
-			// "nonsense" type for now, so this will fail in tests and
-			// will be fixed later
-//			propXsdType = SchemaConstants.T_PROTECTED_STRING_TYPE;
-			propXsdType = ProtectedStringType.COMPLEX_TYPE;
-		} else if (GuardedByteArray.class.equals(type) || 
-				(Byte.class.equals(type) && isConfidential)) {
-			// GuardedString is a special case. It is a ICF-specific
-			// type
-			// implementing Potemkin-like security. Use a temporary
-			// "nonsense" type for now, so this will fail in tests and
-			// will be fixed later
-//			propXsdType = SchemaConstants.T_PROTECTED_BYTE_ARRAY_TYPE;
-			propXsdType = ProtectedByteArrayType.COMPLEX_TYPE;
-		} else {
-			propXsdType = XsdTypeMapper.toXsdType(type);
-		}
-		return propXsdType;
-	}
-
-	private boolean isMultivaluedType(Class<?> type) {
-		// We consider arrays to be multi-valued
-		// ... unless it is byte[] or char[]
-		return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
 	}
 	
 	private QName icfAttributeInfoToMatchingRule(AttributeInfo attributeInfo) {
@@ -788,7 +657,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				}
 				
 				QName attrXsdName = connIdNameMapper.convertAttributeNameToQName(processedAttributeName, ocDef);
-				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType(), false);
+				QName attrXsdType = ConnIdUtil.icfTypeToXsdType(attributeInfo.getType(), false);
 				
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Attr conversion ICF: {}({}) -> XSD: {}({})",

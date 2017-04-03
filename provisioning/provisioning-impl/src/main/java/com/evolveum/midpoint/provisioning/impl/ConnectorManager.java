@@ -71,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 /**
  * Class that manages the ConnectorType objects in repository.
@@ -407,42 +408,10 @@ public class ConnectorManager {
 						foundConnector.setConnectorHost(hostType);
 					}
 	
-					// Connector schema is normally not generated.
-					// Let's instantiate the connector and generate the schema
-					ConnectorInstance connectorInstance = null;
-					try {
-						connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null, "discovered connector");
-						PrismSchema connectorSchema = connectorInstance.generateConnectorSchema();
-						if (connectorSchema == null) {
-							LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
-						} else {
-							LOGGER.trace("Generated connector schema for {}: {} definitions",
-									foundConnector, connectorSchema.getDefinitions().size());
-							Document xsdDoc = null;
-							// Convert to XSD
-							xsdDoc = connectorSchema.serializeToXsd();
-							Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
-							LOGGER.trace("Generated XSD connector schema: {}", DOMUtil.serializeDOMToString(xsdElement));
-							ConnectorTypeUtil.setConnectorXsdSchema(foundConnector, xsdElement);
-						}
-					} catch (ObjectNotFoundException ex) {
-						LOGGER.error(
-								"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
-								ex);
-						result.recordPartialError(
-								"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
-								ex);
-						// Skipping schema generation, but otherwise going on
-					} catch (SchemaException e) {
-						LOGGER.error(
-								"Error processing connector schema for " + ObjectTypeUtil.toShortString(foundConnector)
-										+ ": " + e.getMessage(), e);
-						result.recordPartialError(
-								"Error processing connector schema for " + ObjectTypeUtil.toShortString(foundConnector)
-										+ ": " + e.getMessage(), e);
-						// Skipping schema generation, but otherwise going on
+					if (foundConnector.getSchema() == null) {
+						LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
 					}
-	
+					
 					// Sanitize framework-supplied OID
 					if (StringUtils.isNotEmpty(foundConnector.getOid())) {
 						LOGGER.warn("Provisioning framework " + foundConnector.getFramework()

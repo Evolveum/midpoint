@@ -357,6 +357,8 @@ public abstract class SchemaConstants {
 
 	public static final String INTENT_DEFAULT = "default";
 
+	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
+	
 	// This constant should not be here. It is used by schema processor to
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)

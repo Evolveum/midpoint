@@ -144,13 +144,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		final String TEST_NAME = "test002ConnectorSchema";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		ConnectorInstance cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
-				"test connector");
-		assertNotNull("Failed to instantiate connector", cc);
-		PrismSchema connectorSchema = cc.generateConnectorSchema();
-		IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "generated");
+		PrismSchema connectorSchema = connectorFactory.generateConnectorConfigurationSchema(connectorType);
+		IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "generated", true);
 		assertEquals("Unexpected number of definitions", 3, connectorSchema.getDefinitions().size());
-
 		
 		Document xsdSchemaDom = connectorSchema.serializeToXsd();
 		assertNotNull("No serialized connector schema", xsdSchemaDom);
@@ -158,7 +154,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		
 		// Try to re-parse
 		PrismSchema reparsedConnectorSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "schema fetched from "+cc, PrismTestUtil.getPrismContext());
-		IntegrationTestTools.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed");
+		IntegrationTestTools.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed", true);
 		// TODO: 3 definitions would be cleaner. But we can live with this
 		assertEquals("Unexpected number of definitions in re-parsed schema", 6, reparsedConnectorSchema.getDefinitions().size());		
 	}

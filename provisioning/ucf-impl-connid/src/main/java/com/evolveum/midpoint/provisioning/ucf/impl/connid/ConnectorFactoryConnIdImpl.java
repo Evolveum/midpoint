@@ -46,6 +46,9 @@ import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.api.APIConfiguration;
+import org.identityconnectors.framework.api.ConfigurationProperties;
+import org.identityconnectors.framework.api.ConfigurationProperty;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ConnectorInfoManager;
@@ -71,12 +74,17 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -91,6 +99,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -108,12 +117,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public static final String ICFS_UID_DISPLAY_NAME = "ConnId UID";
 	public static final int ICFS_UID_DISPLAY_ORDER = 100;
 	public static final QName ICFS_ACCOUNT = new QName(SchemaConstants.NS_ICF_SCHEMA, "account");
-	
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
 	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION, 
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
-	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
 
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
 	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
@@ -244,11 +251,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
 					+ " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
 		}
-
-		PrismSchema connectorSchema = getConnectorSchema(connectorType, namespace);
 		
-		// Create new midPoint ConnectorInstance and pass it the ICF connector
-		// facade
+		PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
+		if (connectorSchema == null) {
+			connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
+		}
+
 		ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType, namespace,
 				connectorSchema, protector, prismContext);
 		connectorImpl.setDescription(desc);
@@ -256,18 +264,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		return connectorImpl;
 	}
 
-	private PrismSchema getConnectorSchema(ConnectorType connectorType, String namespace) throws SchemaException {
-		XmlSchemaType xmlSchema = connectorType.getSchema();
-		if (xmlSchema == null) {
-			return null;
-		}
-		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchema);
-		if (xsdElement == null) {
-			return null;
-		}
-		PrismSchema connectorSchema = PrismSchemaImpl.parse(xsdElement, true, connectorType.toString(), prismContext);
-		return connectorSchema;
-	}
+	
 
 	/**
 	 * Returns a list XML representation of the ICF connectors.
@@ -322,8 +319,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 
 			for (ConnectorInfo connectorInfo : connectorInfos) {
-				ConnectorType connectorType = convertToConnectorType(connectorInfo, null);
-				localConnectorTypes.add(connectorType);
+				ConnectorType connectorType;
+				try {
+					connectorType = convertToConnectorType(connectorInfo, null);
+					localConnectorTypes.add(connectorType);
+				} catch (SchemaException e) {
+					LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
+				}
 			}
 		}
 
@@ -335,10 +337,18 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		Set<ConnectorType> connectorTypes = new HashSet<ConnectorType>();
 		List<ConnectorInfo> connectorInfos = remoteConnectorInfoManager.getConnectorInfos();
 		for (ConnectorInfo connectorInfo : connectorInfos) {
-			ConnectorType connectorType = convertToConnectorType(connectorInfo, host);
-			connectorTypes.add(connectorType);
+			try {
+				ConnectorType connectorType = convertToConnectorType(connectorInfo, host);
+				connectorTypes.add(connectorType);
+			} catch (SchemaException e) {
+				LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
+			}
 		}
 		return connectorTypes;
+	}
+
+	private String getConnctorDesc(ConnectorInfo connectorInfo) {
+		return connectorInfo.getConnectorKey().getConnectorName();
 	}
 
 	/**
@@ -349,23 +359,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	 * @param hostType
 	 *            host that this connector runs on or null for local connectors
 	 */
-	private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) {
+	private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
 		ConnectorType connectorType = new ConnectorType();
 		ConnectorKey key = cinfo.getConnectorKey();
+		UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);		
 		String stringID = keyToNamespaceSuffix(key);
-		StringBuilder displayName = new StringBuilder(StringUtils.substringAfterLast(key.getConnectorName(), "."));
-		StringBuilder connectorName = new StringBuilder("ICF ");
-		connectorName.append(key.getConnectorName());
-		connectorName.append(" v");
-		connectorName.append(key.getBundleVersion());
-		if (hostType != null) {
-			connectorName.append(" @");
-			connectorName.append(hostType.getName());
-			displayName.append(" @");
-			displayName.append(hostType.getName());
-			
-		}
-		connectorType.setName(new PolyStringType(connectorName.toString()));
 		connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
 		connectorType.setConnectorType(key.getConnectorName());
 		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID);
@@ -383,6 +381,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				connectorType.setConnectorHost(hostType);
 			}
 		}
+		
+		PrismSchema connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
+		LOGGER.trace("Generated connector schema for {}: {} definitions",
+				connectorType, connectorSchema.getDefinitions().size());
+		UcfUtil.setConnectorSchema(connectorType, connectorSchema);
+		
 		return connectorType;
 	}
 
@@ -402,6 +406,99 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		return sb.toString();
 	}
 
+	@Override
+	public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException {
+		ConnectorInfo cinfo = getConnectorInfo(connectorType);
+		return generateConnectorConfigurationSchema(cinfo, connectorType);
+	}
+	
+	private PrismSchema generateConnectorConfigurationSchema(ConnectorInfo cinfo, ConnectorType connectorType) {
+
+		LOGGER.trace("Generating configuration schema for {}", this);
+		APIConfiguration defaultAPIConfiguration = cinfo.createDefaultAPIConfiguration();
+		ConfigurationProperties icfConfigurationProperties = defaultAPIConfiguration
+				.getConfigurationProperties();
+
+		if (icfConfigurationProperties == null || icfConfigurationProperties.getPropertyNames() == null
+				|| icfConfigurationProperties.getPropertyNames().isEmpty()) {
+			LOGGER.debug("No configuration schema for {}", this);
+			return null;
+		}
+
+		PrismSchema connectorSchema = new PrismSchemaImpl(connectorType.getNamespace(), prismContext);
+
+		// Create configuration type - the type used by the "configuration"
+		// element
+		PrismContainerDefinitionImpl<?> configurationContainerDef = ((PrismSchemaImpl) connectorSchema).createPropertyContainerDefinition(
+				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
+				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+
+		// element with "ConfigurationPropertiesType" - the dynamic part of
+		// configuration schema
+		ComplexTypeDefinition configPropertiesTypeDef = ((PrismSchemaImpl) connectorSchema).createComplexTypeDefinition(new QName(
+				connectorType.getNamespace(),
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
+
+		// Create definition of "configurationProperties" type
+		// (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
+		int displayOrder = 1;
+		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
+			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
+
+			QName propXsdType = ConnIdUtil.icfTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
+			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[] { this,
+					icfPropertyName, icfProperty.getType(), propXsdType });
+			PrismPropertyDefinitionImpl<?> propertyDefinifion = ((ComplexTypeDefinitionImpl) configPropertiesTypeDef).createPropertyDefinition(
+					icfPropertyName, propXsdType);
+			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
+			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
+			if (ConnIdUtil.isMultivaluedType(icfProperty.getType())) {
+				propertyDefinifion.setMaxOccurs(-1);
+			} else {
+				propertyDefinifion.setMaxOccurs(1);
+			}
+			if (icfProperty.isRequired() && icfProperty.getValue() == null) {
+				// If ICF says that the property is required it may not be in fact really required if it also has a default value
+				propertyDefinifion.setMinOccurs(1);
+			} else {
+				propertyDefinifion.setMinOccurs(0);
+			}
+			propertyDefinifion.setDisplayOrder(displayOrder);
+			displayOrder++;
+		}
+
+		// Create common ICF configuration property containers as a references
+		// to a static schema
+		configurationContainerDef.createContainerDefinition(
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE, 0, 1);
+		configurationContainerDef.createPropertyDefinition(
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE, 0, 1);
+		configurationContainerDef.createContainerDefinition(
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE, 0, 1);
+        configurationContainerDef.createContainerDefinition(
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT,
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE, 0, 1);
+		configurationContainerDef.createPropertyDefinition(
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT,
+				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE, 0, 1);
+
+		// No need to create definition of "configuration" element.
+		// midPoint will look for this element, but it will be generated as part
+		// of the PropertyContainer serialization to schema
+
+		configurationContainerDef.createContainerDefinition(
+				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+				configPropertiesTypeDef, 1, 1);
+
+		LOGGER.debug("Generated configuration schema for {}: {} definitions", this, connectorSchema.getDefinitions()
+				.size());
+		return connectorSchema;
+	}
+
+	
 	/**
 	 * Returns ICF connector info manager that manages local connectors. The
 	 * manager will be created if it does not exist yet.

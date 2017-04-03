@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -49,6 +50,8 @@ import java.util.Set;
 public interface ConnectorFactory {
 
 	String OPERATION_LIST_CONNECTOR = ConnectorFactory.class+".listConnectors";
+	
+	PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException;
 
 	/**
 	 * Creates new unconfigured instance of the connector.
@@ -100,4 +103,5 @@ public interface ConnectorFactory {
     String getFrameworkVersion();
 
 	void shutdown();
+
 }

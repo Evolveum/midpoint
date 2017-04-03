@@ -71,17 +71,12 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 	private ResourceType resourceType;
 	
-	@Autowired
-	private ConnectorFactory manager;
-	
-	@Autowired
+	@Autowired(required=true)
 	private ProvisioningService provisioningService;
 
-	@Autowired
+	@Autowired(required=true)
 	private ResourceObjectChangeListener syncServiceMock;
 
-	private Task syncTask = null;
-	
 	@BeforeClass
 	public static void startLdap() throws Exception {
 		openDJController.startCleanServer();
@@ -103,7 +98,6 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
-		assertNotNull(manager);
 		// let provisioning discover the connectors
 		provisioningService.postInit(initResult);
 		

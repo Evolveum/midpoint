@@ -77,8 +77,6 @@ public interface ConnectorInstance {
 
 	ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 	
-	PrismSchema generateConnectorSchema();
-	
 	/**
 	 * Get necessary information from the remote system.
 	 * 

@@ -157,17 +157,14 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// Connector
 		PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(CONNECTOR_LDAP_FILE);
 		connectorType = connector.asObjectable();
-
 		
 		factory = connectorFactoryIcfImpl;
 
-		cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
-				"test connector");
-		AssertJUnit.assertNotNull("Cannot create connector instance", cc);
-		
-		connectorSchema = cc.generateConnectorSchema();
-		AssertJUnit.assertNotNull("Cannot generate connector schema", cc);
+		connectorSchema = factory.generateConnectorConfigurationSchema(connectorType);
+		AssertJUnit.assertNotNull("Cannot generate connector schema", connectorSchema);
 		display("Connector schema", connectorSchema);
+		
+		cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), "ldap connector");
 		
 		OperationResult result = new OperationResult("initUcf");
 		cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), result);
@@ -191,7 +188,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		final String TEST_NAME = "test010ConnectorSchemaSanity";
 		TestUtil.displayTestTile(TEST_NAME);
 	
-		IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "LDAP connector");
+		IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "LDAP connector", true);
 		
 		PrismContainerDefinition configurationDefinition = 
 				connectorSchema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(), PrismContainerDefinition.class);		
