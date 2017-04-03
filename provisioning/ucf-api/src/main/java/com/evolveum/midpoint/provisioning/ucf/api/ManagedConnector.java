@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  */
 public @interface ManagedConnector {
 
-	String type();
+	String type() default "";
 	String version() default "1.0.0";
 	
 }

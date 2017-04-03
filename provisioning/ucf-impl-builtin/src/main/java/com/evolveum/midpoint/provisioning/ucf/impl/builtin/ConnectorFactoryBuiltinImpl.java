@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.provisioning.ucf.api.AbstractConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
@@ -66,13 +67,6 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	private PrismContext prismContext;
 	
 	private Map<String,ConnectorStruct> connectorMap;
-	
-	@Override
-	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace,
-			String desc) throws ObjectNotFoundException, SchemaException {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul)
@@ -98,9 +92,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 				ManagedConnector annotation = (ManagedConnector) connectorClass.getAnnotation(ManagedConnector.class);
 				String type = annotation.type();
 				LOGGER.debug("Found connector {} class {}", type, connectorClass);
-				ConnectorStruct struct = new ConnectorStruct();
-				struct.connectorClass = connectorClass;
-				struct.connectorObject = createConnectorObject(connectorClass, annotation);
+				ConnectorStruct struct = createConnectorStruct(connectorClass, annotation);
 				connectorMap.put(type, struct);
 				
 			} catch (ClassNotFoundException e) {
@@ -113,10 +105,16 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		LOGGER.trace("Scan done");
 	}
 	
-	private ConnectorType createConnectorObject(Class connectorClass, ManagedConnector annotation) throws ObjectNotFoundException, SchemaException {
+	private ConnectorStruct createConnectorStruct(Class connectorClass, ManagedConnector annotation) throws ObjectNotFoundException, SchemaException {
+		ConnectorStruct struct = new ConnectorStruct();
+		struct.connectorClass = connectorClass;
+		
 		ConnectorType connectorType = new ConnectorType();
 		String bundleName = connectorClass.getPackage().getName();
 		String type = annotation.type();
+		if (type == null || type.isEmpty()) {
+			type = connectorClass.getSimpleName();
+		}
 		String version = annotation.version();
 		UcfUtil.addConnectorNames(connectorType, "Built-in", bundleName, type, version, null);
 		connectorType.setConnectorBundle(bundleName);
@@ -126,20 +124,21 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		String namespace = CONFIGURATION_NAMESPACE_PREFIX + bundleName + "/" + type;
 		connectorType.setNamespace(namespace);
 		
+		struct.connectorObject = connectorType;
+		
 		PrismSchema connectorSchema = generateConnectorConfigurationSchema(connectorType);
 		if (connectorSchema != null) {
 			LOGGER.trace("Generated connector schema for {}: {} definitions",
 					connectorType, connectorSchema.getDefinitions().size());
 			UcfUtil.setConnectorSchema(connectorType, connectorSchema);
+			struct.connectorConfigurationSchema = connectorSchema;
 		} else {
 			LOGGER.warn("No connector schema generated for {}", connectorType);
 		}
 		
-		return connectorType;
+		return struct;
 	}
 
-	
-	
 	@Override
 	public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType)
 			throws ObjectNotFoundException {
@@ -157,6 +156,33 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		// TODO
 		
 		return connectorSchema;
+	}
+	
+	@Override
+	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace,
+			String desc) throws ObjectNotFoundException, SchemaException {
+		String type = connectorType.getConnectorType();
+		ConnectorStruct struct = connectorMap.get(type);
+		Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
+		ConnectorInstance connectorInstance;
+		try {
+			connectorInstance = connectorClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new ObjectNotFoundException("Cannot create instance of connector "+connectorClass+": "+e.getMessage(), e);
+		}
+		if (connectorInstance instanceof AbstractConnectorInstance) {
+			setupAbstractConnectorInstance((AbstractConnectorInstance)connectorInstance, connectorType, namespace, 
+					desc, struct);
+		}
+		return connectorInstance;
+	}
+
+	private void setupAbstractConnectorInstance(AbstractConnectorInstance connectorInstance, ConnectorType connectorObject, String namespace,
+			String desc, ConnectorStruct struct) {
+		connectorInstance.setConnectorObject(connectorObject);
+		connectorInstance.setResourceSchemaNamespace(namespace);
+		connectorInstance.setPrismContext(prismContext);
+		connectorInstance.setConnectorConfigurationSchema(struct.connectorConfigurationSchema);
 	}
 
 	@Override
@@ -182,6 +208,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	private class ConnectorStruct {
 		Class<? extends ConnectorInstance> connectorClass;
 		ConnectorType connectorObject;
+		PrismSchema connectorConfigurationSchema;
 	}
 	
 }

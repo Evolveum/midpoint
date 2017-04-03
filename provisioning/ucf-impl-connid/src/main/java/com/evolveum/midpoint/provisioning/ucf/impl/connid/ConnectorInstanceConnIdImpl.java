@@ -241,8 +241,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	public void configure(PrismContainerValue<?> configuration, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-				+ ".configure");
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
 		result.addParam("configuration", configuration);
 
 		try {
@@ -396,8 +395,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-				+ ".initialize");
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
 		result.addContext("connector", connectorType);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryConnIdImpl.class);
 

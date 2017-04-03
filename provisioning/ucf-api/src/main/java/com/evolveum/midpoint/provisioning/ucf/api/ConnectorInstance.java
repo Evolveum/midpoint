@@ -63,6 +63,8 @@ import javax.xml.namespace.QName;
  */
 public interface ConnectorInstance {
 
+	public static final String OPERATION_CONFIGURE = ConnectorInstance.class.getName() + ".configure";
+	public static final String OPERATION_INITIALIZE = ConnectorInstance.class.getName() + ".initialize";
 	
 	/**
 	 * 
@@ -81,7 +83,7 @@ public interface ConnectorInstance {
 	 * Get necessary information from the remote system.
 	 * 
 	 * This method will initialize the configured connector. It may contact the remote system in order to do so,
-	 * e.g. to download the schema. It will the cache the information inside connector instance until this method
+	 * e.g. to download the schema. It will cache the information inside connector instance until this method
 	 * is called again. It must be called after configure() and before any other method that is accessing the
 	 * resource.
 	 * 

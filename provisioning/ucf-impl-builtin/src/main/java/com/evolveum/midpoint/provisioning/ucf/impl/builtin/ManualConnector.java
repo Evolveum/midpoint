@@ -20,13 +20,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.ucf.api.AbstractConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationReturnValue;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
@@ -57,29 +56,13 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchC
  * @author Radovan Semancik
  *
  */
-@ManagedConnector(type = "manualConnector")
-public class ManualConnector implements ConnectorInstance {
-
-	@Override
-	public void configure(PrismContainerValue<?> configuration, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, SchemaException,
-			ConfigurationException {
-		// TODO Auto-generated method stub
-		
-	}
+@ManagedConnector
+public class ManualConnector extends AbstractConnectorInstance {
 
 	@Override
 	public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities,
-			boolean caseIgnoreAttributeNames, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, ConfigurationException {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
