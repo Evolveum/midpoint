@@ -46,7 +46,7 @@ import java.util.List;
  * @author lazyman
  * @author mederly
  */
-public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDecisionDto> {
+public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWorkItemDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertCaseDtoProvider.class);
     private static final String DOT_CLASS = CertCaseDtoProvider.class.getName() + ".";
@@ -61,7 +61,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
     }
 
     @Override
-    public Iterator<CertCaseOrDecisionDto> internalIterator(long first, long count) {
+    public Iterator<CertCaseOrWorkItemDto> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
 

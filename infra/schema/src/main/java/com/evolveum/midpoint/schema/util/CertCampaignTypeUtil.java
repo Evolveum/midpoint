@@ -349,6 +349,7 @@ public class CertCampaignTypeUtil {
     }
 
     public static AccessCertificationCaseType getCase(AccessCertificationWorkItemType workItem) {
+        @SuppressWarnings({"unchecked", "raw"})
         PrismContainerable<AccessCertificationWorkItemType> parent = workItem.asPrismContainerValue().getParent();
         if (!(parent instanceof PrismContainer)) {
             return null;
@@ -357,7 +358,9 @@ public class CertCampaignTypeUtil {
         if (!(parentParent instanceof PrismContainerValue)) {
             return null;
         }
-        return ((PrismContainerValue<AccessCertificationCaseType>) parentParent).asContainerable();
+        @SuppressWarnings({"unchecked", "raw"})
+        PrismContainerValue<AccessCertificationCaseType> parentParentPcv = (PrismContainerValue<AccessCertificationCaseType>) parentParent;
+        return parentParentPcv.asContainerable();
     }
 
     public static AccessCertificationCampaignType getCampaign(AccessCertificationCaseType aCase) {

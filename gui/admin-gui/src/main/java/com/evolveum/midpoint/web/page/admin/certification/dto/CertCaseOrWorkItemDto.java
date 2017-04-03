@@ -19,25 +19,26 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
- * A common superclass for CertCaseDto + CertDecisionDto.
+ * A common superclass for CertCaseDto + CertWorkItemDto.
  *
  * TODO cleanup a bit
  *
  * @author mederly
  */
-public class CertCaseOrDecisionDto extends Selectable {
+public class CertCaseOrWorkItemDto extends Selectable {
 
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
@@ -52,9 +53,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     private String targetName;
     private String deadlineAsString;
 
-    public CertCaseOrDecisionDto(AccessCertificationCaseType _case, PageBase page) {
-        Validate.notNull(_case);
-
+    public CertCaseOrWorkItemDto(@NotNull AccessCertificationCaseType _case, PageBase page) {
         this.certCase = _case;
         this.objectName = getName(_case.getObjectRef());
         this.targetName = getName(_case.getTargetRef());
@@ -99,8 +98,8 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     public ObjectReferenceType getCampaignRef() {
-        return certCase.getCampaignRef();
-    }
+        return ObjectTypeUtil.createObjectRef(getCampaign());
+	}
 
     public Long getCaseId() {
         return certCase.asPrismContainerValue().getId();
@@ -111,11 +110,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     public AccessCertificationCampaignType getCampaign() {
-        try {
-            return (AccessCertificationCampaignType) certCase.getCampaignRef().asReferenceValue().getObject().asObjectable();
-        } catch (NullPointerException e) {
-            return null;      // TODO fix this really crude hack
-        }
+        return CertCampaignTypeUtil.getCampaign(certCase);
     }
 
     public String getCampaignName() {

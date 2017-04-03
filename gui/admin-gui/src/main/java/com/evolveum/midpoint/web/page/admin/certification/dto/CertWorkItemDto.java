@@ -17,45 +17,45 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * DTO representing a particular decision.
+ * DTO representing a particular workItem.
  *
  * TODO cleanup a bit
  *
  * @author mederly
  */
-public class CertDecisionDto extends CertCaseOrDecisionDto {
+public class CertWorkItemDto extends CertCaseOrWorkItemDto {
 
     public static final String F_COMMENT = "comment";
-    public static final String F_RESPONSE = "response";
+    @SuppressWarnings("unused")
+	public static final String F_RESPONSE = "response";
 
-    private AccessCertificationDecisionType decision;
+    @NotNull private final AccessCertificationWorkItemType workItem;
 
-    public CertDecisionDto(AccessCertificationCaseType _case, PageBase page) {
-        super(_case, page);
-        if (_case.getDecision().isEmpty()) {
-            decision = new AccessCertificationDecisionType(page.getPrismContext());
-        } else if (_case.getDecision().size() == 1) {
-            decision = _case.getDecision().get(0);
-        } else {
-            throw new IllegalStateException("More than one relevant decision entry in a certification case: " + _case);
-        }
+    CertWorkItemDto(@NotNull AccessCertificationWorkItemType workItem, @NotNull PageBase page) {
+        //noinspection ConstantConditions
+        super(CertCampaignTypeUtil.getCase(workItem), page);
+        this.workItem = workItem;
     }
 
     public String getComment() {
-        return decision.getComment();
+        return workItem.getComment();
     }
 
     public void setComment(String value) {
-        decision.setComment(value);
+        workItem.setComment(value);
     }
 
     public AccessCertificationResponseType getResponse() {
-        return decision.getResponse();
+        return workItem.getResponse();
     }
 
+    public long getWorkItemId() {
+        return workItem.getId();
+    }
 }
