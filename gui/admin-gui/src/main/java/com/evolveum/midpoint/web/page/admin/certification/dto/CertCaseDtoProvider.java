@@ -42,6 +42,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+
 /**
  * @author lazyman
  * @author mederly
@@ -53,7 +56,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
-    String campaignOid;
+    private String campaignOid;
     // case query is stored in super.query
 
     public CertCaseDtoProvider(Component component) {
@@ -69,12 +72,8 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         OperationResult result = task.getResult();
         try {
             ObjectPaging paging = createPaging(first, count);
-            
-            Collection<SelectorOptions<GetOperationOptions>> resolveNames =
-                    SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-
+            Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, task, result);
-
             for (AccessCertificationCaseType _case : caseList) {
                 getAvailableData().add(new CertCaseDto(_case, getPage(), task, result));
             }
@@ -93,7 +92,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         return getAvailableData().iterator();
     }
 
-    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
+    private void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
         getPage().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
@@ -124,6 +123,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         return count;
     }
 
+    @SuppressWarnings("unused")
     public String getCampaignOid() {
         return campaignOid;
     }

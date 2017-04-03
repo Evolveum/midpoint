@@ -48,25 +48,22 @@ public class NameResolutionHelper {
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (GetOperationOptions.isResolveNames(rootOptions)) {
             final List<String> oidsToResolve = new ArrayList<>();
-            Visitor oidExtractor = new Visitor() {
-                @Override
-                public void visit(Visitable visitable) {
-                    if (visitable instanceof PrismReferenceValue) {
-                        PrismReferenceValue value = (PrismReferenceValue) visitable;
-                        if (value.getTargetName() != null) {    // just for sure
-                            return;
-                        }
-                        if (value.getObject() != null) {        // improbable but possible
-                            value.setTargetName(value.getObject().getName());
-                            return;
-                        }
-                        if (value.getOid() == null) {           // shouldn't occur as well
-                            return;
-                        }
-                        oidsToResolve.add(value.getOid());
-                    }
-                }
-            };
+            Visitor oidExtractor = visitable -> {
+				if (visitable instanceof PrismReferenceValue) {
+					PrismReferenceValue value = (PrismReferenceValue) visitable;
+					if (value.getTargetName() != null) {    // just for sure
+						return;
+					}
+					if (value.getObject() != null) {        // improbable but possible
+						value.setTargetName(value.getObject().getName());
+						return;
+					}
+					if (value.getOid() == null) {           // shouldn't occur as well
+						return;
+					}
+					oidsToResolve.add(value.getOid());
+				}
+			};
             containerValue.accept(oidExtractor);
 
 			if (!oidsToResolve.isEmpty()) {

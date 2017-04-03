@@ -37,6 +37,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createResolveNames;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+
 /**
  * @author lazyman
  * @author mederly
@@ -69,20 +72,13 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertWorkIt
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
             
             ObjectQuery caseQuery = getQuery();
-            if (caseQuery == null) {
-            	caseQuery = new ObjectQuery();
-            } else {
-                caseQuery = caseQuery.clone();
-            }
+            caseQuery = caseQuery != null ? caseQuery.clone() : new ObjectQuery();
             caseQuery.setPaging(paging);
             SearchingUtils.hackPaging(caseQuery);
 
-            Collection<SelectorOptions<GetOperationOptions>> resolveNames =
-                    SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-
+            Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             AccessCertificationService acs = getPage().getCertificationService();
             List<AccessCertificationWorkItemType> workitems = acs.searchOpenWorkItems(caseQuery, notDecidedOnly, resolveNames, task, result);
-
             for (AccessCertificationWorkItemType workItem : workitems) {
                 getAvailableData().add(new CertWorkItemDto(workItem, getPage()));
             }

@@ -42,6 +42,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
 
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
+	@SuppressWarnings("unused")
     public static final String F_TARGET_TYPE = "targetType";
     public static final String F_CAMPAIGN_NAME = "campaignName";
     public static final String F_REVIEW_REQUESTED = "reviewRequested";
@@ -53,7 +54,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
     private String targetName;
     private String deadlineAsString;
 
-    public CertCaseOrWorkItemDto(@NotNull AccessCertificationCaseType _case, PageBase page) {
+    CertCaseOrWorkItemDto(@NotNull AccessCertificationCaseType _case, PageBase page) {
         this.certCase = _case;
         this.objectName = getName(_case.getObjectRef());
         this.targetName = getName(_case.getTargetRef());
@@ -128,7 +129,8 @@ public class CertCaseOrWorkItemDto extends Selectable {
         return CertCampaignTypeUtil.getNumberOfStages(campaign);
     }
 
-    public Date getReviewRequested() {
+    @SuppressWarnings("unused")
+	public Date getReviewRequested() {
         XMLGregorianCalendar date = certCase.getCurrentReviewRequestedTimestamp();
         return XmlTypeConverter.toDate(date);
     }
@@ -188,6 +190,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
         }
     }
 
+	@SuppressWarnings("unused")
     public String getDeadlineAsString() {
         return deadlineAsString;
     }
@@ -195,6 +198,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
 	/**
 	 * Preliminary implementation. Eventually we will create a list of hyperlinks pointing to the actual objects.
 	 */
+	@SuppressWarnings("unused")
 	public String getConflictingTargets() {
     	if (!(certCase instanceof AccessCertificationAssignmentCaseType)) {
     		return "";
