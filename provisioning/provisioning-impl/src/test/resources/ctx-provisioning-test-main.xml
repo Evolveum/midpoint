@@ -37,6 +37,7 @@
     <import resource="classpath:ctx-provisioning.xml"/>
     <import resource="classpath:ctx-provisioning-test.xml"/>
     <import resource="classpath:ctx-ucf-connid.xml"/>
+    <import resource="classpath:ctx-ucf-builtin.xml"/>
     <import resource="classpath:ctx-audit.xml"/>
     <import resource="classpath:ctx-task.xml"/>
     <import resource="classpath:ctx-common.xml"/>

@@ -90,6 +90,8 @@ public interface ConnectorFactory {
 	 */
 	public void selfTest(OperationResult parentTestResult);
 
+	boolean supportsFramework(String frameworkIdentifier);
+	
     /**
      * Return a version of the framework.
      * TODO reconsider when there will be more than one framework

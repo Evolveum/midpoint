@@ -696,6 +696,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		selfTestGuardedString(parentTestResult);
 	}
 
+	@Override
+	public boolean supportsFramework(String frameworkIdentifier) {
+		return SchemaConstants.ICF_FRAMEWORK_URI.equals(frameworkIdentifier);
+	}
+	
     @Override
     public String getFrameworkVersion() {
         Version version = FrameworkUtil.getFrameworkVersion();

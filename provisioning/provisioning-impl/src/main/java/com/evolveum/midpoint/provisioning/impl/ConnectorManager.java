@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -86,16 +89,55 @@ public class ConnectorManager {
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	@Autowired
-	private ConnectorFactory connectorFactory;
+	
+	@Autowired(required = true)
+    ApplicationContext springContext;
+	
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
 
+	private Collection<ConnectorFactory> connectorFactories;
 	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new ConcurrentHashMap<String, ConnectorManager.ConfiguredConnectorInstanceEntry>();
 	private Map<String, ConnectorType> connectorTypeCache = new ConcurrentHashMap<String, ConnectorType>();
 
+	public Collection<ConnectorFactory> getConnectorFactories() {
+		if (connectorFactories == null) {
+			String[] connectorFactoryBeanNames = springContext.getBeanNamesForType(ConnectorFactory.class);
+			LOGGER.debug("Connector factories bean names: {}", Arrays.toString(connectorFactoryBeanNames));
+			if (connectorFactoryBeanNames == null) {
+				return null;
+			}
+			connectorFactories = new ArrayList<>(connectorFactoryBeanNames.length);
+			for (String connectorFactoryBeanName: connectorFactoryBeanNames) {
+				Object bean = springContext.getBean(connectorFactoryBeanName);
+				if (bean instanceof ConnectorFactory) {
+					connectorFactories.add((ConnectorFactory)bean);
+				} else {
+					LOGGER.error("Bean {} is not instance of ConnectorFactory, it is {}, skipping", connectorFactoryBeanName, bean.getClass());
+				}
+			}
+		}
+		return connectorFactories;
+	}
+	
+	private ConnectorFactory determineConnectorFactory(ConnectorType connectorType) {
+		if (connectorType == null) {
+			return null;
+		}
+		return determineConnectorFactory(connectorType.getFramework());
+	}
+	
+	private ConnectorFactory determineConnectorFactory(String frameworkIdentifier) {
+		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
+			if (connectorFactory.supportsFramework(frameworkIdentifier)) {
+				return connectorFactory;
+			}
+		}
+		return null;
+	}
+		
 	public ConnectorInstance getConfiguredConnectorInstance(PrismObject<ResourceType> resource, boolean forceFresh, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		String resourceOid = resource.getOid();
@@ -148,6 +190,9 @@ public class ConnectorManager {
 		ResourceType resourceType = resource.asObjectable();
 		
 		ConnectorType connectorType = getConnectorTypeReadOnly(resourceType, result);
+		
+		ConnectorFactory connectorFactory = determineConnectorFactory(connectorType);
+		
 		ConnectorInstance connector = null;
 		try {
 
@@ -312,114 +357,125 @@ public class ConnectorManager {
 		}
 
 		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
-		Set<ConnectorType> foundConnectors;
-		try {
-			foundConnectors = connectorFactory.listConnectors(hostType, result);
+		
+		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
+	
+			Set<ConnectorType> foundConnectors;
+			try {
+				
+				foundConnectors = connectorFactory.listConnectors(hostType, result);
+				
+			} catch (CommunicationException ex) {
+				result.recordFatalError("Discovery failed: " + ex.getMessage(), ex);
+				throw new CommunicationException("Discovery failed: " + ex.getMessage(), ex);
+			}
+			
+			if (foundConnectors == null) {
+				LOGGER.trace("Connector factory {} discovered null connectors, skipping", connectorFactory);
+				continue;
+			}
+			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Got {} connectors from {}: {}", new Object[] { foundConnectors.size(), hostType, foundConnectors });
 			}
-		} catch (CommunicationException ex) {
-			result.recordFatalError("Discovery failed: " + ex.getMessage(), ex);
-			throw new CommunicationException("Discovery failed: " + ex.getMessage(), ex);
-		}
-
-		for (ConnectorType foundConnector : foundConnectors) {
-
-			LOGGER.trace("Found connector {}", foundConnector);
-
-			boolean inRepo = true;
-			try {
-				inRepo = isInRepo(foundConnector, result);
-			} catch (SchemaException e1) {
-				LOGGER.error(
-						"Unexpected schema problem while checking existence of "
-								+ ObjectTypeUtil.toShortString(foundConnector), e1);
-				result.recordPartialError(
-						"Unexpected schema problem while checking existence of "
-								+ ObjectTypeUtil.toShortString(foundConnector), e1);
-				// But continue otherwise ...
-			}
-			if (!inRepo) {
-
-				LOGGER.trace("Connector {} not in the repository, \"dicovering\" it", foundConnector);
-
-				// First of all we need to "embed" connectorHost to the
-				// connectorType. The UCF does not
-				// have access to repository, therefore it cannot resolve it for
-				// itself
-				if (hostType != null && foundConnector.getConnectorHost() == null) {
-					foundConnector.setConnectorHost(hostType);
-				}
-
-				// Connector schema is normally not generated.
-				// Let's instantiate the connector and generate the schema
-				ConnectorInstance connectorInstance = null;
+	
+			for (ConnectorType foundConnector : foundConnectors) {
+	
+				LOGGER.trace("Found connector {}", foundConnector);
+	
+				boolean inRepo = true;
 				try {
-					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null, "discovered connector");
-					PrismSchema connectorSchema = connectorInstance.generateConnectorSchema();
-					if (connectorSchema == null) {
-						LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
-					} else {
-						LOGGER.trace("Generated connector schema for {}: {} definitions",
-								foundConnector, connectorSchema.getDefinitions().size());
-						Document xsdDoc = null;
-						// Convert to XSD
-						xsdDoc = connectorSchema.serializeToXsd();
-						Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
-						LOGGER.trace("Generated XSD connector schema: {}", DOMUtil.serializeDOMToString(xsdElement));
-						ConnectorTypeUtil.setConnectorXsdSchema(foundConnector, xsdElement);
+					inRepo = isInRepo(foundConnector, result);
+				} catch (SchemaException e1) {
+					LOGGER.error(
+							"Unexpected schema problem while checking existence of "
+									+ ObjectTypeUtil.toShortString(foundConnector), e1);
+					result.recordPartialError(
+							"Unexpected schema problem while checking existence of "
+									+ ObjectTypeUtil.toShortString(foundConnector), e1);
+					// But continue otherwise ...
+				}
+				if (!inRepo) {
+	
+					LOGGER.trace("Connector {} not in the repository, \"dicovering\" it", foundConnector);
+	
+					// First of all we need to "embed" connectorHost to the
+					// connectorType. The UCF does not
+					// have access to repository, therefore it cannot resolve it for
+					// itself
+					if (hostType != null && foundConnector.getConnectorHost() == null) {
+						foundConnector.setConnectorHost(hostType);
 					}
-				} catch (ObjectNotFoundException ex) {
-					LOGGER.error(
-							"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
-							ex);
-					result.recordPartialError(
-							"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
-							ex);
-					// Skipping schema generation, but otherwise going on
-				} catch (SchemaException e) {
-					LOGGER.error(
-							"Error processing connector schema for " + ObjectTypeUtil.toShortString(foundConnector)
-									+ ": " + e.getMessage(), e);
-					result.recordPartialError(
-							"Error processing connector schema for " + ObjectTypeUtil.toShortString(foundConnector)
-									+ ": " + e.getMessage(), e);
-					// Skipping schema generation, but otherwise going on
+	
+					// Connector schema is normally not generated.
+					// Let's instantiate the connector and generate the schema
+					ConnectorInstance connectorInstance = null;
+					try {
+						connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null, "discovered connector");
+						PrismSchema connectorSchema = connectorInstance.generateConnectorSchema();
+						if (connectorSchema == null) {
+							LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
+						} else {
+							LOGGER.trace("Generated connector schema for {}: {} definitions",
+									foundConnector, connectorSchema.getDefinitions().size());
+							Document xsdDoc = null;
+							// Convert to XSD
+							xsdDoc = connectorSchema.serializeToXsd();
+							Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
+							LOGGER.trace("Generated XSD connector schema: {}", DOMUtil.serializeDOMToString(xsdElement));
+							ConnectorTypeUtil.setConnectorXsdSchema(foundConnector, xsdElement);
+						}
+					} catch (ObjectNotFoundException ex) {
+						LOGGER.error(
+								"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
+								ex);
+						result.recordPartialError(
+								"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
+								ex);
+						// Skipping schema generation, but otherwise going on
+					} catch (SchemaException e) {
+						LOGGER.error(
+								"Error processing connector schema for " + ObjectTypeUtil.toShortString(foundConnector)
+										+ ": " + e.getMessage(), e);
+						result.recordPartialError(
+								"Error processing connector schema for " + ObjectTypeUtil.toShortString(foundConnector)
+										+ ": " + e.getMessage(), e);
+						// Skipping schema generation, but otherwise going on
+					}
+	
+					// Sanitize framework-supplied OID
+					if (StringUtils.isNotEmpty(foundConnector.getOid())) {
+						LOGGER.warn("Provisioning framework " + foundConnector.getFramework()
+								+ " supplied OID for connector " + ObjectTypeUtil.toShortString(foundConnector));
+						foundConnector.setOid(null);
+					}
+	
+					// Store the connector object
+					String oid;
+					try {
+						prismContext.adopt(foundConnector);
+						oid = repositoryService.addObject(foundConnector.asPrismObject(), null, result);
+					} catch (ObjectAlreadyExistsException e) {
+						// We don't specify the OID, therefore this should never
+						// happen
+						// Convert to runtime exception
+						LOGGER.error("Got ObjectAlreadyExistsException while not expecting it: " + e.getMessage(), e);
+						result.recordFatalError(
+								"Got ObjectAlreadyExistsException while not expecting it: " + e.getMessage(), e);
+						throw new SystemException("Got ObjectAlreadyExistsException while not expecting it: "
+								+ e.getMessage(), e);
+					} catch (SchemaException e) {
+						// If there is a schema error it must be a bug. Convert to
+						// runtime exception
+						LOGGER.error("Got SchemaException while not expecting it: " + e.getMessage(), e);
+						result.recordFatalError("Got SchemaException while not expecting it: " + e.getMessage(), e);
+						throw new SystemException("Got SchemaException while not expecting it: " + e.getMessage(), e);
+					}
+					foundConnector.setOid(oid);
+					discoveredConnectors.add(foundConnector);
+					LOGGER.info("Discovered new connector " + foundConnector);
 				}
-
-				// Sanitize framework-supplied OID
-				if (StringUtils.isNotEmpty(foundConnector.getOid())) {
-					LOGGER.warn("Provisioning framework " + foundConnector.getFramework()
-							+ " supplied OID for connector " + ObjectTypeUtil.toShortString(foundConnector));
-					foundConnector.setOid(null);
-				}
-
-				// Store the connector object
-				String oid;
-				try {
-					prismContext.adopt(foundConnector);
-					oid = repositoryService.addObject(foundConnector.asPrismObject(), null, result);
-				} catch (ObjectAlreadyExistsException e) {
-					// We don't specify the OID, therefore this should never
-					// happen
-					// Convert to runtime exception
-					LOGGER.error("Got ObjectAlreadyExistsException while not expecting it: " + e.getMessage(), e);
-					result.recordFatalError(
-							"Got ObjectAlreadyExistsException while not expecting it: " + e.getMessage(), e);
-					throw new SystemException("Got ObjectAlreadyExistsException while not expecting it: "
-							+ e.getMessage(), e);
-				} catch (SchemaException e) {
-					// If there is a schema error it must be a bug. Convert to
-					// runtime exception
-					LOGGER.error("Got SchemaException while not expecting it: " + e.getMessage(), e);
-					result.recordFatalError("Got SchemaException while not expecting it: " + e.getMessage(), e);
-					throw new SystemException("Got SchemaException while not expecting it: " + e.getMessage(), e);
-				}
-				foundConnector.setOid(oid);
-				discoveredConnectors.add(foundConnector);
-				LOGGER.info("Discovered new connector " + foundConnector);
 			}
-
 		}
 
 		result.recordSuccess();
@@ -506,6 +562,7 @@ public class ConnectorManager {
 	}
 
     public String getFrameworkVersion() {
+    	ConnectorFactory connectorFactory = determineConnectorFactory(SchemaConstants.ICF_FRAMEWORK_URI);
         return connectorFactory.getFrameworkVersion();
     }
 
@@ -516,7 +573,9 @@ public class ConnectorManager {
 	}
 
 	public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task task) {
-		connectorFactory.selfTest(parentTestResult);
+		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
+				connectorFactory.selfTest(parentTestResult);
+		}
 	}
 	
 	public ConnectorOperationalStatus getConnectorOperationalStatus(PrismObject<ResourceType> resource, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -528,7 +587,13 @@ public class ConnectorManager {
 		for (Entry<String,ConfiguredConnectorInstanceEntry> connectorInstanceCacheEntry: connectorInstanceCache.entrySet()) {
 			connectorInstanceCacheEntry.getValue().connectorInstance.dispose();
 		}
-		connectorFactory.shutdown();
+		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
+			connectorFactory.shutdown();
+		}
+	}
+	
+	private interface ConnectorFactoryConsumer {
+		void process(ConnectorFactory connectorFactory) throws CommunicationException;
 	}
 
 }

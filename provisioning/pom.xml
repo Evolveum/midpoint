@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@
 		<module>provisioning-impl</module>
 		<module>ucf-api</module>
 		<module>ucf-impl-connid</module>
+		<module>ucf-impl-builtin</module>
 	</modules>
 	<dependencies> 
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->

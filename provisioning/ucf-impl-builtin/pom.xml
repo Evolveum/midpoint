@@ -17,15 +17,16 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Provisioning - impl</name>
+	<name>Unified Connector Framework - Built-in impl</name>
 	<groupId>com.evolveum.midpoint.provisioning</groupId>
-	<artifactId>provisioning-impl</artifactId>
+	<artifactId>ucf-impl-builtin</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>provisioning</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>3.6-SNAPSHOT</version>
 	</parent>
+	<description>Implementation for the built-in midpoint connectors, such as the built-in &quot;manaual connector&quot; capability.</description>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
@@ -39,60 +40,30 @@
 		</dependency>
  		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>prism</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
- 		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>
 			<version>3.6-SNAPSHOT</version>
 		</dependency>
+<!--
+  		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>prism</artifactId>
+			<version>3.6-SNAPSHOT</version>
+		</dependency>  
  		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
 			<version>3.6-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.provisioning</groupId>
-			<artifactId>provisioning-api</artifactId>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>task-api</artifactId>
 			<version>3.6-SNAPSHOT</version>
-		</dependency>
+		</dependency>		
+-->
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>ucf-api</artifactId>
 			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-cache</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>system-init</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.provisioning</groupId>
-			<artifactId>ucf-impl-connid</artifactId>
-			<version>3.6-SNAPSHOT</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.provisioning</groupId>
-			<artifactId>ucf-impl-builtin</artifactId>
-			<version>3.6-SNAPSHOT</version>
-			<scope>runtime</scope>
 		</dependency>
 		
 		<dependency>
@@ -107,10 +78,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.jetbrains</groupId>
-			<artifactId>annotations-java5</artifactId>
-		</dependency>
 
 		<!-- Testing dependecies -->
 		<dependency>
@@ -124,13 +91,13 @@
 			<version>3.6-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-impl</artifactId>
-            <version>3.6-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
+		<dependency>
+		    <groupId>com.evolveum.midpoint.repo</groupId>
+		    <artifactId>audit-impl</artifactId>
+		    <version>3.6-SNAPSHOT</version>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl-test</artifactId>
 			<version>3.6-SNAPSHOT</version>
@@ -182,74 +149,14 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-            <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-ldap</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
-		      <exclusion> 
-		        <groupId>org.slf4j</groupId>
-  				<artifactId>slf4j-jdk14</artifactId>
-		      </exclusion>
-		    </exclusions> 
-		</dependency>
-		<dependency>
-        	<groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-databasetable</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-            <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-csvfile</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>log4j-over-slf4j</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.icf</groupId>
-			<artifactId>dummy-connector</artifactId>
-			<version>3.6-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.icf</groupId>
-			<artifactId>dummy-resource</artifactId>
-			<version>3.6-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.persistence</groupId>
-			<artifactId>persistence-api</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
 			<version>3.6-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.derby</groupId>
-			<artifactId>derbyclient</artifactId>
-			<type>jar</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
