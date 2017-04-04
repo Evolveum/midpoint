@@ -172,7 +172,24 @@
 					<xsd:documentation>
 						Condition specifying when this level is automatically approved (e.g. "user is
 						from Board of Directors"). This is an expression that should yield a boolean value.
+
+						DEPRECATED. Use automaticallyCompleted instead.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.6</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="automaticallyCompleted" type="c:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Expression specifying that this level should be automatically processed (approved, rejected, skipped).
+						If the expression returns null, standard processing by human actors is carried out.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="duration" type="xsd:duration" minOccurs="0">
@@ -1080,7 +1097,7 @@
 
                         The difference between applicabilityCondition and automaticallyApproved is that if the
                         former yields false, workflow is not even started. If it yields true, workflow is started,
-                        and then 'automaticallyApproved' is evaluated. If it yields false, manaual approval is
+                        and then 'automaticallyApproved' is evaluated. If it yields false, manual approval is
                         required. If true, item is automatically approved.
 
                         CURRENTLY IMPLEMENTED ONLY IN AddAssociationAspect.
@@ -1699,13 +1716,13 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="autoApprovalCondition">
+			<xsd:enumeration value="autoCompletionCondition">
 				<xsd:annotation>
 					<xsd:documentation>
-						Approved automatically by the auto-approval condition.
+						Completed automatically by the auto-completion or auto-approval condition.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="AUTO_APPROVAL_CONDITION"/>
+						<jaxb:typesafeEnumMember name="AUTO_COMPLETION_CONDITION"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

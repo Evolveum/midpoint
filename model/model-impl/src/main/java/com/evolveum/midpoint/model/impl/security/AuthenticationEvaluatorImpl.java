@@ -94,7 +94,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		
 		UserType userType = principal.getUser();
 		CredentialsType credentials = userType.getCredentials();
-		if (credentials == null) {
+		if (credentials == null || getCredential(credentials) == null) {
 			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
 		}

@@ -719,11 +719,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			// Anonymous access, possibly with elevated privileges
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			Collection<Authorization> authorizations = new ArrayList<>();
-			for (GrantedAuthority authority: authentication.getAuthorities()) {
-				if (authority instanceof Authorization) {
-					authorizations.add((Authorization)authority);
-				}
-			}
+                        if (authentication != null) {
+                            for (GrantedAuthority authority: authentication.getAuthorities()) {
+                                    if (authority instanceof Authorization) {
+                                            authorizations.add((Authorization)authority);
+                                    }
+                            }
+                        }
 			return authorizations;
 		} else {
 			return principal.getAuthorities();

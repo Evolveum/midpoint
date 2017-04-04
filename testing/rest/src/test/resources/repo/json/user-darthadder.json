@@ -35,6 +35,15 @@
           "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
           "clearValue" : "iamyouruncle"
         }
+      },
+      "securityQuestions" : {
+        "questionAnswer" : [{
+          "questionIdentifier" : "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001",
+          "questionAnswer" : {
+          	"@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+          	"clearValue": "iamyouruncle"
+          }
+        }]
       }
     }
   }
