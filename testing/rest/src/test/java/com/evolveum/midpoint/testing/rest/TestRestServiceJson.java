@@ -20,6 +20,8 @@ import java.io.File;
 
 import javax.ws.rs.core.MediaType;
 
+import org.apache.cxf.jaxrs.client.WebClient;
+
 import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
 
 //@ContextConfiguration(locations = { "classpath:ctx-rest-test.xml" })
@@ -52,5 +54,4 @@ public class TestRestServiceJson extends TestAbstractRestService {
 		return jsonProvider;
 	}
 	
-
 }

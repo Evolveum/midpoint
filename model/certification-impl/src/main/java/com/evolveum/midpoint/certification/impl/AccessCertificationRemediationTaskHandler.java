@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -57,27 +57,12 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
     public static final String CLASS_DOT = AccessCertificationRemediationTaskHandler.class.getName() + ".";
 
-    @Autowired
-	private TaskManager taskManager;
-	
-	@Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private CertificationManagerImpl certificationManager;
-
-    @Autowired
-    private AccCertGeneralHelper helper;
-
-    @Autowired
-    private AccCertCaseOperationsHelper caseHelper;
-
-    @Autowired
-    private AccCertQueryHelper queryHelper;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired private TaskManager taskManager;
+    @Autowired private CertificationManagerImpl certificationManager;
+    @Autowired private AccCertGeneralHelper helper;
+    @Autowired private AccCertCaseOperationsHelper caseHelper;
+    @Autowired private AccCertQueryHelper queryHelper;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
 
@@ -95,6 +80,10 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         opResult.setSummarizeSuccesses(true);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
+
+		if (task.getChannel() == null) {
+			task.setChannel(SchemaConstants.CHANNEL_REMEDIATION_URI);
+		}
 
         String campaignOid = task.getObjectOid();
         if (campaignOid == null) {

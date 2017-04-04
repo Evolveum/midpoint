@@ -151,6 +151,7 @@ public abstract class TestAbstractRestService {
 
 	public static final File VALUE_POLICY_GENERAL = new File(BASE_REPO_DIR, "value-policy-general.xml");
 	public static final File VALUE_POLICY_NUMERIC = new File(BASE_REPO_DIR, "value-policy-numeric.xml");
+	public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestAbstractRestService.class);
 
@@ -181,6 +182,8 @@ public abstract class TestAbstractRestService {
 	protected abstract File getRepoFile(String fileBaseName);
 	protected abstract File getRequestFile(String fileBaseName);
 
+	public static final String QUESTION_ID = "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001";
+	
 	ApplicationContext applicationContext = null;
 	
 	@BeforeClass
@@ -227,6 +230,7 @@ public abstract class TestAbstractRestService {
 		addObject(USER_SOMEBODY_FILE, result);
 		addObject(VALUE_POLICY_GENERAL, result);
 		addObject(VALUE_POLICY_NUMERIC, result);
+		addObject(SECURITY_POLICY, result);
 		addObject(SYSTEM_CONFIGURATION_FILE, result);
 
 		dummyAuditService = DummyAuditService.getInstance();
@@ -1159,13 +1163,17 @@ public abstract class TestAbstractRestService {
 		client.accept(getAcceptHeader());
 		client.type(getContentType());
 
+		createAuthorizationHeader(client, username, password);
+		return client;
+
+	}
+	
+	protected void createAuthorizationHeader(WebClient client, String username, String password){
 		if (username != null) {
 			String authorizationHeader = "Basic "
 					+ org.apache.cxf.common.util.Base64Utility.encode((username+":"+(password==null?"":password)).getBytes());
 			client.header("Authorization", authorizationHeader);
 		}
-		return client;
-
 	}
 	
 	private void assertStatus(Response response, int expStatus) {
