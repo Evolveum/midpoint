@@ -43,6 +43,12 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 		
 	}
 
+	public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect,
+								PageBase parentPage, List<O> selectedObjectsList) {
+		super(id, defaultType, multiselect, parentPage, selectedObjectsList);
+
+	}
+
 	@Override
 	protected IColumn<SelectableBean<O>, String> createCheckboxColumn() {
 		if (isMultiselect()) {
@@ -60,6 +66,22 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 					super.onUpdateHeader(target, selected, table);
 					onUpdateCheckbox(target);
 				}
+
+
+				@Override
+				protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<O>> rowModel){
+					IModel<Boolean> model = super.getCheckBoxValueModel(rowModel);
+					if (selectedObjects != null && selectedObjects.size() > 0) {
+						for (O selectedObject : selectedObjects){
+							if (rowModel.getObject().getValue().getOid().equals(selectedObject.getOid())){
+								model.setObject(true);
+								break;
+							}
+						}
+					}
+					return model;
+				}
+
 			};
 		}
 		return null;
