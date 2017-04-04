@@ -2,53 +2,63 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 
 /**
- * Created by pmederly on 29. 1. 2016.
+ * TODO better class name
+ * @author mederly
  */
 public class SearchingUtils {
 
-    /**
-     * Maps from "old style" of specifying sorting criteria to current one:
-     *   targetRef -> targetRef/@/name
-     *   objectRef -> objectRef/@/name
-     *   campaignRef -> ../name
-     *
-     * Plus adds ID as secondary criteria, in order to avoid random shuffling the result set.
-     *
-     * Temporary solution - until we implement that in GUI.
-     */
-    static ObjectQuery hackPaging(ObjectQuery query) {
-        if (query.getPaging() == null || !query.getPaging().hasOrdering()) {
-            return query;
-        }
-        if (query.getPaging().getOrderingInstructions().size() > 1) {
-            return query;
-        }
-        ItemPath oldPath = query.getPaging().getOrderBy();
-        OrderDirection oldDirection = query.getPaging().getDirection();
-        if (oldPath.size() != 1 || !(oldPath.first() instanceof NameItemPathSegment)) {
-            return query;
-        }
-        QName oldName = ((NameItemPathSegment) oldPath.first()).getName();
-        ItemPath newPath = CertCampaignTypeUtil.getOrderBy(oldName);
-        ObjectPaging paging1 = query.getPaging().clone();
-        ObjectOrdering primary = ObjectOrdering.createOrdering(newPath, oldDirection);
-        ObjectOrdering secondary = ObjectOrdering.createOrdering(new ItemPath(PrismConstants.T_ID), OrderDirection.ASCENDING);     // to avoid random shuffling if first criteria is too vague
-        ObjectOrdering tertiary = ObjectOrdering.createOrdering(new ItemPath(T_PARENT, PrismConstants.T_ID), OrderDirection.ASCENDING); // campaign OID
-        paging1.setOrdering(primary, secondary, tertiary);
-        query.setPaging(paging1);
-        return query;
-    }
+	private static final Trace LOGGER = TraceManager.getTrace(SearchingUtils.class);
 
+	public static final String TARGET_NAME = AccessCertificationCaseType.F_TARGET_REF.getLocalPart();
+	public static final String OBJECT_NAME = AccessCertificationCaseType.F_OBJECT_REF.getLocalPart();
+	public static final String TENANT_NAME = AccessCertificationCaseType.F_TENANT_REF.getLocalPart();	// seem to be unused now
+	public static final String ORG_NAME = AccessCertificationCaseType.F_ORG_REF.getLocalPart();			// seem to be unused now
+	public static final String CAMPAIGN_NAME = "campaignName";
+
+	@NotNull
+	public static List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam, boolean isWorkItem) {
+		if (sortParam == null || sortParam.getProperty() == null) {
+			return Collections.emptyList();
+		}
+		String propertyName = sortParam.getProperty();
+
+		ItemPath campaignPath = isWorkItem ? new ItemPath(T_PARENT, T_PARENT) : new ItemPath(T_PARENT);
+		ItemPath primaryItemPath;
+		if (TARGET_NAME.equals(propertyName)) {
+			primaryItemPath = new ItemPath(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+		} else if (OBJECT_NAME.equals(propertyName)) {
+			primaryItemPath = new ItemPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+		} else if (TENANT_NAME.equals(propertyName)) {
+			primaryItemPath = new ItemPath(AccessCertificationCaseType.F_TENANT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+		} else if (ORG_NAME.equals(propertyName)) {
+			primaryItemPath = new ItemPath(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+		} else if (CAMPAIGN_NAME.equals(propertyName)) {
+			primaryItemPath = campaignPath.subPath(ObjectType.F_NAME);
+		} else {
+			primaryItemPath = new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
+		}
+		ObjectOrdering primary = ObjectOrdering.createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING);
+		ObjectOrdering secondary = ObjectOrdering.createOrdering(new ItemPath(PrismConstants.T_ID), OrderDirection.ASCENDING);     // to avoid random shuffling if first criteria is too vague
+		ObjectOrdering tertiary = ObjectOrdering.createOrdering(campaignPath.subPath(PrismConstants.T_ID), OrderDirection.ASCENDING); // campaign OID
+		return Arrays.asList(primary, secondary, tertiary);
+	}
 }

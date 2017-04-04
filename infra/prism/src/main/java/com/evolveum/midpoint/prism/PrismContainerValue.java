@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -1611,5 +1612,18 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 		remainingToOverwrite.forEach(name -> removeItem(new ItemPath(name), Item.class));
+	}
+
+	@Override
+	public PrismContainerValue<?> getRootValue() {
+		return (PrismContainerValue) super.getRootValue();
+	}
+
+	public static <C extends Containerable> List<PrismContainerValue<C>> asPrismContainerValues(List<C> containerables) {
+		return containerables.stream().map(c -> (PrismContainerValue<C>) c.asPrismContainerValue()).collect(Collectors.toList());
+	}
+
+	public static <C extends Containerable> List<C> asContainerables(List<PrismContainerValue<C>> pcvs) {
+		return pcvs.stream().map(c -> c.asContainerable()).collect(Collectors.toList());
 	}
 }

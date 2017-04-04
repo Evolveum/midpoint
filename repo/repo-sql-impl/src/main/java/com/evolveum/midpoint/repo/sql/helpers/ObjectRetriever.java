@@ -435,7 +435,9 @@ public class ObjectRetriever {
 				}
 			}
 
-            session.getTransaction().commit();
+			nameResolutionHelper.resolveNamesIfRequested(session, PrismContainerValue.asPrismContainerValues(list), options);
+
+			session.getTransaction().commit();
         } catch (QueryException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
         } finally {

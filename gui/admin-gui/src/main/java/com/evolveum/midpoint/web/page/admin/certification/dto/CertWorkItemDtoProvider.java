@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -44,10 +47,10 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
  * @author lazyman
  * @author mederly
  */
-public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertWorkItemDto> {
+public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkItemDto> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CertDecisionDtoProvider.class);
-    private static final String DOT_CLASS = CertDecisionDtoProvider.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(CertWorkItemDtoProvider.class);
+    private static final String DOT_CLASS = CertWorkItemDtoProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
@@ -57,7 +60,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertWorkIt
     private boolean notDecidedOnly;
     private String reviewerOid;
 
-    public CertDecisionDtoProvider(Component component) {
+    public CertWorkItemDtoProvider(Component component) {
         super(component, false);        // TODO make this cache-able
     }
 
@@ -74,7 +77,6 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertWorkIt
             ObjectQuery caseQuery = getQuery();
             caseQuery = caseQuery != null ? caseQuery.clone() : new ObjectQuery();
             caseQuery.setPaging(paging);
-            SearchingUtils.hackPaging(caseQuery);
 
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             AccessCertificationService acs = getPage().getCertificationService();
@@ -157,4 +159,11 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertWorkIt
     public void setNotDecidedOnly(boolean notDecidedOnly) {
         this.notDecidedOnly = notDecidedOnly;
     }
+
+	@NotNull
+	@Override
+	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+		return SearchingUtils.createObjectOrderings(sortParam, true);
+	}
+
 }

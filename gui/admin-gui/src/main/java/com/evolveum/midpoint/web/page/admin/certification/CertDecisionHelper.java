@@ -22,11 +22,11 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
 import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandler;
 import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -85,7 +85,7 @@ public class CertDecisionHelper implements Serializable {
     IColumn createObjectNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
         column = new LinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey),
-                AccessCertificationCaseType.F_OBJECT_REF.getLocalPart(), CertCaseOrWorkItemDto.F_OBJECT_NAME) {
+                SearchingUtils.OBJECT_NAME, CertCaseOrWorkItemDto.F_OBJECT_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCaseOrWorkItemDto> rowModel) {
@@ -99,7 +99,7 @@ public class CertDecisionHelper implements Serializable {
     IColumn createTargetNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
         column = new LinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey),
-				AccessCertificationCaseType.F_TARGET_REF.getLocalPart(), CertCaseOrWorkItemDto.F_TARGET_NAME) {
+                SearchingUtils.TARGET_NAME, CertCaseOrWorkItemDto.F_TARGET_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCaseOrWorkItemDto> rowModel) {

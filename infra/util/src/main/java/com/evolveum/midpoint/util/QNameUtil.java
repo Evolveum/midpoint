@@ -161,6 +161,16 @@ public class QNameUtil {
 	}
 
 	@NotNull
+    public static QName uriToQName(String uri, String defaultNamespace) {
+		QNameInfo info = uriToQNameInfo(uri, true);
+		if (hasNamespace(info.name) || info.explicitEmptyNamespace || StringUtils.isEmpty(defaultNamespace)) {
+			return info.name;
+		} else {
+			return new QName(defaultNamespace, info.name.getLocalPart());
+		}
+	}
+
+	@NotNull
     public static QNameInfo uriToQNameInfo(@NotNull String uri, boolean allowUnqualified) {
 		Validate.notNull(uri);
         int index = uri.lastIndexOf("#");

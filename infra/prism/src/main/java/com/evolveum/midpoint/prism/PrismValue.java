@@ -466,4 +466,25 @@ public abstract class PrismValue implements IPrismValue {
 	@Nullable
 	abstract public <T> T getRealValue();
 
+	// returns PCV or this
+	public PrismValue getRootValue() {
+		PrismValue current = this;
+		for (;;) {
+			PrismContainerValue<?> parent = getParentContainerValue(current);
+			if (parent == null) {
+				return current;
+			}
+			current = parent;
+		}
+	}
+
+	public PrismContainerValue<?> getParentContainerValue(PrismValue value) {
+		Itemable parent = value.getParent();
+		if (parent instanceof Item) {
+			PrismValue parentParent = ((Item) parent).getParent();
+			return parentParent instanceof PrismContainerValue ? (PrismContainerValue) parentParent : null;
+		} else {
+			return null;
+		}
+	}
 }

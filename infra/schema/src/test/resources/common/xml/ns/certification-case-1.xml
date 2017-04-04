@@ -16,25 +16,22 @@
   -->
 <value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	   xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="4"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	   xsi:type="c:AccessCertificationAssignmentCaseType">
+	   xsi:type="c:AccessCertificationAssignmentCaseType"
+	   id="4">
 	<objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"/>
 	<targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
 	<currentStageNumber>1</currentStageNumber>
-	<currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-	<currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-	<currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-	<decision id="1">
+	<workItem id="1">
 		<stageNumber>1</stageNumber>
 		<reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
 		<response>revoke</response>
 		<timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
-	</decision>
+	</workItem>
+	<currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
+	<currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
 	<currentStageOutcome>revoke</currentStageOutcome>
-	<campaignRef oid="a377f776-c45a-487d-8c75-d921ff0c0a26" type="c:AccessCertificationCampaignType">
-		<!-- All user assignments 1 -->
-	</campaignRef>
 	<assignment id="1">
 		<construction>
 			<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>

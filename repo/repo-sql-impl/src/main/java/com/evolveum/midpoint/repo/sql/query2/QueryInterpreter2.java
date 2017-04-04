@@ -368,11 +368,11 @@ public class QueryInterpreter2 {
 
     }
 
-    public <T extends Object> Matcher<T> findMatcher(T value) {
+    public <T> Matcher<T> findMatcher(T value) {
         return findMatcher(value != null ? (Class<T>) value.getClass() : null);
     }
 
-    public <T extends Object> Matcher<T> findMatcher(Class<T> type) {
+    public <T> Matcher<T> findMatcher(Class<T> type) {
         Matcher<T> matcher = AVAILABLE_MATCHERS.get(type);
         if (matcher == null) {
             //we return default matcher

@@ -17,10 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,6 +34,8 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -149,10 +148,13 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         }
 
         query.setPaging(paging);
-        SearchingUtils.hackPaging(query);
-
         return getModel().searchContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
+	@NotNull
+	@Override
+	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+		return SearchingUtils.createObjectOrderings(sortParam, false);
+	}
 
 }

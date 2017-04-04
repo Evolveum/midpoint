@@ -54,7 +54,7 @@ public class JpaEntityPointerDefinition extends JpaDataNodeDefinition {
     }
 
     @Override
-    public DataSearchResult<JpaDataNodeDefinition> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition,
+    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition,
             PrismContext prismContext) throws QueryException {
         return resolvedEntityDefinition.nextLinkDefinition(path, itemDefinition, prismContext);
     }

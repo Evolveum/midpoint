@@ -34,7 +34,8 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDto;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDtoProvider;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDtoProvider;
+import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -88,8 +89,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 public class PageCertDecisions extends PageAdminCertification {
 
-    private static final Trace LOGGER = TraceManager
-            .getTrace(PageCertDecisions.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageCertDecisions.class);
 
     private static final String DOT_CLASS = PageCertDecisions.class.getName() + ".";
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordAction";
@@ -111,8 +111,8 @@ public class PageCertDecisions extends PageAdminCertification {
     }
 
     //region Data
-    private CertDecisionDtoProvider createProvider() {
-        CertDecisionDtoProvider provider = new CertDecisionDtoProvider(PageCertDecisions.this);
+    private CertWorkItemDtoProvider createProvider() {
+        CertWorkItemDtoProvider provider = new CertWorkItemDtoProvider(PageCertDecisions.this);
         provider.setQuery(createCaseQuery());
         provider.setCampaignQuery(createCampaignQuery());
         provider.setReviewerOid(getCurrentUserOid());
@@ -133,17 +133,16 @@ public class PageCertDecisions extends PageAdminCertification {
             return getSecurityEnforcer().getPrincipal().getOid();
         } catch (SecurityViolationException e) {
             // TODO handle more cleanly
-            throw new SystemException("Couldn't get currently logged user OID",
-                    e);
-        }
-    }
+            throw new SystemException("Couldn't get currently logged user OID", e);
+		}
+	}
     //endregion
 
     //region Layout
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
-        CertDecisionDtoProvider provider = createProvider();
+        CertWorkItemDtoProvider provider = createProvider();
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
         BoxedTablePanel table = new BoxedTablePanel(ID_DECISIONS_TABLE, provider, initColumns(),
                 UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL, itemsPerPage) {
@@ -203,7 +202,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
 			column = new LinkColumn<CertWorkItemDto>(
 					createStringResource("PageCertDecisions.table.campaignName"),
-					AccessCertificationCaseType.F_CAMPAIGN_REF.getLocalPart(), CertWorkItemDto.F_CAMPAIGN_NAME) {
+					SearchingUtils.CAMPAIGN_NAME, CertWorkItemDto.F_CAMPAIGN_NAME) {
 				@Override
 				public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, IModel<CertWorkItemDto> rowModel) {
 					super.populateItem(item, componentId, rowModel);
@@ -223,7 +222,7 @@ public class PageCertDecisions extends PageAdminCertification {
 				}
 			};
 		} else {
-			column = new AbstractColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.campaignName")) {
+			column = new AbstractColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.campaignName"), SearchingUtils.CAMPAIGN_NAME) {
 				@Override
 				public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId,
 						final IModel<CertWorkItemDto> rowModel) {
@@ -465,7 +464,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
         Table panel = getDecisionsTable();
         DataTable table = panel.getDataTable();
-        CertDecisionDtoProvider provider = (CertDecisionDtoProvider) table.getDataProvider();
+        CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
         provider.setQuery(query);
         provider.setNotDecidedOnly(Boolean.TRUE.equals(showNotDecidedOnlyModel.getObject()));
         table.setCurrentPage(0);

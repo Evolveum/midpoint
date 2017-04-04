@@ -35,10 +35,15 @@
                     </or>
                 </filter>
             </exists>
-            <equal>
-                <path>c:decision/c:stageNumber</path>
-                <value>3</value>
-            </equal>
+            <exists>
+                <path>workItem</path>
+                <filter>
+                    <equal>
+                        <path>stageNumber</path>
+                        <value>3</value>
+                    </equal>
+                </filter>
+            </exists>
         </and>
     </filter>
 </query>
