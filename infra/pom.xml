@@ -49,6 +49,7 @@
         <module>util</module>
         <module>ws-util</module>
         <module>schema</module>
+        <module>schema-pure-jaxb</module>
         <module>common</module>
         <module>test-util</module>
         <module>prism</module>

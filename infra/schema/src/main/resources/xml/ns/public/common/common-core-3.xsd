@@ -32,11 +32,6 @@
             jaxb:extensionBindingPrefixes="xjc"
             jaxb:version="2.0">
 
-
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema"/>
-    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#"/>
-
-
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>

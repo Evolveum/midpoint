@@ -58,25 +58,6 @@
         </xsd:appinfo>
     </xsd:annotation>
 
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema"
-                schemaLocation="http://www.w3.org/2001/XMLSchema">
-        <xsd:annotation>
-            <xsd:documentation>
-                Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
-                for the xsd:schema elements used in runtime.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
-
-    <xsd:import namespace="http://www.w3.org/2001/04/xmlenc#"
-                schemaLocation="http://www.w3.org/2001/04/xmlenc">
-        <xsd:annotation>
-            <xsd:documentation>
-                The XML Encryption schema. Used for "protected" data types (property encryption).
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
-
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
         <xsd:annotation>

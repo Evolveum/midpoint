@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
+import javax.xml.XMLConstants;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.MidPointSchemaDefinitionFactory;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -112,11 +113,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		
 		// Standard schemas
 		
-		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
-		schemaRegistry.registerSchemaResource("xml/ns/standard/xmldsig-core-schema.xsd", "ds");
-		schemaRegistry.registerSchemaResource("xml/ns/standard/xenc-schema.xsd", "enc");
-
-		schemaRegistry.getNamespacePrefixMapper().registerPrefix(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi", false);
+		schemaRegistry.getNamespacePrefixMapper().registerPrefix("http://www.w3.org/2001/XMLSchema", DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
+		schemaRegistry.getNamespacePrefixMapper().registerPrefix(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi", false);
 
 		
 		// Prism Schemas
