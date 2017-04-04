@@ -254,9 +254,6 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertNotNull("reviewRequestedTimestamp", ccase.getCurrentReviewRequestedTimestamp());
 		assertNotNull("deadline", ccase.getCurrentReviewDeadline());
 		assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
-		if (campaignOid != null) {
-			assertEquals("incorrect campaign OID in case", campaignOid, ccase.getCampaignRef().getOid());
-		}
 		return checkSpecificCase(ccase, focus);
 	}
 
@@ -268,9 +265,6 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertNotNull("reviewRequestedTimestamp", ccase.getCurrentReviewRequestedTimestamp());
 		assertNotNull("deadline", ccase.getCurrentReviewDeadline());
 		assertNull("remediedTimestamp", ccase.getRemediedTimestamp());
-		if (campaignOid != null) {
-			assertEquals("incorrect campaign OID in case", campaignOid, ccase.getCampaignRef().getOid());
-		}
 		return checkSpecificCase(ccase, focus);
 	}
 

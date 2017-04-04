@@ -104,7 +104,6 @@ public class CertificationCaseHelper {
         for (PrismContainerValue value : values) {
             AccessCertificationCaseType caseType = new AccessCertificationCaseType();
             caseType.setupContainerValue(value);
-            caseType.setCampaignRef(ObjectTypeUtil.createObjectRef(campaignOid, ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN));
             if (caseType.getId() == null) {
                 caseType.setId((long) currentId);
                 currentId++;

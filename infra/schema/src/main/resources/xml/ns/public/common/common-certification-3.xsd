@@ -868,22 +868,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="campaignRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A bit of hack. Sometimes it is necessary for a case (viewed out of context of any
-                        campaign) point back to its owning certification campaign.
-
-                        This is only a temporary information - not to be stored in the XML object in the repository.
-                        It is used only for objects that are returned from certification API.
-
-                        EXPERIMENTAL
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>

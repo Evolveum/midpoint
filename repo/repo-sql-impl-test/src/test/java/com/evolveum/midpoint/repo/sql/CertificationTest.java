@@ -70,7 +70,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
 
 /**
  * @author mederly
@@ -514,23 +513,6 @@ public class CertificationTest extends BaseSQLRepoTest {
         expectedCases.addAll(campaign1.getCase());
         expectedCases.addAll(campaign2.getCase());
         PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, expectedCases.toArray(new AccessCertificationCaseType[0]));
-
-        for (AccessCertificationCaseType aCase : cases) {
-            ObjectReferenceType campaignRef = aCase.getCampaignRef();
-            String campaignOid = campaignRef.getOid();
-            AccessCertificationCampaignType owner = null;
-            if (campaignOid.equals(campaign1Oid)) {
-                owner = campaign1;
-            } else if (campaignOid.equals(campaign2Oid)) {
-                owner = campaign2;
-            } else {
-                fail("Unknown campaign OID: " + campaignOid + " in case: " + aCase);
-            }
-
-            PrismObject<AccessCertificationCampaignType> campaign = getOwningCampaignChecked(aCase);
-            assertEquals("Wrong owning campaign OID", owner.getOid(), campaign.getOid());
-            assertEquals("Wrong owning campaign name", owner.getName(), campaign.asObjectable().getName());
-        }
     }
 
     @Test
@@ -588,7 +570,6 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
 		assertCasesFound(expected, cases, " for " + oid);
 		for (AccessCertificationCaseType aCase : cases) {
-            AssertJUnit.assertEquals("wrong campaign ref", oid, aCase.getCampaignRef().getOid());
             PrismObject<AccessCertificationCampaignType> campaign = getOwningCampaignChecked(aCase);
             AssertJUnit.assertEquals("wrong parent OID", oid, campaign.getOid());
         }
@@ -690,8 +671,6 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         LOGGER.trace("Actual object from repo = \n{}", campaign.debugDump());
 
-        removeCampaignRef(expectedObject.asObjectable());
-        removeCampaignRef(campaign.asObjectable());
         PrismAsserts.assertEquivalent("Campaign is not as expected", expectedObject, campaign);
         if (expectedVersion != null) {
             AssertJUnit.assertEquals("Incorrect version", (int) expectedVersion, Integer.parseInt(campaign.getVersion()));
@@ -701,12 +680,6 @@ public class CertificationTest extends BaseSQLRepoTest {
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String campaignOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
         SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE));
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, Collections.singletonList(retrieve), result);
-    }
-
-    private void removeCampaignRef(AccessCertificationCampaignType campaign) {
-        for (AccessCertificationCaseType aCase : campaign.getCase()) {
-            aCase.asPrismContainerValue().removeReference(F_CAMPAIGN_REF);
-        }
     }
 
 	private void checksCountsStandard(OperationResult result) throws SchemaException, ObjectNotFoundException {
