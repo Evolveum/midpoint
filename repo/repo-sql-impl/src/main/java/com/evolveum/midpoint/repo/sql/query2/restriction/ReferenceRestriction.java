@@ -72,11 +72,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
 
 		List<PrismReferenceValue> values = filter.getValues();
 		if (CollectionUtils.isEmpty(values)) {
-			if (linkDefinition.getCollectionSpecification() != null) {
-				// TODO implement
-				throw new QueryException("'isNull' conditions on multivalued references are not supported: " + linkDefinition);
-			}
-			return hibernateQuery.createIsNull(getTargetOidPropertyName());
+			return hibernateQuery.createIsNull(hqlDataInstance.getHqlPath());
 		}
 		Set<String> oids = new HashSet<>();
 		Set<QName> relations = new HashSet<>();

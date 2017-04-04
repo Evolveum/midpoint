@@ -116,7 +116,7 @@ public class PageCertDecisions extends PageAdminCertification {
         provider.setQuery(createCaseQuery());
         provider.setCampaignQuery(createCampaignQuery());
         provider.setReviewerOid(getCurrentUserOid());
-        provider.setSort(AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE.getLocalPart(), SortOrder.ASCENDING);        // default sorting
+        provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
         return provider;
     }
 
@@ -259,8 +259,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
         column = new PropertyColumn<CertWorkItemDto, String>(
                 createStringResource("PageCertDecisions.table.requested"),
-                AccessCertificationCaseType.F_CURRENT_REVIEW_REQUESTED_TIMESTAMP.getLocalPart(),
-                CertWorkItemDto.F_REVIEW_REQUESTED) {
+                SearchingUtils.CURRENT_REVIEW_REQUESTED_TIMESTAMP, CertWorkItemDto.F_REVIEW_REQUESTED) {
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, IModel<CertWorkItemDto> rowModel) {
                 super.populateItem(item, componentId, rowModel);
@@ -275,7 +274,7 @@ public class PageCertDecisions extends PageAdminCertification {
         columns.add(column);
 
         column = new PropertyColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.deadline"),
-                AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE.getLocalPart(), CertWorkItemDto.F_DEADLINE_AS_STRING) {
+                SearchingUtils.CURRENT_REVIEW_DEADLINE, CertWorkItemDto.F_DEADLINE_AS_STRING) {
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
                 super.populateItem(item, componentId, rowModel);

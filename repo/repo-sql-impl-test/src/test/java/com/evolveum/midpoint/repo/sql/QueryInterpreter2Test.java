@@ -1040,10 +1040,48 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
 					.item(UserType.F_LINK_REF).isNull()
 					.build();
-			getInterpretedQuery2(session, UserType.class, query);
-			fail("isNull query for multivalued reference should fail, but it has not.");
-		} catch (QueryException e) {
-        	// ok
+			String real = getInterpretedQuery2(session, UserType.class, query);
+			String expected = "select\n"
+                    + "  u.fullObject,\n"
+                    + "  u.stringsCount,\n"
+                    + "  u.longsCount,\n"
+                    + "  u.datesCount,\n"
+                    + "  u.referencesCount,\n"
+                    + "  u.polysCount,\n"
+                    + "  u.booleansCount\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  l is null";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test144QueryUserAccountRefNotNull() throws Exception {
+        Session session = open();
+        try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.not().item(UserType.F_LINK_REF).isNull()
+					.build();
+			String real = getInterpretedQuery2(session, UserType.class, query);
+			String expected = "select\n"
+                    + "  u.fullObject,\n"
+                    + "  u.stringsCount,\n"
+                    + "  u.longsCount,\n"
+                    + "  u.datesCount,\n"
+                    + "  u.referencesCount,\n"
+                    + "  u.polysCount,\n"
+                    + "  u.booleansCount\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  not l is null";
+            assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
         }
@@ -1371,8 +1409,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
     /**
      * Q{AND: (EQUALS: parent, PPV(null)),PAGING: O: 0,M: 5,BY: name, D:ASCENDING,
-     *
-     * @throws Exception
      */
     @Test
     public void test320CountTaskOrderByName() throws Exception {
@@ -3307,8 +3343,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             /*
              * ### User: preferredLanguage = 'SK', 'HU'
              */
-            PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-
             PrismPropertyDefinitionImpl<String> multivalDef = new PrismPropertyDefinitionImpl<>(UserType.F_PREFERRED_LANGUAGE,
 					DOMUtil.XSD_STRING, prismContext);
             multivalDef.setMaxOccurs(-1);
@@ -3676,22 +3710,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "from\n"
 					+ "  RResource r\n"
 					+ "where\n"
-					+ "  r.connectorRef.targetOid is null";
-			assertEqualsIgnoreWhitespace(expected, real);
-		} finally {
-			close(session);
-		}
-	}
-
-	@Test(enabled = false)
-	public void testAdHoc103NullRefMulti() throws Exception {
-		Session session = open();
-		try {
-			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-					.item(UserType.F_LINK_REF).isNull()
-					.build();
-			String real = getInterpretedQuery2(session, UserType.class, query);
-			String expected = "";
+					+ "  r.connectorRef is null";
 			assertEqualsIgnoreWhitespace(expected, real);
 		} finally {
 			close(session);
