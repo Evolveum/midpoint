@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -58,6 +58,11 @@
 			<version>3.6-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>ucf-api</artifactId>
+			<version>3.6-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
 			<version>3.6-SNAPSHOT</version>
@@ -77,14 +82,22 @@
 			<artifactId>task-api</artifactId>
 			<version>3.6-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>ucf-impl-connid</artifactId>
+			<version>3.6-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>ucf-impl-builtin</artifactId>
+			<version>3.6-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
 		
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -95,26 +108,8 @@
 			<artifactId>spring-beans</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations-java5</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>net.tirasa.connid</groupId>
-			<artifactId>connector-framework</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.tirasa.connid</groupId>
-			<artifactId>connector-framework-internal</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jul-to-slf4j</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 
 		<!-- Testing dependecies -->

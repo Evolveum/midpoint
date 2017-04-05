@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -984,7 +983,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(modelShadow);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
-        assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
+        assertAttributeNotNull(modelShadow, SchemaConstants.ICFS_UID);
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
@@ -1477,7 +1476,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(modelShadow);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
-        assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
+        assertAttributeNotNull(modelShadow, SchemaConstants.ICFS_UID);
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
@@ -1577,7 +1576,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(modelShadow);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
-        assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
+        assertAttributeNotNull(modelShadow, SchemaConstants.ICFS_UID);
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
@@ -2888,7 +2887,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
             assertNotEmpty("No name in shadow", shadow.getName());
             AssertJUnit.assertNotNull("No objectclass in shadow", shadow.getObjectClass());
             AssertJUnit.assertNotNull("Null attributes in shadow", shadow.getAttributes());
-            assertAttributeNotNull("No UID in shadow", shadow, ConnectorFactoryIcfImpl.ICFS_UID);
+            assertAttributeNotNull("No UID in shadow", shadow, SchemaConstants.ICFS_UID);
         }
 
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
@@ -3420,7 +3419,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         String icfUid = val.toString();
         
         ShadowType anglicaAccount = parseObjectType(new File(ACCOUNT_ANGELIKA_FILENAME), ShadowType.class);
-    	PrismProperty prop = anglicaAccount.asPrismObject().findOrCreateProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+    	PrismProperty prop = anglicaAccount.asPrismObject().findOrCreateProperty(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
     	prop.setValue(new PrismPropertyValue(icfUid));
     	anglicaAccount.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_OPENDJ_OID, ObjectTypes.RESOURCE));
     	
@@ -3459,7 +3458,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
     	ShadowType modelShadow = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), result).asObjectable();
     	
     	
-    	assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
+    	assertAttributeNotNull(modelShadow, SchemaConstants.ICFS_UID);
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "angelika");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Angelika");
         assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Marley");
@@ -3695,13 +3694,13 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         boolean hasOthers = false;
         List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
         for (Object element : xmlAttributes) {
-            if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+            if (SchemaConstants.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
                 if (uid != null) {
                     AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
                 } else {
                     uid = ((Element) element).getTextContent();
                 }
-            } else if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(JAXBUtil.getElementQName(element))) {
+            } else if (SchemaConstants.ICFS_NAME.equals(JAXBUtil.getElementQName(element))) {
             	// This is OK
         	} else {
                 hasOthers = true;

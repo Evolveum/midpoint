@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,8 @@ public enum OperationResultStatus {
 	UNKNOWN,
 
 	/**
-	 * Used when operation and sub operations finish successfully.
+	 * Used when operation and sub operations finish successfully. 
+	 * The operation is completed and the result is final.
 	 */
 	SUCCESS,
 
@@ -41,17 +42,20 @@ public enum OperationResultStatus {
 	 * Used when operation finish successfully, but minor problem occurred. For
 	 * example operation code recovered from some error and after that operation
 	 * finished successfully.
+	 * The operation is completed and the result is final.
 	 */
 	WARNING,
 
 	/**
 	 * Used when operation contains at least one operation witch status
 	 * SUCCESS/WARNING and at least one operation with status FATAL_ERROR.
+	 * The operation is completed and the result is final.
 	 */
 	PARTIAL_ERROR,
 
 	/**
 	 * Used when operation didn't finish correctly.
+	 * The operation is completed and the result is final.
 	 */
 	FATAL_ERROR,
 	
@@ -59,6 +63,7 @@ public enum OperationResultStatus {
 	 * The operation didn't finish correctly but that was expected and handled. It is
 	 * equivalent to success for all practical cases except for displaying the result. But using
 	 * success status for this situation might be misleading.
+	 * The operation is completed and the result is final.
 	 */
 	HANDLED_ERROR,
 	
@@ -67,13 +72,15 @@ public enum OperationResultStatus {
 	 * operation is not supported (e.g. an optional part of the interface).
 	 * This is different than UNKNOWN, as in this case we really know that it result is not
 	 * applicable. In UNKNOWN case we know nothing.
+	 * The operation is completed and the result is final.
 	 */
 	NOT_APPLICABLE,
 	
-	/*
+	/**
 	 * The operation is being executed. This is set for operations that are executed
 	 * asynchronously or take a significant amount of time. Short synchronous operations
 	 * do not need to set this status, they may go well with the default UNKNOWN status.
+	 * The operation is in progress and the final result is not yet known.
 	 */
 	IN_PROGRESS;
 
