@@ -791,9 +791,13 @@ CREATE INDEX iAExtensionString ON m_assignment_ext_string (extensionType, eName,
 
 CREATE INDEX iAssignmentReferenceTargetOid ON m_assignment_reference (targetOid);
 
+CREATE INDEX iAuditDeltaRecordId ON m_audit_delta (record_id);
+
 CREATE INDEX iTimestampValue ON m_audit_event (timestampValue);
 
 CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath);
+
+CREATE INDEX iAuditItemRecordId ON m_audit_item (record_id);
 
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);

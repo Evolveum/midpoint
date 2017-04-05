@@ -1,10 +1,26 @@
-package com.evolveum.midpoint.model.impl.dataModel;
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.model.impl.dataModel.model;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.impl.dataModel.DataModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +32,7 @@ import javax.xml.namespace.QName;
  */
 public class ResourceDataItem extends DataItem {
 
-	@NotNull private final VisualizationContext ctx;
+	@NotNull private final DataModel ctx;
 	@NotNull private final String resourceOid;
 	@NotNull private final ShadowKindType kind;
 	@NotNull private final String intent;				// TODO or more intents?
@@ -27,7 +43,7 @@ public class ResourceDataItem extends DataItem {
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	private RefinedAttributeDefinition<?> refinedAttributeDefinition;
 
-	public ResourceDataItem(@NotNull VisualizationContext ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind, @NotNull String intent, @NotNull QName itemName) {
+	public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind, @NotNull String intent, @NotNull QName itemName) {
 		this.ctx = ctx;
 		this.resourceOid = resourceOid;
 		this.kind = kind;
@@ -36,7 +52,7 @@ public class ResourceDataItem extends DataItem {
 		this.hasItemDefinition = true;
 	}
 
-	public ResourceDataItem(@NotNull VisualizationContext ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ItemPath itemPath) {
+	public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ItemPath itemPath) {
 		this.ctx = ctx;
 		this.resourceOid = resourceOid;
 		this.kind = kind;
@@ -66,6 +82,15 @@ public class ResourceDataItem extends DataItem {
 	@NotNull
 	public QName getLastItemName() {
 		return itemPath.lastNamed().getName();
+	}
+
+	@NotNull
+	public ItemPath getItemPath() {
+		return itemPath;
+	}
+
+	public boolean isHasItemDefinition() {
+		return hasItemDefinition;
 	}
 
 	public RefinedResourceSchema getRefinedResourceSchema() {
@@ -130,24 +155,4 @@ public class ResourceDataItem extends DataItem {
 		return this.itemPath.equivalent(path);
 	}
 
-	@Override
-	public String getNodeName() {
-		return "\"" + getResourceName() + ":" + ctx.getObjectTypeName(getRefinedObjectClassDefinition(), false) + ":" + itemPath + "\"";
-	}
-
-	@Override
-	public String getNodeLabel() {
-		return getLastItemName().getLocalPart();
-	}
-
-	@Override
-	public String getNodeStyleAttributes() {
-		return "";
-	}
-
-	@NotNull
-	public String getResourceName() {
-		PolyString name = ctx.getResource(resourceOid).getName();
-		return name != null ? name.getOrig() : resourceOid;
-	}
 }

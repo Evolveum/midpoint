@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -108,7 +109,7 @@ public class PageResourceVisualization extends PageAdmin {
 		String dot;
 		try {
 			resourceObject.revive(getPrismContext());
-			dot = getModelDiagnosticService().exportDataModel(resourceObject.asObjectable(), task, result);
+			dot = getModelDiagnosticService().exportDataModel(resourceObject.asObjectable(), DataModelVisualizer.Target.DOT, task, result);
 		} catch (CommonException|RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't export the data model for {}", e, ObjectTypeUtil.toShortString(resourceObject));
 			showResult(result);
