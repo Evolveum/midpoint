@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+
+<objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<role oid="e4142fbc-e111-460b-805a-ffacb7031208" version="1">
+		<name>SmartRecruiters:Employee</name>
+		<description>Can only access Internal Mobility and the Referrals Portal unless they're invited to be part of a hiring process.</description>
+		<parentOrgRef oid="1bca5363-d33a-4185-9b2c-8a27cddc3ae5"
+			type="c:OrgType"><!-- SmartRecruiters -->
+		</parentOrgRef>
+		<assignment id="1">
+			<targetRef oid="37148d82-9318-477d-a4f6-6bf2c3a4ff6a" type="c:RoleType"><!-- 
+					SmartRecruiters Metarole for Roles -->
+			</targetRef>
+		</assignment>
+		<identifier>EMPLOYEE</identifier>
+		<requestable>false</requestable>
+		<displayName>SmartRecruiters:Employee</displayName>
+		<roleType>smartrecruiters</roleType>
+	</role>
+	<role oid="115344ef-f954-4fb6-8b84-7348bb8d0c7b" version="1">
+		<name>SmartRecruiters:Basic</name>
+		<description>Same permissions as Standard, but cannot post jobs or spend money in the store.</description>
+		<parentOrgRef oid="1bca5363-d33a-4185-9b2c-8a27cddc3ae5"
+			type="c:OrgType"><!-- SmartRecruiters -->
+		</parentOrgRef>
+		<assignment id="1">
+			<targetRef oid="37148d82-9318-477d-a4f6-6bf2c3a4ff6a" type="c:RoleType"><!-- 
+					SmartRecruiters Metarole for Roles -->
+			</targetRef>
+		</assignment>
+		<identifier>RESTRICTED</identifier>
+		<requestable>false</requestable>
+		<displayName>SmartRecruiters:Basic</displayName>
+		<roleType>smartrecruiters</roleType>
+	</role>
+	<role oid="53e30c35-1bba-4b87-8be9-510545b911b2" version="1">
+		<name>SmartRecruiters:Standard</name>
+		<description>Can access jobs only as a member of a hiring team, and view applicants attached to those jobs. 
+        Can also view candidates specifically shared with this person.</description>
+		<parentOrgRef oid="1bca5363-d33a-4185-9b2c-8a27cddc3ae5"
+			type="c:OrgType"><!-- SmartRecruiters -->
+		</parentOrgRef>
+		<assignment id="1">
+			<targetRef oid="37148d82-9318-477d-a4f6-6bf2c3a4ff6a" type="c:RoleType"><!-- 
+					SmartRecruiters Metarole for Roles -->
+			</targetRef>
+		</assignment>
+		<identifier>STANDARD</identifier>
+		<requestable>false</requestable>
+		<displayName>SmartRecruiters:Standard</displayName>
+		<roleType>smartrecruiters</roleType>
+	</role>
+	<role oid="899ef70f-a897-4e93-93af-d745a1aa7145" version="1">
+		<name>SmartRecruiters:Extended</name>
+		<description>Can access all jobs and candidates in the company.</description>
+		<parentOrgRef oid="1bca5363-d33a-4185-9b2c-8a27cddc3ae5"
+			type="c:OrgType"><!-- SmartRecruiters -->
+		</parentOrgRef>
+		<assignment id="1">
+			<targetRef oid="37148d82-9318-477d-a4f6-6bf2c3a4ff6a" type="c:RoleType"><!-- 
+					SmartRecruiters Metarole for Roles -->
+			</targetRef>
+		</assignment>
+		<identifier>EXTENDED</identifier>
+		<requestable>false</requestable>
+		<displayName>SmartRecruiters:Extended</displayName>
+		<roleType>smartrecruiters</roleType>
+	</role>
+	<role oid="22e4335e-009a-4bf3-8d8d-e2024aeff7d1" version="1">
+		<name>SmartRecruiters:Admin</name>
+		<description>Can access all jobs and candidates in the company, and has privileges to administer the company account 
+        (set up auto-reply, email templates, configure hiring process etc).</description>
+		<parentOrgRef oid="1bca5363-d33a-4185-9b2c-8a27cddc3ae5"
+			type="c:OrgType"><!-- SmartRecruiters -->
+		</parentOrgRef>
+		<assignment id="1">
+			<targetRef oid="37148d82-9318-477d-a4f6-6bf2c3a4ff6a" type="c:RoleType"><!-- 
+					SmartRecruiters Metarole for Roles -->
+			</targetRef>
+		</assignment>
+		<identifier>ADMINISTRATOR</identifier>
+		<requestable>false</requestable>
+		<displayName>SmartRecruiters:Admin</displayName>
+		<roleType>smartrecruiters</roleType>
+	</role>
+
+</objects>

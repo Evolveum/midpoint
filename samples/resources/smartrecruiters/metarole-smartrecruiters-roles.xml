@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="37148d82-9318-477d-a4f6-6bf2c3a4ff6a"
+          version="1">
+        <name>SmartRecruiters:Metarole for Roles</name>
+        <description>SmartRecruiters Metarole for Roles</description>
+        <inducement id="1">
+            <description>Assign an user to the SmartRecruiters role</description>
+            <construction>
+                <resourceRef oid="3d566aa3-e9f2-4e8d-8218-72c0aad5273b" type="c:ResourceType"></resourceRef>
+                <attribute>
+                    <c:ref>ri:roles</c:ref>
+                    <outbound>
+                        <strength>strong</strength>
+                        <source>
+                            <c:path>$immediateRole/identifier</c:path>
+                        </source>
+                    </outbound>
+                </attribute>
+            </construction>
+            <order>2</order>
+        </inducement>
+        <requestable>false</requestable>
+        <roleType>smartrecruiters</roleType>
+    </role>
+</objects>

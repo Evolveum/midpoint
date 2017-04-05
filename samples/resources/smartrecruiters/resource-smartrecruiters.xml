@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="3d566aa3-e9f2-4e8d-8218-72c0aad5273b">
+
+    <name>Smart Recruiters</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.smartrecruiters.SmartRecruitersConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties
+                xmlns:icfcp="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-smartrecruiters/com.evolveum.polygon.connector.smartrecruiters.SmartRecruitersConnector">
+            <icfcp:readLocation>false</icfcp:readLocation>
+            <icfcp:trustAllCertificates>false</icfcp:trustAllCertificates>
+            <icfcp:tokenName>x-smarttoken</icfcp:tokenName>
+            <icfcp:authMethod>TOKEN</icfcp:authMethod>
+            <icfcp:tokenValue>
+                <clearValue>$(smartrecruiters.token)</clearValue>
+            </icfcp:tokenValue>
+            <icfcp:serviceAddress>https://api.smartrecruiters.com/users</icfcp:serviceAddress>
+            <!-- <icfcp:proxy>$(smartrecruiters.proxy)</icfcp:proxy>
+            <icfcp:proxyPort>$(smartrecruiters.proxy_port_number)</icfcp:proxyPort> -->
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <kind>account</kind>
+            <intent>default</intent>
+            <attribute>
+                <c:ref>icfs:name</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <matchingRule
+                        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase
+                </matchingRule>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/emailAddress</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:externalData</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/employeeNumber</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:firstName</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/givenName</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:lastName</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/familyName</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+
+
+            <!-- Smart Recruiters has role as a single value, but in midPoint we has it as multi value.
+            So connector over ri:roles attribut find the most powerfull role and send it to SR. -->
+            <attribute>
+                <c:ref>ri:roles</c:ref>
+                <displayName>Roles</displayName>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <!-- true = MP only ADD new roles, doesn't remove old 
+                	false = also REMOVE 
+                	Need true, to accept role differences between MP & SR. 
+                	Important is only most powerfull role, so this is OK and all Employye has at least SmartRecruiters:Employee role -->
+                <tolerant>false</tolerant>
+            </attribute>
+
+
+            <protected>
+                <icfs:name>yourEmail@domain.com</icfs:name>
+            </protected>
+
+            <activation>
+                <existence>
+                    <outbound>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal &amp;&amp; assigned) {
+                                    input;
+                                    } else {
+                                    ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+        </objectType>
+    </schemaHandling>
+
+    <!-- don't remove, to simulate cap:addRemoveAttributeValues over update -->
+    <capabilities>
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <cap:addRemoveAttributeValues>
+                <cap:enabled>false</cap:enabled>
+            </cap:addRemoveAttributeValues>
+        </configured>
+    </capabilities>
+
+    <synchronization>
+        <objectSynchronization>
+            <kind>account</kind>
+            <intent>default</intent>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:matching>stringIgnoreCase</q:matching>
+                    <q:path>emailAddress</q:path>
+                    <expression>
+                        <description>Matches using email address</description>
+                        <script>
+                            <code>
+                                return basic.getAttributeValue(account,
+                                "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+                <!-- send changes from MP to SmartRecruiters (run outbounds/inbounds) -->
+            </reaction>
+            <reaction>
+                <!-- in SmartRecruiters account is missing, unlink shadow and create it in next step -->
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <!-- when user from SmartRecruiters is not found in midPoint disable/lock it -->
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+
+</resource>
