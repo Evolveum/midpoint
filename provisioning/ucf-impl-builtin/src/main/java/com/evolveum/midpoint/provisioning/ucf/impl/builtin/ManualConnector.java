@@ -58,27 +58,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchC
  */
 @ManagedConnector
 public class ManualConnector extends AbstractConnectorInstance {
-
-	@Override
-	public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Collection<Object> fetchCapabilities(OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, ConfigurationException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, ConfigurationException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
+	// TODO: repository access to manage cases (CaseType)
+	
 	@Override
 	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type,
 			ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
@@ -140,24 +122,45 @@ public class ManualConnector extends AbstractConnectorInstance {
 		return null;
 	}
 
+	
+
+	
+
+
 	@Override
-	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter,
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+	public void test(OperationResult parentResult) {
 		// TODO Auto-generated method stub
+	}
+	
+	
+	
+	
+	
+	@Override
+	public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
+		// operational status is not supported
 		return null;
 	}
 
 	@Override
-	public PrismProperty<?> deserializeToken(Object serializedToken) {
-		// TODO Auto-generated method stub
+	public Collection<Object> fetchCapabilities(OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ConfigurationException {
+		// Capabilities discovery is not supported. Capabilities must be defined manually. Or other connector has to provide it.
 		return null;
 	}
 
+	@Override
+	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ConfigurationException {
+		// Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
+		return null;
+	}
+	
 	@Override
 	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
 			StateReporter reporter, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException {
-		// TODO Auto-generated method stub
+		// not supported
 		return null;
 	}
 
@@ -166,20 +169,26 @@ public class ManualConnector extends AbstractConnectorInstance {
 			AttributesToReturn attrsToReturn, StateReporter reporter, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException,
 			ConfigurationException {
-		// TODO Auto-generated method stub
+		// not supported
+		return null;
+	}
+	
+	@Override
+	public PrismProperty<?> deserializeToken(Object serializedToken) {
+		// not supported
+		return null;
+	}
+	
+	@Override
+	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter,
+			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+		// not supported
 		return null;
 	}
 
 	@Override
-	public void test(OperationResult parentResult) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-		
+		// Nothing to dispose
 	}
 
 }
