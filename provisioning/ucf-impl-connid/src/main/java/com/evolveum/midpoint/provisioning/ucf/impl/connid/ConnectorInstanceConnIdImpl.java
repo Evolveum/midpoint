@@ -178,7 +178,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
-	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory capabilityObjectFactory 
+	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY 
 		= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
@@ -794,7 +794,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		// (Currently there is no way how to obtain it from the connector.)
 		// It can be disabled manually.
 		AddRemoveAttributeValuesCapabilityType addRemove = new AddRemoveAttributeValuesCapabilityType();
-		capabilities.add(capabilityObjectFactory.createAddRemoveAttributeValues(addRemove));
+		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemove));
 		
 		ActivationCapabilityType capAct = null;
 
@@ -843,7 +843,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		if (capAct != null) {
-			capabilities.add(capabilityObjectFactory.createActivation(capAct));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createActivation(capAct));
 		}
 
 		if (passwordAttributeInfo != null) {
@@ -856,12 +856,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				capPass.setReadable(true);
 			}
 			capCred.setPassword(capPass);
-			capabilities.add(capabilityObjectFactory.createCredentials(capCred));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createCredentials(capCred));
 		}
 		
 		if (auxiliaryObjectClasseAttributeInfo != null) {
 			AuxiliaryObjectClassesCapabilityType capAux = new AuxiliaryObjectClassesCapabilityType();
-			capabilities.add(capabilityObjectFactory.createAuxiliaryObjectClasses(capAux));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createAuxiliaryObjectClasses(capAux));
 		}
 
 		// Create capabilities from supported connector operations
@@ -873,32 +873,32 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		if (supportedOperations.contains(SyncApiOp.class)) {
 			LiveSyncCapabilityType capSync = new LiveSyncCapabilityType();
-			capabilities.add(capabilityObjectFactory.createLiveSync(capSync));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createLiveSync(capSync));
 		}
 
 		if (supportedOperations.contains(TestApiOp.class)) {
 			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
-			capabilities.add(capabilityObjectFactory.createTestConnection(capTest));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createTestConnection(capTest));
 		}
 		
 		if (supportedOperations.contains(CreateApiOp.class)){
 			CreateCapabilityType capCreate = new CreateCapabilityType();
-			capabilities.add(capabilityObjectFactory.createCreate(capCreate));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(capCreate));
 		}
 		
 		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
 			ReadCapabilityType capRead = new ReadCapabilityType();
-			capabilities.add(capabilityObjectFactory.createRead(capRead));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
 		}
 		
 		if (supportedOperations.contains(UpdateApiOp.class)){
 			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
-			capabilities.add(capabilityObjectFactory.createUpdate(capUpdate));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
 		}
 		
 		if (supportedOperations.contains(DeleteApiOp.class)){
 			DeleteCapabilityType capDelete = new DeleteCapabilityType();
-			capabilities.add(capabilityObjectFactory.createDelete(capDelete));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(capDelete));
 		}
 
 		if (supportedOperations.contains(ScriptOnResourceApiOp.class)
@@ -916,7 +916,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				capScript.getHost().add(host);
 				// language is unknown here
 			}
-			capabilities.add(capabilityObjectFactory.createScript(capScript));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createScript(capScript));
 		}
 		
 		boolean canPageSize = false;
@@ -942,7 +942,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		
 		if (canPageSize || canPageOffset || canSort) {
 			PagedSearchCapabilityType capPage = new PagedSearchCapabilityType();
-			capabilities.add(capabilityObjectFactory.createPagedSearch(capPage));
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createPagedSearch(capPage));
 		}
 
 	}
@@ -2124,7 +2124,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult connectionResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
-		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorInstance.class);
+		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorInstanceConnIdImpl.class);
 		connectionResult.addContext("connector", connectorType);
 
 		try {

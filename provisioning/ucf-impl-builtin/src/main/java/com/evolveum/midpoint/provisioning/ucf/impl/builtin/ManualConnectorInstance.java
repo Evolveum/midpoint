@@ -24,6 +24,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  *
  */
-@ManagedConnector
+@ManagedConnector(type="ManualConnector")
 public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ManualConnectorInstance.class);
@@ -91,7 +92,17 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	@Override
 	public void test(OperationResult parentResult) {
-		// TODO at least check presence of schema
+		OperationResult connectionResult = parentResult
+				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
+		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ManualConnectorInstance.class);
+		connectionResult.addContext("connector", getConnectorObject());
+		
+		if (repositoryService == null) {
+			connectionResult.recordFatalError("No repository service");
+			return;
+		}
+		
+		connectionResult.recordSuccess();
 	}
 	
 	@Override

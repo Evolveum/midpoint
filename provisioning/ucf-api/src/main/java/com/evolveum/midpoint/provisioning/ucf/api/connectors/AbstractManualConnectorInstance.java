@@ -75,6 +75,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractConnectorI
 	private static final String OPERATION_MODIFY = AbstractManualConnectorInstance.class.getName() + ".modifyObject";
 	private static final String OPERATION_DELETE = AbstractManualConnectorInstance.class.getName() + ".deleteObject";
 	
+	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY 
+	= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
+	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractManualConnectorInstance.class);
 		
 	// test(), connect() and dispose() are lifecycle operations to be implemented in the subclasses
@@ -191,23 +194,23 @@ public abstract class AbstractManualConnectorInstance extends AbstractConnectorI
 		// make sure there are no read capabilities
 		
 		CreateCapabilityType createCap = new CreateCapabilityType();
-		capabilities.add(createCap);
+		capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(createCap));
 		
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
-		capabilities.add(updateCap);
+		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
 		
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
-		capabilities.add(deleteCap);
+		capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(deleteCap));
 		
 		ActivationCapabilityType activationCap = new ActivationCapabilityType();
 		ActivationStatusCapabilityType activationStatusCap = new ActivationStatusCapabilityType();
 		activationCap.setStatus(activationStatusCap);
-		capabilities.add(activationCap);
+		capabilities.add(CAPABILITY_OBJECT_FACTORY.createActivation(activationCap));
 		
 		CredentialsCapabilityType credentialsCap = new CredentialsCapabilityType();
 		PasswordCapabilityType passwordCapabilityType = new PasswordCapabilityType();
 		credentialsCap.setPassword(passwordCapabilityType);
-		capabilities.add(credentialsCap);
+		capabilities.add(CAPABILITY_OBJECT_FACTORY.createCredentials(credentialsCap));
 		
 		return capabilities;
 	}

@@ -60,4 +60,9 @@
 			<class name="com.evolveum.midpoint.provisioning.impl.TestCsvFile" />
 		</classes>
 	</test>
+	<test name="provisioning-service-manual" parallel="false" verbose="10">
+		<classes>
+			<class name="com.evolveum.midpoint.provisioning.impl.TestManual" />
+		</classes>
+	</test>
 </suite>

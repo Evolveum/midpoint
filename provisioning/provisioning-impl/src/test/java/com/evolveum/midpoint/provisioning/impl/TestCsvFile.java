@@ -92,7 +92,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestCsvFile extends AbstractIntegrationTest {
+public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 
 	private static final File RESOURCE_CSV_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-csv.xml");
 	private static final String RESOURCE_CSV_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
@@ -107,13 +107,6 @@ public class TestCsvFile extends AbstractIntegrationTest {
 	private PrismObject<ResourceType> resource;
 	private ResourceType resourceType;
 	
-	@Autowired(required=true)
-	private ProvisioningService provisioningService;
-		
-	public TestCsvFile() {
-		super();
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
