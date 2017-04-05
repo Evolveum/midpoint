@@ -184,7 +184,6 @@ public class ObjectRetriever {
 			RObject obj = (RObject) criteria.uniqueResult();
 
 			if (obj != null) {
-				obj.toJAXB(prismContext, null).asPrismObject();
 				fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
 						obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount(), obj.getBooleansCount());
 			}

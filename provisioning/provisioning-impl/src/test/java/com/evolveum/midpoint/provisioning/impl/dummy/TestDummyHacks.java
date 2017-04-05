@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +42,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.provisioning.ucf.impl.SecretIcfOperationalAttributes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -121,7 +121,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		accountObjectClass.addAttributeDefinition(SecretIcfOperationalAttributes.DESCRIPTION.getName(), String.class);
+		accountObjectClass.addAttributeDefinition(ProvisioningTestUtil.CONNID_DESCRIPTION_NAME, String.class);
 	}
 
 
@@ -181,12 +181,12 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		display("Parsed schema", parsedSchema);
 		
 		ComplexTypeDefinition accountDef = parsedSchema.findComplexTypeDefinition(
-				new QName(parsedSchema.getNamespace(),ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+				new QName(parsedSchema.getNamespace(),SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
 		assertNotNull("No account definition in schema after parsing", accountDef);
 		PrismAsserts.assertPropertyDefinition(accountDef,
-				ConnectorFactoryIcfImpl.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1);
+				SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1);
 		PrismAsserts.assertPropertyDefinition(accountDef,
-				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "description"), 
+				new QName(SchemaConstants.NS_ICF_SCHEMA, "description"), 
 				DOMUtil.XSD_STRING, 0, 1);
 
 		// The useless configuration variables should be reflected to the resource now

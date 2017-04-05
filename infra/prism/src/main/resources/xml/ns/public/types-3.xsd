@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
         <xsd:documentation>
             Basic Prism types.
             
-            Version: 3.5
+            Version: 3.6-SNAPSHOT
             Recommended namespace prefix: t
         </xsd:documentation>
     </xsd:annotation>
@@ -450,7 +450,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
+			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
 				<xsd:annotation>
 				    <xsd:appinfo>
 				        <jaxb:dom/>

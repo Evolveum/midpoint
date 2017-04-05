@@ -1655,4 +1655,8 @@
         </automaticallyApproved>
     </service>
 
+	<case version="1">
+		<name>case1</name>
+	</case>
+
 </objects>

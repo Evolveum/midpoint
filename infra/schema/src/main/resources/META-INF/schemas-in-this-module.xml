@@ -51,6 +51,7 @@ Notes:
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-notifications-3" uri="../xml/ns/public/common/common-notifications-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3" uri="../xml/ns/public/common/common-workflows-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3" uri="../xml/ns/public/common/common-policy-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" uri="../xml/ns/public/common/common-case-management-3.xsd" />
 
     <!-- WSDLs -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />
