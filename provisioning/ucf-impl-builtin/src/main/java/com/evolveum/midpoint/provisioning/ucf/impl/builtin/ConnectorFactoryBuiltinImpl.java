@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -30,11 +31,13 @@ import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
-import com.evolveum.midpoint.provisioning.ucf.api.AbstractConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractConnectorInstance;
+import com.evolveum.midpoint.repo.api.RepositoryAware;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -65,6 +68,10 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
+	
+	@Autowired(required = true)
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
 	
 	private Map<String,ConnectorStruct> connectorMap;
 
@@ -173,6 +180,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		if (connectorInstance instanceof AbstractConnectorInstance) {
 			setupAbstractConnectorInstance((AbstractConnectorInstance)connectorInstance, connectorType, namespace, 
 					desc, struct);
+		}
+		if (connectorInstance instanceof RepositoryAware) {
+			((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
 		}
 		return connectorInstance;
 	}

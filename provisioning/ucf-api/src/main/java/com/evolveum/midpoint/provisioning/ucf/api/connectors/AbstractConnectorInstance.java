@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.ucf.api;
+package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.util.Collection;
 
@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -141,11 +143,13 @@ public abstract class AbstractConnectorInstance implements ConnectorInstance {
 		setResourceSchema(resourceSchema);
 		setCapabilities(capabilities);
 		
-		// TODO: initialize connection in the subclass
+		connect(result);
 		
 		result.recordSuccessIfUnknown();
 	}
 	
+	protected abstract void connect(OperationResult result);
+
 	protected PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
 		QName configContainerQName = new QName(getConnectorObject().getNamespace(),
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());

@@ -366,6 +366,11 @@ public class ResourceObjectConverter {
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
+		} catch (ConfigurationException ex) {
+			parentResult.recordFatalError(
+					"Configuration error in connector " + connector + ": " + ex.getMessage(), ex);
+			throw new ConfigurationException("Configuration error in connector " + connector + ": "
+					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);

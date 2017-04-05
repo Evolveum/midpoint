@@ -262,11 +262,11 @@ public interface ConnectorInstance {
     ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
 																  OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
-			SecurityViolationException, ObjectAlreadyExistsException;
+			SecurityViolationException, ObjectAlreadyExistsException, ConfigurationException;
 	
     ConnectorOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 							 OperationResult parentResult)
-					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	
 	Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	

@@ -57,9 +57,9 @@
 -->
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-api</artifactId>
+			<artifactId>repo-api</artifactId>
 			<version>3.6-SNAPSHOT</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>ucf-api</artifactId>
