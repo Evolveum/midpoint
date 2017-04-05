@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.util;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
 import org.apache.commons.lang.BooleanUtils;
@@ -73,7 +74,7 @@ public class ApprovalUtils {
 	}
 
 	public static Boolean approvalBooleanValue(WorkItemResultType result) {
-		return result != null ? approvalBooleanValue(result.getOutcome()) : null;
+		return result != null ? approvalBooleanValue(fromUri(result.getOutcome())) : null;
 	}
 
 	private static Boolean approvalBooleanValue(WorkItemOutcomeType outcome) {
@@ -98,5 +99,36 @@ public class ApprovalUtils {
 
 	public static boolean isApproved(WorkItemResultType result) {
 		return BooleanUtils.isTrue(approvalBooleanValue(result));
+	}
+
+	public static String getOutcomeAsString(WorkItemResultType result) {
+		return result != null ? approvalStringValue(fromUri(result.getOutcome())) : null;
+	}
+
+	public static String toUri(WorkItemOutcomeType workItemOutcomeType) {
+    	if (workItemOutcomeType == null) {
+    		return null;
+		}
+		switch (workItemOutcomeType) {
+			case APPROVE: return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED;
+			case REJECT: return SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECTED;
+			default: throw new AssertionError("Unexpected outcome: " + workItemOutcomeType);
+		}
+	}
+
+	public static WorkItemOutcomeType fromUri(String uri) {
+		if (uri == null) {
+			return null;
+		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED.equals(uri)) {
+			return WorkItemOutcomeType.APPROVE;
+		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECTED.equals(uri)) {
+			return WorkItemOutcomeType.REJECT;
+		} else {
+			throw new IllegalArgumentException("Unrecognized URI: " + uri);
+		}
+	}
+
+	public static String makeNiceFromUri(String uri) {
+		return makeNice(approvalStringValue(fromUri(uri)));
 	}
 }

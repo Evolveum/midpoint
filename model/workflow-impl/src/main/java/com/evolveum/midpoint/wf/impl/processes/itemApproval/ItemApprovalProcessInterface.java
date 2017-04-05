@@ -79,8 +79,8 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 		    return null;
 	    }
 		WorkItemResultType result = new WorkItemResultType();
-		result.setOutcomeAsString(ActivitiUtil.getVariable(variables, FORM_FIELD_DECISION, String.class, prismContext));
-		result.setOutcome(ApprovalUtils.approvalOutcomeValue(result.getOutcomeAsString()));
+		String decisionAsString = ActivitiUtil.getVariable(variables, FORM_FIELD_DECISION, String.class, prismContext);
+		result.setOutcome(ApprovalUtils.toUri(ApprovalUtils.approvalOutcomeValue(decisionAsString)));
 		result.setComment(ActivitiUtil.getVariable(variables, FORM_FIELD_COMMENT, String.class, prismContext));
 		String additionalDeltaString = ActivitiUtil.getVariable(variables, FORM_FIELD_ADDITIONAL_DELTA, String.class, prismContext);
 		boolean isApproved = ApprovalUtils.isApproved(result);

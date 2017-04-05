@@ -639,8 +639,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="outcome" type="tns:WorkItemOutcomeType" minOccurs="0" />
-			<xsd:element name="outcomeAsString" type="xsd:string" minOccurs="0" />
+			<xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" />
 			<xsd:element name="comment" type="xsd:string" minOccurs="0" />
 			<xsd:element name="additionalDeltas" type="tns:ObjectTreeDeltasType" minOccurs="0">
 				<xsd:annotation>
@@ -1307,6 +1306,7 @@
                         True if the result is APPROVED. False if REJECTED. Null if the result is not yet
                         known or if it something other than APPROVED or REJECTED ("answer" property
                         has to be set in such case).
+						DEPRECATED
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1315,6 +1315,14 @@
                     <xsd:documentation>
                         Value of process variable "wfAnswer" that should describe overall outcome
                         of the process instance.
+						DEPRECATED
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Overall outcome of the process.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

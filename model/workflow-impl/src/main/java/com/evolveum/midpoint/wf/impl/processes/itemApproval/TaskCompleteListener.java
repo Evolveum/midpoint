@@ -102,7 +102,7 @@ public class TaskCompleteListener implements TaskListener {
             LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
                     execution.getProcessInstanceId(),
-					WfContextUtil.getLevelDiagName(level), result1.getOutcomeAsString(), setLoopApprovesInLevelStop);
+					WfContextUtil.getLevelDiagName(level), result1.getOutcome(), setLoopApprovesInLevelStop);
         }
 
 		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);

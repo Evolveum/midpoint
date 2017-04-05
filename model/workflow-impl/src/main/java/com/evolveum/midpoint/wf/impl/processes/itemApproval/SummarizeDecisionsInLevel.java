@@ -73,7 +73,7 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 			}
 			approved = allApproved;
 			if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
-				Set<WorkItemOutcomeType> outcomes = itemEvents.stream()
+				Set<String> outcomes = itemEvents.stream()
 						.map(e -> e.getResult().getOutcome())
 						.collect(Collectors.toSet());
 				if (outcomes.size() > 1) {

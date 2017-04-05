@@ -190,7 +190,7 @@ public class BaseAuditHelper {
 		}
 		WorkItemResultType workItemResult = workItem.getResult();
 		if (workItemResult != null) {
-			String answer = ApprovalUtils.makeNice(workItemResult.getOutcomeAsString());
+			String answer = ApprovalUtils.makeNiceFromUri(workItemResult.getOutcome());
 			record.setResult(answer);
 			message.append(answer);
 			if (workItemResult.getComment() != null) {

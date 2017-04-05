@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.api.WorkItemOperationInfo;
 import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -126,7 +127,7 @@ public class WorkItemEvent extends WorkflowEvent {
 	@Override
 	public String getAnswer() {
     	WorkItemResultType result = getWorkItemResult();
-		return result != null ? result.getOutcomeAsString() : null;
+		return ApprovalUtils.getOutcomeAsString(result);
 	}
 
 	@Override

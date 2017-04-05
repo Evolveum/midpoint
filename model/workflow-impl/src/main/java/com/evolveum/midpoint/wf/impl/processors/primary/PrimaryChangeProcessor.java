@@ -47,6 +47,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -382,7 +383,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         try {
 			WorkItemResultType workItemResult = workItem.getResult();
         	// TODO - or merge with original deltas?
-        	if (workItemResult != null && workItemResult.getOutcome() == WorkItemOutcomeType.APPROVE
+        	if (workItemResult != null && ApprovalUtils.fromUri(workItemResult.getOutcome()) == WorkItemOutcomeType.APPROVE
 					&& workItemResult.getAdditionalDeltas() != null) {
 				addDeltasToEventRecord(auditEventRecord,
 						ObjectTreeDeltas.fromObjectTreeDeltasType(workItemResult.getAdditionalDeltas(), getPrismContext()));

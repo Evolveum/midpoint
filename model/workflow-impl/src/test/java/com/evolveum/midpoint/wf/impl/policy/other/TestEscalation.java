@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -298,7 +299,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 				WorkItemCompletionEventType c = (WorkItemCompletionEventType) event;
 				eventMap.put(c.getWorkItemId(), c);
 				assertNotNull("No result in "+c, c.getResult());
-				assertEquals("Wrong outcome in "+c, WorkItemOutcomeType.REJECT, c.getResult().getOutcome());
+				assertEquals("Wrong outcome in "+c, WorkItemOutcomeType.REJECT, ApprovalUtils.fromUri(c.getResult().getOutcome()));
 				assertNotNull("No cause in "+c, c.getCause());
 				assertEquals("Wrong cause type in "+c, WorkItemEventCauseTypeType.TIMED_ACTION, c.getCause().getType());
 				assertEquals("Wrong cause name in "+c, "auto-reject", c.getCause().getName());

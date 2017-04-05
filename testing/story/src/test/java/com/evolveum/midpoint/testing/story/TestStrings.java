@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -1293,7 +1294,7 @@ public class TestStrings extends AbstractStoryTest {
 		}
 		WorkItemCompletionEventType event = (WorkItemCompletionEventType) wfProcessEventType;
 		assertEvent(event, initiator, originalAssignee, stageNumber, stageName);
-		assertEquals("Wrong outcome", outcome, event.getResult().getOutcome());
+		assertEquals("Wrong outcome", outcome, ApprovalUtils.fromUri(event.getResult().getOutcome()));
 		assertEquals("Wrong comment", comment, event.getResult().getComment());
 	}
 

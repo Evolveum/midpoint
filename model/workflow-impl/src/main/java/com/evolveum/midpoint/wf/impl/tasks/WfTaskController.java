@@ -392,8 +392,7 @@ public class WfTaskController {
 					cause.setDisplayName(completeAction.getDisplayName());
 					foundTimedActions++;
 					WorkItemResultType workItemResult = new WorkItemResultType();
-					workItemResult.setOutcome(completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT);
-					workItemResult.setOutcomeAsString(ApprovalUtils.approvalStringValue(completeAction.getOutcome()));
+					workItemResult.setOutcome(ApprovalUtils.toUri(completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT));
 					workItem.setResult(workItemResult);
 				}
 				if (foundTimedActions > 1) {

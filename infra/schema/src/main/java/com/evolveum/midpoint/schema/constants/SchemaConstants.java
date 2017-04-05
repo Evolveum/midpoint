@@ -300,7 +300,15 @@ public abstract class SchemaConstants {
 	public static final String MODEL_POLICY_SITUATION_ASSIGNED = 
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assigned"));
 
-	
+	public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
+	public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";
+	public static final String MODEL_APPROVAL_OUTCOME_APPROVED =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "approved"));
+	public static final String MODEL_APPROVAL_OUTCOME_REJECTED =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "rejected"));
+	public static final String MODEL_APPROVAL_OUTCOME_SKIPPED =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "skipped"));
+
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
 	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
 	public static final QName MODEL_EXTENSION_OBJECT_DELTA = new QName(NS_MODEL_EXTENSION, "objectDelta");
