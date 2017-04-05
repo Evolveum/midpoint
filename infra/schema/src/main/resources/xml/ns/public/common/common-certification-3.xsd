@@ -36,7 +36,6 @@
     </xsd:annotation>
 
     <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>

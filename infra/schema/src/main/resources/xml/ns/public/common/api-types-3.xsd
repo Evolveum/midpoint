@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
             elementFormDefault="qualified"
             jaxb:extensionBindingPrefixes="xjc"
             jaxb:version="2.0">
@@ -34,19 +33,10 @@
         <xsd:documentation>
             Schema that defines data types used in XML version of midPoint APIs.
             
-            Version: 3.1
+            Version: 3.6-SNAPSHOT
             Recommended namespace prefix: apit
         </xsd:documentation>
     </xsd:annotation>
-
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema">
-        <xsd:annotation>
-            <xsd:documentation>
-                Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
-                for the xsd:schema elements used in runtime.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:import>
 
 	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">

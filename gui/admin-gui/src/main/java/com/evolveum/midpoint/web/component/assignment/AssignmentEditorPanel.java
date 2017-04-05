@@ -1230,9 +1230,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		if (pageBase == null || getModelObject().getTargetRef() == null){
 			return null;
 		}
-		PrismObject<UserType> user = pageBase.getSessionStorage().getRoleCatalog().getTargetUser();
-		if (user == null){
+		PrismObject<UserType> user = null;
+		List<PrismObject<UserType>> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
+		if (targetUserList == null || targetUserList.size() == 0){
 			user = pageBase.loadUserSelf(pageBase);
+		} else {
+			user = targetUserList.get(0);
 		}
 		String targetObjectOid = getModelObject().getTargetRef().getOid();
 
