@@ -2027,7 +2027,7 @@
 	                </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="completedByRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="executorRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Who has completed this work item (null if unknown, not completed or completed automatically).

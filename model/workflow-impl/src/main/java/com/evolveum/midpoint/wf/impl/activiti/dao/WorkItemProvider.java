@@ -456,7 +456,7 @@ public class WorkItemProvider {
 			wi.setResult(pmi.extractWorkItemResult(variables));
 			String completedBy = ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_WORK_ITEM_COMPLETED_BY, String.class, prismContext);
 			if (completedBy != null) {
-				wi.setCompletedByRef(ObjectTypeUtil.createObjectRef(completedBy, ObjectTypes.USER));
+				wi.setExecutorRef(ObjectTypeUtil.createObjectRef(completedBy, ObjectTypes.USER));
 			}
 
 			wi.setStageNumber(pmi.getStageNumber(variables));
