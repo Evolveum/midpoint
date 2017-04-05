@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -44,10 +45,10 @@ abstract public class WorkflowEvent extends BaseEvent {
     }
 
     public OperationStatus getOperationStatus() {
-        return resultToStatus(changeType, getAnswer());
+        return outcomeToStatus(changeType, getOutcome());
     }
 
-	protected abstract String getAnswer();
+	protected abstract String getOutcome();
 
 	@Override
     public boolean isStatusType(EventStatusType eventStatusType) {
@@ -75,15 +76,15 @@ abstract public class WorkflowEvent extends BaseEvent {
         return isFailure();             // for now
     }
 
-    private OperationStatus resultToStatus(ChangeType changeType, String decision) {
+    private OperationStatus outcomeToStatus(ChangeType changeType, String outcome) {
         if (changeType != ChangeType.DELETE) {
             return OperationStatus.SUCCESS;
         } else {
-            if (decision == null) {
+            if (outcome == null) {
                 return OperationStatus.IN_PROGRESS;
-            } else if (decision.equals(ApprovalUtils.DECISION_APPROVED)) {
+            } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED.equals(outcome)) {
                 return OperationStatus.SUCCESS;
-            } else if (decision.equals(ApprovalUtils.DECISION_REJECTED)) {
+            } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECTED.equals(outcome)) {
                 return OperationStatus.FAILURE;
             } else {
                 return OperationStatus.OTHER;
@@ -134,7 +135,7 @@ abstract public class WorkflowEvent extends BaseEvent {
                 "event=" + super.toString() +
                 ", processInstanceName='" + getProcessInstanceName() + '\'' +
                 ", changeType=" + changeType +
-                ", answer=" + getAnswer() +
+                ", outcome=" + getOutcome() +
                 '}';
     }
 
@@ -142,7 +143,7 @@ abstract public class WorkflowEvent extends BaseEvent {
     // dependency on workflow-api
     @SuppressWarnings("unused")
 	private void notUsed() {
-    	ApprovalUtils.approvalBooleanValue("");
+    	ApprovalUtils.approvalBooleanValueFromUri("");
     }
 
 }

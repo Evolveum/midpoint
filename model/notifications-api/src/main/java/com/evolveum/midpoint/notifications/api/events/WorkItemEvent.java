@@ -125,9 +125,9 @@ public class WorkItemEvent extends WorkflowEvent {
 	}
 
 	@Override
-	public String getAnswer() {
+	public String getOutcome() {
     	WorkItemResultType result = getWorkItemResult();
-		return ApprovalUtils.getOutcomeAsString(result);
+		return result != null ? result.getOutcome() : null;
 	}
 
 	@Override

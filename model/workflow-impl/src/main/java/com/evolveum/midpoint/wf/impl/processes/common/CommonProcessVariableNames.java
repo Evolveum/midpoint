@@ -64,9 +64,8 @@ public class CommonProcessVariableNames {
 	public static final String VARIABLE_UTIL = "util";
 
 	// [String]
-	// Basic decision returned from a work item.
-	// for most work items it is simple __APPROVED__ or __REJECTED__, but in principle this can be any string value
-	public static final String FORM_FIELD_DECISION = "[H]decision";
+	// Outcome of a work item (URI).
+	public static final String FORM_FIELD_OUTCOME = "[H]outcome";
 
 	// [String]
 	// Comment related to that decision - set by user task (form).
@@ -79,8 +78,6 @@ public class CommonProcessVariableNames {
 
 	// [serialized value of WorkItemEventCauseInformationType]
 	public static final String VARIABLE_CAUSE = "cause";
-
-	public static final String FORM_BUTTON_PREFIX = "[B]";
 
 	// URI of the work item outcome
 	public static final String VARIABLE_OUTCOME = "outcome";

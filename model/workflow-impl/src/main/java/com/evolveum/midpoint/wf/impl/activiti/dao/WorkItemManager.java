@@ -90,26 +90,26 @@ public class WorkItemManager {
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_INTERFACE + "releaseWorkItem";
     private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_INTERFACE + "delegateWorkItem";
 
-    public void completeWorkItem(String workItemId, String decision, String comment, ObjectDelta additionalDelta,
+    public void completeWorkItem(String workItemId, String outcome, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParams(new String[] { "workItemId", "decision", "comment", "additionalDelta" },
-				workItemId, decision, comment, additionalDelta);
+				workItemId, outcome, comment, additionalDelta);
 
 		try {
 			final String userDescription = toShortString(securityEnforcer.getPrincipal().getUser());
 			result.addContext("user", userDescription);
 
 			LOGGER.trace("Completing work item {} with decision of {} ['{}'] by {}; cause: {}",
-					workItemId, decision, comment, userDescription, causeInformation);
+					workItemId, outcome, comment, userDescription, causeInformation);
 
 			TaskService taskService = activitiEngine.getTaskService();
 			taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_CAUSE,
 					new SingleItemSerializationSafeContainerImpl<>(causeInformation, prismContext));
 
-			TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
+			//TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
 
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
 
@@ -118,7 +118,7 @@ public class WorkItemManager {
 			}
 
 			final Map<String, String> propertiesToSubmit = new HashMap<>();
-			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
+			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_OUTCOME, outcome);
 			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_COMMENT, comment);
 			if (additionalDelta != null) {
 				@SuppressWarnings({ "unchecked", "raw" })
@@ -127,15 +127,6 @@ public class WorkItemManager {
 				String xmlDelta = prismContext.xmlSerializer()
 						.serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
 				propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_ADDITIONAL_DELTA, xmlDelta);
-			}
-
-			// we also fill-in the corresponding 'button' property (if there's one that corresponds to the decision)
-			for (FormProperty formProperty : data.getFormProperties()) {
-				if (formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
-					boolean value = formProperty.getId().equals(CommonProcessVariableNames.FORM_BUTTON_PREFIX + decision);
-					LOGGER.trace("Setting the value of {} to writable property {}", value, formProperty.getId());
-					propertiesToSubmit.put(formProperty.getId(), Boolean.toString(value));
-				}
 			}
 			LOGGER.trace("Submitting {} properties", propertiesToSubmit.size());
 			//formService.submitTaskFormData(workItemId, propertiesToSubmit);

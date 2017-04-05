@@ -37,8 +37,8 @@ public class WorkflowProcessEvent extends WorkflowEvent {
     }
 
 	@Override
-	protected String getAnswer() {
-		return ApprovalUtils.approvalStringValue(ApprovalUtils.fromUri(workflowContext.getOutcome()));
+	protected String getOutcome() {
+		return workflowContext.getOutcome();
 	}
 
 	@Override

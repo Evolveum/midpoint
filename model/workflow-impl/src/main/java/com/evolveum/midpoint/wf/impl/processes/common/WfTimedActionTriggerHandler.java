@@ -162,7 +162,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
 			OperationResult result) throws SchemaException, SecurityViolationException {
 		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT;
-		workItemManager.completeWorkItem(workItem.getWorkItemId(), ApprovalUtils.approvalStringValue(outcome),
+		workItemManager.completeWorkItem(workItem.getWorkItemId(), ApprovalUtils.toUri(outcome),
 				null, null, createCauseInformation(completeAction), result);
 	}
 

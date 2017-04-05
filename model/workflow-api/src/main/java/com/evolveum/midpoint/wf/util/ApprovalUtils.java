@@ -25,22 +25,8 @@ import org.apache.commons.lang.BooleanUtils;
  * @author mederly
  */
 public class ApprovalUtils {
-    public static final String DECISION_APPROVED = "__APPROVED__";
-    public static final String DECISION_REJECTED = "__REJECTED__";
-    public static final String DECISION_APPROVED_NICE = "Approved";
-    public static final String DECISION_REJECTED_NICE = "Rejected";
-
-    public static String approvalStringValue(Boolean approved) {
-        if (approved == null) {
-            return null;
-        } else {
-            return approved ? DECISION_APPROVED : DECISION_REJECTED;
-        }
-    }
-
-    public static Boolean approvalBooleanValue(String decision) {
-		return parse(decision, DECISION_APPROVED, DECISION_REJECTED);
-	}
+    private static final String DECISION_APPROVED_NICE = "Approved";
+    private static final String DECISION_REJECTED_NICE = "Rejected";
 
 	public static Boolean approvalBooleanValueNice(String decision) {
 		return parse(decision, DECISION_APPROVED_NICE, DECISION_REJECTED_NICE);
@@ -54,23 +40,6 @@ public class ApprovalUtils {
 		} else {
 			return null;
 		}
-	}
-
-	public static boolean isApproved(String decision) {
-        return DECISION_APPROVED.equals(decision);
-    }
-
-    public static String makeNice(String decision) {
-    	Boolean value = approvalBooleanValue(decision);
-    	if (value != null) {
-    		return value ? DECISION_APPROVED_NICE : DECISION_REJECTED_NICE;
-		} else {
-    		return decision;
-		}
-	}
-
-	public static String approvalStringValue(WorkItemOutcomeType outcome) {
-		return approvalStringValue(approvalBooleanValue(outcome));
 	}
 
 	public static Boolean approvalBooleanValue(WorkItemResultType result) {
@@ -88,25 +57,12 @@ public class ApprovalUtils {
 		}
 	}
 
-	public static WorkItemOutcomeType approvalOutcomeValue(String decision) {
-		Boolean b = approvalBooleanValue(decision);
-		if (b == null) {
-			return null;
-		} else {
-			return b ? WorkItemOutcomeType.APPROVE : WorkItemOutcomeType.REJECT;
-		}
-	}
-
 	public static boolean isApproved(WorkItemResultType result) {
 		return BooleanUtils.isTrue(approvalBooleanValue(result));
 	}
 
-	public static boolean isApproved(WorkItemOutcomeType outcome) {
+	private static boolean isApproved(WorkItemOutcomeType outcome) {
 		return BooleanUtils.isTrue(approvalBooleanValue(outcome));
-	}
-
-	public static String getOutcomeAsString(WorkItemResultType result) {
-		return result != null ? approvalStringValue(fromUri(result.getOutcome())) : null;
 	}
 
 	public static String toUri(WorkItemOutcomeType workItemOutcomeType) {
@@ -128,7 +84,6 @@ public class ApprovalUtils {
 		}
 	}
 
-
 	public static WorkItemOutcomeType fromUri(String uri) {
 		if (uri == null) {
 			return null;
@@ -141,8 +96,13 @@ public class ApprovalUtils {
 		}
 	}
 
-	public static String makeNiceFromUri(String uri) {
-		return makeNice(approvalStringValue(fromUri(uri)));
+	public static String makeNiceFromUri(String outcome) {
+		Boolean value = approvalBooleanValueFromUri(outcome);
+		if (value != null) {
+			return value ? DECISION_APPROVED_NICE : DECISION_REJECTED_NICE;
+		} else {
+			return outcome;
+		}
 	}
 
 	public static Boolean approvalBooleanValueFromUri(String uri) {
