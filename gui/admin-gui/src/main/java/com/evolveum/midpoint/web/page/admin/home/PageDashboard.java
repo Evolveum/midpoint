@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.Model;
@@ -51,11 +52,19 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_ACTIVATIO
 /**
  * @author lazyman
  */
-@PageDescriptor(url = {"/admin/dashboard", "/admin"}, action = {
-        @AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,
-                label = PageAdminHome.AUTH_HOME_ALL_LABEL, description = PageAdminHome.AUTH_HOME_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-                label = "PageDashboard.auth.dashboard.label", description = "PageDashboard.auth.dashboard.description")})
+@PageDescriptor(
+		urls = {
+				@Url(mountUrl = "/admin", matchUrlForSecurity = "/admin"),
+				@Url(mountUrl = "/admin/dashboard"),
+		},
+		action = {
+				@AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,
+						label = PageAdminHome.AUTH_HOME_ALL_LABEL,
+						description = PageAdminHome.AUTH_HOME_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+						label = "PageDashboard.auth.dashboard.label",
+						description = "PageDashboard.auth.dashboard.description")
+		})
 public class PageDashboard extends PageAdminHome {
 	private static final long serialVersionUID = 1L;
 

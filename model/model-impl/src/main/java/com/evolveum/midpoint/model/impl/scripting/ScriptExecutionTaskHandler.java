@@ -73,7 +73,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         try {
             task.startCollectingOperationStatsFromZero(true, false, true);
             task.setProgress(0);
-            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getValue().getValue().getScriptingExpression().getValue(), task, result);
+            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n", executionResult.getConsoleOutput());
             result.computeStatus();

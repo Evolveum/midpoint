@@ -76,18 +76,16 @@ public class PageAssignmentShoppingKart extends PageSelf {
         Task task = getPageBase().createAnonymousTask(OPERATION_LOAD_ROLE_CATALOG_REFERENCE);
         OperationResult result = task.getResult();
 
-        PrismObject<SystemConfigurationType> config;
+        SystemConfigurationType config;
         try {
-            config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
-                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-                | CommunicationException | ConfigurationException e) {
+            config = getPageBase().getModelInteractionService().getSystemConfiguration(result);
+        } catch (ObjectNotFoundException | SchemaException e) {
             LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
             return null;
         }
-        if (config != null && config.asObjectable().getRoleManagement() != null &&
-                config.asObjectable().getRoleManagement().getRoleCatalogRef() != null) {
-            return config.asObjectable().getRoleManagement().getRoleCatalogRef().getOid();
+        if (config != null && config.getRoleManagement() != null &&
+                config.getRoleManagement().getRoleCatalogRef() != null) {
+            return config.getRoleManagement().getRoleCatalogRef().getOid();
         }
         return "";
     }

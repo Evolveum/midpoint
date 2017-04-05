@@ -46,10 +46,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author mederly
@@ -75,26 +72,36 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
         Data output = Data.createEmpty();
 
         for (PrismValue value: input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ConnectorHostType) {
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 Set<ConnectorType> newConnectors;
                 long started = operationsHelper.recordStart(context, connectorHostTypePrismObject.asObjectable());
+                Throwable exception = null;
                 try {
 					newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
                     operationsHelper.recordEnd(context, connectorHostTypePrismObject.asObjectable(), started, null);
                 } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException | RuntimeException e) {
                     operationsHelper.recordEnd(context, connectorHostTypePrismObject.asObjectable(), started, e);
-                    throw new ScriptExecutionException("Couldn't discover connectors from " + connectorHostTypePrismObject, e);
-                }
-                context.println("Discovered " + newConnectors.size() + " new connector(s) from " + connectorHostTypePrismObject);
+					exception = processActionException(e, NAME, value, context);
+					newConnectors = Collections.emptySet();
+				}
+                context.println((exception != null ? "Attempted to discover " : "Discovered " + newConnectors.size())
+						+ " new connector(s) from " + connectorHostTypePrismObject + exceptionSuffix(exception));
                 for (ConnectorType connectorType : newConnectors) {
                     output.addItem(connectorType.asPrismObject());
                 }
-                if (rebind) {
-                    rebindConnectors(newConnectors, context, result);
-                }
+                try {
+					if (rebind) {
+						rebindConnectors(newConnectors, context, result);
+					}
+				} catch (ScriptExecutionException e) {
+					//noinspection ThrowableNotThrown
+					processActionException(e, NAME, value, context);		// TODO better message
+				}
             } else {
-                throw new ScriptExecutionException("Input is not a PrismObject<ConnectorHost>: " + value.toString());
+				//noinspection ThrowableNotThrown
+				processActionException(new ScriptExecutionException("Input item is not a PrismObject<ConnectorHost>"), NAME, value, context);
             }
         }
         return output;

@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Objects;
 
 public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 	private static final long serialVersionUID = 3284478412180258355L;
@@ -107,58 +108,49 @@ public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 		return "EQUAL";
 	}
 
-	// TODO revise
 	@Override
 	public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		Item filterItem = getFilterItem();
 		if (!super.match(cvalue, matchingRuleRegistry)){
 			return false;
 		}
-
 		Item objectItem = getObjectItem(cvalue);
-		if (objectItem == null) {
-			return true;
+		if (objectItem == null || objectItem.isEmpty()) {
+			return true;					// because filter item is empty as well (checked by super.match)
 		}
-		List<Object> values = objectItem.getValues();
-		if (values == null){
-			return true;
-		}
-		
-		for (Object v : values){
-			if (!(v instanceof PrismPropertyValue)){
-				throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + v.getClass());
-			}
-			
-			if (!isInFilterItem((PrismPropertyValue) v, filterItem, getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem))){
-				return false;
+		Item filterItem = getFilterItem();
+		MatchingRule<?> matchingRule = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
+		for (Object filterValue : filterItem.getValues()) {
+			checkPrismPropertyValue(filterValue);
+			for (Object objectValue : objectItem.getValues()) {
+				checkPrismPropertyValue(objectValue);
+				if (matches((PrismPropertyValue<?>) filterValue, (PrismPropertyValue<?>) objectValue, matchingRule)) {
+					return true;
+				}
 			}
 		}
-	
-		return true;
+		return false;
 	}
 
-	private boolean isInFilterItem(PrismPropertyValue v, Item filterItem, MatchingRule matchingRule) {
-		for (Object filterValue : filterItem.getValues()){
-			if (!(filterValue instanceof PrismPropertyValue)){
-				throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + v.getClass());
+	private void checkPrismPropertyValue(Object value) {
+		if (!(value instanceof PrismPropertyValue)) {
+			throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + value.getClass());
+		}
+	}
+
+	private boolean matches(PrismPropertyValue<?> value1, PrismPropertyValue<?> value2, MatchingRule<?> matchingRule) {
+		try {
+			if (matchingRule.match(value1.getRealValue(), value2.getRealValue())) {
+				return true;
 			}
-			
-			PrismPropertyValue filterV = (PrismPropertyValue) filterValue;
-			try {
-				if (matchingRule.match(filterV.getValue(), v.getValue())){
-					return true;
-				}
-			} catch (SchemaException e) {
-				// At least one of the values is invalid. But we do not want to throw exception from
-				// a comparison operation. That will make the system very fragile. Let's fall back to
-				// ordinary equality mechanism instead.
-				if (filterV.getValue().equals(v.getValue())) {
-					return true;
-				}
+		} catch (SchemaException e) {
+			// At least one of the values is invalid. But we do not want to throw exception from
+			// a comparison operation. That will make the system very fragile. Let's fall back to
+			// ordinary equality mechanism instead.
+			if (Objects.equals(value1.getRealValue(), value2.getRealValue())) {
+				return true;
 			}
 		}
-		
-		return false;		
+		return false;
 	}
 
 	@Override

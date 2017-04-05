@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -749,6 +749,10 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public ReferenceDelta createReferenceModification(ItemPath path, PrismReferenceDefinition referenceDefinition) {
         ReferenceDelta referenceDelta = new ReferenceDelta(path, referenceDefinition, prismContext);
         return addModification(referenceDelta);
+    }
+    
+    public <C extends Containerable> ContainerDelta<C> createContainerModification(QName qname) {
+    	return createContainerModification(new ItemPath(qname));
     }
     
     public <C extends Containerable> ContainerDelta<C> createContainerModification(ItemPath path) {

@@ -70,10 +70,16 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 
 	private static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
 
-	protected static final String RESOURCE_DUMMY_UGLY_FILENAME = TEST_DIR + "/resource-dummy-ugly.xml";
+	protected static final File RESOURCE_DUMMY_UGLY_FILE = new File(TEST_DIR, "resource-dummy-ugly.xml");
 	protected static final String RESOURCE_DUMMY_UGLY_OID = "10000000-0000-0000-0000-000000344104";
 	protected static final String RESOURCE_DUMMY_UGLY_NAME = "ugly";
 
+	protected static final File PASSWORD_POLICY_UGLY_FILE = new File(TEST_DIR, "password-policy-ugly.xml");
+	protected static final String PASSWORD_POLICY_UGLY_OID = "cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee";
+	
+	private static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
+	private static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
+	
 	protected DummyResource dummyResourceUgly;
 	protected DummyResourceContoller dummyResourceCtlUgly;
 	protected ResourceType resourceDummyUglyType;
@@ -89,11 +95,13 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		importObjectFromFile(PASSWORD_POLICY_UGLY_FILE);
 
 		dummyResourceCtlUgly = DummyResourceContoller.create(RESOURCE_DUMMY_UGLY_NAME, resourceDummyUgly);
 		dummyResourceCtlUgly.extendSchemaPirate();
 		dummyResourceUgly = dummyResourceCtlUgly.getDummyResource();
-		resourceDummyUgly = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_UGLY_FILENAME, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
+		resourceDummyUgly = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_UGLY_FILE, RESOURCE_DUMMY_UGLY_OID, initTask, initResult);
 		resourceDummyUglyType = resourceDummyUgly.asObjectable();
 		dummyResourceCtlUgly.setResource(resourceDummyUgly);
 
@@ -392,7 +400,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_4_CLEAR);
 
 		assertDummyAccount(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null, true);
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
 
 		// User and default dummy account should have unchanged passwords
         assertEncryptedUserPassword(userJack, USER_PASSWORD_4_CLEAR);
@@ -449,7 +457,85 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		// so even the weak mapping took place.
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 		// this one is not changed
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
+
+		assertLinks(userJack, 3);
+		
+		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+	}
+	
+	/**
+	 * Jack employee number is mapped to ugly resource password.
+	 * Change employee number to something that does NOT comply with ugly resource password policy.
+	 * MID-3769
+	 */
+	@Test
+    public void test125ModifyJackEmployeeNumberBad() throws Exception {
+		final String TEST_NAME = "test125ModifyJackEmployeeNumberBad";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+               
+        try {
+			// WHEN
+	        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result, 
+	        		USER_JACK_EMPLOYEE_NUMBER_NEW_BAD);
+	        assertNotReached();
+        } catch (PolicyViolationException e) {
+        	// this is expected
+        	display("Expected exception", e);
+        }
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertFailure(result);
+                
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after", userJack);
+        
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
+		// ugly password should be changed
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
+
+		assertLinks(userJack, 3);
+		
+		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+	}
+	
+	/**
+	 * Jack employee number is mapped to ugly resource password.
+	 * Change employee number to something that does comply with ugly resource password policy.
+	 * MID-3769
+	 */
+	@Test
+    public void test128ModifyJackEmployeeNumberGood() throws Exception {
+		final String TEST_NAME = "test128ModifyJackEmployeeNumberGood";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result, 
+        		USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after", userJack);
+        
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
+		// ugly password should be changed
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 
 		assertLinks(userJack, 3);
 		
@@ -478,7 +564,6 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack);
 		assertLinks(userJack, 4);
         accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
@@ -495,7 +580,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 
 		// this one is not changed
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 		
@@ -529,7 +614,6 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack);
 		assertLinks(userJack, 4);
         accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
@@ -546,7 +630,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
 
 		// this one is not changed
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 		
 		assertPasswordHistoryEntries(userJack);
 	}
@@ -595,7 +679,6 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack);
 		assertLinks(userJack, 4);
         accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
@@ -612,7 +695,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
 
 		// this one is not changed
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 		
 		assertPasswordHistoryEntries(userJack);
 	}
@@ -846,7 +929,6 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	private void assertJackPasswordsWithHistory(String expectedCurrentPassword, String... expectedPasswordHistory) throws Exception {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack);
 		assertLinks(userJack, 4);
         accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
@@ -862,7 +944,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, expectedCurrentPassword);
 
 		// this one is not changed
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 		
 		assertPasswordHistoryEntries(userJack, expectedPasswordHistory);
 	}
@@ -915,7 +997,6 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack);
 		assertLinks(userJack, 4);
 		accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
@@ -932,7 +1013,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);
 
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 	}
 
 	/*
@@ -964,7 +1045,6 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Jack Sparrow");
 
 		assertNull("User password is not null", userJack.asObjectable().getCredentials().getPassword().getValue());
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);			// password mapping is weak here - so no change is expected
@@ -975,7 +1055,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);	// password mapping is strong here
 
 		// this one is not changed
-		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp1234");
+		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 	}
 
 	@Test

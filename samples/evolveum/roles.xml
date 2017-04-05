@@ -17,7 +17,9 @@
  
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
 	<role oid="08bd752e-1cf1-11e6-90a3-a3ad27be3da2">
 		<name>System Administrator</name>
@@ -149,6 +151,126 @@
 	    	<item>activation/validityChangeTimestamp</item>
 	    </authorization>
 		<roleType>application</roleType>
+	</role>
+
+	<!-- JOB Roles -->
+
+	<role oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2">
+		<name>Employee</name>
+		<description>Basic employee role</description>
+		<inducement>
+			<description>Automatically include privilege to access midPoint end-user GUI.</description>
+			<targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType" /> <!-- End User -->
+		</inducement>
+		<inducement>
+			<description>Automatically assign employee LDAP account.</description>
+			<construction>
+				<resourceRef oid="28b699cc-107c-11e6-8277-034841879377"/> <!-- LDAP resource -->
+				<kind>account</kind>
+			</construction>
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+
+
+	<role oid="7b6f2704-07ea-11e7-8ca4-eba3d9df42bb">
+		<name>CEO</name>
+		<description>Chief Executive Officer</description>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+
+	<role oid="a12c11c8-07ea-11e7-bd69-bf7bb8c15360">
+		<name>Software Architect</name>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<inducement>
+			<targetRef oid="ae97e3fa-07ea-11e7-a354-13b959d5572d" type="RoleType" /> <!-- Software Developer -->
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+
+	<role oid="ae97e3fa-07ea-11e7-a354-13b959d5572d">
+		<name>Software Developer</name>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<inducement>
+			<description>LDAP devel group</description>
+			<construction>
+				<resourceRef oid="28b699cc-107c-11e6-8277-034841879377"/> <!-- LDAP resource -->
+				<kind>account</kind>
+				<association>
+				    <ref>ri:ldapGroup</ref>
+				    <outbound>
+				       <expression>
+					  <associationTargetSearch>
+					     <filter>
+						<q:equal>
+						   <q:path>attributes/cn</q:path>
+						   <q:value>devel</q:value>
+						</q:equal>
+					     </filter>
+					     <searchOnResource>true</searchOnResource>
+					  </associationTargetSearch>
+				       </expression>
+				    </outbound>
+				 </association>
+			</construction>
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+
+	<role oid="d161eb4c-07ea-11e7-9ef9-4720a07d67c8">
+		<name>IDM Engineer</name>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+
+	<role oid="e774a9c4-07ea-11e7-99b1-bb2574fc17b7">
+		<name>Accountant</name>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+
+	<role oid="ef9f0be4-07ea-11e7-aa44-27bf6e51efa9">
+		<name>Marketing Specialist</name>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+
+	<role oid="f618e68e-07ea-11e7-b049-93c0d71b481a">
+		<name>Assistant</name>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+
+	<role oid="2015685e-07eb-11e7-9508-6ba358bcb10c">
+		<name>Project Manager</name>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>job</roleType>
 	</role>
 	
 </objects>

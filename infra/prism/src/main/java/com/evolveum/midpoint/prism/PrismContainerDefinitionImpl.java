@@ -287,18 +287,20 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         return props;
     }
 
-    @Override
+    @NotNull
+	@Override
     public PrismContainer<C> instantiate() throws SchemaException {
         return instantiate(getName());
     }
 
+    @NotNull
     @Override
     public PrismContainer<C> instantiate(QName elementName) throws SchemaException {
     	if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
         elementName = addNamespaceIfApplicable(elementName);
-        return new PrismContainer<C>(elementName, this, prismContext);
+        return new PrismContainer<>(elementName, this, prismContext);
     }
 
     @Override

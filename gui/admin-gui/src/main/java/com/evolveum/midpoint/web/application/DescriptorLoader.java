@@ -25,8 +25,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.ExactMatchMountedMapper;
 import com.evolveum.midpoint.xml.ns._public.gui.admin_1.DescriptorType;
 import com.evolveum.midpoint.xml.ns._public.gui.admin_1.ObjectFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
@@ -133,47 +135,79 @@ public final class DescriptorLoader implements DebugDumpable {
     }
 
     private void loadActions(PageDescriptor descriptor) {
-        for (String url : descriptor.url()) {
-            List<AuthorizationActionValue> actions = new ArrayList<>();
+        List<AuthorizationActionValue> actions = new ArrayList<>();
 
-            //avoid of setting guiAll authz for "public" pages (e.g. login page)
-            if (descriptor.action() == null || descriptor.action().length == 0) {
-                return;
-            }
-
-            boolean canAccess = true;
-
-            for (AuthorizationAction action : descriptor.action()) {
-                actions.add(new AuthorizationActionValue(action.actionUri(), action.label(), action.description()));
-                if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(action.actionUri())) {
-                    canAccess = false;
-                    break;
-                }
-            }
-
-            //add http://.../..#guiAll authorization only for displayable pages, not for pages used for development..
-            if (canAccess) {
-
-                actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL,
-                        AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
-                actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
-            }
-            this.actions.put(url, actions.toArray(new DisplayableValue[actions.size()]));
+        //avoid of setting guiAll authz for "public" pages (e.g. login page)
+        if (descriptor.action() == null || descriptor.action().length == 0) {
+            return;
         }
+
+        boolean canAccess = true;
+
+        for (AuthorizationAction action : descriptor.action()) {
+            actions.add(new AuthorizationActionValue(action.actionUri(), action.label(), action.description()));
+            if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(action.actionUri())) {
+                canAccess = false;
+                break;
+            }
+        }
+
+        //add http://.../..#guiAll authorization only for displayable pages, not for pages used for development..
+        if (canAccess) {
+
+            actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL,
+                    AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
+            actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                    AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
+        }
+
+        for (String url : descriptor.url()) {
+            this.actions.put(buildPrefixUrl(url), actions.toArray(new DisplayableValue[actions.size()]));
+        }
+
+        for (Url url : descriptor.urls()) {
+            String urlForSecurity = url.matchUrlForSecurity();
+            if (StringUtils.isEmpty(urlForSecurity)) {
+                urlForSecurity = buildPrefixUrl(url.mountUrl());
+            }
+            this.actions.put(urlForSecurity, actions.toArray(new DisplayableValue[actions.size()]));
+        }
+    }
+
+    public String buildPrefixUrl(String url) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(url);
+
+        if (!url.endsWith("/")) {
+            sb.append("/");
+        }
+        sb.append("**");
+
+        return sb.toString();
     }
 
     private void mountPage(PageDescriptor descriptor, Class clazz, MidPointApplication application)
             throws InstantiationException, IllegalAccessException {
 
+        //todo remove for cycle later
         for (String url : descriptor.url()) {
             IPageParametersEncoder encoder = descriptor.encoder().newInstance();
 
             LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.", new Object[]{
                     clazz.getName(), url, encoder.getClass().getSimpleName()});
 
-            application.mount(new MountedMapper(url, clazz, encoder));
+            application.mount(new ExactMatchMountedMapper(url, clazz, encoder));
             urlClassMap.put(url, clazz);
+        }
+
+        for (Url url : descriptor.urls()) {
+            IPageParametersEncoder encoder = descriptor.encoder().newInstance();
+
+            LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.", new Object[]{
+                    clazz.getName(), url, encoder.getClass().getSimpleName()});
+
+            application.mount(new ExactMatchMountedMapper(url.mountUrl(), clazz, encoder));
+            urlClassMap.put(url.mountUrl(), clazz);
         }
     }
 

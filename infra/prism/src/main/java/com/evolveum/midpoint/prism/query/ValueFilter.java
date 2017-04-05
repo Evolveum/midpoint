@@ -123,6 +123,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		this.matchingRule = matchingRule;
 	}
 
+	@NotNull
 	MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem) {
 		try {
 			return matchingRuleRegistry.getMatchingRule(matchingRule, filterItem.getDefinition().getTypeName());
@@ -241,10 +242,10 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	@Override
 	public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
-		Item item = getObjectItem(cvalue);
+		Item objectItem = getObjectItem(cvalue);
 
 		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-		boolean objectItemIsEmpty = item == null || item.isEmpty();
+		boolean objectItemIsEmpty = objectItem == null || objectItem.isEmpty();
 
 		if (filterItemIsEmpty && !objectItemIsEmpty) {
 			return false;
@@ -264,8 +265,8 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	}
 
 	// TODO revise
+	@NotNull
 	Item getFilterItem() throws SchemaException {
-
 		if (getDefinition() == null){
 			throw new SchemaException("Could not find definition for item " + getPath());
 		}
@@ -279,7 +280,6 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 				throw new IllegalArgumentException(e.getMessage(), e);
 			}
 		}
-
 		return filterItem;
 	}
 

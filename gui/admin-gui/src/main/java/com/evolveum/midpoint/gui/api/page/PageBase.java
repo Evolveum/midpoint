@@ -706,21 +706,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		});
 		add(version);
 
-		Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE, createStringResource("PageBase.subscriptionMessage"));
-		subscriptionMessage.setOutputMarkupId(true);
-		subscriptionMessage.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				String subscriptionId = getSubscriptionId();
-				if (StringUtils.isEmpty(subscriptionId)) {
-					return true;
-				}
-				return !WebComponentUtil.checkSubscriptionId(subscriptionId);
-			}
-		});
-		add(subscriptionMessage);
+		//TODO temporarily disabled
+//		Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE, createStringResource("PageBase.subscriptionMessage"));
+//		subscriptionMessage.setOutputMarkupId(true);
+//		subscriptionMessage.add(new VisibleEnableBehaviour() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public boolean isVisible() {
+//				String subscriptionId = getSubscriptionId();
+//				if (StringUtils.isEmpty(subscriptionId)) {
+//					return true;
+//				}
+//				return !WebComponentUtil.checkSubscriptionId(subscriptionId);
+//			}
+//		});
+//		add(subscriptionMessage);
 
 
 				WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);

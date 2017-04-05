@@ -90,20 +90,23 @@ public class AssignExecutor extends BaseActionExecutor {
         }
 
         for (PrismValue value : input.getData()) {
+            context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof FocusType) {
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
+                Throwable exception = null;
                 try {
                     operationsHelper.applyDelta(createDelta(objectType, resources, roles), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
-                    throw ex;       // TODO reconsider this
+					exception = processActionException(ex, NAME, value, context);
                 }
-                context.println("Modified " + prismObject.toString() + rawDrySuffix(raw, dryRun));
+                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + rawDrySuffix(raw, dryRun) + exceptionSuffix(exception));
             } else {
-                throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject of FocusType: " + value.toString());
+				//noinspection ThrowableNotThrown
+				processActionException(new ScriptExecutionException("Item is not a PrismObject of FocusType"), NAME, value, context);
             }
         }
         return Data.createEmpty();

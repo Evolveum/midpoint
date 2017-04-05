@@ -1,4 +1,4 @@
-dn: ou=posixgroups,dc=example,dc=com
+dn: ou=posixgroups,dc=evolveum,dc=net
 changetype: add
 objectclass: organizationalUnit
 ou: posixgroups

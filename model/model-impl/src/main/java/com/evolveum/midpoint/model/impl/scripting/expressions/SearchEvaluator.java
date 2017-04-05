@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.model.impl.scripting.expressions;
 
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,16 +29,13 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
-
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +49,9 @@ import javax.xml.bind.JAXBElement;
 @Component
 public class SearchEvaluator extends BaseExpressionEvaluator {
 
-    @Autowired
+	private static final Trace LOGGER = TraceManager.getTrace(SearchEvaluator.class);
+
+	@Autowired
     private ExpressionHelper expressionHelper;
 
     @Autowired
@@ -99,7 +98,8 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
         ResultHandler<T> handler = new ResultHandler<T>() {
             @Override
             public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-                atLeastOne.setValue(true);
+				context.checkTaskStop();
+				atLeastOne.setValue(true);
                 if (searchExpression.getScriptingExpression() != null) {
                     if (variableName != null) {
                         context.setVariable(variableName, object);
@@ -110,7 +110,12 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                         result.setSummarizeSuccesses(true);
                         result.summarize();
                     } catch (ScriptExecutionException e) {
-                        throw new SystemException(e);           // todo think about this
+						// todo think about this
+                        if (context.isContinueOnAnyError()) {
+							LoggingUtils.logUnexpectedException(LOGGER, "Exception when evaluating item from search result list.", e);
+						} else {
+							throw new SystemException(e);
+						}
                     }
                 } else {
                     outputData.addItem(object);
@@ -122,6 +127,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
         try {
             modelService.searchObjectsIterative(objectClass, objectQuery, handler, operationsHelper.createGetOptions(noFetch), context.getTask(), result);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+        	// TODO continue on any error?
             throw new ScriptExecutionException("Couldn't execute searchObjects operation: " + e.getMessage(), e);
         }
 

@@ -52,15 +52,17 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 		super(elementName, typeName, prismContext);
 	}
 
+	@NotNull
 	@Override
 	public ResourceAttribute<T> instantiate() {
 		return instantiate(getName());
 	}
 
+	@NotNull
 	@Override
 	public ResourceAttribute<T> instantiate(QName name) {
         name = addNamespaceIfApplicable(name);
-		return new ResourceAttribute<T>(name, this, prismContext);
+		return new ResourceAttribute<>(name, this, prismContext);
 	}
 
 	@Override

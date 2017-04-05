@@ -1096,20 +1096,25 @@ public class Clockwork {
 				ModelAuthorizationAction.CHANGE_CREDENTIALS.getUrl(), AuthorizationPhaseType.REQUEST);
 	}
 
-	private <F extends FocusType> void authorizeAssignmentRequest(String assignActionUrl, PrismObject object,
+	private <F extends FocusType,O extends ObjectType> void authorizeAssignmentRequest(String assignActionUrl, PrismObject<O> object,
 			OwnerResolver ownerResolver, Collection<EvaluatedAssignmentImpl> evaluatedAssignments, OperationResult result) throws SecurityViolationException, SchemaException {
 		if (evaluatedAssignments == null) {
 			return;
 		}
 		for (EvaluatedAssignment<F> evaluatedAssignment: evaluatedAssignments) {
 			PrismObject target = evaluatedAssignment.getTarget();
-			if (securityEnforcer.isAuthorized(assignActionUrl, AuthorizationPhaseType.REQUEST, object, null, target, ownerResolver)) {
+			ObjectDelta<O> assignmentObjectDelta = object.createModifyDelta();
+			ContainerDelta<AssignmentType> assignmentDelta = assignmentObjectDelta.createContainerModification(FocusType.F_ASSIGNMENT);
+			// We do not care if this is add or delete. All that matters for authorization is that it is in a delta.
+			assignmentDelta.addValuesToAdd(evaluatedAssignment.getAssignmentType().asPrismContainerValue().clone());
+			LOGGER.info("DDDDDDDDDDDDD:\n{}", assignmentDelta.debugDump(1));
+			if (securityEnforcer.isAuthorized(assignActionUrl, AuthorizationPhaseType.REQUEST, object, assignmentObjectDelta, target, ownerResolver)) {
 				LOGGER.trace("Operation authorized with {} authorization", assignActionUrl);
 				continue;
 			}
 			QName relation = evaluatedAssignment.getRelation();
 			if (DeputyUtils.isDelegationRelation(relation)) {
-				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), AuthorizationPhaseType.REQUEST, object, null, target, ownerResolver)) {
+				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), AuthorizationPhaseType.REQUEST, object, assignmentObjectDelta, target, ownerResolver)) {
 					LOGGER.trace("Operation authorized with {} authorization", ModelAuthorizationAction.DELEGATE.getUrl());
 					continue;
 				}

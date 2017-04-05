@@ -109,6 +109,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	 * used as an element name for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
+	@NotNull
 	I instantiate() throws SchemaException;
 
 	/**
@@ -116,6 +117,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	 * for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
+	@NotNull
 	I instantiate(QName name) throws SchemaException;
 
 	<T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz);

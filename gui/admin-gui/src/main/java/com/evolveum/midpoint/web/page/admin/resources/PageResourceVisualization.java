@@ -34,7 +34,6 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceVisualizationDto;
-import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,7 +50,7 @@ import java.io.IOException;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/resources/visualization", encoder = MidPointPageParametersEncoder.class, action = {
+@PageDescriptor(url = "/admin/resources/visualization", action = {
 		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
 				label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
 				description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),

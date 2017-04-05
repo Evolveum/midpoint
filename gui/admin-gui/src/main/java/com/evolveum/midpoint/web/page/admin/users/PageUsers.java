@@ -24,6 +24,8 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -80,9 +82,18 @@ import javax.xml.namespace.QName;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/users", action = {
-		@AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL, label = PageAdminUsers.AUTH_USERS_ALL_LABEL, description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_URL, label = "PageUsers.auth.users.label", description = "PageUsers.auth.users.description") })
+@PageDescriptor(
+		urls = {
+				@Url(mountUrl = "/admin/users", matchUrlForSecurity = "/admin/users")
+		},
+		action = {
+				@AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
+						label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
+						description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_URL,
+						label = "PageUsers.auth.users.label",
+						description = "PageUsers.auth.users.description")
+		})
 public class PageUsers extends PageAdminUsers {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
@@ -185,9 +196,9 @@ public class PageUsers extends PageAdminUsers {
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 			setResponsePage(PageUser.class);
-				
+
 			}
-			
+
 		};
 
 		userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
@@ -304,7 +315,7 @@ public class PageUsers extends PageAdminUsers {
 		return headerMenuItems;
 	}
 
-	
+
 
 	private List<InlineMenuItem> createRowActions() {
 		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
