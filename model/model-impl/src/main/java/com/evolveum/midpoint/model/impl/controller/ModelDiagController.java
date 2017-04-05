@@ -43,8 +43,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -582,7 +580,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
 		try {
-			String rv = dataModelVisualizer.visualize(resourceOids, task, result);
+			String rv = dataModelVisualizer.visualize(resourceOids, DataModelVisualizer.Target.DOT, task, result);
 			result.computeStatusIfUnknown();
 			return rv;
 		} catch (Throwable t) {
@@ -596,7 +594,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
 		try {
-			String rv = dataModelVisualizer.visualize(resource, task, result);
+			String rv = dataModelVisualizer.visualize(resource, DataModelVisualizer.Target.DOT, task, result);
 			result.computeStatusIfUnknown();
 			return rv;
 		} catch (Throwable t) {

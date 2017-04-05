@@ -1,5 +1,22 @@
-package com.evolveum.midpoint.model.impl.dataModel;
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package com.evolveum.midpoint.model.impl.dataModel.dot;
+
+import com.evolveum.midpoint.model.impl.dataModel.model.MappingRelation;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -12,24 +29,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
-import java.util.List;
 
 /**
  * @author mederly
  */
-public class MappingRelation extends Relation {
+public class DotMappingRelation implements DotRelation {
 
-	public static final int MAX_CONSTANT_WIDTH = 50;
-	@NotNull private final MappingType mapping;
+	private static final int MAX_CONSTANT_WIDTH = 50;
 
-	public MappingRelation(@NotNull List<DataItem> sources, @Nullable DataItem target, @NotNull MappingType mapping) {
-		super(sources, target);
-		this.mapping = mapping;
-	}
+	@NotNull final private MappingRelation mappingRelation;
 
-	@NotNull
-	public MappingType getMapping() {
-		return mapping;
+	DotMappingRelation(@NotNull MappingRelation mappingRelation) {
+		this.mappingRelation = mappingRelation;
 	}
 
 	@Override
@@ -39,7 +50,7 @@ public class MappingRelation extends Relation {
 
 	@Nullable
 	private String getLabel(String defaultLabel, boolean showConstant) {
-		ExpressionType expression = mapping.getExpression();
+		ExpressionType expression = getMapping().getExpression();
 		if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
 			return defaultLabel;
 		}
@@ -69,15 +80,19 @@ public class MappingRelation extends Relation {
 		}
 	}
 
+	private MappingType getMapping() {
+		return mappingRelation.getMapping();
+	}
+
 	private String getStringConstant(Object eval) {
 		if (eval instanceof RawType) {
-            XNode xnode = ((RawType) eval).getXnode();
-            if (xnode instanceof PrimitiveXNode) {
-                eval = ((PrimitiveXNode) xnode).getStringValue();
-            } else {
-                eval = xnode.toString();
-            }
-        }
+			XNode xnode = ((RawType) eval).getXnode();
+			if (xnode instanceof PrimitiveXNode) {
+				eval = ((PrimitiveXNode) xnode).getStringValue();
+			} else {
+				eval = xnode.toString();
+			}
+		}
 		return String.valueOf(eval);
 	}
 
@@ -88,7 +103,7 @@ public class MappingRelation extends Relation {
 
 	@Override
 	public String getEdgeStyle() {
-		switch (mapping.getStrength() != null ? mapping.getStrength() : MappingStrengthType.NORMAL) {
+		switch (getMapping().getStrength() != null ? getMapping().getStrength() : MappingStrengthType.NORMAL) {
 			case NORMAL: return "dashed";
 			case STRONG: return "solid";
 			case WEAK: return "dotted";
@@ -99,13 +114,13 @@ public class MappingRelation extends Relation {
 	@Override
 	public String getNodeTooltip() {
 		String lines = getTooltipString().trim();
-		lines = lines.replace("\n", VisualizationContext.LF);
+		lines = lines.replace("\n", DotModel.LF);
 		lines = lines.replace("\"", "\\\"");
 		return lines;
 	}
 
 	private String getTooltipString() {
-		ExpressionType expression = mapping.getExpression();
+		ExpressionType expression = getMapping().getExpression();
 		if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
 			return "asIs";
 		}
@@ -131,7 +146,7 @@ public class MappingRelation extends Relation {
 
 	@Override
 	public String getNodeStyleAttributes() {
-		ExpressionType expression = mapping.getExpression();
+		ExpressionType expression = getMapping().getExpression();
 		if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
 			return "";
 		}
@@ -147,4 +162,6 @@ public class MappingRelation extends Relation {
 			return "";
 		}
 	}
+
+
 }
