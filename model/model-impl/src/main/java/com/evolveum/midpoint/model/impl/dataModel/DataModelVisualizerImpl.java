@@ -246,6 +246,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					model.registerDataItem(assocItem);
 				}
 				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)));
 				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM)));
 				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO)));
 				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ACTIVATION_EXISTENCE)));
