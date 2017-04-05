@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -54,7 +55,8 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
 		OperationResult result = task.getResult();
 
 		// WHEN
-		String output = modelDiagnosticService.exportDataModel(Collections.singleton(RESOURCE_DUMMY_OID), task, result);
+		String output = modelDiagnosticService.exportDataModel(Collections.singleton(RESOURCE_DUMMY_OID),
+				DataModelVisualizer.Target.DOT, task, result);
 
 		// THEN
 		display("Visualization output", output);

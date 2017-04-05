@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.dataModel;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.dataModel.dot.DotModel;
 import com.evolveum.midpoint.model.impl.dataModel.model.AdHocDataItem;

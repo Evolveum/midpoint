@@ -24,7 +24,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizer;
+import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -576,7 +576,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 	}
 
 	@Override
-	public String exportDataModel(Collection<String> resourceOids, Task task, OperationResult parentResult)
+	public String exportDataModel(Collection<String> resourceOids,
+			DataModelVisualizer.Target target, Task task, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
 		try {
@@ -590,7 +591,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 	}
 
 	@Override
-	public String exportDataModel(ResourceType resource, Task task, OperationResult parentResult)
+	public String exportDataModel(ResourceType resource, DataModelVisualizer.Target target,
+			Task task, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
 		try {
