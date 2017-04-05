@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -46,6 +48,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -78,6 +81,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -88,6 +92,8 @@ public class IntegrationTestTools {
 	
 	public static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 	public static final String DBTABLE_CONNECTOR_TYPE = "org.identityconnectors.databasetable.DatabaseTableConnector";
+	public static final String CONNECTOR_LDAP_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
+	public static final String LDAP_CONNECTOR_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
 	
 	public static final String NS_RESOURCE_DUMMY_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
 	public static final QName RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME = new QName(NS_RESOURCE_DUMMY_CONFIGURATION ,"uselessString");
@@ -975,5 +981,50 @@ public class IntegrationTestTools {
 	public static void assertNoSchema(String message, ResourceType resourceType) {
 		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceType);
 		AssertJUnit.assertNull(message, resourceXsdSchema);
+	}
+	
+	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
+		XmlSchemaType xmlSchemaType = conn.getSchema();
+		assertNotNull("xmlSchemaType is null",xmlSchemaType);
+		Element connectorXsdSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(conn);
+		assertNotNull("No schema", connectorXsdSchemaElement);
+		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
+		assertNotNull("No xsd:schema element in xmlSchemaType",xsdElement);
+		display("XSD schema of "+conn, DOMUtil.serializeDOMToString(xsdElement));
+		// Try to parse the schema
+		PrismSchema schema = null;
+		try {
+			schema = PrismSchemaImpl.parse(xsdElement, true, "schema of "+conn, prismContext);
+		} catch (SchemaException e) {
+			throw new SchemaException("Error parsing schema of "+conn+": "+e.getMessage(),e);
+		}
+		assertConnectorSchemaSanity(schema, conn.toString(), SchemaConstants.ICF_FRAMEWORK_URI.equals(conn.getFramework()));
+	}
+	
+	public static void assertConnectorSchemaSanity(PrismSchema schema, String connectorDescription, boolean expectConnIdSchema) {
+		assertNotNull("Cannot parse connector schema of "+connectorDescription,schema);
+		assertFalse("Empty connector schema in "+connectorDescription,schema.isEmpty());
+		display("Parsed connector schema of "+connectorDescription,schema);
+		
+		// Local schema namespace is used here.
+		PrismContainerDefinition configurationDefinition = 
+			schema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(), PrismContainerDefinition.class);
+		assertNotNull("Definition of <configuration> property container not found in connector schema of "+connectorDescription,
+				configurationDefinition);
+		assertFalse("Empty definition of <configuration> property container in connector schema of "+connectorDescription,
+				configurationDefinition.isEmpty());
+		
+		if (expectConnIdSchema) {
+			// ICFC schema is used on other elements
+			PrismContainerDefinition configurationPropertiesDefinition = 
+				configurationDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+			assertNotNull("Definition of <configurationProperties> property container not found in connector schema of "+connectorDescription,
+					configurationPropertiesDefinition);
+			assertFalse("Empty definition of <configurationProperties> property container in connector schema of "+connectorDescription,
+					configurationPropertiesDefinition.isEmpty());
+			assertFalse("No definitions in <configurationProperties> in "+connectorDescription, configurationPropertiesDefinition.getDefinitions().isEmpty());
+
+			// TODO: other elements
+		}
 	}
 }

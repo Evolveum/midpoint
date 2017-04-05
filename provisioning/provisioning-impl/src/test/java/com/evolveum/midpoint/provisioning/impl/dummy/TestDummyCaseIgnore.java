@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -102,7 +102,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 		final String TEST_NAME = "test175SearchUidCase";
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, 
-				ConnectorFactoryIcfImpl.ICFS_UID, "wIlL", null, true,
+				SchemaConstants.ICFS_UID, "wIlL", null, true,
 				transformNameFromResource("Will"));
 	}
 	
@@ -111,7 +111,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 		final String TEST_NAME = "test176SearchUidCaseNoFetch";
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, 
-				ConnectorFactoryIcfImpl.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
+				SchemaConstants.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
 				transformNameFromResource("Will"));
 	}
 	

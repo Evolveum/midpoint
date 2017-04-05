@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,9 +49,9 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -167,7 +167,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Dummy Connector", connector);
 
 		// Check connector schema
-		ProvisioningTestUtil.assertConnectorSchemaSanity(connector, prismContext);
+		IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
 	}
 	
 
@@ -423,7 +423,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 //		assertEquals("will", provisioningAccountType.getName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+				provisioningAccountType, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
 
