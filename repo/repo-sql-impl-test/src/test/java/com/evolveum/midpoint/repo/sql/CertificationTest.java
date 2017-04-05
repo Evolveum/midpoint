@@ -66,7 +66,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_CLOSED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_COMMENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_OUTCOME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -158,7 +158,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?,?>> modifications = new ArrayList<>();
         ItemPath wi1 = new ItemPath(F_CASE).subPath(1L).subPath(F_WORK_ITEM).subPath(1L);
-        modifications.add(createModificationReplaceProperty(wi1.subPath(F_RESPONSE), campaignDef, DELEGATE));
+        modifications.add(createModificationReplaceProperty(wi1.subPath(F_OUTCOME), campaignDef, DELEGATE));
         modifications.add(createModificationReplaceProperty(wi1.subPath(F_COMMENT), campaignDef, "hi"));
 
         executeAndCheckModification(modifications, result, 0);
@@ -174,7 +174,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_STATE).replace(IN_REMEDIATION)
                 .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(NO_RESPONSE)
                 .item(F_CASE, 2, F_CURRENT_STAGE_NUMBER).replace(400)
-                .item(F_CASE, 1, F_WORK_ITEM, 1, F_RESPONSE).replace(NOT_DECIDED)
+                .item(F_CASE, 1, F_WORK_ITEM, 1, F_OUTCOME).replace(NOT_DECIDED)
                 .item(F_CASE, 1, F_WORK_ITEM, 1, F_COMMENT).replace("low")
                 .asItemDeltas();
 
@@ -197,7 +197,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         case100.setObjectRef(createObjectRef("100123", ObjectTypes.USER));
         case100.setTargetRef(createObjectRef("100456", ObjectTypes.ROLE));
         case100.beginWorkItem()
-				.reviewerRef(createObjectRef("ref1", ObjectTypes.USER))
+				.assigneeRef(createObjectRef("ref1", ObjectTypes.USER))
 				.end();
         case100.setCurrentStageNumber(1);
 
@@ -241,9 +241,9 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test260AddWorkItem");
 
         AccessCertificationWorkItemType workItem = new AccessCertificationWorkItemType(prismContext)
-                .beginOriginalReviewerRef().oid("orig1").type(UserType.COMPLEX_TYPE).<AccessCertificationWorkItemType>end()
-                .beginReviewerRef().oid("rev1").type(UserType.COMPLEX_TYPE).<AccessCertificationWorkItemType>end()
-                .beginReviewerRef().oid("rev2").type(UserType.COMPLEX_TYPE).end();
+                .beginOriginalAssigneeRef().oid("orig1").type(UserType.COMPLEX_TYPE).<AccessCertificationWorkItemType>end()
+                .beginAssigneeRef().oid("rev1").type(UserType.COMPLEX_TYPE).<AccessCertificationWorkItemType>end()
+                .beginAssigneeRef().oid("rev2").type(UserType.COMPLEX_TYPE).end();
 
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM).add(workItem)
@@ -270,7 +270,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 		AccessCertificationCaseType case100 = campaign.asObjectable().getCase().stream()
 				.filter(c -> c.getId() == NEW_CASE_ID).findFirst().orElseThrow(() -> new AssertionError("No case 100"));
 		assertEquals("Wrong # of work items in case 100", 2, case100.getWorkItem().size());
-		AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalReviewerRef() != null).findFirst().orElse(null);
+		AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalAssigneeRef() != null).findFirst().orElse(null);
 		assertNotNull("No new work item", workItem);
 
 		XMLGregorianCalendar closedTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
@@ -300,7 +300,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 		AccessCertificationCaseType case100 = campaign.asObjectable().getCase().stream()
 				.filter(c -> c.getId() == NEW_CASE_ID).findFirst().orElseThrow(() -> new AssertionError("No case 100"));
 		assertEquals("Wrong # of work items in case 100", 2, case100.getWorkItem().size());
-		AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalReviewerRef() != null).findFirst().orElse(null);
+		AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalAssigneeRef() != null).findFirst().orElse(null);
 		assertNotNull("No new work item", workItem);
 
 		List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
@@ -336,7 +336,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 				.targetRef(createObjectRef("x100456", ObjectTypes.ROLE))
 				.currentStageNumber(1)
 				.beginWorkItem()
-					.reviewerRef(createObjectRef("x100789", ObjectTypes.USER))
+					.assigneeRef(createObjectRef("x100789", ObjectTypes.USER))
 				.end();
 
         AccessCertificationCaseType case100 = new AccessCertificationCaseType();
@@ -363,13 +363,13 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test320AddDeleteModifyResponse");
 
         AccessCertificationWorkItemType wiNoId = new AccessCertificationWorkItemType(prismContext);
-        wiNoId.reviewerRef(createObjectRef("888", ObjectTypes.USER));
+        wiNoId.assigneeRef(createObjectRef("888", ObjectTypes.USER));
         wiNoId.setStageNumber(1);
 
 		AccessCertificationWorkItemType wi200 = new AccessCertificationWorkItemType(prismContext);
         wi200.setId(200L);         // this is dangerous
         wi200.setStageNumber(1);
-        wi200.reviewerRef(createObjectRef("200888", ObjectTypes.USER));
+        wi200.assigneeRef(createObjectRef("200888", ObjectTypes.USER));
 
 		AccessCertificationWorkItemType wi1 = new AccessCertificationWorkItemType();
         wi1.setId(1L);
@@ -377,7 +377,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_WORK_ITEM).add(wiNoId, wi200)
                 .item(F_CASE, 6, F_WORK_ITEM).delete(wi1)
-                .item(F_CASE, 6, F_WORK_ITEM, 2, F_RESPONSE).replace(ACCEPT)
+                .item(F_CASE, 6, F_WORK_ITEM, 2, F_OUTCOME).replace(ACCEPT)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
@@ -397,7 +397,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationWorkItemType wi200 = new AccessCertificationWorkItemType(prismContext);
         wi200.setId(200L);             //dangerous
         wi200.setStageNumber(44);
-        wi200.reviewerRef(createObjectRef("999999", ObjectTypes.USER));
+        wi200.assigneeRef(createObjectRef("999999", ObjectTypes.USER));
 
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_WORK_ITEM).replace(wi200)
@@ -420,7 +420,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationWorkItemType wi250 = new AccessCertificationWorkItemType(prismContext);
         wi250.setId(250L);         //dangerous
         wi250.setStageNumber(440);
-        wi250.reviewerRef(createObjectRef("250-999999", ObjectTypes.USER));
+        wi250.assigneeRef(createObjectRef("250-999999", ObjectTypes.USER));
 
 		AccessCertificationWorkItemType wi251 = new AccessCertificationWorkItemType(prismContext);
         wi251.setId(251L);
@@ -449,17 +449,17 @@ public class CertificationTest extends BaseSQLRepoTest {
 		AccessCertificationWorkItemType wi777 = new AccessCertificationWorkItemType(prismContext);
         wi777.setId(777L);
         wi777.setStageNumber(888);
-        wi777.reviewerRef(createObjectRef("999", ObjectTypes.USER));
+        wi777.assigneeRef(createObjectRef("999", ObjectTypes.USER));
 
 		AccessCertificationWorkItemType wiNoId = new AccessCertificationWorkItemType(prismContext);
         wiNoId.setStageNumber(889);
-        wiNoId.reviewerRef(createObjectRef("9999", ObjectTypes.USER));
+        wiNoId.assigneeRef(createObjectRef("9999", ObjectTypes.USER));
 
         AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext)
         		.objectRef(createObjectRef("aaa", ObjectTypes.USER))
         		.targetRef(createObjectRef("bbb", ObjectTypes.ROLE))
 				.beginWorkItem()
-						.reviewerRef(createObjectRef("ccc", ObjectTypes.USER))
+						.assigneeRef(createObjectRef("ccc", ObjectTypes.USER))
 				.<AccessCertificationCaseType>end()
 				.workItem(wi777)
 				.workItem(wiNoId)
@@ -525,8 +525,8 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .and().exists(F_WORK_ITEM).block()
 					.item(F_CLOSED_TIMESTAMP).isNull()
                     .and().block()
-                        .item(F_RESPONSE).eq(NO_RESPONSE)
-                        .or().item(F_RESPONSE).isNull()
+                        .item(F_OUTCOME).eq(NO_RESPONSE)
+                        .or().item(F_OUTCOME).isNull()
                     .endBlock()
                 .endBlock()
                 .build();
@@ -551,7 +551,7 @@ public class CertificationTest extends BaseSQLRepoTest {
             }
             boolean emptyDecisionFound = false;
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-                if (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE) {
+                if (workItem.getOutcome() == null || workItem.getOutcome() == NO_RESPONSE) {
                     emptyDecisionFound = true;
                     break;
                 }

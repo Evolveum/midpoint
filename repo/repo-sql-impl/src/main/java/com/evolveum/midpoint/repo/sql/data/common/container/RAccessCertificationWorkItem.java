@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
-import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
@@ -69,9 +68,9 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     private Integer id;
 
     private Integer stageNumber;
-    private Set<RCertWorkItemReference> reviewerRef = new HashSet<>();
-    private REmbeddedReference responderRef;
-    private RAccessCertificationResponse response;
+    private Set<RCertWorkItemReference> assigneeRef = new HashSet<>();
+    private REmbeddedReference executorRef;
+    private RAccessCertificationResponse outcome;
     private XMLGregorianCalendar timestamp;
     private XMLGregorianCalendar closedTimestamp;
 
@@ -138,34 +137,34 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		this.stageNumber = stageNumber;
 	}
 
-	@JaxbName(localPart = "reviewerRef")
+	@JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RCertWorkItemReference> getReviewerRef() {
-        return reviewerRef;
+    public Set<RCertWorkItemReference> getAssigneeRef() {
+        return assigneeRef;
     }
 
-    public void setReviewerRef(Set<RCertWorkItemReference> reviewerRef) {
-        this.reviewerRef = reviewerRef;
+    public void setAssigneeRef(Set<RCertWorkItemReference> assigneeRef) {
+        this.assigneeRef = assigneeRef;
     }
 
     @Column
-	public REmbeddedReference getResponderRef() {
-		return responderRef;
+	public REmbeddedReference getExecutorRef() {
+		return executorRef;
 	}
 
-	public void setResponderRef(REmbeddedReference responderRef) {
-		this.responderRef = responderRef;
+	public void setExecutorRef(REmbeddedReference executorRef) {
+		this.executorRef = executorRef;
 	}
 
 	@Column
-	public RAccessCertificationResponse getResponse() {
-		return response;
+	public RAccessCertificationResponse getOutcome() {
+		return outcome;
 	}
 
-	public void setResponse(RAccessCertificationResponse response) {
-		this.response = response;
+	public void setOutcome(RAccessCertificationResponse outcome) {
+		this.outcome = outcome;
 	}
 
 	@Column
@@ -197,9 +196,9 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 				Objects.equals(ownerId, that.ownerId) &&
 				Objects.equals(id, that.id) &&
 				Objects.equals(stageNumber, that.stageNumber) &&
-				Objects.equals(reviewerRef, that.reviewerRef) &&
-				Objects.equals(responderRef, that.responderRef) &&
-				response == that.response &&
+				Objects.equals(assigneeRef, that.assigneeRef) &&
+				Objects.equals(executorRef, that.executorRef) &&
+				outcome == that.outcome &&
 				Objects.equals(timestamp, that.timestamp) &&
 				Objects.equals(closedTimestamp, that.closedTimestamp);
 	}
@@ -207,7 +206,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 	@Override
 	public int hashCode() {
 		return Objects
-				.hash(ownerOwnerOid, ownerId, id, stageNumber, reviewerRef, responderRef, response, timestamp, closedTimestamp);
+				.hash(ownerOwnerOid, ownerId, id, stageNumber, assigneeRef, executorRef, outcome, timestamp, closedTimestamp);
 	}
 
 	@Transient
@@ -244,10 +243,10 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		}
 		rWorkItem.setId(idInt);
 		rWorkItem.setStageNumber(workItem.getStageNumber());
-        rWorkItem.getReviewerRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
-                workItem.getReviewerRef(), context.prismContext, rWorkItem));
-        rWorkItem.setResponderRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getResponderRef(), context.prismContext));
-        rWorkItem.setResponse(RUtil.getRepoEnumValue(workItem.getResponse(), RAccessCertificationResponse.class));
+        rWorkItem.getAssigneeRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
+                workItem.getAssigneeRef(), context.prismContext, rWorkItem));
+        rWorkItem.setExecutorRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getExecutorRef(), context.prismContext));
+        rWorkItem.setOutcome(RUtil.getRepoEnumValue(workItem.getOutcome(), RAccessCertificationResponse.class));
         rWorkItem.setTimestamp(workItem.getTimestamp());
         rWorkItem.setClosedTimestamp(workItem.getClosedTimestamp());
     }

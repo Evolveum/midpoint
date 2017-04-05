@@ -62,9 +62,9 @@ public class CertReviewEvent extends AccessCertificationEvent {
     private boolean awaitsResponseFromRequestee(AccessCertificationCaseType aCase, String reviewerOid, int currentStageNumber) {
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
             if (workItem.getStageNumber() == currentStageNumber
-					&& (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE)
+					&& (workItem.getOutcome() == null || workItem.getOutcome() == NO_RESPONSE)
 					&& workItem.getClosedTimestamp() == null
-					&& ObjectTypeUtil.containsOid(workItem.getReviewerRef(), reviewerOid)) {
+					&& ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
                 return true;
             }
         }

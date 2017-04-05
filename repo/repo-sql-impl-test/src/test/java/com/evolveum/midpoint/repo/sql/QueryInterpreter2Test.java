@@ -71,8 +71,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_CONSTRUCTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType.F_RESOURCE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ASSIGNMENT;
@@ -2838,7 +2837,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_WORK_ITEM, F_REVIEWER_REF).ref("1234567890")
+                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref("1234567890")
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n"
@@ -2864,8 +2863,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref("oid1")
-                    .or().item(F_REVIEWER_REF).ref("oid2")
+                    .item(F_ASSIGNEE_REF).ref("oid1")
+                    .or().item(F_ASSIGNEE_REF).ref("oid2")
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
             String expected = "select\n"
@@ -2898,7 +2897,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref("oid1", "oid2")
+                    .item(F_ASSIGNEE_REF).ref("oid1", "oid2")
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
             String expected = "select\n"
@@ -2959,7 +2958,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_WORK_ITEM, F_REVIEWER_REF).ref(reviewerRef)
+                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .build();
 
@@ -3000,7 +2999,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
 
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_WORK_ITEM, F_REVIEWER_REF).ref(reviewerRef)
+                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .asc(F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
                     .build();
@@ -3041,7 +3040,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref("oid1", "oid2")
+                    .item(F_ASSIGNEE_REF).ref("oid1", "oid2")
                     .and().item(AccessCertificationWorkItemType.F_CLOSED_TIMESTAMP).isNull()
                     .asc(PrismConstants.T_PARENT, F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
                     .build();
@@ -3077,7 +3076,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_WORK_ITEM, F_REVIEWER_REF).ref(reviewerRef)
+                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                     .desc(F_CURRENT_REVIEW_REQUESTED_TIMESTAMP)
@@ -3426,11 +3425,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .exists(F_WORK_ITEM)
                     .block()
-                        .item(F_REVIEWER_REF).ref("123456")
+                        .item(F_ASSIGNEE_REF).ref("123456")
                         .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
                         .and().block()
-                            .item(F_RESPONSE).isNull()
-                            .or().item(F_RESPONSE).eq(NO_RESPONSE)
+                            .item(AccessCertificationWorkItemType.F_OUTCOME).isNull()
+                            .or().item(AccessCertificationWorkItemType.F_OUTCOME).eq(NO_RESPONSE)
                         .endBlock()
                     .endBlock()
                     .build();
@@ -3475,11 +3474,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .exists(F_WORK_ITEM)
                     .block()
-                        .item(F_REVIEWER_REF).ref("123456")
+                        .item(F_ASSIGNEE_REF).ref("123456")
                         .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
                         .and().block()
-                            .item(F_RESPONSE).isNull()
-                            .or().item(F_RESPONSE).eq(NO_RESPONSE)
+                            .item(AccessCertificationWorkItemType.F_OUTCOME).isNull()
+                            .or().item(AccessCertificationWorkItemType.F_OUTCOME).eq(NO_RESPONSE)
                         .endBlock()
                     .endBlock()
                     .asc(T_PARENT, F_NAME)

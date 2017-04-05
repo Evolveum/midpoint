@@ -78,7 +78,7 @@ public class CertCampaignTypeUtil {
     // TODO move to a test class
     public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
         return _case.getWorkItem().stream()
-                .filter(wi -> wi.getStageNumber() == stageNumber && ObjectTypeUtil.containsOid(wi.getReviewerRef(), reviewerOid))
+                .filter(wi -> wi.getStageNumber() == stageNumber && ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid))
                 .findFirst().orElse(null);
     }
 
@@ -167,7 +167,7 @@ public class CertCampaignTypeUtil {
 			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
 				if (workItem.getStageNumber() == campaignStageNumber
                         && workItem.getClosedTimestamp() == null
-                        && (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE)) {
+                        && (workItem.getOutcome() == null || workItem.getOutcome() == NO_RESPONSE)) {
 					unansweredCases++; // TODO what about delegations?
 					break;
 				}
@@ -232,7 +232,7 @@ public class CertCampaignTypeUtil {
 					continue;
 				}
 				decisionsRequested++;
-				if (workItem.getResponse() != null && workItem.getResponse() != NO_RESPONSE) {	// TODO what about delegations?
+				if (workItem.getOutcome() != null && workItem.getOutcome() != NO_RESPONSE) {	// TODO what about delegations?
 					decisionsDone++;
 				}
 			}
@@ -259,7 +259,7 @@ public class CertCampaignTypeUtil {
     }
 
     private static boolean hasNoResponse(AccessCertificationWorkItemType workItem) {
-        return (workItem.getResponse() == null || workItem.getResponse() == NO_RESPONSE) && StringUtils.isEmpty(workItem.getComment());
+        return (workItem.getOutcome() == null || workItem.getOutcome() == NO_RESPONSE) && StringUtils.isEmpty(workItem.getComment());
     }
 
     public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationWorkItemType> workItems) {
@@ -268,7 +268,7 @@ public class CertCampaignTypeUtil {
             if (hasNoResponse(workItem)) {
                 continue;
             }
-            rv.add(workItem.getResponderRef());
+            rv.add(workItem.getExecutorRef());
         }
         return rv;
     }
@@ -336,7 +336,7 @@ public class CertCampaignTypeUtil {
         return aCase.getWorkItem().stream()
                 // TODO check also with campaign stage?
                 .filter(wi -> wi.getStageNumber() == aCase.getCurrentStageNumber() && wi.getClosedTimestamp() == null)
-                .flatMap(wi -> wi.getReviewerRef().stream())
+                .flatMap(wi -> wi.getAssigneeRef().stream())
                 .collect(Collectors.toSet());
     }
 

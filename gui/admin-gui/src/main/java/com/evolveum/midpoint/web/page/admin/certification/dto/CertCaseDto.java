@@ -59,8 +59,8 @@ public class CertCaseDto extends CertCaseOrWorkItemDto {
             if (StringUtils.isNotEmpty(workItem.getComment())) {
                 comments.add(workItem.getComment());
             }
-			boolean hasResponse = workItem.getResponse() != null || !StringUtils.isEmpty(workItem.getComment());
-			for (ObjectReferenceType reviewerRef : workItem.getReviewerRef()) {
+			boolean hasResponse = workItem.getOutcome() != null || !StringUtils.isEmpty(workItem.getComment());
+			for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
 				PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(reviewerRef, page, task, result);
 				String reviewerName = reviewerObject != null ? WebComponentUtil.getName(reviewerObject) : reviewerRef.getOid();
 				allReviewersNames.add(reviewerName);

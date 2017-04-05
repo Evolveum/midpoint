@@ -99,8 +99,8 @@ public class AccCertQueryHelper {
         ObjectFilter filterToAdd;
         if (notDecidedOnly) {
             ObjectFilter noResponseFilter = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-					.item(F_RESPONSE).eq(NO_RESPONSE)
-					.or().item(F_RESPONSE).isNull()
+					.item(F_OUTCOME).eq(NO_RESPONSE)
+					.or().item(F_OUTCOME).isNull()
 					.buildFilter();
             filterToAdd = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
         } else {
@@ -141,7 +141,7 @@ public class AccCertQueryHelper {
         return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
 					.exists(F_WORK_ITEM)
 					.block()
-						.item(F_REVIEWER_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
+						.item(F_ASSIGNEE_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
 						.and().item(F_CLOSED_TIMESTAMP).isNull()
 					.endBlock()
                     .buildFilter();
@@ -150,7 +150,7 @@ public class AccCertQueryHelper {
     // TODO deputies!
     private ObjectFilter getReviewerAndEnabledFilterForWI(String reviewerOid) throws SchemaException {
         return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-                    .item(F_REVIEWER_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
+                    .item(F_ASSIGNEE_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
 					.and().item(F_CLOSED_TIMESTAMP).isNull()
                     .buildFilter();
     }
@@ -185,7 +185,7 @@ public class AccCertQueryHelper {
         cases: for (AccessCertificationCaseType aCase : caseList) {
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
                 if (workItem.getClosedTimestamp() == null) {
-                    for (ObjectReferenceType reviewerRef : workItem.getReviewerRef()) {
+                    for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
                         if (reviewerOid.equals(reviewerRef.getOid())) {
                             rv.add(aCase.clone());
                             continue cases;

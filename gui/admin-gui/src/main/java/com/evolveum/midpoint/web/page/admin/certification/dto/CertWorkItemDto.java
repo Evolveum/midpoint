@@ -52,7 +52,7 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
     }
 
     public AccessCertificationResponseType getResponse() {
-        return workItem.getResponse();
+        return workItem.getOutcome();
     }
 
     public long getWorkItemId() {

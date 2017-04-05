@@ -96,10 +96,10 @@ public class AccCertCaseOperationsHelper {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		ItemPath workItemPath = new ItemPath(F_CASE, caseId, F_WORK_ITEM, workItemId);
 		Collection<ItemDelta<?,?>> deltaList = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_RESPONSE)).replace(response)
+				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTCOME)).replace(response)
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_COMMENT)).replace(comment)
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_TIMESTAMP)).replace(now)
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_RESPONDER_REF)).replace(responderRef)
+				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_EXECUTOR_REF)).replace(responderRef)
 				.asItemDeltas();
 
 		ItemDelta.applyTo(deltaList, campaign.asPrismContainerValue());
@@ -226,8 +226,8 @@ public class AccCertCaseOperationsHelper {
         for (ObjectReferenceType reviewer : forReviewers) {
 			AccessCertificationWorkItemType workItem = new AccessCertificationWorkItemType(prismContext)
 					.stageNumber(forStage)
-					.reviewerRef(reviewer.clone())
-					.originalReviewerRef(reviewer.clone());
+					.assigneeRef(reviewer.clone())
+					.originalAssigneeRef(reviewer.clone());
             workItems.add(workItem);
         }
         return workItems;

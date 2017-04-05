@@ -26,7 +26,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
@@ -130,7 +129,7 @@ public class AccCertResponseComputationHelper {
     private List<AccessCertificationResponseType> getResponses(AccessCertificationCaseType _case, int stageNumber) {
         return _case.getWorkItem().stream()
 				.filter(wi -> wi.getStageNumber() == stageNumber)
-				.map(wi -> wi.getResponse())
+				.map(wi -> wi.getOutcome())
 				.collect(Collectors.toList());
     }
 

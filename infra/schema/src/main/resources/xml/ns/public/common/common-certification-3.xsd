@@ -901,7 +901,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-            <xsd:element name="originalReviewerRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="originalAssigneeRef" type="tns:ObjectReferenceType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Original reviewer for this work item.
@@ -912,7 +912,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-            <xsd:element name="reviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="assigneeRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Current reviewer(s) for this work item.
@@ -923,7 +923,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="responderRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+			<xsd:element name="executorRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						Who made the current decision?
@@ -933,7 +933,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="response" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+			<xsd:element name="outcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						The response.
