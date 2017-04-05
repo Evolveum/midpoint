@@ -82,14 +82,8 @@ public class CommonProcessVariableNames {
 
 	public static final String FORM_BUTTON_PREFIX = "[B]";
 
-	// Variable reflecting the process status, like "your request was approved by
-	// engineering group, and is being sent to the management". Stored into wfStatus task extension property.
-	// [String]
-	public static final String VARIABLE_WF_STATE = "wfState";
-
-	// Basic decision returned from a workflow process.
-	// for most work items it is simple __APPROVED__ or __REJECTED__, but in principle this can be any string value
-	public static final String VARIABLE_WF_ANSWER = "wfAnswer";
+	// URI of the work item outcome
+	public static final String VARIABLE_OUTCOME = "outcome";
 
 	// Stage number - if process can be conceptually divided into stages. Starts at 0.
 	// Null if not applicable. [Integer]

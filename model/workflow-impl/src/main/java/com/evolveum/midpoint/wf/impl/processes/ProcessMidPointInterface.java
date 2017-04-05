@@ -29,9 +29,7 @@ import java.util.Map;
  */
 public interface ProcessMidPointInterface {
 
-    String getAnswer(Map<String, Object> variables);
-
-    String getState(Map<String, Object> variables);
+    String getOutcome(Map<String, Object> variables);
 
     Integer getStageNumber(Map<String, Object> variables);
 

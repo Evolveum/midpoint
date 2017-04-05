@@ -101,6 +101,10 @@ public class ApprovalUtils {
 		return BooleanUtils.isTrue(approvalBooleanValue(result));
 	}
 
+	public static boolean isApproved(WorkItemOutcomeType outcome) {
+		return BooleanUtils.isTrue(approvalBooleanValue(outcome));
+	}
+
 	public static String getOutcomeAsString(WorkItemResultType result) {
 		return result != null ? approvalStringValue(fromUri(result.getOutcome())) : null;
 	}
@@ -116,6 +120,15 @@ public class ApprovalUtils {
 		}
 	}
 
+	public static String toUri(Boolean approved) {
+    	if (approved == null) {
+			return null;
+		} else {
+    		return approved ? SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED : SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECTED;
+		}
+	}
+
+
 	public static WorkItemOutcomeType fromUri(String uri) {
 		if (uri == null) {
 			return null;
@@ -130,5 +143,13 @@ public class ApprovalUtils {
 
 	public static String makeNiceFromUri(String uri) {
 		return makeNice(approvalStringValue(fromUri(uri)));
+	}
+
+	public static Boolean approvalBooleanValueFromUri(String uri) {
+		return approvalBooleanValue(fromUri(uri));
+	}
+
+	public static boolean isApprovedFromUri(String uri) {
+		return isApproved(fromUri(uri));
 	}
 }

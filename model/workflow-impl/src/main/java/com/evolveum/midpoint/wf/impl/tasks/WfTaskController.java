@@ -221,11 +221,6 @@ public class WfTaskController {
             notifyProcessStart(wfTask, result);
         } catch (SchemaException|RuntimeException|ObjectNotFoundException|ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send a request to start a process instance to workflow management system", e);
-			try {
-				wfTask.setProcessInstanceState("Workflow process instance creation could not be requested: " + e);
-			} catch (SchemaException e1) {
-				throw new SystemException(e1);		// never occurs
-			}
 			result.recordFatalError("Couldn't send a request to start a process instance to workflow management system: " + e.getMessage(), e);
             throw new SystemException("Workflow process instance creation could not be requested", e);
         } finally {
@@ -248,19 +243,6 @@ public class WfTaskController {
 
 		// update state description
 		ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
-		String stateDescription = pmi.getState(variables);
-		if (stateDescription == null || stateDescription.isEmpty()) {
-			if (event instanceof ProcessStartedEvent) {
-				stateDescription = "Approval process has been started";
-			} else if (event instanceof ProcessFinishedEvent) {
-				stateDescription = "Approval process has finished";
-			} else {
-				stateDescription = null;
-			}
-		}
-        if (stateDescription != null) {
-            wfTask.setProcessInstanceState(stateDescription);
-        }
         wfTask.setProcessInstanceStageInformation(pmi.getStageNumber(variables), pmi.getStageCount(variables),
 				pmi.getStageName(variables), pmi.getStageDisplayName(variables));
 
@@ -277,7 +259,7 @@ public class WfTaskController {
         LOGGER.trace("Calling onProcessEnd on {}", wfTask.getChangeProcessor());
         wfTask.getChangeProcessor().onProcessEnd(event, wfTask, result);
 		wfTask.setProcessInstanceEndTimestamp();
-		wfTask.setAnswer(event.getAnswer());			// TODO or should we do this on each process event?
+		wfTask.setOutcome(event.getOutcome());
 		wfTask.commitChanges(result);
 
         auditProcessEnd(wfTask, event, result);

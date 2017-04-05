@@ -188,10 +188,6 @@ public class WfTask {
         return wfTaskController.recreateWfTask(parentTask);
     }
 
-	void setProcessInstanceState(String stateDescription) throws SchemaException {
-		task.addModification(DeltaBuilder.deltaFor(TaskType.class, getPrismContext()).item(F_WORKFLOW_CONTEXT, F_STATE).replace(stateDescription).asItemDelta());
-	}
-
 	private PrismContext getPrismContext() {
 		return wfTaskController.getPrismContext();
 	}
@@ -200,13 +196,12 @@ public class WfTask {
 		return task.getWorkflowContext() != null ? task.getWorkflowContext().getProcessInstanceName() : null;
 	}
 
-	public String getAnswer() {
-		return task.getWorkflowContext() != null ? task.getWorkflowContext().getAnswer() : null;
+	public String getOutcome() {
+		return task.getWorkflowContext() != null ? task.getWorkflowContext().getOutcome() : null;
 	}
 
-	// replacing __REJECTED__ with Rejected, etc. (TODO reconsider)
 	public String getAnswerNice() {
-    	return ApprovalUtils.makeNice(getAnswer());
+    	return ApprovalUtils.makeNiceFromUri(getOutcome());
 	}
 
 	public String getCompleteStageInfo() {
@@ -222,10 +217,9 @@ public class WfTask {
 		return (PrismObject<UserType>) wfTaskController.getMiscDataUtil().resolveAndStoreObjectReference(requesterRef, result);
 	}
 
-    public void setAnswer(String answer) throws SchemaException {
+    public void setOutcome(String outcome) throws SchemaException {
         task.addModifications(DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
-                .item(F_WORKFLOW_CONTEXT, F_ANSWER).replace(answer)
-                .item(F_WORKFLOW_CONTEXT, F_APPROVED).replace(ApprovalUtils.approvalBooleanValue(answer))
+                .item(F_WORKFLOW_CONTEXT, F_OUTCOME).replace(outcome)
                 .asItemDeltas());
     }
 

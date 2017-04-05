@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 
 /**
@@ -37,7 +38,7 @@ public class WorkflowProcessEvent extends WorkflowEvent {
 
 	@Override
 	protected String getAnswer() {
-		return workflowContext.getAnswer();
+		return ApprovalUtils.approvalStringValue(ApprovalUtils.fromUri(workflowContext.getOutcome()));
 	}
 
 	@Override

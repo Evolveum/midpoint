@@ -1259,15 +1259,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="state" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Value of process variable "wfState" that should describe current state of
-                        the process instance (e.g. "Request was approved by Engineering, passed now to
-                        the Management Group").
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1297,25 +1288,6 @@
                     <xsd:documentation>
                         Stage display name - if process can be conceptually divided into stages.
 						(Stored in process variable "stageDisplayName".)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="approved" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        True if the result is APPROVED. False if REJECTED. Null if the result is not yet
-                        known or if it something other than APPROVED or REJECTED ("answer" property
-                        has to be set in such case).
-						DEPRECATED
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="answer" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Value of process variable "wfAnswer" that should describe overall outcome
-                        of the process instance.
-						DEPRECATED
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

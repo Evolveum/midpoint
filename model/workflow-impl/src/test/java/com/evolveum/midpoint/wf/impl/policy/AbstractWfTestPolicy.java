@@ -804,8 +804,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 		assertNotNull("Missing process start time in subtask: " + subtaskName, wfc.getStartTimestamp());
 		assertNull("Unexpected process end time in subtask: " + subtaskName, wfc.getEndTimestamp());
-		assertEquals("Wrong 'approved' state", null, wfc.isApproved());
-		assertEquals("Wrong answer", null, wfc.getAnswer());
+		assertEquals("Wrong outcome", null, wfc.getOutcome());
 		//assertEquals("Wrong state", null, wfc.getState());
 	}
 

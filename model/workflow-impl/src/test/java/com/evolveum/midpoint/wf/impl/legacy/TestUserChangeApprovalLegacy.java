@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -214,8 +215,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         assertEquals("Wrong process ID name in subtask: " + subtaskName, processName, wfc.getProcessInstanceName());
         assertNotNull("Missing process start time in subtask: " + subtaskName, wfc.getStartTimestamp());
         assertNull("Unexpected process end time in subtask: " + subtaskName, wfc.getEndTimestamp());
-        assertEquals("Wrong 'approved' state", null, wfc.isApproved());
-        assertEquals("Wrong answer", null, wfc.getAnswer());
+        assertEquals("Wrong outcome", null, wfc.getOutcome());
         //assertEquals("Wrong state", null, wfc.getState());
     }
 
@@ -240,9 +240,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             assertEquals("Wrong process ID name in subtask: " + subtask, processNames[i++], wfc.getProcessInstanceName());
             assertNotNull("Missing process start time in subtask: " + subtask, wfc.getStartTimestamp());
             assertNotNull("Missing process end time in subtask: " + subtask, wfc.getEndTimestamp());
-            assertEquals("Wrong 'approved' state", Boolean.TRUE, wfc.isApproved());
-            assertEquals("Wrong answer", ApprovalUtils.DECISION_APPROVED, wfc.getAnswer());
-            assertEquals("Wrong state", "Final decision is APPROVED", wfc.getState());
+            assertEquals("Wrong outcome", SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED, wfc.getOutcome());
         }
     }
 

@@ -94,9 +94,6 @@ public class TaskCompleteListener implements TaskListener {
 			//noinspection ConstantConditions
 			execution.setVariable(LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);
         }
-        // consider removing this
-        execution.setVariable(
-                CommonProcessVariableNames.VARIABLE_WF_STATE, "User " + (user!=null?user.getName():null) + " decided to " + (isApproved ? "approve" : "reject") + " the request.");
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",

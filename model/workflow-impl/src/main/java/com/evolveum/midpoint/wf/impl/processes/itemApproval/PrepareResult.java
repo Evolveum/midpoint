@@ -36,9 +36,7 @@ public class PrepareResult implements JavaDelegate {
         Validate.notNull(loopLevelsStop, "loopLevels_stop is undefined");
         boolean approved = !loopLevelsStop;
 
-        execution.setVariable(CommonProcessVariableNames.VARIABLE_WF_ANSWER, ApprovalUtils.approvalStringValue(approved));
-        execution.setVariable(
-                CommonProcessVariableNames.VARIABLE_WF_STATE, "Final decision is " + (approved ? "APPROVED" : "REJECTED"));
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_OUTCOME, ApprovalUtils.toUri(approved));
 
         getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
     }
