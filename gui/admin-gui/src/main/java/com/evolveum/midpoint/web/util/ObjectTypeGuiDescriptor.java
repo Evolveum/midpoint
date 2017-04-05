@@ -77,7 +77,9 @@ public enum ObjectTypeGuiDescriptor {
 
     SEQUENCE(ObjectTypes.SEQUENCE, "ObjectTypeGuiDescriptor.sequence", "", ""),
 
-    SERVICE(ObjectTypes.SERVICE, "ObjectTypeGuiDescriptor.service", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
+    SERVICE(ObjectTypes.SERVICE, "ObjectTypeGuiDescriptor.service", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON),
+
+    CASE(ObjectTypes.CASE, "ObjectTypeGuiDescriptor.case", "", "");             // TODO icons
 
     public static final String ERROR_ICON = "silk-error";
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";

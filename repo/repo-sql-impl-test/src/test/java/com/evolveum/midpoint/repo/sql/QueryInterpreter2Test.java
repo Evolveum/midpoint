@@ -1971,7 +1971,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             objectQuery.setUseNewQueryInterpreter(true);
             count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
-            assertEquals(20, count);
+            assertEquals(21, count);
 
         } finally {
             close(session);
