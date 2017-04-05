@@ -933,7 +933,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="outcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+			<xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						The response.

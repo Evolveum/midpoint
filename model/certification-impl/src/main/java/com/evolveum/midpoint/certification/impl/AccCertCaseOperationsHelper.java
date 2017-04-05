@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -96,7 +97,7 @@ public class AccCertCaseOperationsHelper {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		ItemPath workItemPath = new ItemPath(F_CASE, caseId, F_WORK_ITEM, workItemId);
 		Collection<ItemDelta<?,?>> deltaList = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTCOME)).replace(response)
+				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTCOME)).replace(OutcomeUtils.toUri(response))
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_COMMENT)).replace(comment)
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_TIMESTAMP)).replace(now)
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_EXECUTOR_REF)).replace(responderRef)

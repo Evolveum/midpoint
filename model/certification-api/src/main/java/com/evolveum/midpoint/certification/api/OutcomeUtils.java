@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.certification.api;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
+import org.apache.commons.lang.BooleanUtils;
+
+/**
+ * TEMPORARY
+ * =========
+ *
+ * @author mederly
+ */
+public class OutcomeUtils {
+
+	public static String toUri(AccessCertificationResponseType response) {
+    	if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
+    		return null;
+		}
+		switch (response) {
+			case ACCEPT: return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT;
+			case REVOKE: return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REVOKE;
+			case REDUCE: return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE;
+			case NOT_DECIDED: return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED;
+			default: throw new AssertionError("Unexpected response: " + response);
+		}
+	}
+
+	public static AccessCertificationResponseType fromUri(String uri) {
+		if (uri == null) {
+			return null;
+		} else if (SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT.equals(uri)) {
+			return AccessCertificationResponseType.ACCEPT;
+		} else if (SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REVOKE.equals(uri)) {
+			return AccessCertificationResponseType.REVOKE;
+		} else if (SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE.equals(uri)) {
+			return AccessCertificationResponseType.REDUCE;
+		} else if (SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED.equals(uri)) {
+			return AccessCertificationResponseType.NOT_DECIDED;
+		} else {
+			throw new IllegalArgumentException("Unrecognized URI: " + uri);
+		}
+	}
+
+}

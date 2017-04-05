@@ -3427,10 +3427,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .block()
                         .item(F_ASSIGNEE_REF).ref("123456")
                         .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
-                        .and().block()
-                            .item(AccessCertificationWorkItemType.F_OUTCOME).isNull()
-                            .or().item(AccessCertificationWorkItemType.F_OUTCOME).eq(NO_RESPONSE)
-                        .endBlock()
+                        .and().item(AccessCertificationWorkItemType.F_OUTCOME).isNull()
                     .endBlock()
                     .build();
 
@@ -3455,10 +3452,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "        a.currentStageNumber is null\n"
 					+ "      )\n"
 					+ "    ) and\n"
-					+ "    (\n"
-					+ "      w.response is null or\n"
-					+ "      w.response = :response\n"
-					+ "    )\n"
+					+ "      w.response is null\n"
 					+ "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3476,10 +3470,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .block()
                         .item(F_ASSIGNEE_REF).ref("123456")
                         .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
-                        .and().block()
-                            .item(AccessCertificationWorkItemType.F_OUTCOME).isNull()
-                            .or().item(AccessCertificationWorkItemType.F_OUTCOME).eq(NO_RESPONSE)
-                        .endBlock()
+                        .and().item(AccessCertificationWorkItemType.F_OUTCOME).isNull()
                     .endBlock()
                     .asc(T_PARENT, F_NAME)
                     .asc(T_ID)
@@ -3508,10 +3499,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "        a.currentStageNumber is null\n"
 					+ "      )\n"
 					+ "    ) and\n"
-					+ "    (\n"
-					+ "      w.response is null or\n"
-					+ "      w.response = :response\n"
-					+ "    )\n"
+					+ "      w.response is null\n"
 					+ "  )\n"
 					+ "order by o.name.orig asc, a.id asc, a.ownerOid asc\n";
             assertEqualsIgnoreWhitespace(expected, real);

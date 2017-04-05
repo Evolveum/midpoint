@@ -54,8 +54,8 @@
             <currentStageNumber>1</currentStageNumber>
             <workItem id="1">
                 <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>notDecided</response>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#notDecided</outcome>
                 <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
             </workItem>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
@@ -104,8 +104,8 @@
             <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
             <workItem id="1">
                 <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>accept</response>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
                 <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
             </workItem>
             <currentStageOutcome>accept</currentStageOutcome>
@@ -124,8 +124,8 @@
             <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
             <workItem id="1">
                 <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>noResponse</response>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
                 <timestamp>2015-12-04T01:10:08.670+01:00</timestamp>
             </workItem>
             <currentStageOutcome>noResponse</currentStageOutcome>

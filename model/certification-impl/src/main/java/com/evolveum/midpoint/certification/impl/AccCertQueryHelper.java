@@ -99,8 +99,7 @@ public class AccCertQueryHelper {
         ObjectFilter filterToAdd;
         if (notDecidedOnly) {
             ObjectFilter noResponseFilter = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-					.item(F_OUTCOME).eq(NO_RESPONSE)
-					.or().item(F_OUTCOME).isNull()
+					.item(F_OUTCOME).isNull()
 					.buildFilter();
             filterToAdd = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
         } else {

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
@@ -52,7 +53,7 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
     }
 
     public AccessCertificationResponseType getResponse() {
-        return workItem.getOutcome();
+        return OutcomeUtils.fromUri(workItem.getOutcome());
     }
 
     public long getWorkItemId() {

@@ -70,7 +70,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     private Integer stageNumber;
     private Set<RCertWorkItemReference> assigneeRef = new HashSet<>();
     private REmbeddedReference executorRef;
-    private RAccessCertificationResponse outcome;
+    private String outcome;
     private XMLGregorianCalendar timestamp;
     private XMLGregorianCalendar closedTimestamp;
 
@@ -159,11 +159,11 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 	}
 
 	@Column
-	public RAccessCertificationResponse getOutcome() {
+	public String getOutcome() {
 		return outcome;
 	}
 
-	public void setOutcome(RAccessCertificationResponse outcome) {
+	public void setOutcome(String outcome) {
 		this.outcome = outcome;
 	}
 
@@ -246,7 +246,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         rWorkItem.getAssigneeRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
                 workItem.getAssigneeRef(), context.prismContext, rWorkItem));
         rWorkItem.setExecutorRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getExecutorRef(), context.prismContext));
-        rWorkItem.setOutcome(RUtil.getRepoEnumValue(workItem.getOutcome(), RAccessCertificationResponse.class));
+        rWorkItem.setOutcome(workItem.getOutcome());
         rWorkItem.setTimestamp(workItem.getTimestamp());
         rWorkItem.setClosedTimestamp(workItem.getClosedTimestamp());
     }

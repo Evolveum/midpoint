@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -32,13 +35,17 @@ import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -47,7 +54,10 @@ import org.testng.annotations.Test;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.delta.PropertyDelta.createModificationReplaceProperty;
@@ -60,13 +70,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_CLOSED_TIMESTAMP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_COMMENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -158,7 +164,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?,?>> modifications = new ArrayList<>();
         ItemPath wi1 = new ItemPath(F_CASE).subPath(1L).subPath(F_WORK_ITEM).subPath(1L);
-        modifications.add(createModificationReplaceProperty(wi1.subPath(F_OUTCOME), campaignDef, DELEGATE));
+        modifications.add(createModificationReplaceProperty(wi1.subPath(F_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED));
         modifications.add(createModificationReplaceProperty(wi1.subPath(F_COMMENT), campaignDef, "hi"));
 
         executeAndCheckModification(modifications, result, 0);
@@ -174,7 +180,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_STATE).replace(IN_REMEDIATION)
                 .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(NO_RESPONSE)
                 .item(F_CASE, 2, F_CURRENT_STAGE_NUMBER).replace(400)
-                .item(F_CASE, 1, F_WORK_ITEM, 1, F_OUTCOME).replace(NOT_DECIDED)
+                .item(F_CASE, 1, F_WORK_ITEM, 1, F_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
                 .item(F_CASE, 1, F_WORK_ITEM, 1, F_COMMENT).replace("low")
                 .asItemDeltas();
 
@@ -377,7 +383,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_WORK_ITEM).add(wiNoId, wi200)
                 .item(F_CASE, 6, F_WORK_ITEM).delete(wi1)
-                .item(F_CASE, 6, F_WORK_ITEM, 2, F_OUTCOME).replace(ACCEPT)
+                .item(F_CASE, 6, F_WORK_ITEM, 2, F_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
@@ -525,8 +531,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .and().exists(F_WORK_ITEM).block()
 					.item(F_CLOSED_TIMESTAMP).isNull()
                     .and().block()
-                        .item(F_OUTCOME).eq(NO_RESPONSE)
-                        .or().item(F_OUTCOME).isNull()
+                        .item(F_OUTCOME).isNull()
                     .endBlock()
                 .endBlock()
                 .build();
@@ -551,7 +556,7 @@ public class CertificationTest extends BaseSQLRepoTest {
             }
             boolean emptyDecisionFound = false;
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-                if (workItem.getOutcome() == null || workItem.getOutcome() == NO_RESPONSE) {
+                if (workItem.getOutcome() == null) {
                     emptyDecisionFound = true;
                     break;
                 }

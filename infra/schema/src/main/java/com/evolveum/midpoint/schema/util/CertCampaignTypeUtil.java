@@ -167,8 +167,8 @@ public class CertCampaignTypeUtil {
 			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
 				if (workItem.getStageNumber() == campaignStageNumber
                         && workItem.getClosedTimestamp() == null
-                        && (workItem.getOutcome() == null || workItem.getOutcome() == NO_RESPONSE)) {
-					unansweredCases++; // TODO what about delegations?
+                        && workItem.getOutcome() == null) {
+					unansweredCases++;
 					break;
 				}
 			}
@@ -232,7 +232,7 @@ public class CertCampaignTypeUtil {
 					continue;
 				}
 				decisionsRequested++;
-				if (workItem.getOutcome() != null && workItem.getOutcome() != NO_RESPONSE) {	// TODO what about delegations?
+				if (workItem.getOutcome() != null) {
 					decisionsDone++;
 				}
 			}
@@ -259,7 +259,7 @@ public class CertCampaignTypeUtil {
     }
 
     private static boolean hasNoResponse(AccessCertificationWorkItemType workItem) {
-        return (workItem.getOutcome() == null || workItem.getOutcome() == NO_RESPONSE) && StringUtils.isEmpty(workItem.getComment());
+        return workItem.getOutcome() == null && StringUtils.isEmpty(workItem.getComment());
     }
 
     public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationWorkItemType> workItems) {

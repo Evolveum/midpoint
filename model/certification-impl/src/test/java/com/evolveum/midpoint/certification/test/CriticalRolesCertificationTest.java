@@ -617,8 +617,8 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertNoDecision(guybrushCooCase, 3, REVOKE, false);
         assertReviewerDecision(administratorCooCase, ACCEPT, null, 3, USER_ELAINE_OID, ACCEPT, false);
         assertReviewerDecision(administratorCooCase, null, null, 3, USER_ADMINISTRATOR_OID, ACCEPT, false);
-        assertReviewerDecision(administratorCeoCase, NO_RESPONSE, null, 3, USER_ELAINE_OID, NO_RESPONSE, false);
-        assertReviewerDecision(administratorCeoCase, NO_RESPONSE, null, 3, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
+        assertReviewerDecision(administratorCeoCase, null, null, 3, USER_ELAINE_OID, NO_RESPONSE, false);
+        assertReviewerDecision(administratorCeoCase, null, null, 3, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
         assertNoDecision(jackCeoCase, 3, NO_RESPONSE, false);
         assertReviewerDecision(jackCtoCase, null, null, 3, USER_ELAINE_OID, NO_RESPONSE, false);
         assertReviewerDecision(jackCtoCase, null, null, 3, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
