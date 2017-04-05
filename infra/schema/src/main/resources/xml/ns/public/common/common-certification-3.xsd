@@ -275,9 +275,7 @@
     <xsd:complexType name="AccessCertificationReviewerSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies how to select reviewers for a campaign stage
-                and how to derive final decision from their decisions.
-                (TODO consider extracting this strategy to element outside reviewer specification)
+                Specifies how to select reviewers for a campaign stage.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -322,7 +320,7 @@
             <xsd:element name="useObjectApprover" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Indicates that obbject (Org, Role) approver(s) should be used as reviewer(s).
+                        Indicates that object (Org, Role) approver(s) should be used as reviewer(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
