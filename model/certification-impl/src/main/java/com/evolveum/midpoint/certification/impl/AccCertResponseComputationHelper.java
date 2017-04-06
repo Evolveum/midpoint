@@ -20,6 +20,7 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.outcomeStrategies.OutcomeStrategy;
 import com.evolveum.midpoint.certification.impl.outcomeStrategies.ResponsesSummary;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -130,7 +131,7 @@ public class AccCertResponseComputationHelper {
     private List<AccessCertificationResponseType> getResponses(AccessCertificationCaseType _case, int stageNumber) {
         return _case.getWorkItem().stream()
 				.filter(wi -> wi.getStageNumber() == stageNumber)
-				.map(wi -> OutcomeUtils.fromUri(wi.getOutcome()))
+				.map(wi -> OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(wi)))
 				.collect(Collectors.toList());
     }
 

@@ -37,15 +37,13 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -65,6 +63,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
@@ -162,10 +161,12 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test220ModifyWorkItemProperties() throws Exception {
         OperationResult result = new OperationResult("test220ModifyWorkItemProperties");
 
-        List<ItemDelta<?,?>> modifications = new ArrayList<>();
-        ItemPath wi1 = new ItemPath(F_CASE).subPath(1L).subPath(F_WORK_ITEM).subPath(1L);
-        modifications.add(createModificationReplaceProperty(wi1.subPath(F_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED));
-        modifications.add(createModificationReplaceProperty(wi1.subPath(F_COMMENT), campaignDef, "hi"));
+		List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(F_CASE, 1L, F_WORK_ITEM, 1L, F_OUTPUT).replace(
+						new AbstractWorkItemOutputType()
+								.outcome(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
+								.comment("hi"))
+				.asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
 		checksCountsStandard(result);
@@ -180,8 +181,10 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_STATE).replace(IN_REMEDIATION)
                 .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(NO_RESPONSE)
                 .item(F_CASE, 2, F_CURRENT_STAGE_NUMBER).replace(400)
-                .item(F_CASE, 1, F_WORK_ITEM, 1, F_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
-                .item(F_CASE, 1, F_WORK_ITEM, 1, F_COMMENT).replace("low")
+                .item(F_CASE, 1, F_WORK_ITEM, 1, F_OUTPUT).replace(
+                		new AbstractWorkItemOutputType()
+								.outcome(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
+								.comment("low"))
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 1);
@@ -383,7 +386,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_WORK_ITEM).add(wiNoId, wi200)
                 .item(F_CASE, 6, F_WORK_ITEM).delete(wi1)
-                .item(F_CASE, 6, F_WORK_ITEM, 2, F_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)
+                .item(F_CASE, 6, F_WORK_ITEM, 2, F_OUTPUT, F_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
@@ -531,7 +534,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .and().exists(F_WORK_ITEM).block()
 					.item(F_CLOSED_TIMESTAMP).isNull()
                     .and().block()
-                        .item(F_OUTCOME).isNull()
+                        .item(F_OUTPUT, F_OUTCOME).isNull()
                     .endBlock()
                 .endBlock()
                 .build();
@@ -556,7 +559,7 @@ public class CertificationTest extends BaseSQLRepoTest {
             }
             boolean emptyDecisionFound = false;
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-                if (workItem.getOutcome() == null) {
+                if (WorkItemTypeUtil.getOutcome(workItem) == null) {
                     emptyDecisionFound = true;
                     break;
                 }

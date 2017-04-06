@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -56,10 +57,10 @@ public class CertCaseDto extends CertCaseOrWorkItemDto {
         super(_case, page);
 		List<String> allReviewersNames = new ArrayList<>();
         for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
-            if (StringUtils.isNotEmpty(workItem.getComment())) {
-                comments.add(workItem.getComment());
+            if (StringUtils.isNotEmpty(WorkItemTypeUtil.getComment(workItem))) {
+                comments.add(WorkItemTypeUtil.getComment(workItem));
             }
-			boolean hasResponse = workItem.getOutcome() != null || !StringUtils.isEmpty(workItem.getComment());
+			boolean hasResponse = hasResponse(workItem);
 			for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
 				PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(reviewerRef, page, task, result);
 				String reviewerName = reviewerObject != null ? WebComponentUtil.getName(reviewerObject) : reviewerRef.getOid();
@@ -74,6 +75,10 @@ public class CertCaseDto extends CertCaseOrWorkItemDto {
         } else {
             allReviewers = StringUtils.join(allReviewersNames, ", ");
         }
+    }
+
+    private boolean hasResponse(AccessCertificationWorkItemType workItem) {
+        return workItem.getOutput() != null && (workItem.getOutput().getOutcome() != null || !StringUtils.isEmpty(workItem.getOutput().getComment()));
     }
 
     public String getReviewers() {

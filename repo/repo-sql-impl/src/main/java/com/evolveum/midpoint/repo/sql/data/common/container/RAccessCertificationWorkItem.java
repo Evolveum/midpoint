@@ -20,12 +20,14 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
@@ -157,6 +159,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		this.performerRef = performerRef;
 	}
 
+	@JaxbPath(itemPath = { @JaxbName(localPart = "output"), @JaxbName(localPart = "outcome") })
 	@Column
 	public String getOutcome() {
 		return outcome;
@@ -197,7 +200,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 				Objects.equals(stageNumber, that.stageNumber) &&
 				Objects.equals(assigneeRef, that.assigneeRef) &&
 				Objects.equals(performerRef, that.performerRef) &&
-				outcome == that.outcome &&
+				Objects.equals(outcome, that.outcome) &&
 				Objects.equals(timestamp, that.timestamp) &&
 				Objects.equals(closedTimestamp, that.closedTimestamp);
 	}
@@ -245,7 +248,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         rWorkItem.getAssigneeRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
                 workItem.getAssigneeRef(), context.prismContext, rWorkItem));
         rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.prismContext));
-        rWorkItem.setOutcome(workItem.getOutcome());
+        rWorkItem.setOutcome(WorkItemTypeUtil.getOutcome(workItem));
         rWorkItem.setTimestamp(workItem.getTimestamp());
         rWorkItem.setClosedTimestamp(workItem.getClosedTimestamp());
     }

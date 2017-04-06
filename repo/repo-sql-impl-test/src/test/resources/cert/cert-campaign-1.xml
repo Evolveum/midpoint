@@ -80,7 +80,9 @@
         <workItem id="1">
             <stageNumber>1</stageNumber>
             <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
+            </output>
             <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
         </workItem>
         <workItem id="2">
@@ -103,7 +105,9 @@
         <workItem id="1">
             <stageNumber>1</stageNumber>
             <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            </output>
             <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
@@ -142,7 +146,9 @@
         <workItem id="1">
             <stageNumber>1</stageNumber>
             <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            </output>
             <timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
@@ -183,7 +189,9 @@
         <workItem id="1">
             <stageNumber>1</stageNumber>
             <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            </output>
             <timestamp>2015-12-04T01:10:14.614+01:00</timestamp>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
@@ -203,7 +211,9 @@
         <workItem id="1">
             <stageNumber>1</stageNumber>
             <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#reduce</outcome>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#reduce</outcome>
+            </output>
             <timestamp>2015-12-04T01:10:15.375+01:00</timestamp>
         </workItem>
         <workItem id="2">
@@ -227,13 +237,17 @@
         <workItem> <!-- no ID on purpose -->
             <stageNumber>1</stageNumber>
             <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+            </output>
             <timestamp>2015-12-04T01:10:16.136+01:00</timestamp>
         </workItem>
         <workItem> <!-- no ID on purpose -->
             <stageNumber>1</stageNumber>
             <assigneeRef oid="99999999-0000-0000-0000-000000000002" type="c:UserType"></assigneeRef>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            </output>
             <timestamp>2015-12-04T01:15:00.000+01:00</timestamp>
         </workItem>
         <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>

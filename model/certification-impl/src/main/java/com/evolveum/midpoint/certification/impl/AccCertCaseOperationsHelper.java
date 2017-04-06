@@ -97,8 +97,9 @@ public class AccCertCaseOperationsHelper {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		ItemPath workItemPath = new ItemPath(F_CASE, caseId, F_WORK_ITEM, workItemId);
 		Collection<ItemDelta<?,?>> deltaList = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTCOME)).replace(OutcomeUtils.toUri(response))
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_COMMENT)).replace(comment)
+				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTPUT)).replace(new AbstractWorkItemOutputType()
+						.outcome(OutcomeUtils.toUri(response))
+						.comment(comment))
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_TIMESTAMP)).replace(now)
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_PERFORMER_REF)).replace(responderRef)
 				.asItemDeltas();

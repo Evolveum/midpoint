@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -440,8 +441,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		List<AccessCertificationWorkItemType> currentWorkItems = getCurrentWorkItems(_case, stageNumber, false);
 		assertEquals("wrong # of decisions for stage " + stageNumber + " for case #" + _case.getId(), 1, currentWorkItems.size());
 		AccessCertificationWorkItemType workItem = currentWorkItems.get(0);
-		assertEquals("wrong response", response, OutcomeUtils.fromUri(workItem.getOutcome()));
-		assertEquals("wrong comment", comment, workItem.getComment());
+		assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
+		assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
 		assertEquals("Wrong # of reviewers", 1, workItem.getAssigneeRef().size());
 		assertRefEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER), workItem.getAssigneeRef().get(0));
 		assertEquals("wrong stage number", (Integer) stageNumber, workItem.getStageNumber());
@@ -458,8 +459,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 										int stageNumber, String reviewerOid, AccessCertificationResponseType currentStageOutcome, boolean checkHistory) {
 		AccessCertificationWorkItemType workItem = getWorkItemsForReviewer(_case, stageNumber, reviewerOid);
 		assertNotNull("No work item for reviewer " + reviewerOid + " in stage " + stageNumber, workItem);
-		assertEquals("wrong response", response, OutcomeUtils.fromUri(workItem.getOutcome()));
-		assertEquals("wrong comment", comment, workItem.getComment());
+		assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
+		assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), workItem.getTimestamp());
 		}
@@ -494,7 +495,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	public List<AccessCertificationWorkItemType> getCurrentWorkItems(AccessCertificationCaseType _case, int stageNumber, boolean decidedOnly) {
 		List<AccessCertificationWorkItemType> rv = new ArrayList<>();
 		for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
-			if (decidedOnly && workItem.getOutcome() == null) {
+			if (decidedOnly && WorkItemTypeUtil.getOutcome(workItem) == null) {
 				continue;
 			}
 			if (workItem.getStageNumber() == stageNumber && workItem.getClosedTimestamp() == null) {
@@ -533,12 +534,12 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected void assertDecision2(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
 								   int stageNumber, String reviewerOid, AccessCertificationResponseType aggregatedResponse) {
-		AccessCertificationWorkItemType decision = CertCampaignTypeUtil.findWorkItem(_case, stageNumber, reviewerOid);
-		assertNotNull("decision does not exist", decision);
-		assertEquals("wrong response", response, OutcomeUtils.fromUri(decision.getOutcome()));
-		assertEquals("wrong comment", comment, decision.getComment());
+		AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(_case, stageNumber, reviewerOid);
+		assertNotNull("decision does not exist", workItem);
+		assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
+		assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
 		if (response != null) {
-			assertApproximateTime("timestamp", new Date(), decision.getTimestamp());
+			assertApproximateTime("timestamp", new Date(), workItem.getTimestamp());
 		}
 		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 	}

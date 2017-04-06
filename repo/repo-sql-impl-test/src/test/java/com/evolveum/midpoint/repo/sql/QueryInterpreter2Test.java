@@ -65,12 +65,13 @@ import static com.evolveum.midpoint.prism.PrismConstants.T_ID;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.query.OrderDirection.ASCENDING;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_CONSTRUCTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType.F_RESOURCE_REF;
@@ -78,6 +79,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATE_APPROVER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATOR_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
@@ -1484,7 +1486,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
                     .isDirectChildOf("some oid")
-                    .asc(ObjectType.F_NAME)
+                    .asc(F_NAME)
                     .build();
 
             String real = getInterpretedQuery2(session, OrgType.class, query);
@@ -1519,7 +1521,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
                     .isChildOf(new PrismReferenceValue("123"))
-                    .asc(ObjectType.F_NAME)
+                    .asc(F_NAME)
                     .build();
 
             String real = getInterpretedQuery2(session, OrgType.class, query);
@@ -1554,7 +1556,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
                     .isRoot()
-                    .asc(ObjectType.F_NAME)
+                    .asc(F_NAME)
                     .build();
 
             String real = getInterpretedQuery2(session, OrgType.class, query);
@@ -2714,7 +2716,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery q = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-                    .asc(PrismConstants.T_PARENT, PrismConstants.T_PARENT, AccessCertificationCampaignType.F_NAME)
+                    .asc(PrismConstants.T_PARENT, PrismConstants.T_PARENT, F_NAME)
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, q, false);
             String expected = "select\n"
@@ -2846,11 +2848,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "from\n"
                     + "  RAccessCertificationCase a\n"
                     + "    left join a.workItems w\n"
-                    + "    left join w.reviewerRef r\n"
+                    + "    left join w.assigneeRef a2\n"
                     + "where\n"
                     + "  (\n"
-                    + "    r.targetOid = :targetOid and\n"
-                    + "    r.relation in (:relation)\n"
+                    + "    a2.targetOid = :targetOid and\n"
+                    + "    a2.relation in (:relation)\n"
                     + "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -2873,17 +2875,17 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  a.id\n"
 					+ "from\n"
 					+ "  RAccessCertificationWorkItem a\n"
-					+ "    left join a.reviewerRef r\n"
-					+ "    left join a.reviewerRef r2\n"
+					+ "    left join a.assigneeRef a2\n"
+					+ "    left join a.assigneeRef a3\n"
 					+ "where\n"
 					+ "  (\n"
 					+ "    (\n"
-					+ "      r.targetOid = :targetOid and\n"
-					+ "      r.relation in (:relation)\n"
+					+ "      a2.targetOid = :targetOid and\n"
+					+ "      a2.relation in (:relation)\n"
 					+ "    ) or\n"
 					+ "    (\n"
-					+ "      r2.targetOid = :targetOid2 and\n"
-					+ "      r2.relation in (:relation2)\n"
+					+ "      a3.targetOid = :targetOid2 and\n"
+					+ "      a3.relation in (:relation2)\n"
 					+ "    )\n"
 					+ "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -2906,11 +2908,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "  a.id\n"
 					+ "from\n"
 					+ "  RAccessCertificationWorkItem a\n"
-					+ "    left join a.reviewerRef r\n"
+					+ "    left join a.assigneeRef a2\n"
 					+ "where\n"
 					+ "  (\n"
-					+ "    r.targetOid in (:targetOid) and\n"
-					+ "    r.relation in (:relation)\n"
+					+ "    a2.targetOid in (:targetOid) and\n"
+					+ "    a2.relation in (:relation)\n"
 					+ "  )";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -2956,9 +2958,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test735QueryCertCaseReviewerAndEnabled() throws Exception {
         Session session = open();
         try {
-            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+            PrismReferenceValue assigneeRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(reviewerRef)
+                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(assigneeRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .build();
 
@@ -2969,14 +2971,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                             "from\n" +
                             "  RAccessCertificationCase a\n" +
                             "    left join a.workItems w\n" +
-                            "    left join w.reviewerRef r\n" +
+                            "    left join w.assigneeRef a2\n" +
                             "    left join a.owner o\n" +
                             "where\n" +
                             "  (\n" +
                             "    (\n" +
-                            "      r.targetOid = :targetOid and\n" +
-                            "      r.relation in (:relation) and\n" +
-                            "      r.type = :type\n" +
+                            "      a2.targetOid = :targetOid and\n" +
+                            "      a2.relation in (:relation) and\n" +
+                            "      a2.type = :type\n" +
                             "    ) and\n" +
                             "    (\n" +
                             "      a.currentStageNumber = o.stageNumber or\n" +
@@ -2996,10 +2998,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test745QueryCertCaseReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
         Session session = open();
         try {
-            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+            PrismReferenceValue assigneeRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
 
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(reviewerRef)
+                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(assigneeRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .asc(F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
                     .build();
@@ -3011,14 +3013,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                             "from\n" +
                             "  RAccessCertificationCase a\n" +
                             "    left join a.workItems w\n" +
-                            "    left join w.reviewerRef r\n" +
+                            "    left join w.assigneeRef a2\n" +
                             "    left join a.owner o\n" +
                             "where\n" +
                             "  (\n" +
                             "    (\n" +
-                            "      r.targetOid = :targetOid and\n" +
-                            "      r.relation in (:relation) and\n" +
-                            "      r.type = :type\n" +
+                            "      a2.targetOid = :targetOid and\n" +
+                            "      a2.relation in (:relation) and\n" +
+                            "      a2.type = :type\n" +
                             "    ) and\n" +
                             "    (\n" +
                             "      a.currentStageNumber = o.stageNumber or\n" +
@@ -3041,7 +3043,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
                     .item(F_ASSIGNEE_REF).ref("oid1", "oid2")
-                    .and().item(AccessCertificationWorkItemType.F_CLOSED_TIMESTAMP).isNull()
+                    .and().item(F_CLOSED_TIMESTAMP).isNull()
                     .asc(PrismConstants.T_PARENT, F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
                     .build();
 
@@ -3053,13 +3055,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 							+ "  a.id\n"
 							+ "from\n"
 							+ "  RAccessCertificationWorkItem a\n"
-							+ "    left join a.reviewerRef r\n"
+							+ "    left join a.assigneeRef a2\n"
 							+ "    left join a.owner o\n"
 							+ "where\n"
 							+ "  (\n"
 							+ "    (\n"
-							+ "      r.targetOid in (:targetOid) and\n"
-							+ "      r.relation in (:relation)\n"
+							+ "      a2.targetOid in (:targetOid) and\n"
+							+ "      a2.relation in (:relation)\n"
 							+ "    ) and\n"
 							+ "    a.closedTimestamp is null\n"
 							+ "  )\n"
@@ -3074,9 +3076,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test747QueryCertCaseReviewerAndEnabledByRequestedDesc() throws Exception {
         Session session = open();
         try {
-            PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
+            PrismReferenceValue assigneeRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(reviewerRef)
+                    .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(assigneeRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                     .desc(F_CURRENT_REVIEW_REQUESTED_TIMESTAMP)
@@ -3088,14 +3090,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.workItems w\n" +
-                    "    left join w.reviewerRef r\n" +
+                    "    left join w.assigneeRef a2\n" +
                     "    left join a.owner o\n" +
                     "where\n" +
                     "  (\n" +
                     "    (\n" +
-                    "      r.targetOid = :targetOid and\n" +
-                    "      r.relation in (:relation) and\n" +
-                    "      r.type = :type\n" +
+                    "      a2.targetOid = :targetOid and\n" +
+                    "      a2.relation in (:relation) and\n" +
+                    "      a2.type = :type\n" +
                     "    ) and\n" +
                     "    (\n" +
                     "      a.currentStageNumber = o.stageNumber or\n" +
@@ -3420,14 +3422,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             /*
-             * ### AccCertCase: Exists (decision: reviewerRef = XYZ and stage = ../stage and response is null or response = NO_RESPONSE)
+             * ### AccCertCase: Exists (decision: assigneeRef = XYZ and stage = ../stage and response is null or response = NO_RESPONSE)
              */
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .exists(F_WORK_ITEM)
                     .block()
                         .item(F_ASSIGNEE_REF).ref("123456")
                         .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
-                        .and().item(AccessCertificationWorkItemType.F_OUTCOME).isNull()
+                        .and().item(F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).isNull()
                     .endBlock()
                     .build();
 
@@ -3438,12 +3440,12 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "from\n"
 					+ "  RAccessCertificationCase a\n"
 					+ "    left join a.workItems w\n"
-					+ "    left join w.reviewerRef r\n"
+					+ "    left join w.assigneeRef a2\n"
 					+ "where\n"
 					+ "  (\n"
 					+ "    (\n"
-					+ "      r.targetOid = :targetOid and\n"
-					+ "      r.relation in (:relation)\n"
+					+ "      a2.targetOid = :targetOid and\n"
+					+ "      a2.relation in (:relation)\n"
 					+ "    ) and\n"
 					+ "    (\n"
 					+ "      w.stageNumber = a.currentStageNumber or\n"
@@ -3452,7 +3454,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "        a.currentStageNumber is null\n"
 					+ "      )\n"
 					+ "    ) and\n"
-					+ "      w.response is null\n"
+					+ "      w.outcome is null\n"
 					+ "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3470,7 +3472,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .block()
                         .item(F_ASSIGNEE_REF).ref("123456")
                         .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
-                        .and().item(AccessCertificationWorkItemType.F_OUTCOME).isNull()
+                        .and().item(F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).isNull()
                     .endBlock()
                     .asc(T_PARENT, F_NAME)
                     .asc(T_ID)
@@ -3484,13 +3486,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "from\n"
 					+ "  RAccessCertificationCase a\n"
 					+ "    left join a.workItems w\n"
-					+ "    left join w.reviewerRef r\n"
+					+ "    left join w.assigneeRef a2\n"
 					+ "    left join a.owner o\n"
 					+ "where\n"
 					+ "  (\n"
 					+ "    (\n"
-					+ "      r.targetOid = :targetOid and\n"
-					+ "      r.relation in (:relation)\n"
+					+ "      a2.targetOid = :targetOid and\n"
+					+ "      a2.relation in (:relation)\n"
 					+ "    ) and\n"
 					+ "    (\n"
 					+ "      w.stageNumber = a.currentStageNumber or\n"
@@ -3499,7 +3501,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "        a.currentStageNumber is null\n"
 					+ "      )\n"
 					+ "    ) and\n"
-					+ "      w.response is null\n"
+					+ "      w.outcome is null\n"
 					+ "  )\n"
 					+ "order by o.name.orig asc, a.id asc, a.ownerOid asc\n";
             assertEqualsIgnoreWhitespace(expected, real);

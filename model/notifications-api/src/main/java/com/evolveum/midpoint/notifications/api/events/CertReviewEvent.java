@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -24,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 
 /**
  * Event related to given certification case.
@@ -62,7 +62,7 @@ public class CertReviewEvent extends AccessCertificationEvent {
     private boolean awaitsResponseFromRequestee(AccessCertificationCaseType aCase, String reviewerOid, int currentStageNumber) {
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
             if (workItem.getStageNumber() == currentStageNumber
-					&& workItem.getOutcome() == null
+					&& WorkItemTypeUtil.getOutcome(workItem) == null
 					&& workItem.getClosedTimestamp() == null
 					&& ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
                 return true;

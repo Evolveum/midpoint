@@ -58,9 +58,11 @@
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
         <currentStageNumber>1</currentStageNumber>
         <workItem id="1">
-            <stageNumber>1</stageNumber>
             <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            </output>
+            <stageNumber>1</stageNumber>
             <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
         </workItem>
         <workItem id="2">

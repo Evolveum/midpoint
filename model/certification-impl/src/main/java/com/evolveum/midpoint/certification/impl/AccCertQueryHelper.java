@@ -42,8 +42,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 
 /**
@@ -99,7 +99,7 @@ public class AccCertQueryHelper {
         ObjectFilter filterToAdd;
         if (notDecidedOnly) {
             ObjectFilter noResponseFilter = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-					.item(F_OUTCOME).isNull()
+					.item(F_OUTPUT, F_OUTCOME).isNull()
 					.buildFilter();
             filterToAdd = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
         } else {

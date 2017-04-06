@@ -635,22 +635,25 @@
 				TODO devise an extension mechanism for this
 			</xsd:documentation>
 			<xsd:appinfo>
+				<a:container/>
 				<a:since>3.6</a:since>
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" />
-			<xsd:element name="comment" type="xsd:string" minOccurs="0" />
-			<xsd:element name="additionalDeltas" type="tns:ObjectTreeDeltasType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Additional delta(s) resulting from this action.
-						Typically if the user filled-in some information into
-						custom form.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkItemOutputType">
+				<xsd:sequence>
+					<xsd:element name="additionalDeltas" type="tns:ObjectTreeDeltasType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Additional delta(s) resulting from this action.
+								Typically if the user filled-in some information into
+								custom form.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:simpleType name="WorkItemOutcomeType">
@@ -1354,48 +1357,26 @@
 				<a:since>3.6</a:since>
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="timestamp" type="xsd:dateTime">
-				<xsd:annotation>
-					<xsd:documentation>
-						Time in which the event occurred.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="initiatorRef" type="c:ObjectReferenceType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						User who initiated this action. (Typically, a user who made a decision.)
-						Might be null if unknown.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Number of the stage at which this event occurred (if process can be conceptually divided into stages).
-						Starts at 1. Null if not applicable.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="stageName" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Name of the stage at which this event occurred (if process can be conceptually divided into stages).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Display name of the stage at which this event occurred was made (if process can be conceptually divided into stages).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCaseEventType">
+				<xsd:sequence>	<!-- TODO remove these -->
+					<xsd:element name="stageName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Name of the stage at which this event occurred (if process can be conceptually divided into stages).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Display name of the stage at which this event occurred was made (if process can be conceptually divided into stages).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:complexType name="WorkItemEventCauseInformationType">

@@ -26,7 +26,9 @@
 	<workItem id="1">
 		<stageNumber>1</stageNumber>
 		<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-		<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+		<output>
+			<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+		</output>
 		<timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
 	</workItem>
 	<currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.jetbrains.annotations.NotNull;
@@ -45,15 +46,19 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
     }
 
     public String getComment() {
-        return workItem.getComment();
+        return WorkItemTypeUtil.getComment(workItem);
     }
 
     public void setComment(String value) {
-        workItem.setComment(value);
+        if (workItem.getOutput() == null) {
+            workItem.beginOutput().comment(value);
+        } else {
+            workItem.getOutput().comment(value);
+        }
     }
 
     public AccessCertificationResponseType getResponse() {
-        return OutcomeUtils.fromUri(workItem.getOutcome());
+        return OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem));
     }
 
     public long getWorkItemId() {
