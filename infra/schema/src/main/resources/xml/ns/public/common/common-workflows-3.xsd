@@ -53,7 +53,7 @@
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="level" type="c:ApprovalLevelType" minOccurs="1" maxOccurs="unbounded">
+			<xsd:element name="level" type="c:ApprovalStageDefinitionType" minOccurs="1" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Levels, or stages, of the approval process.
@@ -63,7 +63,7 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="ApprovalLevelType">
+	<xsd:complexType name="ApprovalStageDefinitionType">
 		<xsd:annotation>
 			<xsd:documentation>
 				One "level" (or stage) in the approval process.

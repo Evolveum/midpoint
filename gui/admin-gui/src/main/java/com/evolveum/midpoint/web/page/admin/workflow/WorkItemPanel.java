@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
@@ -211,7 +211,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		add(additionalInformation);
 
 		WorkItemDto dto = getModelObject();
-		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(dto.getWorkflowContext());
+		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(dto.getWorkflowContext());
 		if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {
 			String formOid = level.getFormRef().getOid();
 			ObjectType focus = dto.getFocus(pageBase);

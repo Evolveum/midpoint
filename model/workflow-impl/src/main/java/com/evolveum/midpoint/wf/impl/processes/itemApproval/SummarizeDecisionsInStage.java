@@ -40,16 +40,16 @@ import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationCo
 /**
  * @author mederly
  */
-public class SummarizeDecisionsInLevel implements JavaDelegate {
+public class SummarizeDecisionsInStage implements JavaDelegate {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SummarizeDecisionsInLevel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SummarizeDecisionsInStage.class);
 
     public void execute(DelegateExecution execution) {
 
 		PrismContext prismContext = getPrismContext();
-		OperationResult result = new OperationResult(SummarizeDecisionsInLevel.class.getName() + ".execute");
+		OperationResult result = new OperationResult(SummarizeDecisionsInStage.class.getName() + ".execute");
 		Task wfTask = ActivitiUtil.getTask(execution, result);
-		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
+		ApprovalStageDefinitionType stageDef = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
 		WfContextType wfc = ActivitiUtil.getWorkflowContext(wfTask);
 		List<StageCompletionEventType> stageEvents = WfContextUtil.getEventsForCurrentStage(wfc, StageCompletionEventType.class);
@@ -66,7 +66,7 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 				throw new IllegalStateException("Unknown outcome: " + outcome);		// TODO less draconian handling
 			}
 		} else {
-			LOGGER.trace("****************************************** Summarizing decisions in level {} (level evaluation strategy = {}): ", level.getName(), level.getEvaluationStrategy());
+			LOGGER.trace("****************************************** Summarizing decisions in stage {} (stage evaluation strategy = {}): ", stageDef.getName(), stageDef.getEvaluationStrategy());
 
 			List<WorkItemCompletionEventType> itemEvents = WfContextUtil.getEventsForCurrentStage(wfc, WorkItemCompletionEventType.class);
 
@@ -76,7 +76,7 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 				allApproved &= ApprovalUtils.isApproved(event.getOutput());
 			}
 			approved = allApproved;
-			if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
+			if (stageDef.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
 				Set<String> outcomes = itemEvents.stream()
 						.map(e -> e.getOutput().getOutcome())
 						.collect(Collectors.toSet());
@@ -90,11 +90,11 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 		//MidpointUtil.removeAllStageTriggersForWorkItem(wfTask, result);
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Approval process instance {} (id {}), level {}: result of this level: {}",
+			LOGGER.debug("Approval process instance {} (id {}), stage {}: result of this stage: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
-					execution.getProcessInstanceId(), WfContextUtil.getLevelDiagName(level), approved);
+					execution.getProcessInstanceId(), WfContextUtil.getStageDiagName(stageDef), approved);
 		}
-        execution.setVariable(ProcessVariableNames.LOOP_LEVELS_STOP, !approved);
+        execution.setVariable(ProcessVariableNames.LOOP_STAGES_STOP, !approved);
     }
 
 }

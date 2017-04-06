@@ -1012,7 +1012,7 @@ public class TestStrings extends AbstractStoryTest {
 		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
 		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
 
-		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.asObjectable().getWorkflowContext());
+		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(wfTask.asObjectable().getWorkflowContext());
 		assertEquals("Wrong evaluation strategy", LevelEvaluationStrategyType.FIRST_DECIDES, level.getEvaluationStrategy());
 
 		// notifications
@@ -1259,7 +1259,7 @@ public class TestStrings extends AbstractStoryTest {
 	}
 
 	private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {
-		ApprovalLevelType level = schema.getLevel().get(number-1);
+		ApprovalStageDefinitionType level = schema.getLevel().get(number-1);
 		assertEquals("Wrong level number", number, (int) level.getOrder());
 		assertEquals("Wrong level name", name, level.getName());
 		assertEquals("Wrong level duration", XmlTypeConverter.createDuration(duration), level.getDuration());

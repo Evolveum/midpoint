@@ -41,7 +41,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.WfTimedActionTriggerHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -68,14 +67,14 @@ public class MidpointUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidpointUtil.class);
 
-	public static ApprovalLevelType getApprovalLevelType(String taskOid) {
+	public static ApprovalStageDefinitionType getApprovalStageDefinition(String taskOid) {
 		RepositoryService cacheRepositoryService = getCacheRepositoryService();
-		OperationResult result = new OperationResult(MidpointUtil.class.getName() + ".getApprovalLevelType");
+		OperationResult result = new OperationResult(MidpointUtil.class.getName() + ".getApprovalStageDefinition");
 		try {
 			PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, null, result);
-			return WfContextUtil.getCurrentApprovalLevel(task.asObjectable().getWorkflowContext());
+			return WfContextUtil.getCurrentStageDefinition(task.asObjectable().getWorkflowContext());
 		} catch (Exception e) {
-			throw new SystemException("Couldn't retrieve approval level for task " + taskOid + ": " + e.getMessage(), e);
+			throw new SystemException("Couldn't retrieve approval stage for task " + taskOid + ": " + e.getMessage(), e);
 		}
 	}
 

@@ -158,19 +158,19 @@ public class WfContextUtil {
 				.collect(Collectors.toList());
 	}
 
-	public static ApprovalLevelType getCurrentApprovalLevel(WfContextType wfc) {
+	public static ApprovalStageDefinitionType getCurrentStageDefinition(WfContextType wfc) {
 		if (wfc == null || wfc.getStageNumber() == null) {
 			return null;
 		}
-		return getApprovalLevel(wfc, wfc.getStageNumber());
+		return getStageDefinition(wfc, wfc.getStageNumber());
 	}
 
-	public static ApprovalLevelType getApprovalLevel(WfContextType wfc, int stageNumber) {
+	public static ApprovalStageDefinitionType getStageDefinition(WfContextType wfc, int stageNumber) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
 		if (info == null || info.getApprovalSchema() == null) {
 			return null;
 		}
-		List<ApprovalLevelType> levels = info.getApprovalSchema().getLevel().stream()
+		List<ApprovalStageDefinitionType> levels = info.getApprovalSchema().getLevel().stream()
 				.filter(level -> level.getOrder() != null && level.getOrder() == stageNumber)
 				.collect(Collectors.toList());
 		if (levels.size() > 1) {
@@ -230,14 +230,14 @@ public class WfContextUtil {
 		return event.getOutcome();
 	}
 
-	public static String getLevelDiagName(ApprovalLevelType level) {
+	public static String getStageDiagName(ApprovalStageDefinitionType level) {
 		return level.getOrder() + ":" + level.getName()
 				+ (level.getDisplayName() != null ? " (" + level.getDisplayName() + ")" : "");
 	}
 
-	public static void orderAndRenumberLevels(ApprovalSchemaType schema) {
+	public static void orderAndRenumberStages(ApprovalSchemaType schema) {
 		// Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
-		List<ApprovalLevelType> levels = new ArrayList<>(schema.getLevel());
+		List<ApprovalStageDefinitionType> levels = new ArrayList<>(schema.getLevel());
 		levels.sort(Comparator.comparing(level -> level.getOrder(), Comparator.nullsLast(Comparator.naturalOrder())));
 		for (int i = 0; i < levels.size(); i++) {
 			levels.get(i).setOrder(i+1);
@@ -248,7 +248,7 @@ public class WfContextUtil {
 
 	public static void checkLevelsOrdering(ApprovalSchemaType schema) {
 		for (int i = 0; i < schema.getLevel().size(); i++) {
-			ApprovalLevelType level = schema.getLevel().get(i);
+			ApprovalStageDefinitionType level = schema.getLevel().get(i);
 			if (level.getOrder() == null) {
 				throw new IllegalStateException("Level without order: " + level);
 			}

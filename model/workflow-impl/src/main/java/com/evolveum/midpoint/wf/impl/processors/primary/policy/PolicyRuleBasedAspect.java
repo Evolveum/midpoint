@@ -209,7 +209,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				builder.addPredefined(targetObject, abstractRole.getApprovalSchema().clone());
 				LOGGER.trace("Added legacy approval schema for {}", evaluatedAssignment);
 			} else if (!abstractRole.getApproverRef().isEmpty() || !abstractRole.getApproverExpression().isEmpty()) {
-				ApprovalLevelType level = new ApprovalLevelType(prismContext);
+				ApprovalStageDefinitionType level = new ApprovalStageDefinitionType(prismContext);
 				level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverRef()));
 				level.getApproverExpression().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverExpression()));
 				level.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
@@ -241,7 +241,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			return approvalAction.getApprovalSchema().clone();
 		} else {
 			ApprovalSchemaType rv = new ApprovalSchemaType(prismContext);
-			ApprovalLevelType level = new ApprovalLevelType(prismContext);
+			ApprovalStageDefinitionType level = new ApprovalStageDefinitionType(prismContext);
 			level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approvalAction.getApproverRef()));
 			level.getApproverRelation().addAll(approvalAction.getApproverRelation());
 			level.getApproverExpression().addAll(approvalAction.getApproverExpression());
@@ -367,7 +367,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
 				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName,
-						builderResult.schema, builderResult.schemaType, builderResult.attachedRules);
+						builderResult.schemaType, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 
@@ -415,7 +415,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
 				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(getChangeProcessor(), approvalTaskName,
-						builderResult.schema, builderResult.schemaType, builderResult.attachedRules);
+						builderResult.schemaType, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(this, modelContext, requester);
 

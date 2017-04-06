@@ -41,13 +41,11 @@ import static java.util.Comparator.naturalOrder;
 class ApprovalSchemaBuilder {
 
 	class Result {
-		@NotNull final ApprovalSchema schema;
 		@NotNull final ApprovalSchemaType schemaType;
 		@NotNull final SchemaAttachedPolicyRulesType attachedRules;
 
-		public Result(@NotNull ApprovalSchemaType schemaType, @NotNull ApprovalSchema schema,
+		public Result(@NotNull ApprovalSchemaType schemaType,
 				@NotNull SchemaAttachedPolicyRulesType attachedRules) {
-			this.schema = schema;
 			this.schemaType = schemaType;
 			this.attachedRules = attachedRules;
 		}
@@ -122,7 +120,7 @@ class ApprovalSchemaBuilder {
 		RelationResolver resolver = primaryChangeAspect.createRelationResolver(targetObject, result);
 		List<ObjectReferenceType> approvers = resolver.getApprovers(Collections.singletonList(relationName));
 		if (!approvers.isEmpty()) {
-			ApprovalLevelType level = new ApprovalLevelType();
+			ApprovalStageDefinitionType level = new ApprovalStageDefinitionType();
 			level.getApproverRef().addAll(approvers);
 			addPredefined(targetObject, level);
 			return true;
@@ -131,7 +129,7 @@ class ApprovalSchemaBuilder {
 		}
 	}
 
-	void addPredefined(PrismObject<?> targetObject, ApprovalLevelType level) {
+	void addPredefined(PrismObject<?> targetObject, ApprovalStageDefinitionType level) {
 		ApprovalSchemaType schema = new ApprovalSchemaType();
 		schema.getLevel().add(level);
 		addPredefined(targetObject, schema);
@@ -159,7 +157,7 @@ class ApprovalSchemaBuilder {
 			processFragmentGroup(fragmentMergeGroup, schemaType, attachedRules, ctx, result);
 		}
 
-		return new Result(schemaType, new ApprovalSchema(schemaType), attachedRules);
+		return new Result(schemaType, attachedRules);
 	}
 
 	private void checkExclusivity(List<Fragment> fragmentMergeGroup) {
@@ -191,18 +189,18 @@ class ApprovalSchemaBuilder {
 			throws SchemaException {
 		Fragment firstFragment = fragments.get(0);
 		appendAddOnFragments(fragments);
-		List<ApprovalLevelType> fragmentLevels = cloneAndMergeLevels(fragments);
+		List<ApprovalStageDefinitionType> fragmentLevels = cloneAndMergeLevels(fragments);
 		if (fragmentLevels.isEmpty()) {
 			return;		// probably shouldn't occur
 		}
-		fragmentLevels.sort(Comparator.comparing(ApprovalLevelType::getOrder, Comparator.nullsLast(naturalOrder())));
+		fragmentLevels.sort(Comparator.comparing(ApprovalStageDefinitionType::getOrder, Comparator.nullsLast(naturalOrder())));
 		RelationResolver relationResolver = primaryChangeAspect.createRelationResolver(firstFragment.target, result);
 		ReferenceResolver referenceResolver = primaryChangeAspect.createReferenceResolver(ctx.modelContext, ctx.taskFromModel, result);
 		int from = resultingSchemaType.getLevel().size() + 1;
 		int i = from;
-		for (ApprovalLevelType level : fragmentLevels) {
+		for (ApprovalStageDefinitionType level : fragmentLevels) {
 			level.setOrder(i++);
-			approvalSchemaHelper.prepareLevel(level, relationResolver, referenceResolver);
+			approvalSchemaHelper.prepareStage(level, relationResolver, referenceResolver);
 			resultingSchemaType.getLevel().add(level);
 		}
 		if (firstFragment.policyRule != null) {
@@ -227,12 +225,12 @@ class ApprovalSchemaBuilder {
 		}
 	}
 
-	private List<ApprovalLevelType> cloneAndMergeLevels(List<Fragment> fragments) throws SchemaException {
+	private List<ApprovalStageDefinitionType> cloneAndMergeLevels(List<Fragment> fragments) throws SchemaException {
 		if (fragments.size() == 1) {
 			return CloneUtil.cloneCollectionMembers(fragments.get(0).schema.getLevel());
 		}
 		PrismContext prismContext = primaryChangeAspect.getChangeProcessor().getPrismContext();
-		ApprovalLevelType resultingLevel = new ApprovalLevelType(prismContext);
+		ApprovalStageDefinitionType resultingLevel = new ApprovalStageDefinitionType(prismContext);
 		fragments.sort((f1, f2) ->
 			Comparator.nullsLast(Comparator.<Integer>naturalOrder())
 				.compare(f1.compositionStrategy.getMergePriority(), f2.compositionStrategy.getMergePriority()));
@@ -242,11 +240,11 @@ class ApprovalSchemaBuilder {
 		return Collections.singletonList(resultingLevel);
 	}
 
-	private void mergeLevelFromFragment(ApprovalLevelType resultingLevel, Fragment fragment) throws SchemaException {
+	private void mergeLevelFromFragment(ApprovalStageDefinitionType resultingLevel, Fragment fragment) throws SchemaException {
 		if (fragment.schema.getLevel().size() != 1) {
 			throw new IllegalStateException("Couldn't merge approval schema fragment with level count of not 1: " + fragment.schema);
 		}
-		ApprovalLevelType levelToMerge = fragment.schema.getLevel().get(0);
+		ApprovalStageDefinitionType levelToMerge = fragment.schema.getLevel().get(0);
 		List<QName> overwriteItems = fragment.compositionStrategy.getMergeOverwriting();
 		resultingLevel.asPrismContainerValue().mergeContent(levelToMerge.asPrismContainerValue(), overwriteItems);
 	}

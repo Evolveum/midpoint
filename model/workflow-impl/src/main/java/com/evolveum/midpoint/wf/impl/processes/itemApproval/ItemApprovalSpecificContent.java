@@ -25,7 +25,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificSta
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author mederly
@@ -34,22 +37,24 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 
 	@NotNull private final PrismContext prismContext;
 	final String taskName;
-	@NotNull final ApprovalSchema approvalSchema;
 	@NotNull final ApprovalSchemaType approvalSchemaType;
 	@Nullable final SchemaAttachedPolicyRulesType policyRules;
 
-	public ItemApprovalSpecificContent(@NotNull PrismContext prismContext, String taskName, @NotNull ApprovalSchema approvalSchema,
+	public ItemApprovalSpecificContent(@NotNull PrismContext prismContext, String taskName,
 			@NotNull ApprovalSchemaType approvalSchemaType, @Nullable SchemaAttachedPolicyRulesType policyRules) {
 		this.prismContext = prismContext;
 		this.taskName = taskName;
-		this.approvalSchema = approvalSchema;
 		this.approvalSchemaType = approvalSchemaType;
 		this.policyRules = policyRules;
 	}
 
 	@Override public void createProcessVariables(Map<String, Object> map, PrismContext prismContext) {
 		map.put(ProcessVariableNames.APPROVAL_TASK_NAME, taskName);
-		map.put(ProcessVariableNames.APPROVAL_SCHEMA, approvalSchema);
+		map.put(ProcessVariableNames.APPROVAL_STAGES, createStages(approvalSchemaType));
+	}
+
+	private List<Integer> createStages(ApprovalSchemaType schema) {
+		return IntStream.range(1, schema.getLevel().size()+1).boxed().collect(Collectors.toList());
 	}
 
 	@Override

@@ -316,7 +316,7 @@ public class WorkItemManager {
 			ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, variables, prismContext);
 			MidpointUtil.recordEventInTask(event, null, ActivitiUtil.getTaskOid(variables), result);
 
-			ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
+			ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(wfTask.getWorkflowContext());
 			MidpointUtil.createTriggersForTimedActions(workItemId, escalationLevel,
 					XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
 					deadline, wfTask, level.getTimedActions(), result);

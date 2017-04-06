@@ -50,7 +50,7 @@ public class PrepareForTaskCreation implements JavaDelegate {
 		OperationResult result = new OperationResult(PrepareForTaskCreation.class.getName() + ".execute");
 		Task wfTask = ActivitiUtil.getTask(execution, result);
 		Task opTask = getTaskManager().createTaskInstance();
-		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
+		ApprovalStageDefinitionType stageDef = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
 		LightweightObjectRef approverRef = getRequiredVariable(execution, ProcessVariableNames.APPROVER_REF, LightweightObjectRef.class,
 				prismContext);
@@ -72,17 +72,17 @@ public class PrepareForTaskCreation implements JavaDelegate {
 		execution.setVariableLocal(ProcessVariableNames.CANDIDATE_GROUPS, candidateGroups);
 
 		List<?> additionalInformation;
-        if (level.getAdditionalInformation() != null) {
+        if (stageDef.getAdditionalInformation() != null) {
 			try {
 				WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
 				ExpressionVariables variables = evaluator.getDefaultVariables(execution, wfTask, result);
-				additionalInformation = evaluator.evaluateExpression(level.getAdditionalInformation(), variables,
+				additionalInformation = evaluator.evaluateExpression(stageDef.getAdditionalInformation(), variables,
 						"additional information expression", Object.class, DOMUtil.XSD_STRING, opTask, result);
 			} catch (Throwable t) {
         		throw new SystemException("Couldn't evaluate additional information expression in " + execution, t);
 			}
 		} else {
-        	additionalInformation = new AdditionalInformationGenerator().getDefaultAdditionalInformation(wfTask, level.getOrder());
+        	additionalInformation = new AdditionalInformationGenerator().getDefaultAdditionalInformation(wfTask, stageDef.getOrder());
 		}
 		if (additionalInformation != null && !additionalInformation.isEmpty()) {
 			execution.setVariableLocal(CommonProcessVariableNames.ADDITIONAL_INFORMATION,
