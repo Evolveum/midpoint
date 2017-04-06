@@ -242,7 +242,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
-		assertEquals("Wrong # of approval levels", 3, schema.getLevel().size());
+		assertEquals("Wrong # of approval levels", 3, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
 		assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
@@ -971,7 +971,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
-		assertEquals("Wrong # of approval levels", 2, schema.getLevel().size());
+		assertEquals("Wrong # of approval levels", 2, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Role approvers (first)", "P5D", 2);
 		assertStage(wfTask, 1, 2, "Line managers", null);
@@ -1115,7 +1115,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
-		assertEquals("Wrong # of approval levels", 3, schema.getLevel().size());
+		assertEquals("Wrong # of approval levels", 3, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
 		assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
@@ -1259,8 +1259,8 @@ public class TestStrings extends AbstractStoryTest {
 	}
 
 	private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {
-		ApprovalStageDefinitionType level = schema.getLevel().get(number-1);
-		assertEquals("Wrong level number", number, (int) level.getOrder());
+		ApprovalStageDefinitionType level = schema.getStage().get(number-1);
+		assertEquals("Wrong level number", number, (int) level.getNumber());
 		assertEquals("Wrong level name", name, level.getName());
 		assertEquals("Wrong level duration", XmlTypeConverter.createDuration(duration), level.getDuration());
 		assertEquals("Wrong # of timed actions", timedActions, level.getTimedActions().size());

@@ -58,6 +58,20 @@
 					<xsd:documentation>
 						Levels, or stages, of the approval process.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.6</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="stage" type="c:ApprovalStageDefinitionType" minOccurs="1" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Levels, or stages, of the approval process.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -76,8 +90,22 @@
 			<xsd:element name="order" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Order of this approval level. (Marked as optional only to ensure backward compatibility. Will change to 'required' eventually.)
+						Order of this approval stage. DEPRECATED. Use "number" instead.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.6</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="number" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of this approval stage. These should go from 1 to N.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
@@ -117,7 +145,7 @@
 			<xsd:element name="evaluationStrategy" type="c:LevelEvaluationStrategyType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Must all approvers at this level approve the thing (allMustApprove),
+						Must all approvers at this stage approve the thing (allMustApprove),
 						or first decision is taken as authoritative (firstDecides)?
 					</xsd:documentation>
 				</xsd:annotation>
@@ -125,7 +153,7 @@
 			<xsd:element name="outcomeIfNoApprovers" type="c:ApprovalLevelOutcomeType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						What is the outcome (of this level) if there are no approvers? E.g. there are no users that have
+						What is the outcome (of this stage) if there are no approvers? E.g. there are no users that have
 						been assigned a role as an approver; or a user has no managers, etc.
 					</xsd:documentation>
 					<xsd:appinfo>
@@ -169,7 +197,7 @@
 			<xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Condition specifying when this level is automatically approved (e.g. "user is
+						Condition specifying when this stage is automatically approved (e.g. "user is
 						from Board of Directors"). This is an expression that should yield a boolean value.
 
 						DEPRECATED. Use automaticallyCompleted instead.
@@ -183,7 +211,7 @@
 			<xsd:element name="automaticallyCompleted" type="c:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Expression specifying that this level should be automatically processed (approved, rejected, skipped).
+						Expression specifying that this stage should be automatically processed (approved, rejected, skipped).
 						If the expression returns null, standard processing by human actors is carried out.
 					</xsd:documentation>
 					<xsd:appinfo>
@@ -194,7 +222,7 @@
 			<xsd:element name="duration" type="xsd:duration" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Duration of work items created at this level.
+						Duration of work items created at this stage.
 						TODO other time units, like business days?
 					</xsd:documentation>
 					<xsd:appinfo>
@@ -311,7 +339,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<!-- TODO maybe also completeLevel -->
+			<!-- TODO maybe also completeStage -->
 			<xsd:element name="notify" type="tns:WorkItemNotificationActionType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -582,7 +610,7 @@
 	<xsd:simpleType name="ApprovalLevelOutcomeType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Result (outcome) of an approval process level.
+				Result (outcome) of an approval process stage.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
@@ -592,7 +620,7 @@
 			<xsd:enumeration value="approve">
 				<xsd:annotation>
 					<xsd:documentation>
-						Operation was approved at this level. The approval process will continue at the next level.
+						Operation was approved at this stage. The approval process will continue at the next stage.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="APPROVE"/>
@@ -602,7 +630,7 @@
 			<xsd:enumeration value="reject">
 				<xsd:annotation>
 					<xsd:documentation>
-						Operation was rejected at this level. The approval process will stop.
+						Operation was rejected at this stage. The approval process will stop.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="REJECT"/>
@@ -612,7 +640,7 @@
 			<xsd:enumeration value="skip">
 				<xsd:annotation>
 					<xsd:documentation>
-						This level is silently skipped. This is useful for situations where we don't even want to start
+						This stage is silently skipped. This is useful for situations where we don't even want to start
 						an approval process if there are no approvers in it.
 
 						Skipping whole approval process is currently supported only partly: when using approver relations.
@@ -727,7 +755,7 @@
 	<xsd:simpleType name="LevelEvaluationStrategyType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Enumeration of approval strategies at a particular level.
+				Enumeration of approval strategies at a particular stage.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
@@ -737,7 +765,7 @@
 			<xsd:enumeration value="allMustApprove">
 				<xsd:annotation>
 					<xsd:documentation>
-						All approvers at a particular level must approve the operation.
+						All approvers at a particular stage must approve the operation.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="ALL_MUST_AGREE"/>
@@ -747,7 +775,7 @@
 			<xsd:enumeration value="firstDecides">
 				<xsd:annotation>
 					<xsd:documentation>
-						First approver that votes will decide the whole level (either by approving or by rejecting).
+						First approver that votes will decide the whole stage (either by approving or by rejecting).
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="FIRST_DECIDES"/>
@@ -1062,7 +1090,7 @@
             <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        More complex (multi-level) approval schema. If used, it overrides both
+                        More complex (multi-stage) approval schema. If used, it overrides both
                         approverRef and approverExpression elements.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1850,7 +1878,7 @@
 							<xsd:documentation>
 								When was the operation requested, i.e. when the approval process started?
 
-								(Normally, this information is relevant at the task/wf-process level.
+								(Normally, this information is relevant at the task/wf-process stage.
 								However we put it here to avoid fetching tasks when we want to display
 								work item list only.)
 							</xsd:documentation>
@@ -1873,7 +1901,7 @@
 								Object that is being modified (added, deleted) by the operation requested.
 								Typically a user, but might be also a role, org, resource, etc.
 
-								(Normally, this information is relevant at the task/wf-process level.
+								(Normally, this information is relevant at the task/wf-process stage.
 								However we put it here to avoid fetching tasks when we want to display
 								work item list only.)
 							</xsd:documentation>
@@ -1888,7 +1916,7 @@
 								Object that is being attached to/detached from the object modified.
 								Typically a role but might be also a resource, org, ... or it might be null.
 
-								(Normally, this information is relevant at the task/wf-process level.
+								(Normally, this information is relevant at the task/wf-process stage.
 								However we put it here to avoid fetching tasks when we want to display
 								work item list only.)
 							</xsd:documentation>
@@ -1982,8 +2010,8 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="levelMin" type="xsd:int" minOccurs="0"/>
-			<xsd:element name="levelMax" type="xsd:int" minOccurs="0"/>
+			<xsd:element name="stageMin" type="xsd:int" minOccurs="0"/>
+			<xsd:element name="stageMax" type="xsd:int" minOccurs="0"/>
 			<xsd:element name="rule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>

@@ -63,7 +63,7 @@ public class InitializeLoopThroughApproversInStage implements JavaDelegate {
 		Task opTask = getTaskManager().createTaskInstance();
         Task wfTask = ActivitiUtil.getTask(execution, opResult);
 		ApprovalStageDefinitionType stageDef = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, false, prismContext);
-		int stageNumber = stageDef.getOrder();
+		int stageNumber = stageDef.getNumber();
 		opTask.setChannel(wfTask.getChannel());
 
 		ExpressionVariables expressionVariables = null;

@@ -54,7 +54,7 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 	}
 
 	private List<Integer> createStages(ApprovalSchemaType schema) {
-		return IntStream.range(1, schema.getLevel().size()+1).boxed().collect(Collectors.toList());
+		return IntStream.range(1, schema.getStage().size()+1).boxed().collect(Collectors.toList());
 	}
 
 	@Override

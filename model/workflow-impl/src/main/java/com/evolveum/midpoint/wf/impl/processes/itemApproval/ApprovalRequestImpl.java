@@ -69,7 +69,7 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
         	stageDef.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approverRef));
         	stageDef.getApproverExpression().addAll(approverExpression);
         	stageDef.setAutomaticallyApproved(automaticallyApproved);
-        	schema.getLevel().add(stageDef);
+        	schema.getStage().add(stageDef);
         	return schema;
         }
     }

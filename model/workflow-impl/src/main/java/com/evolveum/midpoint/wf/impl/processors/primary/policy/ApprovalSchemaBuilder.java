@@ -115,23 +115,23 @@ class ApprovalSchemaBuilder {
 		return cs != null && (!cs.getMergeIntoOrder().isEmpty() || BooleanUtils.isTrue(cs.isMergeIntoAll()));
 	}
 
-	// checks the existence of approvers beforehand, because we don't want to have an empty level
+	// checks the existence of approvers beforehand, because we don't want to have an empty stage
 	boolean addPredefined(PrismObject<?> targetObject, @NotNull QName relationName, OperationResult result) {
 		RelationResolver resolver = primaryChangeAspect.createRelationResolver(targetObject, result);
 		List<ObjectReferenceType> approvers = resolver.getApprovers(Collections.singletonList(relationName));
 		if (!approvers.isEmpty()) {
-			ApprovalStageDefinitionType level = new ApprovalStageDefinitionType();
-			level.getApproverRef().addAll(approvers);
-			addPredefined(targetObject, level);
+			ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType();
+			stageDef.getApproverRef().addAll(approvers);
+			addPredefined(targetObject, stageDef);
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	void addPredefined(PrismObject<?> targetObject, ApprovalStageDefinitionType level) {
+	void addPredefined(PrismObject<?> targetObject, ApprovalStageDefinitionType stageDef) {
 		ApprovalSchemaType schema = new ApprovalSchemaType();
-		schema.getLevel().add(level);
+		schema.getStage().add(stageDef);
 		addPredefined(targetObject, schema);
 	}
 
@@ -189,27 +189,32 @@ class ApprovalSchemaBuilder {
 			throws SchemaException {
 		Fragment firstFragment = fragments.get(0);
 		appendAddOnFragments(fragments);
-		List<ApprovalStageDefinitionType> fragmentLevels = cloneAndMergeLevels(fragments);
-		if (fragmentLevels.isEmpty()) {
+		List<ApprovalStageDefinitionType> fragmentStageDefs = cloneAndMergeStages(fragments);
+		if (fragmentStageDefs.isEmpty()) {
 			return;		// probably shouldn't occur
 		}
-		fragmentLevels.sort(Comparator.comparing(ApprovalStageDefinitionType::getOrder, Comparator.nullsLast(naturalOrder())));
+		fragmentStageDefs.sort(Comparator.comparing(s -> getNumber(s), Comparator.nullsLast(naturalOrder())));
 		RelationResolver relationResolver = primaryChangeAspect.createRelationResolver(firstFragment.target, result);
 		ReferenceResolver referenceResolver = primaryChangeAspect.createReferenceResolver(ctx.modelContext, ctx.taskFromModel, result);
-		int from = resultingSchemaType.getLevel().size() + 1;
+		int from = getStages(resultingSchemaType).size() + 1;
 		int i = from;
-		for (ApprovalStageDefinitionType level : fragmentLevels) {
-			level.setOrder(i++);
-			approvalSchemaHelper.prepareStage(level, relationResolver, referenceResolver);
-			resultingSchemaType.getLevel().add(level);
+		for (ApprovalStageDefinitionType stageDef : fragmentStageDefs) {
+			stageDef.setOrder(null);
+			stageDef.setNumber(i++);
+			approvalSchemaHelper.prepareStage(stageDef, relationResolver, referenceResolver);
+			resultingSchemaType.getStage().add(stageDef);
 		}
 		if (firstFragment.policyRule != null) {
 			SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
-			attachedRule.setLevelMin(from);
-			attachedRule.setLevelMax(i - 1);
+			attachedRule.setStageMin(from);
+			attachedRule.setStageMax(i - 1);
 			attachedRule.setRule(firstFragment.policyRule.toEvaluatedPolicyRuleType());
 			attachedRules.getEntry().add(attachedRule);
 		}
+	}
+
+	private Integer getNumber(ApprovalStageDefinitionType s) {
+		return s.getNumber() != null ? s.getNumber() : s.getOrder();
 	}
 
 	private void appendAddOnFragments(List<Fragment> fragments) {
@@ -225,28 +230,33 @@ class ApprovalSchemaBuilder {
 		}
 	}
 
-	private List<ApprovalStageDefinitionType> cloneAndMergeLevels(List<Fragment> fragments) throws SchemaException {
+	private List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType schema) {
+		return !schema.getStage().isEmpty() ? schema.getStage() : schema.getLevel();
+	}
+
+	private List<ApprovalStageDefinitionType> cloneAndMergeStages(List<Fragment> fragments) throws SchemaException {
 		if (fragments.size() == 1) {
-			return CloneUtil.cloneCollectionMembers(fragments.get(0).schema.getLevel());
+			return CloneUtil.cloneCollectionMembers(getStages(fragments.get(0).schema));
 		}
 		PrismContext prismContext = primaryChangeAspect.getChangeProcessor().getPrismContext();
-		ApprovalStageDefinitionType resultingLevel = new ApprovalStageDefinitionType(prismContext);
+		ApprovalStageDefinitionType resultingStageDef = new ApprovalStageDefinitionType(prismContext);
 		fragments.sort((f1, f2) ->
 			Comparator.nullsLast(Comparator.<Integer>naturalOrder())
 				.compare(f1.compositionStrategy.getMergePriority(), f2.compositionStrategy.getMergePriority()));
 		for (Fragment fragment : fragments) {
-			mergeLevelFromFragment(resultingLevel, fragment);
+			mergeStageDefFromFragment(resultingStageDef, fragment);
 		}
-		return Collections.singletonList(resultingLevel);
+		return Collections.singletonList(resultingStageDef);
 	}
 
-	private void mergeLevelFromFragment(ApprovalStageDefinitionType resultingLevel, Fragment fragment) throws SchemaException {
-		if (fragment.schema.getLevel().size() != 1) {
-			throw new IllegalStateException("Couldn't merge approval schema fragment with level count of not 1: " + fragment.schema);
+	private void mergeStageDefFromFragment(ApprovalStageDefinitionType resultingStageDef, Fragment fragment) throws SchemaException {
+		List<ApprovalStageDefinitionType> stages = getStages(fragment.schema);
+		if (stages.size() != 1) {
+			throw new IllegalStateException("Couldn't merge approval schema fragment with stage count of not 1: " + fragment.schema);
 		}
-		ApprovalStageDefinitionType levelToMerge = fragment.schema.getLevel().get(0);
+		ApprovalStageDefinitionType stageDefToMerge = stages.get(0);
 		List<QName> overwriteItems = fragment.compositionStrategy.getMergeOverwriting();
-		resultingLevel.asPrismContainerValue().mergeContent(levelToMerge.asPrismContainerValue(), overwriteItems);
+		resultingStageDef.asPrismContainerValue().mergeContent(stageDefToMerge.asPrismContainerValue(), overwriteItems);
 	}
 
 	private void sortFragments(List<Fragment> fragments) {

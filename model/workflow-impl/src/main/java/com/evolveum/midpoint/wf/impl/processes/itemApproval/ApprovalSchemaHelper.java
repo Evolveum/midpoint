@@ -34,8 +34,8 @@ import java.util.List;
 public class ApprovalSchemaHelper {
 
 	public void prepareSchema(ApprovalSchemaType schema, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
-		WfContextUtil.orderAndRenumberStages(schema);
-		for (ApprovalStageDefinitionType stageDef : schema.getLevel()) {
+		WfContextUtil.normalizeStages(schema);
+		for (ApprovalStageDefinitionType stageDef : schema.getStage()) {
 			prepareStage(stageDef, relationResolver, referenceResolver);
 		}
 	}
@@ -67,7 +67,7 @@ public class ApprovalSchemaHelper {
 
 	// should be called only after preparation!
 	public boolean shouldBeSkipped(ApprovalSchemaType schema) {
-		return schema.getLevel().stream().allMatch(this::shouldBeSkipped);
+		return schema.getStage().stream().allMatch(this::shouldBeSkipped);
 	}
 
 	private boolean shouldBeSkipped(ApprovalStageDefinitionType stage) {

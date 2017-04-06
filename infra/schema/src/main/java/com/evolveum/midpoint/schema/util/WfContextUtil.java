@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -153,8 +154,8 @@ public class WfContextUtil {
 			return Collections.emptyList();
 		}
 		return info.getPolicyRules().getEntry().stream()
-				.filter(e -> e.getLevelMax() != null && e.getLevelMax() != null
-						&& order >= e.getLevelMin() && order <= e.getLevelMax())
+				.filter(e -> e.getStageMax() != null && e.getStageMax() != null
+						&& order >= e.getStageMin() && order <= e.getStageMax())
 				.collect(Collectors.toList());
 	}
 
@@ -165,23 +166,28 @@ public class WfContextUtil {
 		return getStageDefinition(wfc, wfc.getStageNumber());
 	}
 
+	// expects already normalized definition (using non-deprecated items, numbering stages from 1 to N)
 	public static ApprovalStageDefinitionType getStageDefinition(WfContextType wfc, int stageNumber) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
 		if (info == null || info.getApprovalSchema() == null) {
 			return null;
 		}
-		List<ApprovalStageDefinitionType> levels = info.getApprovalSchema().getLevel().stream()
-				.filter(level -> level.getOrder() != null && level.getOrder() == stageNumber)
+		ApprovalSchemaType approvalSchema = info.getApprovalSchema();
+		List<ApprovalStageDefinitionType> stages = approvalSchema.getStage().stream()
+				.filter(level -> level.getNumber() != null && level.getNumber() == stageNumber)
 				.collect(Collectors.toList());
-		if (levels.size() > 1) {
-			throw new IllegalStateException("More than one level with order of " + stageNumber + ": " + levels);
-		} else if (levels.isEmpty()) {
+		if (stages.size() > 1) {
+			throw new IllegalStateException("More than one level with order of " + stageNumber + ": " + stages);
+		} else if (stages.isEmpty()) {
 			return null;
 		} else {
-			return levels.get(0);
+			return stages.get(0);
 		}
 	}
 
+	private static List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType approvalSchema) {
+		return !approvalSchema.getStage().isEmpty() ? approvalSchema.getStage() : approvalSchema.getLevel();
+	}
 
 	// we must be strict here; in case of suspicion, throw an exception
 	@SuppressWarnings("unchecked")
@@ -230,42 +236,49 @@ public class WfContextUtil {
 		return event.getOutcome();
 	}
 
+	// expects normalized definition
 	public static String getStageDiagName(ApprovalStageDefinitionType level) {
-		return level.getOrder() + ":" + level.getName()
+		return level.getNumber() + ":" + level.getName()
 				+ (level.getDisplayName() != null ? " (" + level.getDisplayName() + ")" : "");
 	}
 
-	public static void orderAndRenumberStages(ApprovalSchemaType schema) {
+	public static void normalizeStages(ApprovalSchemaType schema) {
 		// Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
-		List<ApprovalStageDefinitionType> levels = new ArrayList<>(schema.getLevel());
-		levels.sort(Comparator.comparing(level -> level.getOrder(), Comparator.nullsLast(Comparator.naturalOrder())));
-		for (int i = 0; i < levels.size(); i++) {
-			levels.get(i).setOrder(i+1);
+		List<ApprovalStageDefinitionType> stages = new ArrayList<>(getStages(schema));
+		stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
+		for (int i = 0; i < stages.size(); i++) {
+			stages.get(i).setOrder(null);
+			stages.get(i).setNumber(i+1);
 		}
 		schema.getLevel().clear();
-		schema.getLevel().addAll(levels);
+		schema.getStage().clear();
+		schema.getStage().addAll(CloneUtil.cloneCollectionMembers(stages));
 	}
 
-	public static void checkLevelsOrdering(ApprovalSchemaType schema) {
-		for (int i = 0; i < schema.getLevel().size(); i++) {
-			ApprovalStageDefinitionType level = schema.getLevel().get(i);
-			if (level.getOrder() == null) {
-				throw new IllegalStateException("Level without order: " + level);
-			}
-			if (i > 0 && schema.getLevel().get(i-1).getOrder() >= level.getOrder()) {
-				throw new IllegalStateException("Level #" + i + " is not before level #" + (i+1) + " in " + schema);
-			}
-		}
+	private static Integer getNumber(ApprovalStageDefinitionType stage) {
+		return stage.getNumber() != null ? stage.getNumber() : stage.getOrder();
 	}
 
-	public static void checkLevelsOrderingStrict(ApprovalSchemaType schema) {
-		for (int i = 0; i < schema.getLevel().size(); i++) {
-			Integer order = schema.getLevel().get(i).getOrder();
-			if (order == null || order != i+1) {
-				throw new IllegalStateException("Level #" + (i+1) + " has an incorrect order: " + order + " in " + schema);
-			}
-		}
-	}
+	//	public static void checkLevelsOrdering(ApprovalSchemaType schema) {
+//		for (int i = 0; i < schema.getLevel().size(); i++) {
+//			ApprovalStageDefinitionType level = schema.getLevel().get(i);
+//			if (level.getOrder() == null) {
+//				throw new IllegalStateException("Level without order: " + level);
+//			}
+//			if (i > 0 && schema.getLevel().get(i-1).getOrder() >= level.getOrder()) {
+//				throw new IllegalStateException("Level #" + i + " is not before level #" + (i+1) + " in " + schema);
+//			}
+//		}
+//	}
+//
+//	public static void checkLevelsOrderingStrict(ApprovalSchemaType schema) {
+//		for (int i = 0; i < schema.getLevel().size(); i++) {
+//			Integer order = schema.getLevel().get(i).getOrder();
+//			if (order == null || order != i+1) {
+//				throw new IllegalStateException("Level #" + (i+1) + " has an incorrect order: " + order + " in " + schema);
+//			}
+//		}
+//	}
 
 	public static OperationBusinessContextType getBusinessContext(WfContextType wfc) {
 		if (wfc == null) {

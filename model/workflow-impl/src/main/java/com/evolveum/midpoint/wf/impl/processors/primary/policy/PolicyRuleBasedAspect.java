@@ -241,13 +241,13 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			return approvalAction.getApprovalSchema().clone();
 		} else {
 			ApprovalSchemaType rv = new ApprovalSchemaType(prismContext);
-			ApprovalStageDefinitionType level = new ApprovalStageDefinitionType(prismContext);
-			level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approvalAction.getApproverRef()));
-			level.getApproverRelation().addAll(approvalAction.getApproverRelation());
-			level.getApproverExpression().addAll(approvalAction.getApproverExpression());
-			level.setAutomaticallyApproved(approvalAction.getAutomaticallyApproved());
+			ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType(prismContext);
+			stageDef.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approvalAction.getApproverRef()));
+			stageDef.getApproverRelation().addAll(approvalAction.getApproverRelation());
+			stageDef.getApproverExpression().addAll(approvalAction.getApproverExpression());
+			stageDef.setAutomaticallyApproved(approvalAction.getAutomaticallyApproved());
 			// TODO maybe use name + description as well
-			rv.getLevel().add(level);
+			rv.getStage().add(stageDef);
 			return rv;
 		}
 	}
