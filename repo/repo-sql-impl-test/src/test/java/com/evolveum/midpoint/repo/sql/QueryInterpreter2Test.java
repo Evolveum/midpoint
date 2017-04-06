@@ -3063,7 +3063,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 							+ "      a2.targetOid in (:targetOid) and\n"
 							+ "      a2.relation in (:relation)\n"
 							+ "    ) and\n"
-							+ "    a.closedTimestamp is null\n"
+							+ "    a.closeTimestamp is null\n"
 							+ "  )\n"
 							+ "order by o.reviewDeadline asc, a.id asc\n";
             assertEqualsIgnoreWhitespace(expected, real);

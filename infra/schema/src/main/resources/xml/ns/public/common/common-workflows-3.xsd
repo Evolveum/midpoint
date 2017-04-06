@@ -1375,252 +1375,6 @@
     </xsd:complexType>
     <xsd:element name="wfContextType" type="tns:WfContextType" />
 
-	<xsd:complexType name="WorkItemEventCauseInformationType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="type" type="tns:WorkItemEventCauseTypeType" minOccurs="0" />
-			<xsd:element name="name" type="xsd:string" minOccurs="0" />
-			<xsd:element name="displayName" type="xsd:string" minOccurs="0" />
-		</xsd:sequence>
-	</xsd:complexType>
-
-	<xsd:simpleType name="WorkItemEventCauseTypeType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Type of event cause.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="userAction">
-				<xsd:annotation>
-					<xsd:documentation>
-						This event was caused by a user action.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="USER_ACTION"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="timedAction">
-				<xsd:annotation>
-					<xsd:documentation>
-						This event was caused by a timed action.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="TIMED_ACTION"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-		</xsd:restriction>
-	</xsd:simpleType>
-
-	<xsd:complexType name="WorkItemEventType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Process event related to a specific work item.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CaseEventType">
-				<xsd:sequence>
-					<xsd:element name="workItemId" type="xsd:long" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								MidPoint container ID of the work item.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="externalWorkItemId" type="xsd:string" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Activiti ID of the work item (activiti task) this event is related to. Null for
-								work items that have no external representation (i.e. they are present in midPoint repo only).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="originalAssigneeRef" type="c:ObjectReferenceType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								User to which this work item was originally assigned.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-								<a:since>3.6</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Escalation level number (if applicable). Zero or null means no escalation.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Escalation level name (if applicable).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Escalation level display name (if applicable).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="cause" type="tns:WorkItemEventCauseInformationType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Cause of the event occurring. E.g. user action, timed action (and which one).
-								EXPERIMENTAL; TO BE DECIDED ABOUT THIS BEFORE 3.6 RELEASE
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<!-- TODO reason? e.g. when doing escalation? -->
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="WorkItemCompletionEventType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Event describing the work item completion.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:WorkItemEventType">
-				<xsd:sequence>
-					<xsd:element name="output" type="tns:AbstractWorkItemOutputType" minOccurs="0" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="WorkItemDelegationEventType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Event describing the fact of delegation.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:WorkItemEventType">
-				<xsd:sequence>
-					<xsd:element name="assigneeBefore" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
-					<xsd:element name="delegatedTo" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
-					<xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="WorkItemEscalationEventType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Event describing the fact of escalation.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:WorkItemDelegationEventType">
-				<xsd:sequence>
-					<xsd:element name="newEscalationLevelNumber" type="xsd:int" />
-					<xsd:element name="newEscalationLevelName" type="xsd:string" minOccurs="0" />
-					<xsd:element name="newEscalationLevelDisplayName" type="xsd:string" minOccurs="0" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="StageCompletionEventType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Event describing the completion of a workflow process instance stage.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CaseEventType">
-				<xsd:sequence>
-					<xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" />
-					<xsd:element name="automatedDecisionReason" type="tns:AutomatedDecisionReasonType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Reason for automated decision, if applicable.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="CaseCompletionEventType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Event describing the completion of a workflow process instance.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CaseEventType">
-				<xsd:sequence>
-					<!-- TODO -->
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="CaseCreationEventType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Event describing the creation of a workflow process instance.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CaseEventType">
-				<xsd:sequence>
-					<xsd:element name="businessContext" type="tns:OperationBusinessContextType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Business context of the operation, if provided.
-								TODO move to CaseEventType?
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
 	<xsd:complexType name="DecisionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1667,40 +1421,6 @@
 		</xsd:sequence>
     </xsd:complexType>
     <xsd:element name="decisionType" type="tns:DecisionType" />
-
-	<xsd:simpleType name="AutomatedDecisionReasonType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Reason for automated decision.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="autoCompletionCondition">
-				<xsd:annotation>
-					<xsd:documentation>
-						Completed automatically by the auto-completion or auto-approval condition.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="AUTO_COMPLETION_CONDITION"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="noApproversFound">
-				<xsd:annotation>
-					<xsd:documentation>
-						Approved/rejected automatically because there were no approvers found.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="NO_APPROVERS_FOUND"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-		</xsd:restriction>
-	</xsd:simpleType>
 
     <xsd:complexType name="WfProcessorSpecificStateType">
         <xsd:annotation>
@@ -2141,6 +1861,40 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="CANCEL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="AutomatedDecisionReasonType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Reason for automated decision.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="autoCompletionCondition">
+				<xsd:annotation>
+					<xsd:documentation>
+						Completed automatically by the auto-completion or auto-approval condition.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="AUTO_COMPLETION_CONDITION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="noApproversFound">
+				<xsd:annotation>
+					<xsd:documentation>
+						Approved/rejected automatically because there were no approvers found.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NO_APPROVERS_FOUND"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
