@@ -196,6 +196,8 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_PASSWORD = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD);
 	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_VALUE);
+	public static final ItemPath PATH_PASSWORD_METADATA = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
+			PasswordType.F_METADATA);
 	public static final ItemPath PATH_NONCE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE);
 	public static final ItemPath PATH_NONCE_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE,
 			NonceType.F_VALUE);
