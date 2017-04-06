@@ -341,7 +341,7 @@ public class WfTaskController {
 				throw new SystemException("Couldn't determine current user: " + e.getMessage(), e);
 			}
 
-			ObjectReferenceType userRef = user != null ? user.toObjectReference() : workItem.getExecutorRef();	// partial fallback
+			ObjectReferenceType userRef = user != null ? user.toObjectReference() : workItem.getPerformerRef();	// partial fallback
 
 			if (!genuinelyCompleted) {
 				TaskType task = wfTask.getTask().getTaskPrismObject().asObjectable();

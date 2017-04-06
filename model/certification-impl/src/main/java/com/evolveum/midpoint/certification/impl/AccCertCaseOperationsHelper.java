@@ -100,7 +100,7 @@ public class AccCertCaseOperationsHelper {
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTCOME)).replace(OutcomeUtils.toUri(response))
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_COMMENT)).replace(comment)
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_TIMESTAMP)).replace(now)
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_EXECUTOR_REF)).replace(responderRef)
+				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_PERFORMER_REF)).replace(responderRef)
 				.asItemDeltas();
 
 		ItemDelta.applyTo(deltaList, campaign.asPrismContainerValue());

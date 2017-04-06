@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -69,7 +68,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 
     private Integer stageNumber;
     private Set<RCertWorkItemReference> assigneeRef = new HashSet<>();
-    private REmbeddedReference executorRef;
+    private REmbeddedReference performerRef;
     private String outcome;
     private XMLGregorianCalendar timestamp;
     private XMLGregorianCalendar closedTimestamp;
@@ -150,12 +149,12 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     @Column
-	public REmbeddedReference getExecutorRef() {
-		return executorRef;
+	public REmbeddedReference getPerformerRef() {
+		return performerRef;
 	}
 
-	public void setExecutorRef(REmbeddedReference executorRef) {
-		this.executorRef = executorRef;
+	public void setPerformerRef(REmbeddedReference performerRef) {
+		this.performerRef = performerRef;
 	}
 
 	@Column
@@ -197,7 +196,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 				Objects.equals(id, that.id) &&
 				Objects.equals(stageNumber, that.stageNumber) &&
 				Objects.equals(assigneeRef, that.assigneeRef) &&
-				Objects.equals(executorRef, that.executorRef) &&
+				Objects.equals(performerRef, that.performerRef) &&
 				outcome == that.outcome &&
 				Objects.equals(timestamp, that.timestamp) &&
 				Objects.equals(closedTimestamp, that.closedTimestamp);
@@ -206,7 +205,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 	@Override
 	public int hashCode() {
 		return Objects
-				.hash(ownerOwnerOid, ownerId, id, stageNumber, assigneeRef, executorRef, outcome, timestamp, closedTimestamp);
+				.hash(ownerOwnerOid, ownerId, id, stageNumber, assigneeRef, performerRef, outcome, timestamp, closedTimestamp);
 	}
 
 	@Transient
@@ -245,7 +244,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.getAssigneeRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
                 workItem.getAssigneeRef(), context.prismContext, rWorkItem));
-        rWorkItem.setExecutorRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getExecutorRef(), context.prismContext));
+        rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.prismContext));
         rWorkItem.setOutcome(workItem.getOutcome());
         rWorkItem.setTimestamp(workItem.getTimestamp());
         rWorkItem.setClosedTimestamp(workItem.getClosedTimestamp());

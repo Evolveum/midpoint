@@ -170,7 +170,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executorRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="performerRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         User who actually executed (completed) this work item.

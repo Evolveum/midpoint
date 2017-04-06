@@ -268,7 +268,7 @@ public class CertCampaignTypeUtil {
             if (hasNoResponse(workItem)) {
                 continue;
             }
-            rv.add(workItem.getExecutorRef());
+            rv.add(workItem.getPerformerRef());
         }
         return rv;
     }
