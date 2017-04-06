@@ -97,6 +97,9 @@ public enum ObjectTypes {
     SERVICE(ServiceType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SERVICE, ServiceType.class, ObjectManager.MODEL,
             "services"),
 
+    CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.MODEL,
+            "cases"),
+
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
 
@@ -114,8 +117,8 @@ public enum ObjectTypes {
 		return getObjectTypeIfKnown(classDefinition.getSuperclass());
 	}
 
-	public static enum ObjectManager {
-        PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY;
+	public enum ObjectManager {
+        PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY
     }
 
     private QName type;

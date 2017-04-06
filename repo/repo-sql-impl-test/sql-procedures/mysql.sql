@@ -68,6 +68,7 @@ DETERMINISTIC
     DELETE FROM m_focus;
     DELETE FROM m_security_policy;
     DELETE FROM m_form;
+    DELETE FROM m_case;
     DELETE FROM m_object;
 
     UPDATE hibernate_sequence SET next_val = 1;

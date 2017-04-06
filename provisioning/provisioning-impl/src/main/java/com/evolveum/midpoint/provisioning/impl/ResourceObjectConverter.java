@@ -261,7 +261,8 @@ public class ResourceObjectConverter {
 				throw new UnsupportedOperationException("Resource does not support 'create' operation");
 			}
 			
-			resourceAttributesAfterAdd = connector.addObject(shadowClone, additionalOperations, ctx, parentResult);
+			ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> ret = connector.addObject(shadowClone, additionalOperations, ctx, parentResult);
+			resourceAttributesAfterAdd = ret.getReturnValue();
 
 			if (LOGGER.isDebugEnabled()) {
 				// TODO: reduce only to new/different attributes. Dump all
@@ -364,6 +365,11 @@ public class ResourceObjectConverter {
 			parentResult.recordFatalError(
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
+					+ ex.getMessage(), ex);
+		} catch (ConfigurationException ex) {
+			parentResult.recordFatalError(
+					"Configuration error in connector " + connector + ": " + ex.getMessage(), ex);
+			throw new ConfigurationException("Configuration error in connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
@@ -650,8 +656,8 @@ public class ResourceObjectConverter {
 					operationsWave = convertToReplace(ctx, operationsWave, currentShadow);
 				}
 				if (!operationsWave.isEmpty()) {
-					Collection<PropertyModificationOperation> sideEffects =
-							connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					Collection<PropertyModificationOperation> sideEffects = ret.getReturnValue();
 					sideEffectChanges.addAll(sideEffects);
 					// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
 				}

@@ -66,11 +66,13 @@ public final class ClassMapper {
         types.put(ObjectTypes.SEQUENCE, RObjectType.SEQUENCE);
         types.put(ObjectTypes.SERVICE, RObjectType.SERVICE);
         types.put(ObjectTypes.FORM, RObjectType.FORM);
+        types.put(ObjectTypes.CASE, RObjectType.CASE);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {
-                throw new IllegalStateException("Not all object types are mapped by sql repo impl. Found '"
-                        + type + "' unmapped.");
+                String message = "Not all object types are mapped by sql repo impl. Found '" + type + "' unmapped.";
+                System.err.println(message);
+                throw new IllegalStateException(message);
             }
         }
     }
@@ -79,7 +81,7 @@ public final class ClassMapper {
         Validate.notNull(clazz, "Class must not be null.");
 
         ObjectTypes type = ObjectTypes.getObjectType(clazz);
-        Class<? extends RObject> hqlType = (Class<? extends RObject>) types.get(type).getClazz();
+        Class<? extends RObject> hqlType = types.get(type).getClazz();
         if (hqlType == null) {
             throw new IllegalStateException("Couldn't find DB type for '" + clazz + "'.");
         }
