@@ -204,16 +204,16 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 				buildEditableLinkColumn("JasperReportConfigurationPanel.parameterClass", null, "typeAsString", true));
 
 		// property:key editing column
-		columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "key", "propertyKey",
+		columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "key", "value.key",
 				false));
 
 		// property:label editing column
 		columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "label",
-				"propertyLabel", false));
+				"value.label", false));
 
 		// property:targetType editing column
 		columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "targetType",
-				"propertyTargetType", false));
+				"value.targetType", false));
 
 		CheckBoxColumn forPrompting = new CheckBoxColumn<JasperReportParameterDto>(
 				createStringResource("JasperReportConfigurationPanel.forPrompting"), "forPrompting") {

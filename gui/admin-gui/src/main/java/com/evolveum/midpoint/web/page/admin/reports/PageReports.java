@@ -214,16 +214,13 @@ public class PageReports extends PageAdminReports {
         navigateToNext(PageCreatedReports.class, params);
     }
 
-    //    @Override
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
-
-//        ModalWindow window = (ModalWindow) get(MODAL_ID_RUN_REPORT);
-//        window.close(target);
-//        LOGGER.debug("Run report performed for {}", new Object[]{report.asPrismObject()});
     	
     	RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
     		
-    		protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+    		private static final long serialVersionUID = 1L;
+
+			protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
     			OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
     	        try {
 

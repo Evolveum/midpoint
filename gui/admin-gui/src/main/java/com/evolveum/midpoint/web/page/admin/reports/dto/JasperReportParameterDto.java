@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -8,18 +10,20 @@ import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.Validatable;
 
+import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRPropertiesMap;
 
-public class JasperReportParameterDto extends Selectable implements Serializable, Editable, Validatable {
+public class JasperReportParameterDto<T> extends Selectable implements Serializable, Editable, Validatable {
 
-    private String name;
-    private Class type;
+   private static final long serialVersionUID = 1L;
+	private String name;
+    private Class<T> type;
     private String typeAsString;
 //	private ItemPath path;
     private String description;
     private Class nestedType;
     private boolean forPrompting = false;
-    private Object value;
+    private JasperReportValueDto<T> value;
 
     private JRPropertiesMap properties;
 
@@ -37,20 +41,35 @@ public class JasperReportParameterDto extends Selectable implements Serializable
         return nestedType;
     }
 
-    public JasperReportParameterDto(String name, Class type, String typeAsString, boolean forPrompting) {
-        this.name = name;
-        this.typeAsString = typeAsString;
-        this.type = type;
-        this.forPrompting = forPrompting;
+    public JasperReportParameterDto(JRParameter param) {
+        this.name = param.getName();
+        this.typeAsString = param.getValueClassName();
+        this.type = (Class<T>) param.getValueClass();
+        this.forPrompting = param.isForPrompting();
+        
+        if (param.getDescription() != null){
+    		this.description = param.getDescription();
+    	}
+    	if (param.getNestedType() != null){
+    		this.nestedType = param.getNestedType();
+    	}
+    	
+    	this.value = new JasperReportValueDto<T>(param.getPropertiesMap());
+    	
+        
+        
+        
     }
-
-    public Object getValue() {
-        return value;
-    }
-
-    public void setValue(Object value) {
-        this.value = value;
-    }
+    
+   
+    public JasperReportValueDto<T> getValue() {
+		return value;
+	}
+    
+    public void setValue(JasperReportValueDto<T> value) {
+		this.value = value;
+	}
+    
 
     public boolean isForPrompting() {
         return forPrompting;
@@ -88,67 +107,17 @@ public class JasperReportParameterDto extends Selectable implements Serializable
         if (properties == null) {
             return null;
         }
-        JRPropertiesMap clearedMap = new JRPropertiesMap(); // discard null properties
-        for (String prop : properties.getPropertyNames()) {
-            if (properties.getProperty(prop) != null) {
-                clearedMap.setProperty(prop, properties.getProperty(prop));
-            }
-        }
-        return (clearedMap.isEmpty()) ? null : clearedMap;
+       return this.value.getPropertiesMap();
+     
     }
 
-    public String getPropertyLabel() {
-        if (properties != null) {
-            return properties.getProperty("label");
-        } else {
-            return null;
-        }
-    }
-
-    public void setPropertyLabel(String val) {
-        if (properties == null) {
-            properties = new JRPropertiesMap();
-        }
-        properties.setProperty("label", val);
-    }
-    
-    public String getPropertyKey() {
-        if (properties != null) {
-            return properties.getProperty("key");
-        } else {
-            return null;
-        }
-    }
-
-    public void setPropertyKey(String val) {
-        if (properties == null) {
-            properties = new JRPropertiesMap();
-        }
-        properties.setProperty("key", val);
-    }
-
-    public String getPropertyTargetType() {
-        if (properties != null) {
-            return properties.getProperty("targetType");
-        } else {
-            return null;
-        }
-    }
-
-    public void setPropertyTargetType(String val) {
-        if (properties == null) {
-            properties = new JRPropertiesMap();
-        }
-        properties.setProperty("targetType", val);
-
-    }
-
-    public Class getType() throws ClassNotFoundException {
+  
+    public Class<T> getType() throws ClassNotFoundException {
         if (type == null) {
             if (StringUtils.isNotBlank(typeAsString)) {
-                type = Class.forName(typeAsString);
+                type = (Class<T>) Class.forName(typeAsString);
             } else {
-                type = Object.class;
+                type = (Class<T>) Object.class;
             }
         }
         return type;
