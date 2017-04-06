@@ -260,7 +260,10 @@ public class CredentialsProcessor {
 			return;
 		}
 		for (PrismPropertyValue<ProtectedStringType> pval: values) {
-			protector.hash(pval.getValue());
+			ProtectedStringType ps = pval.getValue();
+			if (!ps.isHashed()) {
+				protector.hash(ps);
+			}
 		}
 	}
 

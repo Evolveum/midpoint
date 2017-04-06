@@ -105,6 +105,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -665,13 +666,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (oid != null) {
 			assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
 		}
-		ShadowType ResourceObjectShadowType = shadow.asObjectable();
+		ShadowType resourceObjectShadowType = shadow.asObjectable();
 		if (oid != null) {
-			assertEquals("Shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+			assertEquals("Shadow OID mismatch (jaxb)", oid, resourceObjectShadowType.getOid());
 		}
-		assertEquals("Shadow objectclass", objectClass, ResourceObjectShadowType.getObjectClass());
+		assertEquals("Shadow objectclass", objectClass, resourceObjectShadowType.getObjectClass());
 		assertEquals("Shadow resourceRef OID", resourceType.getOid(), shadow.asObjectable().getResourceRef().getOid());
-		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
 		
@@ -739,6 +740,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
+    
+    protected void assertShadowSecondaryIdentifier(PrismObject<ShadowType> shadow, String expectedIdentifier, ResourceType resourceType, MatchingRule<String> nameMatchingRule) throws SchemaException {
+    	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
+    	ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
+    	ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+    	PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
+		assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+expectedIdentifier, idProp);
+		if (nameMatchingRule == null) {
+			assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, expectedIdentifier, idProp.getRealValue());
+		} else {
+			PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, nameMatchingRule, expectedIdentifier, idProp.getRealValue());
+		}
+    	
+    }
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType, QName objectClass) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowRepo");
@@ -1503,5 +1519,44 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected <O extends ObjectType> PrismObject<O> instantiateObject(Class<O> type) throws SchemaException {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
+	}
+	
+	protected void assertMetadata(String message, MetadataType metadataType, boolean create, boolean assertRequest, 
+			XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+		assertNotNull("No metadata in " + message, metadataType);
+		if (create) {
+			TestUtil.assertBetween("Wrong create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
+			if (actorOid != null) {
+				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
+				assertNotNull("No creatorRef in " + message, creatorRef);
+				assertEquals("Wrong creatorRef OID in " + message, actorOid, creatorRef.getOid());
+				if (assertRequest) {
+					TestUtil.assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
+					ObjectReferenceType requestorRef = metadataType.getRequestorRef();
+					assertNotNull("No requestorRef in " + message, requestorRef);
+					assertEquals("Wrong requestorRef OID in " + message, actorOid, requestorRef.getOid());
+				}
+			}
+			assertEquals("Wrong create channel in " + message, channel, metadataType.getCreateChannel());
+		} else {
+			if (actorOid != null) {
+				ObjectReferenceType modifierRef = metadataType.getModifierRef();
+				assertNotNull("No modifierRef in " + message, modifierRef);
+				assertEquals("Wrong modifierRef OID in " + message, actorOid, modifierRef.getOid());
+			}
+			TestUtil.assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
+			assertEquals("Wrong modification channel in " + message, channel, metadataType.getModifyChannel());
+		}
+	}
+	
+	protected void assertShadowPasswordMetadata(PrismObject<ShadowType> shadow, boolean passwordCreated,
+			XMLGregorianCalendar startCal, XMLGregorianCalendar endCal, String actorOid, String channel) {
+		CredentialsType creds = shadow.asObjectable().getCredentials();
+		assertNotNull("No credentials in shadow "+shadow, creds);
+		PasswordType password = creds.getPassword();
+		assertNotNull("No password in shadow "+shadow, password);
+		MetadataType metadata = password.getMetadata();
+		assertNotNull("No metadata in shadow "+shadow, metadata);
+		assertMetadata("Password metadata in "+shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
 	}
 }

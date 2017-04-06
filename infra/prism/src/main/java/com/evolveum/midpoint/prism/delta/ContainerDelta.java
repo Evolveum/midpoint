@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -404,21 +405,16 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 
 	@Override
     protected void dumpValues(StringBuilder sb, String label, Collection<PrismContainerValue<V>> values, int indent) {
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
-        sb.append(label).append(":");
+		DebugUtil.debugDumpLabel(sb, label, indent);
         if (values == null) {
             sb.append(" (null)");
+        } else if (values.isEmpty()) {
+        	sb.append(" (empty)");
         } else {
-        	sb.append("\n");
-            Iterator<PrismContainerValue<V>> i = values.iterator();
-            while (i.hasNext()) {
-                sb.append(i.next().debugDump(indent+1));
-                if (i.hasNext()) {
-                    sb.append("\n");
-                }
-            }
+        	for (PrismContainerValue<V> val: values) {
+        		sb.append("\n");
+        		sb.append(val.debugDump(indent+1));
+        	}
         }
     }
 	

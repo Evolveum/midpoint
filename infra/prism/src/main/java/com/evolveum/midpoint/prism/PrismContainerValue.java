@@ -1414,11 +1414,6 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
 
     @Override
-    public String debugDump() {
-    	return debugDump(0);
-    }
-    
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         boolean wasIndent = false;
@@ -1442,7 +1437,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
         appendOriginDump(sb);
 		List<Item<?,?>> items = getItems();
-        if (items != null) {
+		if (items == null || items.isEmpty()) {
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append("(no items)");
+		} else {
 	        Iterator<Item<?,?>> i = getItems().iterator();
 	        if (wasIndent && i.hasNext()) {
 	            sb.append("\n");

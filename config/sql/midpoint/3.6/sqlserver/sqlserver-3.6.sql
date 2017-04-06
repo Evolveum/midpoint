@@ -314,6 +314,13 @@ CREATE TABLE m_audit_ref_value (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE m_case (
+  name_norm NVARCHAR(255) COLLATE database_default,
+  name_orig NVARCHAR(255) COLLATE database_default,
+  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
+
 CREATE TABLE m_connector (
   connectorBundle            NVARCHAR(255) COLLATE database_default,
   connectorHostRef_relation  NVARCHAR(157) COLLATE database_default,
@@ -833,6 +840,9 @@ CREATE INDEX iAuditPropValRecordId
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id);
 
+ALTER TABLE m_case
+  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
 
@@ -1055,6 +1065,11 @@ ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
+
+ALTER TABLE m_case
+  ADD CONSTRAINT fk_case
+FOREIGN KEY (oid)
+REFERENCES m_object;
 
 ALTER TABLE m_connector
 ADD CONSTRAINT fk_connector

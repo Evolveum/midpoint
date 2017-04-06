@@ -190,6 +190,9 @@ public class TestDummy extends AbstractDummyTest {
 	private String corsairsIcfUid;
 	private String corsairsShadowOid;
 	private String meathookAccountOid;
+	
+	private XMLGregorianCalendar lastPasswordModifyStart;
+	private XMLGregorianCalendar lastPasswordModifyEnd;
 
 	protected MatchingRule<String> getUidMatchingRule() {
 		return null;
@@ -1077,10 +1080,8 @@ public class TestDummy extends AbstractDummyTest {
 		final String TEST_NAME = "test100AddAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		syncServiceMock.reset();
 
 		PrismObject<ShadowType> account = prismContext.parseObject(getAccountWillFile());
@@ -1169,6 +1170,12 @@ public class TestDummy extends AbstractDummyTest {
 		checkRepoAccountShadow(shadowFromRepo);
 		
 		checkRepoAccountShadowWill(shadowFromRepo, end, tsAfterRead);
+		
+		// MID-3860
+		assertShadowPasswordMetadata(shadowFromRepo, true, start, end, null, null);
+		assertNoShadowPassword(shadowFromRepo);
+		lastPasswordModifyStart = start;
+		lastPasswordModifyEnd = end;
 
 		checkConsistency(accountProvisioning);
 		assertSteadyResource();
@@ -1291,6 +1298,9 @@ public class TestDummy extends AbstractDummyTest {
 		checkConsistency(shadow);
 		
 		assertCachingMetadata(shadow, false, startTs, endTs);
+		
+		// MID-3860
+		assertShadowPasswordMetadata(shadow, true, lastPasswordModifyStart, lastPasswordModifyEnd, null, null);
 		
 		assertSteadyResource();
 	}

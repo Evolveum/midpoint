@@ -52,15 +52,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
@@ -400,6 +404,25 @@ public class ProvisioningUtil {
 		a.setLockoutStatus(null);
 		a.setLockoutExpirationTimestamp(null);
 		a.setValidityChangeTimestamp(null);
+	}
+	
+	public static void cleanupShadowPassword(PasswordType p) {
+		p.setValue(null);
+	}
+	
+	public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, PrismObject<UserType> owner) {
+		MetadataType metadata = p.getMetadata();
+		if (metadata != null) {
+			return;
+		}
+		// Supply some metadata if they are not present. However the
+		// normal thing is that those metadata are provided by model
+		metadata = new MetadataType();
+		metadata.setCreateTimestamp(now);
+		if (owner != null) {
+			metadata.creatorRef(owner.getOid(), null);
+		}
+		p.setMetadata(metadata);
 	}
 
 	public static void checkShadowActivationConsistency(PrismObject<ShadowType> shadow) {
