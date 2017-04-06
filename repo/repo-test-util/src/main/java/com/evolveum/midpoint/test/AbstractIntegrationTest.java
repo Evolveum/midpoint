@@ -646,13 +646,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (oid != null) {
 			assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
 		}
-		ShadowType ResourceObjectShadowType = shadow.asObjectable();
+		ShadowType resourceObjectShadowType = shadow.asObjectable();
 		if (oid != null) {
-			assertEquals("Shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+			assertEquals("Shadow OID mismatch (jaxb)", oid, resourceObjectShadowType.getOid());
 		}
-		assertEquals("Shadow objectclass", objectClass, ResourceObjectShadowType.getObjectClass());
+		assertEquals("Shadow objectclass", objectClass, resourceObjectShadowType.getObjectClass());
 		assertEquals("Shadow resourceRef OID", resourceType.getOid(), shadow.asObjectable().getResourceRef().getOid());
-		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
 		
@@ -720,6 +720,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
+    
+    protected void assertShadowSecondaryIdentifier(PrismObject<ShadowType> shadow, String expectedIdentifier, ResourceType resourceType, MatchingRule<String> nameMatchingRule) throws SchemaException {
+    	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
+    	ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
+    	ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+    	PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
+		assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+expectedIdentifier, idProp);
+		if (nameMatchingRule == null) {
+			assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, expectedIdentifier, idProp.getRealValue());
+		} else {
+			PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, nameMatchingRule, expectedIdentifier, idProp.getRealValue());
+		}
+    	
+    }
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType, QName objectClass) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowRepo");
