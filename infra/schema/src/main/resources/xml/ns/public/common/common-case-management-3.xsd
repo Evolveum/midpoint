@@ -112,6 +112,30 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Descriptive name of the work item. E.g. "Assign role1 to user1".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="workItemCreatedTimestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this work item created?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadline" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When is this work to be done? May be moved via escalation(s).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="originalAssigneeRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -156,9 +180,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-
-            <!-- stage number -->
-
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of the stage this work item is part of.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

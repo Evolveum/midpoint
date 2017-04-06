@@ -1866,177 +1866,112 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="workItemId" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Internal identifier of a work item, assigned by the underlying workflow engine
-                        (currently Activiti). MidPoint WorkItem is Activiti Task. So workItemId is
-                        taskId.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Internal identifier of a process instance, assigned by the underlying workflow engine
-                        (currently Activiti).
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.6</a:since>
-					</xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="name" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Descriptive name of the work item. E.g. "Assign role1 to user1".
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processStartedTimestamp" type="xsd:dateTime">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When was the operation requested, i.e. when the approval process started?
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkItemType">
+				<xsd:sequence>
+					<xsd:element name="workItemId" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Internal identifier of a work item, assigned by the underlying workflow engine
+								(currently Activiti). MidPoint WorkItem is Activiti Task. So workItemId is
+								taskId.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Internal identifier of a process instance, assigned by the underlying workflow engine
+								(currently Activiti).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="processStartedTimestamp" type="xsd:dateTime">
+						<xsd:annotation>
+							<xsd:documentation>
+								When was the operation requested, i.e. when the approval process started?
 
-                        (Normally, this information is relevant at the task/wf-process level.
-                        However we put it here to avoid fetching tasks when we want to display
-                        work item list only.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="workItemCreatedTimestamp" type="xsd:dateTime">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When was this work item created?
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="deadline" type="xsd:dateTime">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When is this work to be done? May be moved via escalation(s).
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.6</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-            </xsd:element>
-			<!-- TODO original deadline? -->
-            <xsd:element name="taskRef" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Task that wraps process instance this work item is part of.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Users to which the work item is assigned. Other users do not see such a work item in their work lists.
-						Normally the work item is assigned to a single user. However, when delegating (directly or via escalation)
-						more assignees could be added.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="originalAssigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Users to which the work item was originally assigned.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-						<a:since>3.6</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="candidateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Users and abstract roles to which the work item MAY BE assigned.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
-						<a:since>3.6</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object that is being modified (added, deleted) by the operation requested.
-                        Typically a user, but might be also a role, org, resource, etc.
+								(Normally, this information is relevant at the task/wf-process level.
+								However we put it here to avoid fetching tasks when we want to display
+								work item list only.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<!-- TODO original deadline? -->
+					<xsd:element name="taskRef" type="c:ObjectReferenceType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Task that wraps process instance this work item is part of.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Object that is being modified (added, deleted) by the operation requested.
+								Typically a user, but might be also a role, org, resource, etc.
 
-                        (Normally, this information is relevant at the task/wf-process level.
-                        However we put it here to avoid fetching tasks when we want to display
-                        work item list only.)
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object that is being attached to/detached from the object modified.
-                        Typically a role but might be also a resource, org, ... or it might be null.
+								(Normally, this information is relevant at the task/wf-process level.
+								However we put it here to avoid fetching tasks when we want to display
+								work item list only.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Object that is being attached to/detached from the object modified.
+								Typically a role but might be also a resource, org, ... or it might be null.
 
-                        (Normally, this information is relevant at the task/wf-process level.
-                        However we put it here to avoid fetching tasks when we want to display
-                        work item list only.)
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="result" type="tns:WorkItemResultType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Result of this work item (null if it was not completed).
-                    </xsd:documentation>
-	                <xsd:appinfo>
-						<a:since>3.6</a:since>
-	                </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="executorRef" type="tns:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Who has completed this work item (null if unknown, not completed or completed automatically).
-                    </xsd:documentation>
-	                <xsd:appinfo>
-						<a:since>3.6</a:since>
-	                </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Information to be shown to the approver.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.6</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-            <!-- for work items without TaskType information -->
-			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0" />
-			<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
-			<xsd:element name="stageName" type="xsd:string" minOccurs="0" />
-			<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0" />
-			<xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0" />
-			<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0" />
-			<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0" />
-			<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
-        </xsd:sequence>
+								(Normally, this information is relevant at the task/wf-process level.
+								However we put it here to avoid fetching tasks when we want to display
+								work item list only.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="result" type="tns:WorkItemResultType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Result of this work item (null if it was not completed).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Information to be shown to the approver.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<!-- for work items without TaskType information -->
+					<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
+					<xsd:element name="stageName" type="xsd:string" minOccurs="0" />
+					<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0" />
+					<xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0" />
+					<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0" />
+					<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0" />
+					<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
     </xsd:complexType>
 
     <xsd:element name="workItem" type="tns:WorkItemType" />

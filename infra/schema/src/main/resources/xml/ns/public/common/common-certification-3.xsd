@@ -893,76 +893,19 @@
 				<a:since>3.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-			<xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Number of the stage this work item is part of.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-            <xsd:element name="originalAssigneeRef" type="tns:ObjectReferenceType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Original reviewer for this work item.
-					</xsd:documentation>
-                    <!-- TODO allow also roles/orgs here. -->
-					<xsd:appinfo>
-						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-            <xsd:element name="assigneeRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Current reviewer(s) for this work item.
-					</xsd:documentation>
-                    <!-- TODO allow also roles/orgs here. -->
-					<xsd:appinfo>
-						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="executorRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						Who made the current decision?
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						The response.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="comment" type="xsd:string" minOccurs="0" maxOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						The reviewer's comment.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
-				<xsd:annotation>
-					<xsd:documentation>
-						When the decision was made.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-            <xsd:element name="closedTimestamp" type="xsd:dateTime" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						When was this work item closed. (If null, it is considered open.)
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkItemType">
+                <xsd:sequence>
+                    <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the decision was made.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AccessCertificationAssignmentCaseType">
