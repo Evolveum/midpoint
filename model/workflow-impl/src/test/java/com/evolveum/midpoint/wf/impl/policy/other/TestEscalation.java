@@ -176,7 +176,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
-		assertEquals("Wrong escalation level number", (Integer) 1, workItem.getEscalationLevelNumber());
+		assertEquals("Wrong escalation level number", 1, WfContextUtil.getEscalationLevelNumber(workItem));
 
 	}
 

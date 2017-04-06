@@ -295,13 +295,11 @@ public class WorkItemManager {
 
 			Map<String, Object> variables = taskService.getVariables(workItemId);
 			WorkItemDelegationEventType event;
-			int escalationLevel = workItem.getEscalationLevelNumber() != null ? workItem.getEscalationLevelNumber() : 0;
+			int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
 			if (escalate) {
 				WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();
-				escEvent.setNewEscalationLevelName(escalationLevelName);
-				escEvent.setNewEscalationLevelDisplayName(escalationLevelDisplayName);
 				escalationLevel = escalationLevel + 1;
-				escEvent.setNewEscalationLevelNumber(escalationLevel);
+				escEvent.setNewEscalationLevel(WfContextUtil.createEscalationLevel(escalationLevel, escalationLevelName, escalationLevelDisplayName));
 				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NUMBER, escalationLevel);
 				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NAME, escalationLevelName);
 				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, escalationLevelDisplayName);

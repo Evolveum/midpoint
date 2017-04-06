@@ -46,7 +46,20 @@ public class WfContextUtil {
 		if (workItem == null) {
 			return null;
 		}
-		return getStageInfo(workItem.getStageNumber(), workItem.getStageCount(), workItem.getStageName(), workItem.getStageDisplayName());
+		WfContextType wfc = getWorkflowContext(workItem);
+		return getStageInfo(workItem.getStageNumber(), wfc.getStageCount(), wfc.getStageName(), wfc.getStageDisplayName());
+	}
+
+	public static Object getStageCount(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getStageCount();
+	}
+
+	public static Object getStageName(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getStageName();
+	}
+
+	public static Object getStageDisplayName(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getStageDisplayName();
 	}
 
 	// wfc is used to retrieve approval schema (if needed)
@@ -68,18 +81,18 @@ public class WfContextUtil {
 		if (workItem == null) {
 			return null;
 		}
-		return getEscalationLevelInfo(workItem.getEscalationLevelNumber(), workItem.getEscalationLevelName(), workItem.getEscalationLevelDisplayName());
+		return getEscalationLevelInfo(workItem.getEscalationLevel());
 	}
 
-	private static String getEscalationLevelInfo(Integer levelNumber, String levelName, String levelDisplayName) {
-		if (levelNumber == null || levelNumber == 0) {
+	private static String getEscalationLevelInfo(WorkItemEscalationLevelType e) {
+		if (e == null || e.getNumber() == null || e.getNumber()  == 0) {
 			return null;
 		}
-		String name = levelDisplayName != null ? levelDisplayName : levelName;
+		String name = e.getDisplayName() != null ? e.getDisplayName() : e.getName();
 		if (name != null) {
-			return name + " (" + levelNumber + ")";
+			return name + " (" + e.getNumber() + ")";
 		} else {
-			return String.valueOf(levelNumber);
+			return String.valueOf(e.getNumber());
 		}
 	}
 
@@ -337,5 +350,25 @@ public class WfContextUtil {
 
 	public static ObjectReferenceType getTargetRef(WorkItemType workItem) {
 		return getWorkflowContext(workItem).getTargetRef();
+	}
+
+	public static int getEscalationLevelNumber(AbstractWorkItemType workItem) {
+		return workItem.getEscalationLevel() != null ? workItem.getEscalationLevel().getNumber() : 0;
+	}
+
+	public static String getEscalationLevelName(AbstractWorkItemType workItem) {
+		return workItem.getEscalationLevel() != null ? workItem.getEscalationLevel().getName() : null;
+	}
+
+	public static String getEscalationLevelDisplayName(AbstractWorkItemType workItem) {
+		return workItem.getEscalationLevel() != null ? workItem.getEscalationLevel().getDisplayName() : null;
+	}
+
+	public static WorkItemEscalationLevelType createEscalationLevel(Integer number, String name, String displayName) {
+		if ((number != null && number != 0) || name != null || displayName != null) {
+			return new WorkItemEscalationLevelType().number(number).name(name).displayName(displayName);
+		} else {
+			return null;
+		}
 	}
 }

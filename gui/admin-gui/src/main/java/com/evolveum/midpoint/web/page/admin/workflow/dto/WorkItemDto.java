@@ -355,8 +355,8 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public Integer getEscalationLevelNumber() {
-    	return workItem.getEscalationLevelNumber() == null || workItem.getEscalationLevelNumber() == 0 ?
-				null : workItem.getEscalationLevelNumber();
+		int number = WfContextUtil.getEscalationLevelNumber(workItem);
+		return number > 0 ? number : null;
 	}
 
 	public List<InformationType> getAdditionalInformation() {

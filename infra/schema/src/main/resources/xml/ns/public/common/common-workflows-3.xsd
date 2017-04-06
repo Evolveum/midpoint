@@ -1593,13 +1593,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<!-- for work items without TaskType information -->
-					<xsd:element name="stageCount" type="xsd:int" minOccurs="0" />
-					<xsd:element name="stageName" type="xsd:string" minOccurs="0" />
-					<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0" />
-					<xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0" />
-					<xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0" />
-					<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0" />
 					<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:extension>

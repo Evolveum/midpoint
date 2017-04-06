@@ -186,9 +186,9 @@ public class ActivitiUtil implements Serializable {
 		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, prismContext));
 		//event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, prismContext));
 		//event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, prismContext));
-		event.setEscalationLevelNumber(ActivitiUtil.getEscalationLevelNumber(variables));
-		event.setEscalationLevelName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, prismContext));
-		event.setEscalationLevelDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, prismContext));
+		event.setEscalationLevel(WfContextUtil.createEscalationLevel(ActivitiUtil.getEscalationLevelNumber(variables),
+				ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, prismContext),
+				ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, prismContext)));
 	}
 
 	public static int getEscalationLevelNumber(Map<String, Object> variables) {

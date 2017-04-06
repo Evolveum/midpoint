@@ -187,6 +187,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="escalationLevel" type="tns:WorkItemEscalationLevelType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="output" type="tns:AbstractWorkItemOutputType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -362,24 +369,10 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="escalationLevelNumber" type="xsd:int" minOccurs="0">
+                    <xsd:element name="escalationLevel" type="tns:WorkItemEscalationLevelType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Escalation level number (if applicable). Zero or null means no escalation.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="escalationLevelName" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Escalation level name (if applicable).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Escalation level display name (if applicable).
+                                TODO
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -447,9 +440,13 @@
         <xsd:complexContent>
             <xsd:extension base="tns:WorkItemDelegationEventType">
                 <xsd:sequence>
-                    <xsd:element name="newEscalationLevelNumber" type="xsd:int" />
-                    <xsd:element name="newEscalationLevelName" type="xsd:string" minOccurs="0" />
-                    <xsd:element name="newEscalationLevelDisplayName" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="newEscalationLevel" type="tns:WorkItemEscalationLevelType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -521,6 +518,22 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="WorkItemEscalationLevelType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Description of an escalation level the processing is at.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="number" type="xsd:int" minOccurs="0" />
+            <xsd:element name="name" type="xsd:string" minOccurs="0" />
+            <xsd:element name="displayName" type="xsd:string" minOccurs="0" />
+        </xsd:sequence>
     </xsd:complexType>
 
 </xsd:schema>

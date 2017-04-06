@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
@@ -455,15 +455,10 @@ public class WorkItemProvider {
 			}
 
 			wi.setStageNumber(pmi.getStageNumber(variables));
-			wi.setStageCount(pmi.getStageCount(variables));
-			wi.setStageName(pmi.getStageName(variables));
-			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
-			wi.setStageName(pmi.getStageName(variables));
-			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
 
-			wi.setEscalationLevelNumber(pmi.getEscalationLevelNumber(variables));
-			wi.setEscalationLevelName(pmi.getEscalationLevelName(variables));
-			wi.setEscalationLevelDisplayName(pmi.getEscalationLevelDisplayName(variables));
+			wi.setEscalationLevel(WfContextUtil.createEscalationLevel(pmi.getEscalationLevelNumber(variables),
+					pmi.getEscalationLevelName(variables),
+					pmi.getEscalationLevelDisplayName(variables)));
 
 			// This is just because 'variables' switches in task query DO NOT fetch all required variables...
 			if (fetchAllVariables) {		// TODO can we do this e.g. in the task completion listener?

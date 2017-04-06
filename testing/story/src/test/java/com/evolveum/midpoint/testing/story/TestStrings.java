@@ -671,8 +671,8 @@ public class TestStrings extends AbstractStoryTest {
 		PrismAsserts.assertDuration("Wrong duration between now and deadline", "P9D", System.currentTimeMillis(), workItem.getDeadline(), null);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userGuybrushOid);
 		assertEquals("Wrong stage #", (Integer) 1, workItem.getStageNumber());
-		assertEquals("Wrong escalation level #", (Integer) 1, workItem.getEscalationLevelNumber());
-		assertEquals("Wrong escalation level name", "Line manager escalation", workItem.getEscalationLevelName());
+		assertEquals("Wrong escalation level #", 1, WfContextUtil.getEscalationLevelNumber(workItem));
+		assertEquals("Wrong escalation level name", "Line manager escalation", WfContextUtil.getEscalationLevelName(workItem));
 
 		List<CaseEventType> events = assertEvents(wfTask, 2);
 		assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
