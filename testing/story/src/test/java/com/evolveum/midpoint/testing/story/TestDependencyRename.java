@@ -61,6 +61,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -272,7 +273,12 @@ public class TestDependencyRename extends AbstractStoryTest {
 		userType.setName(createPolyStringType(USER_CAPSIZE_USERNAME));
 		userType.setGivenName(createPolyStringType(USER_CAPSIZE_GIVEN_NAME));
 		userType.setFamilyName(createPolyStringType(USER_CAPSIZE_FAMILY_NAME));
-		userType.beginAssignment().targetRef(ROLE_BASIC_OID, RoleType.COMPLEX_TYPE).end();
+		AssignmentType assignmentType = new AssignmentType();
+		ObjectReferenceType ref = new ObjectReferenceType();
+		ref.setOid(ROLE_BASIC_OID);
+		ref.setType(RoleType.COMPLEX_TYPE);
+		assignmentType.setTargetRef(ref);
+		userType.getAssignment().add(assignmentType);
 		
 		display("User before", userBefore);
 		
