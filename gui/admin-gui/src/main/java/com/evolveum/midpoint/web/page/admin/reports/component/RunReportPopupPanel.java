@@ -25,6 +25,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -92,6 +94,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterPropertiesDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportRealValueDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportValueDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
@@ -127,6 +130,8 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     
     private static final String ID_ADD_BUTTON = "add";
     private static final String ID_REMOVE_BUTTON = "remove";
+    
+    private static final String ID_PARAMETERS = "paramTable";
 
     private IModel<ReportDto> reportModel;
     
@@ -135,7 +140,9 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         reportModel = new LoadableModel<ReportDto>(false) {
 
-            @Override
+    		private static final long serialVersionUID = 1L;
+
+			@Override
             protected ReportDto load() {
                 return new ReportDto(reportType, true);
             }
@@ -144,13 +151,15 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         initLayout();
     }
 
-    protected <T> void initLayout() {
+    protected void initLayout() {
 
     	Form<?> mainForm = new Form(ID_MAIN_FORM);
     	add(mainForm);
 
         
-        ListView<JasperReportParameterDto<T>> paramListView = new ListView<JasperReportParameterDto<T>>("paramTable", new PropertyModel<>(reportModel, "jasperReportDto.parameters")) {
+        ListView<JasperReportParameterDto<T>> paramListView = new ListView<JasperReportParameterDto<T>>(ID_PARAMETERS, new PropertyModel<>(reportModel, "jasperReportDto.parameters")) {
+
+        	private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(ListItem<JasperReportParameterDto<T>> paramItem) {
@@ -158,25 +167,28 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 				
 			}
 		};
+		paramListView.setOutputMarkupId(true);
 		mainForm.add(paramListView);
 		
         AjaxSubmitButton addButton = new AjaxSubmitButton(ID_RUN,
                 createStringResource("runReportPopupContent.button.run")) {
+        	private static final long serialVersionUID = 1L;
 
         	@Override
         	protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-        		runConfirmPerformed(target, reportModel, null);
+        		runConfirmPerformed(target, reportModel);
         	}
                 };
         mainForm.add(addButton);
 
     }
     
-    private <T> WebMarkupContainer createParameterPanel(final IModel<JasperReportParameterDto<T>> parameterModel) {
+    private WebMarkupContainer createParameterPanel(final IModel<JasperReportParameterDto<T>> parameterModel) {
     	WebMarkupContainer paramPanel = new WebMarkupContainer("paramPanel");
+    	paramPanel.setOutputMarkupId(true);
     	String paramValue = new PropertyModel<String>(parameterModel, "name").getObject();
         StringResourceModel paramDisplay = PageBase.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue, new Object[]{});
-//        StringResourceModel paramDisplay = new StringResourceModel("runReportPopupContent.param.name." + paramValue, null, paramValue, new Object[]{});
+
         paramPanel.add(new Label("name", paramDisplay)); // use display name rather than property name
         
         
@@ -184,27 +196,30 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         paramClass = (paramClass == null) ? "" : paramClass.substring(paramClass.lastIndexOf(".") + 1);
         paramPanel.add(new Label("type", paramClass));
         
-        ListView<JasperReportRealValueDto<T>> listView = new ListView<JasperReportRealValueDto<T>>("valueList", new PropertyModel<>(parameterModel, "value.value")) {
+        ListView<JasperReportValueDto<T>> listView = new ListView<JasperReportValueDto<T>>("valueList", new PropertyModel<>(parameterModel, "value")) {
 
-    		@Override
-    		protected void populateItem(ListItem<JasperReportRealValueDto<T>> item) {
-    			item.add(createInputMarkup(new PropertyModel<JasperReportValueDto<T>>(parameterModel, "value"), item.getModel(), parameterModel.getObject()));
+    		private static final long serialVersionUID = 1L;
+
+			@Override
+    		protected void populateItem(ListItem<JasperReportValueDto<T>> item) {
+    			item.add(createInputMarkup(item.getModel(), parameterModel.getObject()));
     			
     		}
 
     	};
+    	listView.setOutputMarkupId(true);
         
         paramPanel.add(listView);
 		return paramPanel;
     }
  
-    private <T> WebMarkupContainer createInputMarkup(final IModel<JasperReportValueDto<T>> valueModel, final IModel<JasperReportRealValueDto<T>> realValueModel, JasperReportParameterDto<T> param){
+    private <T> WebMarkupContainer createInputMarkup(final IModel<JasperReportValueDto<T>> valueModel, JasperReportParameterDto<T> param){
     	param.setEditing(true);
 	WebMarkupContainer paramValueMarkup = new WebMarkupContainer("valueMarkup");
     paramValueMarkup.setOutputMarkupId(true);
     
     
-    InputPanel input =  createTypedInputPanel("inputValue", realValueModel, valueModel, "value", param);
+    InputPanel input =  createTypedInputPanel("inputValue", valueModel, "value", param);
     paramValueMarkup.add(input);
     
     //buttons
@@ -213,7 +228,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
 		@Override
         public void onClick(AjaxRequestTarget target) {
-            addValue(target);
+            addValue(param, target);
         }
     };
     addButton.add(new VisibleEnableBehaviour() {
@@ -221,7 +236,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         @Override
         public boolean isVisible() {
-            return isAddButtonVisible();
+            return isAddButtonVisible(param);
         }
     });
     paramValueMarkup.add(addButton);
@@ -231,8 +246,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         @Override
         public void onClick(AjaxRequestTarget target) {
-            removeValue(target);
+            removeValue(param, valueModel.getObject(), target);
         }
+
+		
     };
     removeButton.add(new VisibleEnableBehaviour() {
     	private static final long serialVersionUID = 1L;
@@ -246,23 +263,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
    return paramValueMarkup;
 }
     
-    private <T> void addValue(AjaxRequestTarget target) {
-    
-    }
-
-    private void removeValue(AjaxRequestTarget target) {
-       
-    }
-    
-    private boolean isAddButtonVisible() {
-        return true;
-    }
-    
-    private boolean isRemoveButtonVisible() {
-       return true;
-    }
-
-    private <T> InputPanel createTypedInputPanel(String componentId, IModel<JasperReportRealValueDto<T>> realValueModel, IModel<JasperReportValueDto<T>> model, String expression, JasperReportParameterDto param){
+    private <T> InputPanel createTypedInputPanel(String componentId, IModel<JasperReportValueDto<T>> model, String expression, JasperReportParameterDto param){
     	InputPanel panel = null;
     	
     	Class type = null;
@@ -276,12 +277,12 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         JasperReportValueDto<T> value = model.getObject();
         if (type.isEnum()) {
-            panel = WebComponentUtil.createEnumPanel(type, componentId, new PropertyModel(realValueModel, expression), this);
+            panel = WebComponentUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
-            panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(realValueModel, expression));
-        } else if (value.getTargetType() != null) { // render autocomplete box
+            panel = new DatePanel(componentId, new PropertyModel<XMLGregorianCalendar>(model, expression));
+        } else if (param.getProperties() != null && param.getProperties().getTargetType() != null) { // render autocomplete box
         	LookupTableType lookup = new LookupTableType();
-            panel = new AutoCompleteTextPanel<String>(componentId, new LookupPropertyModel<String>(realValueModel, expression,
+            panel = new AutoCompleteTextPanel<String>(componentId, new LookupPropertyModel<String>(model, expression,
                     lookup, false), String.class) {
 
                         @Override
@@ -290,7 +291,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                         }
                     };
         } else {
-            panel = new TextPanel<String>(componentId, new PropertyModel<String>(realValueModel, expression));
+            panel = new TextPanel<String>(componentId, new PropertyModel<String>(model, expression));
         }
         List<FormComponent> components = panel.getFormComponents();
         for (FormComponent component : components) {
@@ -300,27 +301,62 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         return panel;
     }
     
+    private <T> void addValue(JasperReportParameterDto<T> valueModel, AjaxRequestTarget target) {
+    	valueModel.addValue();
+    	ListView paramTable = getParametersView();
+    	target.add(paramTable.getParent());
+    }
+    
+    private ListView getParametersView(){
+    	ListView listView = (ListView) get(createComponentPath(ID_MAIN_FORM, ID_PARAMETERS));
+    	return listView;
+    }
+    
+    
+    private <T> boolean isAddButtonVisible(JasperReportParameterDto<T> valueDecs) {
+    	if (valueDecs.getProperties() == null) {
+    		return false;
+    	}
+    	
+    	if (valueDecs.getProperties().getMultivalue() == null) {
+    		return false;
+    	}
+        return Boolean.parseBoolean(valueDecs.getProperties().getMultivalue());
+    }
+    
+       private <T> void removeValue(JasperReportParameterDto<T> valueModel,
+			JasperReportValueDto<T> object, AjaxRequestTarget target) {
+    	valueModel.removeValue(object);
+    	ListView paramTable = getParametersView();
+    	target.add(paramTable.getParent());
+		
+	}
+       
+       private boolean isRemoveButtonVisible() {
+           return true;
+        }
+   
     private <T extends ObjectType> List<LookupTableRowType> createLookupTableRows(JasperReportParameterDto param, String input) {
         ItemPath label = null;
         ItemPath key = null;
         List<LookupTableRowType> rows = new ArrayList();
 
-        JRPropertiesMap properties = param.getProperties();
+        JasperReportParameterPropertiesDto properties = param.getProperties();
 
         if (properties == null) {
             return null;
         }
 
-        String pLabel = properties.getProperty("label");
+        String pLabel = properties.getLabel();
         if (pLabel != null) {
             label = new ItemPath(pLabel);
         }
-        String pKey = properties.getProperty("key");
+        String pKey = properties.getKey();
         if (pKey != null) {
             key = new ItemPath(pKey);
         }
 
-        String pTargetType = properties.getProperty("targetType");
+        String pTargetType = properties.getTargetType();
         Class<T> targetType = null;
         if (pTargetType != null) {
             try {
@@ -514,7 +550,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 //        c.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 //    }
 
-    private void runConfirmPerformed(AjaxRequestTarget target, IModel<ReportDto> model, List<JasperReportParameterDto> params) {
+    private void runConfirmPerformed(AjaxRequestTarget target, IModel<ReportDto> model) {
         ReportDto reportDto = model.getObject();
 
 //    	List<ReportParameterType> reportParams = new ArrayList<ReportParameterType>();
@@ -528,12 +564,15 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             reportParamValue.revive(getPrismContext());
             paramContainer.add(reportParamValue);
             Class attributeNameClass = null;
-            for (JasperReportParameterDto paramDto : params) {
+            
+            
+            List<JasperReportParameterDto<T>> params = getParametersView().getModelObject();
+            for (JasperReportParameterDto<T> paramDto : params) {
                 if (paramDto.getValue() == null) {
                     continue;
                 }
                 QName typeName = null;
-                Object realValue = paramDto.getValue();
+                List<JasperReportValueDto<T>> values = paramDto.getValue();
                 Class paramClass = paramDto.getType();
                 /*
                  if ("attributeName".equals(paramDto.getName())) {                    
@@ -550,20 +589,31 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                  }
                  }
                  */
-                if (AuditEventType.class.isAssignableFrom(paramClass)) {
-                    paramClass = AuditEventTypeType.class;
-                    realValue = AuditEventType.fromAuditEventType((AuditEventType) realValue);
-                } else if (AuditEventStage.class.isAssignableFrom(paramClass)) {
-                    paramClass = AuditEventStageType.class;
-                    realValue = AuditEventStage.fromAuditEventStage((AuditEventStage) realValue);
-                }
                 typeName = getPrismContext().getSchemaRegistry().determineTypeForClass(paramClass);
                 PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
                 def.setDynamic(true);
                 def.setRuntimeSchema(true);
+                
+                def.setMaxOccurs(isMultiValue(paramDto) ? -1 : 1);
                 PrismProperty prop = def.instantiate();
-                prop.addRealValue(realValue);
-                reportParamValue.add(prop);
+				for (JasperReportValueDto<T> paramValue : values) {
+					Object realValue = paramValue.getValue();
+					if (realValue == null) {
+						continue;
+					}
+					if (AuditEventType.class.isAssignableFrom(paramClass)) {
+						paramClass = AuditEventTypeType.class;
+						realValue = AuditEventType.fromAuditEventType((AuditEventType) realValue);
+					} else if (AuditEventStage.class.isAssignableFrom(paramClass)) {
+						paramClass = AuditEventStageType.class;
+						realValue = AuditEventStage.fromAuditEventStage((AuditEventStage) realValue);
+					}
+
+					prop.addRealValue(realValue);
+				}
+				if (!prop.isEmpty()) {
+					reportParamValue.add(prop);
+				}
                 //setPropertyRealValue(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), paramDto.getValue(), getPrismContext());
             }
         } catch (SchemaException | ClassNotFoundException e) {
@@ -575,6 +625,19 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         runConfirmPerformed(target, reportDto.getObject().asObjectable(), paramContainer);
 
+    }
+    
+    private boolean isMultiValue(JasperReportParameterDto param){
+    	if (param == null) {
+    		return false;
+    	}
+    	
+    	if (param.getProperties() == null) {
+    		return false;
+    	}
+    	
+    	return Boolean.parseBoolean(param.getProperties().getMultivalue());
+    	
     }
 
     private PrismContext getPrismContext() {

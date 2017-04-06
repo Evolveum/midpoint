@@ -157,9 +157,16 @@ public class ReportCreateTaskHandler implements TaskHandler {
                 if (items != null) {
                     for (Item item : items) {
                         PrismProperty pp = (PrismProperty) item;
-                        Object value = pp.getRealValue();
                         String paramName = ItemPath.getName(pp.getPath().lastNamed()).getLocalPart();
+                        Object value = null;
+                        if (pp.isSingleValue()){
+	                         value = pp.getRealValue();
+                        } else {
+                        	value = pp.getRealValues();
+                        	
+                        }
                         parameters.put(paramName, value);
+                        
                     }
                 }
             }

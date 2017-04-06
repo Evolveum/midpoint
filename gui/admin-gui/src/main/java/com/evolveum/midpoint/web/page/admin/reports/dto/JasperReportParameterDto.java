@@ -23,9 +23,10 @@ public class JasperReportParameterDto<T> extends Selectable implements Serializa
     private String description;
     private Class nestedType;
     private boolean forPrompting = false;
-    private JasperReportValueDto<T> value;
+    private List<JasperReportValueDto<T>> value;
+    private JasperReportParameterPropertiesDto properties;
 
-    private JRPropertiesMap properties;
+//    private JRPropertiesMap properties;
 
     private boolean editing;
 
@@ -54,20 +55,31 @@ public class JasperReportParameterDto<T> extends Selectable implements Serializa
     		this.nestedType = param.getNestedType();
     	}
     	
-    	this.value = new JasperReportValueDto<T>(param.getPropertiesMap());
+    	this.value = new ArrayList<>(); 
+    	this.value.add(new JasperReportValueDto<T>());
     	
-        
-        
+    	this.properties = new JasperReportParameterPropertiesDto(param.getPropertiesMap());
+    	
         
     }
     
-   
-    public JasperReportValueDto<T> getValue() {
+    public List<JasperReportValueDto<T>> getValue() {
 		return value;
 	}
     
-    public void setValue(JasperReportValueDto<T> value) {
+    public void setValue(List<JasperReportValueDto<T>> value) {
 		this.value = value;
+	}
+   
+    public void addValue() {
+		getValue().add(new JasperReportValueDto<>());
+	}
+
+	public void removeValue(JasperReportValueDto<T> realValue) {
+		getValue().remove(realValue);
+		if (getValue().isEmpty()) {
+			getValue().add(new JasperReportValueDto<>());
+		}
 	}
     
 
@@ -99,18 +111,30 @@ public class JasperReportParameterDto<T> extends Selectable implements Serializa
         this.description = description;
     }
 
-    public void setProperties(JRPropertiesMap properties) {
-        this.properties = properties;
-    }
 
-    public JRPropertiesMap getProperties() {
-        if (properties == null) {
-            return null;
-        }
-       return this.value.getPropertiesMap();
-     
-    }
+//    public JRPropertiesMap getProperties() {
+//        if (properties == null) {
+//            return null;
+//        }
+//       return this.properties.getPropertiesMap();
+//     
+//    }
+    
+    public JasperReportParameterPropertiesDto getProperties() {
+		return properties;
+	}
+    
+    public JRPropertiesMap getJRProperties() {
+		if (properties == null) {
+			return null;
+		}
+		
+		return properties.getPropertiesMap();
+	}
 
+    public void setProperties(JasperReportParameterPropertiesDto properties) {
+		this.properties = properties;
+	}
   
     public Class<T> getType() throws ClassNotFoundException {
         if (type == null) {

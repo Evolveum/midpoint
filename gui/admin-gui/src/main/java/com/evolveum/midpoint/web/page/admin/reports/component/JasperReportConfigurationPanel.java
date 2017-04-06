@@ -21,21 +21,24 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportFieldDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterPropertiesDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.Base64Model;
 
-public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
+public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
 	private static final String ID_PARAMETERS_TABLE = "parametersTable";
 	private static final String ID_FIELDS_TABLE = "fieldsTable";
@@ -48,9 +51,10 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 
 	public JasperReportConfigurationPanel(String id, IModel<ReportDto> model) {
 		super(id, model);
+		initLayout();
 	}
 
-	@Override
+	
 	protected void initLayout() {
 		AceEditorPanel queryPanel = new AceEditorPanel(ID_QUERY,
 				createStringResource("JasperReportConfigurationPanel.reportQuery"),
@@ -203,17 +207,21 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 		columns.add(
 				buildEditableLinkColumn("JasperReportConfigurationPanel.parameterClass", null, "typeAsString", true));
 
-		// property:key editing column
-		columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "key", "value.key",
-				false));
+		columns.add(new LinkColumn<JasperReportParameterDto>(createStringResource("JasperReportConfigurationPanel.properties")) {
+			
+			@Override
+			public void onClick(AjaxRequestTarget target,
+					IModel<JasperReportParameterDto> rowModel) {
+				showPropertiesPopup(target, rowModel);
+			}
+			
+			@Override
+			protected IModel createLinkModel(IModel<JasperReportParameterDto> rowModel) {
+				return createStringResource("JasperReportConfigurationPanel.properties");
+			}
 
-		// property:label editing column
-		columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "label",
-				"value.label", false));
-
-		// property:targetType editing column
-		columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "targetType",
-				"value.targetType", false));
+		}); 
+		
 
 		CheckBoxColumn forPrompting = new CheckBoxColumn<JasperReportParameterDto>(
 				createStringResource("JasperReportConfigurationPanel.forPrompting"), "forPrompting") {
@@ -231,6 +239,35 @@ public class JasperReportConfigurationPanel extends SimplePanel<ReportDto> {
 
 		return columns;
 	}
+	
+	private void showPropertiesPopup(AjaxRequestTarget target,
+			IModel<JasperReportParameterDto> rowModel) {
+		
+		ParameterPropertiesPopupPanel propertiesPopup = new ParameterPropertiesPopupPanel(getPageBase().getMainPopupBodyId(), new PropertyModel<>(rowModel, "properties")) {
+			
+			@Override
+			protected void updateProperties(JasperReportParameterPropertiesDto properties, AjaxRequestTarget target) {
+//				getModel().getObject().get
+			}
+			
+		};
+		getPageBase().showMainPopup(propertiesPopup, target);
+		
+	}
+	
+//	void popup(){
+//		// property:key editing column
+//				columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "key", "value.key",
+//						false));
+//
+//				// property:label editing column
+//				columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "label",
+//						"value.label", false));
+//
+//				// property:targetType editing column
+//				columns.add(buildEditableLinkColumn("JasperReportConfigurationPanel.parameterProperty", "targetType",
+//						"value.targetType", false));
+//	}
 
 	private EditableLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(String resource, String resourceParam,
 			String property, final Boolean mandatory) {
