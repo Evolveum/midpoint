@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.activiti.dao;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -82,7 +83,7 @@ public class ProcessInstanceProvider {
                 return;
             }
 			final List<WorkItemType> workItems = workItemProvider.getWorkItemsForProcessInstanceId(instanceId, result);
-			taskType.getWorkflowContext().getWorkItem().addAll(workItems);
+			taskType.getWorkflowContext().getWorkItem().addAll(CloneUtil.cloneCollectionMembers(workItems));
         } catch (RuntimeException e) {
             result.recordFatalError(e.getMessage(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare wf-related information for {}", e, ObjectTypeUtil.toShortString(object));

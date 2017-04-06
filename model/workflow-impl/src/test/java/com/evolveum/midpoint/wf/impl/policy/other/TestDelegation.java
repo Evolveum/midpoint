@@ -96,7 +96,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		workItemId = workItem.getExternalId();
-		taskOid = workItem.getTaskRef().getOid();
+		taskOid = WfContextUtil.getTask(workItem).getOid();
 
 		display("work item", workItem);
 		display("task", getObjectViaRepo(TaskType.class, taskOid));

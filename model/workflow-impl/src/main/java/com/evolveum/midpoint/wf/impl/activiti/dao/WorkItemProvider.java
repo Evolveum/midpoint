@@ -31,7 +31,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -78,17 +81,11 @@ public class WorkItemProvider {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemProvider.class);
 
-	@Autowired
-    private ActivitiEngine activitiEngine;
-
-    @Autowired
-    private MiscDataUtil miscDataUtil;
-
-    @Autowired
-    private PrismContext prismContext;
-
-	@Autowired
-	private ProcessInterfaceFinder processInterfaceFinder;
+	@Autowired private ActivitiEngine activitiEngine;
+    @Autowired private MiscDataUtil miscDataUtil;
+    @Autowired private PrismContext prismContext;
+	@Autowired private ProcessInterfaceFinder processInterfaceFinder;
+	@Autowired private TaskManager taskManager;
 
     private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
 
@@ -414,20 +411,21 @@ public class WorkItemProvider {
 			final Map<String, Object> variables = task.getVariables();
 
 			wi.setExternalId(task.getId());
-			wi.setProcessInstanceId(task.getProcessInstanceId());
 			wi.setName(task.getName());
 			wi.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
-			wi.setProcessStartedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(ActivitiUtil.getRequiredVariable(
-					variables, CommonProcessVariableNames.VARIABLE_START_TIME, Date.class, prismContext)));
 			wi.setDeadline(XmlTypeConverter.createXMLGregorianCalendar(task.getDueDate()));
 
-			String taskOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
-			if (taskOid != null) {
-				wi.setTaskRef(createObjectRef(taskOid, TASK));
-				if (resolveTask) {
-					miscDataUtil.resolveAndStoreObjectReference(wi.getTaskRef(), result);
-				}
+			String taskOid = ActivitiUtil.getRequiredVariable(variables, CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class, null);
+			com.evolveum.midpoint.task.api.Task mpTask = null;
+			try {
+				mpTask = taskManager.getTask(taskOid, result);
+			} catch (ObjectNotFoundException|SchemaException e) {
+				throw new SystemException("Couldn't retrieve owning task for " + wi + ": " + e.getMessage(), e);		// TODO more gentle treatment
 			}
+			if (mpTask.getWorkflowContext() == null) {
+				throw new IllegalStateException("No workflow context in task " + mpTask + " that owns " + wi);
+			}
+			mpTask.getWorkflowContext().getWorkItem().add(wi);
 
 			// assignees
 			wi.getAssigneeRef().addAll(getMidpointAssignees(task));
@@ -449,9 +447,6 @@ public class WorkItemProvider {
 			}
 
 			// other
-			wi.setObjectRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_OBJECT_REF)));
-			wi.setTargetRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_TARGET_REF)));
-
 			ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
 			wi.setOutput(pmi.extractWorkItemResult(variables));
 			String completedBy = ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_WORK_ITEM_COMPLETED_BY, String.class, prismContext);

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -114,7 +115,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		WorkItemType workItem = getWorkItem(task, result);
 		workItemId = workItem.getExternalId();
 
-		approvalTaskOid = workItem.getTaskRef().getOid();
+		approvalTaskOid = WfContextUtil.getTask(workItem).getOid();
 		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
 
 		display("work item", workItem);
@@ -145,7 +146,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		String wfTaskOid = workItem.getTaskRef().getOid();
+		String wfTaskOid = WfContextUtil.getTask(workItem).getOid();
 		PrismObject<TaskType> wfTask = getTask(wfTaskOid);
 		display("task", wfTask);
 		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
@@ -169,7 +170,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("task", wfTask);
 		assertEquals("Wrong # of triggers", 1, wfTask.asObjectable().getTrigger().size());
 
@@ -225,7 +226,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work items", workItems);
 
-		approvalTaskOid = workItems.get(0).getTaskRef().getOid();
+		approvalTaskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
 		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
 
 		display("workflow task", wfTask);

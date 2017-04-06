@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.policy;
 
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
@@ -38,11 +38,10 @@ public class ExpectedWorkItem {
 		if (!assigneeOid.equals(actualWorkItem.getOriginalAssigneeRef().getOid())) {
 			return false;
 		}
-		if (targetOid != null && !targetOid.equals(actualWorkItem.getTargetRef().getOid())) {
+		if (targetOid != null && !targetOid.equals(WfContextUtil.getTargetRef(actualWorkItem).getOid())) {
 			return false;
 		}
-		PrismReferenceValue actualTaskRef = actualWorkItem.getTaskRef().asReferenceValue();
-		TaskType actualTask = (TaskType) actualTaskRef.getObject().asObjectable();
+		TaskType actualTask = WfContextUtil.getTask(actualWorkItem);
 		return task.processName.equals(actualTask.getWorkflowContext().getProcessInstanceName());
 	}
 

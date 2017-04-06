@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -292,7 +293,7 @@ public class WfTaskController {
 	@SuppressWarnings("unchecked")
     public void onTaskEvent(WorkItemType workItem, TaskEvent taskEvent, OperationResult result) throws WorkflowException, SchemaException {
 
-		final TaskType shadowTaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
+		final TaskType shadowTaskType = WfContextUtil.getTask(workItem);
 		if (shadowTaskType == null) {
 			LOGGER.warn("No task in workItem " + workItem + ", audit and notifications couldn't be performed.");
 			return;

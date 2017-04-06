@@ -235,7 +235,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask", wfTask);
 
 		assertTriggers(wfTask, 2);
@@ -296,7 +296,7 @@ public class TestStrings extends AbstractStoryTest {
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
 		displayWorkItems("Work item after 1st approval", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask after 1st approval", wfTask);
 
 		assertStage(wfTask, 2, 3, "Security", null);
@@ -367,7 +367,7 @@ public class TestStrings extends AbstractStoryTest {
 		workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 2nd approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 2, workItems.size());
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask after 2nd approval", wfTask);
 
 		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
@@ -445,7 +445,7 @@ public class TestStrings extends AbstractStoryTest {
 		displayWorkItems("Work item after 3rd approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 1, workItems.size());
 		workItemsMap = sortByOriginalAssignee(workItems);
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask after 3rd approval", wfTask);
 
 		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
@@ -487,7 +487,7 @@ public class TestStrings extends AbstractStoryTest {
 		// GIVEN
 		login(userAdministrator);
 		List<WorkItemType> workItems = getWorkItems(task, result);
-		String taskOid = workItems.get(0).getTaskRef().getOid();
+		String taskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
 		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 
 		// WHEN
@@ -571,7 +571,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask", wfTask);
 
 		assertTriggers(wfTask, 2);
@@ -653,7 +653,7 @@ public class TestStrings extends AbstractStoryTest {
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work items after timed escalation", workItems);
 		assertEquals("Wrong # of work items after timed escalation", 1, workItems.size());
-		String taskOid = workItems.get(0).getTaskRef().getOid();
+		String taskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
 		PrismObject<TaskType> wfTask = getTask(taskOid);
 		display("wfTask after timed escalation", wfTask);
 
@@ -781,7 +781,7 @@ public class TestStrings extends AbstractStoryTest {
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
 		displayWorkItems("Work item after 1st approval", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask after 1st approval", wfTask);
 
 		assertStage(wfTask, 2, 3, "Security", null);
@@ -964,7 +964,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after start", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask", wfTask);
 		
 //		assertTriggers(wfTask, 2);
@@ -1009,7 +1009,7 @@ public class TestStrings extends AbstractStoryTest {
 		login(userAdministrator);
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 1st approval", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
 
 		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(wfTask.asObjectable().getWorkflowContext());
@@ -1059,7 +1059,7 @@ public class TestStrings extends AbstractStoryTest {
 		displayWorkItems("Work item after 2nd approval", workItems);
 		assertEquals("Wrong # of work items after 2nd approval", 0, workItems.size());
 
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask after 2nd approval", wfTask);
 
 		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
@@ -1110,7 +1110,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after start", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask", wfTask);
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());

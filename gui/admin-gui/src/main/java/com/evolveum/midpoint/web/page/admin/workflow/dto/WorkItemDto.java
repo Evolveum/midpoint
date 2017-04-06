@@ -141,7 +141,8 @@ public class WorkItemDto extends Selectable {
 	@Nullable
 	private TaskType getTaskType() {
     	if (taskType == null) {
-			taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+			//taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+			taskType = WfContextUtil.getTask(workItem);
 		}
 		return taskType;
 	}
@@ -179,11 +180,11 @@ public class WorkItemDto extends Selectable {
     }
 
     public Date getStartedDate() {
-        return XmlTypeConverter.toDate(workItem.getProcessStartedTimestamp());
+        return XmlTypeConverter.toDate(getWorkflowContext().getStartTimestamp());		// TODO NPE?
     }
 
     public String getStartedFormattedFull() {
-        return WebComponentUtil.getLocalizedDate(workItem.getProcessStartedTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
+        return WebComponentUtil.getLocalizedDate(getWorkflowContext().getStartTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
     }
 
     // TODO
@@ -217,19 +218,19 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public String getObjectName() {
-        return WebComponentUtil.getName(workItem.getObjectRef());
+        return WebComponentUtil.getName(WfContextUtil.getObjectRef(workItem));
     }
 
 	public ObjectReferenceType getObjectRef() {
-		return workItem.getObjectRef();
+		return WfContextUtil.getObjectRef(workItem);
 	}
 
 	public ObjectReferenceType getTargetRef() {
-		return workItem.getTargetRef();
+		return WfContextUtil.getTargetRef(workItem);
 	}
 
 	public String getTargetName() {
-        return WebComponentUtil.getName(workItem.getTargetRef());
+        return WebComponentUtil.getName(WfContextUtil.getTargetRef(workItem));
     }
 
     public WfContextType getWorkflowContext() {
@@ -273,11 +274,13 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public QName getTargetType() {
-		return workItem.getTargetRef() != null ? workItem.getTargetRef().getType() : null;
+		ObjectReferenceType targetRef = WfContextUtil.getTargetRef(workItem);
+		return targetRef != null ? targetRef.getType() : null;
 	}
 
 	public QName getObjectType() {
-		return workItem.getObjectRef() != null ? workItem.getObjectRef().getType() : null;
+		ObjectReferenceType objectRef = WfContextUtil.getObjectRef(workItem);
+		return objectRef != null ? objectRef.getType() : null;
 	}
 
 	// all except the current one

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
@@ -107,7 +108,7 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			public String getObject() {
 				WorkItemType workItem = getModelObject();
 				return getString("TaskSummaryPanel.requestedOn",
-						WebComponentUtil.getLocalizedDate(workItem.getProcessStartedTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE));
+						WebComponentUtil.getLocalizedDate(WfContextUtil.getWorkflowContext(workItem).getStartTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE));
 			}
 		};
 	}

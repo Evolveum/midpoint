@@ -83,7 +83,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		workflowManager.completeWorkItem(workItem.getExternalId(), true, "OK", null, null, result);
 
 		// THEN
-		TaskType wfTask = getTask(workItem.getTaskRef().getOid()).asObjectable();
+		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
 		display("workflow context", wfTask.getWorkflowContext());
 		List<? extends CaseEventType> events = wfTask.getWorkflowContext().getEvent();
 		assertEquals("Wrong # of events", 2, events.size());
@@ -146,7 +146,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		WorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
 		workflowManager.completeWorkItem(workItem.getExternalId(), true, null, null, null, result);
-		TaskType wfTask = getTask(workItem.getTaskRef().getOid()).asObjectable();
+		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
 		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
 		waitForTaskFinish(parent.getOid(), true);
 

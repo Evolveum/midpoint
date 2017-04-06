@@ -478,7 +478,7 @@ public abstract class PrismValue implements IPrismValue {
 		}
 	}
 
-	public PrismContainerValue<?> getParentContainerValue(PrismValue value) {
+	public static PrismContainerValue<?> getParentContainerValue(PrismValue value) {
 		Itemable parent = value.getParent();
 		if (parent instanceof Item) {
 			PrismValue parentParent = ((Item) parent).getParent();
@@ -486,5 +486,9 @@ public abstract class PrismValue implements IPrismValue {
 		} else {
 			return null;
 		}
+	}
+
+	public PrismContainerValue<?> getParentContainerValue() {
+		return getParentContainerValue(this);
 	}
 }

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -64,6 +65,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -71,8 +73,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WO
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_OBJECT_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_TARGET_REF;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -591,11 +591,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertEquals("Incorrect number of subtasks", expectedSubTaskCount, subtasks.size());
 
 		final Collection<SelectorOptions<GetOperationOptions>> options1 = resolveItemsNamed(
-				F_OBJECT_REF,
-				F_TARGET_REF,
+				new ItemPath(T_PARENT, F_OBJECT_REF),
+				new ItemPath(T_PARENT, F_TARGET_REF),
 				F_ASSIGNEE_REF,
 				F_ORIGINAL_ASSIGNEE_REF,
-				new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
+				new ItemPath(T_PARENT, F_REQUESTER_REF));
 
 		List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, modelTask, result);
 
@@ -768,21 +768,20 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		i = 0;
 		for (WorkItemType workItem : workItems) {
 			display("Work item #" + (i + 1) + ": ", workItem);
-			display("Task ref",
-					workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
+			display("Task", WfContextUtil.getTask(workItem));
 			if (objectOid != null) {
-				WfTestUtil.assertRef("object reference", workItem.getObjectRef(), objectOid, true, true);
+				WfTestUtil.assertRef("object reference", WfContextUtil.getObjectRef(workItem), objectOid, true, true);
 			}
 
 			String targetOid = expectedWorkItems.get(i).targetOid;
 			if (targetOid != null) {
-				WfTestUtil.assertRef("target reference", workItem.getTargetRef(), targetOid, true, true);
+				WfTestUtil.assertRef("target reference", WfContextUtil.getTargetRef(workItem), targetOid, true, true);
 			}
 			WfTestUtil
 					.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
 			// name is not known, as it is not stored in activiti (only OID is)
-			WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
-			final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
+			//WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
+			final TaskType subtaskType = WfContextUtil.getTask(workItem);
 			checkTask(subtaskType, "task in workItem", expectedWorkItems.get(i).task);
 			WfTestUtil
 					.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);

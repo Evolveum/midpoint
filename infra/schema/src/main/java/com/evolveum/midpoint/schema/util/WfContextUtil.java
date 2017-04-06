@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -295,5 +297,45 @@ public class WfContextUtil {
 	// TODO take from the workflow context!
 	public static String getStageInfoTODO(Integer stageNumber) {
 		return getStageInfo(stageNumber, null, null, null);
+	}
+
+	public static String getProcessInstanceId(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getProcessInstanceId();
+	}
+
+	public static WfContextType getWorkflowContext(WorkItemType workItem) {
+		PrismContainerValue<?> parent = PrismContainerValue.getParentContainerValue(workItem.asPrismContainerValue());
+		if (parent == null) {
+			throw new IllegalStateException("No containing workflow context for " + workItem);
+		}
+		Containerable parentReal = parent.asContainerable();
+		if (!(parentReal instanceof WfContextType)) {
+			throw new IllegalStateException("WorkItem's parent is not a WfContextType; it is " + parentReal);
+		}
+		return (WfContextType) parentReal;
+	}
+
+	public static TaskType getTask(WorkItemType workItem) {
+		return getTask(getWorkflowContext(workItem));
+	}
+
+	public static TaskType getTask(WfContextType wfc) {
+		PrismContainerValue<?> parent = PrismContainerValue.getParentContainerValue(wfc.asPrismContainerValue());
+		if (parent == null) {
+			throw new IllegalStateException("No containing task for " + wfc);
+		}
+		Containerable parentReal = parent.asContainerable();
+		if (!(parentReal instanceof TaskType)) {
+			throw new IllegalStateException("WfContextType's parent is not a TaskType; it is " + parentReal);
+		}
+		return (TaskType) parentReal;
+	}
+
+	public static ObjectReferenceType getObjectRef(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getObjectRef();
+	}
+
+	public static ObjectReferenceType getTargetRef(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getTargetRef();
 	}
 }

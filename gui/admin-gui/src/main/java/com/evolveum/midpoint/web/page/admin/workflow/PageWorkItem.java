@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -143,7 +144,8 @@ public class PageWorkItem extends PageAdminWorkItems {
             }
 			final WorkItemType workItem = workItems.get(0);
 
-			final String taskOid = workItem.getTaskRef() != null ? workItem.getTaskRef().getOid() : null;
+			//final String taskOid = workItem.getTaskRef() != null ? workItem.getTaskRef().getOid() : null;
+			final String taskOid = WfContextUtil.getTask(workItem).getOid();
 			TaskType taskType = null;
 			List<TaskType> relatedTasks = new ArrayList<>();
 			if (taskOid != null) {

@@ -18,10 +18,7 @@ package com.evolveum.midpoint.wf.impl.legacy;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -40,6 +37,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -66,12 +64,12 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 import static org.testng.AssertJUnit.*;
 
@@ -184,30 +182,30 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         }
 
         final Collection<SelectorOptions<GetOperationOptions>> options1 = resolveItemsNamed(
-                F_OBJECT_REF,
-                F_TARGET_REF,
+                new ItemPath(T_PARENT, F_OBJECT_REF),
+                new ItemPath(T_PARENT, F_TARGET_REF),
                 F_ASSIGNEE_REF,
                 F_ORIGINAL_ASSIGNEE_REF,
-                new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
+                new ItemPath(T_PARENT, F_REQUESTER_REF));
 
         List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, opTask, result);
         assertEquals("Wrong # of work items", processNames.length, workItems.size());
         i = 0;
         for (WorkItemType workItem : workItems) {
             display("Work item #"+(i+1)+": ", workItem);
-            display("Task ref", workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
-            WfTestUtil.assertRef("object reference", workItem.getObjectRef(), USER_JACK_OID, true, true);
-            WfTestUtil.assertRef("target reference", workItem.getTargetRef(), ROLE_R1_OID, true, true);
+            display("Task ref", WfContextUtil.getTask(workItem));
+            WfTestUtil.assertRef("object reference", WfContextUtil.getObjectRef(workItem), USER_JACK_OID, true, true);
+            WfTestUtil.assertRef("target reference", WfContextUtil.getTargetRef(workItem), ROLE_R1_OID, true, true);
             WfTestUtil.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), R1BOSS_OID, false, true);     // name is not known, as it is not stored in activiti (only OID is)
-            WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
-            final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
+            //WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
+            final TaskType subtaskType = WfContextUtil.getTask(workItem);
             checkTask(subtaskType, "task in workItem", processNames[i++]);
             WfTestUtil.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
         }
     }
 
     private void checkTask(TaskType subtaskType, String subtaskName, String processName) {
-        assertNull("Unexpected fetch result in wf subtask: " + subtaskName, subtaskType.getFetchResult());
+        assertEquals("Unexpected fetch result in wf subtask: " + subtaskName, null, subtaskType.getFetchResult());
         WfContextType wfc = subtaskType.getWorkflowContext();
         assertNotNull("Missing workflow context in wf subtask: " + subtaskName, wfc);
         assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getProcessInstanceId());

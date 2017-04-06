@@ -131,14 +131,14 @@ public class BaseAuditHelper {
 		record.setEventType(AuditEventType.WORK_ITEM);
 		record.setEventStage(stage);
 
-		ObjectReferenceType objectRef = resolveIfNeeded(workItem.getObjectRef(), result);
+		ObjectReferenceType objectRef = resolveIfNeeded(WfContextUtil.getObjectRef(workItem), result);
 		record.setTarget(objectRef.asReferenceValue());
 
 		record.setOutcome(OperationResultStatus.SUCCESS);
 		record.setParameter(wfTask.getCompleteStageInfo());
 
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(workItem.getTargetRef(), result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(WfContextUtil.getTargetRef(workItem), result));
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), result));
 		record.addReferenceValues(WorkflowConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), result));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
@@ -149,7 +149,7 @@ public class BaseAuditHelper {
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, workItem.getEscalationLevelName());
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, workItem.getEscalationLevelDisplayName());
 		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, workItem.getExternalId());
-		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, workItem.getProcessInstanceId());
+		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, WfContextUtil.getProcessInstanceId(workItem));
 		return record;
 	}
 

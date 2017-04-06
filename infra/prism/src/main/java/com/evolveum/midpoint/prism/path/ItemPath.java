@@ -677,17 +677,22 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	public boolean containsSpecialSymbols() {
-		for (ItemPathSegment segment : segments) {
-			if (segment instanceof ReferencePathSegment || segment instanceof IdentifierPathSegment) {
-				return true;
-			}
-		}
-		return false;
+		return segments.stream().anyMatch(s -> s instanceof IdentifierPathSegment || s instanceof ReferencePathSegment);
 	}
 
-	public static void checkNoReferences(ItemPath path) {
+	public boolean containsSpecialSymbolsExceptParent() {
+		return segments.stream().anyMatch(s -> s instanceof IdentifierPathSegment || s instanceof ObjectReferencePathSegment);
+	}
+
+	public static void checkNoSpecialSymbols(ItemPath path) {
 		if (containsSpecialSymbols(path)) {
-			throw new IllegalStateException("Item path shouldn't contain references but it does: " + path);
+			throw new IllegalStateException("Item path shouldn't contain special symbols but it does: " + path);
+		}
+	}
+
+	public static void checkNoSpecialSymbolsExceptParent(ItemPath path) {
+		if (path != null && path.containsSpecialSymbolsExceptParent()) {
+			throw new IllegalStateException("Item path shouldn't contain special symbols (except for parent) but it does: " + path);
 		}
 	}
 

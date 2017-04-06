@@ -1545,21 +1545,21 @@
 	</xsd:complexType>
 	<xsd:element name="itemApprovalProcessState" type="tns:ItemApprovalProcessStateType" />
 
-	<xsd:complexType name="ItemApprovalRequestType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="itemToApprove" type="xsd:anyType"/>          <!-- Containerable -->
-            <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" />
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="itemApprovalRequest" type="tns:ItemApprovalRequestType" />
+	<!--<xsd:complexType name="ItemApprovalRequestType">-->
+        <!--<xsd:annotation>-->
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
+            <!--<xsd:documentation>-->
+                <!--TODO-->
+            <!--</xsd:documentation>-->
+        <!--</xsd:annotation>-->
+        <!--<xsd:sequence>-->
+            <!--<xsd:element name="itemToApprove" type="xsd:anyType"/>          &lt;!&ndash; Containerable &ndash;&gt;-->
+            <!--<xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" />-->
+        <!--</xsd:sequence>-->
+    <!--</xsd:complexType>-->
+    <!--<xsd:element name="itemApprovalRequest" type="tns:ItemApprovalRequestType" />-->
 
     <xsd:complexType name="WorkItemType">
         <xsd:annotation>
@@ -1582,79 +1582,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Internal identifier of a process instance, assigned by the underlying workflow engine
-								(currently Activiti).
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.6</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="processStartedTimestamp" type="xsd:dateTime">
-						<xsd:annotation>
-							<xsd:documentation>
-								When was the operation requested, i.e. when the approval process started?
-
-								(Normally, this information is relevant at the task/wf-process stage.
-								However we put it here to avoid fetching tasks when we want to display
-								work item list only.)
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
 					<!-- TODO original deadline? -->
-					<xsd:element name="taskRef" type="c:ObjectReferenceType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Task that wraps process instance this work item is part of.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Object that is being modified (added, deleted) by the operation requested.
-								Typically a user, but might be also a role, org, resource, etc.
-
-								(Normally, this information is relevant at the task/wf-process stage.
-								However we put it here to avoid fetching tasks when we want to display
-								work item list only.)
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Object that is being attached to/detached from the object modified.
-								Typically a role but might be also a resource, org, ... or it might be null.
-
-								(Normally, this information is relevant at the task/wf-process stage.
-								However we put it here to avoid fetching tasks when we want to display
-								work item list only.)
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="result" type="tns:WorkItemResultType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Result of this work item (null if it was not completed).
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.6</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
 					<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
