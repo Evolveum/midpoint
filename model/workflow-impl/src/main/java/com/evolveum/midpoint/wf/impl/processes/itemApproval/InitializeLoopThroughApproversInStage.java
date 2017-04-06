@@ -89,15 +89,15 @@ public class InitializeLoopThroughApproversInStage implements JavaDelegate {
 				if (expressionVariables == null) {
 					expressionVariables = evaluationHelper.getDefaultVariables(execution, wfTask, opResult);
 				}
-                List<ApprovalLevelOutcomeType> outcomes = evaluationHelper.evaluateExpression(stageDef.getAutomaticallyCompleted(), expressionVariables,
-						"automatic completion expression", ApprovalLevelOutcomeType.class,
+                List<String> outcomes = evaluationHelper.evaluateExpression(stageDef.getAutomaticallyCompleted(), expressionVariables,
+						"automatic completion expression", String.class,
 						SchemaConstants.APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE, opTask, opResult);
 				LOGGER.trace("Pre-completed = {} for stage {}", outcomes, stageDef);
-				Set<ApprovalLevelOutcomeType> distinctOutcomes = new HashSet<>(outcomes);
+				Set<String> distinctOutcomes = new HashSet<>(outcomes);
 				if (distinctOutcomes.size() > 1) {
 					throw new IllegalStateException("Ambiguous result from 'automatically completed' expression: " + distinctOutcomes);
 				} else if (!distinctOutcomes.isEmpty()) {
-					predeterminedOutcome = distinctOutcomes.iterator().next();
+					predeterminedOutcome = ApprovalUtils.approvalLevelOutcomeFromUri(distinctOutcomes.iterator().next());
 					if (predeterminedOutcome != null && predeterminedOutcome != SKIP) {
 						recordAutoCompletionDecision(wfTask.getOid(), predeterminedOutcome, AUTO_COMPLETION_CONDITION,
 								stageNumber, opResult);
