@@ -32,8 +32,8 @@
 		</initiatorRef>
 		<stageNumber>1</stageNumber>
 		<workItemId>116</workItemId>
-		<result>
+		<output>
 			<outcome>http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve</outcome>
-		</result>
+		</output>
 	</event>
 </workflowContext>
