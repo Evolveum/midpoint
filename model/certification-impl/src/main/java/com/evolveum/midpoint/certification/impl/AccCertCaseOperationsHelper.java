@@ -100,7 +100,7 @@ public class AccCertCaseOperationsHelper {
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTPUT)).replace(new AbstractWorkItemOutputType()
 						.outcome(OutcomeUtils.toUri(response))
 						.comment(comment))
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_TIMESTAMP)).replace(now)
+				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTPUT_CHANGE_TIMESTAMP)).replace(now)
 				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_PERFORMER_REF)).replace(responderRef)
 				.asItemDeltas();
 

@@ -73,7 +73,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     private REmbeddedReference performerRef;
     private String outcome;
     private XMLGregorianCalendar timestamp;
-    private XMLGregorianCalendar closedTimestamp;
+    private XMLGregorianCalendar closeTimestamp;
 
     public RAccessCertificationWorkItem() {
     }
@@ -179,12 +179,12 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 	}
 
 	@Column
-	public XMLGregorianCalendar getClosedTimestamp() {
-		return closedTimestamp;
+	public XMLGregorianCalendar getCloseTimestamp() {
+		return closeTimestamp;
 	}
 
-	public void setClosedTimestamp(XMLGregorianCalendar closedTimestamp) {
-		this.closedTimestamp = closedTimestamp;
+	public void setCloseTimestamp(XMLGregorianCalendar closeTimestamp) {
+		this.closeTimestamp = closeTimestamp;
 	}
 
 	@Override
@@ -202,13 +202,13 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 				Objects.equals(performerRef, that.performerRef) &&
 				Objects.equals(outcome, that.outcome) &&
 				Objects.equals(timestamp, that.timestamp) &&
-				Objects.equals(closedTimestamp, that.closedTimestamp);
+				Objects.equals(closeTimestamp, that.closeTimestamp);
 	}
 
 	@Override
 	public int hashCode() {
 		return Objects
-				.hash(ownerOwnerOid, ownerId, id, stageNumber, assigneeRef, performerRef, outcome, timestamp, closedTimestamp);
+				.hash(ownerOwnerOid, ownerId, id, stageNumber, assigneeRef, performerRef, outcome, timestamp, closeTimestamp);
 	}
 
 	@Transient
@@ -249,7 +249,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
                 workItem.getAssigneeRef(), context.prismContext, rWorkItem));
         rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.prismContext));
         rWorkItem.setOutcome(WorkItemTypeUtil.getOutcome(workItem));
-        rWorkItem.setTimestamp(workItem.getTimestamp());
-        rWorkItem.setClosedTimestamp(workItem.getClosedTimestamp());
+        rWorkItem.setTimestamp(workItem.getOutputChangeTimestamp());
+        rWorkItem.setCloseTimestamp(workItem.getCloseTimestamp());
     }
 }

@@ -141,7 +141,7 @@ public class AccCertQueryHelper {
 					.exists(F_WORK_ITEM)
 					.block()
 						.item(F_ASSIGNEE_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
-						.and().item(F_CLOSED_TIMESTAMP).isNull()
+						.and().item(F_CLOSE_TIMESTAMP).isNull()
 					.endBlock()
                     .buildFilter();
     }
@@ -150,7 +150,7 @@ public class AccCertQueryHelper {
     private ObjectFilter getReviewerAndEnabledFilterForWI(String reviewerOid) throws SchemaException {
         return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
                     .item(F_ASSIGNEE_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
-					.and().item(F_CLOSED_TIMESTAMP).isNull()
+					.and().item(F_CLOSE_TIMESTAMP).isNull()
                     .buildFilter();
     }
 
@@ -183,7 +183,7 @@ public class AccCertQueryHelper {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         cases: for (AccessCertificationCaseType aCase : caseList) {
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-                if (workItem.getClosedTimestamp() == null) {
+                if (workItem.getCloseTimestamp() == null) {
                     for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
                         if (reviewerOid.equals(reviewerRef.getOid())) {
                             rv.add(aCase.clone());

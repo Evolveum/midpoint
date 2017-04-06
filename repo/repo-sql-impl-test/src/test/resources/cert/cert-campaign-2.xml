@@ -63,7 +63,7 @@
                 <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
             </output>
             <stageNumber>1</stageNumber>
-            <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
+            <outputChangeTimestamp>2015-12-04T01:10:20.032+01:00</outputChangeTimestamp>
         </workItem>
         <workItem id="2">
             <assigneeRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></assigneeRef>

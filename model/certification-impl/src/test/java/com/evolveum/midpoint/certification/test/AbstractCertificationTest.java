@@ -65,7 +65,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -447,7 +446,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertRefEquals("wrong reviewerRef", ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER), workItem.getAssigneeRef().get(0));
 		assertEquals("wrong stage number", (Integer) stageNumber, workItem.getStageNumber());
 		if (response != null) {
-			assertApproximateTime("timestamp", new Date(), workItem.getTimestamp());
+			assertApproximateTime("timestamp", new Date(), workItem.getOutputChangeTimestamp());
 		}
 		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
 		if (checkHistory) {
@@ -462,7 +461,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
 		assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
 		if (response != null) {
-			assertApproximateTime("timestamp", new Date(), workItem.getTimestamp());
+			assertApproximateTime("timestamp", new Date(), workItem.getOutputChangeTimestamp());
 		}
 		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
 		if (checkHistory) {
@@ -498,7 +497,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			if (decidedOnly && WorkItemTypeUtil.getOutcome(workItem) == null) {
 				continue;
 			}
-			if (workItem.getStageNumber() == stageNumber && workItem.getClosedTimestamp() == null) {
+			if (workItem.getStageNumber() == stageNumber && workItem.getCloseTimestamp() == null) {
 				rv.add(workItem.clone());
 			}
 		}
@@ -539,7 +538,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
 		assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
 		if (response != null) {
-			assertApproximateTime("timestamp", new Date(), workItem.getTimestamp());
+			assertApproximateTime("timestamp", new Date(), workItem.getOutputChangeTimestamp());
 		}
 		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
 	}

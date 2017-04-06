@@ -284,7 +284,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
 		XMLGregorianCalendar closedTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 		List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-                .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM, workItem.getId(), AccessCertificationWorkItemType.F_CLOSED_TIMESTAMP)
+                .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM, workItem.getId(), AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
 						.replace(closedTimestamp)
                 .asItemDeltas();
 
@@ -532,7 +532,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                 .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                 .and().exists(F_WORK_ITEM).block()
-					.item(F_CLOSED_TIMESTAMP).isNull()
+					.item(F_CLOSE_TIMESTAMP).isNull()
                     .and().block()
                         .item(F_OUTPUT, F_OUTCOME).isNull()
                     .endBlock()

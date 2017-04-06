@@ -896,10 +896,10 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkItemType">
                 <xsd:sequence>
-                    <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="outputChangeTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                When the decision was made.
+                                When the decision was made or changed.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

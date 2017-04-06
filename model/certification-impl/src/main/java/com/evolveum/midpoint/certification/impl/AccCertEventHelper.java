@@ -96,7 +96,7 @@ public class AccCertEventHelper implements AccessCertificationEventListener {
         Set<String> oids = new HashSet<>();
         for (AccessCertificationCaseType aCase : caseList) {
 			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-				if (workItem.getClosedTimestamp() == null) {
+				if (workItem.getCloseTimestamp() == null) {
 					for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
 						oids.add(reviewerRef.getOid());
 					}

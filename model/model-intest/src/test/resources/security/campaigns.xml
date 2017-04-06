@@ -58,7 +58,7 @@
                 <output>
                     <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#notDecided</outcome>
                 </output>
-                <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
+                <outputChangeTimestamp>2015-12-04T01:10:20.032+01:00</outputChangeTimestamp>
             </workItem>
             <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
             <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
@@ -110,7 +110,7 @@
                 <output>
                     <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
                 </output>
-                <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
+                <outputChangeTimestamp>2015-12-04T01:04:06.385+01:00</outputChangeTimestamp>
             </workItem>
             <currentStageOutcome>accept</currentStageOutcome>
             <assignment id="2">
@@ -132,7 +132,7 @@
                 <output>
                     <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
                 </output>
-                <timestamp>2015-12-04T01:10:08.670+01:00</timestamp>
+                <outputChangeTimestamp>2015-12-04T01:10:08.670+01:00</outputChangeTimestamp>
             </workItem>
             <currentStageOutcome>noResponse</currentStageOutcome>
             <assignment id="3">

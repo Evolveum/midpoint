@@ -3043,7 +3043,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
                     .item(F_ASSIGNEE_REF).ref("oid1", "oid2")
-                    .and().item(F_CLOSED_TIMESTAMP).isNull()
+                    .and().item(F_CLOSE_TIMESTAMP).isNull()
                     .asc(PrismConstants.T_PARENT, F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
                     .build();
 

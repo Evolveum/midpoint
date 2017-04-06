@@ -119,7 +119,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="workItemCreatedTimestamp" type="xsd:dateTime">
+            <xsd:element name="createTimestamp" type="xsd:dateTime">
                 <xsd:annotation>
                     <xsd:documentation>
                         When was this work item created?
@@ -194,7 +194,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="closedTimestamp" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="closeTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When was this work item closed. (If null, it is considered open.)

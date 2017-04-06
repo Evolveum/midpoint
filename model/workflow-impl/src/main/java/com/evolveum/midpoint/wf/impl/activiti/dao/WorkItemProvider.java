@@ -130,7 +130,7 @@ public class WorkItemProvider {
         final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_WORK_ITEM_ID);
         final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
         final ItemPath CANDIDATE_PATH = new ItemPath(F_CANDIDATE_REF);
-        final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP);
+        final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_CREATE_TIMESTAMP);
 
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
@@ -416,7 +416,7 @@ public class WorkItemProvider {
 			wi.setWorkItemId(task.getId());
 			wi.setProcessInstanceId(task.getProcessInstanceId());
 			wi.setName(task.getName());
-			wi.setWorkItemCreatedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
+			wi.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
 			wi.setProcessStartedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(ActivitiUtil.getRequiredVariable(
 					variables, CommonProcessVariableNames.VARIABLE_START_TIME, Date.class, prismContext)));
 			wi.setDeadline(XmlTypeConverter.createXMLGregorianCalendar(task.getDueDate()));

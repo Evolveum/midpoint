@@ -109,7 +109,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
     private ObjectQuery createQuery(long first, long count, OperationResult result) throws SchemaException {
         ObjectQuery query = createQuery(result);
-        query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count), F_WORK_ITEM_CREATED_TIMESTAMP, DESCENDING));
+        query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count), F_CREATE_TIMESTAMP, DESCENDING));
         return query;
     }
 

@@ -29,7 +29,7 @@
 		<output>
 			<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
 		</output>
-		<timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
+		<outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
 	</workItem>
 	<currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
 	<currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>

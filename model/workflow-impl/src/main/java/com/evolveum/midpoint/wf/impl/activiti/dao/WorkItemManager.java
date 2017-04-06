@@ -49,8 +49,6 @@ import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerIm
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.TaskService;
-import org.activiti.engine.form.FormProperty;
-import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
 import org.activiti.engine.task.Task;
@@ -320,7 +318,7 @@ public class WorkItemManager {
 
 			ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
 			MidpointUtil.createTriggersForTimedActions(workItemId, escalationLevel,
-					XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp()),
+					XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
 					deadline, wfTask, level.getTimedActions(), result);
 
 			WorkItemType workItemAfter = workItemProvider.getWorkItem(workItemId, result);

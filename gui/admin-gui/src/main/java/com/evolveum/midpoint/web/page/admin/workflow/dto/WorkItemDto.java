@@ -155,7 +155,7 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getCreatedFormatted() {
-        return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+        return WebComponentUtil.getLocalizedDate(workItem.getCreateTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
     }
 
     public String getDeadlineFormatted() {
@@ -163,7 +163,7 @@ public class WorkItemDto extends Selectable {
     }
 
 	public String getCreatedFormattedFull() {
-		return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
+		return WebComponentUtil.getLocalizedDate(workItem.getCreateTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
 	}
 
 	public String getDeadlineFormattedFull() {
@@ -171,7 +171,7 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public Date getCreatedDate() {
-        return XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp());
+        return XmlTypeConverter.toDate(workItem.getCreateTimestamp());
     }
 
 	public Date getDeadlineDate() {

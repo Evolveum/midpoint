@@ -166,7 +166,7 @@ public class CertCampaignTypeUtil {
         for (AccessCertificationCaseType aCase : caseList) {
 			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
 				if (workItem.getStageNumber() == campaignStageNumber
-                        && workItem.getClosedTimestamp() == null
+                        && workItem.getCloseTimestamp() == null
                         && WorkItemTypeUtil.getOutcome(workItem) == null) {
 					unansweredCases++;
 					break;
@@ -250,7 +250,7 @@ public class CertCampaignTypeUtil {
             if (hasNoResponse(workItem)) {
                 continue;
             }
-            Date responseDate = XmlTypeConverter.toDate(workItem.getTimestamp());
+            Date responseDate = XmlTypeConverter.toDate(workItem.getOutputChangeTimestamp());
             if (lastDate == null || responseDate.after(lastDate)) {
                 lastDate = responseDate;
             }
@@ -335,7 +335,7 @@ public class CertCampaignTypeUtil {
     public static Set<ObjectReferenceType> getCurrentReviewers(AccessCertificationCaseType aCase) {
         return aCase.getWorkItem().stream()
                 // TODO check also with campaign stage?
-                .filter(wi -> wi.getStageNumber() == aCase.getCurrentStageNumber() && wi.getClosedTimestamp() == null)
+                .filter(wi -> wi.getStageNumber() == aCase.getCurrentStageNumber() && wi.getCloseTimestamp() == null)
                 .flatMap(wi -> wi.getAssigneeRef().stream())
                 .collect(Collectors.toSet());
     }

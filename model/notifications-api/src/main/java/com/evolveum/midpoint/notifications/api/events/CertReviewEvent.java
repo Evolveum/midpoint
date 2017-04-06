@@ -63,7 +63,7 @@ public class CertReviewEvent extends AccessCertificationEvent {
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
             if (workItem.getStageNumber() == currentStageNumber
 					&& WorkItemTypeUtil.getOutcome(workItem) == null
-					&& workItem.getClosedTimestamp() == null
+					&& workItem.getCloseTimestamp() == null
 					&& ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
                 return true;
             }
