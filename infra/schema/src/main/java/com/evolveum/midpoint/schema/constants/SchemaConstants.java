@@ -302,11 +302,11 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
 	public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";
-	public static final String MODEL_APPROVAL_OUTCOME_APPROVED =
+	public static final String MODEL_APPROVAL_OUTCOME_APPROVE =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "approve"));
-	public static final String MODEL_APPROVAL_OUTCOME_REJECTED =
+	public static final String MODEL_APPROVAL_OUTCOME_REJECT =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "reject"));
-	public static final String MODEL_APPROVAL_OUTCOME_SKIPPED =
+	public static final String MODEL_APPROVAL_OUTCOME_SKIP =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "skip"));
 
 	public static final String NS_MODEL_CERTIFICATION = NS_MODEL + "/certification";

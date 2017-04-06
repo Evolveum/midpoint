@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -332,7 +331,7 @@ public class MiscDataUtil {
 				return true;
 			}
 		}
-		return isAmongCandidates(principal, workItem.getWorkItemId());
+		return isAmongCandidates(principal, workItem.getExternalId());
     }
 
 	public boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid) {
@@ -372,7 +371,7 @@ public class MiscDataUtil {
     }
 
     public boolean isAuthorizedToClaim(WorkItemType workItem) {
-        return isAuthorizedToClaim(workItem.getWorkItemId());
+        return isAuthorizedToClaim(workItem.getExternalId());
     }
 
     public boolean isAuthorizedToClaim(String taskId) {

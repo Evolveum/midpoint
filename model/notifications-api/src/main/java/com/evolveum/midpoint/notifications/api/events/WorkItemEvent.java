@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.api.WorkItemOperationInfo;
 import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -120,14 +119,14 @@ public class WorkItemEvent extends WorkflowEvent {
         variables.put(SchemaConstants.C_WORK_ITEM, workItem);
     }
 
-    public WorkItemResultType getWorkItemResult() {
-    	return workItem.getResult();
+    public AbstractWorkItemOutputType getOutput() {
+    	return workItem.getOutput();
 	}
 
 	@Override
 	public String getOutcome() {
-    	WorkItemResultType result = getWorkItemResult();
-		return result != null ? result.getOutcome() : null;
+    	AbstractWorkItemOutputType output = getOutput();
+		return output != null ? output.getOutcome() : null;
 	}
 
 	@Override

@@ -80,7 +80,7 @@ public class MidpointUtil {
 	}
 
 	// additional delta is a bit hack ... TODO refactor (but without splitting the modify operation!)
-	public static void recordEventInTask(WfProcessEventType event, ObjectDeltaType additionalDelta, String taskOid, OperationResult result) {
+	public static void recordEventInTask(CaseEventType event, ObjectDeltaType additionalDelta, String taskOid, OperationResult result) {
 		RepositoryService cacheRepositoryService = getCacheRepositoryService();
 		PrismContext prismContext = getPrismContext();
 		try {

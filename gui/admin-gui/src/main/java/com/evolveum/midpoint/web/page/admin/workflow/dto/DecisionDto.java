@@ -92,20 +92,20 @@ public class DecisionDto extends Selectable {
 
 	// if pageBase is null, references will not be resolved
     @Nullable
-	public static DecisionDto create(WfProcessEventType e, @Nullable PageBase pageBase) {
+	public static DecisionDto create(CaseEventType e, @Nullable PageBase pageBase) {
 
 		// we want to show user decisions, automatic decisions and delegations
 		DecisionDto rv = new DecisionDto();
 		rv.user = WebComponentUtil.getName(e.getInitiatorRef());
-		rv.stage = WfContextUtil.getStageInfo(e.getStageNumber(), null, e.getStageName(), e.getStageDisplayName());
+		rv.stage = WfContextUtil.getStageInfoTODO(e.getStageNumber());
 		rv.time = XmlTypeConverter.toDate(e.getTimestamp());
 
 		if (e instanceof WorkItemCompletionEventType) {
 			WorkItemCompletionEventType completionEvent = (WorkItemCompletionEventType) e;
-			WorkItemResultType result = completionEvent.getResult();
-			if (result != null) {
-				rv.outcome = ApprovalUtils.approvalBooleanValue(result);
-				rv.comment = result.getComment();
+			AbstractWorkItemOutputType output = completionEvent.getOutput();
+			if (output != null) {
+				rv.outcome = ApprovalUtils.approvalBooleanValue(output);
+				rv.comment = output.getComment();
 				// TODO what about additional delta?
 			}
 			WorkItemEventCauseInformationType cause = completionEvent.getCause();
@@ -126,13 +126,13 @@ public class DecisionDto extends Selectable {
 				rv.originalActor = WebModelServiceUtils.resolveReferenceName(completionEvent.getOriginalAssigneeRef(), pageBase);
 			}
 			return rv;
-		} else if (e instanceof WfStageCompletionEventType) {
-			WfStageCompletionEventType completion = (WfStageCompletionEventType) e;
+		} else if (e instanceof StageCompletionEventType) {
+			StageCompletionEventType completion = (StageCompletionEventType) e;
 			AutomatedDecisionReasonType reason = completion.getAutomatedDecisionReason();
 			if (reason == null) {
 				return null;			// not an automatic stage completion
 			}
-			ApprovalLevelOutcomeType outcome = completion.getOutcome();
+			ApprovalLevelOutcomeType outcome = ApprovalUtils.approvalLevelOutcomeFromUri(completion.getOutcome());
 			if (outcome == ApprovalLevelOutcomeType.APPROVE || outcome == ApprovalLevelOutcomeType.REJECT) {
 				rv.outcome = outcome == ApprovalLevelOutcomeType.APPROVE;
 				rv.user = PageBase.createStringResourceStatic(null,

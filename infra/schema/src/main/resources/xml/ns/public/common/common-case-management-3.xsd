@@ -237,7 +237,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractCaseEventType">
+    <xsd:complexType name="CaseEventType">
         <xsd:annotation>
             <xsd:documentation>
                 Any event occurring during case lifetime that needs to be recorded, e.g. an action done by a user.

@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
 import org.apache.commons.lang.BooleanUtils;
@@ -42,7 +44,7 @@ public class ApprovalUtils {
 		}
 	}
 
-	public static Boolean approvalBooleanValue(WorkItemResultType result) {
+	public static Boolean approvalBooleanValue(AbstractWorkItemOutputType result) {
 		return result != null ? approvalBooleanValue(fromUri(result.getOutcome())) : null;
 	}
 
@@ -57,7 +59,7 @@ public class ApprovalUtils {
 		}
 	}
 
-	public static boolean isApproved(WorkItemResultType result) {
+	public static boolean isApproved(AbstractWorkItemOutputType result) {
 		return BooleanUtils.isTrue(approvalBooleanValue(result));
 	}
 
@@ -70,9 +72,21 @@ public class ApprovalUtils {
     		return null;
 		}
 		switch (workItemOutcomeType) {
-			case APPROVE: return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED;
-			case REJECT: return SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECTED;
+			case APPROVE: return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE;
+			case REJECT: return SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT;
 			default: throw new AssertionError("Unexpected outcome: " + workItemOutcomeType);
+		}
+	}
+
+	public static String toUri(ApprovalLevelOutcomeType outcome) {
+		if (outcome == null) {
+			return null;
+		}
+		switch (outcome) {
+			case APPROVE: return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE;
+			case REJECT: return SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT;
+			case SKIP: return SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP;
+			default: throw new AssertionError("Unexpected outcome: " + outcome);
 		}
 	}
 
@@ -80,17 +94,31 @@ public class ApprovalUtils {
     	if (approved == null) {
 			return null;
 		} else {
-    		return approved ? SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED : SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECTED;
+    		return approved ? SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE : SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT;
 		}
 	}
 
 	public static WorkItemOutcomeType fromUri(String uri) {
 		if (uri == null) {
 			return null;
-		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED.equals(uri)) {
+		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(uri)) {
 			return WorkItemOutcomeType.APPROVE;
-		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECTED.equals(uri)) {
+		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT.equals(uri)) {
 			return WorkItemOutcomeType.REJECT;
+		} else {
+			throw new IllegalArgumentException("Unrecognized URI: " + uri);
+		}
+	}
+
+	public static ApprovalLevelOutcomeType approvalLevelOutcomeFromUri(String uri) {
+		if (uri == null) {
+			return null;
+		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(uri)) {
+			return ApprovalLevelOutcomeType.APPROVE;
+		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT.equals(uri)) {
+			return ApprovalLevelOutcomeType.REJECT;
+		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP.equals(uri)) {
+			return ApprovalLevelOutcomeType.SKIP;
 		} else {
 			throw new IllegalArgumentException("Unrecognized URI: " + uri);
 		}
@@ -112,4 +140,5 @@ public class ApprovalUtils {
 	public static boolean isApprovedFromUri(String uri) {
 		return isApproved(fromUri(uri));
 	}
+
 }

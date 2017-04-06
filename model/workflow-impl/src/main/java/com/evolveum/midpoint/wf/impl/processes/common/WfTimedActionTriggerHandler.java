@@ -162,7 +162,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
 			OperationResult result) throws SchemaException, SecurityViolationException {
 		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT;
-		workItemManager.completeWorkItem(workItem.getWorkItemId(), ApprovalUtils.toUri(outcome),
+		workItemManager.completeWorkItem(workItem.getExternalId(), ApprovalUtils.toUri(outcome),
 				null, null, createCauseInformation(completeAction), result);
 	}
 
@@ -182,7 +182,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 			escalationLevelName = escalationLevelDisplayName = null;
 		}
 		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, wfTask, triggerScannerTask, result);
-		workItemManager.delegateWorkItem(workItem.getWorkItemId(), delegates,
+		workItemManager.delegateWorkItem(workItem.getExternalId(), delegates,
 				delegateAction.getDelegationMethod(), escalate, escalationLevelName, escalationLevelDisplayName,
 				delegateAction.getDuration(), createCauseInformation(delegateAction), result);
 	}

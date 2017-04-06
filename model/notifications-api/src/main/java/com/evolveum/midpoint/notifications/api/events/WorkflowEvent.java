@@ -82,9 +82,9 @@ abstract public class WorkflowEvent extends BaseEvent {
         } else {
             if (outcome == null) {
                 return OperationStatus.IN_PROGRESS;
-            } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED.equals(outcome)) {
+            } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(outcome)) {
                 return OperationStatus.SUCCESS;
-            } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECTED.equals(outcome)) {
+            } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT.equals(outcome)) {
                 return OperationStatus.FAILURE;
             } else {
                 return OperationStatus.OTHER;

@@ -1329,7 +1329,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="event" type="tns:WfProcessEventType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="event" type="tns:CaseEventType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Events that occurred during lifetime of this process instance.
@@ -1346,38 +1346,6 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="wfContextType" type="tns:WfContextType" />
-
-	<xsd:complexType name="WfProcessEventType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Any event occurring during process instance execution that needs to be recorded, e.g. a decision
-				done by a user.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractCaseEventType">
-				<xsd:sequence>	<!-- TODO remove these -->
-					<xsd:element name="stageName" type="xsd:string" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Name of the stage at which this event occurred (if process can be conceptually divided into stages).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Display name of the stage at which this event occurred was made (if process can be conceptually divided into stages).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
 
 	<xsd:complexType name="WorkItemEventCauseInformationType">
 		<xsd:annotation>
@@ -1436,13 +1404,20 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:WfProcessEventType">
+			<xsd:extension base="tns:CaseEventType">
 				<xsd:sequence>
-					<xsd:element name="workItemId" type="xsd:string" minOccurs="0">
+					<xsd:element name="workItemId" type="xsd:long" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
-								ID of the work item (activiti task) this event is related to. May be empty for events
-								not related to any work item, e.g. some kinds of automated approvals.
+								MidPoint container ID of the work item.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="externalWorkItemId" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Activiti ID of the work item (activiti task) this event is related to. Null for
+								work items that have no external representation (i.e. they are present in midPoint repo only).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -1504,7 +1479,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:WorkItemEventType">
 				<xsd:sequence>
-					<xsd:element name="result" type="tns:WorkItemResultType" minOccurs="0" />
+					<xsd:element name="output" type="tns:AbstractWorkItemOutputType" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1550,7 +1525,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="WfStageCompletionEventType">
+	<xsd:complexType name="StageCompletionEventType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Event describing the completion of a workflow process instance stage.
@@ -1560,9 +1535,9 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:WfProcessEventType">
+			<xsd:extension base="tns:CaseEventType">
 				<xsd:sequence>
-					<xsd:element name="outcome" type="tns:ApprovalLevelOutcomeType" minOccurs="0" />
+					<xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" />
 					<xsd:element name="automatedDecisionReason" type="tns:AutomatedDecisionReasonType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -1575,7 +1550,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="WfProcessCompletionEventType">
+	<xsd:complexType name="CaseCompletionEventType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Event describing the completion of a workflow process instance.
@@ -1585,7 +1560,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:WfProcessEventType">
+			<xsd:extension base="tns:CaseEventType">
 				<xsd:sequence>
 					<!-- TODO -->
 				</xsd:sequence>
@@ -1593,7 +1568,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="WfProcessCreationEventType">
+	<xsd:complexType name="CaseCreationEventType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Event describing the creation of a workflow process instance.
@@ -1603,13 +1578,13 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:WfProcessEventType">
+			<xsd:extension base="tns:CaseEventType">
 				<xsd:sequence>
 					<xsd:element name="businessContext" type="tns:OperationBusinessContextType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								Business context of the operation, if provided.
-								TODO move to WfProcessEventType?
+								TODO move to CaseEventType?
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -1850,11 +1825,11 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractWorkItemType">
 				<xsd:sequence>
-					<xsd:element name="workItemId" type="xsd:string">
+					<xsd:element name="externalId" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								Internal identifier of a work item, assigned by the underlying workflow engine
-								(currently Activiti). MidPoint WorkItem is Activiti Task. So workItemId is
+								Identifier of the work item assigned by the underlying workflow engine
+								(currently Activiti). MidPoint WorkItem is Activiti Task. So externalId is
 								taskId.
 							</xsd:documentation>
 						</xsd:annotation>

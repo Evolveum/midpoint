@@ -109,7 +109,7 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
     		return rv;
 		}
 		for (WorkItemCompletionEventType completionEvent : WfContextUtil.getEvents(wfc, WorkItemCompletionEventType.class)) {
-			if (ApprovalUtils.isApproved(completionEvent.getResult()) && completionEvent.getInitiatorRef() != null) {
+			if (ApprovalUtils.isApproved(completionEvent.getOutput()) && completionEvent.getInitiatorRef() != null) {
 				rv.add(completionEvent.getInitiatorRef().clone());
 			}
 		}

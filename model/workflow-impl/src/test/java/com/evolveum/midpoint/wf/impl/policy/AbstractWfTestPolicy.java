@@ -647,7 +647,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					for (WorkItemType workItem : currentWorkItems) {
 						if (approvalInstruction.matches(workItem)) {
 							login(getUser(approvalInstruction.approverOid));
-							workflowManager.completeWorkItem(workItem.getWorkItemId(), approvalInstruction.approval, null,
+							workflowManager.completeWorkItem(workItem.getExternalId(), approvalInstruction.approval, null,
 									null, null, result);
 							login(userAdministrator);
 							matched = true;

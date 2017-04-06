@@ -184,7 +184,8 @@ public class WfContextUtil {
 
 
 	// we must be strict here; in case of suspicion, throw an exception
-	public static <T extends WfProcessEventType> List<T> getEventsForCurrentStage(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
+	@SuppressWarnings("unchecked")
+	public static <T extends CaseEventType> List<T> getEventsForCurrentStage(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
 		if (wfc.getStageNumber() == null) {
 			throw new IllegalArgumentException("No stage number in workflow context; pid = " + wfc.getProcessInstanceId());
 		}
@@ -195,7 +196,8 @@ public class WfContextUtil {
 				.collect(Collectors.toList());
 	}
 
-	public static <T extends WfProcessEventType> List<T> getEvents(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
+	@SuppressWarnings("unchecked")
+	public static <T extends CaseEventType> List<T> getEvents(@NotNull WfContextType wfc, @NotNull Class<T> clazz) {
 		return wfc.getEvent().stream()
 				.filter(e -> clazz.isAssignableFrom(e.getClass()))
 				.map(e -> (T) e)
@@ -204,7 +206,7 @@ public class WfContextUtil {
 
 	public static <T extends WorkItemEventType> List<T> getWorkItemEvents(@NotNull WfContextType wfc, @NotNull String workItemId, Class<T> clazz) {
 		return wfc.getEvent().stream()
-				.filter(e -> clazz.isAssignableFrom(e.getClass()) && workItemId.equals(((WorkItemEventType) e).getWorkItemId()))
+				.filter(e -> clazz.isAssignableFrom(e.getClass()) && workItemId.equals(((WorkItemEventType) e).getExternalWorkItemId()))
 				.map(e -> (T) e)
 				.collect(Collectors.toList());
 	}
@@ -217,11 +219,11 @@ public class WfContextUtil {
 	}
 
 	@NotNull
-	public static ApprovalLevelOutcomeType getCurrentStageOutcome(WfContextType wfc, List<WfStageCompletionEventType> stageEvents) {
+	public static String getCurrentStageOutcome(WfContextType wfc, List<StageCompletionEventType> stageEvents) {
 		if (stageEvents.size() > 1) {
 			throw new IllegalStateException("More than one stage-level event in " + getBriefDiagInfo(wfc) + ": " + stageEvents);
 		}
-		WfStageCompletionEventType event = stageEvents.get(0);
+		StageCompletionEventType event = stageEvents.get(0);
 		if (event.getOutcome() == null) {
 			throw new IllegalStateException("No outcome for stage-level event in " + getBriefDiagInfo(wfc));
 		}
@@ -269,11 +271,16 @@ public class WfContextUtil {
 		if (wfc == null) {
 			return null;
 		}
-		for (WfProcessEventType event : wfc.getEvent()) {
-			if (event instanceof WfProcessCreationEventType) {
-				return ((WfProcessCreationEventType) event).getBusinessContext();
+		for (CaseEventType event : wfc.getEvent()) {
+			if (event instanceof CaseCreationEventType) {
+				return ((CaseCreationEventType) event).getBusinessContext();
 			}
 		}
 		return null;
+	}
+
+	// TODO take from the workflow context!
+	public static String getStageInfoTODO(Integer stageNumber) {
+		return getStageInfo(stageNumber, null, null, null);
 	}
 }

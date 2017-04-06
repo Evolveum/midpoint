@@ -239,7 +239,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             assertEquals("Wrong process ID name in subtask: " + subtask, processNames[i++], wfc.getProcessInstanceName());
             assertNotNull("Missing process start time in subtask: " + subtask, wfc.getStartTimestamp());
             assertNotNull("Missing process end time in subtask: " + subtask, wfc.getEndTimestamp());
-            assertEquals("Wrong outcome", SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVED, wfc.getOutcome());
+            assertEquals("Wrong outcome", SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE, wfc.getOutcome());
         }
     }
 

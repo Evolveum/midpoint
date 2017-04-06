@@ -373,9 +373,9 @@ public class WfTaskController {
 					cause.setName(completeAction.getName());
 					cause.setDisplayName(completeAction.getDisplayName());
 					foundTimedActions++;
-					WorkItemResultType workItemResult = new WorkItemResultType();
-					workItemResult.setOutcome(ApprovalUtils.toUri(completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT));
-					workItem.setResult(workItemResult);
+					WorkItemResultType workItemOutput = new WorkItemResultType();
+					workItemOutput.setOutcome(ApprovalUtils.toUri(completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT));
+					workItem.setOutput(workItemOutput);
 				}
 				if (foundTimedActions > 1) {
 					LOGGER.warn("Multiple 'work item complete' timed actions ({}) for {}: {}", foundTimedActions,
@@ -404,14 +404,14 @@ public class WfTaskController {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't audit work item complete event", e);
             }
 
-			WorkItemResultType workItemResult = workItem.getResult();
-			if (genuinelyCompleted || workItemResult != null) {
+			AbstractWorkItemOutputType output = workItem.getOutput();
+			if (genuinelyCompleted || output != null) {
 				WorkItemCompletionEventType event = new WorkItemCompletionEventType();
 				ActivitiUtil.fillInWorkItemEvent(event, user, taskEvent.getTaskId(), taskEvent.getVariables(), prismContext);
 				event.setCause(cause);
-				event.setResult(workItemResult);
-				ObjectDeltaType additionalDelta = workItemResult.getAdditionalDeltas() != null ?
-						workItemResult.getAdditionalDeltas().getFocusPrimaryDelta() : null;
+				event.setOutput(output);
+				ObjectDeltaType additionalDelta = output instanceof WorkItemResultType && ((WorkItemResultType) output).getAdditionalDeltas() != null ?
+						((WorkItemResultType) output).getAdditionalDeltas().getFocusPrimaryDelta() : null;
 				MidpointUtil.recordEventInTask(event, additionalDelta, wfTask.getTask().getOid(), result);
 			}
 

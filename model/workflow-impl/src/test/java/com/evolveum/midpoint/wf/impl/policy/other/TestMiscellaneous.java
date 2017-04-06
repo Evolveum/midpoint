@@ -80,15 +80,15 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		display("Work item", workItem);
 
 		// WHEN
-		workflowManager.completeWorkItem(workItem.getWorkItemId(), true, "OK", null, null, result);
+		workflowManager.completeWorkItem(workItem.getExternalId(), true, "OK", null, null, result);
 
 		// THEN
 		TaskType wfTask = getTask(workItem.getTaskRef().getOid()).asObjectable();
 		display("workflow context", wfTask.getWorkflowContext());
-		List<WfProcessEventType> events = wfTask.getWorkflowContext().getEvent();
+		List<? extends CaseEventType> events = wfTask.getWorkflowContext().getEvent();
 		assertEquals("Wrong # of events", 2, events.size());
 
-		WfProcessCreationEventType event1 = (WfProcessCreationEventType) events.get(0);
+		CaseCreationEventType event1 = (CaseCreationEventType) events.get(0);
 		display("Event 1", event1);
 		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(wfTask.getWorkflowContext()).getComment());
 
@@ -145,7 +145,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		// complete the work item related to assigning role-2a
 		WorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		workflowManager.completeWorkItem(workItem.getWorkItemId(), true, null, null, null, result);
+		workflowManager.completeWorkItem(workItem.getExternalId(), true, null, null, null, result);
 		TaskType wfTask = getTask(workItem.getTaskRef().getOid()).asObjectable();
 		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
 		waitForTaskFinish(parent.getOid(), true);

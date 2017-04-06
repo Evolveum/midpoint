@@ -79,7 +79,7 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
             setExecuteModelOperationHandler(true);
         }
 
-		WfProcessCreationEventType event = new WfProcessCreationEventType();
+		CaseCreationEventType event = new CaseCreationEventType();
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         if (requester != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester));

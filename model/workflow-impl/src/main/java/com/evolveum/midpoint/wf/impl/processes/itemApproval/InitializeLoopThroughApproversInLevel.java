@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.*;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -175,13 +176,13 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
 	private void recordAutoCompletionDecision(String taskOid, ApprovalLevelOutcomeType outcome, AutomatedDecisionReasonType reason,
 			int stageNumber, ApprovalLevelType level, OperationResult opResult) {
-    	WfStageCompletionEventType event = new WfStageCompletionEventType();
+    	StageCompletionEventType event = new StageCompletionEventType();
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		event.setStageNumber(stageNumber);
-		event.setStageName(level.getName());
-		event.setStageDisplayName(level.getDisplayName());
+		//event.setStageName(level.getName());
+		//event.setStageDisplayName(level.getDisplayName());
 		event.setAutomatedDecisionReason(reason);
-		event.setOutcome(outcome);
+		event.setOutcome(ApprovalUtils.toUri(outcome));
 		MidpointUtil.recordEventInTask(event, null, taskOid, opResult);
 	}
 }

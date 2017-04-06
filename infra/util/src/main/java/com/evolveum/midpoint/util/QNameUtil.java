@@ -147,6 +147,10 @@ public class QNameUtil {
 		}
 	}
 
+	public static boolean matchUri(String uri1, String uri2) {
+		return match(uriToQName(uri1, true), uriToQName(uri2, true));
+	}
+
 	public static class QNameInfo {
 		@NotNull public final QName name;
 		public final boolean explicitEmptyNamespace;

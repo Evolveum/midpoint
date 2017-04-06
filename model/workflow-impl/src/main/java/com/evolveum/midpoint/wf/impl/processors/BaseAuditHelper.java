@@ -148,7 +148,7 @@ public class BaseAuditHelper {
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, workItem.getEscalationLevelNumber());
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, workItem.getEscalationLevelName());
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, workItem.getEscalationLevelDisplayName());
-		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, workItem.getWorkItemId());
+		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, workItem.getExternalId());
 		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, workItem.getProcessInstanceId());
 		return record;
 	}
@@ -188,14 +188,14 @@ public class BaseAuditHelper {
 		if (stageInfo != null) {
 			message.append(stageInfo).append(" : ");
 		}
-		WorkItemResultType workItemResult = workItem.getResult();
-		if (workItemResult != null) {
-			String answer = ApprovalUtils.makeNiceFromUri(workItemResult.getOutcome());
+		AbstractWorkItemOutputType output = workItem.getOutput();
+		if (output != null) {
+			String answer = ApprovalUtils.makeNiceFromUri(output.getOutcome());
 			record.setResult(answer);
 			message.append(answer);
-			if (workItemResult.getComment() != null) {
-				message.append(" : ").append(workItemResult.getComment());
-				record.addPropertyValue(WorkflowConstants.AUDIT_COMMENT, workItemResult.getComment());
+			if (output.getComment() != null) {
+				message.append(" : ").append(output.getComment());
+				record.addPropertyValue(WorkflowConstants.AUDIT_COMMENT, output.getComment());
 			}
 		} else {
 			message.append("(no decision)");		// TODO

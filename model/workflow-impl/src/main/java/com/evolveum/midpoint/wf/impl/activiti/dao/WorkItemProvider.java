@@ -121,13 +121,13 @@ public class WorkItemProvider {
 	// primitive 'query interpreter'
 	// returns null if no results should be returned
     private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_REF, F_WORK_ITEM_ID);
+        FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_REF, F_EXTERNAL_ID);
 		List<ObjectFilter> remainingClauses = components.getRemainderClauses();
 		if (!remainingClauses.isEmpty()) {
             throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);
         }
 
-        final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_WORK_ITEM_ID);
+        final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_EXTERNAL_ID);
         final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
         final ItemPath CANDIDATE_PATH = new ItemPath(F_CANDIDATE_REF);
         final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_CREATE_TIMESTAMP);
@@ -413,7 +413,7 @@ public class WorkItemProvider {
 			WorkItemType wi = new WorkItemType(prismContext);
 			final Map<String, Object> variables = task.getVariables();
 
-			wi.setWorkItemId(task.getId());
+			wi.setExternalId(task.getId());
 			wi.setProcessInstanceId(task.getProcessInstanceId());
 			wi.setName(task.getName());
 			wi.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
@@ -453,7 +453,7 @@ public class WorkItemProvider {
 			wi.setTargetRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_TARGET_REF)));
 
 			ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
-			wi.setResult(pmi.extractWorkItemResult(variables));
+			wi.setOutput(pmi.extractWorkItemResult(variables));
 			String completedBy = ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_WORK_ITEM_COMPLETED_BY, String.class, prismContext);
 			if (completedBy != null) {
 				wi.setPerformerRef(ObjectTypeUtil.createObjectRef(completedBy, ObjectTypes.USER));

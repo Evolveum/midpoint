@@ -112,7 +112,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		assertNotAssignedRole(userJackOid, roleE1Oid, task, result);
 
 		WorkItemType workItem = getWorkItem(task, result);
-		workItemId = workItem.getWorkItemId();
+		workItemId = workItem.getExternalId();
 
 		approvalTaskOid = workItem.getTaskRef().getOid();
 		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
@@ -294,12 +294,12 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		display("workflow task", wfTask);
 		assertEquals("Wrong # of triggers", 0, wfTask.asObjectable().getTrigger().size());
 		Map<String, WorkItemCompletionEventType> eventMap = new HashMap<>();
-		for (WfProcessEventType event : wfTask.asObjectable().getWorkflowContext().getEvent()) {
+		for (CaseEventType event : wfTask.asObjectable().getWorkflowContext().getEvent()) {
 			if (event instanceof WorkItemCompletionEventType) {
 				WorkItemCompletionEventType c = (WorkItemCompletionEventType) event;
-				eventMap.put(c.getWorkItemId(), c);
-				assertNotNull("No result in "+c, c.getResult());
-				assertEquals("Wrong outcome in "+c, WorkItemOutcomeType.REJECT, ApprovalUtils.fromUri(c.getResult().getOutcome()));
+				eventMap.put(c.getExternalWorkItemId(), c);
+				assertNotNull("No result in "+c, c.getOutput());
+				assertEquals("Wrong outcome in "+c, WorkItemOutcomeType.REJECT, ApprovalUtils.fromUri(c.getOutput().getOutcome()));
 				assertNotNull("No cause in "+c, c.getCause());
 				assertEquals("Wrong cause type in "+c, WorkItemEventCauseTypeType.TIMED_ACTION, c.getCause().getType());
 				assertEquals("Wrong cause name in "+c, "auto-reject", c.getCause().getName());

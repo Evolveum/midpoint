@@ -186,14 +186,14 @@ public class ActivitiUtil implements Serializable {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getUser()));
 		}
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-		event.setWorkItemId(workItemId);
+		event.setExternalWorkItemId(workItemId);
 		String originalAssigneeString = ActivitiUtil.getVariable(variables, VARIABLE_ORIGINAL_ASSIGNEE, String.class, prismContext);
 		if (originalAssigneeString != null) {
 			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
 		}
 		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, prismContext));
-		event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, prismContext));
-		event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, prismContext));
+		//event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, prismContext));
+		//event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, prismContext));
 		event.setEscalationLevelNumber(ActivitiUtil.getEscalationLevelNumber(variables));
 		event.setEscalationLevelName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, prismContext));
 		event.setEscalationLevelDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, prismContext));

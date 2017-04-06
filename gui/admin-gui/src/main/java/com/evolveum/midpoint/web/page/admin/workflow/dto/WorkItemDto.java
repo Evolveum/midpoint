@@ -147,7 +147,7 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public String getWorkItemId() {
-        return workItem.getWorkItemId();
+        return workItem.getExternalId();
     }
 
     public String getName() {
@@ -288,7 +288,7 @@ public class WorkItemDto extends Selectable {
 			return rv;
 		}
 		for (WorkItemType workItemType : task.getWorkflowContext().getWorkItem()) {
-			if (workItemType.getWorkItemId() == null || workItemType.getWorkItemId().equals(getWorkItemId())) {
+			if (workItemType.getExternalId() == null || workItemType.getExternalId().equals(getWorkItemId())) {
 				continue;
 			}
 			rv.add(new WorkItemDto(workItemType));
