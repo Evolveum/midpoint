@@ -1,11 +1,13 @@
-midPoint 3.5 "Einstein"
+midPoint 3.5 "Einstein" Update 1
 ----------------------------------
 
-Release 3.5 is eighteenth midPoint release code-named Einstein. The 3.5
-release brings lots of features related to identity governance,
-self-registration and support for JSON/YAML.
+Release 3.5.1 is a twentieth midPoint release. It is the fist maintenance
+update for 3.5.x version family code-named Einstein. The Einstein release
+family brings lots of features related to identity governance, 
+self-registration and support for JSON/YAML. This maintenance update brings
+number of smaller improvements, fixes and stability enhancements.
 
-Release date: 21st December 2016
+Release date: 9th April 2017
 
 Changes with respect to version 3.4.1:
     Role catalog
