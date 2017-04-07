@@ -97,7 +97,7 @@ public interface WorkflowManager {
 
 	void registerWorkItemListener(WorkItemListener workItemListener);
 
-	List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
+	Collection<ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
 	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 

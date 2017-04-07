@@ -334,7 +334,6 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         PrimaryChangeAspect aspect = pcpJob.getChangeAspect();
 
         pcpJob.storeResultingDeltas(aspect.prepareDeltaOut(event, pcpJob, result));
-        pcpJob.addApprovedBy(aspect.prepareApprovedBy(event, pcpJob, result));
     }
     //endregion
 

@@ -245,7 +245,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException {
+    public Collection<ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException {
         return wfTaskUtil.getApprovedByFromTaskTree(task, result);
     }
 

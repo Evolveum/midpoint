@@ -25,6 +25,8 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * @author semancik
@@ -559,5 +561,11 @@ public class MiscUtil {
 	public static boolean isCollectionOf(Object object, @NotNull Class<?> memberClass) {
 		return object instanceof Collection
 				&& ((Collection<?>) object).stream().allMatch(member -> member != null && memberClass.isAssignableFrom(member.getClass()));
+	}
+
+	public static <E> Function<Object, Stream<E>> instancesOf(Class<E> cls) {
+		return o -> cls.isInstance(o)
+				? Stream.of(cls.cast(o))
+				: Stream.empty();
 	}
 }

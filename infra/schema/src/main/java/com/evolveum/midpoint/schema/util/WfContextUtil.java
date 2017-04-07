@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -405,5 +406,9 @@ public class WfContextUtil {
 
 	public static Integer getEscalationLevelNumber(WorkItemEventType event) {
 		return getEscalationLevelNumber(event.getEscalationLevel());
+	}
+
+	public static WfContextType getWorkflowContext(PrismObject<TaskType> task) {
+		return task != null ? task.asObjectable().getWorkflowContext() : null;
 	}
 }
