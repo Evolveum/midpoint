@@ -55,6 +55,7 @@
 			<icfcldap:vlvSortOrderingRule>2.5.13.3</icfcldap:vlvSortOrderingRule>
 			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
 			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+			<icfcldap:lockoutStrategy>openldap</icfcldap:lockoutStrategy>
 			<icfcldap:enableExtraTests>false</icfcldap:enableExtraTests> <!-- MID-3477 -->
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>

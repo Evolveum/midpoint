@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,33 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.text.ParseException;
+import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
+import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.util.GeneralizedTime;
+import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -37,7 +50,12 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 
 /**
  * @author semancik
@@ -132,6 +150,15 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	}
 
 	@Override
+	protected void assertActivationCapability(ActivationCapabilityType activationCapabilityType) {
+		assertNotNull("No activation capability", activationCapabilityType);
+		
+		ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapabilityType);
+		assertNotNull("No lockout capability", lockoutCapability);
+		display("Lockout capability", lockoutCapability);
+	}
+	
+	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
 			throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
@@ -155,4 +182,102 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 		
 	}
 	
+	@Test
+    public void test700CheckBarbossaLockoutStatus() throws Exception {
+		final String TEST_NAME = "test700CheckBarbossaLockoutStatus";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        display("Shadow (model)", shadow);
+        ActivationType activation = shadow.asObjectable().getActivation();
+        if (activation != null) {
+	        LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
+	        if (lockoutStatus != null && lockoutStatus != LockoutStatusType.NORMAL) {
+	        	AssertJUnit.fail("Barbossa is locked!");
+	        }
+        }
+
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);
+	}
+	
+	@Test
+    public void test702LockOutBarbossa() throws Exception {
+		final String TEST_NAME = "test702LockOutBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Entry entry = getLdapAccountByUid(USER_BARBOSSA_USERNAME);
+        display("LDAP Entry before", entry);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        for (int i = 0; i < 10; i++) {
+        	LdapNetworkConnection conn;
+        	try {
+        		conn = ldapConnect(null, entry.getDn().toString(), "this password is wrong");
+        	} catch (SecurityException e) {
+        		// Good bad attempt
+        		continue;
+        	}
+        	assertNotReached();
+        }
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        display("LDAP Entry after", entry);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
+        display("Shadow (model)", shadow);
+        ActivationType activation = shadow.asObjectable().getActivation();
+        assertNotNull("No activation", activation);
+        LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
+        assertEquals("Wrong lockout status", LockoutStatusType.LOCKED, lockoutStatus);
+	}
+	
+
+	@Test
+    public void test705UnlockBarbossaAccount() throws Exception {
+		final String TEST_NAME = "test705UnlockBarbossaAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountBarbossaOid, null, 
+        		SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        executeChanges(accountDelta, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
+        display("Shadow (model)", shadow);
+        
+        ActivationType activation = shadow.asObjectable().getActivation();
+        if (activation != null) {
+	        LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
+	        if (lockoutStatus != null && lockoutStatus != LockoutStatusType.NORMAL) {
+	        	AssertJUnit.fail("Barbossa is locked!");
+	        }
+        }
+        
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        display("LDAP Entry", entry);
+        assertNoAttribute(entry, "pwdAccountLockedTime");
+        
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);
+	}
+
 }

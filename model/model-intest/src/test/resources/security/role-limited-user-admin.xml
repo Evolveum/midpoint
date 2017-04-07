@@ -1,0 +1,75 @@
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+<!-- MID-3826 -->
+  
+<role oid="66ee3a78-1b8a-11e7-aac6-5f43a0a86116"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Limited User Admin</name>
+    <description>Limited capability to create new users</description>
+	<authorization>
+		<name>lua-read</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+		<object>
+			<type>UserType</type>
+		</object>
+	</authorization>
+	<authorization>
+		<name>lua-add</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+		<phase>request</phase>
+		<object>
+			<type>UserType</type>
+		</object>
+		<item>name</item>
+		<item>description</item>
+		<item>givenName</item>
+		<item>fullName</item>
+		<item>familyName</item>
+		<item>title</item>
+		<item>locality</item>
+		<item>employeeNumber</item>
+		<item>jpegPhoto</item>
+		<item>activation/validTo</item>
+		<item>activation/validFrom</item>
+		<item>credentials/password</item>				
+   </authorization>
+	<authorization>
+		<name>lua-add</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+		<phase>execution</phase>
+		<object>
+			<type>UserType</type>
+		</object>
+		<item>name</item>
+		<item>description</item>
+		<item>givenName</item>
+		<item>fullName</item>
+		<item>familyName</item>
+		<item>title</item>
+		<item>locality</item>
+		<item>employeeNumber</item>
+		<item>jpegPhoto</item>
+		<item>activation</item>
+		<item>credentials</item>				
+		<item>iteration</item>
+		<item>iterationToken</item>
+   </authorization>
+</role>
+  

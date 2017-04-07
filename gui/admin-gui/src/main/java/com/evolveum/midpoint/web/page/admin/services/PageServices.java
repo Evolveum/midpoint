@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -76,7 +78,17 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 		initLayout();
 	}
 
-	private final FocusListInlineMenuHelper<ServiceType> listInlineMenuHelper = new FocusListInlineMenuHelper<>(ServiceType.class, this, this);
+	private final FocusListInlineMenuHelper<ServiceType> listInlineMenuHelper = new FocusListInlineMenuHelper<ServiceType>(ServiceType.class, this, this){
+		private static final long serialVersionUID = 1L;
+
+		protected boolean isShowConfirmationDialog(ColumnMenuAction action){
+			return PageServices.this.isShowConfirmationDialog(action);
+		}
+
+		protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+			return PageServices.this.getConfirmationMessageModel(action, actionName);
+		}
+	};
 
 	private void initLayout() {
 		Form mainForm = new Form(ID_MAIN_FORM);
@@ -97,7 +109,8 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 
 			@Override
 			protected IColumn<SelectableBean<ServiceType>, String> createActionsColumn() {
-				return new InlineMenuButtonColumn<SelectableBean<ServiceType>>(listInlineMenuHelper.createRowActions(false), 3){
+				return new InlineMenuButtonColumn<SelectableBean<ServiceType>>(listInlineMenuHelper.createRowActions(false),
+						3, PageServices.this){
 					@Override
 					protected int getHeaderNumberOfButtons() {
 						return 2;
@@ -134,6 +147,22 @@ public class PageServices extends PageAdminServices implements FocusListComponen
  	@Override
 	public MainObjectListPanel<ServiceType> getObjectListPanel() {
 		return (MainObjectListPanel<ServiceType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+	}
+
+	private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+		if (action.getRowModel() == null) {
+			return createStringResource("PageServices.message.confirmationMessageForMultipleObject",
+					actionName, getObjectListPanel().getSelectedObjectsCount() );
+		} else {
+			return createStringResource("PageServices.message.confirmationMessageForSingleObject",
+					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+		}
+
+	}
+
+	private boolean isShowConfirmationDialog(ColumnMenuAction action){
+		return action.getRowModel() != null ||
+				getObjectListPanel().getSelectedObjectsCount() > 0;
 	}
 
 }
