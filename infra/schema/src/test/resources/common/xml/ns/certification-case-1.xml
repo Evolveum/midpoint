@@ -31,8 +31,8 @@
 		</output>
 		<outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
 	</workItem>
-	<currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-	<currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
+	<currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+	<currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
 	<currentStageOutcome>revoke</currentStageOutcome>
 	<assignment id="1">
 		<construction>

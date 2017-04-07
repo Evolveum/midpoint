@@ -22,6 +22,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
 import org.apache.commons.lang.BooleanUtils;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * TEMPORARY
  * =========
@@ -59,4 +62,9 @@ public class OutcomeUtils {
 		}
 	}
 
+	public static List<AccessCertificationResponseType> fromUri(List<String> uris) {
+		return uris.stream()
+				.map(uri -> fromUri(uri))
+				.collect(Collectors.toList());
+	}
 }

@@ -139,8 +139,8 @@ public class AccCertUpdateHelper {
 
         newCampaign.setReviewStrategy(definition.getReviewStrategy());
 
-        newCampaign.setStart(null);
-        newCampaign.setEnd(null);
+        newCampaign.setStartTimestamp(null);
+        newCampaign.setEndTimestamp(null);
         newCampaign.setState(CREATED);
         newCampaign.setStageNumber(0);
 
@@ -391,11 +391,11 @@ public class AccCertUpdateHelper {
     }
 
     private PropertyDelta<XMLGregorianCalendar> createStartTimeDelta(XMLGregorianCalendar date) {
-        return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_START, date);
+        return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_START_TIMESTAMP, date);
     }
 
     private PropertyDelta<XMLGregorianCalendar> createEndTimeDelta(XMLGregorianCalendar date) {
-        return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_END, date);
+        return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_END_TIMESTAMP, date);
     }
 
     private ContainerDelta createTriggerDeleteDelta() {

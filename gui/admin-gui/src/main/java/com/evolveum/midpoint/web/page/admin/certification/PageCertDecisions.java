@@ -278,7 +278,7 @@ public class PageCertDecisions extends PageAdminCertification {
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
                 super.populateItem(item, componentId, rowModel);
-                XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getCurrentReviewDeadline();
+                XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getCurrentStageDeadline();
                 if (deadline != null) {
                     item.add(AttributeModifier.replace("title", WebComponentUtil.formatDate(deadline)));
                     item.add(new TooltipBehavior());

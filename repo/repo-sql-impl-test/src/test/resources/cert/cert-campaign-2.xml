@@ -56,7 +56,7 @@
           xsi:type="c:AccessCertificationAssignmentCaseType">
         <objectRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-        <currentStageNumber>1</currentStageNumber>
+        <stageNumber>1</stageNumber>
         <workItem id="1">
             <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
             <output>
@@ -68,8 +68,8 @@
         <workItem id="2">
             <assigneeRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></assigneeRef>
         </workItem>
-        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
+        <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
         <currentStageOutcome>accept</currentStageOutcome>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"></targetRef>

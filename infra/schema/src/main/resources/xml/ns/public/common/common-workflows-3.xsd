@@ -1298,30 +1298,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="stageCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Total number of stages - if process can be conceptually divided into stages.
-                        Null if not known or applicable. (Stored in process variable "stageCount".)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="stageName" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Stage name - if process can be conceptually divided into stages.
-						(Stored in process variable "stageName".)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="stageDisplayName" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Stage display name - if process can be conceptually divided into stages.
-						(Stored in process variable "stageDisplayName".)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1782,40 +1758,6 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="CANCEL"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-		</xsd:restriction>
-	</xsd:simpleType>
-
-	<xsd:simpleType name="AutomatedDecisionReasonType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Reason for automated decision.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="autoCompletionCondition">
-				<xsd:annotation>
-					<xsd:documentation>
-						Completed automatically by the auto-completion or auto-approval condition.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="AUTO_COMPLETION_CONDITION"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="noApproversFound">
-				<xsd:annotation>
-					<xsd:documentation>
-						Approved/rejected automatically because there were no approvers found.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="NO_APPROVERS_FOUND"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

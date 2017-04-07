@@ -63,7 +63,7 @@ public class AccCertResponseComputationHelper {
 
     // should be the case enabled in the following stage?
     public boolean computeEnabled(AccessCertificationCampaignType campaign, AccessCertificationCaseType _case, List<AccessCertificationResponseType> outcomesToStopOn) {
-        if (_case.getCurrentStageNumber() != campaign.getStageNumber()) {
+        if (_case.getStageNumber() != campaign.getStageNumber()) {
             return false;           // it is not enabled in the current stage at all
         }
         final AccessCertificationResponseType currentOutcome;
@@ -149,11 +149,7 @@ public class AccCertResponseComputationHelper {
 
     public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
 		final OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);
-		final List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>();
-		for (AccessCertificationCaseStageOutcomeType stageOutcome : aCase.getCompletedStageOutcome()) {
-			stageOutcomes.add(stageOutcome.getOutcome());
-		}
-		return strategy.computeOutcome(summarize(stageOutcomes));
+		return strategy.computeOutcome(summarize(OutcomeUtils.fromUri(CertCampaignTypeUtil.getOutcomesFromCompletedStages(aCase))));
     }
 
     // aCase contains outcomes from stages 1..N-1. Outcome from stage N is in currentStageOutcome
@@ -161,9 +157,7 @@ public class AccCertResponseComputationHelper {
 			AccessCertificationResponseType currentStageOutcome) {
         final OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);
         final List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>();
-        for (AccessCertificationCaseStageOutcomeType stageOutcome : aCase.getCompletedStageOutcome()) {
-            stageOutcomes.add(stageOutcome.getOutcome());
-        }
+        stageOutcomes.addAll(OutcomeUtils.fromUri(CertCampaignTypeUtil.getOutcomesFromCompletedStages(aCase)));
         stageOutcomes.add(currentStageOutcome);
         return strategy.computeOutcome(summarize(stageOutcomes));
     }

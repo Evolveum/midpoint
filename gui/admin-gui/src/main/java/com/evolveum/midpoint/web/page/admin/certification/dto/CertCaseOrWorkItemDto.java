@@ -131,7 +131,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
 
     @SuppressWarnings("unused")
 	public Date getReviewRequested() {
-        XMLGregorianCalendar date = certCase.getCurrentReviewRequestedTimestamp();
+        XMLGregorianCalendar date = certCase.getCurrentStageCreateTimestamp();
         return XmlTypeConverter.toDate(date);
     }
 
@@ -166,7 +166,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
     }
 
     private String computeDeadlineAsString(PageBase page) {
-        XMLGregorianCalendar deadline = certCase.getCurrentReviewDeadline();
+        XMLGregorianCalendar deadline = certCase.getCurrentStageDeadline();
 
         if (deadline == null) {
             return "";

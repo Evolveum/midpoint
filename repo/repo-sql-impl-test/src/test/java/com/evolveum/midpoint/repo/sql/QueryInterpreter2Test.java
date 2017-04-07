@@ -2961,7 +2961,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             PrismReferenceValue assigneeRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(assigneeRef)
-                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .and().item(AccessCertificationCaseType.F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .build();
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
@@ -3002,8 +3002,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(assigneeRef)
-                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-                    .asc(F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
+                    .and().item(AccessCertificationCaseType.F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .asc(F_CURRENT_STAGE_DEADLINE).asc(T_ID)
                     .build();
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
@@ -3044,7 +3044,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
                     .item(F_ASSIGNEE_REF).ref("oid1", "oid2")
                     .and().item(F_CLOSE_TIMESTAMP).isNull()
-                    .asc(PrismConstants.T_PARENT, F_CURRENT_REVIEW_DEADLINE).asc(T_ID)
+                    .asc(PrismConstants.T_PARENT, F_CURRENT_STAGE_DEADLINE).asc(T_ID)
                     .build();
 
             String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
@@ -3079,9 +3079,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             PrismReferenceValue assigneeRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref(assigneeRef)
-                    .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                    .and().item(AccessCertificationCaseType.F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
-                    .desc(F_CURRENT_REVIEW_REQUESTED_TIMESTAMP)
+                    .desc(F_CURRENT_STAGE_CREATE_TIMESTAMP)
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
 
@@ -3428,7 +3428,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .exists(F_WORK_ITEM)
                     .block()
                         .item(F_ASSIGNEE_REF).ref("123456")
-                        .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
+                        .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCaseType.F_STAGE_NUMBER)
                         .and().item(F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).isNull()
                     .endBlock()
                     .build();
@@ -3471,7 +3471,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .exists(F_WORK_ITEM)
                     .block()
                         .item(F_ASSIGNEE_REF).ref("123456")
-                        .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
+                        .and().item(F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCaseType.F_STAGE_NUMBER)
                         .and().item(F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).isNull()
                     .endBlock()
                     .asc(T_PARENT, F_NAME)

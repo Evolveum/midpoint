@@ -227,9 +227,6 @@ public class WfTask {
 			throws SchemaException {
         task.addModifications(DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
 				.item(F_WORKFLOW_CONTEXT, F_STAGE_NUMBER).replace(stageNumber)
-				.item(F_WORKFLOW_CONTEXT, F_STAGE_COUNT).replace(stageCount)
-				.item(F_WORKFLOW_CONTEXT, F_STAGE_NAME).replace(stageName)
-				.item(F_WORKFLOW_CONTEXT, F_STAGE_DISPLAY_NAME).replace(stageDisplayName)
 				.asItemDeltas());
     }
 }

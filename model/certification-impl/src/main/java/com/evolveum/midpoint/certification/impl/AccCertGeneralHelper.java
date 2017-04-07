@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -65,8 +66,9 @@ public class AccCertGeneralHelper {
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, options, parentResult).asObjectable();
     }
 
+    // TODO move to OutcomeUtils
     public boolean isRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
-        return aCase.getOverallOutcome() == REVOKE;
+        return OutcomeUtils.fromUri(aCase.getOutcome()) == REVOKE;
     }
 
 }

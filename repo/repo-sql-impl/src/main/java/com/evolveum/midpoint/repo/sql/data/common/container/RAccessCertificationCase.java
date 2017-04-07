@@ -39,7 +39,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +91,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     private XMLGregorianCalendar remediedTimestamp;
     private RAccessCertificationResponse currentStageOutcome;
     private Integer currentStageNumber;
-    private RAccessCertificationResponse overallOutcome;
+    private String outcome;
 
     public RAccessCertificationCase() {
     }
@@ -158,12 +157,12 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return activation;
     }
 
-    @JaxbName(localPart = "currentReviewRequestedTimestamp")
+    @JaxbName(localPart = "currentStageCreateTimestamp")
     public XMLGregorianCalendar getReviewRequestedTimestamp() {
         return reviewRequestedTimestamp;
     }
 
-    @JaxbName(localPart = "currentReviewDeadline")
+    @JaxbName(localPart = "currentStageDeadline")
     public XMLGregorianCalendar getReviewDeadline() {
         return reviewDeadline;
     }
@@ -180,8 +179,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return currentStageNumber;
     }
 
-    public RAccessCertificationResponse getOverallOutcome() {
-        return overallOutcome;
+    public String getOutcome() {
+        return outcome;
     }
 
     public void setOwner(RAccessCertificationCampaign owner) {
@@ -239,8 +238,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.currentStageNumber = currentStageNumber;
     }
 
-    public void setOverallOutcome(RAccessCertificationResponse overallOutcome) {
-        this.overallOutcome = overallOutcome;
+    public void setOutcome(String outcome) {
+        this.outcome = outcome;
     }
 
     @Lob
@@ -274,14 +273,14 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
                 Objects.equals(remediedTimestamp, that.remediedTimestamp) &&
                 currentStageOutcome == that.currentStageOutcome &&
                 Objects.equals(currentStageNumber, that.currentStageNumber) &&
-                overallOutcome == that.overallOutcome;
+                Objects.equals(outcome, that.outcome);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(fullObject, ownerOid, id, workItems, objectRef, targetRef, tenantRef, orgRef, activation,
                 reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, currentStageNumber,
-                overallOutcome);
+                outcome);
     }
 
     @Override
@@ -336,12 +335,12 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
 		for (AccessCertificationWorkItemType workItem : case1.getWorkItem()) {
 			rCase.getWorkItems().add(RAccessCertificationWorkItem.toRepo(rCase, workItem, context));
 		}
-        rCase.setReviewRequestedTimestamp(case1.getCurrentReviewRequestedTimestamp());
-        rCase.setReviewDeadline(case1.getCurrentReviewDeadline());
+        rCase.setReviewRequestedTimestamp(case1.getCurrentStageCreateTimestamp());
+        rCase.setReviewDeadline(case1.getCurrentStageDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
         rCase.setCurrentStageOutcome(RUtil.getRepoEnumValue(case1.getCurrentStageOutcome(), RAccessCertificationResponse.class));
-        rCase.setCurrentStageNumber(case1.getCurrentStageNumber());
-        rCase.setOverallOutcome(RUtil.getRepoEnumValue(case1.getOverallOutcome(), RAccessCertificationResponse.class));
+        rCase.setCurrentStageNumber(case1.getStageNumber());
+        rCase.setOutcome(case1.getOutcome());
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {

@@ -738,7 +738,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 2, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition, USER_BOB_OID);
-        assertApproximateTime("end time", new Date(), campaign.getEnd());
+        assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
         assertApproximateTime("stage 1 end", new Date(), campaign.getStage().get(0).getEnd());
 

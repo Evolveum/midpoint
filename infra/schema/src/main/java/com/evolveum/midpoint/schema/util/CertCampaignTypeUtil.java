@@ -20,9 +20,11 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -148,7 +150,7 @@ public class CertCampaignTypeUtil {
             campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
         }
         for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getCurrentStageNumber() != campaignStageNumber) {
+            if (aCase.getStageNumber() != campaignStageNumber) {
                 continue;
             }
             open++;
@@ -207,7 +209,9 @@ public class CertCampaignTypeUtil {
         }
         int decided = 0;
         for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getOverallOutcome() == ACCEPT || aCase.getOverallOutcome() == REVOKE || aCase.getOverallOutcome() == REDUCE) {
+            if (SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT.equals(aCase.getOutcome())
+                    || SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REVOKE.equals(aCase.getOutcome())
+                    || SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE.equals(aCase.getOutcome())) {
                 decided++;
             }
         }
@@ -313,13 +317,13 @@ public class CertCampaignTypeUtil {
                 .build();
     }
 
-    public static AccessCertificationCaseStageOutcomeType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
-        for (AccessCertificationCaseStageOutcomeType outcome : aCase.getCompletedStageOutcome()) {
-            if (outcome.getStageNumber() == stageNumber) {
-                return outcome;
-            }
-        }
-        throw new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase);
+    public static String getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+        StageCompletionEventType event = aCase.getEvent().stream()
+                .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber)
+                .map(e -> (StageCompletionEventType) e)
+                .findAny().orElseThrow(
+                        () -> new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase));
+        return event.getOutcome();
     }
 
     public static List<AccessCertificationResponseType> getOutcomesToStopOn(List<AccessCertificationResponseType> stopReviewOn, List<AccessCertificationResponseType> advanceToNextStageOn) {
@@ -335,7 +339,7 @@ public class CertCampaignTypeUtil {
     public static Set<ObjectReferenceType> getCurrentReviewers(AccessCertificationCaseType aCase) {
         return aCase.getWorkItem().stream()
                 // TODO check also with campaign stage?
-                .filter(wi -> wi.getStageNumber() == aCase.getCurrentStageNumber() && wi.getCloseTimestamp() == null)
+                .filter(wi -> wi.getStageNumber() == aCase.getStageNumber() && wi.getCloseTimestamp() == null)
                 .flatMap(wi -> wi.getAssigneeRef().stream())
                 .collect(Collectors.toSet());
     }
@@ -368,5 +372,20 @@ public class CertCampaignTypeUtil {
         }
         PrismObject<AccessCertificationCampaignType> campaign = (PrismObject<AccessCertificationCampaignType>) campaignValue.getParent();
         return campaign != null ? campaign.asObjectable() : null;
+    }
+
+    public static List<String> getOutcomesFromCompletedStages(AccessCertificationCaseType aCase) {
+        return aCase.getEvent().stream()
+                .filter(e -> e instanceof StageCompletionEventType)
+                .map(e -> ((StageCompletionEventType) e).getOutcome())
+                .collect(Collectors.toList());
+    }
+
+    @NotNull
+    public static List<StageCompletionEventType> getCompletedStageEvents(AccessCertificationCaseType aCase) {
+        return aCase.getEvent().stream()
+                .filter(e -> e instanceof StageCompletionEventType)
+                .map(e -> (StageCompletionEventType) e)
+                .collect(Collectors.toList());
     }
 }

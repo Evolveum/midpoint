@@ -79,13 +79,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-					<!--<xsd:element name="event" type="tns:CaseEventType" minOccurs="0" maxOccurs="unbounded">-->
-						<!--<xsd:annotation>-->
-							<!--<xsd:documentation>-->
-								<!--Events that occurred during lifetime of this process instance.-->
-							<!--</xsd:documentation>-->
-						<!--</xsd:annotation>-->
-					<!--</xsd:element>-->
+					<xsd:element name="event" type="tns:CaseEventType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Events that occurred during lifetime of this process instance.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                     <xsd:element name="workItem" type="tns:CaseWorkItemType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -465,7 +465,7 @@
             <xsd:extension base="tns:CaseEventType">
                 <xsd:sequence>
                     <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" />
-                    <xsd:element name="automatedDecisionReason" type="tns:AutomatedDecisionReasonType" minOccurs="0">
+                    <xsd:element name="automatedDecisionReason" type="tns:AutomatedCompletionReasonType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reason for automated decision, if applicable.
@@ -476,6 +476,40 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:simpleType name="AutomatedCompletionReasonType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reason for automated decision.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="autoCompletionCondition">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Completed automatically by the auto-completion or auto-approval condition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTO_COMPLETION_CONDITION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noAssigneesFound">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Completed automatically because there were no assignees found.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NO_ASSIGNEES_FOUND"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="CaseCompletionEventType">
         <xsd:annotation>

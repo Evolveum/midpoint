@@ -436,14 +436,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+                    <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 When this campaign has to start (or has started).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+                    <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 When this campaign has finished.
@@ -784,7 +784,7 @@
                 </xsd:annotation>
             </xsd:element>
             -->
-            <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         The number of current stage in which this case is.
@@ -807,7 +807,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentReviewRequestedTimestamp" type="xsd:dateTime">
+            <xsd:element name="currentStageCreateTimestamp" type="xsd:dateTime">
                 <xsd:annotation>
                     <xsd:documentation>
                         When was this certification case requested to be reviewed?
@@ -816,7 +816,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentReviewDeadline" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="currentStageDeadline" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When should this certification case be reviewed?
@@ -825,13 +825,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="decision" type="tns:AccessCertificationDecisionType" minOccurs="0" maxOccurs="unbounded">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--Decision(s) done.-->
-                    <!--</xsd:documentation>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
             <xsd:element name="currentStageOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -841,14 +834,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="completedStageOutcome" type="tns:AccessCertificationCaseStageOutcomeType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Outcomes of stages that are already completed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="overallOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         The outcome, taking into account all closed stages plus current stage (if any).
@@ -862,6 +848,13 @@
                         If null, this means that either remediation was not required
                         (either because the decision was "accept" or "abstain" or
                         because remediation mode was set to "none").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="event" type="tns:CaseEventType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Events that occurred during lifetime of this case.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

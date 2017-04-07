@@ -151,7 +151,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<ItemDelta<?,?>> modifications = new ArrayList<>();
         ItemPath case1 = new ItemPath(F_CASE).subPath(new IdItemPathSegment(1L));
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, DELEGATE));
-        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_NUMBER), campaignDef, 300));
+        modifications.add(createModificationReplaceProperty(case1.subPath(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
 		checksCountsStandard(result);
@@ -180,7 +180,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(F_NAME).replace(new PolyString("Campaign 2", "campaign 2"))
                 .item(F_STATE).replace(IN_REMEDIATION)
                 .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(NO_RESPONSE)
-                .item(F_CASE, 2, F_CURRENT_STAGE_NUMBER).replace(400)
+                .item(F_CASE, 2, AccessCertificationCaseType.F_STAGE_NUMBER).replace(400)
                 .item(F_CASE, 1, F_WORK_ITEM, 1, F_OUTPUT).replace(
                 		new AbstractWorkItemOutputType()
 								.outcome(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
@@ -198,7 +198,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext);
         caseNoId.setObjectRef(createObjectRef("123", ObjectTypes.USER));
         caseNoId.setTargetRef(createObjectRef("456", ObjectTypes.ROLE));
-        caseNoId.setCurrentStageNumber(1);
+        caseNoId.setStageNumber(1);
 
         // explicit ID is dangerous (possibility of conflict!)
         AccessCertificationCaseType case100 = new AccessCertificationCaseType(prismContext);
@@ -208,7 +208,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         case100.beginWorkItem()
 				.assigneeRef(createObjectRef("ref1", ObjectTypes.USER))
 				.end();
-        case100.setCurrentStageNumber(1);
+        case100.setStageNumber(1);
 
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).add(caseNoId, case100)
@@ -336,14 +336,14 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext);
         caseNoId.setObjectRef(createObjectRef("x123", ObjectTypes.USER));
         caseNoId.setTargetRef(createObjectRef("x456", ObjectTypes.ROLE));
-        caseNoId.setCurrentStageNumber(1);
+        caseNoId.setStageNumber(1);
 
         // explicit ID is dangerous
         AccessCertificationCaseType case110 = new AccessCertificationCaseType(prismContext)
 				.id(SECOND_NEW_CASE_ID)
 				.objectRef(createObjectRef("x100123", ObjectTypes.USER))
 				.targetRef(createObjectRef("x100456", ObjectTypes.ROLE))
-				.currentStageNumber(1)
+				.stageNumber(1)
 				.beginWorkItem()
 					.assigneeRef(createObjectRef("x100789", ObjectTypes.USER))
 				.end();
@@ -353,7 +353,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).add(caseNoId, case110).delete(case100)
-                .item(F_CASE, 3, F_CURRENT_STAGE_NUMBER).replace(400)
+                .item(F_CASE, 3, AccessCertificationCaseType.F_STAGE_NUMBER).replace(400)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
@@ -472,7 +472,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 				.<AccessCertificationCaseType>end()
 				.workItem(wi777)
 				.workItem(wiNoId)
-				.currentStageNumber(1);
+				.stageNumber(1);
 
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).replace(caseNoId)
@@ -529,7 +529,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test730CurrentUnansweredCases");
 
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                .item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
+                .item(AccessCertificationCaseType.F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                 .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                 .and().exists(F_WORK_ITEM).block()
 					.item(F_CLOSE_TIMESTAMP).isNull()
@@ -551,7 +551,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
     private void addUnansweredActiveCases(List<AccessCertificationCaseType> expectedCases, List<AccessCertificationCaseType> caseList, AccessCertificationCampaignType campaign) {
         for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getCurrentStageNumber() != campaign.getStageNumber()) {
+            if (aCase.getStageNumber() != campaign.getStageNumber()) {
                 continue;
             }
             if (campaign.getState() != IN_REVIEW_STAGE) {

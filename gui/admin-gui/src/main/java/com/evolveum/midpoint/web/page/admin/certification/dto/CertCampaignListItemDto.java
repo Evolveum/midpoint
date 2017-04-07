@@ -96,7 +96,7 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
         XMLGregorianCalendar end;
         Boolean stageLevelInfo;
         if (campaign.getStageNumber() == 0) {
-            end = campaign.getEnd();            // quite useless, as "end" denotes real campaign end
+            end = campaign.getEndTimestamp();            // quite useless, as "end" denotes real campaign end
             stageLevelInfo = false;
         } else if (currentStage != null) {
             end = currentStage.getDeadline();

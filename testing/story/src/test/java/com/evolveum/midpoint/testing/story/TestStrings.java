@@ -1253,9 +1253,9 @@ public class TestStrings extends AbstractStoryTest {
 	private void assertStage(PrismObject<TaskType> wfTask, Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
 		WfContextType wfc = wfTask.asObjectable().getWorkflowContext();
 		assertEquals("Wrong stage number", stageNumber, wfc.getStageNumber());
-		assertEquals("Wrong stage count", stageCount, wfc.getStageCount());
-		assertEquals("Wrong stage name", stageName, wfc.getStageName());
-		assertEquals("Wrong stage name", stageDisplayName, wfc.getStageDisplayName());
+		assertEquals("Wrong stage count", stageCount, WfContextUtil.getStageCount(wfc));
+		assertEquals("Wrong stage name", stageName, WfContextUtil.getStageName(wfc));
+		assertEquals("Wrong stage name", stageDisplayName, WfContextUtil.getStageDisplayName(wfc));
 	}
 
 	private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {
@@ -1283,8 +1283,8 @@ public class TestStrings extends AbstractStoryTest {
 		PrismAsserts.assertReferenceValues(ref(event.getAssigneeBefore()), assigneesBefore.toArray(new String[0]));
 		PrismAsserts.assertReferenceValues(ref(event.getDelegatedTo()), delegatedTo.toArray(new String[0]));
 		assertEquals("Wrong delegation method", methodType, event.getDelegationMethod());
-		assertEquals("Wrong escalation level #", newEscalationLevelNumber, event.getNewEscalationLevelNumber());
-		assertEquals("Wrong escalation level name", newEscalationLevelName, event.getNewEscalationLevelName());
+		assertEquals("Wrong escalation level #", (Integer) newEscalationLevelNumber, event.getNewEscalationLevel().getNumber());
+		assertEquals("Wrong escalation level name", newEscalationLevelName, event.getNewEscalationLevel().getName());
 	}
 
 	private void assertCompletionEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,

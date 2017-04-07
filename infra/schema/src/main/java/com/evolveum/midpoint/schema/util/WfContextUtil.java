@@ -38,7 +38,7 @@ public class WfContextUtil {
 		if (wfc == null || hasFinished(wfc)) {
 			return null;
 		}
-		return getStageInfo(wfc.getStageNumber(), wfc.getStageCount(), wfc.getStageName(), wfc.getStageDisplayName());
+		return getStageInfo(wfc.getStageNumber(), getStageCount(wfc), getStageName(wfc), getStageDisplayName(wfc));
 	}
 
 	@Nullable
@@ -46,20 +46,39 @@ public class WfContextUtil {
 		if (workItem == null) {
 			return null;
 		}
-		WfContextType wfc = getWorkflowContext(workItem);
-		return getStageInfo(workItem.getStageNumber(), wfc.getStageCount(), wfc.getStageName(), wfc.getStageDisplayName());
+		return getStageInfo(getWorkflowContext(workItem));
 	}
 
-	public static Object getStageCount(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getStageCount();
+	public static Integer getStageCount(WorkItemType workItem) {
+		return getStageCount(getWorkflowContext(workItem));
 	}
 
-	public static Object getStageName(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getStageName();
+	public static String getStageName(WorkItemType workItem) {
+		return getStageName(getWorkflowContext(workItem));
 	}
 
-	public static Object getStageDisplayName(WorkItemType workItem) {
-		return getWorkflowContext(workItem).getStageDisplayName();
+	public static String getStageName(WfContextType wfc) {
+		ApprovalStageDefinitionType def = getCurrentStageDefinition(wfc);
+		return def != null ? def.getName() : null;
+	}
+
+	public static String getStageDisplayName(WfContextType wfc) {
+		ApprovalStageDefinitionType def = getCurrentStageDefinition(wfc);
+		return def != null ? def.getDisplayName() : null;
+	}
+
+	public static ApprovalSchemaType getApprovalSchema(WfContextType wfc) {
+		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
+		return info != null ? info.getApprovalSchema() : null;
+	}
+
+	public static Integer getStageCount(WfContextType wfc) {
+		ApprovalSchemaType schema = getApprovalSchema(wfc);
+		return schema != null ? schema.getStage().size() : null;
+	}
+
+	public static String getStageDisplayName(WorkItemType workItem) {
+		return getStageDisplayName(getWorkflowContext(workItem));
 	}
 
 	// wfc is used to retrieve approval schema (if needed)
@@ -106,8 +125,8 @@ public class WfContextUtil {
 			return null;
 		}
 		Integer stageNumber = wfc.getStageNumber();
-		String stageName = wfc.getStageName();
-		String stageDisplayName = wfc.getStageDisplayName();
+		String stageName = getStageName(wfc);
+		String stageDisplayName = getStageDisplayName(wfc);
 		if (stageNumber == null && stageName == null && stageDisplayName == null) {
 			return null;
 		}
@@ -119,7 +138,7 @@ public class WfContextUtil {
 		} else if (stageDisplayName != null) {
 			sb.append(stageDisplayName);
 		}
-		appendNumber(stageNumber, wfc.getStageCount(), sb);
+		appendNumber(stageNumber, getStageCount(wfc), sb);
 		return sb.toString();
 	}
 
@@ -353,15 +372,27 @@ public class WfContextUtil {
 	}
 
 	public static int getEscalationLevelNumber(AbstractWorkItemType workItem) {
-		return workItem.getEscalationLevel() != null ? workItem.getEscalationLevel().getNumber() : 0;
+		return getEscalationLevelNumber(workItem.getEscalationLevel());
+	}
+
+	public static int getEscalationLevelNumber(WorkItemEscalationLevelType level) {
+		return level != null && level.getNumber() != null ? level.getNumber() : 0;
+	}
+
+	public static String getEscalationLevelName(WorkItemEscalationLevelType level) {
+		return level != null ? level.getName() : null;
+	}
+
+	public static String getEscalationLevelDisplayName(WorkItemEscalationLevelType level) {
+		return level != null ? level.getDisplayName() : null;
 	}
 
 	public static String getEscalationLevelName(AbstractWorkItemType workItem) {
-		return workItem.getEscalationLevel() != null ? workItem.getEscalationLevel().getName() : null;
+		return getEscalationLevelName(workItem.getEscalationLevel());
 	}
 
 	public static String getEscalationLevelDisplayName(AbstractWorkItemType workItem) {
-		return workItem.getEscalationLevel() != null ? workItem.getEscalationLevel().getDisplayName() : null;
+		return getEscalationLevelDisplayName(workItem.getEscalationLevel());
 	}
 
 	public static WorkItemEscalationLevelType createEscalationLevel(Integer number, String name, String displayName) {
@@ -370,5 +401,9 @@ public class WfContextUtil {
 		} else {
 			return null;
 		}
+	}
+
+	public static Integer getEscalationLevelNumber(WorkItemEventType event) {
+		return getEscalationLevelNumber(event.getEscalationLevel());
 	}
 }

@@ -121,11 +121,11 @@ public class CertCampaignDto extends Selectable {
     }
 
     public String getCampaignStart() {
-        return WebComponentUtil.formatDate(campaign.getStart());
+        return WebComponentUtil.formatDate(campaign.getStartTimestamp());
     }
 
     public String getCampaignEnd() {
-        return WebComponentUtil.formatDate(campaign.getEnd());
+        return WebComponentUtil.formatDate(campaign.getEndTimestamp());
     }
 
     public String getStageStart() {

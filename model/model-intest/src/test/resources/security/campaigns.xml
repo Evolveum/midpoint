@@ -51,7 +51,7 @@
               xsi:type="c:AccessCertificationAssignmentCaseType">
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-            <currentStageNumber>1</currentStageNumber>
+            <stageNumber>1</stageNumber>
             <workItem id="1">
                 <stageNumber>1</stageNumber>
                 <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
@@ -60,8 +60,8 @@
                 </output>
                 <outputChangeTimestamp>2015-12-04T01:10:20.032+01:00</outputChangeTimestamp>
             </workItem>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>notDecided</currentStageOutcome>
             <assignment id="1">
                 <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
@@ -101,9 +101,9 @@
               xsi:type="c:AccessCertificationAssignmentCaseType">
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
-            <currentStageNumber>1</currentStageNumber>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
+            <stageNumber>1</stageNumber>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <workItem id="1">
                 <stageNumber>1</stageNumber>
                 <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
@@ -123,9 +123,9 @@
               xsi:type="c:AccessCertificationAssignmentCaseType">
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
-            <currentStageNumber>1</currentStageNumber>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
+            <stageNumber>1</stageNumber>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <workItem id="1">
                 <stageNumber>1</stageNumber>
                 <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>

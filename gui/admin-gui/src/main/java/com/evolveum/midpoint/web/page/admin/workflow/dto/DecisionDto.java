@@ -120,7 +120,7 @@ public class DecisionDto extends Selectable {
 					}
 				}
 			}
-			rv.escalationLevelNumber = completionEvent.getEscalationLevelNumber();
+			rv.escalationLevelNumber = WfContextUtil.getEscalationLevelNumber(completionEvent);
 			if (completionEvent.getOriginalAssigneeRef() != null && pageBase != null) {
 				// TODO optimize repo access
 				rv.originalActor = WebModelServiceUtils.resolveReferenceName(completionEvent.getOriginalAssigneeRef(), pageBase);
@@ -128,7 +128,7 @@ public class DecisionDto extends Selectable {
 			return rv;
 		} else if (e instanceof StageCompletionEventType) {
 			StageCompletionEventType completion = (StageCompletionEventType) e;
-			AutomatedDecisionReasonType reason = completion.getAutomatedDecisionReason();
+			AutomatedCompletionReasonType reason = completion.getAutomatedDecisionReason();
 			if (reason == null) {
 				return null;			// not an automatic stage completion
 			}

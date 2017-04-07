@@ -42,8 +42,8 @@ import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationCo
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.REJECT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.SKIP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedDecisionReasonType.AUTO_COMPLETION_CONDITION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedDecisionReasonType.NO_APPROVERS_FOUND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 
 /**
  * @author mederly
@@ -138,10 +138,10 @@ public class InitializeLoopThroughApproversInStage implements JavaDelegate {
                 predeterminedOutcome = stageDef.getOutcomeIfNoApprovers();
                 switch (predeterminedOutcome) {
 					case APPROVE:
-						recordAutoCompletionDecision(wfTask.getOid(), APPROVE, NO_APPROVERS_FOUND, stageNumber, opResult);
+						recordAutoCompletionDecision(wfTask.getOid(), APPROVE, NO_ASSIGNEES_FOUND, stageNumber, opResult);
 						break;
 					case REJECT:
-						recordAutoCompletionDecision(wfTask.getOid(), REJECT, NO_APPROVERS_FOUND, stageNumber, opResult);
+						recordAutoCompletionDecision(wfTask.getOid(), REJECT, NO_ASSIGNEES_FOUND, stageNumber, opResult);
 						break;
 					case SKIP:
 						// do nothing, just silently skip the stage
@@ -175,7 +175,7 @@ public class InitializeLoopThroughApproversInStage implements JavaDelegate {
     }
 
 	private void recordAutoCompletionDecision(String taskOid, ApprovalLevelOutcomeType outcome,
-			AutomatedDecisionReasonType reason, int stageNumber, OperationResult opResult) {
+			AutomatedCompletionReasonType reason, int stageNumber, OperationResult opResult) {
     	StageCompletionEventType event = new StageCompletionEventType();
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		event.setStageNumber(stageNumber);

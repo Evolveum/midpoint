@@ -32,8 +32,8 @@ public class SearchingUtils {
 	public static final String OBJECT_NAME = AccessCertificationCaseType.F_OBJECT_REF.getLocalPart();
 	public static final String TENANT_NAME = AccessCertificationCaseType.F_TENANT_REF.getLocalPart();	// seem to be unused now
 	public static final String ORG_NAME = AccessCertificationCaseType.F_ORG_REF.getLocalPart();			// seem to be unused now
-	public static final String CURRENT_REVIEW_DEADLINE = AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE.getLocalPart();
-	public static final String CURRENT_REVIEW_REQUESTED_TIMESTAMP = AccessCertificationCaseType.F_CURRENT_REVIEW_REQUESTED_TIMESTAMP.getLocalPart();
+	public static final String CURRENT_REVIEW_DEADLINE = AccessCertificationCaseType.F_CURRENT_STAGE_DEADLINE.getLocalPart();
+	public static final String CURRENT_REVIEW_REQUESTED_TIMESTAMP = AccessCertificationCaseType.F_CURRENT_STAGE_CREATE_TIMESTAMP.getLocalPart();
 	public static final String CAMPAIGN_NAME = "campaignName";
 
 	@NotNull
@@ -55,9 +55,9 @@ public class SearchingUtils {
 		} else if (ORG_NAME.equals(propertyName)) {
 			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
 		} else if (CURRENT_REVIEW_DEADLINE.equals(propertyName)) {
-			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE);
+			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_CURRENT_STAGE_DEADLINE);
 		} else if (CURRENT_REVIEW_REQUESTED_TIMESTAMP.equals(propertyName)) {
-			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_CURRENT_REVIEW_REQUESTED_TIMESTAMP);
+			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_CURRENT_STAGE_CREATE_TIMESTAMP);
 		} else if (CAMPAIGN_NAME.equals(propertyName)) {
 			primaryItemPath = campaignPath.subPath(ObjectType.F_NAME);
 		} else {

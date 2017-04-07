@@ -18,6 +18,7 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationEventListener;
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -408,13 +409,13 @@ public class CertificationManagerImpl implements CertificationManager {
             for (AccessCertificationCaseType _case : campaign.getCase()) {
                 AccessCertificationResponseType outcome;
                 if (currentStageOnly) {
-                    if (_case.getCurrentStageNumber() == campaign.getStageNumber()) {
+                    if (_case.getStageNumber() == campaign.getStageNumber()) {
                         outcome = _case.getCurrentStageOutcome();
                     } else {
                         continue;
                     }
                 } else {
-                    outcome = _case.getOverallOutcome();
+                    outcome = OutcomeUtils.fromUri(_case.getOutcome());
                 }
                 if (outcome == null) {
                     outcome = AccessCertificationResponseType.NO_RESPONSE;
