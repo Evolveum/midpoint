@@ -185,7 +185,7 @@ public class PageUsers extends PageAdminUsers {
 
 			@Override
 			protected IColumn<SelectableBean<UserType>, String> createActionsColumn() {
-				return new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(false), 3){
+				return new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(false), 3, PageUsers.this){
 					@Override
 					protected int getHeaderNumberOfButtons() {
 						return 2;
@@ -217,23 +217,6 @@ public class PageUsers extends PageAdminUsers {
 		userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
 		userListPanel.setOutputMarkupId(true);
 		mainForm.add(userListPanel);
-	}
-	
-	
-	private IModel<String> createDeleteConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
-
-			@Override
-			public String getObject() {
-				if (singleDelete == null) {
-					return createStringResource("pageUsers.message.deleteUserConfirm",
-							getTable().getSelectedObjects().size()).getString();
-				} else {
-					return createStringResource("pageUsers.message.deleteUserConfirmSingle",
-							singleDelete.getName()).getString();
-				}
-			}
-		};
 	}
 
 	private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
@@ -286,6 +269,7 @@ public class PageUsers extends PageAdminUsers {
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
 				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -299,7 +283,22 @@ public class PageUsers extends PageAdminUsers {
 				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
                 : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = createStringResource("pageUsers.message.enableAction").getString();
+				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+
+		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
 				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
@@ -319,7 +318,22 @@ public class PageUsers extends PageAdminUsers {
                 }, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
                 : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = createStringResource("pageUsers.message.disableAction").getString();
+				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+
+		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
 				new Model<Boolean>(false), new Model<Boolean>(false), false,
@@ -337,7 +351,21 @@ public class PageUsers extends PageAdminUsers {
                 }, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
                 : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
                 GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = createStringResource("pageUsers.message.reconcileAction").getString();
+				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
@@ -351,9 +379,21 @@ public class PageUsers extends PageAdminUsers {
 							unlockPerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.UNLOCK.getMenuItemId()));
+				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.UNLOCK.getMenuItemId()){
 
-		menu.add(new InlineMenuItem());
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = createStringResource("pageUsers.message.unlockAction").getString();
+				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
@@ -361,13 +401,28 @@ public class PageUsers extends PageAdminUsers {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						if (getRowModel() == null){
-							deletePerformed(target, null);
+							deleteConfirmedPerformed(target, null);
 						} else {
 							SelectableBean<UserType> rowDto = getRowModel().getObject();
-							deletePerformed(target, rowDto.getValue());
+							deleteConfirmedPerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DELETE.getMenuItemId()));
+				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DELETE.getMenuItemId()){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = createStringResource("pageUsers.message.deleteAction").getString();
+				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		});
+
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
 				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
 				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
@@ -397,23 +452,8 @@ public class PageUsers extends PageAdminUsers {
 		return (MainObjectListPanel<UserType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
 
-	private void deletePerformed(AjaxRequestTarget target, UserType selectedUser) {
-		singleDelete = selectedUser;
-		List<UserType> users = isAnythingSelected(target, selectedUser);
-		if (users.isEmpty()) {
-			return;
-		}
-        showMainPopup(getDeletePopupContent(), target);
-    }
-
-	private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-		List<UserType> users = new ArrayList<UserType>();
-
-		if (singleDelete == null) {
-			users = isAnythingSelected(target, null);
-		} else {
-			users.add(singleDelete);
-		}
+	private void deleteConfirmedPerformed(AjaxRequestTarget target, UserType userToDelete) {
+		List<UserType> users = isAnythingSelected(target, userToDelete);
 
 		if (users.isEmpty()) {
 			return;
@@ -611,13 +651,19 @@ public class PageUsers extends PageAdminUsers {
 		getTable().refreshTable(UserType.class, target);
 	}
 
-    private Popupable getDeletePopupContent() {
-        return new ConfirmationPanel(getMainPopupBodyId(), createDeleteConfirmString()) {
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                hideMainPopup(target);
-                deleteConfirmedPerformed(target);
-            }
-        };
-    }
+    private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+		if (action.getRowModel() == null) {
+			return createStringResource("pageUsers.message.confirmationMessageForMultipleObject",
+					actionName, getTable().getSelectedObjectsCount() );
+		} else {
+			return createStringResource("pageUsers.message.confirmationMessageForSingleObject",
+					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+		}
+
+	}
+
+    private boolean isShowConfirmationDialog(ColumnMenuAction action){
+		return action.getRowModel() != null ||
+				getTable().getSelectedObjectsCount() > 0;
+	}
 }
