@@ -66,10 +66,8 @@ public class AccCertResponseComputationHelper {
         if (_case.getStageNumber() != campaign.getStageNumber()) {
             return false;           // it is not enabled in the current stage at all
         }
-        final AccessCertificationResponseType currentOutcome;
-        if (_case.getCurrentStageOutcome() != null) {
-            currentOutcome =_case.getCurrentStageOutcome();
-        } else {
+        AccessCertificationResponseType currentOutcome = OutcomeUtils.fromUri(_case.getCurrentStageOutcome());
+        if (currentOutcome == null) {
             currentOutcome = NO_RESPONSE;
         }
         return !outcomesToStopOn.contains(currentOutcome);
@@ -153,6 +151,11 @@ public class AccCertResponseComputationHelper {
     }
 
     // aCase contains outcomes from stages 1..N-1. Outcome from stage N is in currentStageOutcome
+	AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
+			String currentStageOutcome) {
+    	return computeOverallOutcome(aCase, campaign, OutcomeUtils.fromUri(currentStageOutcome));
+	}
+
 	AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
 			AccessCertificationResponseType currentStageOutcome) {
         final OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);

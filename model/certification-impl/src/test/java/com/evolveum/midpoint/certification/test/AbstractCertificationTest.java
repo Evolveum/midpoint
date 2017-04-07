@@ -404,7 +404,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentStageOutcome,
 			int currentStage, List<String> reviewerOidList) {
-		assertEquals("wrong current stage outcome for "+_case, currentStageOutcome, _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage outcome for "+_case, OutcomeUtils.toUri(currentStageOutcome), _case.getCurrentStageOutcome());
 		assertEquals("wrong current stage number for "+_case, currentStage, _case.getStageNumber());
 		Set<String> realReviewerOids = CertCampaignTypeUtil.getCurrentReviewers(_case).stream().map(ref -> ref.getOid()).collect(Collectors.toSet());
 		assertEquals("wrong reviewer oids for "+_case, new HashSet<>(reviewerOidList), realReviewerOids);
@@ -448,7 +448,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), workItem.getOutputChangeTimestamp());
 		}
-		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage outcome", OutcomeUtils.toUri(currentStageOutcome), _case.getCurrentStageOutcome());
 		if (checkHistory) {
 			assertHistoricOutcome(_case, stageNumber, currentStageOutcome);
 		}
@@ -463,7 +463,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), workItem.getOutputChangeTimestamp());
 		}
-		assertEquals("wrong current stage outcome", currentStageOutcome, _case.getCurrentStageOutcome());
+		assertEquals("wrong current stage outcome", OutcomeUtils.toUri(currentStageOutcome), _case.getCurrentStageOutcome());
 		if (checkHistory) {
 			assertHistoricOutcome(_case, stageNumber, currentStageOutcome);
 		}
@@ -520,14 +520,14 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected void assertNoDecision(AccessCertificationCaseType _case, int stage, AccessCertificationResponseType aggregatedResponse, boolean checkHistory) {
 		List<AccessCertificationWorkItemType> currentWorkItems = getCurrentWorkItems(_case, stage, true);
 		assertEquals("wrong # of decisions", 0, currentWorkItems.size());
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
+		assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
 		if (checkHistory) {
 			assertHistoricOutcome(_case, stage, aggregatedResponse);
 		}
 	}
 
 	protected void assertCurrentState(AccessCertificationCaseType _case, AccessCertificationResponseType aggregatedResponse, int currentResponseStage) {
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
+		assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
 		assertEquals("wrong current response stage number", currentResponseStage, _case.getStageNumber());
 	}
 
@@ -544,7 +544,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		if (response != null) {
 			assertApproximateTime("timestamp", new Date(), workItem.getOutputChangeTimestamp());
 		}
-		assertEquals("wrong current response", aggregatedResponse, _case.getCurrentStageOutcome());
+		assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
 	}
 
 	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
@@ -595,7 +595,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected void assertCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,
 									 AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
         AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
-        assertEquals("Wrong stage outcome in " + ccase, stageOutcome, ccase.getCurrentStageOutcome());
+        assertEquals("Wrong stage outcome in " + ccase, OutcomeUtils.toUri(stageOutcome), ccase.getCurrentStageOutcome());
         assertEquals("Wrong overall outcome in " + ccase, OutcomeUtils.toUri(overallOutcome), ccase.getOutcome());
 
 		if (completedStage != null) {

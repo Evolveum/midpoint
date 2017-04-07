@@ -410,7 +410,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 AccessCertificationResponseType outcome;
                 if (currentStageOnly) {
                     if (_case.getStageNumber() == campaign.getStageNumber()) {
-                        outcome = _case.getCurrentStageOutcome();
+                        outcome = OutcomeUtils.fromUri(_case.getCurrentStageOutcome());
                     } else {
                         continue;
                     }

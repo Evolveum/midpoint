@@ -18,9 +18,6 @@ package com.evolveum.midpoint.certification.api;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
-import org.apache.commons.lang.BooleanUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +39,7 @@ public class OutcomeUtils {
 			case REVOKE: return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REVOKE;
 			case REDUCE: return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE;
 			case NOT_DECIDED: return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED;
+			case NO_RESPONSE: return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE;
 			default: throw new AssertionError("Unexpected response: " + response);
 		}
 	}
@@ -57,6 +55,8 @@ public class OutcomeUtils {
 			return AccessCertificationResponseType.REDUCE;
 		} else if (SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED.equals(uri)) {
 			return AccessCertificationResponseType.NOT_DECIDED;
+		} else if (SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE.equals(uri)) {
+			return AccessCertificationResponseType.NO_RESPONSE;
 		} else {
 			throw new IllegalArgumentException("Unrecognized URI: " + uri);
 		}

@@ -825,7 +825,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentStageOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="currentStageOutcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Currently valid outcome, relevant to the current stage. It is recomputed on each reviewer's

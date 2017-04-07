@@ -22,7 +22,6 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -89,7 +88,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
     private XMLGregorianCalendar remediedTimestamp;
-    private RAccessCertificationResponse currentStageOutcome;
+    private String currentStageOutcome;
     private Integer currentStageNumber;
     private String outcome;
 
@@ -171,7 +170,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return remediedTimestamp;
     }
 
-    public RAccessCertificationResponse getCurrentStageOutcome() {
+    public String getCurrentStageOutcome() {
         return currentStageOutcome;
     }
 
@@ -230,7 +229,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.remediedTimestamp = remediedTimestamp;
     }
 
-    public void setCurrentStageOutcome(RAccessCertificationResponse currentStageOutcome) {
+    public void setCurrentStageOutcome(String currentStageOutcome) {
         this.currentStageOutcome = currentStageOutcome;
     }
 
@@ -338,7 +337,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setReviewRequestedTimestamp(case1.getCurrentStageCreateTimestamp());
         rCase.setReviewDeadline(case1.getCurrentStageDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
-        rCase.setCurrentStageOutcome(RUtil.getRepoEnumValue(case1.getCurrentStageOutcome(), RAccessCertificationResponse.class));
+        rCase.setCurrentStageOutcome(case1.getCurrentStageOutcome());
         rCase.setCurrentStageNumber(case1.getStageNumber());
         rCase.setOutcome(case1.getOutcome());
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
