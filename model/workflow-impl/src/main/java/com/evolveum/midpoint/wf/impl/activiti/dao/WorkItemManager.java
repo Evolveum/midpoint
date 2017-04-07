@@ -226,24 +226,23 @@ public class WorkItemManager {
 	// appropriate escalation timed action, and invoke it. We'll solve this when necessary. Until that time, be
 	// aware that escalationLevelName/DisplayName are for internal use only.
 	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			boolean escalate, String escalationLevelName, String escalationLevelDisplayName,
-			Duration newDuration, WorkItemEventCauseInformationType causeInformation,
+			WorkItemEscalationLevelType escalation, Duration newDuration, WorkItemEventCauseInformationType causeInformation,
 			OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
-		result.addParams( new String[]{ "workItemId", "escalate", "escalationLevelName", "escalationLevelDisplayName"},
-				workItemId, escalate, escalationLevelName, escalationLevelDisplayName);
+		result.addParam("workItemId", workItemId);
+		result.addParam("escalation", escalation);
 		result.addCollectionOfSerializablesAsParam("delegates", delegates);
 		try {
 			MidPointPrincipal principal = securityEnforcer.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
 
 			ObjectReferenceType initiator =
-					principal.getUser() != null && (causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION) ?
+					causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION ?
 							ObjectTypeUtil.createObjectRef(principal.getUser()) : null;
 
-			LOGGER.trace("Delegating work item {} to {}: escalation={}:{}/{}; cause={}", workItemId, delegates, escalate,
-					escalationLevelName, escalationLevelDisplayName, causeInformation);
+			LOGGER.trace("Delegating work item {} to {}: escalation={}; cause={}", workItemId, delegates,
+					escalation != null ? escalation.getName() + "/" + escalation.getDisplayName() : "none", causeInformation);
 
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
 			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE)) {
@@ -252,7 +251,7 @@ public class WorkItemManager {
 
 			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
 
-			WorkItemOperationKindType operationKind = escalate ? ESCALATE : DELEGATE;
+			WorkItemOperationKindType operationKind = escalation != null ? ESCALATE : DELEGATE;
 
 			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(WfContextUtil.getTask(workItem).getOid(), result);
 			WorkItemAllocationChangeOperationInfo operationInfoBefore =
@@ -260,29 +259,13 @@ public class WorkItemManager {
 			WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
 			wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfoBefore, sourceInfo, null, wfTask, result);
 
-			List<ObjectReferenceType> newAssignees;
 			if (method == null) {
 				method = WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
 			}
-			switch (method) {
-				case ADD_ASSIGNEES: newAssignees = new ArrayList<>(workItem.getAssigneeRef()); break;
-				case REPLACE_ASSIGNEES: newAssignees = new ArrayList<>(); break;
-				default: throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
-			}
 
+			List<ObjectReferenceType> newAssignees = new ArrayList<>();
 			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-			for (ObjectReferenceType delegate : delegates) {
-				if (delegate.getType() != null && !QNameUtil.match(UserType.COMPLEX_TYPE, delegate.getType())) {
-					throw new IllegalArgumentException("Couldn't use non-user object as a delegate: " + delegate);
-				}
-				if (delegate.getOid() == null) {
-					throw new IllegalArgumentException("Couldn't use no-OID reference as a delegate: " + delegate);
-				}
-				if (!ObjectTypeUtil.containsOid(newAssignees, delegate.getOid())) {
-					newAssignees.add(delegate.clone());
-					delegatedTo.add(delegate.clone());
-				}
-			}
+			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
 
 			// don't change the current assignee, if not necessary
 			TaskService taskService = activitiEngine.getTaskService();
@@ -294,23 +277,15 @@ public class WorkItemManager {
 			}
 
 			Map<String, Object> variables = taskService.getVariables(workItemId);
-			WorkItemDelegationEventType event;
 			int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
-			if (escalate) {
-				WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();
-				escalationLevel = escalationLevel + 1;
-				escEvent.setNewEscalationLevel(WfContextUtil.createEscalationLevel(escalationLevel, escalationLevelName, escalationLevelDisplayName));
-				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NUMBER, escalationLevel);
-				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NAME, escalationLevelName);
-				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, escalationLevelDisplayName);
-				event = escEvent;
-			} else {
-				event = new WorkItemDelegationEventType();
+			WorkItemEscalationLevelType newEscalation = WfContextUtil.createNewEscalation(escalationLevel, escalation);
+			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalation, assigneesBefore, delegatedTo, method, causeInformation);
+			if (newEscalation != null) {
+				escalationLevel++;
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NUMBER, newEscalation.getNumber());
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NAME, newEscalation.getName());
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, newEscalation.getDisplayName());
 			}
-			event.getAssigneeBefore().addAll(assigneesBefore);  // already parent-less
-			event.getDelegatedTo().addAll(delegatedTo);
-			event.setDelegationMethod(method);		// not null at this moment
-			event.setCause(causeInformation);
 			ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, variables, prismContext);
 			MidpointUtil.recordEventInTask(event, null, ActivitiUtil.getTaskOid(variables), result);
 

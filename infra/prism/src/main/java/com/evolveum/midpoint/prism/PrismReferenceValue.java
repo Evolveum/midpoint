@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -578,6 +580,16 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 				return filter;
 			}
 		};
+	}
+
+	@NotNull
+	public static List<Referencable> asReferencables(@NotNull Collection<PrismReferenceValue> values) {
+		return values.stream().map(prv -> prv.asReferencable()).collect(Collectors.toList());
+	}
+
+	@NotNull
+	public static List<PrismReferenceValue> asReferenceValues(@NotNull Collection<? extends Referencable> referencables) {
+		return referencables.stream().map(ref -> ref.asReferenceValue()).collect(Collectors.toList());
 	}
 	
 	@Override

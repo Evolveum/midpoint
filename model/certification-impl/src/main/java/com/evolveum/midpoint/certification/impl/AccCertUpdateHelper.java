@@ -17,10 +17,13 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,11 +35,14 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -67,10 +73,18 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ESCALATION_LEVEL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_EVENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_CLOSED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_ID_USED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.DELEGATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.ESCALATE;
 
 /**
  * @author mederly
@@ -80,33 +94,18 @@ public class AccCertUpdateHelper {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(AccCertUpdateHelper.class);
 
-    @Autowired
-    protected AccCertEventHelper eventHelper;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private ModelService modelService;
-
+    @Autowired private AccCertEventHelper eventHelper;
+    @Autowired private PrismContext prismContext;
+    @Autowired private ModelService modelService;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
-
-    @Autowired
-    protected SecurityEnforcer securityEnforcer;
-
-    @Autowired
-    protected AccCertGeneralHelper generalHelper;
-
-    @Autowired
-    protected AccCertResponseComputationHelper computationHelper;
-
-    @Autowired
-    protected AccCertQueryHelper queryHelper;
-
-    @Autowired
-    protected AccCertCaseOperationsHelper caseHelper;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private AccCertGeneralHelper generalHelper;
+    @Autowired protected AccCertQueryHelper queryHelper;
+    @Autowired private AccCertCaseOperationsHelper caseHelper;
+    @Autowired private Clock clock;
+    @Autowired private AccCertExpressionHelper expressionHelper;
 
     //region ================================ Campaign create ================================
 
@@ -318,6 +317,115 @@ public class AccCertUpdateHelper {
         }
     }
 
+    //endregion
+    //region ================================ Delegation/escalation ================================
+
+    public void delegateWorkItems(String campaignOid, List<AccessCertificationWorkItemType> workItems,
+            DelegateWorkItemActionType delegateAction, boolean escalate, Task task,
+            OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+			SecurityViolationException {
+        LOGGER.info("Going to {} {} work item(s) in campaign {}", escalate ? "escalate" : "delegate", workItems.size(), campaignOid);
+
+		MidPointPrincipal principal = securityEnforcer.getPrincipal();
+		result.addContext("user", toShortString(principal.getUser()));
+		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
+
+		String newEscalationLevelName, newEscalationLevelDisplayName;
+		if (escalate && delegateAction instanceof EscalateWorkItemActionType) {
+			newEscalationLevelName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelName();
+			newEscalationLevelDisplayName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelDisplayName();
+		} else {
+			newEscalationLevelName = newEscalationLevelDisplayName = null;
+		}
+
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+        List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+		for (AccessCertificationWorkItemType workItem : workItems) {
+			AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCaseChecked(workItem);
+			AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaignChecked(aCase);
+			if (!java.util.Objects.equals(campaign.getOid(), campaignOid)) {
+				throw new IllegalArgumentException("Work item to delegate does not belong to specified campaign (" + campaignOid + ") but to " + campaign);
+			}
+			// TODO reload the work item here (and replace exceptions with logged warnings)
+			if (workItem.getCloseTimestamp() != null) {
+				throw new IllegalStateException("Couldn't delegate a work item that is already closed: " + workItem);
+			}
+			if (workItem.getStageNumber() != campaign.getStageNumber()) {
+				throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + campaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
+			}
+			List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, aCase, campaign, task, result);
+
+			WorkItemEventCauseInformationType causeInformation = null;			// TODO
+
+			LOGGER.trace("Delegating work item {} to {}: escalation={}; cause={}", workItem, delegates,
+					escalate ? newEscalationLevelName + "/" + newEscalationLevelDisplayName : "none", causeInformation);
+
+			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
+			WorkItemOperationKindType operationKind = escalate ? ESCALATE : DELEGATE;
+
+			WorkItemDelegationMethodType method = delegateAction.getDelegationMethod();
+			if (method == null) {
+				method = WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
+			}
+			int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
+			WorkItemEscalationLevelType newEscalationLevel;
+			if (escalate) {
+				newEscalationLevel = new WorkItemEscalationLevelType()
+						.number(escalationLevel+1).name(newEscalationLevelName).displayName(newEscalationLevelDisplayName);
+			} else {
+				newEscalationLevel = null;
+			}
+			List<ObjectReferenceType> newAssignees = new ArrayList<>();
+			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
+			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
+			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation);
+			event.setTimestamp(now);
+			event.setInitiatorRef(initiator);
+			event.setWorkItemId(workItem.getId());
+			event.setEscalationLevel(workItem.getEscalationLevel());
+
+			deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+					.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_ASSIGNEE_REF)
+						.replace(PrismReferenceValue.asReferenceValues(newAssignees))
+					.asItemDelta());
+			if (newEscalationLevel != null) {
+				deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+						.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_ESCALATION_LEVEL).replace(newEscalationLevel)
+						.asItemDelta());
+			}
+			deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+					.item(F_CASE, aCase.getId(), F_EVENT).add(event)
+					.asItemDelta());
+
+			// notification (after modifications)
+		}
+		modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+
+//		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
+//		LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
+//		eventHelper.onCampaignEnd(updatedCampaign, task, result);
+
+    }
+
+	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction,
+			AccessCertificationWorkItemType workItem, AccessCertificationCaseType aCase,
+			AccessCertificationCampaignType campaign, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        rv.addAll(CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef()));
+        if (!delegateAction.getApproverExpression().isEmpty()) {
+            ExpressionVariables variables = new ExpressionVariables();
+            variables.addVariableDefinition(ExpressionConstants.VAR_WORK_ITEM, workItem);
+			variables.addVariableDefinition(ExpressionConstants.VAR_CERTIFICATION_CASE, aCase);
+			variables.addVariableDefinition(ExpressionConstants.VAR_CAMPAIGN, campaign);
+			for (ExpressionType expression : delegateAction.getApproverExpression()) {
+				rv.addAll(expressionHelper.evaluateRefExpressionChecked(expression, variables, "computing delegates", task, result));
+			}
+        }
+        return rv;
+    }
     //endregion
 
     //region ================================ Campaign and stage close ================================

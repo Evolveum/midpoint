@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -410,5 +411,108 @@ public class WfContextUtil {
 
 	public static WfContextType getWorkflowContext(PrismObject<TaskType> task) {
 		return task != null ? task.asObjectable().getWorkflowContext() : null;
+	}
+
+	// TODO better place
+	@NotNull
+	public static WorkItemEventCauseInformationType createCause(AbstractWorkItemActionType action) {
+		WorkItemEventCauseInformationType cause = new WorkItemEventCauseInformationType();
+		cause.setType(WorkItemEventCauseTypeType.TIMED_ACTION);
+		if (action != null) {
+			cause.setName(action.getName());
+			cause.setDisplayName(action.getDisplayName());
+		}
+		return cause;
+	}
+
+	// TODO better place
+	@Nullable
+	public static WorkItemOperationKindType getOperationKind(AbstractWorkItemActionType action) {
+		WorkItemOperationKindType operationKind;
+		if (action instanceof EscalateWorkItemActionType) {
+			operationKind = WorkItemOperationKindType.ESCALATE;
+		} else if (action instanceof DelegateWorkItemActionType) {
+			operationKind = WorkItemOperationKindType.DELEGATE;
+		} else if (action instanceof CompleteWorkItemActionType) {
+			operationKind = WorkItemOperationKindType.COMPLETE;
+		} else {
+			// shouldn't occur
+			operationKind = null;
+		}
+		return operationKind;
+	}
+
+	@NotNull
+	public static WorkItemEscalationLevelType createEscalationLevelInformation(DelegateWorkItemActionType delegateAction) {
+		String escalationLevelName;
+		String escalationLevelDisplayName;
+		if (delegateAction instanceof EscalateWorkItemActionType) {
+			escalationLevelName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelName();
+			escalationLevelDisplayName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelDisplayName();
+			if (escalationLevelName == null && escalationLevelDisplayName == null) {
+				escalationLevelName = delegateAction.getName();
+				escalationLevelDisplayName = delegateAction.getDisplayName();
+			}
+		} else {
+			// TODO ... a warning here?
+			escalationLevelName = escalationLevelDisplayName = null;
+		}
+		return new WorkItemEscalationLevelType().name(escalationLevelName).displayName(escalationLevelDisplayName);
+	}
+
+	// TODO rethink interface of this method
+	// returns parent-less values
+	public static void computeAssignees(List<ObjectReferenceType> newAssignees, List<ObjectReferenceType> delegatedTo,
+			List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method, AbstractWorkItemType workItem) {
+		newAssignees.clear();
+		delegatedTo.clear();
+		switch (method) {
+			case ADD_ASSIGNEES: newAssignees.addAll(CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef())); break;
+			case REPLACE_ASSIGNEES: break;
+			default: throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
+		}
+		for (ObjectReferenceType delegate : delegates) {
+			if (delegate.getType() != null && !QNameUtil.match(UserType.COMPLEX_TYPE, delegate.getType())) {
+				throw new IllegalArgumentException("Couldn't use non-user object as a delegate: " + delegate);
+			}
+			if (delegate.getOid() == null) {
+				throw new IllegalArgumentException("Couldn't use no-OID reference as a delegate: " + delegate);
+			}
+			if (!ObjectTypeUtil.containsOid(newAssignees, delegate.getOid())) {
+				newAssignees.add(delegate.clone());
+				delegatedTo.add(delegate.clone());
+			}
+		}
+	}
+
+	public static WorkItemDelegationEventType createDelegationEvent(WorkItemEscalationLevelType newEscalation,
+			List<ObjectReferenceType> assigneesBefore, List<ObjectReferenceType> delegatedTo,
+			@NotNull WorkItemDelegationMethodType method,
+			WorkItemEventCauseInformationType causeInformation) {
+		WorkItemDelegationEventType event;
+		if (newEscalation != null) {
+			WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();
+			escEvent.setNewEscalationLevel(newEscalation);
+			event = escEvent;
+		} else {
+			event = new WorkItemDelegationEventType();
+		}
+		event.getAssigneeBefore().addAll(assigneesBefore);
+		event.getDelegatedTo().addAll(delegatedTo);
+		event.setDelegationMethod(method);
+		event.setCause(causeInformation);
+		return event;
+	}
+
+	@Nullable
+	public static WorkItemEscalationLevelType createNewEscalation(int escalationLevel, WorkItemEscalationLevelType escalation) {
+		WorkItemEscalationLevelType newEscalation;
+		if (escalation != null) {
+			newEscalation = escalation.clone();
+			newEscalation.setNumber(escalationLevel + 1);
+		} else {
+			newEscalation = null;
+		}
+		return newEscalation;
 	}
 }

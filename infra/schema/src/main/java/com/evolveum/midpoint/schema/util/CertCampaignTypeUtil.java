@@ -343,6 +343,29 @@ public class CertCampaignTypeUtil {
                 .collect(Collectors.toSet());
     }
 
+    @NotNull
+    public static AccessCertificationCaseType getCaseChecked(AccessCertificationWorkItemType workItem) {
+        AccessCertificationCaseType aCase = getCase(workItem);
+        if (aCase == null) {
+            throw new IllegalStateException("No certification case for work item " + workItem);
+        }
+        return aCase;
+    }
+
+    @NotNull
+    public static AccessCertificationCampaignType getCampaignChecked(AccessCertificationCaseType aCase) {
+        AccessCertificationCampaignType campaign = getCampaign(aCase);
+        if (campaign == null) {
+            throw new IllegalStateException("No certification campaign for case " + aCase);
+        }
+        return campaign;
+    }
+
+    @NotNull
+    public static AccessCertificationCampaignType getCampaignChecked(AccessCertificationWorkItemType workItem) {
+        return getCampaignChecked(getCaseChecked(workItem));
+    }
+
     public static AccessCertificationCaseType getCase(AccessCertificationWorkItemType workItem) {
         @SuppressWarnings({"unchecked", "raw"})
         PrismContainerable<AccessCertificationWorkItemType> parent = workItem.asPrismContainerValue().getParent();

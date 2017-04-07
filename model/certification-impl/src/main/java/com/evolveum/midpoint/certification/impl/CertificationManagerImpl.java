@@ -46,7 +46,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
@@ -85,6 +88,7 @@ public class CertificationManagerImpl implements CertificationManager {
     private static final transient Trace LOGGER = TraceManager.getTrace(CertificationManager.class);
 
     public static final String INTERFACE_DOT = CertificationManager.class.getName() + ".";
+    public static final String CLASS_DOT = CertificationManagerImpl.class.getName() + ".";
     public static final String OPERATION_CREATE_CAMPAIGN = INTERFACE_DOT + "createCampaign";
     public static final String OPERATION_OPEN_NEXT_STAGE = INTERFACE_DOT + "openNextStage";
     public static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
@@ -92,6 +96,7 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
+    public static final String OPERATION_DELEGATE_WORK_ITEMS = CLASS_DOT + "delegateWorkItems";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
 
     @Autowired
@@ -363,6 +368,29 @@ public class CertificationManagerImpl implements CertificationManager {
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    public void delegateWorkItems(@NotNull String campaignOid, @NotNull List<AccessCertificationWorkItemType> workItems,
+            @NotNull DelegateWorkItemActionType delegateAction, boolean escalate, Task task,
+            OperationResult parentResult)
+			throws SchemaException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+			ObjectAlreadyExistsException {
+		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEMS);
+		result.addParam("campaignOid", campaignOid);
+		result.addCollectionOfSerializablesAsParam("workItems", workItems);	// TODO only IDs?
+		result.addParam("delegateAction", delegateAction);
+		result.addParam("escalate", escalate);
+		try {
+			// TODO security
+			securityEnforcer.authorize(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS.getUrl(), null,
+					null, null, null, null, result);
+			updateHelper.delegateWorkItems(campaignOid, workItems, delegateAction, escalate, task, result);
+		} catch (RuntimeException|CommonException e) {
+			result.recordFatalError("Couldn't delegate work items: unexpected exception: " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
     }
 
     @Override

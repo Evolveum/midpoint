@@ -1666,11 +1666,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assertObjectRefs(String contextDesc, Collection<ObjectReferenceType> real, String... expected) {
+		assertObjectRefs(contextDesc, true, real, expected);
+	}
+
+	protected void assertObjectRefs(String contextDesc, boolean checkNames, Collection<ObjectReferenceType> real, String... expected) {
 		List<String> refOids = new ArrayList<>();
 		for (ObjectReferenceType ref: real) {
 			refOids.add(ref.getOid());
 			assertNotNull("Missing type in "+ref.getOid()+" in "+contextDesc, ref.getType());
-			assertNotNull("Missing name in "+ref.getOid()+" in "+contextDesc, ref.getTargetName());
+			if (checkNames) {
+				assertNotNull("Missing name in " + ref.getOid() + " in " + contextDesc, ref.getTargetName());
+			}
 		}
 		PrismAsserts.assertSets("Wrong values in "+contextDesc, refOids, expected);
 	}

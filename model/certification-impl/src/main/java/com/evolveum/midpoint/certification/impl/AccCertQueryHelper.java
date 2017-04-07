@@ -93,7 +93,6 @@ public class AccCertQueryHelper {
         // enhance filter with reviewerRef + enabled
         ObjectQuery newQuery;
 
-        PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER).asReferenceValue();
         ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(reviewerOid);
 
         ObjectFilter filterToAdd;
@@ -148,10 +147,16 @@ public class AccCertQueryHelper {
 
     // TODO deputies!
     private ObjectFilter getReviewerAndEnabledFilterForWI(String reviewerOid) throws SchemaException {
-        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        if (reviewerOid != null) {
+            return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
                     .item(F_ASSIGNEE_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
-					.and().item(F_CLOSE_TIMESTAMP).isNull()
+                    .and().item(F_CLOSE_TIMESTAMP).isNull()
                     .buildFilter();
+        } else {
+            return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                    .item(F_CLOSE_TIMESTAMP).isNull()
+                    .buildFilter();
+        }
     }
 
     // TODO get work items for reviewer/campaign

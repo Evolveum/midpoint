@@ -172,6 +172,7 @@ public class ActivitiUtil implements Serializable {
 
 	// TODO move to better place (it is called also from WorkItemManager)
 	// Make sure this does not refer to variables modified in activity db but not in the Java task object
+	// TODO CLEAN THIS UP!!! (maybe by reading WorkItemType?)
 	public static void fillInWorkItemEvent(WorkItemEventType event, MidPointPrincipal currentUser, String workItemId,
 			Map<String, Object> variables, PrismContext prismContext) {
 		if (currentUser != null) {
@@ -184,8 +185,6 @@ public class ActivitiUtil implements Serializable {
 			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
 		}
 		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, prismContext));
-		//event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, prismContext));
-		//event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, prismContext));
 		event.setEscalationLevel(WfContextUtil.createEscalationLevel(ActivitiUtil.getEscalationLevelNumber(variables),
 				ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, prismContext),
 				ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, prismContext)));

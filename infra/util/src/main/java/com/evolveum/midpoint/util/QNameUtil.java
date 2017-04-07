@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.util;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -148,7 +145,13 @@ public class QNameUtil {
 	}
 
 	public static boolean matchUri(String uri1, String uri2) {
-		return match(uriToQName(uri1, true), uriToQName(uri2, true));
+    	if (java.util.Objects.equals(uri1, uri2)) {
+    		return true;
+		} else if (uri1 == null || uri2 == null) {
+    		return false;
+		} else {
+			return match(uriToQName(uri1, true), uriToQName(uri2, true));
+		}
 	}
 
 	public static class QNameInfo {
