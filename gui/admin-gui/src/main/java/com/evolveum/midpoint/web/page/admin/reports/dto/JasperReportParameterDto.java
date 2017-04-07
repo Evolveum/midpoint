@@ -13,39 +13,35 @@ import com.evolveum.midpoint.web.component.util.Validatable;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRPropertiesMap;
 
-public class JasperReportParameterDto<T> extends Selectable implements Serializable, Editable, Validatable {
+public class JasperReportParameterDto extends Selectable implements Serializable, Editable, Validatable {
 
    private static final long serialVersionUID = 1L;
 	private String name;
-    private Class<T> type;
+    private Class<?> type;
     private String typeAsString;
-//	private ItemPath path;
     private String description;
-    private Class nestedType;
+    private Class<?> nestedType;
     private boolean forPrompting = false;
-    private List<JasperReportValueDto<T>> value;
+    private List<JasperReportValueDto> value;
     private JasperReportParameterPropertiesDto properties;
-
-//    private JRPropertiesMap properties;
 
     private boolean editing;
 
     public JasperReportParameterDto() {
-        // TODO Auto-generated constructor stub
     }
 
-    public void setNestedType(Class nestedType) {
+    public void setNestedType(Class<?> nestedType) {
         this.nestedType = nestedType;
     }
 
-    public Class getNestedType() {
+    public Class<?> getNestedType() {
         return nestedType;
     }
 
     public JasperReportParameterDto(JRParameter param) {
         this.name = param.getName();
         this.typeAsString = param.getValueClassName();
-        this.type = (Class<T>) param.getValueClass();
+        this.type = (Class<?>) param.getValueClass();
         this.forPrompting = param.isForPrompting();
         
         if (param.getDescription() != null){
@@ -56,29 +52,29 @@ public class JasperReportParameterDto<T> extends Selectable implements Serializa
     	}
     	
     	this.value = new ArrayList<>(); 
-    	this.value.add(new JasperReportValueDto<T>());
+    	this.value.add(new JasperReportValueDto());
     	
     	this.properties = new JasperReportParameterPropertiesDto(param.getPropertiesMap());
     	
         
     }
     
-    public List<JasperReportValueDto<T>> getValue() {
+    public List<JasperReportValueDto> getValue() {
 		return value;
 	}
     
-    public void setValue(List<JasperReportValueDto<T>> value) {
+    public void setValue(List<JasperReportValueDto> value) {
 		this.value = value;
 	}
    
     public void addValue() {
-		getValue().add(new JasperReportValueDto<>());
+		getValue().add(new JasperReportValueDto());
 	}
 
-	public void removeValue(JasperReportValueDto<T> realValue) {
+	public void removeValue(JasperReportValueDto realValue) {
 		getValue().remove(realValue);
 		if (getValue().isEmpty()) {
-			getValue().add(new JasperReportValueDto<>());
+			getValue().add(new JasperReportValueDto());
 		}
 	}
     
@@ -111,14 +107,6 @@ public class JasperReportParameterDto<T> extends Selectable implements Serializa
         this.description = description;
     }
 
-
-//    public JRPropertiesMap getProperties() {
-//        if (properties == null) {
-//            return null;
-//        }
-//       return this.properties.getPropertiesMap();
-//     
-//    }
     
     public JasperReportParameterPropertiesDto getProperties() {
 		return properties;
@@ -136,12 +124,12 @@ public class JasperReportParameterDto<T> extends Selectable implements Serializa
 		this.properties = properties;
 	}
   
-    public Class<T> getType() throws ClassNotFoundException {
+    public Class<?> getType() throws ClassNotFoundException {
         if (type == null) {
             if (StringUtils.isNotBlank(typeAsString)) {
-                type = (Class<T>) Class.forName(typeAsString);
+                type = (Class<?>) Class.forName(typeAsString);
             } else {
-                type = (Class<T>) Object.class;
+                type = (Class<?>) Object.class;
             }
         }
         return type;

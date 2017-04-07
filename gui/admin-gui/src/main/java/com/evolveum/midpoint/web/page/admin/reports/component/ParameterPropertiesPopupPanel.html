@@ -22,44 +22,56 @@
         <wicket:message key="JasperReportParameterProperties.config"/>
     </h3>
 
-    <div class="row">
-    	<table class="table table-striped table-hover table-bordered">
-	        <tr>
-	        	<td>
-	            	<wicket:message key="JasperReportParameterProperties.key"/>
-	            </td>
-	            <td>
-	            	<div wicket:id="propertyKey"/>
-	            </td>
-	        </tr>
-	        <tr>
-	        	<td>
-	            	<wicket:message key="JasperReportParameterProperties.label"/>
-	           	</td>
-	           	<td>
-	            	<div wicket:id="propertyLabel"/>
-	            </td>
-	        </tr>
-	        <tr>
-	        	<td>
-	            	<wicket:message key="JasperReportParameterProperties.targetType"/>
-	            </td>
-	            <td>
-	            	<div wicket:id="propertyTargetType"/>
-	            </td>
-	        </tr>
-	        <tr>
-	        	<td>
-	            	<wicket:message key="JasperReportParameterProperties.multivalue"/>
-	            </td>
-	            <td>
-	           		<div wicket:id="propertyMultivalue"/>
-	           	</td>
-	        </tr>
-        </table>
+     <div class="box boxed-table">
+        <div class="box-header" />
+        <div  class="box-body no-padding">
+	    	<table class="table table-striped table-hover table-bordered">
+	    	 	<thead>
+	    	 		<tr>
+	    	 			<th><wicket:message key="JasperReportParameterProperties.property.name"/></th>
+	    	 			<th><wicket:message key="JasperReportParameterProperties.property.value"/></th>
+	    	 		</tr>
+	    	 	</thead>
+		        <tr>
+		        	<td>
+		            	<wicket:message key="JasperReportParameterProperties.key"/>
+		            </td>
+		            <td>
+		            	<div wicket:id="propertyKey"/>
+		            </td>
+		        </tr>
+		        <tr>
+		        	<td>
+		            	<wicket:message key="JasperReportParameterProperties.label"/>
+		           	</td>
+		           	<td>
+		            	<div wicket:id="propertyLabel"/>
+		            </td>
+		        </tr>
+		        <tr>
+		        	<td>
+		            	<wicket:message key="JasperReportParameterProperties.targetType"/>
+		            </td>
+		            <td>
+		            	<div wicket:id="propertyTargetType"/>
+		            </td>
+		        </tr>
+		        <tr>
+		        	<td>
+		            	<wicket:message key="JasperReportParameterProperties.multivalue"/>
+		            </td>
+		            <td>
+		           		<div wicket:id="propertyMultivalue"/>
+		           	</td>
+		        </tr>
+	        </table>
+    	</div>
     </div>
     
-    <a class="btn btn-primary" wicket:id="update"><wicket:message key="button.ok"/></a>
+    <p align="center">
+    	<a class="btn btn-primary" wicket:id="update"><wicket:message key="Button.ok"/></a>
+    </p>
+    
 
 </wicket:panel>
 </html>

@@ -188,6 +188,37 @@ public class ReportUtils {
         return val;
     }
 
+    
+    public static String getPropertyString(String key, List defaultValue) {
+        if (defaultValue == null) {
+        	return key;
+        }
+        StringBuilder value = new StringBuilder();
+        for (Object o : defaultValue) {
+        	ResourceBundle bundle;
+            
+        	try {
+                bundle = ResourceBundle.getBundle("localization/schema", new Locale("en", "US"));
+            } catch (MissingResourceException e) {
+                return (defaultValue != null) ? "" : key; //workaround for Jasper Studio
+            }
+            if (bundle != null && bundle.containsKey(key)) {
+                value.append(bundle.getString(key));
+            }
+        }
+        ResourceBundle bundle;
+        try {
+            bundle = ResourceBundle.getBundle("localization/schema", new Locale("en", "US"));
+        } catch (MissingResourceException e) {
+            return (defaultValue != null) ? defaultValue : key; //workaround for Jasper Studio
+        }
+        if (bundle != null && bundle.containsKey(key)) {
+            val = bundle.getString(key);
+        }
+        return val;
+    }
+
+    
     public static String prettyPrintForReport(QName qname) {
         String ret = "";
         if (qname.getLocalPart() != null) {

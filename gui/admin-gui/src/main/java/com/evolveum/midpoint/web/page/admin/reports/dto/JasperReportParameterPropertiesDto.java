@@ -33,21 +33,20 @@ public class JasperReportParameterPropertiesDto implements Serializable{
 		propertiesMap.setProperty(PROPERTY_LABEL, label);
 	}
 
-	public String getMultivalue() {
+	public boolean getMultivalue() {
 		if (propertiesMap == null) {
-			return null;
+			return false;
 		}
 
-		return propertiesMap.getProperty(PROPERTY_MULTIVALUE);
-
+		return Boolean.parseBoolean(propertiesMap.getProperty(PROPERTY_MULTIVALUE));
 	}
 	
-	public void setMultivalue(String isMultiValue) {
+	public void setMultivalue(boolean isMultiValue) {
 		if (propertiesMap == null) {
 			propertiesMap = new JRPropertiesMap();
 		}
 		
-		propertiesMap.setProperty(PROPERTY_MULTIVALUE, isMultiValue);
+		propertiesMap.setProperty(PROPERTY_MULTIVALUE, String.valueOf(isMultiValue));
 	}
 		
 	public String getTargetType() {

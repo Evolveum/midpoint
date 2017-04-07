@@ -1,31 +1,23 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
-import net.sf.jasperreports.engine.JRPropertiesMap;
+public class JasperReportValueDto implements Serializable {
 
-public class JasperReportValueDto<T> implements Serializable{
+	private static final long serialVersionUID = 1L;
 
-	
-	
-	private T value;
-	
+	private Object value;
+
 	public JasperReportValueDto() {
-		
-	}
- 	
-	
-public T getValue() {
-	return value;
-}
 
-public void setValue(T value) {
-	this.value = value;
-}
-	
-	
-	
-	
+	}
+
+	public Object getValue() {
+		return value;
+	}
+
+	public void setValue(Object value) {
+		this.value = value;
+	}
+
 }

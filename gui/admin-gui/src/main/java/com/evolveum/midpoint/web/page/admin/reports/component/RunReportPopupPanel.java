@@ -23,25 +23,15 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -54,14 +44,20 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPane
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -77,28 +73,17 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterPropertiesDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportRealValueDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportValueDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoicePanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
@@ -110,8 +95,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import net.sf.jasperreports.engine.JRPropertiesMap;
 
 public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupable {
 
@@ -153,16 +136,16 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     protected void initLayout() {
 
-    	Form<?> mainForm = new Form(ID_MAIN_FORM);
+    	Form<?> mainForm = new Form<>(ID_MAIN_FORM);
     	add(mainForm);
 
         
-        ListView<JasperReportParameterDto<T>> paramListView = new ListView<JasperReportParameterDto<T>>(ID_PARAMETERS, new PropertyModel<>(reportModel, "jasperReportDto.parameters")) {
+        ListView<JasperReportParameterDto> paramListView = new ListView<JasperReportParameterDto>(ID_PARAMETERS, new PropertyModel<>(reportModel, "jasperReportDto.parameters")) {
 
         	private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<JasperReportParameterDto<T>> paramItem) {
+			protected void populateItem(ListItem<JasperReportParameterDto> paramItem) {
 				paramItem.add(createParameterPanel(paramItem.getModel()));
 				
 			}
@@ -183,7 +166,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     }
     
-    private WebMarkupContainer createParameterPanel(final IModel<JasperReportParameterDto<T>> parameterModel) {
+    private WebMarkupContainer createParameterPanel(final IModel<JasperReportParameterDto> parameterModel) {
     	WebMarkupContainer paramPanel = new WebMarkupContainer("paramPanel");
     	paramPanel.setOutputMarkupId(true);
     	String paramValue = new PropertyModel<String>(parameterModel, "name").getObject();
@@ -196,12 +179,12 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         paramClass = (paramClass == null) ? "" : paramClass.substring(paramClass.lastIndexOf(".") + 1);
         paramPanel.add(new Label("type", paramClass));
         
-        ListView<JasperReportValueDto<T>> listView = new ListView<JasperReportValueDto<T>>("valueList", new PropertyModel<>(parameterModel, "value")) {
+        ListView<JasperReportValueDto> listView = new ListView<JasperReportValueDto>("valueList", new PropertyModel<>(parameterModel, "value")) {
 
     		private static final long serialVersionUID = 1L;
 
 			@Override
-    		protected void populateItem(ListItem<JasperReportValueDto<T>> item) {
+    		protected void populateItem(ListItem<JasperReportValueDto> item) {
     			item.add(createInputMarkup(item.getModel(), parameterModel.getObject()));
     			
     		}
@@ -213,7 +196,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 		return paramPanel;
     }
  
-    private <T> WebMarkupContainer createInputMarkup(final IModel<JasperReportValueDto<T>> valueModel, JasperReportParameterDto<T> param){
+    private WebMarkupContainer createInputMarkup(final IModel<JasperReportValueDto> valueModel, JasperReportParameterDto param){
     	param.setEditing(true);
 	WebMarkupContainer paramValueMarkup = new WebMarkupContainer("valueMarkup");
     paramValueMarkup.setOutputMarkupId(true);
@@ -223,7 +206,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     paramValueMarkup.add(input);
     
     //buttons
-    AjaxLink addButton = new AjaxLink(ID_ADD_BUTTON) {
+    AjaxLink<String> addButton = new AjaxLink<String>(ID_ADD_BUTTON) {
 		private static final long serialVersionUID = 1L;
 
 		@Override
@@ -241,7 +224,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     });
     paramValueMarkup.add(addButton);
 
-    AjaxLink removeButton = new AjaxLink(ID_REMOVE_BUTTON) {
+    AjaxLink<String> removeButton = new AjaxLink<String>(ID_REMOVE_BUTTON) {
     	private static final long serialVersionUID = 1L;
 
         @Override
@@ -263,10 +246,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
    return paramValueMarkup;
 }
     
-    private <T> InputPanel createTypedInputPanel(String componentId, IModel<JasperReportValueDto<T>> model, String expression, JasperReportParameterDto param){
+    private InputPanel createTypedInputPanel(String componentId, IModel<JasperReportValueDto> model, String expression, JasperReportParameterDto param){
     	InputPanel panel = null;
     	
-    	Class type = null;
+    	Class<?> type = null;
         
         try {
             type = param.getType();
@@ -275,7 +258,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             return null;
         }
 
-        JasperReportValueDto<T> value = model.getObject();
         if (type.isEnum()) {
             panel = WebComponentUtil.createEnumPanel(type, componentId, new PropertyModel(model, expression), this);
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
@@ -301,7 +283,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         return panel;
     }
     
-    private <T> void addValue(JasperReportParameterDto<T> valueModel, AjaxRequestTarget target) {
+    private void addValue(JasperReportParameterDto valueModel, AjaxRequestTarget target) {
     	valueModel.addValue();
     	ListView paramTable = getParametersView();
     	target.add(paramTable.getParent());
@@ -313,19 +295,16 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     }
     
     
-    private <T> boolean isAddButtonVisible(JasperReportParameterDto<T> valueDecs) {
+    private boolean isAddButtonVisible(JasperReportParameterDto valueDecs) {
     	if (valueDecs.getProperties() == null) {
     		return false;
     	}
     	
-    	if (valueDecs.getProperties().getMultivalue() == null) {
-    		return false;
-    	}
-        return Boolean.parseBoolean(valueDecs.getProperties().getMultivalue());
+        return valueDecs.getProperties().getMultivalue();
     }
     
-       private <T> void removeValue(JasperReportParameterDto<T> valueModel,
-			JasperReportValueDto<T> object, AjaxRequestTarget target) {
+       private void removeValue(JasperReportParameterDto valueModel,
+			JasperReportValueDto object, AjaxRequestTarget target) {
     	valueModel.removeValue(object);
     	ListView paramTable = getParametersView();
     	target.add(paramTable.getParent());
@@ -336,10 +315,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
            return true;
         }
    
-    private <T extends ObjectType> List<LookupTableRowType> createLookupTableRows(JasperReportParameterDto param, String input) {
+    private <O extends ObjectType> List<LookupTableRowType> createLookupTableRows(JasperReportParameterDto param, String input) {
         ItemPath label = null;
         ItemPath key = null;
-        List<LookupTableRowType> rows = new ArrayList();
+        List<LookupTableRowType> rows = new ArrayList<>();
 
         JasperReportParameterPropertiesDto properties = param.getProperties();
 
@@ -357,10 +336,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         }
 
         String pTargetType = properties.getTargetType();
-        Class<T> targetType = null;
+        Class<O> targetType = null;
         if (pTargetType != null) {
             try {
-                targetType = (Class<T>) Class.forName(pTargetType);
+                targetType = (Class<O>) Class.forName(pTargetType);
             } catch (ClassNotFoundException e) {
                 error("Error while creating lookup table for input parameter: " + param.getName() + ", " + e.getClass().getSimpleName() + " (" + e.getMessage() + ")");
                 //e.printStackTrace();
@@ -371,7 +350,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
             Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
 
-            Collection<PrismObject<T>> objects;
+            Collection<PrismObject<O>> objects;
             ObjectQuery query = QueryBuilder.queryFor(targetType, getPrismContext())
                     .item(new QName(SchemaConstants.NS_C, pLabel)).startsWith(input)
                         .matching(new QName(SchemaConstants.NS_MATCHING_RULE, "origIgnoreCase"))
@@ -380,7 +359,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             try {
                 objects = getPageBase().getModelService().searchObjects(targetType, query, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
 
-                for (PrismObject<T> o : objects) {
+                for (PrismObject<O> o : objects) {
                     Object realKeyValue = null;
                     PrismProperty labelItem = o.findProperty(label);
 
@@ -563,40 +542,23 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
             reportParamValue.revive(getPrismContext());
             paramContainer.add(reportParamValue);
-            Class attributeNameClass = null;
             
-            
-            List<JasperReportParameterDto<T>> params = getParametersView().getModelObject();
-            for (JasperReportParameterDto<T> paramDto : params) {
+            List<JasperReportParameterDto> params = getParametersView().getModelObject();
+            for (JasperReportParameterDto paramDto : params) {
                 if (paramDto.getValue() == null) {
                     continue;
                 }
-                QName typeName = null;
-                List<JasperReportValueDto<T>> values = paramDto.getValue();
-                Class paramClass = paramDto.getType();
-                /*
-                 if ("attributeName".equals(paramDto.getName())) {                    
-                 attributeNameClass = ((ItemDefinition) realValue).getTypeClass();
-                 realValue = ((ItemDefinition) realValue).getName().getLocalPart();
-                 }
-                 if ("attributeValue".equals(paramDto.getName())) {
-                 if (attributeNameClass.equals(String.class)) {
-                 realValue = getPrismContext().serializeAnyData((String) realValue, 
-                 new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), PrismContext.LANG_XML);
-                 } else if (attributeNameClass.equals(PolyString.class)) {
-                 realValue = getPrismContext().serializeAnyData(new PolyStringType((String) realValue),
-                 new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), PrismContext.LANG_XML);
-                 }
-                 }
-                 */
-                typeName = getPrismContext().getSchemaRegistry().determineTypeForClass(paramClass);
-                PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
+                List<JasperReportValueDto> values = paramDto.getValue();
+                Class<?> paramClass = paramDto.getType();
+
+                QName typeName = getPrismContext().getSchemaRegistry().determineTypeForClass(paramClass);
+                PrismPropertyDefinitionImpl<?> def = new PrismPropertyDefinitionImpl<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
                 def.setDynamic(true);
                 def.setRuntimeSchema(true);
-                
                 def.setMaxOccurs(isMultiValue(paramDto) ? -1 : 1);
+                
                 PrismProperty prop = def.instantiate();
-				for (JasperReportValueDto<T> paramValue : values) {
+				for (JasperReportValueDto paramValue : values) {
 					Object realValue = paramValue.getValue();
 					if (realValue == null) {
 						continue;
@@ -614,7 +576,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 				if (!prop.isEmpty()) {
 					reportParamValue.add(prop);
 				}
-                //setPropertyRealValue(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), paramDto.getValue(), getPrismContext());
             }
         } catch (SchemaException | ClassNotFoundException e) {
             OperationResult result = new OperationResult("Parameters serialization");
@@ -636,7 +597,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     		return false;
     	}
     	
-    	return Boolean.parseBoolean(param.getProperties().getMultivalue());
+    	return param.getProperties().getMultivalue();
     	
     }
 
@@ -650,7 +611,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
 	@Override
 	public int getWidth() {
-		return 1100;
+		return 1150;
 	}
 
 	@Override
@@ -667,21 +628,5 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 	public Component getComponent() {
 		return this;
 	}
-
-//    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
-//
-//        public EmptyOnBlurAjaxFormUpdatingBehaviour() {
-//            super("change");
-//        }
-//
-//        @Override
-//        protected void onUpdate(AjaxRequestTarget target) {
-//            MarkupContainer parent = getFormComponent().getParent();
-//            if (parent instanceof DateInput) {
-//                DateInput i = (DateInput) parent;
-//                i.updateDateTimeModel();
-//            }
-//        }
-//    }
 
 }
