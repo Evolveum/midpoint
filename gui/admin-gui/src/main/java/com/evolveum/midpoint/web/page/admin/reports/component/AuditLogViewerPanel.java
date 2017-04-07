@@ -1,45 +1,19 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.path.CanonicalItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.form.ValueChooseWrapperPanel;
-import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.session.AuditLogStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.DateValidator;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -68,8 +42,48 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.resource.ResourceStreamResource;
 import org.apache.wicket.util.resource.IResourceStream;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.path.CanonicalItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
+import com.evolveum.midpoint.web.component.input.DatePanel;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.session.AuditLogStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.DateValidator;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -77,8 +91,9 @@ import java.util.*;
 /**
  * Created by honchar.
  */
-public class AuditLogViewerPanel extends BasePanel{
-    private static final long serialVersionUID = 1L;
+public class AuditLogViewerPanel extends BasePanel {
+	
+	private static final long serialVersionUID = 1L;
     private static final String ID_PARAMETERS_PANEL = "parametersPanel";
     private static final String ID_TABLE = "table";
     private static final String ID_FROM = "fromField";
@@ -109,6 +124,9 @@ public class AuditLogViewerPanel extends BasePanel{
     public static final String EVENT_STAGE_COLUMN_VISIBILITY = "eventStageColumn";
     public static final String EVENT_STAGE_LABEL_VISIBILITY = "eventStageLabel";
     public static final String EVENT_STAGE_FIELD_VISIBILITY = "eventStageField";
+    
+    static final Trace LOGGER = TraceManager.getTrace(AuditLogViewerPanel.class);
+    
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
             + ".resolveReferenceName()";
@@ -228,14 +246,7 @@ public class AuditLogViewerPanel extends BasePanel{
         parametersPanel.add(eventType);
 
         WebMarkupContainer eventStage = new WebMarkupContainer(ID_EVENT_STAGE);
-        eventStage.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-            @Override
-	        public boolean isVisible(){
-	                return visibilityMap == null || visibilityMap.get(EVENT_STAGE_LABEL_VISIBILITY) == null ?
-	                        true : visibilityMap.get(EVENT_STAGE_LABEL_VISIBILITY);
-            }
-        });
+        eventStage.add(visibilityByKey(visibilityMap, EVENT_STAGE_LABEL_VISIBILITY));
         eventStage.setOutputMarkupId(true);
         parametersPanel.add(eventStage);
 
@@ -246,14 +257,7 @@ public class AuditLogViewerPanel extends BasePanel{
         DropDownChoicePanel<AuditEventStageType> eventStageField = new DropDownChoicePanel<AuditEventStageType>(
                 ID_EVENT_STAGE_FIELD, eventStageModel, eventStageListModel,
                 new EnumChoiceRenderer<AuditEventStageType>(), true);
-        eventStageField.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-			@Override
-            public boolean isVisible() {
-                return visibilityMap == null || visibilityMap.get(EVENT_STAGE_FIELD_VISIBILITY) == null ?
-                        true : visibilityMap.get(EVENT_STAGE_FIELD_VISIBILITY);
-            }
-        });
+        eventStageField.add(visibilityByKey(visibilityMap, EVENT_STAGE_FIELD_VISIBILITY));
         eventStageField.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         eventStageField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         eventStageField.setOutputMarkupId(true);
@@ -290,87 +294,34 @@ public class AuditLogViewerPanel extends BasePanel{
         channel.setOutputMarkupId(true);
         parametersPanel.add(channel);
 
-        Collection<Class<? extends UserType>> allowedClasses = new ArrayList<>();
+        List<Class<? extends ObjectType>> allowedClasses = new ArrayList<>();
         allowedClasses.add(UserType.class);
-        ValueChooseWrapperPanel<ObjectReferenceType, UserType> chooseInitiatorPanel = new ValueChooseWrapperPanel<ObjectReferenceType, UserType>(
-                ID_INITIATOR_NAME,
-                new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_INITIATOR_NAME),
-                allowedClasses) {
-        	private static final long serialVersionUID = 1L;
-            @Override
-            protected void replaceIfEmpty(ObjectType object) {
-                ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
-                ort.setTargetName(object.getName());
-                getModel().setObject(ort);
-            }
-        };
+        MultiValueChoosePanel<ObjectType> chooseInitiatorPanel = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
+        		ID_INITIATOR_NAME, allowedClasses, objectReferenceTransformer, 
+        		new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_INITIATOR_NAME));
         parametersPanel.add(chooseInitiatorPanel);
 
         WebMarkupContainer targetOwnerName = new WebMarkupContainer(ID_TARGET_OWNER_NAME);
-        targetOwnerName.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible(){
-                return visibilityMap == null || visibilityMap.get(TARGET_OWNER_LABEL_VISIBILITY) == null ?
-                        true : visibilityMap.get(TARGET_OWNER_LABEL_VISIBILITY);
-            }
-        });
+        targetOwnerName.add(visibilityByKey(visibilityMap, TARGET_OWNER_LABEL_VISIBILITY));
         parametersPanel.add(targetOwnerName);
 
-        ValueChooseWrapperPanel<ObjectReferenceType, UserType> chooseTargerOwnerPanel = new ValueChooseWrapperPanel<ObjectReferenceType, UserType>(
-                ID_TARGET_OWNER_NAME_FIELD,
-                new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME),
-                allowedClasses) {
-        	private static final long serialVersionUID = 1L;
-            @Override
-            protected void replaceIfEmpty(ObjectType object) {
-                ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
-                ort.setTargetName(object.getName());
-                getModel().setObject(ort);
-            }
-        };
-        chooseTargerOwnerPanel.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-			@Override
-            public boolean isVisible(){
-                return visibilityMap == null || visibilityMap.get(TARGET_OWNER_FIELD_VISIBILITY) == null ?
-                        true : visibilityMap.get(TARGET_OWNER_FIELD_VISIBILITY);
-            }
-        });
+        MultiValueChoosePanel<ObjectType> chooseTargerOwnerPanel = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
+        		ID_TARGET_OWNER_NAME_FIELD, allowedClasses, objectReferenceTransformer, new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME));
+        
+        chooseTargerOwnerPanel.add(visibilityByKey(visibilityMap, TARGET_OWNER_FIELD_VISIBILITY));
         targetOwnerName.add(chooseTargerOwnerPanel);
         
         WebMarkupContainer targetName = new WebMarkupContainer(ID_TARGET_NAME);
-        targetName.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible(){
-                return visibilityMap == null || visibilityMap.get(TARGET_NAME_LABEL_VISIBILITY) == null ?
-                        true : visibilityMap.get(TARGET_NAME_LABEL_VISIBILITY);
-            }
-        });
+        targetName.add(visibilityByKey(visibilityMap, TARGET_NAME_LABEL_VISIBILITY));
         parametersPanel.add(targetName);
-        Collection<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
+        List<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
-        ValueChooseWrapperPanel<ObjectReferenceType, ObjectType> chooseTargetPanel = new ValueChooseWrapperPanel<ObjectReferenceType, ObjectType>(
-                ID_TARGET_NAME_FIELD,
-                new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_NAME),
-                allowedClassesAll) {
-        	private static final long serialVersionUID = 1L;
-            @Override
-            protected void replaceIfEmpty(ObjectType object) {
-                ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
-                ort.setTargetName(object.getName());
-                getModel().setObject(ort);
-            }
-        };
-        chooseTargetPanel.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible(){
-                return visibilityMap == null || visibilityMap.get(TARGET_NAME_FIELD_VISIBILITY) == null ?
-                        true : visibilityMap.get(TARGET_NAME_FIELD_VISIBILITY);
-            }
-        });
+
+        MultiValueChoosePanel<ObjectType> chooseTargetPanel = new ConvertingMultiValueChoosePanel<ObjectReferenceType, ObjectType>(
+        		ID_TARGET_NAME_FIELD, allowedClassesAll, objectReferenceTransformer, 
+        		new PropertyModel<List<ObjectReferenceType>>(auditSearchDto, "targetNames"));
+        chooseTargetPanel.setOutputMarkupId(true);
+        chooseTargetPanel.add(visibilityByKey(visibilityMap, TARGET_NAME_FIELD_VISIBILITY));
         targetName.add(chooseTargetPanel);
 
         AjaxSubmitButton ajaxButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
@@ -396,7 +347,23 @@ public class AuditLogViewerPanel extends BasePanel{
         ajaxButton.setOutputMarkupId(true);
         parametersPanel.add(ajaxButton);
     }
+    
+	// Serializable as it becomes part of panel which is serialized
+    private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer = 
+    		(Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
+        		ObjectTypeUtil.createObjectRef(o);
 
+	private VisibleEnableBehaviour visibilityByKey(Map<String, Boolean> visibilityMap2, String visibilityKey) {
+		return new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+            @Override
+	        public boolean isVisible(){
+					return visibilityMap2 == null || visibilityMap2.get(visibilityKey) == null ?
+	                        true : visibilityMap2.get(visibilityKey);
+            }
+        };
+	}
+    
     private void addOrReplaceTable(Form mainForm) {
         AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this) {
             private static final long serialVersionUID = 1L;
@@ -420,8 +387,10 @@ public class AuditLogViewerPanel extends BasePanel{
                 if (search.getTargetOwnerName() != null) {
                     parameters.put("targetOwnerName", search.getTargetOwnerName().getOid());
                 }
-                if (search.getTargetName() != null) {
-                    parameters.put("targetName", search.getTargetName().getOid());
+                if (isNotEmpty(search.getTargetNames())) {
+                    parameters.put("targetNames", search.getTargetNames().stream()
+                    		.map(ObjectReferenceType::getOid)
+                    		.collect(toList()));
                 }
                 if (search.getChangedItem().toItemPath() != null) {
                 	ItemPath itemPath = search.getChangedItem().toItemPath();
@@ -600,21 +569,6 @@ public class AuditLogViewerPanel extends BasePanel{
 
         return columns;
     }
-
-//	private PropertyColumn<AuditEventRecordType, String> createReferenceColumn(String columnKey,
-//			QName attributeName) {
-//		return new PropertyColumn<AuditEventRecordType, String>(createStringResource(columnKey),
-//				attributeName.getLocalPart()) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-//					IModel<AuditEventRecordType> rowModel) {
-//				AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
-//				createReferenceColumn(auditEventRecordType.getTargetRef(), item, componentId);
-//			}
-//		};
-//	}
 
     private void createReferenceColumn(ObjectReferenceType ref, Item item, String componentId) {
         String name = WebModelServiceUtils.resolveReferenceName(ref, pageBase,
