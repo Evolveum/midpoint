@@ -18,6 +18,8 @@ package com.evolveum.midpoint.prism.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.Duration;
@@ -1115,6 +1117,13 @@ public class PrismAsserts {
 			return false;
 		}
 		return a.equals(b);
+	}
+	
+	public static <T> void assertEqualsUnordered(String message, Stream<T> actualStream, T... expectedValues) {
+		List<T> expectedCollection = Arrays.asList(expectedValues);
+		Collection<T> actualCollection = actualStream.collect(Collectors.toList());
+		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection) : message + ": expected "+expectedCollection+
+			"; was "+actualCollection;
 	}
 	
 	public static <T> void assertEqualsCollectionUnordered(String message, Collection<T> actualCollection, T... expectedValues) {

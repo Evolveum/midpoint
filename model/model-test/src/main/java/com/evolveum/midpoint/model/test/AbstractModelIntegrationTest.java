@@ -3852,34 +3852,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				defaultActor==null?null:defaultActor.getOid(), DEFAULT_CHANNEL);
 	}
 	
-	protected void assertMetadata(String message, MetadataType metadataType, boolean create, boolean assertRequest, 
-			XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
-		assertNotNull("No metadata in " + message, metadataType);
-		if (create) {
-			TestUtil.assertBetween("Wrong create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
-			if (actorOid != null) {
-				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
-				assertNotNull("No creatorRef in " + message, creatorRef);
-				assertEquals("Wrong creatorRef OID in " + message, actorOid, creatorRef.getOid());
-				if (assertRequest) {
-					TestUtil.assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
-					ObjectReferenceType requestorRef = metadataType.getRequestorRef();
-					assertNotNull("No requestorRef in " + message, requestorRef);
-					assertEquals("Wrong requestorRef OID in " + message, actorOid, requestorRef.getOid());
-				}
-			}
-			assertEquals("Wrong create channel in " + message, channel, metadataType.getCreateChannel());
-		} else {
-			if (actorOid != null) {
-				ObjectReferenceType modifierRef = metadataType.getModifierRef();
-				assertNotNull("No modifierRef in " + message, modifierRef);
-				assertEquals("Wrong modifierRef OID in " + message, actorOid, modifierRef.getOid());
-			}
-			TestUtil.assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
-			assertEquals("Wrong modification channel in " + message, channel, metadataType.getModifyChannel());
-		}
-	}
-	
 	protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);

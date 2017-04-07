@@ -335,8 +335,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             for (String ancestorOid : ancestors) {
                 orgClosure = getOrgClosure(ancestorOid, MODIFY_ORG_ADD_REF_OID, session);
-                LOGGER.info("=> A: {}, D: {}", new Object[]{orgClosure.get(0).getAncestor().toJAXB(prismContext, null),
-                        orgClosure.get(0).getDescendant().toJAXB(prismContext, null)});
+                LOGGER.info("=> A: {}, D: {}", orgClosure.get(0).getAncestor(), orgClosure.get(0).getDescendant());
 
                 AssertJUnit.assertEquals(1, orgClosure.size());
                 AssertJUnit.assertEquals(ancestorOid, orgClosure.get(0).getAncestor().getOid());
@@ -484,8 +483,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             LOGGER.info("==============CLOSURE TABLE==========");
 
             for (ROrgClosure o : orgClosure) {
-                LOGGER.info("=> A: {}, D: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
-                        o.getDescendant().toJAXB(prismContext, null)});
+                LOGGER.info("=> A: {}, D: {}", o.getAncestor(), o.getDescendant());
             }
         } finally {
             close(session);
@@ -538,8 +536,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             LOGGER.info("==============CLOSURE TABLE==========");
             for (ROrgClosure o : orgClosure) {
-                LOGGER.info("=> A: {}, D: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
-                        o.getDescendant().toJAXB(prismContext, null)});
+                LOGGER.info("=> A: {}, D: {}", o.getAncestor(), o.getDescendant());
             }
             AssertJUnit.assertEquals(1, orgClosure.size());
             session.getTransaction().commit();

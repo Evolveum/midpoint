@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -54,6 +55,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
 	private PageBase parentPage;
 	private ObjectFilter queryFilter;
+	private List<O> selectedObjectsList = new ArrayList<O>();
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default
@@ -68,9 +70,15 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	 */
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
 			PageBase parentPage, ObjectFilter queryFilter) {
+		this(id, defaultType, supportedTypes, multiselect, parentPage, null, new ArrayList<O>());
+	}
+
+	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
+			PageBase parentPage, ObjectFilter queryFilter, List<O> selectedData) {
 		super(id);
 		this.parentPage = parentPage;
         this.queryFilter = queryFilter;
+		this.selectedObjectsList = selectedData;
 		typeModel = new LoadableModel<QName>(false) {
 			private static final long serialVersionUID = 1L;
 
@@ -152,7 +160,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	private ObjectListPanel<O> createObjectListPanel(Class<? extends O> type, final boolean multiselect) {
 
 		PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_TABLE, type, multiselect,
-				parentPage) {
+				parentPage, selectedObjectsList) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected void onSelectPerformed(AjaxRequestTarget target, O object) {

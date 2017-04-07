@@ -35,7 +35,6 @@
     </xsd:annotation>
 
     <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
-    <xsd:import namespace="http://www.w3.org/2001/XMLSchema"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
@@ -628,8 +627,14 @@
                                     Condition specifying when the approval is automatically granted (e.g.
                                     "user is from Board of Directors"). This is an expression that should yield a
                                     boolean value.
+
+                                    DEPRECATED. Use automaticallyCompleted in approval level definition.
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.6</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

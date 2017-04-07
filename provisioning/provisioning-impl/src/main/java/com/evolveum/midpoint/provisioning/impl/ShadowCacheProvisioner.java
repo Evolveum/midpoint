@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,64 +102,7 @@ public class ShadowCacheProvisioner extends ShadowCache {
 
 	@Override
 	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException {
-		Collection<? extends ItemDelta> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
-		if (shadowChanges != null && !shadowChanges.isEmpty()) {
-			LOGGER.trace(
-					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
-					DebugUtil.debugDump(shadowChanges));
-			try {
-				ConstraintsChecker.onShadowModifyOperation(shadowChanges);
-				getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), shadowChanges, parentResult);
-				LOGGER.trace("Shadow changes processed successfully.");
-			} catch (ObjectAlreadyExistsException ex) {
-				throw new SystemException(ex);
-			}
-		}	
-	}
-	
-	@SuppressWarnings("rawtypes")
-	private Collection<? extends ItemDelta> extractRepoShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-
-		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
-		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
-		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
-				QName attrName = itemDelta.getElementName();
-				if (objectClassDefinition.isSecondaryIdentifier(attrName)) {
-					// Change of secondary identifier means object rename. We also need to change $shadow/name
-					// TODO: change this to displayName attribute later
-					String newName = null;
-					if (itemDelta.getValuesToReplace() != null && !itemDelta.getValuesToReplace().isEmpty()) {
-						newName = ((PrismPropertyValue)itemDelta.getValuesToReplace().iterator().next()).getValue().toString();
-					} else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
-						newName = ((PrismPropertyValue)itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
-					}
-					PropertyDelta<PolyString> nameDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
-					shadowChanges.add(nameDelta);
-				}
-				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
-					continue;
-				}
-			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {
-				if (!ProvisioningUtil.shouldStoreActivationItemInShadow(itemDelta.getElementName())) {
-					continue;
-				}
-			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getPath())) {		// should not occur, but for completeness...
-				for (PrismContainerValue<ActivationType> valueToAdd : ((ContainerDelta<ActivationType>) itemDelta).getValuesToAdd()) {
-					ProvisioningUtil.cleanupShadowActivation(valueToAdd.asContainerable());
-				}
-				for (PrismContainerValue<ActivationType> valueToReplace : ((ContainerDelta<ActivationType>) itemDelta).getValuesToReplace()) {
-					ProvisioningUtil.cleanupShadowActivation(valueToReplace.asContainerable());
-				}
-			} else if (SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
-				continue;
-			}
-			shadowManager.normalizeDelta(itemDelta, objectClassDefinition);
-			shadowChanges.add(itemDelta);
-		}
-		return shadowChanges;
+		shadowManager.modifyShadow(ctx, shadow, modifications, parentResult);
 	}
 	
 	@Override

@@ -47,6 +47,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -104,7 +105,10 @@ public class ProjectionCredentialsProcessor {
 	private ValuePolicyProcessor valuePolicyProcessor;
 	
 	@Autowired(required = true)
-	Protector protector;
+	private Protector protector;
+	
+	@Autowired(required = true)
+	private OperationalDataManager operationalDataManager;
 	
 	public <F extends ObjectType> void processProjectionCredentials(LensContext<F> context,
 			LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
@@ -133,6 +137,8 @@ public class ProjectionCredentialsProcessor {
 		processProjectionPasswordMapping(context, projectionContext, passwordPolicy, now, task, result);
 				
 		validateProjectionPassword(context, projectionContext, passwordPolicy, now, task, result);
+		
+		applyMetadata(context, projectionContext, now, task, result);
 	}
 	
 	private <F extends FocusType> void processProjectionPasswordMapping(LensContext<F> context,
@@ -213,7 +219,6 @@ public class ProjectionCredentialsProcessor {
 		MappingOutputProcessor<PrismPropertyValue<ProtectedStringType>> processor = 
 				(mappingOutputPath, outputStruct) -> {
 					PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = outputStruct.getOutputTriple();
-					// TODO review all this code !! MID-3156
 					if (outputTriple == null) {
 						LOGGER.trace("Credentials 'password' expression resulted in null output triple, skipping credentials processing for {}", rsd);
 						return false;
@@ -328,19 +333,19 @@ public class ProjectionCredentialsProcessor {
 			return;
 		}
 		
-		if (ChangeType.DELETE == accountDelta.getChangeType()){
+		if (accountDelta.isDelete()) {
 			return;
 		}
 		
 		PrismObject<ShadowType> accountShadow = null;
 		PrismProperty<ProtectedStringType> password = null;
-		if (ChangeType.ADD == accountDelta.getChangeType()) {
+		if (accountDelta.isAdd()) {
 			accountShadow = accountDelta.getObjectToAdd();
 			if (accountShadow != null){
 				password = accountShadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 			}
 		}
-		if (ChangeType.MODIFY == accountDelta.getChangeType() || password == null) {
+		if (accountDelta.isModify() || password == null) {
 			PropertyDelta<ProtectedStringType> passwordValueDelta =
 					accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
 			// Modification sanity check
@@ -373,6 +378,46 @@ public class ProjectionCredentialsProcessor {
 			throw new PolicyViolationException("Provided password does not satisfy password policies in " + projectionContext.getHumanReadableName() + ": " + result.getMessage());
 		}
 		
+	}
+	
+	private <F extends FocusType> void applyMetadata(LensContext<F> context,
+			final LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result)
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+		
+		ObjectDelta<ShadowType> accountDelta = projectionContext.getDelta();
+				
+		if (projectionContext.isDelete()) {
+			return;
+		}
+		
+		if (accountDelta == null){
+			LOGGER.trace("Skipping application of password metadata. Shadow delta not specified.");
+			return;
+		}
+
+		PropertyDelta<ProtectedStringType> passwordValueDelta =
+				accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+		if (passwordValueDelta == null) {
+			LOGGER.trace("Skipping application of password metadata. No password change.");
+			return;
+		}
+		
+		if (projectionContext.isAdd()) {
+			MetadataType metadataType = operationalDataManager.createCreateMetadata(context, now, task);
+			ContainerDelta<MetadataType> metadataDelta = ContainerDelta.createDelta(SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition());
+			metadataDelta.addValuesToAdd(metadataType.asPrismContainerValue());
+			projectionContext.swallowToSecondaryDelta(metadataDelta);
+
+		} else if (projectionContext.isModify()) {
+			ContainerDelta<MetadataType> metadataDelta = accountDelta.findContainerDelta(SchemaConstants.PATH_PASSWORD_METADATA);
+			if (metadataDelta == null) {
+				Collection<? extends ItemDelta<?,?>> modifyMetadataDeltas = operationalDataManager.createModifyMetadataDeltas(context, SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition(), now, task);
+				for (ItemDelta itemDelta: modifyMetadataDeltas) {
+					projectionContext.swallowToSecondaryDelta(itemDelta);
+				}
+			}
+		}
+						
 	}
 	
 	private <F extends FocusType> ValuePolicyType determinePasswordPolicy(LensContext<F> context,

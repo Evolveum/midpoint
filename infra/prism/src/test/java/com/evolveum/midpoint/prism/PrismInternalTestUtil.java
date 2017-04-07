@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -242,11 +243,11 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-types-1.xsd", "foot", null);
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t", com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage());
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q", com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage());
-		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
 		if (extraSchema != null){
 			schemaRegistry.registerPrismSchemaFile(extraSchema);
 		}
+		prefixMapper.registerPrefix(XMLConstants.W3C_XML_SCHEMA_NS_URI, DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
 		return PrismContextImpl.create(schemaRegistry);
