@@ -809,7 +809,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         OperationResult result = task.getResult();
         
         ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue("hereThereBeMonsters");
+        userPasswordPs.setClearValue(USER_BARBOSSA_PASSWORD_2);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -824,7 +824,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
-        assertLdapPassword(USER_BARBOSSA_USERNAME, "hereThereBeMonsters");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
