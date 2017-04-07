@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -792,8 +795,20 @@ public class ShadowManager {
         setKindIfNecessary(repoShadowType, ctx.getObjectClassDefinition());
 //        setIntentIfNecessary(repoShadowType, objectClassDefinition);
 
-        // We don't want to store credentials in the repo
-		repoShadowType.setCredentials(null);
+        // Store only password meta-data in repo
+        CredentialsType creds = repoShadowType.getCredentials();
+        if (creds != null) {
+        	PasswordType passwordType = creds.getPassword();
+        	if (passwordType != null) {
+        		ProvisioningUtil.cleanupShadowPassword(passwordType);
+        		PrismObject<UserType> owner = null;
+        		if (ctx.getTask() != null) {
+        			owner = ctx.getTask().getOwner();
+        		}
+        		ProvisioningUtil.addPasswordMetadata(passwordType, clock.currentTimeXMLGregorianCalendar(), owner);
+        	}
+        	// TODO: other credential types - later
+        }
 
 		// additional check if the shadow doesn't contain resource, if yes,
 		// convert to the resource reference.
@@ -823,6 +838,68 @@ public class ShadowManager {
 		normalizeAttributes(repoShadow, ctx.getObjectClassDefinition());
 
 		return repoShadow;
+	}
+	
+	public void modifyShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) 
+			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException {
+		Collection<? extends ItemDelta> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
+		if (shadowChanges != null && !shadowChanges.isEmpty()) {
+			LOGGER.trace(
+					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
+					DebugUtil.debugDump(shadowChanges));
+			try {
+				ConstraintsChecker.onShadowModifyOperation(shadowChanges);
+				repositoryService.modifyObject(ShadowType.class, shadow.getOid(), shadowChanges, parentResult);
+				LOGGER.trace("Shadow changes processed successfully.");
+			} catch (ObjectAlreadyExistsException ex) {
+				throw new SystemException(ex);
+			}
+		}	
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private Collection<? extends ItemDelta> extractRepoShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+		Collection<ItemDelta> repoChanges = new ArrayList<ItemDelta>();
+		for (ItemDelta itemDelta : objectChange) {
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
+				QName attrName = itemDelta.getElementName();
+				if (objectClassDefinition.isSecondaryIdentifier(attrName)) {
+					// Change of secondary identifier means object rename. We also need to change $shadow/name
+					// TODO: change this to displayName attribute later
+					String newName = null;
+					if (itemDelta.getValuesToReplace() != null && !itemDelta.getValuesToReplace().isEmpty()) {
+						newName = ((PrismPropertyValue)itemDelta.getValuesToReplace().iterator().next()).getValue().toString();
+					} else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
+						newName = ((PrismPropertyValue)itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
+					}
+					PropertyDelta<PolyString> nameDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
+					repoChanges.add(nameDelta);
+				}
+				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
+					continue;
+				}
+			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {
+				if (!ProvisioningUtil.shouldStoreActivationItemInShadow(itemDelta.getElementName())) {
+					continue;
+				}
+			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getPath())) {		// should not occur, but for completeness...
+				for (PrismContainerValue<ActivationType> valueToAdd : ((ContainerDelta<ActivationType>) itemDelta).getValuesToAdd()) {
+					ProvisioningUtil.cleanupShadowActivation(valueToAdd.asContainerable());
+				}
+				for (PrismContainerValue<ActivationType> valueToReplace : ((ContainerDelta<ActivationType>) itemDelta).getValuesToReplace()) {
+					ProvisioningUtil.cleanupShadowActivation(valueToReplace.asContainerable());
+				}
+			} else if (SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
+				continue;
+			}
+			normalizeDelta(itemDelta, objectClassDefinition);
+			repoChanges.add(itemDelta);
+		}
+		return repoChanges;
 	}
 	
 	@SuppressWarnings("unchecked")

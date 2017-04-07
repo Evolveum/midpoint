@@ -105,6 +105,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -1518,5 +1519,44 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected <O extends ObjectType> PrismObject<O> instantiateObject(Class<O> type) throws SchemaException {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
+	}
+	
+	protected void assertMetadata(String message, MetadataType metadataType, boolean create, boolean assertRequest, 
+			XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+		assertNotNull("No metadata in " + message, metadataType);
+		if (create) {
+			TestUtil.assertBetween("Wrong create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
+			if (actorOid != null) {
+				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
+				assertNotNull("No creatorRef in " + message, creatorRef);
+				assertEquals("Wrong creatorRef OID in " + message, actorOid, creatorRef.getOid());
+				if (assertRequest) {
+					TestUtil.assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
+					ObjectReferenceType requestorRef = metadataType.getRequestorRef();
+					assertNotNull("No requestorRef in " + message, requestorRef);
+					assertEquals("Wrong requestorRef OID in " + message, actorOid, requestorRef.getOid());
+				}
+			}
+			assertEquals("Wrong create channel in " + message, channel, metadataType.getCreateChannel());
+		} else {
+			if (actorOid != null) {
+				ObjectReferenceType modifierRef = metadataType.getModifierRef();
+				assertNotNull("No modifierRef in " + message, modifierRef);
+				assertEquals("Wrong modifierRef OID in " + message, actorOid, modifierRef.getOid());
+			}
+			TestUtil.assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
+			assertEquals("Wrong modification channel in " + message, channel, metadataType.getModifyChannel());
+		}
+	}
+	
+	protected void assertShadowPasswordMetadata(PrismObject<ShadowType> shadow, boolean passwordCreated,
+			XMLGregorianCalendar startCal, XMLGregorianCalendar endCal, String actorOid, String channel) {
+		CredentialsType creds = shadow.asObjectable().getCredentials();
+		assertNotNull("No credentials in shadow "+shadow, creds);
+		PasswordType password = creds.getPassword();
+		assertNotNull("No password in shadow "+shadow, password);
+		MetadataType metadata = password.getMetadata();
+		assertNotNull("No metadata in shadow "+shadow, metadata);
+		assertMetadata("Password metadata in "+shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
 	}
 }

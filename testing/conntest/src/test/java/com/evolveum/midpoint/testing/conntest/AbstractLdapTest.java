@@ -86,6 +86,7 @@ import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -111,11 +112,19 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 
 /**
  * @author Radovan Semancik
@@ -143,6 +152,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected static final String USER_BARBOSSA_USERNAME = "barbossa";
 	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
 	protected static final String USER_BARBOSSA_PASSWORD = "deadjack.tellnotales123";
+	protected static final String USER_BARBOSSA_PASSWORD_2 = "hereThereBeMonsters";
 	
 	// Barbossa after rename
 	protected static final String USER_CPTBARBOSSA_USERNAME = "cptbarbossa";
@@ -423,6 +433,51 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertStableSystem();
 	}
 	
+	@Test
+    public void test030Capabilities() throws Exception {
+		final String TEST_NAME = "test030Capabilities";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        CapabilitiesType capabilities = resourceType.getCapabilities();
+        display("Resource capabilities", capabilities);
+        assertNotNull("Null capabilities", capabilities);
+        
+        CapabilityCollectionType nativeCapabilitiesCollectionType = capabilities.getNative();
+        assertNotNull("Null native capabilities type", nativeCapabilitiesCollectionType);
+        List<Object> nativeCapabilities = nativeCapabilitiesCollectionType.getAny();
+        assertNotNull("Null native capabilities", nativeCapabilities);
+        assertFalse("Empty native capabilities", nativeCapabilities.isEmpty());
+        
+        assertCapability(nativeCapabilities, ReadCapabilityType.class);
+        assertCapability(nativeCapabilities, CreateCapabilityType.class);
+        assertCapability(nativeCapabilities, UpdateCapabilityType.class);
+        assertCapability(nativeCapabilities, DeleteCapabilityType.class);
+        
+        // TODO: assert password capability. Check password readability.
+        
+        ActivationCapabilityType activationCapabilityType = CapabilityUtil.getCapability(nativeCapabilities, ActivationCapabilityType.class);
+        assertActivationCapability(activationCapabilityType);
+        
+        assertAdditionalCapabilities(nativeCapabilities);
+        
+        assertStableSystem();
+	}
+	
+	protected void assertActivationCapability(ActivationCapabilityType activationCapabilityType) {
+		// for subclasses
+	}
+
+	protected void assertAdditionalCapabilities(List<Object> nativeCapabilities) {
+		// for subclasses
+	}
+
+	protected <C extends CapabilityType> void assertCapability(List<Object> capabilities, Class<C> capabilityClass) {
+		C capability = CapabilityUtil.getCapability(capabilities, capabilityClass);
+		assertNotNull("No "+capabilityClass.getSimpleName()+" capability", capability);
+		assertTrue("Capability "+capabilityClass.getSimpleName()+" is disabled", CapabilityUtil.isCapabilityEnabled(capability));
+	}
+
+
 	protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) throws SchemaException {
 		ResourceAttributeDefinition ldapAttrDef = accountObjectClassDefinition.findAttributeDefinition(attrName);
         return QueryBuilder.queryFor(ShadowType.class, prismContext)
@@ -556,6 +611,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 			}
 		} else {
 			assertEquals("Wrong attribute "+attrName+" in "+dn, expectedValue, ldapAttribute.getString());
+		}
+	}
+	
+	protected void assertNoAttribute(Entry entry, String attrName) throws LdapInvalidAttributeValueException {
+		String dn = entry.getDn().toString();
+		Attribute ldapAttribute = entry.get(attrName);
+		if (ldapAttribute != null) {
+				AssertJUnit.fail("Unexpected attribute "+attrName+" in "+dn+": "+ldapAttribute);
 		}
 	}
 	
