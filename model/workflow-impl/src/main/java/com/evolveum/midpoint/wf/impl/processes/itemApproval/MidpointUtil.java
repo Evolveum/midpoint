@@ -173,11 +173,11 @@ public class MidpointUtil {
 					continue;
 				}
 				// TODO evaluate the condition
-				List<WfTimeSpecificationType> timeSpecifications = CloneUtil.cloneCollectionMembers(timedActionsEntry.getTime());
+				List<TimedActionTimeSpecificationType> timeSpecifications = CloneUtil.cloneCollectionMembers(timedActionsEntry.getTime());
 				if (timeSpecifications.isEmpty()) {
-					timeSpecifications.add(new WfTimeSpecificationType());
+					timeSpecifications.add(new TimedActionTimeSpecificationType());
 				}
-				for (WfTimeSpecificationType timeSpec : timeSpecifications) {
+				for (TimedActionTimeSpecificationType timeSpec : timeSpecifications) {
 					if (timeSpec.getValue().isEmpty()) {
 						timeSpec.getValue().add(XmlTypeConverter.createDuration(0));
 					}

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -28,8 +29,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 
 /**
  * @author mederly
@@ -209,9 +208,9 @@ public class CertCampaignTypeUtil {
         }
         int decided = 0;
         for (AccessCertificationCaseType aCase : caseList) {
-            if (SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT.equals(aCase.getOutcome())
-                    || SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REVOKE.equals(aCase.getOutcome())
-                    || SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE.equals(aCase.getOutcome())) {
+            if (QNameUtil.matchUri(aCase.getOutcome(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)
+                    || QNameUtil.matchUri(aCase.getOutcome(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REVOKE)
+                    || QNameUtil.matchUri(aCase.getOutcome(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE)) {
                 decided++;
             }
         }

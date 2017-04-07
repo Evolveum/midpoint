@@ -161,7 +161,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
 			OperationResult result) throws SchemaException, SecurityViolationException {
-		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT;
+		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? ApprovalUtils.fromUri(completeAction.getOutcome()) : WorkItemOutcomeType.REJECT;
 		workItemManager.completeWorkItem(workItem.getExternalId(), ApprovalUtils.toUri(outcome),
 				null, null, createCauseInformation(completeAction), result);
 	}
@@ -198,9 +198,9 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", triggerScannerTask, result));
 		}
-		if (!delegateAction.getApproverRelation().isEmpty()) {
-			throw new UnsupportedOperationException("Approver relation in delegate/escalate action is not supported yet.");
-		}
+//		if (!delegateAction.getApproverRelation().isEmpty()) {
+//			throw new UnsupportedOperationException("Approver relation in delegate/escalate action is not supported yet.");
+//		}
 		return rv;
 	}
 

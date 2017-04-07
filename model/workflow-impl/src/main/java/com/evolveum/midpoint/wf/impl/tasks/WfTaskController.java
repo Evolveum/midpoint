@@ -375,7 +375,7 @@ public class WfTaskController {
 					cause.setDisplayName(completeAction.getDisplayName());
 					foundTimedActions++;
 					WorkItemResultType workItemOutput = new WorkItemResultType();
-					workItemOutput.setOutcome(ApprovalUtils.toUri(completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT));
+					workItemOutput.setOutcome(completeAction.getOutcome() != null ? completeAction.getOutcome() : SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
 					workItem.setOutput(workItemOutput);
 				}
 				if (foundTimedActions > 1) {

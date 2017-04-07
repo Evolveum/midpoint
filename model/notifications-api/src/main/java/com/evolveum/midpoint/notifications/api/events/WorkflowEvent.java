@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -82,9 +83,9 @@ abstract public class WorkflowEvent extends BaseEvent {
         } else {
             if (outcome == null) {
                 return OperationStatus.IN_PROGRESS;
-            } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(outcome)) {
+            } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
                 return OperationStatus.SUCCESS;
-            } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT.equals(outcome)) {
+            } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
                 return OperationStatus.FAILURE;
             } else {
                 return OperationStatus.OTHER;

@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
 import org.apache.commons.lang.BooleanUtils;
 
 /**
@@ -101,9 +101,9 @@ public class ApprovalUtils {
 	public static WorkItemOutcomeType fromUri(String uri) {
 		if (uri == null) {
 			return null;
-		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(uri)) {
+		} else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
 			return WorkItemOutcomeType.APPROVE;
-		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT.equals(uri)) {
+		} else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
 			return WorkItemOutcomeType.REJECT;
 		} else {
 			throw new IllegalArgumentException("Unrecognized URI: " + uri);
@@ -113,11 +113,11 @@ public class ApprovalUtils {
 	public static ApprovalLevelOutcomeType approvalLevelOutcomeFromUri(String uri) {
 		if (uri == null) {
 			return null;
-		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(uri)) {
+		} else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
 			return ApprovalLevelOutcomeType.APPROVE;
-		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT.equals(uri)) {
+		} else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
 			return ApprovalLevelOutcomeType.REJECT;
-		} else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP.equals(uri)) {
+		} else if (QNameUtil.matchUri(uri, SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP)) {
 			return ApprovalLevelOutcomeType.SKIP;
 		} else {
 			throw new IllegalArgumentException("Unrecognized URI: " + uri);
