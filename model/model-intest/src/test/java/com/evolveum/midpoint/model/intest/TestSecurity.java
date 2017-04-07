@@ -248,6 +248,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 	protected static final File ROLE_AUDITOR_FILE = new File(TEST_DIR, "role-auditor.xml");
 	protected static final String ROLE_AUDITOR_OID = "475e37e8-b178-11e6-8339-83e2fa7b9828";
+	
+	protected static final File ROLE_LIMITED_USER_ADMIN_FILE = new File(TEST_DIR, "role-limited-user-admin.xml");
+	protected static final String ROLE_LIMITED_USER_ADMIN_OID = "66ee3a78-1b8a-11e7-aac6-5f43a0a86116";
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
@@ -312,6 +315,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_META_NONSENSE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BASIC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_AUDITOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_LIMITED_USER_ADMIN_FILE, RoleType.class, initResult);
 		
 		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, initResult);
@@ -1999,12 +2003,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         // Linked to jack
-        assertAllow("add jack's account to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
+        assertAllow("add jack's account to jack", 
+    		(task, result) -> {
 				modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
-			}
-		});
+			});
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("Jack after red account link", user);
         String accountRedOid = getLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
@@ -3258,6 +3260,37 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 
         assertAuditReadAllow();
+	}
+	
+	/**
+	 * MID-3826
+	 */
+    @Test
+    public void test370AutzJackLimitedUserAdmin() throws Exception {
+		final String TEST_NAME = "test370AutzJackLimitedUserAdmin";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_USER_ADMIN_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
+        
+        assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS + 1);
+        assertSearch(ObjectType.class, null, NUMBER_OF_ALL_USERS + 1);
+        assertSearch(OrgType.class, null, 0);
+
+        assertAddAllow(USER_HERMAN_FILE);
+        
+        assertModifyDeny();
+        
+        assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
 	}
 
 
