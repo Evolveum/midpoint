@@ -34,6 +34,8 @@ public class InlineMenuItem implements Serializable {
     private int id = -1;
     private String buttonIconCssClass;
     private String buttonColorCssClass;
+    private IModel<String> confirmationMessageModel = null;
+    private boolean showConfirmationDialog = false;
 
     public static enum FOCUS_LIST_INLINE_MENU_ITEM_ID {
         ENABLE(0), DISABLE(1), RECONCILE(2),
@@ -43,7 +45,7 @@ public class InlineMenuItem implements Serializable {
 
         private int menuItemId = -1;
 
-        private FOCUS_LIST_INLINE_MENU_ITEM_ID(final int id){menuItemId = id;}
+        FOCUS_LIST_INLINE_MENU_ITEM_ID(final int id){menuItemId = id;}
 
         public int getMenuItemId(){
             return menuItemId;
@@ -58,7 +60,7 @@ public class InlineMenuItem implements Serializable {
 
         private int menuItemId = -1;
 
-        private RESOURCE_INLINE_MENU_ITEM_ID(final int id){menuItemId = id;}
+        RESOURCE_INLINE_MENU_ITEM_ID(final int id){menuItemId = id;}
 
         public int getMenuItemId(){
             return menuItemId;
@@ -71,7 +73,7 @@ public class InlineMenuItem implements Serializable {
 
         private int menuItemId = -1;
 
-        private TASKS_INLINE_MENU_ITEM_ID(final int id){menuItemId = id;}
+        TASKS_INLINE_MENU_ITEM_ID(final int id){menuItemId = id;}
 
         public int getMenuItemId(){
             return menuItemId;
@@ -188,5 +190,21 @@ public class InlineMenuItem implements Serializable {
 
     public void setButtonColorCssClass(String buttonColorCssClass) {
         this.buttonColorCssClass = buttonColorCssClass;
+    }
+
+    public IModel<String> getConfirmationMessageModel() {
+        return confirmationMessageModel;
+    }
+
+    public void setConfirmationMessageModel(IModel<String> confirmationMessageModel) {
+        this.confirmationMessageModel = confirmationMessageModel;
+    }
+
+    public boolean isShowConfirmationDialog() {
+        return showConfirmationDialog;
+    }
+
+    public void setShowConfirmationDialog(boolean showConfirmationDialog) {
+        this.showConfirmationDialog = showConfirmationDialog;
     }
 }

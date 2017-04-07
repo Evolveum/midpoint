@@ -32,7 +32,7 @@ public class ColumnMenuAction<T extends Serializable> extends InlineMenuItemActi
         this.rowModel = rowModel;
     }
 
-    protected IModel<T> getRowModel() {
+    public IModel<T> getRowModel() {
         return rowModel;
     }
 }

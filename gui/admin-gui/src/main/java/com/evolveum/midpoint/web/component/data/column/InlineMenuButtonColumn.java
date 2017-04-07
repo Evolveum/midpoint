@@ -17,8 +17,11 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -26,9 +29,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -39,10 +45,12 @@ import java.util.List;
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonColumn<T>{
     protected List<InlineMenuItem> menuItems;
+    private PageBase pageBase;
 
-    public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, int buttonsNumber){
+    public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, int buttonsNumber, PageBase pageBase){
         super(null, menuItems.size() < 2 ? menuItems.size() : buttonsNumber);
         this.menuItems = menuItems;
+        this.pageBase = pageBase;
     }
 
     @Override
@@ -139,14 +147,40 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
         };
     }
 
-    private void menuItemClickPerformed(int id, AjaxRequestTarget target, IModel<T> model, List<InlineMenuItem> menuItems){
-            for (InlineMenuItem menuItem : menuItems) {
-                if (menuItem.getId() == id) {
-                    if (menuItem.getAction() != null) {
+    private void menuItemClickPerformed(int id, AjaxRequestTarget target, IModel<T> model, List<InlineMenuItem> menuItems) {
+        for (InlineMenuItem menuItem : menuItems) {
+            if (menuItem.getId() == id) {
+                if (menuItem.getAction() != null) {
+                    if (menuItem.isShowConfirmationDialog() && menuItem.getConfirmationMessageModel() != null) {
+                        showConfirmationPopup(menuItem, target);
+                    } else {
                         menuItem.getAction().onClick(target);
                     }
                 }
             }
+        }
+    }
+
+    private void showConfirmationPopup(InlineMenuItem menuItem, AjaxRequestTarget target) {
+        ConfirmationPanel dialog = new ConfirmationPanel(pageBase.getMainPopupBodyId(),
+                menuItem.getConfirmationMessageModel()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return pageBase.createStringResource("pageUsers.message.confirmActionPopupTitle");
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ModalWindow modalWindow = findParent(ModalWindow.class);
+                if (modalWindow != null) {
+                    modalWindow.close(target);
+                    menuItem.getAction().onClick(target);
+                }
+            }
+        };
+        pageBase.showMainPopup(dialog, target);
     }
 
     @Override
