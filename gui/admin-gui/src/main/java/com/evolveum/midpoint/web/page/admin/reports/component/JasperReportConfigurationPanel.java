@@ -212,6 +212,8 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 		// class editing column
 		columns.add(
 				buildEditableLinkColumn("JasperReportConfigurationPanel.parameterClass", null, "typeAsString", true));
+		columns.add(
+				buildEditableLinkColumn("JasperReportConfigurationPanel.nestedClass", null, "nestedTypeAsString", true));
 
 		columns.add(new LinkColumn<JasperReportParameterDto>(createStringResource("JasperReportConfigurationPanel.properties")) {
 			

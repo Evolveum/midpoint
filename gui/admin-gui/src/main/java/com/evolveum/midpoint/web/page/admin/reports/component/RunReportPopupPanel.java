@@ -24,6 +24,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -252,10 +253,14 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     	Class<?> type = null;
         
         try {
-            type = param.getType();
+        	if (param.isMultiValue()) {
+        		type = param.getNestedType();
+        	} else {
+        		type = param.getType();
+        	}
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            return null;
+            getSession().error("Could not find parameter type denfition. Chcek configuration.");
+            throw new RestartResponseException(getPageBase());
         }
 
         if (type.isEnum()) {
@@ -283,6 +288,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         return panel;
     }
     
+    
     private void addValue(JasperReportParameterDto valueModel, AjaxRequestTarget target) {
     	valueModel.addValue();
     	ListView paramTable = getParametersView();
@@ -296,11 +302,11 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     
     
     private boolean isAddButtonVisible(JasperReportParameterDto valueDecs) {
-    	if (valueDecs.getProperties() == null) {
-    		return false;
-    	}
-    	
-        return valueDecs.getProperties().getMultivalue();
+    	try {
+			return valueDecs.isMultiValue();
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
     }
     
        private void removeValue(JasperReportParameterDto valueModel,
@@ -550,12 +556,22 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                 }
                 List<JasperReportValueDto> values = paramDto.getValue();
                 Class<?> paramClass = paramDto.getType();
+                
+                boolean multivalue = false;
+                if (List.class.isAssignableFrom(paramClass)) {
+                	paramClass = paramDto.getNestedType();
+                	if (paramClass == null) {
+                		getSession().error("Nested type for list must be defined!");
+                        target.add(getPageBase().getFeedbackPanel());
+                        return;
+                	}
+                }
 
                 QName typeName = getPrismContext().getSchemaRegistry().determineTypeForClass(paramClass);
                 PrismPropertyDefinitionImpl<?> def = new PrismPropertyDefinitionImpl<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
                 def.setDynamic(true);
                 def.setRuntimeSchema(true);
-                def.setMaxOccurs(isMultiValue(paramDto) ? -1 : 1);
+                def.setMaxOccurs(multivalue ? -1 : 1);
                 
                 PrismProperty prop = def.instantiate();
 				for (JasperReportValueDto paramValue : values) {
@@ -588,18 +604,18 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     }
     
-    private boolean isMultiValue(JasperReportParameterDto param){
-    	if (param == null) {
-    		return false;
-    	}
-    	
-    	if (param.getProperties() == null) {
-    		return false;
-    	}
-    	
-    	return param.getProperties().getMultivalue();
-    	
-    }
+//    private boolean isMultiValue(JasperReportParameterDto param){
+//    	if (param == null) {
+//    		return false;
+//    	}
+//    	
+//    	if (param.getProperties() == null) {
+//    		return false;
+//    	}
+//    	
+//    	return param.getProperties().getMultivalue();
+//    	
+//    }
 
     private PrismContext getPrismContext() {
         return getPageBase().getPrismContext();

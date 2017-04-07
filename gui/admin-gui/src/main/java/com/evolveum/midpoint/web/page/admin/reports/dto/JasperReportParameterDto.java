@@ -21,6 +21,7 @@ public class JasperReportParameterDto extends Selectable implements Serializable
     private String typeAsString;
     private String description;
     private Class<?> nestedType;
+    private String nestedTypeAsString;
     private boolean forPrompting = false;
     private List<JasperReportValueDto> value;
     private JasperReportParameterPropertiesDto properties;
@@ -30,14 +31,7 @@ public class JasperReportParameterDto extends Selectable implements Serializable
     public JasperReportParameterDto() {
     }
 
-    public void setNestedType(Class<?> nestedType) {
-        this.nestedType = nestedType;
-    }
-
-    public Class<?> getNestedType() {
-        return nestedType;
-    }
-
+   
     public JasperReportParameterDto(JRParameter param) {
         this.name = param.getName();
         this.typeAsString = param.getValueClassName();
@@ -47,9 +41,8 @@ public class JasperReportParameterDto extends Selectable implements Serializable
         if (param.getDescription() != null){
     		this.description = param.getDescription();
     	}
-    	if (param.getNestedType() != null){
-    		this.nestedType = param.getNestedType();
-    	}
+    	this.nestedType = param.getNestedType();
+    	this.nestedTypeAsString = param.getNestedTypeName();
     	
     	this.value = new ArrayList<>(); 
     	this.value.add(new JasperReportValueDto());
@@ -98,6 +91,10 @@ public class JasperReportParameterDto extends Selectable implements Serializable
     public String getTypeAsString() {
         return typeAsString;
     }
+    
+    public String getNestedTypeAsString() {
+		return nestedTypeAsString;
+	}
 
     public String getDescription() {
         return description;
@@ -133,6 +130,22 @@ public class JasperReportParameterDto extends Selectable implements Serializable
             }
         }
         return type;
+    }
+    
+    public Class<?> getNestedType() throws ClassNotFoundException {
+    	if (StringUtils.isBlank(nestedTypeAsString)) {
+    		return null;
+    	}
+    	nestedType = Class.forName(nestedTypeAsString);
+        return nestedType;
+    }
+    
+    public boolean isMultiValue() throws ClassNotFoundException{
+    	if (List.class.isAssignableFrom(getType())){
+    		return true;
+    	}
+    	
+    	return false;
     }
 
     @Override

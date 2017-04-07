@@ -37,7 +37,7 @@ public class ParameterPropertiesPopupPanel extends BasePanel<JasperReportParamet
   private static final String ID_KEY = "propertyKey";
   private static final String ID_LABEL = "propertyLabel";
   private static final String ID_TARGET_TYPE = "propertyTargetType";
-  private static final String ID_MULTIVALUE = "propertyMultivalue";
+//  private static final String ID_MULTIVALUE = "propertyMultivalue";
   
   private static final String ID_BUTTON_UPDATE = "update";
 
@@ -53,8 +53,8 @@ public class ParameterPropertiesPopupPanel extends BasePanel<JasperReportParamet
 	  addTextPanel(ID_KEY, "key");
 	  addTextPanel(ID_LABEL, "label");
 	  addTextPanel(ID_TARGET_TYPE, "targetType");
-	  CheckBoxPanel multivalue = new CheckBoxPanel(ID_MULTIVALUE, new PropertyModel<>(getModel(), "multivalue"), Model.of(Boolean.TRUE));
-	  add(multivalue);
+//	  CheckBoxPanel multivalue = new CheckBoxPanel(ID_MULTIVALUE, new PropertyModel<>(getModel(), "multivalue"), Model.of(Boolean.TRUE));
+//	  add(multivalue);
 	  
 	  AjaxButton update = new AjaxButton(ID_BUTTON_UPDATE) {
 		

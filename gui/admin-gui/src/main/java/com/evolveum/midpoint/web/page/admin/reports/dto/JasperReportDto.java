@@ -134,6 +134,7 @@ public class JasperReportDto implements Serializable{
 				p.setName(param.getName());
 				p.setForPrompting(param.isForPrompting());
 				p.setDescription(param.getDescription());
+				p.setNestedTypeName(param.getNestedTypeAsString());
 				p.setNestedType(param.getNestedType());
 				p.getPropertiesMap().setBaseProperties(param.getJRProperties());
 				//			p.getPropertiesMap().setProperty(propName, value);
