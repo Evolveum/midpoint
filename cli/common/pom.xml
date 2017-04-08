@@ -23,12 +23,12 @@
     <name>midPoint CLI Interface - common</name>
     <groupId>com.evolveum.midpoint.cli</groupId>
     <artifactId>common</artifactId>
-    <version>3.5.1</version>
+    <version>3.5.2-SNAPSHOT</version>
 
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>cli</artifactId>
-        <version>3.5.1</version>
+        <version>3.5.2-SNAPSHOT</version>
     </parent>
 
     <dependencies>

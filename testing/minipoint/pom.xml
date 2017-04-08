@@ -26,7 +26,7 @@
   </parent>
   <artifactId>minipoint</artifactId>
   <groupId>com.evolveum.midpoint.testing</groupId>
-  <version>3.5.1</version>
+  <version>3.5.2-SNAPSHOT</version>
   <name>midPoint Testing - MiniPoint</name>
   <issueManagement>
   	<system>Atlassian JIRA</system>
@@ -38,7 +38,7 @@
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
 	<properties>
-        <midpoint.version>3.5.1</midpoint.version>
+        <midpoint.version>3.5.2-SNAPSHOT</midpoint.version>
         <testng.version>6.8.8</testng.version>
         <connid.version>1.4.0.49</connid.version>
     </properties>
@@ -78,7 +78,7 @@
     <dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>3.5.1</version>
+			<version>3.5.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
@@ -137,7 +137,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-impl</artifactId>
-			<version>3.5.1</version>
+			<version>3.5.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.polygon</groupId>
@@ -152,12 +152,12 @@
 		<dependency>
 		<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl</artifactId>
-			<version>3.5.1</version>
+			<version>3.5.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
-			<version>3.5.1</version>
+			<version>3.5.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.5.1</version>
+		<version>3.5.2-SNAPSHOT</version>
 		<relativePath>../build-system/pom.xml</relativePath>
 	</parent>
 	<organization>
@@ -55,7 +55,7 @@
 	<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.5.1</version>
+			<version>3.5.2-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
