@@ -88,7 +88,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 	private static final Trace LOGGER = TraceManager.getTrace(TestManual.class);
 
 	private static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
-	private static final QName CONF_PROPERTY_FAKE_QNAME = new QName(NS_MANUAL_CONF, "fake");
+	private static final QName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new QName(NS_MANUAL_CONF, "defaultAssignee");
 
 	private PrismObject<ResourceType> resource;
 	private ResourceType resourceType;
@@ -190,8 +190,8 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertNotNull("No configuration container", configurationContainer);
 		PrismContainerDefinition confContDef = configurationContainer.getDefinition();
 		assertNotNull("No configuration container definition", confContDef);
-		PrismProperty<String> propFake = configurationContainer.findProperty(CONF_PROPERTY_FAKE_QNAME);
-		assertNotNull("No fake conf prop", propFake);
+		PrismProperty<String> propDefaultAssignee = configurationContainer.findProperty(CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME);
+		assertNotNull("No defaultAssignee conf prop", propDefaultAssignee);
 		
 //		assertNotNull("No configuration properties container", confingurationPropertiesContainer);
 //		PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();

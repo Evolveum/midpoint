@@ -27,7 +27,7 @@
 	
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
 	<connectorConfiguration>
-		<conf:fake>foo</conf:fake>
+		<conf:defaultAssignee>administrator</conf:defaultAssignee>
 	</connectorConfiguration>
 	
 	<!-- Static schema definition -->

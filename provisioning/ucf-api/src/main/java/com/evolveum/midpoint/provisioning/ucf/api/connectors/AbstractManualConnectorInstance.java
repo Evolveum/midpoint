@@ -69,7 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
  * @author Radovan Semancik
  */
 @ManagedConnector
-public abstract class AbstractManualConnectorInstance extends AbstractConnectorInstance {
+public abstract class AbstractManualConnectorInstance extends AbstractManagedConnectorInstance {
 	
 	private static final String OPERATION_ADD = AbstractManualConnectorInstance.class.getName() + ".addObject";
 	private static final String OPERATION_MODIFY = AbstractManualConnectorInstance.class.getName() + ".modifyObject";

@@ -20,6 +20,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
+import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnectorConfiguration;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
@@ -41,13 +42,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  *
  */
-@ManagedConnector(type="ManualConnector")
+@ManagedConnector(type="ManualConnector", version="1.0.0")
 public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ManualConnectorInstance.class);
 	
+	private ManualConnectorConfiguration configuration;
+	
 	private RepositoryService repositoryService;
 	
+	@ManagedConnectorConfiguration
+	public ManualConnectorConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(ManualConnectorConfiguration configuration) {
+		this.configuration = configuration;
+	}
+
 	@Override
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
@@ -101,6 +113,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			connectionResult.recordFatalError("No repository service");
 			return;
 		}
+		
+		LOGGER.info("CCCCCCCCCCCCCCCC {}", configuration.getDefaultAssignee());
 		
 		connectionResult.recordSuccess();
 	}
