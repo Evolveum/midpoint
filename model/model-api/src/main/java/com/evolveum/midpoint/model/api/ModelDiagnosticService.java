@@ -112,10 +112,12 @@ public interface ModelDiagnosticService {
 	 *
 	 * EXPERIMENTAL. (TODO find a better place)
 	 */
-	String exportDataModel(Collection<String> resourceOids, Task task, OperationResult parentResult)
+	String exportDataModel(Collection<String> resourceOids, DataModelVisualizer.Target target,
+			Task task, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
 
-	String exportDataModel(ResourceType resource, Task task, OperationResult parentResult)
+	String exportDataModel(ResourceType resource, DataModelVisualizer.Target target, Task task,
+			OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
 
 	// EXPERIMENTAL

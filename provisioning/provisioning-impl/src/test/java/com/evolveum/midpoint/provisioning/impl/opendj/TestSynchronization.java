@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -56,27 +57,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @DirtiesContext
 public class TestSynchronization extends AbstractIntegrationTest {
 
+	private static final File TEST_DIR = new File("src/test/resources/synchronization/");
+	
 	private static final File RESOURCE_OPENDJ_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj.xml");
+	
+	private static final File SYNC_TASK_FILE = new File(TEST_DIR, "sync-task-example.xml");
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
-	private static final File SYNC_TASK_FILE = new File(ProvisioningTestUtil.TEST_DIR_IMPL_FILE, "sync-task-example.xml");
-	private static final File LDIF_WILL_FILE = new File(ProvisioningTestUtil.TEST_DIR_UCF_FILE, "will.ldif");
-	private static final File LDIF_CALYPSO_FILE = new File(AbstractOpenDjTest.TEST_DIR, "calypso.ldif");
-	private static final File USER_ADMIN_FILE = new File(ProvisioningTestUtil.TEST_DIR_IMPL_FILE, "admin.xml");
+	
+	private static final File LDIF_WILL_FILE = new File(TEST_DIR, "will.ldif");
+	private static final File LDIF_CALYPSO_FILE = new File(TEST_DIR, "calypso.ldif");
+	
 	private static final String ACCOUNT_WILL_NAME = "uid=wturner,ou=People,dc=example,dc=com";
 
 	private ResourceType resourceType;
 	
-	@Autowired
-	private ConnectorFactory manager;
-	
-	@Autowired
+	@Autowired(required=true)
 	private ProvisioningService provisioningService;
 
-	@Autowired
+	@Autowired(required=true)
 	private ResourceObjectChangeListener syncServiceMock;
 
-	private Task syncTask = null;
-	
 	@BeforeClass
 	public static void startLdap() throws Exception {
 		openDJController.startCleanServer();
@@ -98,14 +98,13 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
-		assertNotNull(manager);
 		// let provisioning discover the connectors
 		provisioningService.postInit(initResult);
 		
-		resourceType = addResourceFromFile(RESOURCE_OPENDJ_FILE, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, initResult).asObjectable();
+		resourceType = addResourceFromFile(RESOURCE_OPENDJ_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, initResult).asObjectable();
 		
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
-		repoAddObjectFromFile(USER_ADMIN_FILE, initResult);
+		repoAddObjectFromFile(ProvisioningTestUtil.USER_ADMIN_FILE, initResult);
 		
 		repoAddObjectFromFile(SYNC_TASK_FILE, initResult);
 	}

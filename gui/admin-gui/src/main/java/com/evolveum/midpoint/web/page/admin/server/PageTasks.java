@@ -355,7 +355,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         columns.add(check);
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "statusMessage"));
 
-        IColumn<NodeDto, String> menuColumn = new InlineMenuButtonColumn<NodeDto>(createNodesInlineMenu(false), 2){
+        IColumn<NodeDto, String> menuColumn = new InlineMenuButtonColumn<NodeDto>(createNodesInlineMenu(false), 2, PageTasks.this){
             @Override
             protected int getHeaderNumberOfButtons() {
                 return 2;
@@ -609,7 +609,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             }
         });
 
-        IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<TaskDto>(createTasksInlineMenu(false), 2){
+        IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<TaskDto>(createTasksInlineMenu(false), 2, PageTasks.this){
             @Override
             protected int getHeaderNumberOfButtons() {
                 return 2;

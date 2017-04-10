@@ -42,15 +42,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -58,6 +63,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.resource.ResourceStreamResource;
+import org.apache.wicket.util.resource.IResourceStream;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -431,11 +438,32 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, initColumns(),
                 UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
-                (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER));
+                (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                String fileName = "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+                CSVDataExporter csvDataExporter = new CSVDataExporter();
+                ResourceStreamResource resource = (new ResourceStreamResource() {
+                    protected IResourceStream getResourceStream() {
+                        return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, getAuditLogViewerTable().getDataTable());
+                    }
+                }).setFileName(fileName + "." + csvDataExporter.getFileNameExtension());
+                AbstractLink exportDataLink = (new ResourceLink(id, resource)).setBody(csvDataExporter.getDataFormatNameModel());
+                exportDataLink.add(new AttributeAppender("class", " btn btn-primary btn-sm"));
+                return exportDataLink;
+            }
+
+        };
         table.setShowPaging(true);
         table.setCurrentPage(auditLogStorage.getPageNumber());
         table.setOutputMarkupId(true);
         mainForm.addOrReplace(table);
+    }
+
+    private BoxedTablePanel getAuditLogViewerTable(){
+        return (BoxedTablePanel) get(ID_MAIN_FORM).get(ID_TABLE);
     }
 
     protected List<IColumn<AuditEventRecordType, String>> initColumns() {

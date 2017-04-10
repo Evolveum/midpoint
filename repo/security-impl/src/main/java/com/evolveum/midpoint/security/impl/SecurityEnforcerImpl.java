@@ -325,14 +325,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 	
 	private <O extends ObjectType> boolean processAuthorizationObject(PrismContainer<O> object, final Collection<ItemPath> allowedItems) {
-		final MutableBoolean itemDecision = new MutableBoolean(true);
-		object.accept(createItemVisitor(allowedItems, itemDecision));
-		return itemDecision.booleanValue();
+		return isContainerAllowed(object.getValue(), allowedItems);
 	}
 	
-	private <C extends Containerable> boolean processAuthorizationContainerDelta(ContainerDelta<C> cval, final Collection<ItemPath> allowedItems) {
+	private <C extends Containerable> boolean processAuthorizationContainerDelta(ContainerDelta<C> cdelta, final Collection<ItemPath> allowedItems) {
 		final MutableBoolean itemDecision = new MutableBoolean(true);
-		cval.accept(createItemVisitor(allowedItems, itemDecision));
+		cdelta.foreach(cval -> {
+			if (!isContainerAllowed(cval, allowedItems)) {
+				itemDecision.setValue(false);
+			}
+		});
 		return itemDecision.booleanValue();
 	}
 	
@@ -359,6 +361,37 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				}
 			}
 		};
+	}
+	
+	private boolean isContainerAllowed(PrismContainerValue<?> cval, Collection<ItemPath> allowedItems) {
+		if (cval.isEmpty()) {
+			// TODO: problem with empty containers such as
+			// orderConstraint in assignment. Skip all 
+			// empty items ... for now.
+			return true;
+		}
+		boolean decision = true;
+		for (Item<?, ?> item: cval.getItems()) {
+			ItemPath itemPath = item.getPath();
+			if (item instanceof PrismContainer<?>) {
+				if (isInList(itemPath, allowedItems)) {
+					// entire container is allowed. We do not need to go deeper
+				} else {
+					List<PrismContainerValue<?>> subValues = (List)((PrismContainer<?>)item).getValues();
+					for (PrismContainerValue<?> subValue: subValues) {
+						if (!isContainerAllowed(subValue, allowedItems)) {
+							decision = false;
+						}
+					}
+				}
+			} else {
+				if (!isInList(itemPath, allowedItems)) {
+					LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
+					decision = false;
+				}
+			}
+		}
+		return decision;
 	}
 	
 	private <O extends ObjectType> boolean processAuthorizationDelta(ObjectDelta<O> delta, final Collection<ItemPath> allowedItems) {

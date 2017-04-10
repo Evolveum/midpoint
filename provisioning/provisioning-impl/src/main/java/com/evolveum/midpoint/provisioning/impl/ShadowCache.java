@@ -486,14 +486,13 @@ public abstract class ShadowCache {
 			
 			preprocessEntitlements(ctx, modifications, "delta for shadow " + oid, parentResult);
 
-			
-
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
 			}
 
 			sideEffectChanges = resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts,
 					modifications, parentResult);
+			
 		} catch (Exception ex) {
 			LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
 					new Object[] { ex.getClass(), ex.getMessage(), ex });
@@ -1803,10 +1802,12 @@ public abstract class ShadowCache {
 
 		resultShadowType.setActivation(resourceShadowType.getActivation());
 
-		// Credentials
 		ShadowType resultAccountShadow = resultShadow.asObjectable();
 		ShadowType resourceAccountShadow = resourceShadow.asObjectable();
+
+		// Credentials
 		resultAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
+		transplantPasswordMetadata(repoShadowType, resultAccountShadow);
 
 		// protected
 		ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry);
@@ -1928,6 +1929,36 @@ public abstract class ShadowCache {
 		assert !StringUtils.isEmpty(resultName.getNorm()) : "No name (norm) in " + resultShadow;
 
 		return resultShadow;
+	}
+	
+	private void transplantPasswordMetadata(ShadowType repoShadowType, ShadowType resultAccountShadow) {
+		CredentialsType repoCreds = repoShadowType.getCredentials();
+		if (repoCreds == null) {
+			return;
+		}
+		PasswordType repoPassword = repoCreds.getPassword();
+		if (repoPassword == null) {
+			return;
+		}
+		MetadataType repoMetadata = repoPassword.getMetadata();
+		if (repoMetadata == null) {
+			return;
+		}
+		CredentialsType resultCreds = resultAccountShadow.getCredentials();
+		if (resultCreds == null) {
+			resultCreds = new CredentialsType();
+			resultAccountShadow.setCredentials(resultCreds);
+		}
+		PasswordType resultPassword = resultCreds.getPassword();
+		if (resultPassword == null) {
+			resultPassword = new PasswordType();
+			resultCreds.setPassword(resultPassword);
+		}
+		MetadataType resultMetadata = resultPassword.getMetadata();
+		if (resultMetadata == null) {
+			resultMetadata = repoMetadata.clone();
+			resultPassword.setMetadata(resultMetadata);
+		}
 	}
 
 	// ENTITLEMENTS

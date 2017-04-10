@@ -124,12 +124,27 @@
                     </execution>
                 </executions>
                 <configuration>
-			<sources>
-				<source>${project.basedir}/target/midpoint-schema</source>
-			</sources>
-			<catalog>${basedir}/src/compile/resources/catalog.xml</catalog>
-			<laxSchemaValidation>true</laxSchemaValidation>
-			<verbose>false</verbose>
+                    <sources>
+                        <source>${project.basedir}/target/midpoint-schema</source>
+                    </sources>
+                    <catalog>${basedir}/src/compile/resources/catalog.xml</catalog>
+                    <laxSchemaValidation>true</laxSchemaValidation>
+                    <verbose>false</verbose>
+                    <xjcSourceExcludeFilters>
+                        <!-- This is a workaround for xjc bug described here: https://java.net/projects/jaxb/lists/users/archive/2005-12/message/33 -->
+                        <!-- It presents itself on Windows machines. -->
+                        <!-- We simply exclude any imported files. So, after a new imported file is present, please add it into this list. -->
+                        <filter implementation="org.codehaus.mojo.jaxb2.shared.filters.pattern.PatternFileFilter">
+                            <patterns>
+                                <pattern>annotation-3\.xsd</pattern>
+                                <pattern>query-3\.xsd</pattern>
+                                <pattern>types-3\.xsd</pattern>
+                                <pattern>common-.*\.xsd</pattern>
+                                <pattern>scripting-3\.xsd</pattern>
+                                <pattern>resource-schema-3\.xsd</pattern>
+                            </patterns>
+                        </filter>
+                    </xjcSourceExcludeFilters>
                 </configuration>
             </plugin>
         </plugins>

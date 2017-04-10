@@ -185,6 +185,7 @@ public class ChangeExecutor {
 					focusDelta = credentialsProcessor.transformFocusExectionDelta(context, focusDelta);
 				} catch (EncryptionException e) {
 					recordFatalError(subResult, result, null, e);
+					result.computeStatus();
 					throw new SystemException(e.getMessage(), e);
 				}
 				try {

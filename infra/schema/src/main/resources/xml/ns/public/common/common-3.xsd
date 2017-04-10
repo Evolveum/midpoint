@@ -102,5 +102,6 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-notifications-3"/>
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3"/>
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3"/>
 
 </xsd:schema>

@@ -288,7 +288,7 @@ public class PageResources extends PageAdminResources {
 	}
 
 	private IColumn<SelectableBean<ResourceType>, String> createResourceActionsColumn() {
-		return new InlineMenuButtonColumn<SelectableBean<ResourceType>>(createRowMenuItems(false), 2){
+		return new InlineMenuButtonColumn<SelectableBean<ResourceType>>(createRowMenuItems(false), 2, PageResources.this){
 			@Override
 			protected int getHeaderNumberOfButtons() {
 				return 1;

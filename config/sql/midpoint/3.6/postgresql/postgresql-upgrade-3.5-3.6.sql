@@ -58,3 +58,18 @@ ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
+
+CREATE TABLE m_case (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+ALTER TABLE m_case
+  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+
+ALTER TABLE m_case
+  ADD CONSTRAINT fk_case
+FOREIGN KEY (oid)
+REFERENCES m_object;

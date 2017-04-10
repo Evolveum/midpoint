@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,11 +97,11 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	
 	@Test
     public void test010ListConnectors() throws Exception {
-		final String TEST_NAME = "";
-        TestUtil.displayTestTile(this, "test010ListConnectors");
+		final String TEST_NAME = "test010ListConnectors";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".test010ListConnectors");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -112,7 +112,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
         
-        assertEquals("Unexpected number of connectors", 7, connectors.size());
+        assertEquals("Unexpected number of connectors", 8, connectors.size());
         for(PrismObject<ConnectorType> connector: connectors) {
         	display("Connector", connector);
         	ConnectorType connectorType = connector.asObjectable();
@@ -139,7 +139,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -164,7 +164,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -181,7 +181,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -201,7 +201,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -226,7 +226,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -243,7 +243,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -267,7 +267,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -304,7 +304,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -336,7 +336,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -366,7 +366,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -395,7 +395,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -430,7 +430,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -464,7 +464,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -496,7 +496,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
