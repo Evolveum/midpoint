@@ -22,7 +22,7 @@
 	   id="4">
 	<objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"/>
 	<targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-	<currentStageNumber>1</currentStageNumber>
+	<stageNumber>1</stageNumber>
 	<workItem id="1">
 		<stageNumber>1</stageNumber>
 		<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
