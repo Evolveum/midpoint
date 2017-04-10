@@ -63,6 +63,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
@@ -101,7 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
  * @author semancik
  *
  */
-public abstract class AbstractDummyTest extends AbstractIntegrationTest {
+public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationTest {
 	
 	protected static final String TEST_DIR = "src/test/resources/impl/dummy/";
 	
@@ -167,21 +168,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected static DummyResource dummyResource;
 	protected static DummyResourceContoller dummyResourceCtl;
 	
-	@Autowired(required = true)
-	protected ProvisioningService provisioningService;
-
 	// Used to make sure that the connector is cached
 	@Autowired(required = true)
 	protected ConnectorManager connectorManager;
-
-	@Autowired(required = true)
-	protected SynchornizationServiceMock syncServiceMock;
-	
-	@Autowired(required = true) 
-	protected TaskManager taskManager;
-	
-	@Autowired(required = true)
-	protected MatchingRuleRegistry matchingRuleRegistry;
 	
 	@Autowired(required = true)
 	protected ProvisioningContextFactory provisioningContextFactory;
@@ -257,14 +246,6 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		return origName;
 	}
 	
-	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
-		PrismAsserts.assertEqualsPolyString("Shadow name is wrong in "+shadow, expectedName, shadow.asObjectable().getName());
-	}
-
-	protected void assertShadowName(ShadowType shadowType, String expectedName) {
-		assertShadowName(shadowType.asPrismObject(), expectedName);
-	}
-
 	protected boolean supportsActivation() {
 		return true;
 	}

@@ -3494,10 +3494,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected Task createTask(String operationName) {
-		if (!operationName.contains(".")) {
-			operationName = this.getClass().getName() + "." + operationName;
-		}
-		Task task = taskManager.createTaskInstance(operationName);
+		Task task = super.createTask(operationName);
 		PrismObject<UserType> defaultActor = getDefaultActor();
 		if (defaultActor != null) {
 			task.setOwner(defaultActor);
