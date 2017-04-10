@@ -45,8 +45,7 @@
 	               <xsd:annotation>
 	                  <xsd:appinfo>
 	                     <ra:resourceObject/>
-	                     <ra:identifier>tns:id</ra:identifier>
-	                     <ra:secondaryIdentifier>tns:username</ra:secondaryIdentifier>
+	                     <ra:identifier>tns:username</ra:identifier>
 	                     <ra:displayNameAttribute>tns:username</ra:displayNameAttribute>
 	                     <ra:namingAttribute>tns:username</ra:namingAttribute>
 	                     <ra:account/>
@@ -54,14 +53,6 @@
 	                  </xsd:appinfo>
 	               </xsd:annotation>
 	               <xsd:sequence>
-	                  <xsd:element minOccurs="0" name="id" type="xsd:string">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>ID</a:displayName>
-	                           <a:displayOrder>100</a:displayOrder>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
 	                  <xsd:element minOccurs="1" name="username" type="xsd:string">
 	                     <xsd:annotation>
 	                        <xsd:appinfo>
@@ -86,4 +77,5 @@
 	</schema>
 	<!-- No schemaHandling as well. -->
 	<!-- No capabilities. Connector should generate those. -->
+	
 </resource>

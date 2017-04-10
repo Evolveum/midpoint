@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 /**
  * Interface that provide ability to query status of asynchronous operation.
  * 
@@ -22,6 +25,6 @@ package com.evolveum.midpoint.schema.result;
  */
 public interface AsynchronousOperationQueryable {
 
-	OperationResultStatus queryOperationStatus(String asyncronousOperationReference);
+	OperationResultStatus queryOperationStatus(String asyncronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
 }

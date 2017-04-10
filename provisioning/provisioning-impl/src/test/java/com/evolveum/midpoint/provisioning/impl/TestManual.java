@@ -29,6 +29,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,6 +38,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -46,25 +48,35 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.impl.dummy.TestDummy;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
@@ -90,11 +102,22 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 	private static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
 	private static final QName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new QName(NS_MANUAL_CONF, "defaultAssignee");
 
+	private static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
+	private static final String ACCOUNT_WILL_OID = "c1add81e-1df7-11e7-bbb7-5731391ba751";
+	private static final String ACCOUNT_WILL_USERNAME = "will";
+
+	private static final String ATTR_USERNAME = "username";
+	private static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
+
 	private PrismObject<ResourceType> resource;
 	private ResourceType resourceType;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
+		// not have a definition here
+		InternalsConfig.encryptionChecks = false;
+				
 		super.initSystem(initTask, initResult);
 		
 		resource = addResourceFromFile(RESOURCE_MANUAL_FILE, MANUAL_CONNECTOR_TYPE, initResult);
@@ -244,12 +267,14 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 
         CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilitiesList, CreateCapabilityType.class);
         assertNotNull("Missing create capability", capCreate);
+        assertManual(capCreate);
         
         ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
         assertNotNull("Missing activation capability", capAct);
         
         ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList, ReadCapabilityType.class);
-        assertNull("Found read capability while not expecting it" ,capRead);
+        assertNotNull("Missing read capability" ,capRead);
+        assertEquals("Wrong caching-only setting in read capability", Boolean.TRUE, capRead.isCachingOnly());
         
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
@@ -258,5 +283,74 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
         
 	}
 
-	
+	private void assertManual(AbstractWriteCapabilityType cap) {
+		assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
+	}
+
+	@Test
+	public void test100AddAccount() throws Exception {
+		final String TEST_NAME = "test100AddAccount";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		PrismObject<ShadowType> account = parseObject(ACCOUNT_WILL_FILE);
+		account.checkConsistence();
+
+		display("Adding shadow", account);
+		
+		XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		String asyncRef = assertInProgress(result);
+		
+		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
+		account.checkConsistence();
+
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		display("Repo shadow", shadowRepo);
+		// TODO
+//		checkRepoAccountShadowWill(shadowRepo, start, end);
+		
+		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+			
+		syncServiceMock.assertNoNotifyChange();
+
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, null, task, result);
+		
+		display("Provisioning shadow", shadowProvisioning);
+		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
+		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		
+		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+
+		// TODO: check pending operations in the shadow
+		
+		assertNotNull("No async reference in result", asyncRef);
+		
+		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, asyncRef, null, result);
+		display("Case", acase);
+		CaseType caseType = acase.asObjectable();
+		assertEquals("Wrong state of "+acase, SchemaConstants.CASE_STATE_OPEN ,caseType.getState());
+		// TODO: check case
+	}
+
+	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
+		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
+	}
 }

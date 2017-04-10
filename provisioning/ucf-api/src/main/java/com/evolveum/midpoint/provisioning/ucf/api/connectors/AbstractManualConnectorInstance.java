@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 
 /**
@@ -121,6 +123,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			throw e;
 		}
 		
+		result.recordInProgress();
 		result.setAsyncronousOperationReference(ticketIdentifier);
 		
 		ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> ret = new ConnectorOperationReturnValue<>();
@@ -151,6 +154,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			throw e;
 		}
 		
+		result.recordInProgress();
 		result.setAsyncronousOperationReference(ticketIdentifier);
 		
 		ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> ret = new ConnectorOperationReturnValue<>();
@@ -180,6 +184,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			throw e;
 		}
 		
+		result.recordInProgress();
 		result.setAsyncronousOperationReference(ticketIdentifier);
 		
 		ConnectorOperationResult ret = new ConnectorOperationResult();
@@ -192,15 +197,21 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
 		Collection<Object> capabilities = new ArrayList<>();
 		
-		// make sure there are no read capabilities
+		// caching-only read capabilities
+		ReadCapabilityType readCap = new ReadCapabilityType();
+		readCap.setCachingOnly(true);
+		capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(readCap));
 		
 		CreateCapabilityType createCap = new CreateCapabilityType();
+		setManual(createCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(createCap));
 		
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
+		setManual(updateCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
 		
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
+		setManual(deleteCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(deleteCap));
 		
 		ActivationCapabilityType activationCap = new ActivationCapabilityType();
@@ -216,6 +227,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		return capabilities;
 	}
 	
+	private void setManual(AbstractWriteCapabilityType cap) {
+		cap.setManual(true);
+	}
+
 	@Override
 	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type,
 			ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
