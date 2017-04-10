@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="bedffe37-72a4-48da-b3ea-0362039179b2"
+          version="1">
+        <name>Drupal:Metarole for Roles</name>
+        <description>Drupal Metarole for Roles</description>
+        <inducement id="1">
+            <description>Assign an user to the Drupal role</description>
+            <construction>
+                <resourceRef oid="501becec-90bc-44c6-93c9-0da4e02eb6a3" type="c:ResourceType"></resourceRef>
+                <attribute>
+                    <c:ref>ri:roles</c:ref>
+                    <outbound>
+                        <strength>strong</strength>
+                        <source>
+                            <c:path>$immediateRole/identifier</c:path>
+                        </source>
+                    </outbound>
+                </attribute>
+            </construction>
+            <order>2</order>
+        </inducement>
+        <requestable>false</requestable>
+        <roleType>drupal</roleType>
+    </role>
+</objects>
