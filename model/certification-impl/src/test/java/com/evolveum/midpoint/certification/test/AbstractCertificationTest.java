@@ -17,10 +17,7 @@ package com.evolveum.midpoint.certification.test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
-import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
-import com.evolveum.midpoint.certification.impl.AccCertQueryHelper;
-import com.evolveum.midpoint.certification.impl.AccCertResponseComputationHelper;
-import com.evolveum.midpoint.certification.impl.CertificationManagerImpl;
+import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -46,6 +43,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -121,6 +119,9 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected static final File ROLE_INDUCEMENT_CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-role-inducements.xml");
 
+	protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner-manual.xml");
+	protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
+
 	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
 	protected ResourceType resourceDummyType;
@@ -143,17 +144,10 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
-    @Autowired
-    protected CertificationManagerImpl certificationManager;
-
-	@Autowired
-	protected AccessCertificationService certificationService;
-
-	@Autowired
-	protected AccCertGeneralHelper helper;
-
-	@Autowired
-	protected AccCertQueryHelper queryHelper;
+    @Autowired protected CertificationManagerImpl certificationManager;
+	@Autowired protected AccessCertificationService certificationService;
+	@Autowired protected AccCertUpdateHelper updateHelper;
+	@Autowired protected AccCertQueryHelper queryHelper;
 
 	protected RoleType roleCeo;
 	protected RoleType roleCoo;
@@ -604,4 +598,13 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		System.out.println("Decisions completed = " + decisionsDonePercentage + " %");
 		assertEquals("Wrong decisions complete percentage", expDecisionsDone, decisionsDonePercentage);
     }
+
+	public void reimportTriggerTask(OperationResult result) throws FileNotFoundException {
+		taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_TRIGGER_SCANNER_OID), 60000L, true, result);
+		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE, result);
+	}
+
+	public void importTriggerTask(OperationResult result) throws FileNotFoundException {
+		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE, result);
+	}
 }

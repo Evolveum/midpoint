@@ -57,7 +57,7 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CriticalRolesCertificationTest extends AbstractCertificationTest {
+public class TestCriticalRolesCertification extends AbstractCertificationTest {
 
     protected static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-critical-roles.xml");
 
@@ -78,7 +78,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         certificationDefinition = repoAddObjectFromFile(CERT_DEF_FILE,
@@ -127,7 +127,7 @@ jack->CTO                   none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -182,7 +182,7 @@ jack->CTO                   none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -219,7 +219,7 @@ jack->CTO                   none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -255,7 +255,7 @@ jack->CTO                   none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -316,7 +316,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -346,7 +346,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -425,7 +425,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -455,7 +455,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -490,7 +490,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -555,7 +555,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -651,7 +651,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -705,7 +705,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -770,7 +770,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -867,7 +867,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -924,7 +924,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -977,7 +977,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN

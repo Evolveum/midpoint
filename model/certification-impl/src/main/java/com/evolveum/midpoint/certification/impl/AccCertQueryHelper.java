@@ -109,10 +109,10 @@ public class AccCertQueryHelper {
         // retrieve cases, filtered
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, newQuery, options, result);
 
-        // campaigns already loaded
-        Map<String,AccessCertificationCampaignType> campaigns = new HashMap<>();
-
-        // add campaignRef
+//        // campaigns already loaded
+//        Map<String,AccessCertificationCampaignType> campaigns = new HashMap<>();
+//
+//        // add campaignRef
 //        for (AccessCertificationWorkItemType workItem : workItems) {
 //            if (workItem.getCampaignRef() == null) {
 //                LOGGER.warn("AccessCertificationCaseType {} has no campaignRef -- skipping it", workItem);

@@ -56,7 +56,7 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class BasicCertificationTest extends AbstractCertificationTest {
+public class TestCertificationBasic extends AbstractCertificationTest {
 
     protected static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE = new File(COMMON_DIR, "certification-of-eroot-user-assignments.xml");
     protected static final String CERT_DEF_USER_ASSIGNMENT_BASIC_OID = "33333333-0000-0000-0000-000000000001";
@@ -87,7 +87,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         roleInducementCertDefinition = repoAddObjectFromFile(ROLE_INDUCEMENT_CERT_DEF_FILE,
@@ -118,7 +118,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -141,7 +141,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_ELAINE_OID));            // elaine is a reviewer, not authorized to create campaigns
 
@@ -161,7 +161,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
 
@@ -205,7 +205,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
     protected void searchWithNoCasesExpected(String TEST_NAME) throws Exception {
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -230,7 +230,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_ELAINE_OID));
 
@@ -250,7 +250,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
 
@@ -296,7 +296,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -320,7 +320,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -361,7 +361,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -388,7 +388,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -421,7 +421,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -453,7 +453,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -485,7 +485,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -521,7 +521,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -558,7 +558,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -616,7 +616,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN+THEN
@@ -636,7 +636,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN+THEN
@@ -656,7 +656,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -690,7 +690,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -710,7 +710,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 

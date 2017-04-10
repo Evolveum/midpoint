@@ -18,11 +18,11 @@
 <suite name="unit" parallel="false">
     <test name="Default" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.certification.test.BasicCertificationTest"/>
-            <class name="com.evolveum.midpoint.certification.test.RoleInducementCertificationTest"/>
-            <class name="com.evolveum.midpoint.certification.test.CriticalRolesCertificationTest"/>
-            <class name="com.evolveum.midpoint.certification.test.SoDCertificationTest"/>
-            <class name="com.evolveum.midpoint.certification.test.EscalationTest"/>
+            <class name="com.evolveum.midpoint.certification.test.TestCertificationBasic"/>
+            <class name="com.evolveum.midpoint.certification.test.TestRoleInducementCertification"/>
+            <class name="com.evolveum.midpoint.certification.test.TestCriticalRolesCertification"/>
+            <class name="com.evolveum.midpoint.certification.test.TestSoDCertification"/>
+            <class name="com.evolveum.midpoint.certification.test.TestEscalation"/>
         </classes>
     </test>
 </suite>

@@ -48,6 +48,7 @@ public class CertCampaignTypeUtil {
         return findStageDefinition(campaign, campaign.getStageNumber());
     }
 
+    @NotNull
     public static AccessCertificationStageDefinitionType findStageDefinition(AccessCertificationCampaignType campaign, int stageNumber) {
         for (AccessCertificationStageDefinitionType stage : campaign.getStageDefinition()) {
             if (stage.getNumber() == stageNumber) {

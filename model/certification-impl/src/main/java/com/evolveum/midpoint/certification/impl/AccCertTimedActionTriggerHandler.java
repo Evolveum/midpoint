@@ -51,6 +51,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 
 	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
 	@Autowired private AccCertQueryHelper queryHelper;
+	@Autowired private AccCertUpdateHelper updateHelper;
 	@Autowired private CertificationManagerImpl certManager;
 	@Autowired private PrismContext prismContext;
 
@@ -112,10 +113,10 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 			executeNotificationAction(campaign, notificationAction, result);
 		}
 		if (actions.getDelegate() != null) {
-			executeDelegateAction(campaign, actions.getDelegate(), false, triggerScannerTask, result);
+			executeDelegateAction(campaign, actions.getDelegate(), triggerScannerTask, result);
 		}
 		if (actions.getEscalate() != null) {
-			executeDelegateAction(campaign, actions.getEscalate(), true, triggerScannerTask, result);
+			executeEscalateAction(campaign, actions.getEscalate(), triggerScannerTask, result);
 		}
 		if (actions.getComplete() != null) {
 			executeCompleteAction(campaign, actions.getComplete(), triggerScannerTask, result);
@@ -140,13 +141,23 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 	}
 
 	private void executeDelegateAction(AccessCertificationCampaignType campaign, DelegateWorkItemActionType delegateAction,
-			boolean escalate, Task task, OperationResult result)
+			Task task, OperationResult result)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			ObjectAlreadyExistsException {
 		List<AccessCertificationWorkItemType> workItems = queryHelper.searchWorkItems(
 				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
 				null, true, null, task, result);
-		certManager.delegateWorkItems(campaign.getOid(), workItems, delegateAction, true, task, result);
+		certManager.delegateWorkItems(campaign.getOid(), workItems, delegateAction, task, result);
+	}
+
+	private void executeEscalateAction(AccessCertificationCampaignType campaign, EscalateWorkItemActionType escalateAction,
+			Task task, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+			ExpressionEvaluationException, ObjectAlreadyExistsException {
+		WorkItemEventCauseInformationType causeInformation = new WorkItemEventCauseInformationType()
+				.type(WorkItemEventCauseTypeType.TIMED_ACTION)
+				.name(escalateAction.getName())
+				.displayName(escalateAction.getDisplayName());
+		updateHelper.escalateCampaign(campaign.getOid(), escalateAction, causeInformation, task, result);
 	}
 
 	private void executeNotificationAction(AccessCertificationCampaignType campaign, @NotNull WorkItemNotificationActionType notificationAction, OperationResult result) throws SchemaException {

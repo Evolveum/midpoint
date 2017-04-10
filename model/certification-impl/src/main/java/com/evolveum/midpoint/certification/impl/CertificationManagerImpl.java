@@ -96,7 +96,7 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
-    public static final String OPERATION_DELEGATE_WORK_ITEMS = CLASS_DOT + "delegateWorkItems";
+    public static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
 
     @Autowired
@@ -311,7 +311,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
                 }
 
-                campaign = updateHelper.refreshCampaign(campaign, task, result);
+                campaign = updateHelper.refreshCampaign(campaign, result);
                 eventHelper.onCampaignStageStart(campaign, task, result);
             }
         } catch (RuntimeException e) {
@@ -371,7 +371,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     public void delegateWorkItems(@NotNull String campaignOid, @NotNull List<AccessCertificationWorkItemType> workItems,
-            @NotNull DelegateWorkItemActionType delegateAction, boolean escalate, Task task,
+            @NotNull DelegateWorkItemActionType delegateAction, Task task,
             OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException {
@@ -379,12 +379,11 @@ public class CertificationManagerImpl implements CertificationManager {
 		result.addParam("campaignOid", campaignOid);
 		result.addCollectionOfSerializablesAsParam("workItems", workItems);	// TODO only IDs?
 		result.addParam("delegateAction", delegateAction);
-		result.addParam("escalate", escalate);
 		try {
 			// TODO security
 			securityEnforcer.authorize(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS.getUrl(), null,
 					null, null, null, null, result);
-			updateHelper.delegateWorkItems(campaignOid, workItems, delegateAction, escalate, task, result);
+			updateHelper.delegateWorkItems(campaignOid, workItems, delegateAction, task, result);
 		} catch (RuntimeException|CommonException e) {
 			result.recordFatalError("Couldn't delegate work items: unexpected exception: " + e.getMessage(), e);
 			throw e;

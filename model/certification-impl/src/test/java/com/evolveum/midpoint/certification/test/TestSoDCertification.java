@@ -48,7 +48,7 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class SoDCertificationTest extends AbstractCertificationTest {
+public class TestSoDCertification extends AbstractCertificationTest {
 
 	protected static final File TEST_DIR = new File("src/test/resources/sod");
 
@@ -102,7 +102,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         certificationDefinition = repoAddObjectFromFile(SOD_CERTIFICATION_DEF_FILE,
@@ -134,7 +134,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -156,7 +156,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -186,7 +186,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         display("jack", getUser(USER_JACK_OID));
@@ -232,7 +232,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -257,7 +257,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -314,7 +314,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -359,7 +359,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
