@@ -215,6 +215,8 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 			maxOccurs = -1;
 			baseType = propertyType.getComponentType();
 		}
+		// TODO: minOccurs: define which properties are optional/mandatory
+		// TODO: display names, ordering, help texts
 		QName propType = XsdTypeMapper.toXsdType(baseType);
 		return configurationContainerDef.createPropertyDefinition(new QName(configurationContainerDef.getName().getNamespaceURI(), propName),
 				propType, minOccurs, maxOccurs);

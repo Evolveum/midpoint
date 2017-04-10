@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -96,6 +97,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	@Override
+	public OperationResultStatus queryOperationStatus(String asyncronousOperationReference) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
 	protected void connect(OperationResult result) {
@@ -113,8 +120,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			connectionResult.recordFatalError("No repository service");
 			return;
 		}
-		
-		LOGGER.info("CCCCCCCCCCCCCCCC {}", configuration.getDefaultAssignee());
 		
 		connectionResult.recordSuccess();
 	}

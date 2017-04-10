@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
@@ -69,7 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
  * @author Radovan Semancik
  */
 @ManagedConnector
-public abstract class AbstractManualConnectorInstance extends AbstractManagedConnectorInstance {
+public abstract class AbstractManualConnectorInstance extends AbstractManagedConnectorInstance implements AsynchronousOperationQueryable {
 	
 	private static final String OPERATION_ADD = AbstractManualConnectorInstance.class.getName() + ".addObject";
 	private static final String OPERATION_MODIFY = AbstractManualConnectorInstance.class.getName() + ".modifyObject";
