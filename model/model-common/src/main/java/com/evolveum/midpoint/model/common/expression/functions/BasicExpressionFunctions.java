@@ -539,7 +539,7 @@ public class BasicExpressionFunctions {
 		}
 		for (PrismProperty<?> property: configurationProperties.getValue().getProperties()) {
 			if (propertyLocalPart.equals(property.getElementName().getLocalPart())) {
-				return (T) property.getRealValue();
+				return (T) property.getAnyRealValue();
 			}
 		}
 		return null;
