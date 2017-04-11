@@ -2436,10 +2436,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertEquals(0, user.asObjectable().getLinkRef().size());
 	}
 	
-	private void assertShadowName(ShadowType shadow, String name){
-		PrismAsserts.assertEqualsPolyString("Wrong shadw name", name, shadow.getName());
-	}
-
 	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
 		ShadowType repoShadowType = repoShadow.asObjectable();
 		String uid = null;

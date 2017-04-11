@@ -47,6 +47,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -178,11 +180,6 @@ public abstract class ShadowCache {
 			throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
 		}
 
-		if (canReturnCached(options, repositoryShadow)) {
-			applyDefinition(repositoryShadow, parentResult);
-			return repositoryShadow;
-		}
-
 		ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
 		ctx.setGetOperationOptions(options);
 		try {
@@ -198,6 +195,15 @@ public abstract class ShadowCache {
 		}
 		ResourceType resource = ctx.getResource();
 
+		if (!ResourceTypeUtil.isReadCapabilityEnabled(resource)) {
+			throw new UnsupportedOperationException("Resource does not support 'read' operation");
+		}
+		
+		if (canReturnCached(options, repositoryShadow, resource)) {
+			applyDefinition(repositoryShadow, parentResult);
+			return repositoryShadow;
+		}
+		
 		PrismObject<ShadowType> resourceShadow = null;
 		try {
 
@@ -222,7 +228,7 @@ public abstract class ShadowCache {
 			
 			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 					.getAllIdentifiers(repositoryShadow);
-
+			
 			resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
 
 			// Resource shadow may have different auxiliary object classes than
@@ -295,10 +301,14 @@ public abstract class ShadowCache {
 
 			}
 		}
-
 	}
 
-	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow) throws ConfigurationException {
+	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
+		ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+		Boolean cachingOnly = readCapabilityType.isCachingOnly();
+		if (cachingOnly == Boolean.TRUE) {
+			return true;
+		}
 		long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
 		if (stalenessOption == 0L) {
 			return false;

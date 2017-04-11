@@ -15,9 +15,15 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import java.beans.PropertyDescriptor;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -75,6 +81,36 @@ public class UcfUtil {
 		Document xsdDoc = connectorSchema.serializeToXsd();
 		Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 		ConnectorTypeUtil.setConnectorXsdSchema(connectorType, xsdElement);
+	}
+	
+	public static PropertyDescriptor findAnnotatedProperty(Class<?> connectorClass, Class<? extends Annotation> annotationClass) {
+		BeanWrapper connectorBean = new BeanWrapperImpl(connectorClass);
+		return findAnnotatedProperty(connectorBean, annotationClass);
+	}
+	
+	public static PropertyDescriptor findAnnotatedProperty(BeanWrapper connectorBean, Class<? extends Annotation> annotationClass) {
+		for (PropertyDescriptor prop: connectorBean.getPropertyDescriptors()) {
+			if (hasAnnotation(prop, annotationClass)) {
+				return prop;
+			}
+		}
+		return null;
+	}
+
+	public static boolean hasAnnotation(PropertyDescriptor prop, Class<? extends Annotation> annotationClass) {
+		Method readMethod = prop.getReadMethod();
+		if (readMethod != null && readMethod.getAnnotation(annotationClass) != null) {
+			return true;
+		}
+		Method writeMethod = prop.getWriteMethod();
+		if (writeMethod != null && writeMethod.getAnnotation(annotationClass) != null) {
+			return true;
+		}
+		Class<?> propertyType = prop.getPropertyType();
+		if (propertyType.isAnnotationPresent(annotationClass)) {
+			return true;
+		}
+		return false;
 	}
 	
 }
