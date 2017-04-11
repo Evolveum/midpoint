@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="42afaa41-33f4-4e6d-8c6c-04fff88a8d27"
+          version="1">
+        <name>MidPoint:Metarole for Company structure</name>
+        
+        <inducement>
+            <description>Creates a Drupal Company Structure for midPoint Org assigned with this metarole</description>
+            <construction>
+                <resourceRef oid="501becec-90bc-44c6-93c9-0da4e02eb6a3" type="c:ResourceType"></resourceRef>
+                <kind>entitlement</kind>
+                <intent>company_structure</intent>
+            </construction>
+        </inducement>
+        
+        <c:inducement>
+            <description>Create converted Org name to Company structure/Team</description>
+            <construction>
+                <resourceRef oid="501becec-90bc-44c6-93c9-0da4e02eb6a3" type="c:ResourceType"></resourceRef>
+                <kind>account</kind>
+                <intent>default</intent>
+                <c:attribute>
+                	<c:ref>ri:field_ref_to_company_structure_transformed</c:ref>
+                    <outbound>
+                        <!-- replace with every changes -->
+                        <strength>strong</strength>
+                        <c:expression>
+	                        <c:script>
+	                        	<c:code>
+	                        		//log.info("sending field_ref_to_company_structure_transformed: "+displayName+", relation: "+relation)
+	                        		return displayName;
+	                        	</c:code>
+	                        </c:script>
+                        </c:expression>
+                        <source>
+                            <c:path>$immediateRole/displayName</c:path>
+                        </source>                        
+                        <source>
+                            <c:path>$assignment/targetRef/relation</c:path>
+                        </source>  
+                    </outbound>
+                </c:attribute>
+                
+                <!--  don't create account - only when assign role, see MID-2850 -->
+                <strength>weak</strength>
+            </construction>
+	        <condition>
+	            <source>
+	                <path>$assignment/targetRef/relation</path>
+	            </source>
+	                <expression>
+	                    <script>
+	                    	<!-- not a manager !!! -->
+	                        <code>
+                        		//log.info("relation is: "+relation);
+	                        	return relation == null
+	                        </code>
+	                    </script>
+	                </expression>
+	        </condition>
+            <order>2</order>
+			<focusType>UserType</focusType>            
+        </c:inducement>
+
+        <requestable>false</requestable>
+        <roleType>midpoint</roleType>
+    </role>
+</objects>

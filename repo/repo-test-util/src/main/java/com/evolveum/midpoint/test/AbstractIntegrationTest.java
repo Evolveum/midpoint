@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -68,6 +69,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -122,7 +124,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -178,6 +179,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	@Autowired(required = true)
 	protected PrismContext prismContext;
+	
+	@Autowired(required = true)
+	protected MatchingRuleRegistry matchingRuleRegistry;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
@@ -755,6 +759,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
     	
     }
+    
+	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
+		PrismAsserts.assertEqualsPolyString("Shadow name is wrong in "+shadow, expectedName, shadow.asObjectable().getName());
+	}
+
+	protected void assertShadowName(ShadowType shadowType, String expectedName) {
+		assertShadowName(shadowType.asPrismObject(), expectedName);
+	}
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType, QName objectClass) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowRepo");
@@ -1559,5 +1571,57 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		MetadataType metadata = password.getMetadata();
 		assertNotNull("No metadata in shadow "+shadow, metadata);
 		assertMetadata("Password metadata in "+shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
+	}
+	
+	// Convenience
+	
+	protected <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
+		return prismContext.parseObject(file);
+	}
+	
+	protected void displayTestTile(String testName) {
+		TestUtil.displayTestTile(testName);
+	}
+	
+	protected void displayWhen(String testName) {
+		TestUtil.displayWhen(testName);
+	}
+	
+	protected void displayThen(String testName) {
+		TestUtil.displayThen(testName);
+	}
+	
+	protected Task createTask(String operationName) {
+		if (!operationName.contains(".")) {
+			operationName = this.getClass().getName() + "." + operationName;
+		}
+		Task task = taskManager.createTaskInstance(operationName);
+		return task;
+	}
+	
+	protected void assertSuccess(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertSuccess(result);
+	}
+	
+	protected void assertSuccess(String message, OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertSuccess(message, result);
+	}
+	
+	protected String assertInProgress(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
+		return result.getAsyncronousOperationReference();
+	}
+	
+	protected void fail(String message) {
+		AssertJUnit.fail(message);
 	}
 }
