@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -175,8 +176,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         paramPanel.add(new Label("name", paramDisplay)); // use display name rather than property name
         
-        
-        String paramClass = new PropertyModel<String>(parameterModel, "typeAsString").getObject();
+        String paramClass = new PropertyModel<String>(parameterModel, "nestedTypeAsString").getObject();
+        if (StringUtils.isBlank(paramClass)) {
+        	paramClass = new PropertyModel<String>(parameterModel, "typeAsString").getObject();
+        }
         paramClass = (paramClass == null) ? "" : paramClass.substring(paramClass.lastIndexOf(".") + 1);
         paramPanel.add(new Label("type", paramClass));
         

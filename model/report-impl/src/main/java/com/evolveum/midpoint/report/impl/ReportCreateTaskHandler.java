@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleWriterExporterOutput;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,6 +152,9 @@ public class ReportCreateTaskHandler implements TaskHandler {
             ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null, "resolving report", task, result);
             Map<String, Object> parameters = completeReport(parentReport, task, result);
 
+            JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
+            LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
+            
             PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItem(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
             if (reportParams != null) {
                 PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
@@ -159,20 +164,19 @@ public class ReportCreateTaskHandler implements TaskHandler {
                         PrismProperty pp = (PrismProperty) item;
                         String paramName = ItemPath.getName(pp.getPath().lastNamed()).getLocalPart();
                         Object value = null;
-                        if (pp.isSingleValue()){
-	                         value = pp.getRealValue();
+                        if (isSingleValue(paramName, jasperReport.getParameters())) {
+                        	value = pp.getRealValues().iterator().next();
                         } else {
                         	value = pp.getRealValues();
-                        	
                         }
+                        	
                         parameters.put(paramName, value);
                         
                     }
                 }
             }
 
-            JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
-            LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
+            
 
             String virtualizerS = parentReport.getVirtualizer();
             Integer virtualizerKickOn = parentReport.getVirtualizerKickOn();
@@ -248,6 +252,11 @@ public class ReportCreateTaskHandler implements TaskHandler {
         runResult.setProgress(progress);
         LOGGER.trace("CreateReportTaskHandler.run stopping");
         return runResult;
+    }
+    
+    private boolean isSingleValue(String paramName, JRParameter[] jrParams) {
+    	JRParameter param = Arrays.stream(jrParams).filter(p -> p.getName().equals(paramName)).findAny().get();
+    	return !List.class.isAssignableFrom(param.getValueClass());
     }
 
     private Map<String, Object> completeReport(ReportType parentReport, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
