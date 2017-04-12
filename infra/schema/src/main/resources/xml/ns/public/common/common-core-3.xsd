@@ -3251,10 +3251,10 @@
 		            </xsd:appinfo>
 		        </xsd:annotation>			
 			</xsd:element>
-			<xsd:element name="limitOtherAuthorizations" type="tns:OtherAuthorizationsLimitationType" minOccurs="0" maxOccurs="1">
+			<xsd:element name="limitOtherPrivileges" type="tns:OtherPrivilegesLimitationType" minOccurs="0" maxOccurs="1">
 		        <xsd:annotation>
 		            <xsd:documentation>
-		                Limitations related to other authorizations, like the ability to complete work items.
+		                Limitations related to other privileges, like the ability to complete work items.
 						If not specified, no limitations of this kind take place.
 		            </xsd:documentation>
 		            <xsd:appinfo>
@@ -8621,10 +8621,10 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
 	
-	<xsd:complexType name="OtherAuthorizationsLimitationType">
+	<xsd:complexType name="OtherPrivilegesLimitationType">
         <xsd:annotation>
             <xsd:documentation>
-				Limitations related to other authorizations, like the ability to complete work items.
+				Limitations related to other privileges, like the ability to complete work items.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -8632,24 +8632,24 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-			<xsd:element name="approvalWorkItems" type="c:WorkItemAuthorizationsLimitationType" minOccurs="0">
+			<xsd:element name="approvalWorkItems" type="c:WorkItemSelectorType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Limitations related to the delegation of access to approval work items. If not present, access to these work items is NOT delegated.
+						Selects approval work items access to which will be delegated. If not present, access to these work items is NOT delegated.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="certificationWorkItems" type="c:WorkItemAuthorizationsLimitationType" minOccurs="0">
+			<xsd:element name="certificationWorkItems" type="c:WorkItemSelectorType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Limitations related to the delegation of access to certification work items. If not present, access to these work items is NOT delegated.
+						Selects certification work items access to which will be delegated. If not present, access to these work items is NOT delegated.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="caseManagementWorkItems" type="c:WorkItemAuthorizationsLimitationType" minOccurs="0">
+			<xsd:element name="caseManagementWorkItems" type="c:WorkItemSelectorType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Limitations related to the delegation of access to case management work items. If not present, access to these work items is NOT delegated.
+						Selects case management work items access to which will be delegated. If not present, access to these work items is NOT delegated.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -8657,27 +8657,29 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
 
-	<xsd:complexType name="WorkItemAuthorizationsLimitationType">
-        <xsd:annotation>
-            <xsd:documentation>
-				Limitations related to the delegation of access to work items of some kind.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
+	<xsd:complexType name="WorkItemSelectorType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Selects some work items from all the items (perhaps of a given type, like approval work items).
+				E.g. may be used to delegate access to some work items only.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
 				<a:since>3.6</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-			<xsd:element name="delegate" type="xsd:boolean" minOccurs="0">
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0"/>
+			<xsd:element name="all" type="xsd:boolean" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						True if the access to work items should be enabled (default is false).
+						True if all work items should be selected.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<!-- TODO finer specification of work items to allow access to -->
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="OrgRelationObjectSpecificationType">
