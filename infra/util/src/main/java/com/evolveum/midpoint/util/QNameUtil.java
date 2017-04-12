@@ -228,6 +228,15 @@ public class QNameUtil {
 		}
 
 	}
+
+	/**
+	 * Matches QName with a URI representation. The URL may in fact be just the local
+	 * part.
+	 */
+	public static boolean matchWithUri(QName qname, String uri) {
+		return match(qname, uriToQName(uri, true));
+	}
+
 	
 	public static QName resolveNs(QName a, Collection<QName> col){
 		if (col == null) {

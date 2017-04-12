@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -103,7 +104,22 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
 				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()));
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return FocusListInlineMenuHelper.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = parentPage.createStringResource("pageUsers.message.enableAction").getString();
+				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+
+		});
 
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable"),
 				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
@@ -123,7 +139,21 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
 				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return FocusListInlineMenuHelper.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = parentPage.createStringResource("pageUsers.message.disableAction").getString();
+				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		});
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile"),
 				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<F>>() {
@@ -140,7 +170,21 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
 				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
 				GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return FocusListInlineMenuHelper.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = parentPage.createStringResource("pageUsers.message.reconcileAction").getString();
+				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		});
 
 
 
@@ -150,52 +194,33 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						if (getRowModel() == null){
-							deletePerformed(target, null);
+							deleteConfirmedPerformed(target, null);
 						} else {
 							SelectableBean<F> rowDto = getRowModel().getObject();
-							deletePerformed(target, rowDto.getValue());
+							deleteConfirmedPerformed(target, rowDto.getValue());
 						}
 					}
-				}));
+				}){
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isShowConfirmationDialog() {
+				return FocusListInlineMenuHelper.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
+				String actionName = parentPage.createStringResource("pageUsers.message.deleteAction").getString();
+				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+
+		});
 		return menu;
 	}
 
-	private IModel<String> createDeleteConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				if (singleDelete == null) {
-					return parentPage.createStringResource("FocusListInlineMenuHelper.message.deleteObjectConfirm",
-							focusListComponent.getObjectListPanel().getSelectedObjects().size()).getString();
-				} else {
-					return parentPage.createStringResource("FocusListInlineMenuHelper.message.deleteObjectConfirmSingle",
-							singleDelete.getName()).getString();
-				}
-			}
-		};
-	}
-
-	public Popupable getDeletePopupContent() {
-		return new ConfirmationPanel(parentPage.getMainPopupBodyId(), createDeleteConfirmString()) {
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				parentPage.hideMainPopup(target);
-				deleteConfirmedPerformed(target);
-			}
-		};
-	}
-
-	private void deletePerformed(AjaxRequestTarget target, F selectedObject) {
-		singleDelete = selectedObject;
+	public void deleteConfirmedPerformed(AjaxRequestTarget target, F selectedObject) {
 		List<F> objects = getObjectsToActOn(target, selectedObject);
-		if (objects.isEmpty()) {
-			return;
-		}
-		parentPage.showMainPopup(getDeletePopupContent(), target);
-	}
-
-	public void deleteConfirmedPerformed(AjaxRequestTarget target) {
-		List<F> objects = getObjectsToActOn(target, singleDelete);
 		if (objects.isEmpty()) {
 			return;
 		}
@@ -319,4 +344,11 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 		}
 	}
 
+	protected boolean isShowConfirmationDialog(ColumnMenuAction action){
+		return false;
+	}
+
+	protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+		return null;
+	}
 }

@@ -2797,13 +2797,23 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (tokenProperty == null){
 			return null;
 		}
-		if (tokenProperty.getValue() == null) {
+		if (tokenProperty.getValues() == null) {
 			return null;
 		}
-		Object tokenValue = tokenProperty.getValue().getValue();
+		
+		if (tokenProperty.getValues().isEmpty()) {
+			return null;
+		}
+		
+		if (tokenProperty.getValues().size() > 1) {
+			throw new SchemaException("Unexpected number of attributes in SyncToken. SyncToken is single-value attribute and can contain only one value.");
+		}
+		
+		Object tokenValue = tokenProperty.getAnyRealValue();
 		if (tokenValue == null) {
 			return null;
 		}
+		
 		SyncToken syncToken = new SyncToken(tokenValue);
 		return syncToken;
 	}
@@ -2821,6 +2831,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(SchemaConstants.SYNC_TOKEN,
 				type, prismContext);
 		propDef.setDynamic(true);
+		propDef.setMaxOccurs(1);
 		PrismProperty<T> property = propDef.instantiate();
 		property.addValues(syncTokenValues);
 		return property;

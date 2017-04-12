@@ -1078,10 +1078,10 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test100AddAccount() throws Exception {
 		final String TEST_NAME = "test100AddAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
-		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		PrismObject<ShadowType> account = prismContext.parseObject(getAccountWillFile());
@@ -1092,17 +1092,15 @@ public class TestDummy extends AbstractDummyTest {
 		XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 		
 		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		
-		result.computeStatus();
-		display("add object result", result);
-		TestUtil.assertSuccess("addObject has failed (result)", result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
 		account.checkConsistence();

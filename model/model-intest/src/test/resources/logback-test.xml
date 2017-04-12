@@ -60,10 +60,10 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.OutboundProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ReconciliationProcessor" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor" level="TRACE" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator" level="TRACE" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor" level="TRACE" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
@@ -88,8 +88,8 @@
  	<logger name="com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.security" level="TRACE" />
+    <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="DEBUG" />

@@ -405,6 +405,8 @@ public class ProjectionCredentialsProcessor {
 		if (projectionContext.isAdd()) {
 			MetadataType metadataType = operationalDataManager.createCreateMetadata(context, now, task);
 			ContainerDelta<MetadataType> metadataDelta = ContainerDelta.createDelta(SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition());
+			PrismContainerValue cval = metadataType.asPrismContainerValue();
+			cval.setOriginTypeRecursive(OriginType.OUTBOUND);
 			metadataDelta.addValuesToAdd(metadataType.asPrismContainerValue());
 			projectionContext.swallowToSecondaryDelta(metadataDelta);
 
@@ -413,6 +415,7 @@ public class ProjectionCredentialsProcessor {
 			if (metadataDelta == null) {
 				Collection<? extends ItemDelta<?,?>> modifyMetadataDeltas = operationalDataManager.createModifyMetadataDeltas(context, SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition(), now, task);
 				for (ItemDelta itemDelta: modifyMetadataDeltas) {
+					itemDelta.setOriginTypeRecursive(OriginType.OUTBOUND);
 					projectionContext.swallowToSecondaryDelta(itemDelta);
 				}
 			}

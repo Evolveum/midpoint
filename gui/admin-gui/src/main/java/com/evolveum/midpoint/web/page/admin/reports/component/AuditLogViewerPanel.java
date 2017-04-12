@@ -109,6 +109,7 @@ public class AuditLogViewerPanel extends BasePanel{
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
             + ".resolveReferenceName()";
 
+    private static final int DEFAULT_PAGE_SIZE = 10;
     private IModel<AuditSearchDto> auditSearchDto;
     private AuditSearchDto searchDto;
     private PageBase pageBase;
@@ -436,9 +437,13 @@ public class AuditLogViewerPanel extends BasePanel{
             }
 
         };
+        UserProfileStorage userProfile = pageBase.getSessionStorage().getUserProfile();
+        int pageSize = DEFAULT_PAGE_SIZE;
+        if (userProfile.getTables().containsKey(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)){
+            pageSize = userProfile.getPagingSize(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER);
+        }
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
-                (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)){
+                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER, pageSize){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -455,7 +460,12 @@ public class AuditLogViewerPanel extends BasePanel{
                 return exportDataLink;
             }
 
-        };
+            @Override
+            public void setShowPaging(boolean show) {
+                //we don't need to do anything here
+            }
+
+            };
         table.setShowPaging(true);
         table.setCurrentPage(auditLogStorage.getPageNumber());
         table.setOutputMarkupId(true);

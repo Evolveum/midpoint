@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -73,7 +75,18 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
         initLayout();
     }
 
-	private final FocusListInlineMenuHelper<RoleType> listInlineMenuHelper = new FocusListInlineMenuHelper<>(RoleType.class, this, this);
+	private final FocusListInlineMenuHelper<RoleType> listInlineMenuHelper = new FocusListInlineMenuHelper<RoleType>(RoleType.class, this, this){
+        private static final long serialVersionUID = 1L;
+
+        protected boolean isShowConfirmationDialog(ColumnMenuAction action){
+            return PageRoles.this.isShowConfirmationDialog(action);
+        }
+
+        protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+            return PageRoles.this.getConfirmationMessageModel(action, actionName);
+        }
+
+    };
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
@@ -128,7 +141,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
     }
 
     private IColumn<SelectableBean<RoleType>, String> createActionsColumn() {
-        return new InlineMenuButtonColumn<SelectableBean<RoleType>>(listInlineMenuHelper.createRowActions(false), 3){
+        return new InlineMenuButtonColumn<SelectableBean<RoleType>>(listInlineMenuHelper.createRowActions(false), 3, PageRoles.this){
             @Override
             protected int getHeaderNumberOfButtons() {
                 return 2;
@@ -156,4 +169,20 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 		return (MainObjectListPanel<RoleType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
 
+
+    private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+        if (action.getRowModel() == null) {
+            return createStringResource("pageRoles.message.confirmationMessageForMultipleObject",
+                    actionName, getRoleTable().getSelectedObjectsCount() );
+        } else {
+            return createStringResource("pageRoles.message.confirmationMessageForSingleObject",
+                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+        }
+
+    }
+
+    private boolean isShowConfirmationDialog(ColumnMenuAction action){
+        return action.getRowModel() != null ||
+                getRoleTable().getSelectedObjectsCount() > 0;
+    }
 }

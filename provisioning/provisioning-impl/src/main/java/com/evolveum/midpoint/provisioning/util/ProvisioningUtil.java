@@ -63,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -453,11 +454,14 @@ public class ProvisioningUtil {
 
 	public static CachingStategyType getCachingStrategy(ProvisioningContext ctx)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		CachingPolicyType caching = ctx.getResource().getCaching();
-		if (caching == null) {
-			return CachingStategyType.NONE;
-		}
-		if (caching.getCachingStategy() == null) {
+		ResourceType resource = ctx.getResource();
+		CachingPolicyType caching = resource.getCaching();
+		if (caching == null || caching.getCachingStategy() == null) {
+			ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+			Boolean cachingOnly = readCapabilityType.isCachingOnly();
+			if (cachingOnly == Boolean.TRUE) {
+				return CachingStategyType.PASSIVE;
+			}
 			return CachingStategyType.NONE;
 		}
 		return caching.getCachingStategy();

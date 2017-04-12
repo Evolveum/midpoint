@@ -1197,8 +1197,10 @@ public class ResourceObjectConverter {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void applyAfterOperationAttributes(PrismObject<ShadowType> shadow,
 			Collection<ResourceAttribute<?>> resourceAttributesAfterAdd) throws SchemaException {
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(shadow);
+		if (resourceAttributesAfterAdd == null) {
+			return;
+		}
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 		for (ResourceAttribute attributeAfter : resourceAttributesAfterAdd) {
 			ResourceAttribute attributeBefore = attributesContainer.findAttribute(attributeAfter.getElementName());
 			if (attributeBefore != null) {

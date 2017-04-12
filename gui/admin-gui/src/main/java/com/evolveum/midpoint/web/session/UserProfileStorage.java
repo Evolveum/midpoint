@@ -96,7 +96,11 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         tables.put(key, size);
     }
 
-	@Override
+    public Map<TableId, Integer> getTables() {
+        return tables;
+    }
+
+    @Override
 	public String debugDump() {
 		return debugDump(0);
 	}

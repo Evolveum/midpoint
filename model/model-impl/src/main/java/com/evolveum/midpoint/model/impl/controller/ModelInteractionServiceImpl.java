@@ -411,7 +411,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(), 
-					AuthorizationPhaseType.REQUEST, RoleType.class, focus, AllFilter.createAll());
+					AuthorizationPhaseType.REQUEST, AbstractRoleType.class, focus, AllFilter.createAll());
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
