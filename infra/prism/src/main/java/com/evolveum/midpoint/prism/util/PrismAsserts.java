@@ -568,9 +568,7 @@ public class PrismAsserts {
 	}
 	
 	private static <T> Visitor createOriginVisitor(final Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
-		return new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
+		return (visitable) -> {
 				if (visitable instanceof PrismValue) {
 					PrismValue pval = (PrismValue)visitable;
 					
@@ -581,8 +579,7 @@ public class PrismAsserts {
 								"; expected "+expectedOriginObject+", was "+pval.getOriginObject();
 					}
 				}
-			}
-		};
+			};
 	}
 	
 	public static void asserHasDelta(String message, Collection<? extends ObjectDelta<? extends Objectable>> deltas, ChangeType expectedChangeType, Class<?> expectedClass) {
