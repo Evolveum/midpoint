@@ -89,7 +89,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     private XMLGregorianCalendar reviewDeadline;
     private XMLGregorianCalendar remediedTimestamp;
     private String currentStageOutcome;
-    private Integer currentStageNumber;
+    private Integer stageNumber;
     private String outcome;
 
     public RAccessCertificationCase() {
@@ -174,8 +174,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return currentStageOutcome;
     }
 
-    public Integer getCurrentStageNumber() {
-        return currentStageNumber;
+    public Integer getStageNumber() {
+        return stageNumber;
     }
 
     public String getOutcome() {
@@ -233,8 +233,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.currentStageOutcome = currentStageOutcome;
     }
 
-    public void setCurrentStageNumber(Integer currentStageNumber) {
-        this.currentStageNumber = currentStageNumber;
+    public void setStageNumber(Integer stageNumber) {
+        this.stageNumber = stageNumber;
     }
 
     public void setOutcome(String outcome) {
@@ -271,14 +271,14 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
                 Objects.equals(reviewDeadline, that.reviewDeadline) &&
                 Objects.equals(remediedTimestamp, that.remediedTimestamp) &&
                 currentStageOutcome == that.currentStageOutcome &&
-                Objects.equals(currentStageNumber, that.currentStageNumber) &&
+                Objects.equals(stageNumber, that.stageNumber) &&
                 Objects.equals(outcome, that.outcome);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(fullObject, ownerOid, id, workItems, objectRef, targetRef, tenantRef, orgRef, activation,
-                reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, currentStageNumber,
+                reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, stageNumber,
                 outcome);
     }
 
@@ -338,7 +338,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setReviewDeadline(case1.getCurrentStageDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
         rCase.setCurrentStageOutcome(case1.getCurrentStageOutcome());
-        rCase.setCurrentStageNumber(case1.getStageNumber());
+        rCase.setStageNumber(case1.getStageNumber());
         rCase.setOutcome(case1.getOutcome());
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;

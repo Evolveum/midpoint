@@ -48,9 +48,6 @@ public class SimpleCampaignStageNotifier extends GeneralNotifier {
     private static final Trace LOGGER = TraceManager.getTrace(SimpleCampaignStageNotifier.class);
 
     @Autowired
-    private MidpointFunctions midpointFunctions;
-
-    @Autowired
     private CertHelper certHelper;
 
     @PostConstruct
@@ -108,7 +105,7 @@ public class SimpleCampaignStageNotifier extends GeneralNotifier {
         body.append("\n\nTime: ").append(new Date());     // the event is generated in the real time
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         if (stage != null) {
-            body.append("\n\nStage start time: ").append(XmlTypeConverter.toDate(stage.getStart()));
+            body.append("\n\nStage start time: ").append(XmlTypeConverter.toDate(stage.getStartTimestamp()));
             body.append("\nStage deadline time: ").append(XmlTypeConverter.toDate(stage.getDeadline()));
             if (csEvent.isModify() && stage.getDeadline() != null) {
                 long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - System.currentTimeMillis();

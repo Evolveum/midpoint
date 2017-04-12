@@ -2981,9 +2981,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                             "      a2.type = :type\n" +
                             "    ) and\n" +
                             "    (\n" +
-                            "      a.currentStageNumber = o.stageNumber or\n" +
+                            "      a.stageNumber = o.stageNumber or\n" +
                             "      (\n" +
-                            "        a.currentStageNumber is null and\n" +
+                            "        a.stageNumber is null and\n" +
                             "        o.stageNumber is null\n" +
                             "      )\n" +
                             "    )\n" +
@@ -3023,9 +3023,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                             "      a2.type = :type\n" +
                             "    ) and\n" +
                             "    (\n" +
-                            "      a.currentStageNumber = o.stageNumber or\n" +
+                            "      a.stageNumber = o.stageNumber or\n" +
                             "      (\n" +
-                            "        a.currentStageNumber is null and\n" +
+                            "        a.stageNumber is null and\n" +
                             "        o.stageNumber is null\n" +
                             "      )\n" +
                             "    )\n" +
@@ -3100,9 +3100,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "      a2.type = :type\n" +
                     "    ) and\n" +
                     "    (\n" +
-                    "      a.currentStageNumber = o.stageNumber or\n" +
+                    "      a.stageNumber = o.stageNumber or\n" +
                     "      (\n" +
-                    "        a.currentStageNumber is null and\n" +
+                    "        a.stageNumber is null and\n" +
                     "        o.stageNumber is null\n" +
                     "      )\n" +
                     "    ) and\n" +
@@ -3448,10 +3448,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "      a2.relation in (:relation)\n"
 					+ "    ) and\n"
 					+ "    (\n"
-					+ "      w.stageNumber = a.currentStageNumber or\n"
+					+ "      w.stageNumber = a.stageNumber or\n"
 					+ "      (\n"
 					+ "        w.stageNumber is null and\n"
-					+ "        a.currentStageNumber is null\n"
+					+ "        a.stageNumber is null\n"
 					+ "      )\n"
 					+ "    ) and\n"
 					+ "      w.outcome is null\n"
@@ -3495,10 +3495,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "      a2.relation in (:relation)\n"
 					+ "    ) and\n"
 					+ "    (\n"
-					+ "      w.stageNumber = a.currentStageNumber or\n"
+					+ "      w.stageNumber = a.stageNumber or\n"
 					+ "      (\n"
 					+ "        w.stageNumber is null and\n"
-					+ "        a.currentStageNumber is null\n"
+					+ "        a.stageNumber is null\n"
 					+ "      )\n"
 					+ "    ) and\n"
 					+ "      w.outcome is null\n"

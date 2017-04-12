@@ -119,14 +119,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="createTimestamp" type="xsd:dateTime">
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of the stage this work item is part of.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When was this work item created?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="deadline" type="xsd:dateTime">
+            <xsd:element name="deadline" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When is this work to be done? May be moved via escalation(s).
@@ -178,13 +185,6 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
                     </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Number of the stage this work item is part of.
-                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="escalationLevel" type="tns:WorkItemEscalationLevelType" minOccurs="0">

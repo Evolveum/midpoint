@@ -529,7 +529,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When this stage has started.
@@ -543,7 +543,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When this stage has actually finished.

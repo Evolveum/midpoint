@@ -246,7 +246,7 @@ public class QueryInterpreter2 {
             ProperDataSearchResult<JpaPropertyDefinition> propDefRes = resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class,
                     context.getPrismContext());
             if (propDefRes == null) {
-                throw new QueryException("Couldn't find a proper restriction for a ValueFilter: " + valFilter.debugDump());
+                throw new QueryException("Couldn't find a proper data item to query, given base entity " + baseEntityDefinition + " and this filter: " + valFilter.debugDump());
             }
             // TODO can't be unified?
             if (propDefRes.getTargetDefinition() instanceof JpaAnyPropertyDefinition) {

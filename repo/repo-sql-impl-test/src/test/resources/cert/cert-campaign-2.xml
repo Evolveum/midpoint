@@ -41,15 +41,15 @@
                                 type="c:UserType"><!-- administrator --></defaultReviewerRef>
         </reviewerSpecification>
     </stageDefinition>
-    <start>2015-12-04T00:38:03.031+01:00</start>
+    <startTimestamp>2015-12-04T00:38:03.031+01:00</startTimestamp>
     <state>inReviewStage</state>
     <stageNumber>1</stageNumber>
     <stage>
         <number>1</number>
         <name>Administrator's review</name>
         <description>In this stage, the administrator has to review all the assignments of all users.</description>
-        <start>2015-12-04T00:38:00.708+01:00</start>
-        <end>2015-12-18T23:59:59.999+01:00</end>
+        <startTimestamp>2015-12-04T00:38:00.708+01:00</startTimestamp>
+        <endTimestamp>2015-12-18T23:59:59.999+01:00</endTimestamp>
     </stage>
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="1"

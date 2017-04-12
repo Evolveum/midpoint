@@ -150,7 +150,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?,?>> modifications = new ArrayList<>();
         ItemPath case1 = new ItemPath(F_CASE).subPath(new IdItemPathSegment(1L));
-        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, DELEGATE));
+        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE));
         modifications.add(createModificationReplaceProperty(case1.subPath(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
@@ -179,7 +179,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_NAME).replace(new PolyString("Campaign 2", "campaign 2"))
                 .item(F_STATE).replace(IN_REMEDIATION)
-                .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(NO_RESPONSE)
+                .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
                 .item(F_CASE, 2, AccessCertificationCaseType.F_STAGE_NUMBER).replace(400)
                 .item(F_CASE, 1, F_WORK_ITEM, 1, F_OUTPUT).replace(
                 		new AbstractWorkItemOutputType()

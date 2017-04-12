@@ -109,7 +109,7 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
         body.append("\n\n");
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         if (stage != null) {
-            body.append("Stage start time: ").append(XmlTypeConverter.toDate(stage.getStart()));
+            body.append("Stage start time: ").append(XmlTypeConverter.toDate(stage.getStartTimestamp()));
             body.append("\nStage deadline: ").append(XmlTypeConverter.toDate(stage.getDeadline()));
             if (stage.getDeadline() != null) {
                 long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - System.currentTimeMillis();

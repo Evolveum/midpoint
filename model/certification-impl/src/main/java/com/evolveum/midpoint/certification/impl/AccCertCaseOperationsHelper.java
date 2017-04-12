@@ -195,7 +195,7 @@ public class AccCertCaseOperationsHelper {
                 AccessCertificationCampaignType.class, prismContext);
         for (AccessCertificationCaseType _case : caseList) {
             _case.setStageNumber(1);
-            _case.setCurrentStageCreateTimestamp(stage.getStart());
+            _case.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
             _case.setCurrentStageDeadline(stage.getDeadline());
 
 			List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(_case, campaign, reviewerSpec, task, result);
@@ -255,7 +255,7 @@ public class AccCertCaseOperationsHelper {
 			AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(_case, campaign, currentOutcome);
 			rv.addAll(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 					.item(F_CASE, caseId, F_WORK_ITEM).add(PrismContainerValue.toPcvList(workItems))
-					.item(F_CASE, caseId, F_CURRENT_STAGE_CREATE_TIMESTAMP).replace(stage.getStart())
+					.item(F_CASE, caseId, F_CURRENT_STAGE_CREATE_TIMESTAMP).replace(stage.getStartTimestamp())
 					.item(F_CASE, caseId, F_CURRENT_STAGE_DEADLINE).replace(stage.getDeadline())
 					.item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(OutcomeUtils.toUri(currentOutcome))
 					.item(F_CASE, caseId, F_OUTCOME).replace(OutcomeUtils.toUri(overallOutcome))
