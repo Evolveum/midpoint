@@ -79,6 +79,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public static final String F_FOCUS_TYPE = "focusType";
 	public static final String F_TENANT_REF = "tenantRef";
 	public static final String F_ORG_REF = "orgRef";
+	public static final String F_NEW_ASSIGNMENT = "newAssignment";
 	public static final String F_ALT_NAME = "altName";
 	public static final String F_IS_ORG_UNIT_MANAGER = "isOrgUnitManager";
 
@@ -792,6 +793,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		if (availableRelations.size() > 0){
 			getTargetRef().setRelation(availableRelations.get(0).getRelation());
 		}
+	}
+
+	public OtherPrivilegesLimitationType getPrivilegesLimitation(){
+		return newAssignment.getLimitOtherPrivileges();
+	}
+
+	public void setPrivilegesLimitation(OtherPrivilegesLimitationType limitations){
+		newAssignment.setLimitOtherPrivileges(limitations);
+
 	}
 
 	@Override

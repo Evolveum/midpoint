@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,10 +29,14 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemSelectorType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -239,7 +244,38 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         body.add(limitPrivilegesButton);
 
         AjaxCheckBox approvalRights = new AjaxCheckBox(ID_DELEGATE_APPROVAL_WI,
-                new Model<Boolean>(false)) {
+                new IModel<Boolean>(){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Boolean getObject(){
+                        AssignmentEditorDto dto = getModelObject();
+                        if (dto.getPrivilegesLimitation() == null ||
+                                dto.getPrivilegesLimitation().getApprovalWorkItems() == null ||
+                                dto.getPrivilegesLimitation().getApprovalWorkItems().isAll() == null){
+                            return false;
+                        }
+                        return dto.getPrivilegesLimitation().getApprovalWorkItems().isAll();
+                    }
+
+                    @Override
+                    public void setObject(Boolean value){
+                        AssignmentEditorDto dto = getModelObject();
+                        OtherPrivilegesLimitationType limitations = dto.getPrivilegesLimitation();
+                        if (limitations == null ){
+                            limitations = new OtherPrivilegesLimitationType();
+                            dto.setPrivilegesLimitation(limitations);
+                        }
+
+                        WorkItemSelectorType workItemSelector = new WorkItemSelectorType();
+                        workItemSelector.all(value);
+                        limitations.setApprovalWorkItems(workItemSelector);
+                    }
+
+                    @Override
+                    public void detach(){
+                    }
+                }) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -247,16 +283,67 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         approvalRights.setOutputMarkupId(true);
+        approvalRights.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
+        approvalRights.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isEnabled(){
+                return getModel().getObject().isEditable();
+            }
+        });
         body.add(approvalRights);
 
         AjaxCheckBox certificationRights = new AjaxCheckBox(ID_DELEGATE_CERTIFICATION_WI,
-                new Model<Boolean>(false)) {
+                new IModel<Boolean>(){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Boolean getObject(){
+                        AssignmentEditorDto dto = getModelObject();
+                        if (dto.getPrivilegesLimitation() == null ||
+                                dto.getPrivilegesLimitation().getCertificationWorkItems() == null ||
+                                dto.getPrivilegesLimitation().getCertificationWorkItems().isAll() == null){
+                            return false;
+                        }
+                        return dto.getPrivilegesLimitation().getCertificationWorkItems().isAll();
+                    }
+
+                    @Override
+                    public void setObject(Boolean value){
+                        AssignmentEditorDto dto = getModelObject();
+                        OtherPrivilegesLimitationType limitations = dto.getPrivilegesLimitation();
+                        if (limitations == null ){
+                            limitations = new OtherPrivilegesLimitationType();
+                            dto.setPrivilegesLimitation(limitations);
+                        }
+
+                        WorkItemSelectorType workItemSelector = new WorkItemSelectorType();
+                        workItemSelector.all(value);
+                        limitations.setCertificationWorkItems(workItemSelector);
+                    }
+
+                    @Override
+                    public void detach(){
+                    }
+                }) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
             }
         };
+        certificationRights.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
+        certificationRights.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isEnabled(){
+                return getModel().getObject().isEditable();
+            }
+        });
         certificationRights.setOutputMarkupId(true);
         body.add(certificationRights);
 
@@ -269,6 +356,15 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         managementWorkItems.setOutputMarkupId(true);
+        managementWorkItems.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                //TODO not implemented yet
+                return false;
+            }
+        });
         body.add(managementWorkItems);
     };
 
