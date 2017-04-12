@@ -2282,8 +2282,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
-    public void test275AutzJackAssignRequestableRoles() throws Exception {
-		final String TEST_NAME = "test275AutzJackAssignRequestableRoles";
+    public void test275aAutzJackAssignRequestableRoles() throws Exception {
+		final String TEST_NAME = "test275aAutzJackAssignRequestableRoles";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -2343,8 +2343,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * MID-3636
 	 */
-	@Test
-	public void test275AutzJackAssignRequestableOrgs() throws Exception { // TODO mod test name
+	@Test(enabled=false)
+	public void test275bAutzJackAssignRequestableOrgs() throws Exception {
 		final String TEST_NAME = "test275bAutzJackAssignRequestableOrgs";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
@@ -2371,7 +2371,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		ObjectFilter orFilter =  ObjectQueryUtil.filterOr(filterRoleTypeRequestable,filterOrgTypeRequestable);
 		query.addFilter(TypeFilter.createType(RoleType.COMPLEX_TYPE, orFilter));
 
-		assertSearch(AbstractRoleType.class,query,1);
+		assertSearch(AbstractRoleType.class, query, 1);
 
 		assertGlobalStateUntouched();
 	}
