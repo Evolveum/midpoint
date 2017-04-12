@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -286,7 +287,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
 		Set<Operation> operation = new HashSet<Operation>();
-		ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> ret = cc.addObject(shadow, operation, null, result);
+		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = cc.addObject(shadow, operation, null, result);
 		Collection<ResourceAttribute<?>> resourceAttributes = ret.getReturnValue();
 		return resourceAttributes;
 	}

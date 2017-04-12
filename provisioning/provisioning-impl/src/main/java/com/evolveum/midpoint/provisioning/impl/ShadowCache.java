@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -364,7 +365,7 @@ public abstract class ShadowCache {
 		return resource.getConsistency().isDiscovery();
 	}
 	
-	public abstract String afterAddOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+	public abstract String afterAddOnResource(ProvisioningContext ctx, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException,
 					ObjectNotFoundException, ConfigurationException, CommunicationException;
 
@@ -404,6 +405,8 @@ public abstract class ShadowCache {
 			return null;
 		}
 
+		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncResult;
+		PrismObject<ShadowType> addedShadow;
 		try {
 			preprocessEntitlements(ctx, shadow, parentResult);
 
@@ -412,23 +415,27 @@ public abstract class ShadowCache {
 			accessChecker.checkAdd(ctx, shadow, parentResult);
 
 			// RESOURCE OPERATION: add
-			shadow = resouceObjectConverter.addResourceObject(ctx, shadow, scripts, parentResult);
+			asyncResult = 
+					resouceObjectConverter.addResourceObject(ctx, shadow, scripts, parentResult);
+			addedShadow = asyncResult.getReturnValue();
 
 		} catch (Exception ex) {
-			shadow = handleError(ctx, ex, shadow, FailedOperation.ADD, null,
+			addedShadow = handleError(ctx, ex, shadow, FailedOperation.ADD, null,
 					isDoDiscovery(resource, options), isCompensate(options), parentResult);
-			return shadow.getOid();
+			return addedShadow.getOid();
 		}
 
 		// REPO OPERATION: add
 		// This is where the repo shadow is created (if needed)
-		String oid = afterAddOnResource(ctx, shadow, parentResult);
-		shadow.setOid(oid);
+		String oid = afterAddOnResource(ctx, asyncResult, parentResult);
+		addedShadow.setOid(oid);
 
-		ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(shadow);
-		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,
-				delta, parentResult);
-		operationListener.notifySuccess(operationDescription, task, parentResult);
+		if (!asyncResult.isInProgress()) {
+			ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(addedShadow);
+			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, addedShadow,
+					delta, parentResult);
+			operationListener.notifySuccess(operationDescription, task, parentResult);
+		}
 		return oid;
 	}
 
@@ -720,6 +727,9 @@ public abstract class ShadowCache {
 					GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
+		if (parentResult.isUnknown()) {
+			parentResult.computeStatus();
+		}
 		// do not set result in the shadow in case of get operation, it will
 		// resulted to misleading information
 		// by get operation we do not modify the result in the shadow, so only
@@ -1063,7 +1073,7 @@ public abstract class ShadowCache {
 
 		try {
 
-			repoShadow = shadowManager.addRepositoryShadow(ctx, resourceShadow, parentResult);
+			repoShadow = shadowManager.addDiscoveredRepositoryShadow(ctx, resourceShadow, parentResult);
 
 		} catch (ObjectAlreadyExistsException e) {
 			// This should not happen. We haven't supplied an OID so is should

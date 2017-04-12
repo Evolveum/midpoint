@@ -1618,7 +1618,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			result.computeStatus();
 		}
 		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
-		return result.getAsyncronousOperationReference();
+		return result.getAsynchronousOperationReference();
 	}
 	
 	protected void fail(String message) {

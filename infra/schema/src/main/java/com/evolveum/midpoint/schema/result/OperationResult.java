@@ -113,7 +113,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 * format of this reference depends on the operation which is being
 	 * executed.
 	 */
-	private String asyncronousOperationReference;
+	private String asynchronousOperationReference;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
@@ -214,12 +214,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 * format of this reference depends on the operation which is being
 	 * executed.
 	 */
-	public String getAsyncronousOperationReference() {
-		return asyncronousOperationReference;
+	public String getAsynchronousOperationReference() {
+		return asynchronousOperationReference;
 	}
 
-	public void setAsyncronousOperationReference(String asyncronousOperationReference) {
-		this.asyncronousOperationReference = asyncronousOperationReference;
+	public void setAsynchronousOperationReference(String asyncronousOperationReference) {
+		this.asynchronousOperationReference = asyncronousOperationReference;
 	}
 
 	/**
@@ -516,8 +516,8 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 				} else {
 					message = message + ": " + sub.getMessage();
 				}
-				if (asyncronousOperationReference == null) {
-					asyncronousOperationReference = sub.getAsyncronousOperationReference();
+				if (asynchronousOperationReference == null) {
+					asynchronousOperationReference = sub.getAsynchronousOperationReference();
 				}
 				return;
 			}
@@ -1296,9 +1296,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append(" x");
 			sb.append(count);
 		}
-		if (asyncronousOperationReference != null) {
+		if (asynchronousOperationReference != null) {
 			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "asyncronousOperationReference", asyncronousOperationReference, indent + 2);
+			DebugUtil.debugDumpWithLabel(sb, "asyncronousOperationReference", asynchronousOperationReference, indent + 2);
 		}
 		sb.append("\n");
 
@@ -1475,7 +1475,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         clone.summarizePartialErrors = summarizePartialErrors;
         clone.summarizeSuccesses = summarizeSuccesses;
         clone.minor = minor;
-        clone.asyncronousOperationReference = asyncronousOperationReference;
+        clone.asynchronousOperationReference = asynchronousOperationReference;
 
         return clone;
     }

@@ -26,8 +26,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationResult;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationReturnValue;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
@@ -41,6 +39,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
@@ -104,7 +104,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	// TODO: operations to check ticket state
 	
 	@Override
-	public ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
+	public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
 			PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations,
 			StateReporter reporter, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
@@ -124,16 +124,16 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		}
 		
 		result.recordInProgress();
-		result.setAsyncronousOperationReference(ticketIdentifier);
+		result.setAsynchronousOperationReference(ticketIdentifier);
 		
-		ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> ret = new ConnectorOperationReturnValue<>();
+		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = new AsynchronousOperationReturnValue<>();
 		ret.setOperationResult(result);
 		return ret;
 	}
 	
 
 	@Override
-	public ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
+	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
 			ObjectClassComplexTypeDefinition objectClass,
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
 			StateReporter reporter, OperationResult parentResult)
@@ -155,16 +155,16 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		}
 		
 		result.recordInProgress();
-		result.setAsyncronousOperationReference(ticketIdentifier);
+		result.setAsynchronousOperationReference(ticketIdentifier);
 		
-		ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> ret = new ConnectorOperationReturnValue<>();
+		AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = new AsynchronousOperationReturnValue<>();
 		ret.setOperationResult(result);
 		return ret;
 	}
 
 	
 	@Override
-	public ConnectorOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
+	public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
 			Collection<Operation> additionalOperations,
 			Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
@@ -185,11 +185,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		}
 		
 		result.recordInProgress();
-		result.setAsyncronousOperationReference(ticketIdentifier);
+		result.setAsynchronousOperationReference(ticketIdentifier);
 		
-		ConnectorOperationResult ret = new ConnectorOperationResult();
-		ret.setOperationResult(result);
-		return ret;
+		return AsynchronousOperationResult.wrap(result);
 	}
 
 	@Override

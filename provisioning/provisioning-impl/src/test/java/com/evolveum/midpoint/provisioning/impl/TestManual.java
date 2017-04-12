@@ -72,6 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -82,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * @author Radovan Semancik
@@ -320,6 +322,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		display("Repo shadow", shadowRepo);
 		// TODO
 //		checkRepoAccountShadowWill(shadowRepo, start, end);
+		assertPendingOperation(shadowRepo, start, end);
 		
 		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
 			
@@ -339,7 +342,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
-		// TODO: check pending operations in the shadow
+		assertPendingOperation(shadowProvisioning, start, end);
 		
 		assertNotNull("No async reference in result", asyncRef);
 		
@@ -348,6 +351,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		CaseType caseType = acase.asObjectable();
 		assertEquals("Wrong state of "+acase, SchemaConstants.CASE_STATE_OPEN ,caseType.getState());
 		// TODO: check case
+	}
+
+	private void assertPendingOperation(PrismObject<ShadowType> shadow, XMLGregorianCalendar start,
+			XMLGregorianCalendar end) {
+		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+		assertEquals("Wroung number of pending operations in "+shadow, 1, pendingOperations.size());
+		PendingOperationType pendingOperation = pendingOperations.get(0);
+		
+		ObjectDeltaType deltaType = pendingOperation.getDelta();
+		assertNotNull("No delta in pending operation in "+shadow, deltaType);
+		// TODO: check content of pending operations in the shadow
+		
+		TestUtil.assertBetween("No request timestamp in pending operation in "+shadow, start, end, pendingOperation.getRequestTimestamp());
 	}
 
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {

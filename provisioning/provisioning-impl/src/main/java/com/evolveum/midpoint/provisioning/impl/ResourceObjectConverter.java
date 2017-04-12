@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -88,6 +89,7 @@ public class ResourceObjectConverter {
 	
 	private static final String DOT_CLASS = ResourceObjectConverter.class.getName() + ".";
 	public static final String OPERATION_MODIFY_ENTITLEMENT = DOT_CLASS + "modifyEntitlement";
+	private static final String OPERATION_ADD_RESOURCE_OBJECT = DOT_CLASS + "addResourceObject";;
 	
 	@Autowired
 	private EntitlementConverter entitlementConverter;
@@ -222,10 +224,13 @@ public class ResourceObjectConverter {
 
 	
 
-	public PrismObject<ShadowType> addResourceObject(ProvisioningContext ctx, 
+	public AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResourceObject(ProvisioningContext ctx, 
 			PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		
+		OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
+		
 		ResourceType resource = ctx.getResource();
 		
 		LOGGER.trace("Adding resource object {}", shadow);
@@ -239,15 +244,17 @@ public class ResourceObjectConverter {
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry)) {
 			LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
-			throw new SecurityViolationException("Cannot get protected shadow " + shadowType);
+			SecurityViolationException e = new SecurityViolationException("Cannot get protected shadow " + shadowType);
+			result.recordFatalError(e);
+			throw e;
 		}
 
 		Collection<Operation> additionalOperations = new ArrayList<Operation>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
-				parentResult);
+				result);
 		entitlementConverter.processEntitlementsAdd(ctx, shadowClone);
 		
-		ConnectorInstance connector = ctx.getConnector(parentResult);
+		ConnectorInstance connector = ctx.getConnector(result);
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -255,18 +262,16 @@ public class ResourceObjectConverter {
 						resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
 						SchemaDebugUtil.debugDump(additionalOperations,2));
 			}
-			transformActivationAttributes(ctx, shadowType, parentResult);
+			transformActivationAttributes(ctx, shadowType, result);
 			
 			if (!ResourceTypeUtil.isCreateCapabilityEnabled(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'create' operation");
 			}
 			
-			ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> ret = connector.addObject(shadowClone, additionalOperations, ctx, parentResult);
+			AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = connector.addObject(shadowClone, additionalOperations, ctx, result);
 			resourceAttributesAfterAdd = ret.getReturnValue();
 
 			if (LOGGER.isDebugEnabled()) {
-				// TODO: reduce only to new/different attributes. Dump all
-				// attributes on trace level only
 				LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
 						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
 			}
@@ -275,35 +280,29 @@ public class ResourceObjectConverter {
 			// outside this method.
 			applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
 		} catch (CommunicationException ex) {
-			parentResult.recordFatalError(
+			result.recordFatalError(
 					"Could not create object on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
-			parentResult.recordFatalError("Could not create object on the resource. Generic error in connector: " + ex.getMessage(), ex);
-//			LOGGER.info("Schema for add:\n{}",
-//					DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
-//			
+			result.recordFatalError("Could not create object on the resource. Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 		} catch (ObjectAlreadyExistsException ex){
-			parentResult.recordFatalError("Could not create object on the resource. Object already exists on the resource: " + ex.getMessage(), ex);
+			result.recordFatalError("Could not create object on the resource. Object already exists on the resource: " + ex.getMessage(), ex);
 			throw new ObjectAlreadyExistsException("Object already exists on the resource: " + ex.getMessage(), ex);
-		} catch (ConfigurationException ex){
-			parentResult.recordFatalError(ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			parentResult.recordFatalError(ex);
-			throw ex;
+		} catch (ConfigurationException | SchemaException | RuntimeException | Error e){
+			result.recordFatalError(e);
+			throw e;
 		}
 		
 		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesAdd(ctx, shadowClone, scripts, parentResult);
+		executeEntitlementChangesAdd(ctx, shadowClone, scripts, result);
 		
 		LOGGER.trace("Added resource object {}", shadow);
 
-		computeResultStatus(parentResult);
+		computeResultStatus(result);
 		
-		return shadow;
+		return AsynchronousOperationReturnValue.wrap(shadow, result);
 	}
 
 	public void deleteResourceObject(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
@@ -656,7 +655,7 @@ public class ResourceObjectConverter {
 					operationsWave = convertToReplace(ctx, operationsWave, currentShadow);
 				}
 				if (!operationsWave.isEmpty()) {
-					ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
 					Collection<PropertyModificationOperation> sideEffects = ret.getReturnValue();
 					sideEffectChanges.addAll(sideEffects);
 					// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
@@ -2198,14 +2197,19 @@ public class ResourceObjectConverter {
 	
 	private void computeResultStatus(OperationResult parentResult) {
 		OperationResultStatus status = OperationResultStatus.SUCCESS;
+		String asyncRef = null;
 		for (OperationResult subresult: parentResult.getSubresults()) {
 			if (OPERATION_MODIFY_ENTITLEMENT.equals(subresult.getOperation()) && subresult.isError()) {
 				status = OperationResultStatus.PARTIAL_ERROR;
 			} else if (subresult.isError()) {
 				status = OperationResultStatus.FATAL_ERROR;
+			} else if (subresult.isInProgress()) {
+				status = OperationResultStatus.IN_PROGRESS;
+				asyncRef = subresult.getAsynchronousOperationReference();
 			}
 		}
 		parentResult.setStatus(status);
+		parentResult.setAsynchronousOperationReference(asyncRef);
 	}
 
 	
