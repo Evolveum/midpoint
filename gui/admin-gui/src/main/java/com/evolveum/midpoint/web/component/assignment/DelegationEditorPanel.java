@@ -40,6 +40,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -68,6 +69,9 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_LIMIT_PRIVILEGES_BUTTON = "limitPrivilegesButton";
     private List<String> privilegesNames = new ArrayList<>();
     private static final String ID_EXPAND = "expand";
+    private static final String ID_DELEGATE_APPROVAL_WI = "approvalWorkItems";
+    private static final String ID_DELEGATE_CERTIFICATION_WI = "certificationWorkItems";
+    private static final String ID_DELEGATE_MANAGEMENT_WI = "managementWorkItems";
 
     private static final String DOT_CLASS = DelegationEditorPanel.class.getName() + ".";
     private static final String OPERATION_GET_TARGET_REF_NAME = DOT_CLASS + "getTargetRefName";
@@ -233,6 +237,39 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         });
         body.add(limitPrivilegesButton);
+
+        AjaxCheckBox approvalRights = new AjaxCheckBox(ID_DELEGATE_APPROVAL_WI,
+                new Model<Boolean>(false)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        };
+        approvalRights.setOutputMarkupId(true);
+        body.add(approvalRights);
+
+        AjaxCheckBox certificationRights = new AjaxCheckBox(ID_DELEGATE_CERTIFICATION_WI,
+                new Model<Boolean>(false)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        };
+        certificationRights.setOutputMarkupId(true);
+        body.add(certificationRights);
+
+        AjaxCheckBox managementWorkItems = new AjaxCheckBox(ID_DELEGATE_MANAGEMENT_WI,
+                new Model<Boolean>(false)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        };
+        managementWorkItems.setOutputMarkupId(true);
+        body.add(managementWorkItems);
     };
 
     private void addOrReplacePrivilegesPanel(WebMarkupContainer body){
