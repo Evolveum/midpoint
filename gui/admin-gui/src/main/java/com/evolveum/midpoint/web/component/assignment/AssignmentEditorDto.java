@@ -167,6 +167,18 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, relation, pageBase);
 		dto.setDelegationOwner(delegationOwner);
 		if (SchemaConstants.ORG_DEPUTY.equals(relation)){
+			OtherPrivilegesLimitationType limitations = new OtherPrivilegesLimitationType();
+
+			WorkItemSelectorType approvalWorkItemSelector = new WorkItemSelectorType();
+			approvalWorkItemSelector.all(Boolean.TRUE);
+			limitations.setApprovalWorkItems(approvalWorkItemSelector);
+
+			WorkItemSelectorType certificationWorkItemSelector = new WorkItemSelectorType();
+			certificationWorkItemSelector.all(Boolean.TRUE);
+			limitations.setCertificationWorkItems(certificationWorkItemSelector);
+
+			dto.setPrivilegesLimitation(limitations);
+
 			dto.setMinimized(false);
 		} else {
 			dto.setMinimized(true);
