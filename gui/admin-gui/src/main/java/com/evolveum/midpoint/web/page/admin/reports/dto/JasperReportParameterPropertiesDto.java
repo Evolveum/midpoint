@@ -6,7 +6,7 @@ import net.sf.jasperreports.engine.JRPropertiesMap;
 
 public class JasperReportParameterPropertiesDto implements Serializable{
 	private static final String PROPERTY_KEY = "key";
-	private static final String PROPERTY_LABEL = "lable";
+	private static final String PROPERTY_LABEL = "label";
 	private static final String PROPERTY_TARGET_TYPE = "targetType";
 	private static final String PROPERTY_MULTIVALUE = "multivalue";
 	
