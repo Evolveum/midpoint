@@ -1610,4 +1610,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		remainingToOverwrite.forEach(name -> removeItem(new ItemPath(name), Item.class));
 	}
+	
+	/**
+	 * Set origin type to all values and subvalues
+	 */
+	public void setOriginTypeRecursive(final OriginType originType) {
+		accept((visitable) -> {
+			if (visitable instanceof PrismValue) {
+				((PrismValue)visitable).setOriginType(originType);
+			}
+		});
+	}
 }

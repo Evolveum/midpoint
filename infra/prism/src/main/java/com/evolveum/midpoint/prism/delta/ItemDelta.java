@@ -1850,4 +1850,15 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				.filter(v -> !differentIds(v, value) && v.equals(value, true))
 				.findFirst().orElse(null);
 	}
+	
+	/**
+	 * Set origin type to all values and subvalues
+	 */
+	public void setOriginTypeRecursive(final OriginType originType) {
+		accept((visitable) -> {
+			if (visitable instanceof PrismValue) {
+				((PrismValue)visitable).setOriginType(originType);
+			}
+		});
+	}
 }
