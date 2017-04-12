@@ -7645,6 +7645,9 @@
 							<xsd:documentation>
 								Description of changes that happened to an resource object shadow.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="attemptNumber" type="xsd:int" minOccurs="0">
