@@ -124,7 +124,7 @@ public class TestFind {
 		PrismProperty<String> property = findUserProperty(path);
 		
 		// THEN
-		assertEquals("Wrong property value (path="+path+")", "BAR", property.getRealValue());
+		assertEquals("Wrong property value (path="+path+")", "BAR", property.getAnyRealValue());
 	}
 	
 	@Test

@@ -468,7 +468,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 		}
 
-		if (tokenProperty != null && (tokenProperty.getValue() == null || tokenProperty.getValue().getValue() == null)) {
+		if (tokenProperty != null && (tokenProperty.getAnyRealValue() == null)) {
 			LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Empty sync token property:\n{}", tokenProperty.debugDump());

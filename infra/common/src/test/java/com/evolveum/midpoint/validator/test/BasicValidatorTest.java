@@ -96,7 +96,7 @@ public class BasicValidatorTest {
 				PrismContainer<?> extensionContainer = object.getExtension();
 				PrismProperty<Integer> menProp = extensionContainer.findProperty(new QName("http://myself.me/schemas/whatever","menOnChest"));
 				assertNotNull("No men on a dead man chest!", menProp);
-				assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getValue().getValue());
+				assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getAnyRealValue());
 				PrismPropertyDefinition menPropDef = menProp.getDefinition();
 				assertNotNull("Men on a dead man chest NOT defined", menPropDef);
 				assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INT, menPropDef.getTypeName());

@@ -388,7 +388,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		for (AssignmentType assignment : assignments) {
 			if (assignment.getTargetRef() == null ||
 					!UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
-				list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+				list.add(new AssignmentEditorDto(StringUtils.isEmpty(focusWrapper.getOid()) ?
+						UserDtoStatus.ADD : UserDtoStatus.MODIFY, assignment, this));
 			}
 		}
 

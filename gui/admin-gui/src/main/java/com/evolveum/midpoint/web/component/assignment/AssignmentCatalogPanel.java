@@ -442,7 +442,11 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 addOrgMembersFilter(oid, memberQuery);
             }
         }
-        addAssignableRolesFilter(memberQuery);
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))
+                || AssignmentViewType.ROLE_TYPE.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
+            addAssignableRolesFilter(memberQuery);
+        }
+        addViewTypeFilter(memberQuery);
         if (memberQuery == null) {
             memberQuery = new ObjectQuery();
         }
@@ -456,6 +460,16 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             memberQuery.addFilter(searchQuery.getFilter());
         }
         return memberQuery;
+    }
+
+    private void addViewTypeFilter(ObjectQuery query) {
+        if (AssignmentViewType.ORG_TYPE.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
+            query.addFilter(TypeFilter.createType(OrgType.COMPLEX_TYPE, query.getFilter()));
+        } else if (AssignmentViewType.ROLE_TYPE.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
+            query.addFilter(TypeFilter.createType(RoleType.COMPLEX_TYPE, query.getFilter()));
+        } else if (AssignmentViewType.SERVICE_TYPE.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
+            query.addFilter(TypeFilter.createType(ServiceType.COMPLEX_TYPE, query.getFilter()));
+        }
     }
 
     private void addAssignableRolesFilter(ObjectQuery query) {
