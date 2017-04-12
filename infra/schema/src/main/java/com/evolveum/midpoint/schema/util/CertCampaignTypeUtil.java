@@ -411,4 +411,16 @@ public class CertCampaignTypeUtil {
                 .map(e -> (StageCompletionEventType) e)
                 .collect(Collectors.toList());
     }
+
+    public static int getCurrentStageEscalationLevelNumber(@NotNull AccessCertificationCampaignType campaign) {
+        AccessCertificationStageType currentStage = getCurrentStage(campaign);
+        if (currentStage == null) {
+            throw new IllegalStateException("No current stage for " + campaign);
+        }
+        if (currentStage.getEscalationLevel() != null && currentStage.getEscalationLevel().getNumber() != null) {
+            return currentStage.getEscalationLevel().getNumber();
+        } else {
+            return 0;
+        }
+    }
 }

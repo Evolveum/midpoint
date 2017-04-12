@@ -337,9 +337,9 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
         AccessCertificationStageType stage = campaign.getStage().get(0);
         assertEquals("wrong stage #", 1, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
+        assertApproximateTime("stage 1 start", new Date(), stage.getStartTimestamp());
         assertNotNull("stage 1 deadline", stage.getDeadline());       // too lazy to compute exact datetime
-		assertNull("unexpected stage 1 end", stage.getEnd());
+		assertNull("unexpected stage 1 end", stage.getEndTimestamp());
         assertEquals("Wrong number of certification cases", cases, campaign.getCase().size());
 
 		PrismObject<AccessCertificationDefinitionType> def = getObjectViaRepo(AccessCertificationDefinitionType.class, definition.getOid());
@@ -356,9 +356,9 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertEquals("wrong # of stages", stageNumber, campaign.getStage().size());
 		AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, stageNumber);
 		assertEquals("wrong stage #", stageNumber, stage.getNumber());
-		assertApproximateTime("stage start", new Date(), stage.getStart());
+		assertApproximateTime("stage start", new Date(), stage.getStartTimestamp());
 		assertNotNull("stage deadline", stage.getDeadline());       // too lazy to compute exact datetime
-		assertNull("unexpected stage end", stage.getEnd());
+		assertNull("unexpected stage end", stage.getEndTimestamp());
 	}
 
 
@@ -543,8 +543,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
         assertEquals("wrong # of stages", stageNumber, campaign.getStage().size());
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertEquals("wrong stage #", stageNumber, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStart());
-        assertApproximateTime("stage 1 end", new Date(), stage.getStart());
+        assertApproximateTime("stage 1 start", new Date(), stage.getStartTimestamp());
+        assertApproximateTime("stage 1 end", new Date(), stage.getStartTimestamp());
 
 		for (AccessCertificationCaseType aCase : campaign.getCase()) {
 			if (aCase.getStageNumber() != stageNumber) {

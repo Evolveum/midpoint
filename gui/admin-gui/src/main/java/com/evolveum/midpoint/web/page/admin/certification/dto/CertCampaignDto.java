@@ -130,7 +130,7 @@ public class CertCampaignDto extends Selectable {
 
     public String getStageStart() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-        return stage != null ? WebComponentUtil.formatDate(stage.getStart()) : null;
+        return stage != null ? WebComponentUtil.formatDate(stage.getStartTimestamp()) : null;
     }
 
     public String getStageDeadline() {
@@ -140,7 +140,7 @@ public class CertCampaignDto extends Selectable {
 
     public String getStageEnd() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-        return stage != null ? WebComponentUtil.formatDate(stage.getEnd()) : null;
+        return stage != null ? WebComponentUtil.formatDate(stage.getEndTimestamp()) : null;
     }
 
     public AccessCertificationCampaignStateType getState() {

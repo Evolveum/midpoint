@@ -255,7 +255,10 @@ public class TestEscalation extends AbstractCertificationTest {
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentComplete(campaign, 0, 0, 0);
 
-        display("campaign after escalation", campaign);
+		AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
+		assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
+
+		display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action (P3D)
     }
 
@@ -308,7 +311,10 @@ public class TestEscalation extends AbstractCertificationTest {
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentComplete(campaign, 0, 0, 0);
 
-        display("campaign after escalation", campaign);
+		AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
+		assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
+
+		display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size());           // completion
     }
 

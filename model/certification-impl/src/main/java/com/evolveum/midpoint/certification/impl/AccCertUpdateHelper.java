@@ -204,7 +204,7 @@ public class AccCertUpdateHelper {
         rv.add(createStageAddDelta(stage));
         rv.addAll(createDeltasToRecordStageOpen(campaign, stage));
 		rv.addAll(createTriggersForTimedActions(campaign.getOid(), 0,
-				XmlTypeConverter.toDate(stage.getStart()), XmlTypeConverter.toDate(stage.getDeadline()),
+				XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()),
 				CertCampaignTypeUtil.findStageDefinition(campaign, newStageNumber).getTimedActions()));
 
 		LOGGER.trace("getDeltasForStageOpen finishing, returning {} deltas:\n{}", rv.size(), DebugUtil.debugDumpLazily(rv));
@@ -266,10 +266,10 @@ public class AccCertUpdateHelper {
     protected AccessCertificationStageType createStage(AccessCertificationCampaignType campaign, int requestedStageNumber) {
         AccessCertificationStageType stage = new AccessCertificationStageType(prismContext);
         stage.setNumber(requestedStageNumber);
-        stage.setStart(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+        stage.setStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage.getNumber());
-		XMLGregorianCalendar deadline = computeDeadline(stage.getStart(), stageDef.getDuration(), stageDef.getDeadlineRounding());
+		XMLGregorianCalendar deadline = computeDeadline(stage.getStartTimestamp(), stageDef.getDuration(), stageDef.getDeadlineRounding());
         stage.setDeadline(deadline);
 
         stage.setName(stageDef.getName());
@@ -413,31 +413,30 @@ public class AccCertUpdateHelper {
 		// Because of consistence with other parts of midPoint we store the escalation level within work item itself.
 		// But we enforce it to be the same for all the open work items.
 		// This behavior will most probably change in the future.
-        Integer newGlobalEscalationLevelNumber = null;
+		AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+		int newStageEscalationLevelNumber = CertCampaignTypeUtil.getCurrentStageEscalationLevelNumber(campaign) + 1;
+		WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType()
+				.number(newStageEscalationLevelNumber)
+				.name(escalateAction.getEscalationLevelName())
+				.displayName(escalateAction.getEscalationLevelDisplayName());
 		for (AccessCertificationWorkItemType workItem : workItems) {
 			AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCaseChecked(workItem);
-			AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaignChecked(aCase);
-			if (!java.util.Objects.equals(campaign.getOid(), campaignOid)) {
-				throw new IllegalArgumentException("Work item to delegate does not belong to specified campaign (" + campaignOid + ") but to " + campaign);
+			AccessCertificationCampaignType workItemCampaign = CertCampaignTypeUtil.getCampaignChecked(aCase);
+			if (!java.util.Objects.equals(workItemCampaign.getOid(), campaignOid)) {
+				throw new IllegalArgumentException("Work item to delegate does not belong to specified campaign (" + campaignOid + ") but to " + workItemCampaign);
 			}
 			if (workItem.getCloseTimestamp() != null) {
 				throw new IllegalStateException("Couldn't delegate a work item that is already closed: " + workItem);
 			}
-			if (workItem.getStageNumber() != campaign.getStageNumber()) {
-				throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + campaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
+			if (workItem.getStageNumber() != workItemCampaign.getStageNumber()) {
+				throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + workItemCampaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
 			}
-			List<ObjectReferenceType> delegates = computeDelegateTo(escalateAction, workItem, aCase, campaign, task, result);
+			List<ObjectReferenceType> delegates = computeDelegateTo(escalateAction, workItem, aCase, workItemCampaign, task, result);
 
 			int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
-			int newEscalationLevelNumber = escalationLevel + 1;
-			WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType()
-					.number(newEscalationLevelNumber)
-					.name(escalateAction.getEscalationLevelName())
-					.displayName(escalateAction.getEscalationLevelDisplayName());
-			if (newGlobalEscalationLevelNumber == null) {
-				newGlobalEscalationLevelNumber = newEscalationLevelNumber;
-			} else if (newGlobalEscalationLevelNumber != newEscalationLevelNumber) {
-				throw new IllegalStateException("Different escalation level numbers for certification cases: both " + newGlobalEscalationLevelNumber + " and " + newEscalationLevel);
+			if (escalationLevel + 1 != newStageEscalationLevelNumber) {
+				throw new IllegalStateException("Different escalation level numbers for certification cases: work item level ("
+						+ newEscalationLevel + ") is different from the stage level (" + newStageEscalationLevelNumber + ")");
 			}
 			LOGGER.debug("Escalating work item {} to level: {}; delegates={}: cause={}", workItem, newEscalationLevel, delegates, causeInformation);
 
@@ -459,13 +458,16 @@ public class AccCertUpdateHelper {
 
 			// notification (after modifications)
 		}
-		assert newGlobalEscalationLevelNumber != null;
-		AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaignChecked(workItems.get(0));
 		AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
 		assert stage != null;
+		Long stageId = stage.asPrismContainerValue().getId();
+		assert stageId != null;
+		deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(AccessCertificationCampaignType.F_STAGE, stageId, AccessCertificationStageType.F_ESCALATION_LEVEL).replace(newEscalationLevel)
+				.asItemDelta());
 		AccessCertificationStageDefinitionType stageDefinition = CertCampaignTypeUtil.getCurrentStageDefinition(campaign);
-		deltas.addAll(createTriggersForTimedActions(campaignOid, newGlobalEscalationLevelNumber,
-				XmlTypeConverter.toDate(stage.getStart()), XmlTypeConverter.toDate(stage.getDeadline()), stageDefinition.getTimedActions()));
+		deltas.addAll(createTriggersForTimedActions(campaignOid, newStageEscalationLevelNumber,
+				XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()), stageDefinition.getTimedActions()));
 
 		modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
@@ -574,7 +576,7 @@ public class AccCertUpdateHelper {
         assert stageId != null;
         XMLGregorianCalendar currentTime = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-				.item(AccessCertificationCampaignType.F_STAGE, stageId, AccessCertificationStageType.F_END).replace(currentTime)
+				.item(AccessCertificationCampaignType.F_STAGE, stageId, AccessCertificationStageType.F_END_TIMESTAMP).replace(currentTime)
 				.asItemDelta();
     }
 

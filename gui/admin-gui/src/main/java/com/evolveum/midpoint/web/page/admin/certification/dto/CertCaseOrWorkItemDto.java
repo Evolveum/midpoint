@@ -145,7 +145,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
             return null;
         }
         AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, stageNumber);
-        return XmlTypeConverter.toDate(stage.getStart());
+        return XmlTypeConverter.toDate(stage.getStartTimestamp());
     }
 
     public String getCurrentStageName() {

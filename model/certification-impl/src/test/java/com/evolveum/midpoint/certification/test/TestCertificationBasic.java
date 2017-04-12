@@ -740,7 +740,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertDefinitionAndOwner(campaign, certificationDefinition, USER_BOB_OID);
         assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        assertApproximateTime("stage 1 end", new Date(), campaign.getStage().get(0).getEnd());
+        assertApproximateTime("stage 1 end", new Date(), campaign.getStage().get(0).getEndTimestamp());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         AccessCertificationCaseType jackCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
