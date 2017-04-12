@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class JasperReportDto implements Serializable{
 	
+	private static final long serialVersionUID = 1L;
 	private String query;
 	private List<JasperReportParameterDto> parameters;
 	private List<JasperReportFieldDto> fields;
@@ -67,19 +68,7 @@ public class JasperReportDto implements Serializable{
 					continue;
 					
 				}
-				
-				JasperReportParameterDto p = new JasperReportParameterDto(parameter.getName(), parameter.getValueClass(), parameter.getValueClassName(), parameter.isForPrompting());
-				
-				if (parameter.getDescription() != null){
-					p.setDescription(parameter.getDescription());
-				}
-				if (parameter.getNestedType() != null){
-					p.setNestedType(parameter.getNestedType());
-				}
-				
-				if (parameter.hasProperties()){                                        
-					p.setProperties(parameter.getPropertiesMap());
-				}
+				JasperReportParameterDto p = new JasperReportParameterDto(parameter);
 				parameters.add(p);
 			}
 			
@@ -145,8 +134,9 @@ public class JasperReportDto implements Serializable{
 				p.setName(param.getName());
 				p.setForPrompting(param.isForPrompting());
 				p.setDescription(param.getDescription());
+				p.setNestedTypeName(param.getNestedTypeAsString());
 				p.setNestedType(param.getNestedType());
-				p.getPropertiesMap().setBaseProperties(param.getProperties());
+				p.getPropertiesMap().setBaseProperties(param.getJRProperties());
 				//			p.getPropertiesMap().setProperty(propName, value);
 				design.addParameter(p);
 			}

@@ -1195,9 +1195,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (expectedValue == null && syncTokenProperty == null) {
 			return;
 		}
-		if (!MiscUtil.equals(expectedValue, syncTokenProperty.getRealValue())) {
+		Object syncTokenPropertyValue = syncTokenProperty.getAnyRealValue();
+		if (!MiscUtil.equals(expectedValue, syncTokenPropertyValue)) {
 			AssertJUnit.fail("Wrong sync token, expected: " + expectedValue + (expectedValue==null?"":(", "+expectedValue.getClass().getName())) +
-					", was: "+ syncTokenProperty.getRealValue() + (syncTokenProperty.getRealValue()==null?"":(", "+syncTokenProperty.getRealValue().getClass().getName())));
+					", was: "+ syncTokenPropertyValue + (syncTokenPropertyValue==null?"":(", "+syncTokenPropertyValue.getClass().getName())));
 		}
 	}
 

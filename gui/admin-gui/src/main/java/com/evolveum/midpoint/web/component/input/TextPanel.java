@@ -38,7 +38,7 @@ public class TextPanel<T> extends InputPanel {
     }
 
     @Override
-    public FormComponent getBaseFormComponent() {
+    public FormComponent<T> getBaseFormComponent() {
         return (FormComponent) get(ID_INPUT);
     }
 }
