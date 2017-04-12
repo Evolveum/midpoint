@@ -135,6 +135,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
+
+	private static final boolean FILTER_TRACE_ENABLED = false;
 	
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -1100,12 +1102,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								objSpecSecurityFilter = objSpecTypeFilter;
 							}
 							
+							traceFilter("objSpecSecurityFilter", objectSpecType, objSpecSecurityFilter);
 							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
 						}
 					} else {
 						LOGGER.trace("  No object specification in authorization (authorization is universaly applicable)");
 						autzObjSecurityFilter = AllFilter.createAll();
 					}
+					
+					traceFilter("autzObjSecurityFilter", autz, autzObjSecurityFilter);
 					
 					if (applicable) {
 						// authority is applicable to this situation. now we can process the decision.
@@ -1129,12 +1134,17 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									// This is "deny all". We cannot have anything stronger than that.
 									// There is no point in continuing the evaluation.
 									LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{getUsername(principal), operationUrl});
-									return NoneFilter.createNone();
+									NoneFilter secFilter = NoneFilter.createNone();
+									traceFilter("secFilter", null, secFilter);
+									return secFilter;
 								}
 								securityFilterDeny = ObjectQueryUtil.filterOr(securityFilterDeny, autzObjSecurityFilter);
 							}
 						}
 					}
+					
+					traceFilter("securityFilterAllow", autz, securityFilterAllow);
+					traceFilter("securityFilterDeny", autz, securityFilterDeny);
 					
 				} else {
 					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), getUsername(principal));
@@ -1142,13 +1152,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 		}
 		
+		traceFilter("securityFilterAllow", null, securityFilterAllow);
+		traceFilter("securityFilterDeny", null, securityFilterDeny);
+		
 		ObjectFilter origWithAllowFilter;
 		if (hasAllowAll) {
 			origWithAllowFilter = origFilter;
 		} else if (securityFilterAllow == null) {
 			// Nothing has been allowed. This means default deny.
 			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: default deny",  new Object[]{getUsername(principal), operationUrl});
-			return NoneFilter.createNone();
+			NoneFilter secFilter = NoneFilter.createNone();
+			traceFilter("secFilter", null, secFilter);
+			return secFilter;
 		} else {
 			origWithAllowFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilterAllow);
 		}
@@ -1158,6 +1173,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow:\n{}", 
 					new Object[]{getUsername(principal), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump()});
 			}
+			traceFilter("origWithAllowFilter", null, origWithAllowFilter);
 			return origWithAllowFilter;
 		} else {
 			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(origWithAllowFilter, NotFilter.createNot(securityFilterDeny));
@@ -1165,8 +1181,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses):\n{}", 
 					new Object[]{getUsername(principal), operationUrl, secFilter==null?"null":secFilter.debugDump()});
 			}
+			traceFilter("secFilter", null, secFilter);
 			return secFilter;
 		}
+	}
+
+	private void traceFilter(String message, Object forObj, ObjectFilter filter) {
+		if (FILTER_TRACE_ENABLED) {
+			LOGGER.trace("FILTER {} for {}:\n{}", message, forObj, filter==null?null:filter.debugDump(1));
+		}
+		
 	}
 
 	private Object getUsername(MidPointPrincipal principal) {
