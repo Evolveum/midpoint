@@ -48,6 +48,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -58,6 +59,7 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -68,6 +70,8 @@ import org.apache.wicket.util.resource.IResourceStream;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 
 /**
@@ -442,14 +446,22 @@ public class AuditLogViewerPanel extends BasePanel{
         if (userProfile.getTables().containsKey(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)){
             pageSize = userProfile.getPagingSize(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER);
         }
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, initColumns(),
+        List<IColumn<AuditEventRecordType, String>> columns = initColumns();
+        BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(ID_TABLE, provider, columns,
                 UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER, pageSize){
             private static final long serialVersionUID = 1L;
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 String fileName = "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-                CSVDataExporter csvDataExporter = new CSVDataExporter();
+                CSVDataExporter csvDataExporter = new CSVDataExporter(){
+                    @Override
+                    public <T> void exportData(IDataProvider<T> dataProvider, List<IExportableColumn<T, ?>> columns, OutputStream outputStream) throws IOException {
+                        ((AuditEventRecordProvider) dataProvider).setExportSize(true);
+                        super.exportData(dataProvider, columns, outputStream);
+                        ((AuditEventRecordProvider) dataProvider).setExportSize(false);
+                    }
+                };
                 ResourceStreamResource resource = (new ResourceStreamResource() {
                     protected IResourceStream getResourceStream() {
                         return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, getAuditLogViewerTable().getDataTable());
