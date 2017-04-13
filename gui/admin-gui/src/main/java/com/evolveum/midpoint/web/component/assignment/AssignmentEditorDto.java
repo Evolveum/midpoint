@@ -79,6 +79,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public static final String F_FOCUS_TYPE = "focusType";
 	public static final String F_TENANT_REF = "tenantRef";
 	public static final String F_ORG_REF = "orgRef";
+	public static final String F_NEW_ASSIGNMENT = "newAssignment";
 	public static final String F_ALT_NAME = "altName";
 	public static final String F_IS_ORG_UNIT_MANAGER = "isOrgUnitManager";
 
@@ -166,6 +167,18 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, relation, pageBase);
 		dto.setDelegationOwner(delegationOwner);
 		if (SchemaConstants.ORG_DEPUTY.equals(relation)){
+			OtherPrivilegesLimitationType limitations = new OtherPrivilegesLimitationType();
+
+			WorkItemSelectorType approvalWorkItemSelector = new WorkItemSelectorType();
+			approvalWorkItemSelector.all(Boolean.TRUE);
+			limitations.setApprovalWorkItems(approvalWorkItemSelector);
+
+			WorkItemSelectorType certificationWorkItemSelector = new WorkItemSelectorType();
+			certificationWorkItemSelector.all(Boolean.TRUE);
+			limitations.setCertificationWorkItems(certificationWorkItemSelector);
+
+			dto.setPrivilegesLimitation(limitations);
+
 			dto.setMinimized(false);
 		} else {
 			dto.setMinimized(true);
@@ -792,6 +805,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		if (availableRelations.size() > 0){
 			getTargetRef().setRelation(availableRelations.get(0).getRelation());
 		}
+	}
+
+	public OtherPrivilegesLimitationType getPrivilegesLimitation(){
+		return newAssignment.getLimitOtherPrivileges();
+	}
+
+	public void setPrivilegesLimitation(OtherPrivilegesLimitationType limitations){
+		newAssignment.setLimitOtherPrivileges(limitations);
+
 	}
 
 	@Override
