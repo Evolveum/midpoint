@@ -154,22 +154,30 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		String state = caseType.getState();
 		
 		if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_OPEN_QNAME, state)) {
+			result.recordSuccess();
 			return OperationResultStatus.IN_PROGRESS;
 			
 		} else if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CLOSED_QNAME, state)) {
 			
 			String outcome = caseType.getOutcome();
-			return translateOutcome(outcome);
+			OperationResultStatus status = translateOutcome(outcome);
+			result.recordSuccess();
+			return status;
 			
 		} else {
-			throw new SchemaException("Unknown case state "+state);
+			SchemaException e = new SchemaException("Unknown case state "+state);
+			result.recordFatalError(e);
+			throw e;
 		}
+		
 	}
 
 	private OperationResultStatus translateOutcome(String outcome) {
 		
 		// TODO: better algorithm
-		if (outcome.equals(OperationResultStatusType.SUCCESS.value())) {
+		if (outcome == null) {
+			return null;
+		} else if (outcome.equals(OperationResultStatusType.SUCCESS.value())) {
 			return OperationResultStatus.SUCCESS;
 		} else {
 			return OperationResultStatus.UNKNOWN;

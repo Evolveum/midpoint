@@ -70,6 +70,8 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -612,53 +614,135 @@ public abstract class ShadowCache {
 				AvailabilityStatusType.UP, parentResult);
 	}
 
-	public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 		ShadowType shadowType = shadow.asObjectable();
 		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
 		if (pendingOperations.isEmpty()) {
 			return;
 		}
-		sortOperations(pendingOperations);
 		
 		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
 		ctx.assertDefinition();
 		
+		Duration gracePeriod = null;
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency != null) {
+			gracePeriod = consistency.getPendingOperationGracePeriod();
+		}
+		
+		List<PendingOperationType> sortedOperations = sortOperations(pendingOperations);
+		LOGGER.info("SHADOW:\n{}", shadow.debugDump(1));
+		
+		boolean hasRecentlyCompletedOperation = false;
 		ObjectDelta<ShadowType> shadowDelta = shadow.createModifyDelta();
-		for (PendingOperationType pendingOperation: pendingOperations) {
+		for (PendingOperationType pendingOperation: sortedOperations) {
+
+			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+			LOGGER.info("CPATH: {}", containerPath);
+			OperationResultStatusType statusType = pendingOperation.getResultStatus();
+			XMLGregorianCalendar completionTimestamp = pendingOperation.getCompletionTimestamp();
+			XMLGregorianCalendar now = null;
 			
 			String asyncRef = pendingOperation.getAsynchronousOperationReference();
 			if (asyncRef != null) {
 				
-				OperationResultStatus status = resouceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, parentResult);
-				if (status != null) {
-					OperationResultStatusType statusType = status.createStatusType();
-					if (!statusType.equals(pendingOperation.getResultStatus())) {
-						// TODO: check for grace period 
+				OperationResultStatus newStaus = resouceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, parentResult);
+				
+				now = clock.currentTimeXMLGregorianCalendar();
 						
-						ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
-						PropertyDelta<OperationResultStatusType> statusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
-						statusDelta.setValuesToReplace(new PrismPropertyValue<>(statusType));
-						shadowDelta.addModification(statusDelta);
-						if (status != OperationResultStatus.IN_PROGRESS || status != OperationResultStatus.UNKNOWN && pendingOperation.getCompletionTimestamp() == null) {
-							PropertyDelta<Object> timestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
-							timestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
-							shadowDelta.addModification(timestampDelta);
+				if (newStaus != null) {
+					OperationResultStatusType newStatusType = newStaus.createStatusType();
+					if (!newStatusType.equals(pendingOperation.getResultStatus())) {
+						
+						
+						boolean operationCompleted = isCompleted(newStatusType) && pendingOperation.getCompletionTimestamp() == null;
+						
+						if (operationCompleted) {
+							hasRecentlyCompletedOperation = true;
 						}
 						
-						// TODO: update cached attributes (delta)
+						if (operationCompleted && gracePeriod == null) {
+							LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
+							shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
+							continue;
+						} else {
 						
-						// TODO: notify
+							PropertyDelta<OperationResultStatusType> statusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
+							statusDelta.setValuesToReplace(new PrismPropertyValue<>(newStatusType));
+							shadowDelta.addModification(statusDelta);
+							statusType = newStatusType;
+							
+							if (operationCompleted) {
+								// Operation completed
+								PropertyDelta<Object> timestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
+								timestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+								shadowDelta.addModification(timestampDelta);
+								completionTimestamp = now;
+								
+								ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
+								ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+								
+								// We do not need to care about add deltas here. The add operation is already applied to
+								// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
+								// model can find unique values while taking pending create operations into consideration.
+								
+								if (pendingDelta.isModify()) {
+									for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
+										shadowDelta.addModification(pendingModification.clone());
+									}
+								}
+								
+								if (pendingDelta.isDelete()) {
+									// TODO: dead
+								}
+								
+							}
+						}
+						
 					}
 				}
 			}
 			
+			if (now == null) {
+				now = clock.currentTimeXMLGregorianCalendar();
+			}
 			
-			// TODO: check for expiration (grace period)
+			if (isCompleted(statusType)) {
+				if (isOverGrace(now, gracePeriod, completionTimestamp)) {
+					LOGGER.trace("Deleting pending operation because it is completed '{}' (and over grace): {}", statusType.value(), pendingOperation);
+					shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
+					continue;
+				}
+			}
+		}
+		
+		if (!shadowDelta.isEmpty()) {
+			getRepositoryService().modifyObject(ShadowType.class, shadowDelta.getOid(), shadowDelta.getModifications(), null, parentResult);
+		}
+		
+		if (hasRecentlyCompletedOperation) {
+			// TODO: notify
 		}
 	}
 	
-	private void sortOperations(List<PendingOperationType> pendingOperations) {
-		Collections.sort(pendingOperations, (o1,o2) -> XmlTypeConverter.compare(o1.getRequestTimestamp(), o2.getRequestTimestamp()) );
+	private boolean isOverGrace(XMLGregorianCalendar now, Duration gracePeriod, XMLGregorianCalendar completionTimestamp) {
+		if (gracePeriod == null) {
+			return true;
+		}
+		XMLGregorianCalendar graceExpiration = XmlTypeConverter.addDuration(completionTimestamp, gracePeriod);
+		return XmlTypeConverter.compare(now, graceExpiration) == DatatypeConstants.GREATER;
+	}
+
+	private boolean isCompleted(OperationResultStatusType statusType) {
+		 return statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
+	}
+
+	private List<PendingOperationType> sortOperations(List<PendingOperationType> pendingOperations) {
+		// Copy to mutable list that is not bound to the prism
+		List<PendingOperationType> sortedList = new ArrayList<>(pendingOperations.size());
+		sortedList.addAll(pendingOperations);
+		Collections.sort(sortedList, (o1,o2) -> XmlTypeConverter.compare(o1.getRequestTimestamp(), o2.getRequestTimestamp()) );
+		return sortedList;
 	}
 
 	public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType shadowTypeWhenNoOid,
