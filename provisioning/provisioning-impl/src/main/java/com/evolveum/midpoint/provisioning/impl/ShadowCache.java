@@ -74,6 +74,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -608,6 +610,55 @@ public abstract class ShadowCache {
 		parentResult.recordSuccess();
 		resourceManager.modifyResourceAvailabilityStatus(ctx.getResource().asPrismObject(),
 				AvailabilityStatusType.UP, parentResult);
+	}
+
+	public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ShadowType shadowType = shadow.asObjectable();
+		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
+		if (pendingOperations.isEmpty()) {
+			return;
+		}
+		sortOperations(pendingOperations);
+		
+		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
+		ctx.assertDefinition();
+		
+		ObjectDelta<ShadowType> shadowDelta = shadow.createModifyDelta();
+		for (PendingOperationType pendingOperation: pendingOperations) {
+			
+			String asyncRef = pendingOperation.getAsynchronousOperationReference();
+			if (asyncRef != null) {
+				
+				OperationResultStatus status = resouceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, parentResult);
+				if (status != null) {
+					OperationResultStatusType statusType = status.createStatusType();
+					if (!statusType.equals(pendingOperation.getResultStatus())) {
+						// TODO: check for grace period 
+						
+						ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+						PropertyDelta<OperationResultStatusType> statusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
+						statusDelta.setValuesToReplace(new PrismPropertyValue<>(statusType));
+						shadowDelta.addModification(statusDelta);
+						if (status != OperationResultStatus.IN_PROGRESS || status != OperationResultStatus.UNKNOWN && pendingOperation.getCompletionTimestamp() == null) {
+							PropertyDelta<Object> timestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
+							timestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
+							shadowDelta.addModification(timestampDelta);
+						}
+						
+						// TODO: update cached attributes (delta)
+						
+						// TODO: notify
+					}
+				}
+			}
+			
+			
+			// TODO: check for expiration (grace period)
+		}
+	}
+	
+	private void sortOperations(List<PendingOperationType> pendingOperations) {
+		Collections.sort(pendingOperations, (o1,o2) -> XmlTypeConverter.compare(o1.getRequestTimestamp(), o2.getRequestTimestamp()) );
 	}
 
 	public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType shadowTypeWhenNoOid,

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -89,7 +90,8 @@ public class ResourceObjectConverter {
 	
 	private static final String DOT_CLASS = ResourceObjectConverter.class.getName() + ".";
 	public static final String OPERATION_MODIFY_ENTITLEMENT = DOT_CLASS + "modifyEntitlement";
-	private static final String OPERATION_ADD_RESOURCE_OBJECT = DOT_CLASS + "addResourceObject";;
+	private static final String OPERATION_ADD_RESOURCE_OBJECT = DOT_CLASS + "addResourceObject";
+	private static final String OPERATION_REFRESH_OPERATION_STATUS = DOT_CLASS + "refreshOperationStatus";
 	
 	@Autowired
 	private EntitlementConverter entitlementConverter;
@@ -109,6 +111,7 @@ public class ResourceObjectConverter {
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
 	static final String FULL_SHADOW_KEY = ResourceObjectConverter.class.getName()+".fullShadow";
+
 
 	public PrismObject<ShadowType> getResourceObject(ProvisioningContext ctx, 
 			Collection<? extends ResourceAttribute<?>> identifiers, boolean fetchAssociations, OperationResult parentResult)
@@ -2193,6 +2196,54 @@ public class ResourceObjectConverter {
 				}
 			}
 		}
+	}
+	
+	public OperationResultStatus refreshOperationStatus(ProvisioningContext ctx, 
+			PrismObject<ShadowType> shadow, String asyncRef, OperationResult parentResult) 
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		
+		OperationResult result = parentResult.createSubresult(OPERATION_REFRESH_OPERATION_STATUS);
+
+		ResourceType resource;
+		ConnectorInstance connector;
+		try {
+			resource = ctx.getResource();
+			connector = ctx.getConnector(result);
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException
+				| ConfigurationException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		
+		OperationResultStatus status = null;
+		if (connector instanceof AsynchronousOperationQueryable) {
+			
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("PROVISIONING REFRESH operation on {}, object: {}",
+						resource, shadow);
+			}
+			
+			try {
+				
+				status = ((AsynchronousOperationQueryable)connector).queryOperationStatus(asyncRef, result);
+				
+			} catch (ObjectNotFoundException | SchemaException e) {
+				result.recordFatalError(e);
+				throw e;
+			}
+			
+			result.recordSuccess();
+			
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("PROVISIONING REFRESH successful, returned status: {}", status);
+			}
+
+		} else {
+			LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async");
+			result.recordNotApplicableIfUnknown();
+		}
+
+		return status;
 	}
 	
 	private void computeResultStatus(OperationResult parentResult) {

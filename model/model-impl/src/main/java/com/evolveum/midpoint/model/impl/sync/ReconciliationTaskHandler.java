@@ -691,7 +691,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
                 Utils.clearRequestee(task);
-				provisioningService.finishOperation(shadow, options, task, provisioningResult);
+				provisioningService.refreshShadow(shadow, options, task, provisioningResult);
 //				retryFailedOperation(shadow.asObjectable(), opResult);
 
 				task.recordIterativeOperationEnd(shadow.asObjectable(), started, null);

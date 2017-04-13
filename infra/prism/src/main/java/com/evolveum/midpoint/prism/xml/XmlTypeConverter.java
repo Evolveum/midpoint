@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -595,6 +595,19 @@ public class XmlTypeConverter {
 
 	public static String formatDateXml(Date date) {
 		return createXMLGregorianCalendar(date).toXMLFormat();
+	}
+
+	public static int compare(XMLGregorianCalendar o1, XMLGregorianCalendar o2) {
+		if (o1 == null && o2 == null) {
+			return 0;
+		}
+		if (o1 == null) {
+			return -1;
+		}
+		if (o2 == null) {
+			return 1;
+		}
+		return o1.compare(o2);
 	}
 
 }
