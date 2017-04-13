@@ -257,6 +257,27 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
+        column = new AbstractColumn<CertWorkItemDto, String>(
+                createStringResource("PageCertDecisions.table.escalation")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        CertWorkItemDto dto = rowModel.getObject();
+                        Integer n = dto.getEscalationLevelNumber();
+                        return n != null ? String.valueOf(n) : null;
+                    }
+                }));
+                String info = rowModel.getObject().getEscalationLevelInfo();
+                if (info != null) {
+                    item.add(AttributeModifier.replace("title", info));
+                    item.add(new TooltipBehavior());
+                }
+            }
+        };
+        columns.add(column);
+
         column = new PropertyColumn<CertWorkItemDto, String>(
                 createStringResource("PageCertDecisions.table.requested"),
                 SearchingUtils.CURRENT_REVIEW_REQUESTED_TIMESTAMP, CertWorkItemDto.F_REVIEW_REQUESTED) {

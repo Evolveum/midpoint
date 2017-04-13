@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import org.apache.commons.lang.time.DurationFormatUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -43,12 +44,13 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
     public static final String F_CURRENT_STAGE_NUMBER = "currentStageNumber";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
     public static final String F_DEADLINE_AS_STRING = "deadlineAsString";
+    public static final String F_ESCALATION_LEVEL_NUMBER = "escalationLevelNumber";
 
-    private AccessCertificationCampaignType campaign;           // TODO replace by elementary items
+    @NotNull private final AccessCertificationCampaignType campaign;           // TODO replace by elementary items
     private List<InlineMenuItem> menuItems;
     private String deadlineAsString;
 
-    public CertCampaignListItemDto(AccessCertificationCampaignType campaign, PageBase page) {
+    CertCampaignListItemDto(@NotNull AccessCertificationCampaignType campaign, PageBase page) {
         this.campaign = campaign;
         deadlineAsString = computeDeadlineAsString(page);
     }
@@ -85,6 +87,11 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
         } else {
             return null;
         }
+    }
+
+    public Integer getEscalationLevelNumber() {
+        int n = CertCampaignTypeUtil.getCurrentStageEscalationLevelNumberSafe(campaign);
+        return n != 0 ? n : null;
     }
 
     public Integer getNumberOfStages() {

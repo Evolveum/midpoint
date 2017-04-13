@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -412,15 +413,34 @@ public class CertCampaignTypeUtil {
                 .collect(Collectors.toList());
     }
 
+    public static int getCurrentStageEscalationLevelNumberSafe(@NotNull AccessCertificationCampaignType campaign) {
+        AccessCertificationStageType currentStage = getCurrentStage(campaign);
+        return currentStage != null ? getEscalationLevelNumber(currentStage) : 0;
+    }
+
     public static int getCurrentStageEscalationLevelNumber(@NotNull AccessCertificationCampaignType campaign) {
         AccessCertificationStageType currentStage = getCurrentStage(campaign);
         if (currentStage == null) {
             throw new IllegalStateException("No current stage for " + campaign);
         }
+        return getEscalationLevelNumber(currentStage);
+    }
+
+    private static int getEscalationLevelNumber(AccessCertificationStageType currentStage) {
         if (currentStage.getEscalationLevel() != null && currentStage.getEscalationLevel().getNumber() != null) {
             return currentStage.getEscalationLevel().getNumber();
         } else {
             return 0;
         }
+    }
+
+    // see WfContextUtil.getEscalationLevelInfo
+    @Nullable
+    public static String getEscalationLevelInfo(AccessCertificationCampaignType campaign) {
+        if (campaign == null) {
+            return null;
+        }
+        AccessCertificationStageType stage = getCurrentStage(campaign);
+        return stage != null ? WfContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()) : null;
     }
 }

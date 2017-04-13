@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
@@ -63,5 +64,14 @@ public class CertWorkItemDto extends CertCaseOrWorkItemDto {
 
     public long getWorkItemId() {
         return workItem.getId();
+    }
+
+	public Integer getEscalationLevelNumber() {
+        int n = WfContextUtil.getEscalationLevelNumber(workItem);
+        return n != 0 ? n : null;
+    }
+
+    public String getEscalationLevelInfo() {
+        return WfContextUtil.getEscalationLevelInfo(workItem);
     }
 }

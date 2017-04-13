@@ -105,14 +105,15 @@ public class WfContextUtil {
 	}
 
 	@Nullable
-	public static String getEscalationLevelInfo(WorkItemType workItem) {
+	public static String getEscalationLevelInfo(AbstractWorkItemType workItem) {
 		if (workItem == null) {
 			return null;
 		}
 		return getEscalationLevelInfo(workItem.getEscalationLevel());
 	}
 
-	private static String getEscalationLevelInfo(WorkItemEscalationLevelType e) {
+	// TODO move to better place
+	public static String getEscalationLevelInfo(WorkItemEscalationLevelType e) {
 		if (e == null || e.getNumber() == null || e.getNumber()  == 0) {
 			return null;
 		}

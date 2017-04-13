@@ -48,6 +48,7 @@ public class CertCampaignDto extends Selectable {
     public static final String F_CAMPAIGN_END = "campaignEnd";
     public static final String F_STAGE_START = "stageStart";
     public static final String F_STAGE_DEADLINE = "stageDeadline";
+    public static final String F_ESCALATION_LEVEL_INFO = "escalationLevelInfo";
 
     private AccessCertificationCampaignType campaign;           // TODO consider replacing this by constituent primitive data items
     private String ownerName;
@@ -153,5 +154,9 @@ public class CertCampaignDto extends Selectable {
 
     public String getHandlerUri() {
         return campaign.getHandlerUri();
+    }
+
+    public String getEscalationLevelInfo() {
+        return CertCampaignTypeUtil.getEscalationLevelInfo(campaign);
     }
 }
