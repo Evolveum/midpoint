@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="887f3fd7-1532-4eca-8f96-ae3b40c15f88">
+
+	<!-- just read all nodes with type 'department' -->
+	
+    <name>Drupal departments</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+        	<q:and>
+	            <q:equal>
+	                <q:path>c:connectorType</q:path>
+	                <q:value>com.evolveum.polygon.connector.drupal.DrupalConnector</q:value>
+	            </q:equal>
+	            <q:equal>
+	                <q:path>c:connectorVersion</q:path>
+	                <q:value>1.0.0.2</q:value>
+	            </q:equal>
+	        </q:and>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties
+                xmlns:icfcp="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-drupal/com.evolveum.polygon.connector.drupal.DrupalConnector">
+            <!-- node Type what you need to read-->
+            <icfcp:nodes>department</icfcp:nodes>
+            <icfcp:trustAllCertificates>true</icfcp:trustAllCertificates>
+            <icfcp:pageSize>100</icfcp:pageSize>
+            <icfcp:userDeleteDisabled>true</icfcp:userDeleteDisabled>
+            <icfcp:createNodeWhenTitleNotExists>false</icfcp:createNodeWhenTitleNotExists>
+            <icfcp:username>admin</icfcp:username>
+            <icfcp:authMethod>BASIC</icfcp:authMethod>
+            <icfcp:password>
+                <clearValue>password</clearValue>
+            </icfcp:password>
+            <!-- configured in Drupal URL postfix -->
+            <icfcp:serviceAddress>https://localhost:4443/rest</icfcp:serviceAddress>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>department</intent>
+            <displayName>Department</displayName>
+            <objectClass>ri:Customnode_departmentObjectClass</objectClass>
+            <attribute>
+                <c:ref>icfs:uid</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>identifier</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>icfs:name</c:ref>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>name</c:path>
+                    </target>
+                    <expression>
+                        <script>
+                            <code>
+                                return 'DrupalDepartment:'+input;
+                            </code>
+                        </script>
+                    </expression>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>orgType</c:path>
+                    </target>
+                    <expression>
+                        <description>to differentiate orgs created from Drupal</description>
+                        <value>drupal-department</value>
+                    </expression>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>displayName</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:body</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>description</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+
+    <!-- DONT remove, read only mode !!! -->
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+	        <!-- READ ONLY -->
+	         <cap:create>
+	            <cap:enabled>false</cap:enabled>
+	         </cap:create>
+	         <cap:delete>
+	            <cap:enabled>false</cap:enabled>
+	         </cap:delete>
+	         <cap:update>
+	            <cap:enabled>false</cap:enabled>
+	         </cap:update>
+	         <cap:addRemoveAttributeValues>
+	            <cap:enabled>false</cap:enabled>
+	         </cap:addRemoveAttributeValues>
+	    </configured>	        
+    </capabilities>
+
+    <synchronization>
+        <objectSynchronization>
+            <name>Department sync</name>
+            <objectClass>ri:Customnode_departmentObjectClass</objectClass>
+            <kind>entitlement</kind>
+            <intent>department</intent>
+            <focusType>c:OrgType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:and>
+                    <q:equal>
+                        <q:path>c:displayName</q:path>
+                        <expression>
+                            <c:path>$shadow/attributes/icfs:name</c:path>
+                        </expression>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>c:orgType</q:path>
+                        <q:value>drupal-department</q:value>
+                    </q:equal>
+                </q:and>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+
+    </synchronization>
+
+</resource>

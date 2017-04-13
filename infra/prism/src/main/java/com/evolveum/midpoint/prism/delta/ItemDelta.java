@@ -35,8 +35,10 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Foreachable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
@@ -47,7 +49,7 @@ import org.apache.commons.collections4.CollectionUtils;
  * @author Radovan Semancik
  * 
  */
-public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> implements Itemable, DebugDumpable, Visitable, PathVisitable, Serializable {
+public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> implements Itemable, DebugDumpable, Visitable, PathVisitable, Foreachable<V>, Serializable {
 
 	/**
 	 * Name of the property
@@ -688,6 +690,21 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	
 	private boolean hasAnyValue(Collection<V> set) {
 		return (set != null && !set.isEmpty());
+	}
+	
+	public void foreach(Processor<V> processor) {
+		foreachSet(processor, valuesToAdd);
+		foreachSet(processor, valuesToDelete);
+		foreachSet(processor, valuesToReplace);
+	}
+	
+	private void foreachSet(Processor<V> processor, Collection<V> set) {
+		if (set == null) {
+			return;
+		}
+		for (V val: set) {
+			processor.process(val);
+		}
 	}
 	
 	/**
@@ -1832,5 +1849,16 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		return values.stream()
 				.filter(v -> !differentIds(v, value) && v.equals(value, true))
 				.findFirst().orElse(null);
+	}
+	
+	/**
+	 * Set origin type to all values and subvalues
+	 */
+	public void setOriginTypeRecursive(final OriginType originType) {
+		accept((visitable) -> {
+			if (visitable instanceof PrismValue) {
+				((PrismValue)visitable).setOriginType(originType);
+			}
+		});
 	}
 }

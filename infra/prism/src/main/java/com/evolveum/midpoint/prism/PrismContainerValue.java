@@ -1621,4 +1621,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public static <C extends Containerable> List<C> asContainerables(List<PrismContainerValue<C>> pcvs) {
 		return pcvs.stream().map(c -> c.asContainerable()).collect(Collectors.toList());
 	}
+
+	/**
+	 * Set origin type to all values and subvalues
+	 */
+	public void setOriginTypeRecursive(final OriginType originType) {
+		accept((visitable) -> {
+			if (visitable instanceof PrismValue) {
+				((PrismValue)visitable).setOriginType(originType);
+			}
+		});
+	}
 }

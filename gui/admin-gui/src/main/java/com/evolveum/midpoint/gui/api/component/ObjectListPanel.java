@@ -124,6 +124,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		return multiselect;
 	}
 
+	public int getSelectedObjectsCount(){
+		List<O> selectedList = getSelectedObjects();
+		return selectedList == null ? 0 : selectedList.size();
+	}
+
 	@SuppressWarnings("unchecked")
 	public List<O> getSelectedObjects() {
 		BaseSortableDataProvider<SelectableBean<O>> dataProvider = getDataProvider();

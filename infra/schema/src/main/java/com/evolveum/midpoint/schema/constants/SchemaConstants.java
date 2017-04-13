@@ -56,6 +56,7 @@ public abstract class SchemaConstants {
 	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-3";
 	public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
 	public static final String NS_SAMPLES_EXTENSION = "http://midpoint.evolveum.com/xml/ns/samples/extension-3";
+	public static final String NS_CASE = "http://midpoint.evolveum.com/xml/ns/public/common/case-3";
 	
 	/**
 	 * Namespace for default (bult-in) object collections, such as "all objects", "all roles", ...
@@ -446,6 +447,12 @@ public abstract class SchemaConstants {
 	public static final String LIFECYCLE_ARCHIVED = "archived";
 	public static final String LIFECYCLE_FAILED = "failed";
 
+	// Case: generic reusable case states
+	
+	public static final String CASE_STATE_OPEN = "open";
+	public static final QName CASE_STATE_OPEN_QNAME = new QName(NS_CASE, CASE_STATE_OPEN);
+	public static final String CASE_STATE_CLOSED = "closed";
+	public static final QName CASE_STATE_CLOSED_QNAME = new QName(NS_CASE, CASE_STATE_CLOSED);
 	
 	// Object collections
 	
